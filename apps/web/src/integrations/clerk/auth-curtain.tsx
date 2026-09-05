@@ -182,6 +182,9 @@ export function AuthCurtainHost({
   // What the curtain was still waiting for, for the timeout report. A ref so
   // reading it cannot restart the timeout that reads it.
   const stateRef = useRef({ confirmedSignedIn, pendingGates });
+  // Written during render on purpose, per the note above: the timeout
+  // must read the latest values without listing them as dependencies.
+  // oxlint-disable-next-line react/refs
   stateRef.current = { confirmedSignedIn, pendingGates };
 
   useEffect(() => {

@@ -1,14 +1,16 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, notFound } from '@tanstack/react-router';
-import { Plus } from 'lucide-react';
 
 import { Flag } from '@/components/Flag';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
+import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
+import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
 import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
 import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
+import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import {
@@ -249,33 +251,7 @@ function AzerbaijanGrandPrixPredictionsPage() {
           </>
         ) : null}
 
-        <section className="py-8 sm:py-16" aria-labelledby="common-questions">
-          <h2
-            id="common-questions"
-            className="font-title text-2xl font-medium text-text sm:text-3xl"
-          >
-            Common questions
-          </h2>
-          <div className="mt-7 grid gap-2">
-            {FAQS.map((faq) => (
-              <details
-                key={faq.question}
-                className="group rounded-sm px-3 open:bg-surface hover:bg-surface sm:px-5"
-              >
-                <summary className="font-title flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium text-text marker:content-none">
-                  {faq.question}
-                  <Plus
-                    className="h-4 w-4 shrink-0 text-text-muted transition-transform group-open:rotate-45"
-                    aria-hidden
-                  />
-                </summary>
-                <p className="gpp-reading-copy max-w-3xl pb-5 text-text-muted">
-                  {faq.answer}
-                </p>
-              </details>
-            ))}
-          </div>
-        </section>
+        <RaceFaqSection faqs={FAQS} />
 
         <RaceWriteupClosingPanel
           phase={phase}
@@ -354,161 +330,68 @@ function SaturdayRace() {
 }
 
 function WatchTable() {
-  const rows = [
-    [
-      'Straight-line efficiency',
-      'Speed from Turn 16 to Turn 1',
-      'The flat-out run is long enough to expose drag. A car that reaches the straight slowly keeps paying for it for almost two kilometres.',
-    ],
-    [
-      'Old-city confidence',
-      'Commitment through Turns 8 to 12',
-      'The road narrows beside the castle walls. A driver who leaves margin loses time that cannot be recovered in that sector.',
-    ],
-    [
-      'Braking stability',
-      'Lock-ups at Turns 1 and 3',
-      'Both stops follow high speed and offer passing chances. A weak front end costs lap time and invites an overtake.',
-    ],
-    [
-      'Wind direction',
-      'Changes in braking points and tow strength',
-      'The exposed straights make the lap sensitive to gusts. A braking reference that worked on one lap can move on the next.',
-    ],
-  ] as const;
-
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="what-to-watch">
-      <div className="max-w-3xl">
-        <h2
-          id="what-to-watch"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          What matters in Baku
-        </h2>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Baku asks for low drag on its enormous straight and grip through the
-          slow old-city section. Every setup gives something away.
-        </p>
-      </div>
-
-      <dl className="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-4">
-        {[
-          ['6.003', 'km circuit'],
-          ['51', 'race laps'],
-          ['20', 'turns'],
-          ['15:00', 'local start'],
-        ].map(([value, label]) => (
-          <div
-            key={label}
-            className="flex flex-col-reverse bg-surface p-4 sm:p-5"
-          >
-            <dt className="mt-1 text-xs tracking-label text-text-muted uppercase">
-              {label}
-            </dt>
-            <dd className="gpp-mono text-2xl text-text">{value}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <div className="mt-8">
-        <div
-          className="hidden grid-cols-[10rem_1fr_1fr] gap-8 px-4 pb-3 text-xs font-semibold tracking-label text-text-muted uppercase sm:grid sm:px-5"
-          aria-hidden
-        >
-          <span>Signal</span>
-          <span>Look for</span>
-          <span>Why it matters</span>
-        </div>
-        <div className="rounded-sm bg-surface px-4 sm:px-5">
-          {rows.map(([signal, check, reason]) => (
-            <div
-              key={signal}
-              className="grid gap-2 border-b border-border py-4 last:border-b-0 sm:grid-cols-[10rem_1fr_1fr] sm:gap-8"
-            >
-              <h3 className="font-title text-sm font-medium text-text">
-                {signal}
-              </h3>
-              <p className="text-sm leading-6 text-text">{check}</p>
-              <p className="text-sm leading-6 text-text-muted">{reason}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
+    <RaceSignalsSection
+      heading="What matters in Baku"
+      stats={[
+        ['6.003', 'km circuit'],
+        ['51', 'race laps'],
+        ['20', 'turns'],
+        ['15:00', 'local start'],
+      ]}
+      signals={[
+        [
+          'Straight-line efficiency',
+          'Speed from Turn 16 to Turn 1',
+          'The flat-out run is long enough to expose drag. A car that reaches the straight slowly keeps paying for it for almost two kilometres.',
+        ],
+        [
+          'Old-city confidence',
+          'Commitment through Turns 8 to 12',
+          'The road narrows beside the castle walls. A driver who leaves margin loses time that cannot be recovered in that sector.',
+        ],
+        [
+          'Braking stability',
+          'Lock-ups at Turns 1 and 3',
+          'Both stops follow high speed and offer passing chances. A weak front end costs lap time and invites an overtake.',
+        ],
+        [
+          'Wind direction',
+          'Changes in braking points and tow strength',
+          'The exposed straights make the lap sensitive to gusts. A braking reference that worked on one lap can move on the next.',
+        ],
+      ]}
+    >
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Baku asks for low drag on its enormous straight and grip through the
+        slow old-city section. Every setup gives something away.
+      </p>
+    </RaceSignalsSection>
   );
 }
 
-const TYRE_RANGE = [
-  { compound: 'C1', role: null, band: null },
-  { compound: 'C2', role: null, band: null },
-  { compound: 'C3', role: 'hard', band: '#f0f0f0' },
-  { compound: 'C4', role: 'medium', band: '#ffd500' },
-  { compound: 'C5', role: 'soft', band: '#da291c' },
-] as const;
-
 function TyreChoice() {
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="tyre-choice">
-      <div className="max-w-3xl">
-        <h2
-          id="tyre-choice"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          Baku gets the softest three tyres
-        </h2>
-        <ul
-          aria-label="Pirelli’s 2026 compound range, hardest to softest"
-          className="mt-7 grid grid-cols-5 gap-px overflow-hidden rounded-sm bg-border"
-        >
-          {TYRE_RANGE.map(({ compound, role, band }) => (
-            <li
-              key={compound}
-              className={
-                role
-                  ? 'border-t-[3px] bg-surface px-2 py-4 sm:px-5 sm:py-5'
-                  : 'border-t-[3px] border-dashed border-border bg-surface-sunken px-2 py-4 sm:px-5 sm:py-5'
-              }
-              style={band ? { borderTopColor: band } : undefined}
-            >
-              <p
-                className={`gpp-mono text-xl sm:text-2xl ${role ? 'text-text' : 'text-text-muted'}`}
-              >
-                {compound}
-              </p>
-              <p
-                className={
-                  role
-                    ? 'mt-1 text-[10px] tracking-label text-text-muted uppercase sm:text-xs'
-                    : 'sr-only'
-                }
-              >
-                {role ?? 'Not used at Baku'}
-              </p>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-2 flex justify-between gap-4 text-[10px] tracking-label text-text-muted uppercase sm:text-xs">
-          <span>Lasts longer</span>
-          <span>More grip</span>
-        </div>
-        <p className="gpp-reading-copy mt-7 text-text-muted">
-          Pirelli selected C3, C4 and C5. Baku generally produces low
-          degradation, and the one-stop has often been the quickest route even
-          when a softer range is available.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          The strategic question is timing. A Safety Car can make a stop cheap,
-          but waiting for one that never arrives leaves a driver on old tyres.
-          The 2025 race stayed a straightforward one-stop after its early Safety
-          Car.{' '}
-          <ExternalSource href={TYRE_SOURCE}>
-            Pirelli&rsquo;s selection
-          </ExternalSource>
-          .
-        </p>
-      </div>
-    </section>
+    <TyreCompoundSection
+      heading="Baku gets the softest three tyres"
+      venue="Baku"
+      hardest="C3"
+    >
+      <p className="gpp-reading-copy mt-7 text-text-muted">
+        Pirelli selected C3, C4 and C5. Baku generally produces low degradation,
+        and the one-stop has often been the quickest route even when a softer
+        range is available.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        The strategic question is timing. A Safety Car can make a stop cheap,
+        but waiting for one that never arrives leaves a driver on old tyres. The
+        2025 race stayed a straightforward one-stop after its early Safety Car.{' '}
+        <ExternalSource href={TYRE_SOURCE}>
+          Pirelli&rsquo;s selection
+        </ExternalSource>
+        .
+      </p>
+    </TyreCompoundSection>
   );
 }
 

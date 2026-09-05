@@ -43,6 +43,12 @@ function useNearViewport() {
       return;
     }
     if (typeof IntersectionObserver === 'undefined') {
+      // Cannot be derived during render: the server has no
+      // IntersectionObserver either, so a render-time check would say
+      // "show the charts" on the server and "observe" on the client, and
+      // hydration would disagree. Only a browser old enough to lack the
+      // observer reaches this, and it gets the charts immediately.
+      // oxlint-disable-next-line react/set-state-in-effect
       setNear(true);
       return;
     }

@@ -4,6 +4,9 @@ import type { FunctionReturnType } from 'convex/server';
 
 import { Flag } from '@/components/Flag';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
+import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
+import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
+import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { RaceNameLink } from '@/components/race-writeups/RaceNameLink';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
@@ -286,26 +289,7 @@ function BahrainGrandPrixPredictionsPage() {
           </>
         ) : null}
 
-        <section className="py-8 sm:py-16" aria-labelledby="common-questions">
-          <h2
-            id="common-questions"
-            className="font-title text-2xl font-medium text-text sm:text-3xl"
-          >
-            Common questions
-          </h2>
-          <div className="mt-6 max-w-3xl divide-y divide-border border-y border-border">
-            {FAQS.map((faq) => (
-              <details key={faq.question} className="group py-4">
-                <summary className="cursor-pointer list-none font-medium text-text marker:content-none">
-                  {faq.question}
-                </summary>
-                <p className="gpp-reading-copy mt-3 text-text-muted">
-                  {faq.answer}
-                </p>
-              </details>
-            ))}
-          </div>
-        </section>
+        <RaceFaqSection faqs={FAQS} />
 
         <RaceWriteupClosingPanel
           phase={phase}
@@ -452,98 +436,53 @@ function NoCurrentForm() {
 }
 
 function WatchTable() {
-  const rows = [
-    [
-      'Aero load at speed',
-      'Pace through the fast, constant-radius corners',
-      'Sepang is wide and quick in the middle sector. A car that carries load through long corners gains everywhere.',
-    ],
-    [
-      'Tyre management',
-      'Long-run degradation on abrasive asphalt',
-      'The surface is nine years old and rough. A driver who is quick over one lap may not hold a stint together.',
-    ],
-    [
-      'Braking into the hairpins',
-      'Stability at the end of both long straights',
-      'Both of the main passing places are heavy, wide stops. Cars that stop well can pass here rather than follow.',
-    ],
-    [
-      'Heat and rain',
-      'Cooling, and what happens if a tropical shower arrives',
-      'Afternoon rain is common. A wet or drying race spreads the field further than pace alone would.',
-    ],
-  ] as const;
-
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="what-to-watch">
-      <div className="max-w-3xl">
-        <h2
-          id="what-to-watch"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          What matters at Sepang
-        </h2>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Two long straights joined by a hairpin, and a middle sector of fast,
-          wide corners. Passing is easier here than at most circuits, so
-          qualifying decides less than it usually does.
-        </p>
-        {/* The one line worth keeping from the deleted "Before you lock your
+    <RaceSignalsSection
+      heading="What matters at Sepang"
+      stats={[
+        ['5.543', 'km circuit'],
+        ['56', 'race laps'],
+        ['15', 'turns'],
+        ['15:00', 'local start'],
+      ]}
+      signals={[
+        [
+          'Aero load at speed',
+          'Pace through the fast, constant-radius corners',
+          'Sepang is wide and quick in the middle sector. A car that carries load through long corners gains everywhere.',
+        ],
+        [
+          'Tyre management',
+          'Long-run degradation on abrasive asphalt',
+          'The surface is nine years old and rough. A driver who is quick over one lap may not hold a stint together.',
+        ],
+        [
+          'Braking into the hairpins',
+          'Stability at the end of both long straights',
+          'Both of the main passing places are heavy, wide stops. Cars that stop well can pass here rather than follow.',
+        ],
+        [
+          'Heat and rain',
+          'Cooling, and what happens if a tropical shower arrives',
+          'Afternoon rain is common. A wet or drying race spreads the field further than pace alone would.',
+        ],
+      ]}
+    >
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Two long straights joined by a hairpin, and a middle sector of fast,
+        wide corners. Passing is easier here than at most circuits, so
+        qualifying decides less than it usually does.
+      </p>
+      {/* The one line worth keeping from the deleted "Before you lock your
             Top 5" list: the rest of it restated this table, the form guide
             above and the tyre section below. Afternoon rain at Sepang is a
             durable fact about the place rather than this weekend's forecast,
             so it belongs beside the signals and not in the live forecast. */}
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Afternoon showers arrive quickly here, so wet-weather form this season
-          is worth weighing when you settle the back of a Top 5.
-        </p>
-      </div>
-
-      <dl className="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-4">
-        {[
-          ['5.543', 'km circuit'],
-          ['56', 'race laps'],
-          ['15', 'turns'],
-          ['15:00', 'local start'],
-        ].map(([value, label]) => (
-          <div
-            key={label}
-            className="flex flex-col-reverse bg-surface p-4 sm:p-5"
-          >
-            <dt className="mt-1 text-xs tracking-label text-text-muted uppercase">
-              {label}
-            </dt>
-            <dd className="gpp-mono text-2xl text-text">{value}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <div className="mt-8">
-        <div
-          className="hidden grid-cols-[10rem_1fr_1fr] gap-8 px-4 pb-3 text-xs font-semibold tracking-label text-text-muted uppercase sm:grid sm:px-5"
-          aria-hidden
-        >
-          <span>Signal</span>
-          <span>Look for</span>
-          <span>Why it matters</span>
-        </div>
-        <div className="rounded-sm bg-surface px-4 sm:px-5">
-          {rows.map(([check, signal, reason]) => (
-            <div
-              key={check}
-              className="grid gap-2 border-b border-border py-4 last:border-b-0 sm:grid-cols-[10rem_1fr_1fr] sm:gap-8"
-            >
-              <h3 className="font-title text-sm font-medium text-text">
-                {check}
-              </h3>
-              <p className="text-sm leading-6 text-text">{signal}</p>
-              <p className="text-sm leading-6 text-text-muted">{reason}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Afternoon showers arrive quickly here, so wet-weather form this season
+        is worth weighing when you settle the back of a Top 5.
+      </p>
+    </RaceSignalsSection>
   );
 }
 
@@ -555,81 +494,31 @@ function WatchTable() {
  * the middle three while the two street races on either side of it take the
  * softest three, which is what makes the strip worth drawing.
  */
-const TYRE_RANGE = [
-  { compound: 'C1', role: null, band: null },
-  { compound: 'C2', role: 'hard', band: '#f0f0f0' },
-  { compound: 'C3', role: 'medium', band: '#ffd500' },
-  { compound: 'C4', role: 'soft', band: '#da291c' },
-  { compound: 'C5', role: null, band: null },
-] as const;
-
 function TyreChoice() {
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="tyre-choice">
-      <div className="max-w-3xl">
-        <h2
-          id="tyre-choice"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          Sepang gets the middle three tyres
-        </h2>
-
-        <ul
-          aria-label="Pirelli’s 2026 compound range, hardest to softest"
-          className="mt-7 grid grid-cols-5 gap-px overflow-hidden rounded-sm bg-border"
-        >
-          {TYRE_RANGE.map(({ compound, role, band }) => (
-            <li
-              key={compound}
-              className={
-                role
-                  ? 'border-t-[3px] bg-surface px-2 py-4 sm:px-5 sm:py-5'
-                  : 'border-t-[3px] border-dashed border-border bg-surface-sunken px-2 py-4 sm:px-5 sm:py-5'
-              }
-              style={band ? { borderTopColor: band } : undefined}
-            >
-              <p
-                className={`gpp-mono text-xl sm:text-2xl ${role ? 'text-text' : 'text-text-muted'}`}
-              >
-                {compound}
-              </p>
-              <p
-                className={
-                  role
-                    ? 'mt-1 text-[10px] tracking-label text-text-muted uppercase sm:text-xs'
-                    : 'sr-only'
-                }
-              >
-                {role ?? 'Not used at Sepang'}
-              </p>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-2 flex justify-between gap-4 text-[10px] tracking-label text-text-muted uppercase sm:text-xs">
-          <span>Lasts longer</span>
-          <span>More grip</span>
-        </div>
-
-        <p className="gpp-reading-copy mt-7 text-text-muted">
-          C2, C3 and C4, one step harder than the C3, C4 and C5 going to Baku
-          and Singapore either side of this weekend. Sepang puts medium loads
-          through a tyre, but the asphalt is abrasive and has not been
-          resurfaced since 2017.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Pirelli picked the middle of the range to narrow the gap between a
-          one-stop and a two-stop, which is a choice made to open up strategy
-          rather than settle it. Expect teams to disagree about the number of
-          stops, and expect that to matter more than usual on a circuit where
-          passing is possible.{' '}
-          <ExternalSource href={TYRE_SOURCE}>
-            Read Pirelli&rsquo;s selection
-          </ExternalSource>
-          .
-        </p>
-      </div>
-    </section>
+    <TyreCompoundSection
+      heading="Sepang gets the middle three tyres"
+      venue="Sepang"
+      hardest="C2"
+    >
+      <p className="gpp-reading-copy mt-7 text-text-muted">
+        C2, C3 and C4, one step harder than the C3, C4 and C5 going to Baku and
+        Singapore either side of this weekend. Sepang puts medium loads through
+        a tyre, but the asphalt is abrasive and has not been resurfaced since
+        2017.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Pirelli picked the middle of the range to narrow the gap between a
+        one-stop and a two-stop, which is a choice made to open up strategy
+        rather than settle it. Expect teams to disagree about the number of
+        stops, and expect that to matter more than usual on a circuit where
+        passing is possible.{' '}
+        <ExternalSource href={TYRE_SOURCE}>
+          Read Pirelli&rsquo;s selection
+        </ExternalSource>
+        .
+      </p>
+    </TyreCompoundSection>
   );
 }
 

@@ -1,13 +1,15 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, notFound } from '@tanstack/react-router';
 import type { FunctionReturnType } from 'convex/server';
-import { Plus } from 'lucide-react';
 import type { CSSProperties } from 'react';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 import { Flag } from '@/components/Flag';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
+import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
+import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
+import { TyreCompoundScale } from '@/components/race-writeups/TyreCompoundSection';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
@@ -421,33 +423,7 @@ function ItalianGrandPrixPredictionsPage() {
           </>
         ) : null}
 
-        <section className="py-8 sm:py-16" aria-labelledby="common-questions">
-          <h2
-            id="common-questions"
-            className="font-title text-2xl font-medium text-text"
-          >
-            Common questions
-          </h2>
-          <div className="mt-7 grid gap-2">
-            {FAQS.map((faq) => (
-              <details
-                key={faq.question}
-                className="group rounded-sm px-3 open:bg-surface hover:bg-surface sm:px-5"
-              >
-                <summary className="font-title flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium text-text marker:content-none">
-                  {faq.question}
-                  <Plus
-                    className="h-4 w-4 shrink-0 text-text-muted transition-transform group-open:rotate-45"
-                    aria-hidden
-                  />
-                </summary>
-                <p className="gpp-reading-copy max-w-3xl pb-5 text-text-muted">
-                  {faq.answer}
-                </p>
-              </details>
-            ))}
-          </div>
-        </section>
+        <RaceFaqSection faqs={FAQS} />
 
         {isLive ? (
           <DeferredRaceWriteupPicks
@@ -486,94 +462,43 @@ function ItalianGrandPrixPredictionsPage() {
 }
 
 function WatchTable() {
-  const rows = [
-    [
-      'Straight-line pace',
-      'Speed without relying on a tow',
-      'A car with low drag is quick on every lap. A tow only helps when there is a car close ahead.',
-    ],
-    [
-      'Heavy braking',
-      'A settled car into Rettifilo (Turns 1–2) and Roggia (Turns 4–5)',
-      'Lock-ups or poor rotation make overtaking and tyre life harder.',
-    ],
-    [
-      'Corner exits',
-      'Traction out of the chicanes',
-      'A weak exit gives away speed for the length of the next straight.',
-    ],
-    [
-      'Long runs',
-      'Consistent pace over several laps',
-      'A qualifying lap says nothing about how a car holds its tyres over a stint.',
-    ],
-  ] as const;
-
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="what-to-watch">
-      <div className="max-w-3xl">
-        <h2
-          id="what-to-watch"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          What matters at Monza
-        </h2>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          A speed-trap result can be inflated by a tow, so clean laps, braking
-          and long runs are what separate the cars here.
-        </p>
-      </div>
-
-      <dl className="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-4">
-        {[
-          ['5.793', 'km circuit'],
-          ['53', 'race laps'],
-          ['80%', 'full throttle'],
-          ['1.2', 'km main straight'],
-        ].map(([value, label]) => (
-          /* The label is the term and the number is its value, so dt names
-             the stat and dd carries the figure. The column is reversed in CSS
-             because the design still wants the number read first. */
-          <div
-            key={label}
-            className="flex flex-col-reverse bg-surface p-4 sm:p-5"
-          >
-            <dt className="mt-1 text-xs tracking-label text-text-muted uppercase">
-              {label}
-            </dt>
-            <dd className="gpp-mono text-2xl text-text">{value}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <div className="mt-8">
-        {/* Column widths and padding match the rows below exactly — the
-            header was 11rem/px-4 over 10rem/px-5 rows, so LOOK FOR and WHY IT
-            MATTERS sat a half-step off the columns they were naming. */}
-        <div
-          className="hidden grid-cols-[10rem_1fr_1fr] gap-8 px-4 pb-3 text-xs font-semibold tracking-label text-text-muted uppercase sm:grid sm:px-5"
-          aria-hidden
-        >
-          <span>Signal</span>
-          <span>Look for</span>
-          <span>Why it matters</span>
-        </div>
-        <div className="rounded-sm bg-surface px-4 sm:px-5">
-          {rows.map(([check, signal, reason]) => (
-            <div
-              key={check}
-              className="grid gap-2 border-b border-border py-4 last:border-b-0 sm:grid-cols-[10rem_1fr_1fr] sm:gap-8"
-            >
-              <h3 className="font-title text-sm font-medium text-text">
-                {check}
-              </h3>
-              <p className="text-sm leading-6 text-text">{signal}</p>
-              <p className="text-sm leading-6 text-text-muted">{reason}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
+    <RaceSignalsSection
+      heading="What matters at Monza"
+      stats={[
+        ['5.793', 'km circuit'],
+        ['53', 'race laps'],
+        ['80%', 'full throttle'],
+        ['1.2', 'km main straight'],
+      ]}
+      signals={[
+        [
+          'Straight-line pace',
+          'Speed without relying on a tow',
+          'A car with low drag is quick on every lap. A tow only helps when there is a car close ahead.',
+        ],
+        [
+          'Heavy braking',
+          'A settled car into Rettifilo (Turns 1–2) and Roggia (Turns 4–5)',
+          'Lock-ups or poor rotation make overtaking and tyre life harder.',
+        ],
+        [
+          'Corner exits',
+          'Traction out of the chicanes',
+          'A weak exit gives away speed for the length of the next straight.',
+        ],
+        [
+          'Long runs',
+          'Consistent pace over several laps',
+          'A qualifying lap says nothing about how a car holds its tyres over a stint.',
+        ],
+      ]}
+    >
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        A speed-trap result can be inflated by a tow, so clean laps, braking and
+        long runs are what separate the cars here.
+      </p>
+    </RaceSignalsSection>
   );
 }
 
@@ -841,33 +766,6 @@ function McLarenForm() {
  * the second surface that does should move them into the shared tokens beside
  * `teams`.
  */
-const TYRE_RANGE = [
-  { compound: 'C1', role: null, band: null },
-  { compound: 'C2', role: null, band: null },
-  { compound: 'C3', role: 'hard', band: '#f0f0f0' },
-  { compound: 'C4', role: 'medium', band: '#ffd500' },
-  { compound: 'C5', role: 'soft', band: '#da291c' },
-] as const;
-
-/**
- * The compound nomination, as analysis rather than as news.
- *
- * It fails the `raceNews` bar on purpose: every car gets the same three
- * compounds, so there is no driver it moves in a direction, and
- * `affectsSessions` would be answering for the whole grid at once. That is the
- * line `docs/race-news.md` draws between an event and the circuit, and this is
- * the circuit side of it.
- *
- * No team bar, unlike the two sections below. The bar means "this is a team's
- * story" and is drawn in that team's colour; a tyre nomination belongs to
- * nobody on the grid, and inventing a colour for Pirelli would spend the
- * mechanism on the one section that has no claim to it.
- *
- * One column, edge to edge: heading, compound strip and closing prose all sit
- * in the same `max-w-3xl` block. The strip used to break out to the full page
- * width, which gave the section two different left-to-right extents and was
- * the only place on the page where a block did that.
- */
 function TyreChoice() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="tyre-choice">
@@ -880,81 +778,7 @@ function TyreChoice() {
             Monza gets the three softest tyres
           </h2>
 
-          {/* The circuit stats strip above, exactly: gap-px cells on a border
-              fill, figure in mono over a tracked micro label. It reads as a
-              different component when it is centred or when it carries a drawn
-              tyre, and it was doing both. Held to the reading column rather than
-              breaking out to the full 5xl page width, the cells land near the
-              same width as the four-up stats row, so the two strips match in
-              density as well as in form.
-
-              Showing all five is what makes it worth a graphic. Three cells said
-              "C3, C4, C5 are hard, medium and soft", which is a mapping the
-              heading could carry on its own. Five cells say where those three
-              sit, so "the softest three" stops being a claim the reader has to
-              take on trust, and the relative naming stops being confusing: the
-              eye can see that Monza's hard tyre is the middle of the range.
-
-              The sidewall band is a 3px top rule per cell rather than a drawn
-              ring. Flat, and on-system as the coloured column marker the
-              scoring-band card already uses. The two compounds that stay at home
-              keep the rule at the same weight but dashed, which is what a dashed
-              hairline already means everywhere else here: the slot exists, and
-              there is nothing in it. They take the sunken fill rather than the
-              page colour, because a transparent cell has no bottom edge of its
-              own and left the strip visibly missing its bottom-left corner. */}
-          <ul
-            aria-label="Pirelli’s 2026 compound range, hardest to softest"
-            className="mt-7 grid grid-cols-5 gap-px overflow-hidden rounded-sm bg-border"
-          >
-            {TYRE_RANGE.map(({ compound, role, band }) => (
-              <li
-                key={compound}
-                className={
-                  role
-                    ? 'border-t-[3px] bg-surface px-2 py-4 sm:px-5 sm:py-5'
-                    : 'border-t-[3px] border-dashed border-border bg-surface-sunken px-2 py-4 sm:px-5 sm:py-5'
-                }
-                style={band ? { borderTopColor: band } : undefined}
-              >
-                {/* Muted rather than disabled ink. Disabled is the right
-                    reading but it is 3.6:1 behind a 20px numeral, and the
-                    sunken fill plus the dashed rule already say "empty slot"
-                    without asking the one text colour in the ramp that cannot
-                    carry it. */}
-                <p
-                  className={`gpp-mono text-xl sm:text-2xl ${role ? 'text-text' : 'text-text-muted'}`}
-                >
-                  {compound}
-                </p>
-                {/* The dashed rule and the dimmed figure carry this for
-                    anyone who can see them, and neither survives being read
-                    aloud. */}
-                <p
-                  className={
-                    role
-                      ? 'mt-1 text-[10px] tracking-label text-text-muted uppercase sm:text-xs'
-                      : 'sr-only'
-                  }
-                >
-                  {role ?? 'Not used at Monza'}
-                </p>
-              </li>
-            ))}
-          </ul>
-
-          {/* The axis carries the trade-off and nothing else. It read "Harder,
-              lasts longer" against "Softer, more grip", which said half of what
-              the cells underneath already say: HARD sits under C3 and SOFT under
-              C5, so naming the direction again was the same idea twice, in a
-              mirrored pair that sounded written rather than spoken. What is left
-              is the part the row cannot show, and it is the same trade-off the
-              one-stop against two-stop question below spends over a race
-              distance. */}
-          <div className="mt-2 flex justify-between gap-4 text-[10px] tracking-label text-text-muted uppercase sm:text-xs">
-            <span>Lasts longer</span>
-            <span>More grip</span>
-          </div>
+          <TyreCompoundScale venue="Monza" hardest="C3" />
 
           <p className="gpp-reading-copy mt-7 text-text-muted">
             Tyres wear most in fast corners. Monza has few of those, so the C5

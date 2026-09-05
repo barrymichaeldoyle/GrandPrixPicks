@@ -89,6 +89,10 @@ function useVoterKey(): string | null {
     try {
       const existing = window.localStorage.getItem(VOTER_KEY_STORAGE);
       if (existing) {
+        // There is no localStorage on the server, so the key cannot be an
+        // initial state value: reading it in an effect is the whole point
+        // of the hook, as its doc comment says.
+        // oxlint-disable-next-line react/set-state-in-effect
         setVoterKey(existing);
         return;
       }

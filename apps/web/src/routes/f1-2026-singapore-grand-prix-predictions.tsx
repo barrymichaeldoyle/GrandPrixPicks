@@ -1,9 +1,11 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
-import { Plus } from 'lucide-react';
 
 import { Flag } from '@/components/Flag';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
+import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
+import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
+import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
@@ -247,33 +249,7 @@ function SingaporeGrandPrixPredictionsPage() {
           </>
         ) : null}
 
-        <section className="py-8 sm:py-16" aria-labelledby="common-questions">
-          <h2
-            id="common-questions"
-            className="font-title text-2xl font-medium text-text sm:text-3xl"
-          >
-            Common questions
-          </h2>
-          <div className="mt-7 grid gap-2">
-            {FAQS.map((faq) => (
-              <details
-                key={faq.question}
-                className="group rounded-sm px-3 open:bg-surface hover:bg-surface sm:px-5"
-              >
-                <summary className="font-title flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium text-text marker:content-none">
-                  {faq.question}
-                  <Plus
-                    className="h-4 w-4 shrink-0 text-text-muted transition-transform group-open:rotate-45"
-                    aria-hidden
-                  />
-                </summary>
-                <p className="gpp-reading-copy max-w-3xl pb-5 text-text-muted">
-                  {faq.answer}
-                </p>
-              </details>
-            ))}
-          </div>
-        </section>
+        <RaceFaqSection faqs={FAQS} />
 
         <RaceWriteupClosingPanel
           phase={phase}
@@ -357,160 +333,68 @@ function FirstSingaporeSprint() {
 }
 
 function WatchTable() {
-  const rows = [
-    [
-      'Low-speed traction',
-      'Drive out of the slow corners',
-      'The lap repeatedly asks the rear tyres to find grip beside a wall. Poor traction costs time all the way down the next straight.',
-    ],
-    [
-      'Kerb and bump control',
-      'How settled the car stays over the street surface',
-      'A nervous car forces a driver to leave margin. That margin adds up across a long lap with little run-off.',
-    ],
-    [
-      'Cooling',
-      'Brake, power-unit and cockpit temperatures',
-      'The race starts at night, but the heat and humidity remain. Opening bodywork for cooling costs performance.',
-    ],
-    [
-      'Driver accuracy',
-      'Missed apexes and wall contact late in a run',
-      'Concentration matters across a race that often approaches two hours. Small errors have no run-off to absorb them.',
-    ],
-  ] as const;
-
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="what-to-watch">
-      <div className="max-w-3xl">
-        <h2
-          id="what-to-watch"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          What matters at Marina Bay
-        </h2>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Track position, traction and mistake-free laps. Passing remains hard,
-          so qualifying carries more weight here than at Baku or Sepang.
-        </p>
-      </div>
-
-      <dl className="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-4">
-        {[
-          ['4.927', 'km circuit'],
-          ['62', 'race laps'],
-          ['19', 'turns'],
-          ['20:00', 'local start'],
-        ].map(([value, label]) => (
-          <div
-            key={label}
-            className="flex flex-col-reverse bg-surface p-4 sm:p-5"
-          >
-            <dt className="mt-1 text-xs tracking-label text-text-muted uppercase">
-              {label}
-            </dt>
-            <dd className="gpp-mono text-2xl text-text">{value}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <div className="mt-8">
-        <div
-          className="hidden grid-cols-[10rem_1fr_1fr] gap-8 px-4 pb-3 text-xs font-semibold tracking-label text-text-muted uppercase sm:grid sm:px-5"
-          aria-hidden
-        >
-          <span>Signal</span>
-          <span>Look for</span>
-          <span>Why it matters</span>
-        </div>
-        <div className="rounded-sm bg-surface px-4 sm:px-5">
-          {rows.map(([signal, check, reason]) => (
-            <div
-              key={signal}
-              className="grid gap-2 border-b border-border py-4 last:border-b-0 sm:grid-cols-[10rem_1fr_1fr] sm:gap-8"
-            >
-              <h3 className="font-title text-sm font-medium text-text">
-                {signal}
-              </h3>
-              <p className="text-sm leading-6 text-text">{check}</p>
-              <p className="text-sm leading-6 text-text-muted">{reason}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
+    <RaceSignalsSection
+      heading="What matters at Marina Bay"
+      stats={[
+        ['4.927', 'km circuit'],
+        ['62', 'race laps'],
+        ['19', 'turns'],
+        ['20:00', 'local start'],
+      ]}
+      signals={[
+        [
+          'Low-speed traction',
+          'Drive out of the slow corners',
+          'The lap repeatedly asks the rear tyres to find grip beside a wall. Poor traction costs time all the way down the next straight.',
+        ],
+        [
+          'Kerb and bump control',
+          'How settled the car stays over the street surface',
+          'A nervous car forces a driver to leave margin. That margin adds up across a long lap with little run-off.',
+        ],
+        [
+          'Cooling',
+          'Brake, power-unit and cockpit temperatures',
+          'The race starts at night, but the heat and humidity remain. Opening bodywork for cooling costs performance.',
+        ],
+        [
+          'Driver accuracy',
+          'Missed apexes and wall contact late in a run',
+          'Concentration matters across a race that often approaches two hours. Small errors have no run-off to absorb them.',
+        ],
+      ]}
+    >
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Track position, traction and mistake-free laps. Passing remains hard, so
+        qualifying carries more weight here than at Baku or Sepang.
+      </p>
+    </RaceSignalsSection>
   );
 }
 
-const TYRE_RANGE = [
-  { compound: 'C1', role: null, band: null },
-  { compound: 'C2', role: null, band: null },
-  { compound: 'C3', role: 'hard', band: '#f0f0f0' },
-  { compound: 'C4', role: 'medium', band: '#ffd500' },
-  { compound: 'C5', role: 'soft', band: '#da291c' },
-] as const;
-
 function TyreChoice() {
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="tyre-choice">
-      <div className="max-w-3xl">
-        <h2
-          id="tyre-choice"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          Singapore gets the softest three tyres
-        </h2>
-        <ul
-          aria-label="Pirelli’s 2026 compound range, hardest to softest"
-          className="mt-7 grid grid-cols-5 gap-px overflow-hidden rounded-sm bg-border"
-        >
-          {TYRE_RANGE.map(({ compound, role, band }) => (
-            <li
-              key={compound}
-              className={
-                role
-                  ? 'border-t-[3px] bg-surface px-2 py-4 sm:px-5 sm:py-5'
-                  : 'border-t-[3px] border-dashed border-border bg-surface-sunken px-2 py-4 sm:px-5 sm:py-5'
-              }
-              style={band ? { borderTopColor: band } : undefined}
-            >
-              <p
-                className={`gpp-mono text-xl sm:text-2xl ${role ? 'text-text' : 'text-text-muted'}`}
-              >
-                {compound}
-              </p>
-              <p
-                className={
-                  role
-                    ? 'mt-1 text-[10px] tracking-label text-text-muted uppercase sm:text-xs'
-                    : 'sr-only'
-                }
-              >
-                {role ?? 'Not used at Singapore'}
-              </p>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-2 flex justify-between gap-4 text-[10px] tracking-label text-text-muted uppercase sm:text-xs">
-          <span>Lasts longer</span>
-          <span>More grip</span>
-        </div>
-        <p className="gpp-reading-copy mt-7 text-text-muted">
-          Pirelli selected C3, C4 and C5, the same softest trio used at Baku.
-          Marina Bay is dominated by traction and low-speed grip, while the
-          street surface evolves as rubber goes down.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          The heat can push the rear tyres towards overheating even when wear is
-          manageable. Watch the Sprint for degradation, but remember that the
-          Grand Prix runs later and over a much longer distance.{' '}
-          <ExternalSource href={TYRE_SOURCE}>
-            Pirelli&rsquo;s selection
-          </ExternalSource>
-          .
-        </p>
-      </div>
-    </section>
+    <TyreCompoundSection
+      heading="Singapore gets the softest three tyres"
+      venue="Singapore"
+      hardest="C3"
+    >
+      <p className="gpp-reading-copy mt-7 text-text-muted">
+        Pirelli selected C3, C4 and C5, the same softest trio used at Baku.
+        Marina Bay is dominated by traction and low-speed grip, while the street
+        surface evolves as rubber goes down.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        The heat can push the rear tyres towards overheating even when wear is
+        manageable. Watch the Sprint for degradation, but remember that the
+        Grand Prix runs later and over a much longer distance.{' '}
+        <ExternalSource href={TYRE_SOURCE}>
+          Pirelli&rsquo;s selection
+        </ExternalSource>
+        .
+      </p>
+    </TyreCompoundSection>
   );
 }
 

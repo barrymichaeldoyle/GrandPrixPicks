@@ -5,6 +5,8 @@ import type { FunctionReturnType } from 'convex/server';
 import { DriverBadge } from '@/components/DriverBadge';
 import { Flag } from '@/components/Flag';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
+import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
+import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
@@ -312,26 +314,7 @@ function MadridGrandPrixPredictionsPage() {
           </>
         ) : null}
 
-        <section className="py-8 sm:py-16" aria-labelledby="common-questions">
-          <h2
-            id="common-questions"
-            className="font-title text-2xl font-medium text-text sm:text-3xl"
-          >
-            Common questions
-          </h2>
-          <div className="mt-6 max-w-3xl divide-y divide-border border-y border-border">
-            {FAQS.map((faq) => (
-              <details key={faq.question} className="group py-4">
-                <summary className="cursor-pointer list-none font-medium text-text marker:content-none">
-                  {faq.question}
-                </summary>
-                <p className="gpp-reading-copy mt-3 text-text-muted">
-                  {faq.answer}
-                </p>
-              </details>
-            ))}
-          </div>
-        </section>
+        <RaceFaqSection faqs={FAQS} />
 
         <RaceWriteupClosingPanel
           phase={phase}
@@ -715,72 +698,22 @@ function WatchTable() {
   );
 }
 
-const TYRE_RANGE = [
-  { compound: 'C1', role: null, band: null },
-  { compound: 'C2', role: 'hard', band: '#f0f0f0' },
-  { compound: 'C3', role: 'medium', band: '#ffd500' },
-  { compound: 'C4', role: 'soft', band: '#da291c' },
-  { compound: 'C5', role: null, band: null },
-] as const;
-
 function TyreChoice() {
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="tyre-choice">
-      <div className="max-w-3xl">
-        <h2
-          id="tyre-choice"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          Madrid gets the medium tyres
-        </h2>
-
-        <ul
-          aria-label="Pirelli’s 2026 compound range, hardest to softest"
-          className="mt-7 grid grid-cols-5 gap-px overflow-hidden rounded-sm bg-border"
-        >
-          {TYRE_RANGE.map(({ compound, role, band }) => (
-            <li
-              key={compound}
-              className={
-                role
-                  ? 'border-t-[3px] bg-surface px-2 py-4 sm:px-5 sm:py-5'
-                  : 'border-t-[3px] border-dashed border-border bg-surface-sunken px-2 py-4 sm:px-5 sm:py-5'
-              }
-              style={band ? { borderTopColor: band } : undefined}
-            >
-              <p
-                className={`gpp-mono text-xl sm:text-2xl ${role ? 'text-text' : 'text-text-muted'}`}
-              >
-                {compound}
-              </p>
-              <p
-                className={
-                  role
-                    ? 'mt-1 text-[10px] tracking-label text-text-muted uppercase sm:text-xs'
-                    : 'sr-only'
-                }
-              >
-                {role ?? 'Not used at Madrid'}
-              </p>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-2 flex justify-between gap-4 text-[10px] tracking-label text-text-muted uppercase sm:text-xs">
-          <span>Lasts longer</span>
-          <span>More grip</span>
-        </div>
-
-        <p className="gpp-reading-copy mt-7 text-text-muted">
-          Pirelli&rsquo;s simulations put the loads near Silverstone and Spa, so
-          they left the C5 at home to limit overheating and to push a two-stop.{' '}
-          <ExternalSource href={TYRE_SOURCE}>
-            Read Pirelli&rsquo;s selection
-          </ExternalSource>
-          .
-        </p>
-      </div>
-    </section>
+    <TyreCompoundSection
+      heading="Madrid gets the medium tyres"
+      venue="Madrid"
+      hardest="C2"
+    >
+      <p className="gpp-reading-copy mt-7 text-text-muted">
+        Pirelli&rsquo;s simulations put the loads near Silverstone and Spa, so
+        they left the C5 at home to limit overheating and to push a two-stop.{' '}
+        <ExternalSource href={TYRE_SOURCE}>
+          Read Pirelli&rsquo;s selection
+        </ExternalSource>
+        .
+      </p>
+    </TyreCompoundSection>
   );
 }
 

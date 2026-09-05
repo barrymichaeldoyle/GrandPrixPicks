@@ -102,6 +102,47 @@ auditConfig:
     # deletes the patch rather than updating it.
     - GHSA-vcc3-ghjq-m6fr
 
+    # stream-json DoS (GHSA-528h-pc64-c93x): the pick/ignore/filter/replace
+    # filters are O(depth^2) on nested input, so a small crafted document
+    # blocks the event loop for seconds to minutes.
+    #
+    # Ignored because it is **unreachable from anything we build**, and
+    # because there is no version we can move to. Both halves are load-bearing;
+    # neither alone would justify the entry.
+    #
+    # Unreachable. The vulnerable filters are reached through
+    # `jayson/lib/utils.js`, which is jayson's *server* JSON-RPC request
+    # parser: it exists to parse requests arriving from an untrusted client.
+    # We never construct a jayson server. The one line into the tree is
+    #   stream-json@1.9.1 <- jayson@4.3.0 <- @solana/web3.js@1.98.4
+    # and @solana/web3.js imports exactly one jayson entry point,
+    # `jayson/lib/client/browser` (lib/index.cjs.js:15). That module requires
+    # `uuid` and `../../generateRequest` and nothing else, so `lib/utils.js`
+    # is never in the graph and neither is stream-json. Confirmed in the built
+    # output: no file under apps/web/.output/public/assets (146 of them)
+    # contains `stream-json`, `jayson` or `@solana`. The Solana adapters
+    # arrive because @clerk/clerk-js and @clerk/ui declare them for Web3
+    # sign-in, which this app does not offer.
+    #
+    # No version to move to, and an override makes things worse rather than
+    # better. The advisory names >=3.5.0 as patched. jayson declares
+    # `stream-json: ^1.9.1` and we resolve 1.9.1, so the fix is two majors
+    # away, and 3.x is a different package in every way that matters here:
+    # 3.5.0 and 3.6.0 are both `"type": "module"`, and both dropped the
+    # subpath layout entirely (the tree is `src/*` now, with no
+    # `streamers/StreamValues` and no `utils/Verifier`). jayson calls
+    # `require('stream-json/streamers/StreamValues')` and
+    # `require('stream-json/utils/Verifier')` at the top of lib/utils.js, so
+    # forcing 3.x breaks that require twice over: CJS `require` of an
+    # ESM-only package, at paths that no longer exist. That is the same trap
+    # as decode-uri-component@0.5.0 above, which was tried and reverted.
+    #
+    # Revisit when jayson drops stream-json or moves to its 3.x API, or when
+    # @clerk/clerk-js stops pulling the Solana wallet adapters in for apps
+    # that never enable Web3 sign-in. Either removes the line rather than
+    # ignoring it.
+    - GHSA-528h-pc64-c93x
+
 catalog:
   convex: 1.45.0
   typescript: 7.0.2

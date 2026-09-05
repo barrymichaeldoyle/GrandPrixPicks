@@ -234,8 +234,8 @@ function BahrainGrandPrixPredictionsPage() {
                   eyebrow names Sepang so the two are never read as one. */}
               <Flag code="BH" size="xl" />
               <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                <p className="gpp-mono text-sm text-text-muted">
-                  02–04 OCT · SEPANG · ROUND {race.round}
+                <p className="gpp-mono text-sm text-text-muted uppercase">
+                  02–04 Oct · Sepang · Round {race.round}
                 </p>
                 <span className="text-text-disabled" aria-hidden>
                   ·
@@ -265,7 +265,7 @@ function BahrainGrandPrixPredictionsPage() {
           <RaceWriteupWeekendSchedule
             race={race}
             timeZone="Asia/Kuala_Lumpur"
-            timeZoneLabel="SEPANG TIME"
+            timeZoneLabel="Sepang time"
             weather={isLive ? weather : null}
             now={weatherNow}
           />
@@ -567,8 +567,8 @@ function TripleHeader({
         <ol className="mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-3">
           {neighbours.map((race) => (
             <li key={race.slug} className="bg-surface p-4 sm:p-5">
-              <p className="gpp-mono text-xs text-text-muted">
-                ROUND {race.round}
+              <p className="gpp-mono text-xs text-text-muted uppercase">
+                Round {race.round}
               </p>
               <p className="font-title mt-2 font-medium text-text">
                 <RaceNameLink race={race} />

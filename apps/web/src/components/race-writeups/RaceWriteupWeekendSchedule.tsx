@@ -86,8 +86,9 @@ function summaryFigures(summary: WeatherWindowSummary): string {
  *
  * So the forecast rides on the schedule row it belongs to. What survives from
  * the old section is what a per-session row cannot carry: an alert about the
- * hours either side of the next session, the hour-by-hour detail behind a
- * disclosure, and the provider's attribution, which its licence requires.
+ * hours either side of the next session, a way into the hour-by-hour detail
+ * (a modal, so the grid gets a viewport rather than a card column), and the
+ * provider's attribution, which its licence requires.
  *
  * `weather` is optional and independent of the schedule: a page with no
  * forecast loaded, or a race that has already run, renders exactly the table
@@ -142,7 +143,7 @@ export function RaceWriteupWeekendSchedule({
         <h2 id="weekend-timing" className="font-title font-medium text-text">
           {forecast ? 'Schedule and forecast' : 'Weekend schedule'}
         </h2>
-        <span className="gpp-mono text-xs text-text-muted">
+        <span className="gpp-mono text-xs text-text-muted uppercase">
           {timeZoneLabel}
         </span>
       </div>
@@ -227,6 +228,7 @@ export function RaceWriteupWeekendSchedule({
           race={race}
           now={now}
           alert={alert}
+          timeZoneLabel={timeZoneLabel}
         />
       )}
     </section>

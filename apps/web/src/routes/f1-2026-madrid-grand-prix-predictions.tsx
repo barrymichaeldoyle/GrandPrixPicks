@@ -253,8 +253,8 @@ function MadridGrandPrixPredictionsPage() {
             <div className="flex items-center gap-3">
               <Flag code="ES" size="xl" />
               <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                <p className="gpp-mono text-sm text-text-muted">
-                  11–13 SEP · MADRING · ROUND {race.round}
+                <p className="gpp-mono text-sm text-text-muted uppercase">
+                  11–13 Sep · Madring · Round {race.round}
                 </p>
                 <span className="text-text-disabled" aria-hidden>
                   ·
@@ -284,7 +284,7 @@ function MadridGrandPrixPredictionsPage() {
           <RaceWriteupWeekendSchedule
             race={race}
             timeZone="Europe/Madrid"
-            timeZoneLabel="MADRID TIME"
+            timeZoneLabel="Madrid time"
             weather={isLive ? weather : null}
             now={weatherNow}
           />

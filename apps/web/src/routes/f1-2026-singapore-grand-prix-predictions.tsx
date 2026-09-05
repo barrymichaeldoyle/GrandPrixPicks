@@ -195,8 +195,8 @@ function SingaporeGrandPrixPredictionsPage() {
             <div className="flex items-center gap-3">
               <Flag code="SG" size="xl" />
               <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                <p className="gpp-mono text-sm text-text-muted">
-                  09–11 OCT · MARINA BAY · ROUND {race.round}
+                <p className="gpp-mono text-sm text-text-muted uppercase">
+                  09–11 Oct · Marina Bay · Round {race.round}
                 </p>
                 <span className="text-text-disabled" aria-hidden>
                   ·
@@ -226,7 +226,7 @@ function SingaporeGrandPrixPredictionsPage() {
           <RaceWriteupWeekendSchedule
             race={race}
             timeZone="Asia/Singapore"
-            timeZoneLabel="SINGAPORE TIME"
+            timeZoneLabel="Singapore time"
             weather={isLive ? weather : null}
             now={weatherNow}
           />

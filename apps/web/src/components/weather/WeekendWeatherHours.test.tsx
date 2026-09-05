@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { RaceWeather, WeatherHour } from '@/lib/weatherPresentation';
 
 import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
+import { WeekendWeatherHours } from '@/components/weather/WeekendWeatherHours';
 
 const HOUR = 60 * 60_000;
 
@@ -83,16 +84,14 @@ function weatherWith(hours: WeatherHour[], now: number): RaceWeather {
   };
 }
 
-describe('WeekendWeatherDetail', () => {
+describe('WeekendWeatherHours', () => {
   it('says a session that has already run is not waiting on the model', () => {
     // Mid-afternoon on Friday: the provider starts at the current hour, so
     // Practice 1 has dropped out of the forecast behind us.
     const now = Date.UTC(2026, 8, 4, 13, 22);
     const html = renderToStaticMarkup(
-      <RaceWriteupWeekendSchedule
+      <WeekendWeatherHours
         race={race}
-        timeZone="Europe/Rome"
-        timeZoneLabel="MONZA TIME"
         weather={weatherWith(
           [...hoursForDay(0, 15), ...hoursForDay(1), ...hoursForDay(2)],
           now,
@@ -111,10 +110,8 @@ describe('WeekendWeatherDetail', () => {
     // hours yet and checking back is the useful thing to say.
     const now = Date.UTC(2026, 7, 30, 9);
     const html = renderToStaticMarkup(
-      <RaceWriteupWeekendSchedule
+      <WeekendWeatherHours
         race={race}
-        timeZone="Europe/Rome"
-        timeZoneLabel="MONZA TIME"
         weather={weatherWith(
           [...hoursForDay(0), ...hoursForDay(1), ...hoursForDay(2, 6, 12)],
           now,
@@ -126,5 +123,24 @@ describe('WeekendWeatherDetail', () => {
     expect(html).toContain('Not yet forecast');
     expect(html).toContain('Check back closer to the weekend');
     expect(html).not.toContain('has run.');
+  });
+
+  it('leaves the hours to the modal, keeping the card to its trigger', () => {
+    const now = Date.UTC(2026, 8, 4, 13, 22);
+    const html = renderToStaticMarkup(
+      <RaceWriteupWeekendSchedule
+        race={race}
+        timeZone="Europe/Rome"
+        timeZoneLabel="MONZA TIME"
+        weather={weatherWith(
+          [...hoursForDay(0, 15), ...hoursForDay(1), ...hoursForDay(2)],
+          now,
+        )}
+        now={now}
+      />,
+    );
+
+    expect(html).toContain('Hour-by-hour forecast');
+    expect(html).not.toContain('Already run');
   });
 });

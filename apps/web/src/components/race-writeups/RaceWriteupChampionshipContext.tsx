@@ -15,6 +15,14 @@ type SeasonRace = FunctionReturnType<
   typeof api.races.listCurrentSeason
 >['races'][number];
 
+/** "Russell", "Russell and Hamilton", "Russell, Hamilton and Norris". */
+function formatList(names: readonly string[]): string {
+  if (names.length <= 1) {
+    return names[0] ?? '';
+  }
+  return `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+}
+
 /**
  * The drivers' championship as it stands before a write-up's race.
  *
@@ -53,6 +61,14 @@ export function RaceWriteupChampionshipContext({
   }
 
   const gap = leader.points - second.points;
+  // Everyone level with the driver in second, named together. Position 2 can
+  // be decided on countback — Russell over Hamilton on wins at Monza, both on
+  // 183 — and a sentence that names only the driver the tiebreak happened to
+  // favour reports a gap to one of two drivers equally close to the lead.
+  const chasers = championship.drivers.filter(
+    (driver) => driver.points === second.points,
+  );
+  const chaserNames = chasers.map((driver) => driver.displayName);
   const pendingRaces =
     races && thisRound !== undefined
       ? races
@@ -78,7 +94,8 @@ export function RaceWriteupChampionshipContext({
           <p className="gpp-reading-copy mt-4 text-text-muted">
             After {championship.roundsScored} rounds, {leader.displayName} leads
             the drivers&rsquo; table by {gap} {gap === 1 ? 'point' : 'points'}{' '}
-            from {second.displayName}.
+            from {formatList(chaserNames)}
+            {chasers.length > 1 ? `, level on ${second.points}` : ''}.
             {pendingRaces.length > 0 ? (
               <>
                 {' '}
@@ -99,8 +116,8 @@ export function RaceWriteupChampionshipContext({
         <div className="border border-border bg-surface">
           <div className="flex justify-between border-b border-border px-4 py-3">
             <h3 className="font-title font-medium text-text">Drivers</h3>
-            <span className="gpp-mono text-xs text-text-muted">
-              AFTER {championship.roundsScored} ROUNDS
+            <span className="gpp-mono text-xs text-text-muted uppercase">
+              After {championship.roundsScored} rounds
             </span>
           </div>
           <ol aria-label="Top six drivers">

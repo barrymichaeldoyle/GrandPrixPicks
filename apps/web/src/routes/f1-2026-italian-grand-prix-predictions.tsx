@@ -348,8 +348,8 @@ function ItalianGrandPrixPredictionsPage() {
             <div className="flex items-center gap-3">
               <Flag code="IT" size="xl" />
               <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                <p className="gpp-mono text-sm text-text-muted">
-                  04–06 SEP · MONZA · ROUND {race.round}
+                <p className="gpp-mono text-sm text-text-muted uppercase">
+                  04–06 Sep · Monza · Round {race.round}
                 </p>
                 <span className="text-text-disabled" aria-hidden>
                   ·
@@ -382,7 +382,7 @@ function ItalianGrandPrixPredictionsPage() {
           <RaceWriteupWeekendSchedule
             race={race}
             timeZone="Europe/Rome"
-            timeZoneLabel="MONZA TIME"
+            timeZoneLabel="Monza time"
             weather={isLive ? weather : null}
             now={weatherNow}
           />
@@ -851,8 +851,8 @@ function HeatHazard({ showPickRead }: { showPickRead: boolean }) {
           </h2>
           <p className="gpp-reading-copy mt-4 text-text-muted">
             The official forecast put the heat index above 31°C for the race,
-            which is the threshold in Article B1.5.10. It is the first heat
-            hazard since Austria in June.
+            which is the threshold in Article B1.5.10. Austria in June was the
+            season&rsquo;s first.
           </p>
           <p className="gpp-reading-copy mt-3 text-text-muted">
             A heat hazard makes the driver cooling system mandatory and raises

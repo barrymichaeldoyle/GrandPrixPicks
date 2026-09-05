@@ -597,6 +597,13 @@ type RawEvent = {
     number: number | null;
     nationality: string | null;
   }>;
+  newsStartingGrid?: Array<{
+    position: number;
+    code: string;
+    displayName: string;
+    team: string | null;
+    note?: string;
+  }>;
   revCount: number;
   createdAt: number;
 };

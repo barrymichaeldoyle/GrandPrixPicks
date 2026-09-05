@@ -3,6 +3,10 @@ import type { CSSProperties } from 'react';
 
 import { ScoringPolicyNote } from '@/components/ScoringPolicyNote';
 import {
+  StartingGridTable,
+  type StartingGridEntry,
+} from '@/components/StartingGridTable';
+import {
   WriteUpNewsPhoto,
   type WriteUpNewsPhotoProps,
 } from '@/components/WriteUpNewsPhoto';
@@ -24,6 +28,7 @@ type NewsItem = {
   sourceName: string;
   sourceUrl: string;
   drivers?: NewsDriver[];
+  startingGrid?: StartingGridEntry[];
   // The component's own props, not a copy of them: these are forwarded whole
   // with a spread, so a field added to the photo and to the Convex validator
   // must not be silently dropped here with no type error.
@@ -67,9 +72,18 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
   // Only for an odd count, because that is when the spare cell exists. At an
   // even count the grid is already full and spanning would open a new hole one
   // row down.
+  //
+  // A grid card takes both columns, so it is two of those cells rather than
+  // one: counting cards instead of cells here would read the parity backwards
+  // on any weekend that publishes a grid, and open the hole it exists to close.
+  const cells = items.reduce(
+    (total, item) => total + (item.startingGrid?.length ? 2 : 1),
+    0,
+  );
   const spanningKey =
-    items.length >= 3 && items.length % 2 === 1
-      ? items.find((item) => item.writeUpImage)?.key
+    items.length >= 3 && cells % 2 === 1
+      ? items.find((item) => item.writeUpImage && !item.startingGrid?.length)
+          ?.key
       : undefined;
 
   return (
@@ -106,7 +120,13 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
             <article
               key={item.key}
               className={`flex flex-col bg-surface p-4 sm:p-6 ${
-                item.key === spanningKey ? 'sm:row-span-2' : ''
+                item.startingGrid?.length
+                  ? // Both columns. Eleven rows beside eleven only fits if the
+                    // card is the full width of the section.
+                    'sm:col-span-2'
+                  : item.key === spanningKey
+                    ? 'sm:row-span-2'
+                    : ''
               } ${
                 teamColour
                   ? // Cut to the house lean, direction from `gpp-lean-run`
@@ -132,6 +152,14 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
               <p className="gpp-reading-copy mt-2 text-text-muted sm:mt-3">
                 {item.body}
               </p>
+              {/* Every place, never a disclosure: this is a public page, the
+                  grid is what somebody searched for, and a crawler does not
+                  press buttons. Two columns because eleven rows beside eleven
+                  is a grid a reader can take in at once, where twenty-two in a
+                  line is a scroll. */}
+              {item.startingGrid && item.startingGrid.length > 0 ? (
+                <StartingGridTable entries={item.startingGrid} columns={2} />
+              ) : null}
               {/* No rule above it. The grid already draws a line between every
                   card, and stacked one column wide that put a second hairline a
                   few lines above the first: the page read as a stack of rules

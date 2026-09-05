@@ -1,6 +1,14 @@
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
+import {
+  raceNewsStartingGridValidator,
+  resolvedStartingGridValidator,
+  sortStartingGrid,
+  validateStartingGrid,
+  type ResolvedStartingGridEntry,
+  type StartingGridEntry,
+} from './lib/raceNewsStartingGrid';
 import { raceNewsWriteUpImageValidator } from './lib/raceNewsWriteUpImage';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
@@ -61,9 +69,37 @@ const raceNewsListResultValidator = v.object({
         }),
       ),
       writeUpImage: v.optional(raceNewsWriteUpImageValidator),
+      startingGrid: v.optional(resolvedStartingGridValidator),
     }),
   ),
 });
+
+/**
+ * Put names and teams on a stored grid, in starting order.
+ *
+ * A code the roster no longer knows keeps its row and shows the code, rather
+ * than being dropped the way a missing news badge is. Publishing validates
+ * every code, so the only way to get here is a roster edit afterwards, and a
+ * grid silently one row short is the failure this whole feature has to avoid:
+ * 21 rows of 22 looks completely fine and the missing one is somebody's pick.
+ */
+export function resolveStartingGrid(
+  entries: StartingGridEntry[],
+  lookup: (
+    code: string,
+  ) => { displayName: string; team: string | null } | undefined,
+): ResolvedStartingGridEntry[] {
+  return sortStartingGrid(entries).map((entry) => {
+    const driver = lookup(entry.code);
+    return {
+      position: entry.position,
+      code: entry.code,
+      displayName: driver?.displayName ?? entry.code,
+      team: driver?.team ?? null,
+      ...(entry.note !== undefined ? { note: entry.note } : {}),
+    };
+  });
+}
 
 /** The sessions a weekend actually runs. */
 export function sessionsForWeekend(hasSprint: boolean): string[] {
@@ -191,7 +227,10 @@ async function listRaceNews(
   // Doing it once means the write-up pages and the feed cannot disagree.
   const roster = await driversForCodes(
     ctx,
-    visible.flatMap((row) => row.driverCodes ?? []),
+    visible.flatMap((row) => [
+      ...(row.driverCodes ?? []),
+      ...(row.startingGrid ?? []).map((entry) => entry.code),
+    ]),
   );
 
   const items = visible.map((row) => ({
@@ -208,6 +247,9 @@ async function listRaceNews(
       return driver ? [driver] : [];
     }),
     writeUpImage: row.writeUpImage,
+    startingGrid: row.startingGrid
+      ? resolveStartingGrid(row.startingGrid, (code) => roster.get(code))
+      : undefined,
   }));
 
   return {
@@ -360,6 +402,20 @@ export const publish = internalMutation({
     driverCodes: v.optional(v.array(v.string())),
     writeUpImage: v.optional(raceNewsWriteUpImageValidator),
     /**
+     * The confirmed starting grid, on the item that announces it, as
+     * `[{"position":1,"code":"GAS"},{"position":2,"code":"RUS","note":"..."}]`.
+     *
+     * Publish the whole grid or none of it: positions must run 1 to N with no
+     * gaps and no repeats, and every code is checked against the roster. A
+     * partial grid renders as a perfectly tidy table with somebody's driver
+     * missing from it, which is the one failure nobody would notice.
+     *
+     * `note` is why a driver is not where qualifying left them, e.g.
+     * `3-place penalty`. Leave it off for a driver who starts where they
+     * qualified.
+     */
+    startingGrid: v.optional(raceNewsStartingGridValidator),
+    /**
      * Hold the feed card until this moment (ms epoch). The write-up page shows
      * the item immediately either way, which is the point: news for a later
      * round earns its SEO the day it breaks, while the feed stays about the
@@ -392,6 +448,7 @@ export const publish = internalMutation({
     // never renders. An agent re-running this needs the failure to be loud.
     const resolved = await resolveDriverCodes(ctx, args.driverCodes);
     const driverCodes = resolved?.codes;
+    const grid = await resolveGridForPublish(ctx, args.startingGrid);
 
     const existing = await newsByKey(ctx, race._id, args.key);
     const now = Date.now();
@@ -420,6 +477,7 @@ export const publish = internalMutation({
         headline: args.headline,
         affectsSessions: args.affectsSessions,
         driverCodes,
+        gridPositions: grid?.resolved.length,
       };
     }
 
@@ -440,6 +498,9 @@ export const publish = internalMutation({
       ...(args.writeUpImage !== undefined
         ? { writeUpImage: args.writeUpImage }
         : {}),
+      // Spread for the same reason the photo is: a correction to the copy on
+      // the grid item should not have to restate 22 rows to keep them.
+      ...(grid !== undefined ? { startingGrid: grid.stored } : {}),
       ...(args.feedVisibleAt !== undefined
         ? { feedVisibleAt: args.feedVisibleAt }
         : {}),
@@ -456,7 +517,14 @@ export const publish = internalMutation({
     if (heldBack) {
       await scheduleFeedRelease(ctx, race._id, args.key, feedVisibleAt);
     } else {
-      await syncFeedEvent(ctx, race, args, resolved?.drivers, now);
+      await syncFeedEvent(
+        ctx,
+        race,
+        args,
+        resolved?.drivers,
+        grid?.resolved,
+        now,
+      );
     }
 
     return {
@@ -466,6 +534,7 @@ export const publish = internalMutation({
       headline: args.headline,
       affectsSessions: args.affectsSessions,
       driverCodes,
+      gridPositions: grid?.resolved.length,
       feedVisibleAt: heldBack ? feedVisibleAt : undefined,
     };
   },
@@ -545,7 +614,15 @@ export const releaseToFeed = internalMutation({
       return driver ? [driver] : [];
     });
 
-    await syncFeedEvent(ctx, race, row, drivers, Date.now());
+    const gridRoster = await driversForCodes(
+      ctx,
+      (row.startingGrid ?? []).map((entry) => entry.code),
+    );
+    const grid = row.startingGrid
+      ? resolveStartingGrid(row.startingGrid, (code) => gridRoster.get(code))
+      : undefined;
+
+    await syncFeedEvent(ctx, race, row, drivers, grid, Date.now());
 
     return {
       action: 'released' as const,
@@ -612,6 +689,53 @@ async function resolveDriverCodes(
 }
 
 /**
+ * Check a grid before it is written, and resolve it for the feed snapshot.
+ *
+ * Both halves come back: the normalised rows to store (codes uppercased, the
+ * way `resolveDriverCodes` normalises a badge code) and the resolved rows the
+ * feed event freezes. Doing it once here is what stops the stored grid and the
+ * feed's copy of it disagreeing about who is on it.
+ */
+async function resolveGridForPublish(
+  ctx: MutationCtx,
+  entries: StartingGridEntry[] | undefined,
+): Promise<
+  | { stored: StartingGridEntry[]; resolved: ResolvedStartingGridEntry[] }
+  | undefined
+> {
+  if (entries === undefined) {
+    return undefined;
+  }
+  const problem = validateStartingGrid(entries);
+  if (problem) {
+    throw new Error(problem);
+  }
+
+  // Throws on an unknown code, naming it. A grid is 22 codes typed in one go,
+  // which is 22 chances to fat-finger one, and the row that would result looks
+  // exactly like every other row on the page.
+  const resolved = await resolveDriverCodes(
+    ctx,
+    entries.map((entry) => entry.code),
+  );
+  const byCode = new Map(
+    (resolved?.drivers ?? []).map((driver) => [driver.code, driver]),
+  );
+  const stored = sortStartingGrid(
+    entries.map((entry) => ({
+      position: entry.position,
+      code: entry.code.toUpperCase(),
+      ...(entry.note !== undefined ? { note: entry.note } : {}),
+    })),
+  );
+
+  return {
+    stored,
+    resolved: resolveStartingGrid(stored, (code) => byCode.get(code)),
+  };
+}
+
+/**
  * Mirror the item into the feed.
  *
  * Authorless, like `lineup_change`: this is the site talking rather than a
@@ -643,6 +767,7 @@ async function syncFeedEvent(
         nationality: string | null;
       }[]
     | undefined,
+  startingGrid: ResolvedStartingGridEntry[] | undefined,
   now: number,
 ) {
   const shared = {
@@ -653,6 +778,7 @@ async function syncFeedEvent(
     newsSourceName: args.sourceName,
     newsSourceUrl: args.sourceUrl,
     newsDrivers: drivers,
+    newsStartingGrid: startingGrid,
     raceName: race.name,
     raceSlug: race.slug,
     season: race.season,

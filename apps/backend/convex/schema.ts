@@ -1,6 +1,10 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
+import {
+  raceNewsStartingGridValidator,
+  resolvedStartingGridValidator,
+} from './lib/raceNewsStartingGrid';
 import { raceNewsWriteUpImageValidator } from './lib/raceNewsWriteUpImage';
 import {
   reactionCountsValidator,
@@ -797,6 +801,13 @@ export default defineSchema({
         }),
       ),
     ),
+    /**
+     * The starting grid this item announced, resolved at publish time and
+     * frozen here for the same reason `newsDrivers` is: the feed renders a
+     * whole page of events without a roster read per event, and the seat as it
+     * was that weekend is the historically correct one to show.
+     */
+    newsStartingGrid: v.optional(resolvedStartingGridValidator),
     // Engagement
     revCount: v.number(),
     // New reaction model. Optional during the rev -> reaction rollout; when
@@ -881,6 +892,16 @@ export default defineSchema({
      * does not render this field.
      */
     writeUpImage: v.optional(raceNewsWriteUpImageValidator),
+    /**
+     * The confirmed starting grid, on the item that announces it.
+     *
+     * Positions and codes only. The names and teams are resolved at read time
+     * for the write-up and frozen into the feed event, the same split
+     * `driverCodes` and `newsDrivers` already make, and for the same reason:
+     * who drives for whom is round-scoped, so storing a team here would be a
+     * second copy of a fact that moves.
+     */
+    startingGrid: v.optional(raceNewsStartingGridValidator),
     /** Retraction without deletion, so a mistake leaves a trail. */
     active: v.boolean(),
     /**

@@ -78,6 +78,13 @@ export type FeedEvent = {
     number: number | null;
     nationality: string | null;
   }[];
+  newsStartingGrid?: {
+    position: number;
+    code: string;
+    displayName: string;
+    team: string | null;
+    note?: string;
+  }[];
   reactionCount: number;
   reactionCounts: ReactionCounts;
   recentReactionUsers?: {

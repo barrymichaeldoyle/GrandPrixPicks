@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { sessionsForWeekend, validatePublishInput } from './raceNews';
+import {
+  resolveStartingGrid,
+  sessionsForWeekend,
+  validatePublishInput,
+} from './raceNews';
 
 const base = {
   raceName: 'Italian Grand Prix',
@@ -101,5 +105,56 @@ describe('validatePublishInput', () => {
         sourceUrl: 'nope',
       }),
     ).toMatch(/at least one session/);
+  });
+});
+
+describe('resolveStartingGrid', () => {
+  const roster = new Map([
+    ['GAS', { displayName: 'Pierre Gasly', team: 'Alpine' }],
+    ['RUS', { displayName: 'George Russell', team: 'Mercedes' }],
+  ]);
+
+  it('puts names and teams on the stored rows, in starting order', () => {
+    expect(
+      resolveStartingGrid(
+        [
+          { position: 2, code: 'RUS' },
+          { position: 1, code: 'GAS' },
+        ],
+        (code) => roster.get(code),
+      ),
+    ).toEqual([
+      { position: 1, code: 'GAS', displayName: 'Pierre Gasly', team: 'Alpine' },
+      {
+        position: 2,
+        code: 'RUS',
+        displayName: 'George Russell',
+        team: 'Mercedes',
+      },
+    ]);
+  });
+
+  it('keeps the row for a code the roster no longer knows', () => {
+    // A missing news badge can be dropped; a missing grid row cannot. Publishing
+    // validates every code, so the only way here is a roster edit afterwards,
+    // and a grid silently one row short is exactly what nobody would spot.
+    const [entry] = resolveStartingGrid(
+      [{ position: 1, code: 'XXX' }],
+      () => undefined,
+    );
+    expect(entry).toEqual({
+      position: 1,
+      code: 'XXX',
+      displayName: 'XXX',
+      team: null,
+    });
+  });
+
+  it('carries a note through', () => {
+    const [entry] = resolveStartingGrid(
+      [{ position: 1, code: 'GAS', note: '3-place penalty' }],
+      (code) => roster.get(code),
+    );
+    expect(entry?.note).toBe('3-place penalty');
   });
 });

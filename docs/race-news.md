@@ -45,6 +45,7 @@ weekend card flag the item on the Race tab and leave Qualifying alone, which is
 | `affectsSessions`         | Required, non-empty. The editorial gate and the UI hook         |
 | `driverCodes`             | Optional. Puts the driver badge and team colour on the card     |
 | `sourceName`, `sourceUrl` | Attribution, same standard as the write-up pages                |
+| `startingGrid`            | Optional. The confirmed grid, on the item that announces it     |
 | `active`                  | Retraction without deletion, so a mistake leaves a trail        |
 
 `key` is the load-bearing field. Agents retry, and the same weekend gets
@@ -113,6 +114,31 @@ from formula1.com the morning after his penalty had been published against a
 Motorsport.com report, and it became `mercedes-monza-qualifying-tow` rather than
 a fourth sentence: its own source, and `["quali"]` where the penalty is
 `["quali","race"]`.
+
+## The starting grid
+
+Saturday's grid rides on the news item that announces it, as
+`[{position, code, note?}]`, rather than getting a table of its own. It is news
+in the strict sense this page uses: it changes a race pick, it has a source, it
+is corrected in place when the stewards move somebody, and a wrong one has to
+come off the feed before lights out. Every one of those behaviours already
+exists on a `raceNews` record, and a second table would have been a second copy
+of all of them.
+
+It stores codes and positions only, the same split `driverCodes` makes: who
+drives for whom is round-scoped, so a stored team would be a second copy of a
+moving fact. The write-up resolves it live and the feed event freezes the
+resolved rows, exactly as `newsDrivers` does.
+
+`publish` refuses a grid with a gap, a repeated position, the same driver twice
+or a code the roster does not know, and reports `gridPositions` on a dry run.
+That is the whole point of the validation: a grid one row short renders as a
+perfectly tidy table, and the row that is missing is somebody's pick.
+
+The two surfaces differ in one respect only. The write-up shows every place,
+because it is a public page, the grid is what the reader searched for, and a
+crawler does not press buttons. The feed closes on the top ten, because a card
+twenty-two rows tall pushes the sessions either side of it off the screen.
 
 ## Feed behaviour
 

@@ -3,6 +3,7 @@ import { ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 
+import { StartingGridTable } from '@/components/StartingGridTable';
 import { TEAM_COLORS } from '@/lib/teamColors';
 
 import { ReactionButton } from '../ReactionButton';
@@ -95,6 +96,16 @@ export function RaceNewsItem({
         <p className="gpp-reading-copy mt-2 text-sm text-text-muted">
           {event.newsBody}
         </p>
+      ) : null}
+
+      {/* Closed on the top ten, which is the part of a grid that decides a Top
+          5, with the rest a tap away. A feed card that opens twenty-two rows
+          tall buries the sessions either side of it. */}
+      {event.newsStartingGrid && event.newsStartingGrid.length > 0 ? (
+        <StartingGridTable
+          entries={event.newsStartingGrid}
+          collapsedRows={10}
+        />
       ) : null}
 
       <div className="mt-3 flex items-center justify-between gap-3">

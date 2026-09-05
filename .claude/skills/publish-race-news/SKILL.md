@@ -114,6 +114,51 @@ npx convex run --prod raceNews:publish '{
 - **`sourceUrl`** — the primary source. Prefer formula1.com or the team over
   aggregators. Rejected unless it is a full `http(s)` URL.
 
+## Publishing the starting grid
+
+Saturday evening's grid is news like any other, and it goes out as one item
+with the whole grid attached rather than as a sentence describing it. Pass
+`startingGrid` alongside the usual fields:
+
+```bash
+npx convex run --prod raceNews:publish '{
+  "raceSlug": "italy-2026",
+  "key": "monza-starting-grid",
+  "headline": "The Monza grid is set",
+  "body": "Gasly starts his maiden pole alongside Russell...",
+  "affectsSessions": ["race"],
+  "sourceName": "Formula 1",
+  "sourceUrl": "https://www.formula1.com/en/results/...",
+  "startingGrid": [
+    { "position": 1, "code": "GAS" },
+    { "position": 2, "code": "RUS" },
+    { "position": 6, "code": "PIA", "note": "3-place penalty" }
+  ],
+  "dryRun": true
+}'
+```
+
+The write-up page renders every place; the feed card opens on the top ten with
+the rest a tap away. Both read the one record, so a correction fixes both.
+
+- **All of it or none of it.** Positions must run 1 to N with no gaps and no
+  repeats, and every code is checked against the roster. The dry run reports
+  `gridPositions`, so count it against the field before the real call: a grid
+  one row short renders as a perfectly tidy table with somebody's driver
+  missing from it.
+- **`note` is why a driver is not where qualifying left them**, e.g.
+  `3-place penalty`, `Engine penalty`, `Pit lane`. It is a caption beside a
+  name, not a sentence, and it is capped at 60 characters. Leave it off for
+  anyone starting where they qualified.
+- **`affectsSessions` is `["race"]`.** A grid is where a race starts from. It
+  does not touch the qualifying classification, which is what we score quali
+  on: see `/results-policy`.
+- **Leave `driverCodes` off.** A grid belongs to no one driver, and the card
+  takes its team colour from the first code: setting one would paint the whole
+  grid card in one team's colour.
+- **Correct it in place.** A late stewards' decision that moves the grid is a
+  republish under the same key with the corrected array, not a second item.
+
 ## News for a later round
 
 News that breaks this weekend about a *future* one is worth publishing the day

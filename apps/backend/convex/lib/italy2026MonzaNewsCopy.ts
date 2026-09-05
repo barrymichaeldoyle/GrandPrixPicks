@@ -45,8 +45,15 @@ export const ARON_MONZA_FP1_BODY =
  * instructions: the section already ends with the scoring-policy note, and
  * every card already links "How these are scored". See `docs/race-news.md`.
  */
+/*
+ * The Russell clause was "Mercedes plans to take that penalty at Baku rather
+ * than Monza", which the card's own Motorsport.com source contradicts in its
+ * headline: the venue is still open, with Baku a candidate and Sepang floated.
+ * Softened 5 Sep 2026. Where Russell serves it is its own item on
+ * `azerbaijan-2026`, held back from the feed until Madrid is done.
+ */
 export const ANTONELLI_MONZA_PENALTY_BODY =
-  'Mercedes has confirmed a full power unit change for Antonelli at his home race, which is expected to put him at the back of the grid on Sunday. Russell needs the same parts at some point this season, but Mercedes plans to take that penalty at Baku rather than Monza.';
+  'Mercedes has confirmed a full power unit change for Antonelli at his home race, which is expected to put him at the back of the grid on Sunday. Russell needs the same parts at some point this season, but Mercedes has not settled on the weekend he takes that penalty.';
 
 export const BROWNING_WILLIAMS_FP1_BODY =
   'Browning takes over Albon’s Williams for Friday morning. Albon is back in the car from FP2 and for the rest of the weekend, so FP1 is not a read on Williams pace.';

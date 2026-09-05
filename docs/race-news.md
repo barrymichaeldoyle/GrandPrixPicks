@@ -131,6 +131,26 @@ existing feed event rather than posting a second one, exactly as
 the classification. "Ten places minimum" becoming "confirmed back of grid" is an
 edit, not news.
 
+**A later round's news can wait its turn.** `feedVisibleAt` (ms epoch) holds the
+feed card until a moment you choose, while the write-up page shows the item the
+instant it is published. That split is the whole feature: a Madrid story is
+worth indexing the day it breaks, and worth nothing to somebody whose picks are
+for Monza, so publishing it a week early should not push it above the weekend
+they are playing. Omit the field for news about the current weekend and nothing
+changes.
+
+The release is a scheduled job per item, cancelled and re-booked when you
+republish, and cancelled by `retract`. It re-reads the record when it fires, so
+a story corrected twice during its embargo goes out as it finally reads, and it
+does nothing for an item that was retracted or has already appeared. An embargo
+on an item that is _already_ in the feed is ignored rather than obeyed: taking
+something back is what `retract` is for, and a correction must never silently
+pull a card. A missed release is recoverable by hand:
+
+```bash
+npx convex run --prod raceNews:releaseToFeed '{"raceId":"jd7...","key":"..."}'
+```
+
 ## Deliberately not doing
 
 **No notifications.** Not push, not in-app, not for now. Publishing news that

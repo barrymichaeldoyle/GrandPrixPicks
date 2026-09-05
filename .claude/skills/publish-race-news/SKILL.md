@@ -114,6 +114,31 @@ npx convex run --prod raceNews:publish '{
 - **`sourceUrl`** — the primary source. Prefer formula1.com or the team over
   aggregators. Rejected unless it is a full `http(s)` URL.
 
+## News for a later round
+
+News that breaks this weekend about a *future* one is worth publishing the day
+you find it: the write-up page is what gets indexed, and it wants the content
+early. The feed does not. Somebody reading it is picking this weekend, and a
+Madrid story above an unlocked Monza session is noise wearing a source link.
+
+`feedVisibleAt` (ms epoch) splits the two. The write-up page shows the item
+immediately; the feed card waits until the moment you name, which for news about
+the next round is normally the day after the current race finishes.
+
+```bash
+npx convex run --prod raceNews:publish '{
+  "raceSlug": "madrid-2026",
+  "key": "hadjar-madrid-return",
+  ...
+  "feedVisibleAt": 1788760800000,
+  "dryRun": true
+}'
+```
+
+The dry run echoes `feedVisibleAt` back when the item will be held, and omits it
+when the card goes out now, so rehearsing tells you which of the two you are
+about to do. Omit the field entirely for news about the current weekend.
+
 ## Corrections and mistakes
 
 Firming up a fact is an **edit**: republish with the same key. "Ten places

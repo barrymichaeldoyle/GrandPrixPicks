@@ -883,6 +883,23 @@ export default defineSchema({
     writeUpImage: v.optional(raceNewsWriteUpImageValidator),
     /** Retraction without deletion, so a mistake leaves a trail. */
     active: v.boolean(),
+    /**
+     * Hold the feed card until this moment (ms epoch), while the write-up page
+     * shows the item straight away.
+     *
+     * News for a later round is worth publishing the day it breaks: the write-up
+     * pages are indexed long before anyone is picking that weekend. Putting it
+     * in the feed on the same day is a different matter, because the feed is
+     * read by someone whose picks are for *this* weekend, and a Madrid story
+     * above an unlocked Monza session is noise dressed as news.
+     *
+     * Unset means what it has always meant: the card goes to the feed with the
+     * item. A time in the past behaves the same way, so a release that was
+     * missed is never stuck.
+     */
+    feedVisibleAt: v.optional(v.number()),
+    /** The scheduled release job, so an edit can move it and a retraction can cancel it. */
+    feedReleaseScheduledId: v.optional(v.string()),
     publishedAt: v.number(),
     updatedAt: v.number(),
   })

@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 
+import { internal } from './_generated/api';
 import { raceNewsWriteUpImageValidator } from './lib/raceNewsWriteUpImage';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
@@ -358,6 +359,13 @@ export const publish = internalMutation({
      */
     driverCodes: v.optional(v.array(v.string())),
     writeUpImage: v.optional(raceNewsWriteUpImageValidator),
+    /**
+     * Hold the feed card until this moment (ms epoch). The write-up page shows
+     * the item immediately either way, which is the point: news for a later
+     * round earns its SEO the day it breaks, while the feed stays about the
+     * weekend the reader is picking. Omit for news about the current weekend.
+     */
+    feedVisibleAt: v.optional(v.number()),
     dryRun: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -393,10 +401,20 @@ export const publish = internalMutation({
         : ('republished' as const)
       : ('created' as const);
 
+    const feedVisibleAt = args.feedVisibleAt ?? existing?.feedVisibleAt;
+    const alreadyInFeed =
+      (await feedEventForNews(ctx, race._id, args.key)) !== null;
+    // An item already in the feed cannot be un-published by an embargo: that is
+    // what `retract` is for. So the hold only applies while the card has yet to
+    // appear.
+    const heldBack =
+      !alreadyInFeed && feedVisibleAt !== undefined && feedVisibleAt > now;
+
     if (dryRun) {
       return {
         dryRun: true,
         action,
+        feedVisibleAt: heldBack ? feedVisibleAt : undefined,
         race: { slug: race.slug, name: race.name, round: race.round },
         key: args.key,
         headline: args.headline,
@@ -422,6 +440,9 @@ export const publish = internalMutation({
       ...(args.writeUpImage !== undefined
         ? { writeUpImage: args.writeUpImage }
         : {}),
+      ...(args.feedVisibleAt !== undefined
+        ? { feedVisibleAt: args.feedVisibleAt }
+        : {}),
       active: true,
       updatedAt: now,
     };
@@ -432,7 +453,11 @@ export const publish = internalMutation({
       await ctx.db.insert('raceNews', { ...fields, publishedAt: now });
     }
 
-    await syncFeedEvent(ctx, race, args, resolved?.drivers, now);
+    if (heldBack) {
+      await scheduleFeedRelease(ctx, race._id, args.key, feedVisibleAt);
+    } else {
+      await syncFeedEvent(ctx, race, args, resolved?.drivers, now);
+    }
 
     return {
       action,
@@ -441,6 +466,92 @@ export const publish = internalMutation({
       headline: args.headline,
       affectsSessions: args.affectsSessions,
       driverCodes,
+      feedVisibleAt: heldBack ? feedVisibleAt : undefined,
+    };
+  },
+});
+
+/**
+ * Move the scheduled release, or set one.
+ *
+ * Cancel-then-schedule rather than schedule-once, because publishing is an
+ * upsert an agent re-runs: without the cancel, correcting an embargoed item
+ * three times leaves three jobs racing to write the same card. The release
+ * itself is idempotent too, so a job that escapes the cancel is harmless.
+ */
+async function scheduleFeedRelease(
+  ctx: MutationCtx,
+  raceId: Id<'races'>,
+  key: string,
+  at: number,
+) {
+  const row = await newsByKey(ctx, raceId, key);
+  if (!row) {
+    return;
+  }
+  if (row.feedReleaseScheduledId) {
+    try {
+      await ctx.scheduler.cancel(
+        row.feedReleaseScheduledId as Id<'_scheduled_functions'>,
+      );
+    } catch {
+      // Already ran or was cancelled: the release is idempotent, so nothing to do.
+    }
+  }
+  const scheduledId = await ctx.scheduler.runAt(
+    at,
+    internal.raceNews.releaseToFeed,
+    { raceId, key },
+  );
+  await ctx.db.patch(row._id, {
+    feedReleaseScheduledId: scheduledId as unknown as string,
+  });
+}
+
+/**
+ * Put an embargoed item into the feed.
+ *
+ * Scheduled by `publish`, and safe to run by hand if a release is ever missed:
+ * it re-reads the item, so it publishes what the item says *now* rather than
+ * what it said when the job was booked, and it does nothing at all for an item
+ * that has been retracted or has already appeared.
+ *
+ * Run via:
+ *   npx convex run --prod raceNews:releaseToFeed '{"raceId":"jd7...","key":"..."}'
+ */
+export const releaseToFeed = internalMutation({
+  args: { raceId: v.id('races'), key: v.string() },
+  handler: async (ctx, args) => {
+    const row = await newsByKey(ctx, args.raceId, args.key);
+    if (!row) {
+      return { action: 'not_found' as const, key: args.key };
+    }
+    await ctx.db.patch(row._id, { feedReleaseScheduledId: undefined });
+
+    if (!row.active) {
+      return { action: 'retracted' as const, key: args.key };
+    }
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      return { action: 'not_found' as const, key: args.key };
+    }
+    if (await feedEventForNews(ctx, args.raceId, args.key)) {
+      return { action: 'already_in_feed' as const, key: args.key };
+    }
+
+    const roster = await driversForCodes(ctx, row.driverCodes ?? []);
+    const drivers = (row.driverCodes ?? []).flatMap((code) => {
+      const driver = roster.get(code);
+      return driver ? [driver] : [];
+    });
+
+    await syncFeedEvent(ctx, race, row, drivers, Date.now());
+
+    return {
+      action: 'released' as const,
+      race: { slug: race.slug, name: race.name },
+      key: args.key,
+      headline: row.headline,
     };
   },
 });
@@ -586,7 +697,21 @@ export const retract = internalMutation({
       return { action: 'not_found' as const, key: args.key };
     }
 
-    await ctx.db.patch(existing._id, { active: false, updatedAt: Date.now() });
+    if (existing.feedReleaseScheduledId) {
+      try {
+        await ctx.scheduler.cancel(
+          existing.feedReleaseScheduledId as Id<'_scheduled_functions'>,
+        );
+      } catch {
+        // Already ran or was cancelled. The release checks `active`, so an item
+        // retracted before its embargo lifts stays out of the feed either way.
+      }
+    }
+    await ctx.db.patch(existing._id, {
+      active: false,
+      feedReleaseScheduledId: undefined,
+      updatedAt: Date.now(),
+    });
     const event = await feedEventForNews(ctx, race._id, args.key);
     if (event) {
       await ctx.db.delete(event._id);

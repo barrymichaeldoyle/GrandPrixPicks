@@ -24,11 +24,31 @@ import { getGuideMeta } from './guideMeta';
  * update.
  */
 
+/**
+ * A table rendered after the paragraphs, for content that is actually tabular.
+ *
+ * The definition list below was this module's only structural primitive for a
+ * while, which meant genuinely columnar content arrived as prose: a points
+ * scale read "the top nine score: 13, 10, 8, 6, 5, 4, 3, 2, 1", which is a row
+ * flattened into a clause and cannot be scanned. Tables are also the shape
+ * Google will lift into a result; a `<dl>` is not.
+ *
+ * Use it only when the cells are short and the columns mean the same thing all
+ * the way down. Anything that wants a sentence per row is still a `list`.
+ */
+type GuideTable = {
+  columns: readonly string[];
+  /** Cells in column order. The first is rendered as the row's header. */
+  rows: readonly (readonly string[])[];
+};
+
 type GuideSection = {
   heading: string;
   paragraphs: readonly string[];
   /** Optional definition list rendered after the paragraphs. */
   list?: readonly { term: string; detail: string }[];
+  /** Optional table rendered after the paragraphs. See {@link GuideTable}. */
+  table?: GuideTable;
 };
 
 /**
@@ -139,37 +159,48 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         paragraphs: [
           'Formula 1 has awarded half points six times. Every one of them was a race that stopped early, and all but one stopped because of rain. 1975 is the only season that produced two.',
         ],
-        list: [
-          {
-            term: '1975 Spanish Grand Prix',
-            detail:
-              'Stopped after 29 of 75 laps at Montjuïc Park, when Rolf Stommelen’s car went into a spectator area and four people were killed. Jochen Mass won, the only Grand Prix victory of his career.',
-          },
-          {
-            term: '1975 Austrian Grand Prix',
-            detail:
-              'Stopped after 29 laps in heavy rain at the Österreichring. Vittorio Brambilla won, also the only victory of his career, and crashed on his slowing down lap.',
-          },
-          {
-            term: '1984 Monaco Grand Prix',
-            detail:
-              'Stopped after 31 laps in heavy rain. Alain Prost won from Ayrton Senna, who was closing on him quickly enough that the stoppage is still argued about.',
-          },
-          {
-            term: '1991 Australian Grand Prix',
-            detail:
-              'Stopped after 16 of 81 laps at Adelaide in torrential rain, and classified from lap 14. It remains the shortest race in championship history. Ayrton Senna won.',
-          },
-          {
-            term: '2009 Malaysian Grand Prix',
-            detail:
-              'Red-flagged on lap 33 at Sepang as a monsoon arrived and the light went, and classified from lap 31. Jenson Button won, in the season Brawn came from nowhere.',
-          },
-          {
-            term: '2021 Belgian Grand Prix',
-            detail:
-              'A couple of laps behind the safety car at Spa and nothing else. Max Verstappen was classified the winner of a race that never ran green, which is what forced the rule to change.',
-          },
+        table: {
+          columns: ['Race', 'Laps', 'Why it stopped', 'Winner'],
+          rows: [
+            [
+              '1975 Spanish',
+              '29 of 75',
+              'Rolf Stommelen’s car went into a spectator area and four people were killed',
+              'Jochen Mass',
+            ],
+            [
+              '1975 Austrian',
+              '29',
+              'Heavy rain at the Österreichring',
+              'Vittorio Brambilla',
+            ],
+            ['1984 Monaco', '31', 'Heavy rain', 'Alain Prost'],
+            [
+              '1991 Australian',
+              '16 of 81',
+              'Torrential rain at Adelaide, classified from lap 14',
+              'Ayrton Senna',
+            ],
+            [
+              '2009 Malaysian',
+              '33 of 56',
+              'A monsoon arrived and the light went, classified from lap 31',
+              'Jenson Button',
+            ],
+            [
+              '2021 Belgian',
+              '3',
+              'Rain at Spa. The race never ran under green flags',
+              'Max Verstappen',
+            ],
+          ],
+        },
+      },
+      {
+        heading: 'What those races are remembered for',
+        paragraphs: [
+          'Montjuïc was a catastrophe rather than a rain shower, and it is the reason the circuit never held another Grand Prix. It also produced the strangest line in the record book: Lella Lombardi finished sixth, and because the race paid half, her score stands as half a point. She is the only woman to have scored in Formula 1 and the only driver with a half in her total.',
+          'Mass and Brambilla never won again. Brambilla crashed on his slowing down lap while celebrating. Adelaide 1991 remains the shortest championship race ever run, and Spa 2021 is the only one where nobody raced at all, which is what finally forced the rule to change.',
         ],
       },
       {
@@ -182,9 +213,8 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
       {
         heading: 'The rule that produced them',
         paragraphs: [
-          'For most of the sport’s history the rule was a single cliff edge. A race that reached three-quarters of its scheduled distance paid full points. A race stopped before that paid half, with the fractions rounded nowhere: sixth place in a half-points race scored half a point.',
-          'That is how the championship record ends up with a half in it. Lella Lombardi finished sixth in the 1975 Spanish Grand Prix and scored half a point, which makes her the only woman to have scored in Formula 1 and the only driver to hold a half-point total.',
-          'The problem with a cliff edge is that it treats a race stopped one lap short of three-quarters distance exactly the same as a race that never started properly. Spa in 2021 was the case that made this impossible to ignore. Two laps behind a safety car paid the same proportion as a race that had run for an hour and a half.',
+          'For most of the sport’s history the rule was a single cliff edge. A race that reached three-quarters of its scheduled distance paid full points. A race stopped before that paid half, with the fractions rounded nowhere: sixth place in a half-points race scored half a point, which is how Lombardi’s half got into the record.',
+          'The problem with a cliff edge is that it treats a race stopped one lap short of three-quarters distance exactly the same as a race that never started properly. Spa in 2021 was the case that made this impossible to ignore. A few laps behind a safety car paid the same proportion as a race that had run for an hour and a half.',
         ],
       },
       {
@@ -192,29 +222,16 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         paragraphs: [
           'From 2022 the cliff edge became a staircase. How much of the race was completed decides which of four scales applies, and a race that does not manage two laps pays nothing at all.',
         ],
-        list: [
-          {
-            term: 'Under 2 laps',
-            detail:
-              'No points. The race is treated as though it did not happen.',
-          },
-          {
-            term: '2 laps to 25%',
-            detail: 'The top five score, on a 6-4-3-2-1 scale.',
-          },
-          {
-            term: '25% to 50%',
-            detail: 'The top nine score: 13, 10, 8, 6, 5, 4, 3, 2, 1.',
-          },
-          {
-            term: '50% to 75%',
-            detail: 'The top ten score: 19, 14, 12, 9, 8, 6, 5, 3, 2, 1.',
-          },
-          {
-            term: 'Over 75%',
-            detail: 'Full points, exactly as any other Grand Prix.',
-          },
-        ],
+        table: {
+          columns: ['Distance completed', 'Who scores', 'Points'],
+          rows: [
+            ['Under 2 laps', 'Nobody', 'None'],
+            ['2 laps to 25%', 'Top five', '6, 4, 3, 2, 1'],
+            ['25% to 50%', 'Top nine', '13, 10, 8, 6, 5, 4, 3, 2, 1'],
+            ['50% to 75%', 'Top ten', '19, 14, 12, 9, 8, 6, 5, 3, 2, 1'],
+            ['Over 75%', 'Top ten', '25, 18, 15, 12, 10, 8, 6, 4, 2, 1'],
+          ],
+        },
       },
       {
         heading: 'The rule got tested immediately',
@@ -249,20 +266,23 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
       {
         heading: 'Grand Prix points',
         paragraphs: [
-          'The top ten finishers score in a Formula 1 Grand Prix: 25 points for first, then 18, 15, 12, 10, 8, 6, 4, 2 and 1 point for tenth. The sliding scale rewards winning far more than a solid points finish; first place alone is worth seven more points than second.',
+          'The top ten finishers score in a Formula 1 Grand Prix. The scale rewards winning far more than a solid points finish: first place alone is worth seven more points than second, which is a bigger step than any other on the scale.',
         ],
-        list: [
-          { term: '1st', detail: '25 points' },
-          { term: '2nd', detail: '18 points' },
-          { term: '3rd', detail: '15 points' },
-          { term: '4th', detail: '12 points' },
-          { term: '5th', detail: '10 points' },
-          { term: '6th', detail: '8 points' },
-          { term: '7th', detail: '6 points' },
-          { term: '8th', detail: '4 points' },
-          { term: '9th', detail: '2 points' },
-          { term: '10th', detail: '1 point' },
-        ],
+        table: {
+          columns: ['Position', 'Points'],
+          rows: [
+            ['1st', '25'],
+            ['2nd', '18'],
+            ['3rd', '15'],
+            ['4th', '12'],
+            ['5th', '10'],
+            ['6th', '8'],
+            ['7th', '6'],
+            ['8th', '4'],
+            ['9th', '2'],
+            ['10th', '1'],
+          ],
+        },
       },
       {
         heading: 'Sprint points',
@@ -271,16 +291,19 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           'Only the top eight score, rather than the top ten, and the gap between winning and finishing second is a single point rather than seven.',
           'Sprint points count towards both championships in exactly the same way as Grand Prix points. They are simply added to the total.',
         ],
-        list: [
-          { term: '1st', detail: '8 points' },
-          { term: '2nd', detail: '7 points' },
-          { term: '3rd', detail: '6 points' },
-          { term: '4th', detail: '5 points' },
-          { term: '5th', detail: '4 points' },
-          { term: '6th', detail: '3 points' },
-          { term: '7th', detail: '2 points' },
-          { term: '8th', detail: '1 point' },
-        ],
+        table: {
+          columns: ['Position', 'Points'],
+          rows: [
+            ['1st', '8'],
+            ['2nd', '7'],
+            ['3rd', '6'],
+            ['4th', '5'],
+            ['5th', '4'],
+            ['6th', '3'],
+            ['7th', '2'],
+            ['8th', '1'],
+          ],
+        },
       },
       {
         heading: 'Two championships, one set of results',

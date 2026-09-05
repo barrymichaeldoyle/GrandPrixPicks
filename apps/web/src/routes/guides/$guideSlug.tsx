@@ -149,6 +149,55 @@ function GuidePage() {
                   {paragraph}
                 </p>
               ))}
+              {/* Scrolls in its own container rather than widening the page:
+                  four columns do not fit a phone, and a body that scrolls
+                  sideways breaks every other section too. */}
+              {section.table && (
+                <div className="mt-6 overflow-x-auto">
+                  <table className="w-full min-w-[34rem] border-collapse text-left">
+                    <thead>
+                      <tr className="border-y border-border">
+                        {section.table.columns.map((column) => (
+                          <th
+                            key={column}
+                            scope="col"
+                            className="font-title py-3 pr-6 text-xs font-semibold tracking-wide text-text-muted uppercase"
+                          >
+                            {column}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {section.table.rows.map((row) => (
+                        <tr
+                          key={row[0]}
+                          className="border-b border-border align-top"
+                        >
+                          {row.map((cell, index) =>
+                            index === 0 ? (
+                              <th
+                                key={section.table?.columns[index]}
+                                scope="row"
+                                className="py-4 pr-6 text-left font-semibold text-text"
+                              >
+                                {cell}
+                              </th>
+                            ) : (
+                              <td
+                                key={section.table?.columns[index]}
+                                className="gpp-reading-copy py-4 pr-6 text-text-muted"
+                              >
+                                {cell}
+                              </td>
+                            ),
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
               {section.list && (
                 <dl className="mt-6 border-t border-border">
                   {section.list.map((item) => (

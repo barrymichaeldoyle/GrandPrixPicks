@@ -18,6 +18,7 @@ import {
   Check,
   CircleAlert,
   Copy,
+  ListChecks,
   Loader2,
   RefreshCw,
   Save,
@@ -141,6 +142,9 @@ function AdminRaceDetailPage() {
   const publishResults = useMutation(api.results.adminPublishResults);
   const setUnattended = useMutation(api.openF1Results.adminSetUnattended);
   const fetchResultsNow = useAction(api.openF1Results.adminFetchResultsNow);
+  const previewLiveResults = useAction(
+    api.openF1Results.adminPreviewLiveResults,
+  );
   const cancelRace = useMutation(api.races.adminCancelRace);
   const restoreRace = useMutation(api.races.adminRestoreRace);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -152,6 +156,28 @@ function AdminRaceDetailPage() {
     sessionType: SessionType;
     ok: boolean;
     message: string;
+  } | null>(null);
+  const [isPreviewingLive, setIsPreviewingLive] = useState(false);
+  // The last live-timing preview, kept per session for the same reason as
+  // fetchNowOutcome: switching tabs must never show one session's grid under
+  // another's heading.
+  const [livePreview, setLivePreview] = useState<{
+    sessionType: SessionType;
+    ok: boolean;
+    message: string;
+    provisional?: boolean;
+    settled?: boolean;
+    settledAt?: number;
+    order?: {
+      position: number;
+      driverId: Id<'drivers'>;
+      driverNumber: number;
+      code: string;
+      displayName: string;
+      team: string;
+      blocked: boolean;
+    }[];
+    stewardsMessages?: string[];
   } | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [h2hCopyStatus, setH2hCopyStatus] = useState<
@@ -617,6 +643,48 @@ function AdminRaceDetailPage() {
     }
   }
 
+  /**
+   * Load what live timing currently says into the picker, without publishing.
+   *
+   * The point is the verification step: OpenF1's official classification can
+   * lag the flag by over an hour, and the live order is right far more often
+   * than not, but "far more often than not" is not a thing to publish
+   * unattended. So this fills the form and leaves the existing publish button
+   * (and its confirm) to do what it always does.
+   */
+  async function handlePreviewLive() {
+    const sessionType = selectedSession;
+    setIsPreviewingLive(true);
+    setLivePreview(null);
+    try {
+      const preview = await previewLiveResults({
+        raceId: typedRaceId,
+        sessionType,
+      });
+      setLivePreview({ sessionType, ...preview });
+      if (preview.ok && preview.order) {
+        setSelectedDrivers((current) => {
+          const next = [...current];
+          preview.order?.forEach((entry, index) => {
+            next[index] = entry.driverId;
+          });
+          return next;
+        });
+        // Live timing carries no DNF/DSQ flags, so anything previously marked
+        // would be a leftover from a different source.
+        setDriverStatuses({});
+      }
+    } catch (error) {
+      setLivePreview({
+        sessionType,
+        ok: false,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      setIsPreviewingLive(false);
+    }
+  }
+
   async function handleFetchResultsNow() {
     const sessionType = selectedSession;
     setIsFetchingNow(true);
@@ -792,7 +860,95 @@ function AdminRaceDetailPage() {
                       Publishes automatically if OpenF1 already has the
                       classification.
                     </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      leftIcon={ListChecks}
+                      disabled={isPreviewingLive}
+                      onClick={() => void handlePreviewLive()}
+                    >
+                      {isPreviewingLive
+                        ? 'Reading live timing...'
+                        : 'Preview from live timing'}
+                    </Button>
+                    <span className="text-xs text-slate-400">
+                      Fills the grid below from the live feed. Nothing is
+                      published until you press Publish.
+                    </span>
                   </div>
+
+                  {livePreview &&
+                    livePreview.sessionType === selectedSession && (
+                      <div className="mt-3 rounded-lg border border-slate-600 bg-slate-900/60 p-3">
+                        <p
+                          className={`text-sm font-medium ${
+                            livePreview.ok
+                              ? livePreview.provisional
+                                ? 'text-amber-300'
+                                : 'text-emerald-300'
+                              : 'text-red-300'
+                          }`}
+                        >
+                          {livePreview.message}
+                        </p>
+                        {livePreview.ok && livePreview.settled === false && (
+                          <p className="mt-1 text-xs text-amber-300">
+                            The position feed is still settling. It is only
+                            trusted from{' '}
+                            {livePreview.settledAt
+                              ? new Date(
+                                  livePreview.settledAt,
+                                ).toLocaleTimeString()
+                              : 'shortly after the flag'}
+                            . Check every place against the broadcast before
+                            publishing.
+                          </p>
+                        )}
+                        {livePreview.stewardsMessages &&
+                          livePreview.stewardsMessages.length > 0 && (
+                            <ul className="mt-2 space-y-1">
+                              {livePreview.stewardsMessages.map((entry) => (
+                                <li
+                                  key={entry}
+                                  className="text-xs text-amber-200"
+                                >
+                                  {entry}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        {livePreview.order && (
+                          <ol className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2">
+                            {livePreview.order.map((entry) => (
+                              <li
+                                key={entry.driverId}
+                                className={`flex items-baseline gap-2 text-sm ${
+                                  entry.blocked
+                                    ? 'text-amber-300'
+                                    : 'text-slate-200'
+                                }`}
+                              >
+                                <span className="w-6 shrink-0 text-right text-slate-400 tabular-nums">
+                                  {entry.position}
+                                </span>
+                                <span className="font-medium">
+                                  {entry.code}
+                                </span>
+                                <span className="truncate text-slate-400">
+                                  {entry.displayName}
+                                </span>
+                                {entry.blocked && (
+                                  <span className="shrink-0 text-xs">
+                                    under investigation
+                                  </span>
+                                )}
+                              </li>
+                            ))}
+                          </ol>
+                        )}
+                      </div>
+                    )}
                   {fetchNowOutcome &&
                     fetchNowOutcome.sessionType === selectedSession && (
                       <p

@@ -19,6 +19,17 @@ import {
   query,
 } from './_generated/server';
 import { getViewer, requireAdmin, requireViewer } from './lib/auth';
+import type { PendingInvestigation } from './openF1LiveTiming';
+import {
+  deriveFinalOrder,
+  evaluateLiveTimingGate,
+  findPendingInvestigations,
+  findSessionFinishedAt,
+  LIVE_TIMING_GATE_ZONE,
+  LIVE_TIMING_SETTLE_MS,
+  parseOpenF1PositionRows,
+  parseRaceControlMessages,
+} from './openF1LiveTiming';
 
 const MINUTE = 60_000;
 // OpenF1 exposes a session result far sooner than the original 35-minute
@@ -512,6 +523,93 @@ export async function fetchOfficialClassification(args: {
   };
 }
 
+/**
+ * The classification as live timing has it, plus everything needed to decide
+ * whether it can be trusted yet.
+ *
+ * Read when `session_result` is not available. See `openF1LiveTiming` for why
+ * the race-control gate makes this safe rather than a guess.
+ */
+export type LiveTimingClassification = {
+  openF1SessionKey: number;
+  /** When the session ended, per race control. */
+  finishedAt: number;
+  /** The earliest moment the position feed is trusted. */
+  settledAt: number;
+  /** Driver numbers, finishing order. */
+  order: number[];
+  classification: Array<Id<'drivers'>>;
+  /** Everything the stewards still have open, wherever it sits in the order. */
+  pending: PendingInvestigation[];
+  /** The subset near the front, which is what makes the result provisional. */
+  pendingInZone: PendingInvestigation[];
+  /** True when a stewards' decision could still move the scoring positions. */
+  provisional: boolean;
+  /** Whether the position feed has had long enough to settle. */
+  settled: boolean;
+};
+
+export async function fetchLiveTimingClassification(args: {
+  season: number;
+  sessionType: SessionType;
+  sessionStartAt: number;
+  raceName: string;
+  driverByNumber: Map<number, Id<'drivers'>>;
+  now: number;
+}): Promise<LiveTimingClassification> {
+  const sessionsUrl = buildSessionDiscoveryUrl(
+    args.season,
+    args.sessionStartAt,
+  );
+  const sessions = parseOpenF1Sessions(await fetchJson(sessionsUrl));
+  const allowedNames = OPEN_F1_SESSION_NAMES[args.sessionType];
+  const session = sessions.find((candidate) =>
+    allowedNames.includes(candidate.session_name),
+  );
+  if (!session) {
+    throw new Error(`OpenF1 has not exposed the ${args.raceName} session yet`);
+  }
+
+  const raceControlUrl = new URL('https://api.openf1.org/v1/race_control');
+  raceControlUrl.searchParams.set('session_key', String(session.session_key));
+  const messages = parseRaceControlMessages(await fetchJson(raceControlUrl));
+  const finishedAt = findSessionFinishedAt(messages);
+  if (finishedAt === undefined) {
+    throw new Error('OpenF1 race control has not reported the session as over');
+  }
+
+  const positionUrl = new URL('https://api.openf1.org/v1/position');
+  positionUrl.searchParams.set('session_key', String(session.session_key));
+  const order = deriveFinalOrder(
+    parseOpenF1PositionRows(await fetchJson(positionUrl)),
+  );
+
+  const unmapped = order.filter((number) => !args.driverByNumber.has(number));
+  if (unmapped.length > 0) {
+    throw new Error(`Unmapped OpenF1 driver number(s): ${unmapped.join(', ')}`);
+  }
+
+  const pending = findPendingInvestigations(messages, finishedAt);
+  const { provisional, pendingInZone } = evaluateLiveTimingGate({
+    order,
+    pending,
+    zone: LIVE_TIMING_GATE_ZONE,
+  });
+  const settledAt = finishedAt + LIVE_TIMING_SETTLE_MS;
+
+  return {
+    openF1SessionKey: session.session_key,
+    finishedAt,
+    settledAt,
+    order,
+    classification: order.map((number) => args.driverByNumber.get(number)!),
+    pending,
+    pendingInZone,
+    provisional,
+    settled: args.now >= settledAt,
+  };
+}
+
 export async function loadDriverNumberMap(ctx: {
   runQuery: ActionCtx['runQuery'];
 }): Promise<Map<number, Id<'drivers'>>> {
@@ -727,17 +825,219 @@ export const pollDueResults = internalAction({
           openF1SessionKey,
         });
       } catch (error) {
+        // `session_result` is not there yet. It can lag the flag by over an
+        // hour, which is far too long to leave players without scores, so fall
+        // back to live timing when race control says the order is settled and
+        // the stewards are holding nothing near the top of it.
+        const fallback = await publishFromLiveTiming(ctx, task, driverByNumber);
         await ctx.runMutation(internal.openF1Results.recordOutcome, {
           raceId: task.raceId,
           sessionType: task.sessionType,
-          status: 'retrying',
-          error: errorMessage(error).slice(0, 500),
-          openF1SessionKey,
+          status: fallback.status === 'published' ? 'published' : 'retrying',
+          error:
+            fallback.status === 'published'
+              ? undefined
+              : `${errorMessage(error)} | live timing: ${fallback.reason}`.slice(
+                  0,
+                  500,
+                ),
+          openF1SessionKey: fallback.openF1SessionKey ?? openF1SessionKey,
         });
       }
     }
 
     return { processed: tasks.length };
+  },
+});
+
+/**
+ * Try the live-timing path for one session. Never throws: a failure here just
+ * means the caller records a retry and the next poll tries again.
+ */
+async function publishFromLiveTiming(
+  ctx: ActionCtx,
+  task: PollTask,
+  driverByNumber: Map<number, Id<'drivers'>>,
+): Promise<{
+  status: 'published' | 'skipped';
+  reason: string;
+  openF1SessionKey?: number;
+}> {
+  try {
+    const live = await fetchLiveTimingClassification({
+      season: task.season,
+      sessionType: task.sessionType,
+      sessionStartAt: task.sessionStartAt,
+      raceName: task.raceName,
+      driverByNumber,
+      now: Date.now(),
+    });
+
+    if (!live.settled) {
+      return {
+        status: 'skipped',
+        reason: 'position feed still settling',
+        openF1SessionKey: live.openF1SessionKey,
+      };
+    }
+
+    // An open investigation deliberately does NOT hold publication. A
+    // post-session penalty routinely takes hours, and players who watched the
+    // session are not going to wait that long for a result they already know.
+    // So publish the provisional classification the way the sport itself does
+    // and let resultsRecheck amend it if the stewards move anyone.
+
+    // No DNF/DSQ detail: live timing does not carry the flags, and every
+    // backtested session placed retirees correctly by position alone. The
+    // recheck fills in the statuses from the official feed when it lands.
+    const outcome: { status: 'published' | 'already_published' } =
+      await ctx.runMutation(internal.results.autoPublishResults, {
+        raceId: task.raceId,
+        sessionType: task.sessionType,
+        classification: live.classification,
+        dnfDriverIds: [],
+      });
+    const provisionalNote = live.provisional
+      ? ` (provisional: stewards still hold ${live.pendingInZone
+          .map((entry) => `#${entry.driverNumber}`)
+          .join(', ')})`
+      : '';
+    return {
+      status: outcome.status === 'published' ? 'published' : 'skipped',
+      reason:
+        outcome.status === 'published'
+          ? `published ${live.classification.length} drivers from live timing${provisionalNote}`
+          : 'already published',
+      openF1SessionKey: live.openF1SessionKey,
+    };
+  } catch (error) {
+    return { status: 'skipped', reason: errorMessage(error) };
+  }
+}
+
+/**
+ * What live timing currently says, without writing anything.
+ *
+ * The admin counterpart to the automatic path: it answers "what would you
+ * publish, and why are you holding it?" so a human watching the session can
+ * check the order against the broadcast and publish it themselves when the
+ * gate is being cautious. Deliberately read-only — publication goes through
+ * `results:adminPublishResults` like any other manual publish.
+ */
+export const adminPreviewLiveResults = action({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+  },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{
+    ok: boolean;
+    message: string;
+    finishedAt?: number;
+    settledAt?: number;
+    settled?: boolean;
+    provisional?: boolean;
+    openF1SessionKey?: number;
+    order?: Array<{
+      position: number;
+      driverId: Id<'drivers'>;
+      driverNumber: number;
+      code: string;
+      displayName: string;
+      team: string;
+      blocked: boolean;
+    }>;
+    stewardsMessages?: string[];
+  }> => {
+    // Admin enforcement lives in getManualFetchTask, which every path here
+    // goes through; an action has no `db` to check identity against itself.
+    const task = await ctx.runQuery(internal.openF1Results.getManualFetchTask, {
+      raceId: args.raceId,
+      sessionType: args.sessionType,
+    });
+    if (task.alreadyPublished) {
+      return {
+        ok: false,
+        message: `${SESSION_LABELS_FULL[args.sessionType]} results are already published.`,
+      };
+    }
+
+    const driverByNumber = await loadDriverNumberMap(ctx);
+    try {
+      const live = await fetchLiveTimingClassification({
+        season: task.season,
+        sessionType: args.sessionType,
+        sessionStartAt: task.sessionStartAt,
+        raceName: task.raceName,
+        driverByNumber,
+        now: Date.now(),
+      });
+      const flagged = new Set(
+        live.pendingInZone.map((entry) => entry.driverNumber),
+      );
+      const drivers: Array<{
+        driverId: Id<'drivers'>;
+        number: number;
+        code: string;
+        displayName: string;
+        team: string;
+      }> = await ctx.runQuery(internal.openF1Results.getDriverDisplayMap, {});
+      const byId = new Map(drivers.map((driver) => [driver.driverId, driver]));
+
+      return {
+        ok: true,
+        message: live.provisional
+          ? 'Provisional: the stewards still have something open near the front. Check the messages below against the broadcast.'
+          : 'Live timing is settled and nothing is pending near the front.',
+        finishedAt: live.finishedAt,
+        settledAt: live.settledAt,
+        settled: live.settled,
+        provisional: live.provisional,
+        openF1SessionKey: live.openF1SessionKey,
+        order: live.classification.map((driverId, index) => {
+          const driver = byId.get(driverId);
+          return {
+            position: index + 1,
+            driverId,
+            driverNumber: live.order[index]!,
+            code: driver?.code ?? '???',
+            displayName: driver?.displayName ?? 'Unknown driver',
+            team: driver?.team ?? '',
+            blocked: flagged.has(live.order[index]!),
+          };
+        }),
+        stewardsMessages: live.pending.map((entry) => entry.message),
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        message: isLiveSessionRestriction(error)
+          ? `OpenF1 blocks access while a session is running. (${errorMessage(error)})`
+          : errorMessage(error),
+      };
+    }
+  },
+});
+
+export const getDriverDisplayMap = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const drivers = await ctx.db.query('drivers').take(40);
+    return drivers.flatMap((driver) =>
+      driver.number === undefined
+        ? []
+        : [
+            {
+              driverId: driver._id,
+              number: driver.number,
+              code: driver.code,
+              displayName: driver.displayName,
+              team: driver.team ?? '',
+            },
+          ],
+    );
   },
 });
 

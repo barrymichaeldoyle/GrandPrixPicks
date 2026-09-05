@@ -19,6 +19,16 @@ import {
   getFallbackWindow,
   parseOpenF1Sessions,
 } from './openF1Results';
+// Re-exported so existing importers (and liveScoring.test.ts) keep their
+// entry point while the implementation lives in one place.
+export {
+  parseOpenF1PositionRows,
+  reduceRunningOrder,
+} from './openF1LiveTiming';
+import {
+  parseOpenF1PositionRows,
+  reduceRunningOrder,
+} from './openF1LiveTiming';
 
 export const LIVE_SCORING_CADENCE_MS = 15_000;
 const LIVE_WINDOW_AFTER_EXPECTED_END_MS = 30 * 60_000;
@@ -32,12 +42,6 @@ const workerPositionValidator = v.object({
 });
 
 type LiveSessionType = 'sprint' | 'race';
-type PositionRow = {
-  driverNumber: number;
-  position: number;
-  date: string;
-};
-
 type LiveInput = {
   race: Doc<'races'>;
   snapshot: Doc<'liveSnapshots'>;
@@ -49,66 +53,6 @@ type LiveInput = {
   publishedTopFiveScores: Doc<'scores'>[];
   publishedH2HScores: Doc<'h2hScores'>[];
 };
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-export function parseOpenF1PositionRows(value: unknown): PositionRow[] {
-  if (!Array.isArray(value)) {
-    throw new Error('OpenF1 position response was not an array');
-  }
-  return value.map((item) => {
-    if (
-      !isRecord(item) ||
-      typeof item.driver_number !== 'number' ||
-      typeof item.position !== 'number' ||
-      typeof item.date !== 'string' ||
-      !Number.isInteger(item.driver_number) ||
-      !Number.isInteger(item.position) ||
-      item.position < 1 ||
-      !Number.isFinite(Date.parse(item.date))
-    ) {
-      throw new Error('OpenF1 returned an invalid position row');
-    }
-    return {
-      driverNumber: item.driver_number,
-      position: item.position,
-      date: item.date,
-    };
-  });
-}
-
-/** Merge an event-log page into the last-known position for each driver. */
-export function reduceRunningOrder(
-  existing: ReadonlyArray<{ driverNumber: number; position: number }>,
-  rows: ReadonlyArray<PositionRow>,
-) {
-  const latestByDriver = new Map<number, { position: number; date: string }>();
-  for (const row of rows) {
-    const previous = latestByDriver.get(row.driverNumber);
-    if (!previous || Date.parse(row.date) >= Date.parse(previous.date)) {
-      latestByDriver.set(row.driverNumber, {
-        position: row.position,
-        date: row.date,
-      });
-    }
-  }
-
-  const byDriver = new Map(
-    existing.map((entry) => [entry.driverNumber, entry.position]),
-  );
-  for (const [driverNumber, row] of latestByDriver) {
-    byDriver.set(driverNumber, row.position);
-  }
-  const order = [...byDriver]
-    .map(([driverNumber, position]) => ({ driverNumber, position }))
-    .sort((a, b) => a.position - b.position);
-  if (new Set(order.map((entry) => entry.position)).size !== order.length) {
-    throw new Error('OpenF1 running order contains duplicate positions');
-  }
-  return order;
-}
 
 function sessionStartAt(race: Doc<'races'>, sessionType: LiveSessionType) {
   return sessionType === 'sprint'

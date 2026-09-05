@@ -436,12 +436,11 @@
    * viewport. Default is thick at the top, so a lone card outside a run still
    * gets a bar.
    *
-   * Only for tall cards that stand on their own — the write-up page's news
-   * grid, and nothing in the dashboard feed. Stacked in the feed's shared
-   * bordered block the bars are short, inset, and butted end to end, and
-   * opposing wedges there read as noise rather than rhythm. On a 28px chip the
-   * lean is invisible anyway, and the extra 5px of colour breaks the rule above
-   * that team colour stays confined to 3px.
+   * Only for news cards — the write-up page's grid and the feed's news block,
+   * both of which run them through `.gpp-lean-run` so consecutive bars meet
+   * thick to thick. Not on a driver row or a chip: at 28px the lean is
+   * invisible anyway, and the extra 5px of colour breaks the rule above that
+   * team colour stays confined to 3px.
    */
   .gpp-team-bar-lean::before {
     width: calc(var(--team-bar-width) + var(--stripe-lean));

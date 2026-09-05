@@ -39,7 +39,14 @@ export function NewsGroup({ events }: { events: FeedEvent[] }) {
 
   return (
     <section
-      className="overflow-hidden rounded-sm border border-border/80 bg-surface"
+      /* Edge to edge on a phone, the same bleed the weekend picks card takes at
+         the top of the dashboard (`weekendCardShell`), and for the same
+         reasons: the side borders and radius go, because a rounded corner flush
+         to the glass reads as a clipping bug, and the block buys back the 32px
+         the frame's `px-4` was taking, which on a phone is most of a word per
+         line of body copy. Inner padding is untouched: the block bleeds, the
+         copy never does. */
+      className="overflow-hidden border-y border-border/80 bg-surface max-md:-mx-4 md:rounded-sm md:border"
       aria-label={raceName ? `Weekend news, ${raceName}` : 'Weekend news'}
     >
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border/80 px-2.5 py-2">

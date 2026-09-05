@@ -2,5 +2,11 @@
 User-agent: *
 Allow: /
 
+# Cloudflare's Email Address Obfuscation rewrites the support mailto: links on
+# /terms and /privacy into /cdn-cgi/l/email-protection, which answers 404 to a
+# crawler. Bing's site scan reported it as the site's only HTTP error. Nothing
+# under /cdn-cgi/ is ours or worth crawling, so disallow the whole prefix.
+Disallow: /cdn-cgi/
+
 # Sitemap
 Sitemap: https://grandprixpicks.com/sitemap.xml

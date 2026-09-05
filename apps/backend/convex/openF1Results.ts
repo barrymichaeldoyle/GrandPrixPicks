@@ -54,6 +54,33 @@ const EXPECTED_DURATION: Record<SessionType, number> = {
   race: 120 * MINUTE,
 };
 
+/**
+ * The earliest a session could plausibly be over, measured from its start.
+ *
+ * Separate from EXPECTED_DURATION, which is the *scheduled* length and is what
+ * other callers (liveScoring's window, the polling deadline) still want. A
+ * grand prix is scheduled for two hours but is run to a lap count and finishes
+ * in 87 to 103 minutes, so keying the first poll to the scheduled end left 20
+ * to 35 minutes of dead waiting after the flag, which is most of the delay
+ * this whole fallback exists to remove.
+ *
+ * Every value sits below the shortest session of that type seen in 2026, with
+ * margin. The race figure is deliberately well under the 87 minutes that was
+ * the shortest of the season: Monza is the fastest circuit on the calendar and
+ * a clean run there has historically finished inside 75 minutes, so a trigger
+ * anywhere near the observed minimum would miss exactly the race it matters
+ * most for. The all-time fastest grand prix is a shade over 74 minutes.
+ *
+ * Polling before the flag costs a 404 and a retry, and nothing is published
+ * until race control reports the session over, so being early is free.
+ */
+const EARLIEST_END: Record<SessionType, number> = {
+  sprint_quali: 40 * MINUTE,
+  quali: 55 * MINUTE,
+  sprint: 25 * MINUTE,
+  race: 60 * MINUTE,
+};
+
 const OPEN_F1_SESSION_NAMES: Record<SessionType, ReadonlyArray<string>> = {
   sprint_quali: ['Sprint Qualifying', 'Sprint Shootout'],
   quali: ['Qualifying'],
@@ -95,7 +122,8 @@ export function getFallbackWindow(
   const expectedEndAt = sessionStartAt + EXPECTED_DURATION[sessionType];
   return {
     expectedEndAt,
-    firstAttemptAt: expectedEndAt + FIRST_ATTEMPT_DELAY,
+    firstAttemptAt:
+      sessionStartAt + EARLIEST_END[sessionType] + FIRST_ATTEMPT_DELAY,
     deadlineAt: expectedEndAt + DEADLINE_AFTER_EXPECTED_END,
   };
 }

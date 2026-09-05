@@ -9,13 +9,25 @@ import {
 } from './openF1Results';
 
 describe('OpenF1 fallback timing', () => {
-  it('starts two minutes after expected end and stops two hours after it', () => {
+  it('starts two minutes after the earliest plausible end, and stops two hours after the scheduled one', () => {
     const start = Date.UTC(2026, 6, 24, 12);
     expect(getFallbackWindow('quali', start)).toEqual({
       expectedEndAt: start + 60 * 60_000,
-      firstAttemptAt: start + 62 * 60_000,
+      firstAttemptAt: start + 57 * 60_000,
       deadlineAt: start + 180 * 60_000,
     });
+  });
+
+  it('starts looking for a race well before its scheduled end', () => {
+    // A grand prix is scheduled for two hours but run to a lap count. Keying
+    // the first attempt to the scheduled end meant waiting 20 to 35 minutes
+    // after the flag, and at Monza, the fastest circuit on the calendar, the
+    // race can be over inside 75 minutes.
+    const start = Date.UTC(2026, 8, 6, 13);
+    const window = getFallbackWindow('race', start);
+    expect(window.expectedEndAt).toBe(start + 120 * 60_000);
+    expect(window.firstAttemptAt).toBe(start + 62 * 60_000);
+    expect(window.deadlineAt).toBe(start + 240 * 60_000);
   });
 
   it('builds OpenF1 comparison filters without an extra equals sign', () => {

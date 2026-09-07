@@ -71,6 +71,11 @@ export function RaceWriteupTrackMap({
           sizes={sizes}
           width={width}
           height={height}
+          // Never the LCP element: the map sits several sections below the
+          // fold on every write-up that carries one, and at 1600px wide it is
+          // the heaviest thing the page can fetch. Eager, it competed with the
+          // hero for the connection on a phone.
+          loading="lazy"
           decoding="async"
           className="h-auto w-full rounded-sm"
           alt={alt}

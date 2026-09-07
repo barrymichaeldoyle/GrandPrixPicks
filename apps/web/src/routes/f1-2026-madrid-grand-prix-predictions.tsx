@@ -133,7 +133,7 @@ const FAQS = [
   {
     question: 'What did the Formula 3 test show about the Madring?',
     answer:
-      'Thirty drivers ran over two days in August and the test produced 19 red flags, 11 of them cars in the barriers. Ugo Ugochukwu set the fastest lap at 1:49.034. The times do not transfer to Formula 1, but the corners that caught drivers do.',
+      'Thirty drivers ran over two days in August and the test produced 19 red flags, 11 of them cars in the barriers. Ugo Ugochukwu set the fastest lap at 1:49.034. Those lap times say nothing about Formula 1 pace, but the corners that caught drivers are the same corners.',
   },
   {
     question: 'How likely is a safety car at the Madring?',

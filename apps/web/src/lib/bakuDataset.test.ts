@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { BAKU_CRASHES, BAKU_DRIVER_NAMES } from './bakuCrashes';
+import { BAKU_CRASHES, BAKU_DRIVERS } from './bakuCrashes';
 import { organizationSchema } from './site';
 import {
   BAKU_DATASET_DRIVER_COUNT,
@@ -23,9 +23,7 @@ describe('baku dataset schema', () => {
   it('states the real driver count', () => {
     const drivers = new Set(BAKU_CRASHES.flatMap((crash) => crash.drivers));
     expect(BAKU_DATASET_DRIVER_COUNT).toBe(drivers.size);
-    expect(BAKU_DATASET_DRIVER_COUNT).toBe(
-      Object.keys(BAKU_DRIVER_NAMES).length,
-    );
+    expect(BAKU_DATASET_DRIVER_COUNT).toBe(Object.keys(BAKU_DRIVERS).length);
   });
 
   it('points its download at the route that serves the data', () => {

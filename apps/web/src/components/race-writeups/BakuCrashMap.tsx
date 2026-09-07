@@ -2,9 +2,11 @@ import { ChevronRight, X } from 'lucide-react';
 import { useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { Flag } from '@/components/Flag';
 import { useModalDialog } from '@/hooks/useModalDialog';
 import {
   BAKU_CORNERS,
+  BAKU_START_FINISH,
   BAKU_TRACK_SEGMENTS,
   BAKU_VIEW_BOX,
 } from '@/lib/bakuCircuitGeometry';
@@ -17,6 +19,7 @@ import {
   countByFilter,
   countsByCorner,
   countsByDriver,
+  driverCountry,
   driverName,
   driverSurname,
   driversLabel,
@@ -26,6 +29,7 @@ import {
   heatStep,
   markerRadius,
   orderedForList,
+  placeMarkers,
   rankedCorners,
   rankedDrivers,
   sessionLabel,
@@ -213,37 +217,50 @@ export function BakuCrashMap() {
               );
             })}
 
+            <StartFinish />
+
             <g ref={markerGroupRef}>
               {/*
                 Ascending by count, so the busiest corners paint last and sit on
-                top. Turns 5, 6 and 20 are within a few units of each other in
-                the castle section and their markers do overlap; drawing bigger
-                over smaller keeps the finding readable, and the page-coloured
-                ring on each marker separates the pile.
+                top, and nudged apart first so none of them is buried. Baku
+                doubles back on itself and the castle section is several corners
+                in a few metres, which at map scale put whole markers underneath
+                each other.
               */}
-              {[...BAKU_CORNERS]
-                .sort(
-                  (a, b) =>
-                    (counts.get(a.number) ?? 0) - (counts.get(b.number) ?? 0),
-                )
-                .map((corner) => {
-                  const count = counts.get(corner.number) ?? 0;
-                  if (count === 0) {
-                    return null;
-                  }
-                  const radius = markerRadius(count, max);
+              {placeMarkers(
+                BAKU_CORNERS.map((corner) => ({
+                  corner: corner.number,
+                  count: counts.get(corner.number) ?? 0,
+                  x: corner.x,
+                  y: corner.y,
+                  radius: markerRadius(counts.get(corner.number) ?? 0, max),
+                })).filter((marker) => marker.count > 0),
+              )
+                .slice()
+                .sort((a, b) => a.count - b.count)
+                .map((marker) => {
+                  const corner = {
+                    number: marker.corner,
+                    x: marker.x,
+                    y: marker.y,
+                  };
+                  const anchor = BAKU_CORNERS.find(
+                    (entry) => entry.number === marker.corner,
+                  );
+                  const count = marker.count;
+                  const radius = marker.radius;
                   /* A numeral needs room. Below that the marker is a plain dot
                      and the tally beside it is where its number is read. */
                   const labelled = radius >= 18;
-                  const focusable = ranked[0]?.corner === corner.number;
+                  const focusable = ranked[0]?.corner === marker.corner;
                   return (
                     <g
-                      key={corner.number}
-                      data-corner={corner.number}
+                      key={marker.corner}
+                      data-corner={marker.corner}
                       role="button"
                       tabIndex={focusable ? 0 : -1}
                       aria-haspopup="dialog"
-                      aria-label={`Turn ${corner.number}, ${count} ${
+                      aria-label={`Turn ${marker.corner}, ${count} ${
                         count === 1 ? 'incident' : 'incidents'
                       }`}
                       /*
@@ -254,28 +271,43 @@ export function BakuCrashMap() {
                         marker over its neighbour.
                       */
                       className="cursor-pointer transition-[filter] hover:brightness-125 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent motion-reduce:transition-none"
-                      onClick={() => setOpenCorner(corner.number)}
+                      onClick={() => setOpenCorner(marker.corner)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
                           event.preventDefault();
-                          setOpenCorner(corner.number);
+                          setOpenCorner(marker.corner);
                         }
                         if (
                           event.key === 'ArrowRight' ||
                           event.key === 'ArrowDown'
                         ) {
                           event.preventDefault();
-                          moveFocus(corner.number, 1);
+                          moveFocus(marker.corner, 1);
                         }
                         if (
                           event.key === 'ArrowLeft' ||
                           event.key === 'ArrowUp'
                         ) {
                           event.preventDefault();
-                          moveFocus(corner.number, -1);
+                          moveFocus(marker.corner, -1);
                         }
                       }}
                     >
+                      {/* A leader back to the corner, drawn only when the
+                          marker had to move far enough for the link to stop
+                          being obvious. */}
+                      {anchor !== undefined &&
+                      Math.hypot(anchor.x - marker.x, anchor.y - marker.y) >
+                        6 ? (
+                        <line
+                          x1={anchor.x}
+                          y1={anchor.y}
+                          x2={marker.x}
+                          y2={marker.y}
+                          stroke="var(--border-strong)"
+                          strokeWidth={2}
+                        />
+                      ) : null}
                       {/* A transparent target wider than the drawn dot, so a
                           pointer need not land on an 11-unit circle. */}
                       <circle
@@ -308,7 +340,7 @@ export function BakuCrashMap() {
                           fill="var(--page)"
                           className="pointer-events-none select-none"
                         >
-                          {corner.number}
+                          {marker.corner}
                         </text>
                       ) : null}
                     </g>
@@ -331,7 +363,10 @@ export function BakuCrashMap() {
               ))}
               <span aria-hidden>More</span>
             </span>
-            <span>{rangeLabel}. Select a corner for its incidents.</span>
+            <span>
+              {rangeLabel}. The bar and arrow mark the start/finish line and the
+              direction of the lap. Select a corner for its incidents.
+            </span>
           </figcaption>
         </figure>
 
@@ -362,6 +397,7 @@ export function BakuCrashMap() {
       {openDriver === null ? null : (
         <IncidentModal
           title={driverName(openDriver)}
+          country={driverCountry(openDriver)}
           showCorner
           crashes={visible.filter((crash) =>
             crash.drivers.includes(openDriver),
@@ -450,6 +486,7 @@ function BreakdownPanel({
     breakdown === 'corner'
       ? corners.map((entry) => ({
           key: `T${entry.corner}`,
+          country: undefined as string | undefined,
           /* Written out rather than abbreviated. "T3" is shorthand that
              assumes the reader already thinks in it, and the row has the
              width for the real words. */
@@ -460,6 +497,7 @@ function BreakdownPanel({
         }))
       : drivers.map((entry) => ({
           key: entry.driver,
+          country: driverCountry(entry.driver),
           lead: driverSurname(entry.driver),
           full: driverName(entry.driver),
           count: entry.count,
@@ -530,8 +568,16 @@ function BreakdownPanel({
                   onClick={row.onSelect}
                   className="flex min-h-9 w-full items-center gap-3 text-left hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
+                  {/* The flag reserves its box whether or not the asset
+                      exists, so a driver with no flag on file does not knock
+                      the column out of line with the rest. */}
+                  {row.country === undefined ? null : (
+                    <Flag code={row.country} size="xs" className="shrink-0" />
+                  )}
                   <span
-                    className="w-[5.5rem] shrink-0 truncate text-sm text-text"
+                    className={`shrink-0 truncate text-sm text-text ${
+                      row.country === undefined ? 'w-[5.5rem]' : 'w-[6.5rem]'
+                    }`}
                     title={row.full}
                   >
                     {row.lead}
@@ -663,12 +709,15 @@ function IncidentModal({
   crashes,
   onClose,
   showCorner = false,
+  country,
 }: {
   title: string;
   crashes: readonly BakuCrash[];
   onClose: () => void;
   /** Driver drill-downs span corners, so the row has to name which. */
   showCorner?: boolean;
+  /** Set for a driver, absent for a corner. */
+  country?: string;
 }) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useModalDialog<HTMLDivElement>({
@@ -697,8 +746,11 @@ function IncidentModal({
           <div>
             <h3
               id="baku-detail-title"
-              className="text-lg font-semibold text-text"
+              className="flex items-center gap-2 text-lg font-semibold text-text"
             >
+              {country === undefined ? null : (
+                <Flag code={country} size="sm" className="shrink-0" />
+              )}
               {title}
             </h3>
             <p className="text-xs text-text-muted">
@@ -754,19 +806,85 @@ function IncidentRow({
         ) : null}
       </div>
       <p className="mt-1 text-sm text-text-muted">
-        {crash.note}{' '}
-        <a
-          href={crash.source}
-          rel="noreferrer nofollow"
-          target="_blank"
-          aria-label={`Source for ${crash.year} ${sessionLabel(
-            crash.session,
-          )}, ${driversLabel(crash.drivers)}`}
-          className="underline underline-offset-2 hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        >
-          Source
-        </a>
+        {crash.note} <IncidentSource crash={crash} />
       </p>
     </>
+  );
+}
+
+/**
+ * The citation on an incident, which is not always a link.
+ *
+ * A handful of rows are cited to the FIA race control log rather than to a
+ * published report, because no report covers them. That provenance is real and
+ * belongs on the row, but it has no URL: rendering it as an anchor produced a
+ * "Source" link that went nowhere, which is worse than no link at all on a
+ * feature whose whole claim is that it can be checked.
+ */
+function IncidentSource({ crash }: { crash: BakuCrash }) {
+  if (!crash.source.startsWith('https://')) {
+    return (
+      /* `text-muted`, not `text-disabled`. This is a citation a reader is
+         meant to read, and the disabled token is tuned for controls nobody can
+         use: it failed contrast outright. */
+      <span className="text-text-muted">Source: FIA race control log</span>
+    );
+  }
+  return (
+    <a
+      href={crash.source}
+      rel="noreferrer nofollow"
+      target="_blank"
+      aria-label={`Source for ${crash.year} ${sessionLabel(
+        crash.session,
+      )}, ${driversLabel(crash.drivers)}`}
+      className="underline underline-offset-2 hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    >
+      Source
+    </a>
+  );
+}
+
+/**
+ * The start/finish line and the direction the lap runs.
+ *
+ * Without these the drawing is an abstract shape: a reader cannot tell where a
+ * lap begins, and "Turn 3" means nothing if you do not know which way round the
+ * numbers go. Both are derived from the geometry rather than placed by eye, so
+ * they cannot drift from the outline they sit on.
+ */
+function StartFinish() {
+  const { x, y, angle } = BAKU_START_FINISH;
+  return (
+    <g aria-hidden transform={`translate(${x} ${y}) rotate(${angle})`}>
+      {/* The line across the track, drawn past both edges so it reads as a
+          line on the circuit rather than a mark on the ribbon. */}
+      <line
+        x1={0}
+        y1={-16}
+        x2={0}
+        y2={16}
+        stroke="var(--text)"
+        strokeWidth={5}
+        strokeLinecap="round"
+      />
+      {/*
+        The arrow sits beside the track, not on it. Drawn over the ribbon it was
+        a grey shape on an orange band and effectively invisible; off to the
+        side it has the page behind it and reads at a glance.
+      */}
+      <g transform="translate(34 -30)">
+        <line
+          x1={-16}
+          y1={0}
+          x2={6}
+          y2={0}
+          stroke="var(--text)"
+          strokeWidth={4}
+          strokeLinecap="round"
+        />
+        <path d="M4 -9 L20 0 L4 9 Z" fill="var(--text)" />
+      </g>
+    </g>
   );
 }

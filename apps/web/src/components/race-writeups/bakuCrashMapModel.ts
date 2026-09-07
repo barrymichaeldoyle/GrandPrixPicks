@@ -1,5 +1,5 @@
 import type { BakuCrash, BakuSession } from '@/lib/bakuCrashes';
-import { BAKU_DRIVER_NAMES } from '@/lib/bakuCrashes';
+import { BAKU_DRIVERS } from '@/lib/bakuCrashes';
 
 /**
  * The derivations behind the Baku crash map, kept apart from the component so
@@ -219,7 +219,7 @@ export function rankedDrivers(
 }
 
 export function driverName(code: string): string {
-  return BAKU_DRIVER_NAMES[code] ?? code;
+  return BAKU_DRIVERS[code]?.name ?? code;
 }
 
 /**
@@ -228,10 +228,133 @@ export function driverName(code: string): string {
  * reader label, so nobody has to know that "de Vries" is Nyck.
  */
 export function driverSurname(code: string): string {
-  const full = BAKU_DRIVER_NAMES[code];
+  const full = BAKU_DRIVERS[code]?.name;
   if (full === undefined) {
     return code;
   }
   const [first, ...rest] = full.split(' ');
   return rest.length === 0 ? first : rest.join(' ');
+}
+
+/**
+ * Countries in this archive that the repo actually ships a flag for.
+ *
+ * Sweden, Poland and Russia are the three it does not. Without this guard the
+ * page requested them anyway and took four 404s on every view: the `Flag`
+ * component hides a broken image, so nothing looked wrong, which is exactly why
+ * it would have stayed that way.
+ *
+ * A literal rather than a directory read, because this runs in the browser.
+ * `bakuCrashMapModel.test.ts` checks it against `public/flags`, so adding an
+ * asset without adding it here fails rather than silently doing nothing.
+ */
+const FLAG_ASSETS = new Set([
+  'ar',
+  'au',
+  'br',
+  'ca',
+  'de',
+  'es',
+  'fi',
+  'fr',
+  'gb',
+  'it',
+  'jp',
+  'mc',
+  'mx',
+  'nl',
+  'th',
+  'us',
+]);
+
+/**
+ * ISO 3166-1 alpha-2 for a driver, or undefined when there is no code or no
+ * flag to draw with it.
+ */
+export function driverCountry(code: string): string | undefined {
+  const country = BAKU_DRIVERS[code]?.country;
+  return country !== undefined && FLAG_ASSETS.has(country)
+    ? country
+    : undefined;
+}
+
+export type PlacedMarker = {
+  corner: number;
+  count: number;
+  /** Where the marker is drawn, which is not always where the corner is. */
+  x: number;
+  y: number;
+  radius: number;
+};
+
+/**
+ * Nudge overlapping markers apart so every one of them can be clicked.
+ *
+ * Baku doubles back on itself and its castle section is a handful of corners in
+ * a few metres, so several markers land on top of each other at map scale:
+ * turns 5, 6 and 20 sit within 45 units, and turns 7 and 19 within nine. Drawn
+ * exactly where the corner is, a bigger marker simply buries a smaller one and
+ * the buried corner cannot be reached with a pointer at all.
+ *
+ * This is a few passes of the standard relaxation: for any pair closer than
+ * their radii plus a gap, push both along the line between them. Markers move,
+ * the track does not, and that is the honest way round. The lap is a measured
+ * shape; the markers are already a schematic stand-in for "an incident happened
+ * at this corner", so bending the circuit to make them fit would put a wrong
+ * claim on the one part of the picture that is real.
+ *
+ * Displacement is capped so a marker stays recognisably at its corner, and the
+ * tally beside the map is the exact reading either way.
+ */
+const RELAXATION_PASSES = 60;
+const MARKER_GAP = 3;
+const MAX_DISPLACEMENT = 26;
+
+export function placeMarkers(
+  markers: readonly PlacedMarker[],
+): readonly PlacedMarker[] {
+  const placed = markers.map((marker) => ({ ...marker }));
+  const anchors = markers.map((marker) => ({ x: marker.x, y: marker.y }));
+
+  for (let pass = 0; pass < RELAXATION_PASSES; pass += 1) {
+    let moved = false;
+    for (let i = 0; i < placed.length; i += 1) {
+      for (let j = i + 1; j < placed.length; j += 1) {
+        const a = placed[i];
+        const b = placed[j];
+        const wanted = a.radius + b.radius + MARKER_GAP;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance >= wanted) {
+          continue;
+        }
+        moved = true;
+        /* Exactly coincident markers have no direction to separate along, so
+           give them an arbitrary but stable one rather than dividing by zero. */
+        const ux = distance === 0 ? 1 : dx / distance;
+        const uy = distance === 0 ? 0 : dy / distance;
+        const push = (wanted - distance) / 2;
+        a.x -= ux * push;
+        a.y -= uy * push;
+        b.x += ux * push;
+        b.y += uy * push;
+      }
+    }
+    if (!moved) {
+      break;
+    }
+  }
+
+  return placed.map((marker, index) => {
+    const anchor = anchors[index];
+    const dx = marker.x - anchor.x;
+    const dy = marker.y - anchor.y;
+    const drift = Math.hypot(dx, dy);
+    if (drift <= MAX_DISPLACEMENT) {
+      return marker;
+    }
+    const scale = MAX_DISPLACEMENT / drift;
+    return { ...marker, x: anchor.x + dx * scale, y: anchor.y + dy * scale };
+  });
 }

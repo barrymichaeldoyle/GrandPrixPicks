@@ -60,45 +60,58 @@ export type BakuCrash = {
 };
 
 /**
- * Full names for the drivers in this archive.
+ * The drivers in this archive: how their name is written, and where they raced
+ * from.
  *
- * The list is for reading, not for the roster: it holds whoever appears above,
- * including drivers who left Formula 1 years ago, and it is not a source of
- * truth for who races now. Casing follows house style rather than the timing
- * feed's shouted surnames.
+ * For reading, not for the roster. It holds whoever appears below, including
+ * drivers who left Formula 1 years ago, and it is not a source of truth for who
+ * races now. Casing follows house style rather than the timing feed's shouted
+ * surnames.
+ *
+ * `country` is an ISO 3166-1 alpha-2 code matching the assets in
+ * `public/flags`. Three of them have no asset: `se`, `pl` and `ru`. The `Flag`
+ * component hides a missing file rather than showing a broken image and keeps
+ * the space, so those rows stay aligned and simply carry no flag. Russia in
+ * particular is an editorial call rather than a missing download.
  */
-export const BAKU_DRIVER_NAMES: Readonly<Record<string, string>> = {
-  ALB: 'Alexander Albon',
-  ALO: 'Fernando Alonso',
-  BEA: 'Oliver Bearman',
-  BOT: 'Valtteri Bottas',
-  COL: 'Franco Colapinto',
-  DEV: 'Nyck de Vries',
-  ERI: 'Marcus Ericsson',
-  GAS: 'Pierre Gasly',
-  GIO: 'Antonio Giovinazzi',
-  GRO: 'Romain Grosjean',
-  GUT: 'Esteban Gutiérrez',
-  HAM: 'Lewis Hamilton',
-  HUL: 'Nico Hülkenberg',
-  KUB: 'Robert Kubica',
-  KVY: 'Daniil Kvyat',
-  LEC: 'Charles Leclerc',
-  MAS: 'Felipe Massa',
-  OCO: 'Esteban Ocon',
-  PER: 'Sergio Pérez',
-  PIA: 'Oscar Piastri',
-  RAI: 'Kimi Räikkönen',
-  RIC: 'Daniel Ricciardo',
-  RUS: 'George Russell',
-  SAI: 'Carlos Sainz',
-  SAR: 'Logan Sargeant',
-  SIR: 'Sergey Sirotkin',
-  STR: 'Lance Stroll',
-  TSU: 'Yuki Tsunoda',
-  VER: 'Max Verstappen',
-  VET: 'Sebastian Vettel',
-  WEH: 'Pascal Wehrlein',
+export type BakuDriver = {
+  name: string;
+  /** ISO 3166-1 alpha-2, lowercase, matching `public/flags/<code>.svg`. */
+  country: string;
+};
+
+export const BAKU_DRIVERS: Readonly<Record<string, BakuDriver>> = {
+  ALB: { name: 'Alexander Albon', country: 'th' },
+  ALO: { name: 'Fernando Alonso', country: 'es' },
+  BEA: { name: 'Oliver Bearman', country: 'gb' },
+  BOT: { name: 'Valtteri Bottas', country: 'fi' },
+  COL: { name: 'Franco Colapinto', country: 'ar' },
+  DEV: { name: 'Nyck de Vries', country: 'nl' },
+  ERI: { name: 'Marcus Ericsson', country: 'se' },
+  GAS: { name: 'Pierre Gasly', country: 'fr' },
+  GIO: { name: 'Antonio Giovinazzi', country: 'it' },
+  GRO: { name: 'Romain Grosjean', country: 'fr' },
+  GUT: { name: 'Esteban Gutiérrez', country: 'mx' },
+  HAM: { name: 'Lewis Hamilton', country: 'gb' },
+  HUL: { name: 'Nico Hülkenberg', country: 'de' },
+  KUB: { name: 'Robert Kubica', country: 'pl' },
+  KVY: { name: 'Daniil Kvyat', country: 'ru' },
+  LEC: { name: 'Charles Leclerc', country: 'mc' },
+  MAS: { name: 'Felipe Massa', country: 'br' },
+  OCO: { name: 'Esteban Ocon', country: 'fr' },
+  PER: { name: 'Sergio Pérez', country: 'mx' },
+  PIA: { name: 'Oscar Piastri', country: 'au' },
+  RAI: { name: 'Kimi Räikkönen', country: 'fi' },
+  RIC: { name: 'Daniel Ricciardo', country: 'au' },
+  RUS: { name: 'George Russell', country: 'gb' },
+  SAI: { name: 'Carlos Sainz', country: 'es' },
+  SAR: { name: 'Logan Sargeant', country: 'us' },
+  SIR: { name: 'Sergey Sirotkin', country: 'ru' },
+  STR: { name: 'Lance Stroll', country: 'ca' },
+  TSU: { name: 'Yuki Tsunoda', country: 'jp' },
+  VER: { name: 'Max Verstappen', country: 'nl' },
+  VET: { name: 'Sebastian Vettel', country: 'de' },
+  WEH: { name: 'Pascal Wehrlein', country: 'de' },
 };
 
 export const BAKU_CRASHES: readonly BakuCrash[] = [
@@ -794,14 +807,14 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     year: 2025,
     event: 'Azerbaijan Grand Prix',
     session: 'Race',
-    lap: 19,
+    lap: 16,
     drivers: ['ALB', 'COL'],
     corner: 5,
     outcome: 'continued',
     confidence: 'high',
-    note: "Dived down the inside at Turn 5 and clipped Colapinto's rear left, spinning him. Albon took a ten-second penalty and accepted blame. Race control logged Turn 5, which a contemporary report confirms; Wikipedia's Turn 7 is wrong.",
+    note: "Came together with Colapinto at Turn 5 shortly after both pitted, spinning the Alpine, which recovered. Albon took a ten-second penalty and accepted blame. Formula 1's own race report and race control agree on Turn 5; Wikipedia's Turn 7 is wrong.",
     source:
-      'https://formularapida.net/en/albon-accepts-blame-for-colapinto-hit-in-azerbaijan-gp/',
+      'https://www.formula1.com/en/latest/article/verstappen-claims-dominant-azerbaijan-win-over-russell-and-sainz-after.gT4fbKTwpl3dI79nDmrHS',
   },
   {
     id: '2025-race-hulkenberg-ocon-t6',
@@ -813,7 +826,7 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: 6,
     outcome: 'continued',
     confidence: 'high',
-    note: 'Collided at Turn 6; stewards reviewed with no further action.',
+    note: 'Collided at Turn 6 and both continued; stewards reviewed with no further action. No contemporary report covers it, so the FIA race control log is the citation.',
     source: 'openf1:race_control:9904',
   },
   {
@@ -825,8 +838,9 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     drivers: ['PIA'],
     corner: 6,
     outcome: 'dnf',
-    confidence: 'high',
-    note: 'Jumped the start, then crashed at Turn 6 on the opening lap. His first retirement since the 2023 United States Grand Prix. Corroborated by race control logging a recovery vehicle at Turn 6 on lap 2.',
-    source: 'https://en.wikipedia.org/wiki/2025_Azerbaijan_Grand_Prix',
+    confidence: 'medium',
+    note: "Jumped the start, dropped to last, then went into the barriers on the opening lap for his first retirement of the season. Formula 1's race report puts the impact at Turn 5; race control logged the recovery vehicle at Turn 6, which is where the car came to rest and where this map places it.",
+    source:
+      'https://www.formula1.com/en/latest/article/verstappen-claims-dominant-azerbaijan-win-over-russell-and-sainz-after.gT4fbKTwpl3dI79nDmrHS',
   },
 ];

@@ -73,6 +73,19 @@ export const BAKU_TRACK_SEGMENTS: readonly BakuTrackSegment[] = [
   { corner: 1, d: 'M773 258L822 241L816 243' },
 ];
 
+/**
+ * The start/finish line: where it sits on the main straight, and the direction
+ * the lap runs at that point, in degrees clockwise from east.
+ *
+ * A map of a circuit with no start line and no arrow reads as an abstract
+ * shape. These two marks are what make it a lap.
+ */
+export const BAKU_START_FINISH = {
+  x: 816,
+  y: 243,
+  angle: -19.8,
+} as const;
+
 /** The twenty numbered corners, at their position on the outline above. */
 export const BAKU_CORNERS: readonly { number: number; x: number; y: number }[] =
   [

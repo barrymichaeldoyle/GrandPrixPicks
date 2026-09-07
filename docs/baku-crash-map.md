@@ -801,6 +801,59 @@ Do not expect traffic from Google Dataset Search. The download exists because a
 citable file is the kind of thing that earns a referring domain, and referring
 domains are what this site is short of.
 
+## The second polish pass
+
+**Broken citations.** One source domain (`formularapida.net`) had gone dark and
+was 500ing, and a handful of rows cited the FIA race control log through an
+`openf1:` identifier that was being rendered as an `<a href>` to nowhere. On a
+feature whose entire claim is that it can be checked, a dead "Source" link is
+worse than no link. Both are fixed: the dead domain is replaced by Formula 1's
+own race report, and a non-URL citation now renders as text reading "Source: FIA
+race control log".
+
+`pnpm --filter @grandprixpicks/web check:baku-sources` walks every citation and
+reports what no longer resolves. Deliberately not a CI gate: it talks to a dozen
+third-party sites and would fail on someone else's outage. Run it when touching
+the archive, and before a weekend.
+
+Chasing the dead link turned up **a correction**. Formula 1's race report puts
+Piastri's 2025 opening-lap impact at Turn 5, where the archive had Turn 6 from
+Wikipedia and a race control recovery-vehicle callout. Both are true: the
+contact was at Turn 5 and the car was recovered at Turn 6. The map keeps Turn 6
+under its own stated rule (attribute where the car stopped) and the note now
+says where the impact was. That row is `medium` confidence now, not `high`.
+
+**Markers no longer bury each other.** Turns 5, 6 and 20 sit within 45 units at
+map scale and turns 7 and 19 within nine, so bigger markers covered smaller ones
+completely and the buried corner could not be clicked at all. `placeMarkers`
+relaxes overlapping markers apart, capped at 26 units so a marker stays
+recognisably at its corner, with a leader line back to the corner when it moves
+far enough to need one.
+
+Markers move; the track does not. That is the honest way round: the lap is a
+measured shape, and the markers are already a schematic stand-in for "an
+incident happened at this corner", so bending the circuit to make labels fit
+would put a wrong claim on the one part of the picture that is real.
+
+**Start/finish and direction.** Derived in the generator rather than placed by
+eye: the run between the last corner and the first is the main straight, and the
+line sits along it with the arrow following the local tangent. Without them the
+drawing is an abstract shape, and "Turn 3" means nothing if you cannot tell
+which way the numbers run. The arrow sits beside the track rather than on it,
+because over the ribbon it was a grey shape on an orange band and invisible.
+
+**Driver nationality flags**, in the breakdown rows and the modal title. Three
+countries in the archive have no flag in `public/flags`: Sweden, Poland and
+Russia. Rather than request them and take a 404 on every page view, `driverCountry`
+returns nothing for those, so the row simply carries no flag. A test checks the
+shipped-asset list against the directory, so adding an asset without wiring it up
+fails rather than silently doing nothing. **Russia is an open question for
+Barry** rather than a missing download.
+
+The total-JS budget moved again, 589 KB to 592 KB, for the placement maths, the
+flags and the start/finish marks. That is twice in one feature and worth saying
+plainly; the client entry has not moved either time.
+
 ## Out of scope
 
 - Any other circuit.

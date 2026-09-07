@@ -1,18 +1,23 @@
+import { readdirSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import type { BakuCrash } from '@/lib/bakuCrashes';
-import { BAKU_CRASHES } from '@/lib/bakuCrashes';
+import { BAKU_CRASHES, BAKU_DRIVERS } from '@/lib/bakuCrashes';
 
 import {
   bucketOf,
   countsByCorner,
   countsByDriver,
+  driverCountry,
   driverName,
   driversLabel,
   driverSurname,
   filterCrashes,
   heatStep,
   markerRadius,
+  placeMarkers,
   rankedCorners,
   rankedDrivers,
   unplacedCount,
@@ -206,6 +211,84 @@ describe('baku crash map model', () => {
     it('falls back to the code rather than rendering undefined', () => {
       expect(driverName('ZZZ')).toBe('ZZZ');
       expect(driverSurname('ZZZ')).toBe('ZZZ');
+    });
+  });
+
+  describe('marker placement', () => {
+    it('separates markers that would bury each other', () => {
+      // Turns 5, 6 and 20 sit within 45 units at map scale, so the biggest
+      // marker covers the others entirely and they cannot be clicked at all.
+      const placed = placeMarkers([
+        { corner: 6, count: 4, x: 100, y: 100, radius: 22 },
+        { corner: 5, count: 1, x: 108, y: 104, radius: 11 },
+      ]);
+      const [a, b] = placed;
+      expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThanOrEqual(
+        a.radius + b.radius,
+      );
+    });
+
+    it('leaves markers alone when nothing overlaps', () => {
+      const input = [
+        { corner: 3, count: 11, x: 0, y: 0, radius: 30 },
+        { corner: 15, count: 10, x: 400, y: 400, radius: 28 },
+      ];
+      expect(placeMarkers(input)).toEqual(input);
+    });
+
+    it('keeps a marker recognisably at its corner', () => {
+      // Better a slight overlap than a marker parked somewhere it did not
+      // happen: the map's whole claim is where these incidents were.
+      const crowd = Array.from({ length: 8 }, (_, index) => ({
+        corner: index + 1,
+        count: 3,
+        x: 100,
+        y: 100,
+        radius: 20,
+      }));
+      for (const marker of placeMarkers(crowd)) {
+        expect(Math.hypot(marker.x - 100, marker.y - 100)).toBeLessThanOrEqual(
+          26.001,
+        );
+      }
+    });
+
+    it('does not divide by zero on exactly coincident markers', () => {
+      const placed = placeMarkers([
+        { corner: 1, count: 1, x: 50, y: 50, radius: 12 },
+        { corner: 2, count: 1, x: 50, y: 50, radius: 12 },
+      ]);
+      for (const marker of placed) {
+        expect(Number.isFinite(marker.x)).toBe(true);
+        expect(Number.isFinite(marker.y)).toBe(true);
+      }
+    });
+  });
+
+  describe('flags', () => {
+    it('only offers a country the repo ships a flag for', () => {
+      // The Flag component hides a missing asset, so a wrong code here is
+      // invisible on the page and shows up only as a 404 nobody reads.
+      const available = new Set(
+        // Vitest runs from `apps/web`, and `import.meta.url` is not a file
+        // URL under this environment.
+        readdirSync(join(process.cwd(), 'public/flags'))
+          .filter((file) => file.endsWith('.svg'))
+          .map((file) => file.replace('.svg', '')),
+      );
+      for (const code of Object.keys(BAKU_DRIVERS)) {
+        const country = driverCountry(code);
+        if (country !== undefined) {
+          expect(available.has(country), `${code} -> ${country}`).toBe(true);
+        }
+      }
+    });
+
+    it('says nothing rather than guessing when there is no flag', () => {
+      // Ericsson is Swedish, and there is no se.svg. That is a missing asset,
+      // not a missing nationality, so the row simply carries no flag.
+      expect(BAKU_DRIVERS.ERI?.country).toBe('se');
+      expect(driverCountry('ERI')).toBeUndefined();
     });
   });
 });

@@ -11,6 +11,7 @@ import satori from 'satori';
 
 import {
   BAKU_CORNERS,
+  BAKU_START_FINISH,
   BAKU_TRACK_SEGMENTS,
   BAKU_VIEW_BOX,
 } from '../src/lib/bakuCircuitGeometry';
@@ -21,6 +22,7 @@ import {
   driverSurname,
   heatStep,
   markerRadius,
+  placeMarkers,
   rankedCorners,
   rankedDrivers,
 } from '../src/components/race-writeups/bakuCrashMapModel';
@@ -110,19 +112,42 @@ function mapSvg(width: number): string {
         )}" stroke-width="15" stroke-linejoin="round" stroke-linecap="round"/>`,
     )
     .join('');
-  const markers = [...BAKU_CORNERS]
-    .filter((corner) => (counts.get(corner.number) ?? 0) > 0)
-    .sort((a, b) => (counts.get(a.number) ?? 0) - (counts.get(b.number) ?? 0))
-    .map((corner) => {
-      const count = counts.get(corner.number) ?? 0;
-      const radius = markerRadius(count, maxCorner);
-      const fill = heat(count, maxCorner);
-      return `<circle cx="${corner.x}" cy="${corner.y}" r="${radius.toFixed(
+  /* The same nudging the page does, so the card and the section cannot show
+     the castle section differently. */
+  const markers = placeMarkers(
+    BAKU_CORNERS.map((corner) => ({
+      corner: corner.number,
+      count: counts.get(corner.number) ?? 0,
+      x: corner.x,
+      y: corner.y,
+      radius: markerRadius(counts.get(corner.number) ?? 0, maxCorner),
+    })).filter((marker) => marker.count > 0),
+  )
+    .slice()
+    .sort((a, b) => a.count - b.count)
+    .map((marker) => {
+      const anchor = BAKU_CORNERS.find(
+        (corner) => corner.number === marker.corner,
+      );
+      const leader =
+        anchor !== undefined &&
+        Math.hypot(anchor.x - marker.x, anchor.y - marker.y) > 6
+          ? `<line x1="${anchor.x}" y1="${anchor.y}" x2="${marker.x.toFixed(
+              1,
+            )}" y2="${marker.y.toFixed(1)}" stroke="${colors.borderStrong}" stroke-width="3"/>`
+          : '';
+      return `${leader}<circle cx="${marker.x.toFixed(
         1,
-      )}" fill="${fill}" stroke="${colors.page}" stroke-width="4"/>`;
+      )}" cy="${marker.y.toFixed(1)}" r="${marker.radius.toFixed(
+        1,
+      )}" fill="${heat(marker.count, maxCorner)}" stroke="${colors.page}" stroke-width="4"/>`;
     })
     .join('');
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${BAKU_VIEW_BOX.width} ${BAKU_VIEW_BOX.height}" width="${width}" height="${height}">${base}${lit}${markers}</svg>`;
+
+  /* Start/finish and lap direction, as on the page: without them the drawing
+     is an abstract shape rather than a circuit. */
+  const sf = `<g transform="translate(${BAKU_START_FINISH.x} ${BAKU_START_FINISH.y}) rotate(${BAKU_START_FINISH.angle})"><line x1="0" y1="-18" x2="0" y2="18" stroke="${colors.text}" stroke-width="6" stroke-linecap="round"/><g transform="translate(36 -32)"><line x1="-18" y1="0" x2="6" y2="0" stroke="${colors.text}" stroke-width="5" stroke-linecap="round"/><path d="M4 -10 L22 0 L4 10 Z" fill="${colors.text}"/></g></g>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${BAKU_VIEW_BOX.width} ${BAKU_VIEW_BOX.height}" width="${width}" height="${height}">${base}${lit}${sf}${markers}</svg>`;
 }
 
 /**

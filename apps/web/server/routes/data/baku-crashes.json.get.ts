@@ -1,4 +1,4 @@
-import { BAKU_CRASHES, BAKU_DRIVER_NAMES } from '../../../src/lib/bakuCrashes';
+import { BAKU_CRASHES, BAKU_DRIVERS } from '../../../src/lib/bakuCrashes';
 import { siteConfig } from '../../../src/lib/site';
 
 /**
@@ -58,7 +58,8 @@ export default function handler() {
       ...(crash.lap === undefined ? {} : { lap: crash.lap }),
       drivers: crash.drivers.map((code) => ({
         code,
-        name: BAKU_DRIVER_NAMES[code] ?? code,
+        name: BAKU_DRIVERS[code]?.name ?? code,
+        country: BAKU_DRIVERS[code]?.country ?? null,
       })),
       corner: crash.corner,
       outcome: crash.outcome,

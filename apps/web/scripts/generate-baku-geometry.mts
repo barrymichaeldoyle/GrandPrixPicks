@@ -163,10 +163,56 @@ function main() {
   run.push(points[0]);
   segments.push({ corner: current, d: toPath(run) });
 
-  writeFileSync(OUT, render({ height, corners, segments }));
+  /*
+   * The start/finish line, and which way the cars go.
+   *
+   * Derived rather than declared: the run between the last corner and the
+   * first is the main straight, and the line sits along it. Placed at 70% of
+   * the way from Turn 20 to Turn 1 because that is roughly where Baku's line
+   * falls, close to the braking zone rather than at the exit of the last
+   * corner. The angle is the local tangent, so the tick drawn across it is
+   * square to the track and the arrow points the way the lap runs.
+   */
+  const indexNear = (target: { x: number; y: number }) =>
+    points.reduce(
+      (best, point, index) => {
+        const d = Math.hypot(point[0] - target.x, point[1] - target.y);
+        return d < best.d ? { index, d } : best;
+      },
+      { index: 0, d: Infinity },
+    ).index;
+
+  const last = corners.at(-1);
+  const first = corners[0];
+  if (last === undefined) {
+    throw new Error('no corners');
+  }
+  const fromIndex = indexNear(last);
+  const toIndexRaw = indexNear(first);
+  const span =
+    toIndexRaw > fromIndex
+      ? toIndexRaw - fromIndex
+      : points.length - fromIndex + toIndexRaw;
+  const atIndex = (fromIndex + Math.round(span * 0.7)) % points.length;
+  const nextIndex = (atIndex + 1) % points.length;
+  const startFinish = {
+    x: Math.round(points[atIndex][0]),
+    y: Math.round(points[atIndex][1]),
+    angle:
+      (Math.atan2(
+        points[nextIndex][1] - points[atIndex][1],
+        points[nextIndex][0] - points[atIndex][0],
+      ) *
+        180) /
+      Math.PI,
+  };
+
+  writeFileSync(OUT, render({ height, corners, segments, startFinish }));
   console.log(
     `${points.length} points (from ${rotated.length}), ${segments.length} segments, viewBox 0 0 ${WIDTH} ${height}`,
   );
+  // The emitted file is not formatter-clean, and `pnpm check` gates on that.
+  console.log('Now run: pnpm exec oxfmt src/lib/bakuCircuitGeometry.ts');
 }
 
 /**
@@ -187,10 +233,12 @@ function render({
   height,
   corners,
   segments,
+  startFinish,
 }: {
   height: number;
   corners: { number: number; x: number; y: number }[];
   segments: { corner: number; d: string }[];
+  startFinish: { x: number; y: number; angle: number };
 }): string {
   return `/**
  * Baku City Circuit geometry, for the crash map on the Azerbaijan write-up.
@@ -225,6 +273,19 @@ export type BakuTrackSegment = {
 export const BAKU_TRACK_SEGMENTS: readonly BakuTrackSegment[] = [
 ${segments.map((s) => `  { corner: ${s.corner}, d: '${s.d}' },`).join('\n')}
 ];
+
+/**
+ * The start/finish line: where it sits on the main straight, and the direction
+ * the lap runs at that point, in degrees clockwise from east.
+ *
+ * A map of a circuit with no start line and no arrow reads as an abstract
+ * shape. These two marks are what make it a lap.
+ */
+export const BAKU_START_FINISH = {
+  x: ${startFinish.x},
+  y: ${startFinish.y},
+  angle: ${startFinish.angle.toFixed(1)},
+} as const;
 
 /** The twenty numbered corners, at their position on the outline above. */
 export const BAKU_CORNERS: readonly { number: number; x: number; y: number }[] =

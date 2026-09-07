@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { BAKU_CORNERS } from './bakuCircuitGeometry';
-import { BAKU_CRASHES, BAKU_DRIVER_NAMES } from './bakuCrashes';
+import { BAKU_CRASHES, BAKU_DRIVERS } from './bakuCrashes';
 
 /**
  * Invariants for the hand-maintained crash archive.
@@ -83,7 +83,7 @@ describe('baku crash data', () => {
     for (const crash of BAKU_CRASHES) {
       for (const driver of crash.drivers) {
         expect(
-          BAKU_DRIVER_NAMES[driver],
+          BAKU_DRIVERS[driver]?.name,
           `${driver} needs a name`,
         ).toBeTruthy();
       }
@@ -92,8 +92,26 @@ describe('baku crash data', () => {
 
   it('carries no driver name the archive never mentions', () => {
     const used = new Set(BAKU_CRASHES.flatMap((crash) => crash.drivers));
-    for (const code of Object.keys(BAKU_DRIVER_NAMES)) {
+    for (const code of Object.keys(BAKU_DRIVERS)) {
       expect(used.has(code), `${code} is unused`).toBe(true);
+    }
+  });
+
+  it('gives every driver a flag-shaped country code', () => {
+    for (const [code, driver] of Object.entries(BAKU_DRIVERS)) {
+      expect(driver.country, `${code} country`).toMatch(/^[a-z]{2}$/);
+    }
+  });
+
+  it('cites something reachable, or says it is a log', () => {
+    // A citation that is neither an https URL nor the race control log would
+    // render as a link to nowhere, on a feature whose claim is checkability.
+    for (const crash of BAKU_CRASHES) {
+      expect(
+        crash.source.startsWith('https://') ||
+          crash.source.startsWith('openf1:race_control:'),
+        `${crash.id} source shape`,
+      ).toBe(true);
     }
   });
 });

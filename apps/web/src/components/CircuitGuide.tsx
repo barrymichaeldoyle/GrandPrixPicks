@@ -25,13 +25,10 @@ type CircuitGuideProps = {
  * auth. It is the page's substantive content before a weekend has run: without
  * it a future race is a schedule table and a "not yet open" line.
  *
- * This runs the guide in full. It is tempting to trim it because the circuit
- * page covers the same ground, but that trades content on pages that already
- * rank for content on pages with no authority yet, and these guides are the
- * thin-content fix that AdSense has still to re-review. The overlap is a
- * section of two substantial pages, not two near-identical pages, so it is the
- * newer circuit page that carries the redundancy risk: the answer there is to
- * give it more of its own material, not to take any away from here.
+ * This runs the guide in full. It used to share that ground with
+ * `/circuits/:slug`, which reproduced about 70% of it on a page of its own;
+ * that page is gone and this is the only place the briefing is published now,
+ * so there is nothing left to trim it against.
  */
 export function CircuitGuide({ raceSlug, raceName }: CircuitGuideProps) {
   const guide = getCircuitGuide(raceSlug);
@@ -99,7 +96,7 @@ export function CircuitGuide({ raceSlug, raceName }: CircuitGuideProps) {
         ))}
       </div>
 
-      {(writeup || circuit) && (
+      {writeup && (
         <nav
           aria-label={`${raceName} guides`}
           className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:gap-x-6"
@@ -110,16 +107,6 @@ export function CircuitGuide({ raceSlug, raceName }: CircuitGuideProps) {
               className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent underline decoration-accent/40 underline-offset-4 hover:text-accent-hover hover:decoration-current"
             >
               {writeup.cta}
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-          )}
-          {circuit && (
-            <Link
-              to="/circuits/$circuitSlug"
-              params={{ circuitSlug: circuit.slug }}
-              className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text hover:decoration-current"
-            >
-              Explore {circuit.name} and its race history
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           )}

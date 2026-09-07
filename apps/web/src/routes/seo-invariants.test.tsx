@@ -95,18 +95,6 @@ const ROUTES: {
   { module: './about', path: '/about' },
   { module: './how-to-play', path: '/how-to-play' },
   { module: './guides/index', path: '/guides' },
-  { module: './circuits/index', path: '/circuits' },
-  {
-    module: './circuits/$circuitSlug',
-    path: '/circuits/monza',
-    loader: async () => {
-      const { getCircuit } = await import('@grandprixpicks/shared/circuits');
-      return {
-        loaderData: { circuit: getCircuit('monza') },
-        params: { circuitSlug: 'monza' },
-      };
-    },
-  },
   {
     module: './f1-standings',
     path: '/f1-standings',

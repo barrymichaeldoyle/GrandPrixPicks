@@ -43,7 +43,6 @@ describe('site navigation', () => {
       { to: '/f1-team-mate-battles', label: 'Team-mate Battles' },
       { to: '/f1-2027-driver-line-up', label: '2027 Driver Line-Up' },
       { to: '/f1-2027-calendar', label: '2027 Calendar' },
-      { to: '/circuits', label: 'F1 Circuits' },
     ]);
     expect(footerSupportLinks).toEqual([
       { to: '/about', label: 'About' },

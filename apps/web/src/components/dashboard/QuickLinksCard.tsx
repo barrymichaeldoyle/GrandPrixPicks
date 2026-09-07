@@ -2,7 +2,6 @@ import {
   ArrowLeftRight,
   CalendarDays,
   ListOrdered,
-  MapPin,
   Swords,
   Timer,
 } from 'lucide-react';
@@ -37,7 +36,6 @@ const f1Links = [
     label: 'Team-mate battles',
     icon: Swords,
   },
-  { to: '/circuits' as const, label: 'F1 circuits', icon: MapPin },
   {
     to: '/f1-2027-driver-line-up' as const,
     label: '2027 driver line-up',

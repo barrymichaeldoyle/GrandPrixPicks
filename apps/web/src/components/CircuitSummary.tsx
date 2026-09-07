@@ -1,6 +1,4 @@
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
-import { Link } from '@tanstack/react-router';
-import { ArrowRight } from 'lucide-react';
 
 import { getCircuitGuide } from '@/lib/circuitGuides';
 
@@ -12,7 +10,9 @@ import { getCircuitGuide } from '@/lib/circuitGuides';
  * second complete copy of the same 200 words (the race page has the other).
  * A crawler comparing the two had little to tell them apart. This keeps the
  * orientation a reader wants here — where am I, what kind of track is this —
- * and sends anyone who wants the rest to the one page that owns it.
+ * and nothing more. It used to end on a link to the circuit page; that page is
+ * gone, and the practice page already links to the race this session belongs
+ * to, which is where the rest of the venue writing lives.
  */
 export function CircuitSummary({ raceSlug }: { raceSlug: string }) {
   const circuit = getCircuitForRace(raceSlug);
@@ -38,14 +38,6 @@ export function CircuitSummary({ raceSlug }: { raceSlug: string }) {
       <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
         {guide.character}
       </p>
-      <Link
-        to="/circuits/$circuitSlug"
-        params={{ circuitSlug: circuit.slug }}
-        className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:text-accent-hover"
-      >
-        What the lap demands, and how it races
-        <ArrowRight className="h-4 w-4" aria-hidden />
-      </Link>
     </section>
   );
 }

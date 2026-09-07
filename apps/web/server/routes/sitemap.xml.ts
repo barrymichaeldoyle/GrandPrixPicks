@@ -2,12 +2,6 @@ import { api } from '@convex-generated/api';
 import { ConvexHttpClient } from 'convex/browser';
 
 import { captureServerException, startServerSpan } from '../lib/sentry';
-import {
-  getCircuitForRace,
-  listCircuits,
-} from '@grandprixpicks/shared/circuits';
-
-import { getCircuitGuideBySlug } from '../../src/lib/circuitGuides';
 import { listGuideMeta } from '../../src/lib/guideMeta';
 import { LINE_UP_2027_REVIEWED_AT } from '../../src/lib/lineUp2027';
 import { listRaceWriteups, getRaceWriteup } from '../../src/lib/raceWriteups';
@@ -62,11 +56,6 @@ const staticEntries: SitemapEntry[] = [
     lastmod: new Date(guide.updatedAt ?? guide.publishedAt).toISOString(),
     priority: '0.7',
   })),
-  {
-    loc: `${siteConfig.url}/circuits`,
-    changefreq: 'monthly',
-    priority: '0.8',
-  },
   {
     loc: `${siteConfig.url}/about`,
     changefreq: 'monthly',
@@ -209,74 +198,42 @@ async function loadRaceEntries() {
   for (let attempt = 1; attempt <= SITEMAP_FETCH_RETRY_COUNT; attempt += 1) {
     try {
       const convex = new ConvexHttpClient(convexUrl);
-      const [races, slugsWithPractice, currentSeason] = await Promise.all([
+      const [races, slugsWithPractice] = await Promise.all([
         convex.query(api.races.listRaces, {}),
         convex.query(api.practiceResults.listRaceSlugsWithPracticeResults, {}),
-        // The circuit decision below has to read the same list the circuit
-        // route reads, and the route reads the current season. `listRaces`
-        // spans every season, so using it would keep a circuit suppressed here
-        // after it dropped off the calendar — while the page itself, seeing no
-        // race this season, went back to advertising itself as indexable.
-        convex.query(api.races.listCurrentSeason, {}),
       ]);
       const hasPracticeResults = new Set(slugsWithPractice);
       const liveRaces = races.filter((race) => race.status !== 'cancelled');
-      // A circuit page canonicalises to the race held there, because the race
-      // page carries the same venue prose plus the schedule and the
-      // classification — see `circuitPageSeo.ts`. Listing it here would ask
-      // Google to index a page that points somewhere else, the same crawl
-      // -budget leak this file already avoids for write-up races.
-      //
-      // A circuit with no round this season is nobody's duplicate and keeps its
-      // place. Only circuits with a guide are routable; the rest 404.
-      const circuitsWithARace = new Set(
-        currentSeason.races
-          .filter((race) => race.status !== 'cancelled')
-          .map((race) => getCircuitForRace(race.slug)?.slug),
-      );
-      const circuitEntries: SitemapEntry[] = listCircuits()
-        .filter(
-          (circuit) =>
-            getCircuitGuideBySlug(circuit.slug) !== null &&
-            !circuitsWithARace.has(circuit.slug),
-        )
-        .map((circuit) => ({
-          loc: `${siteConfig.url}/circuits/${circuit.slug}`,
-          changefreq: 'monthly' as const,
-          priority: '0.7',
-        }));
-      return circuitEntries.concat(
-        liveRaces
-          .sort((a, b) => a.round - b.round)
-          .flatMap((race) => {
-            const lastmod = toIsoDate(race.updatedAt ?? race._creationTime);
-            // A race with an editorial write-up canonicalises to it, so listing
-            // the race URL here would ask Google to index a page that points
-            // somewhere else. The practice page below is its own content and
-            // stays listed either way.
-            const entries: SitemapEntry[] = getRaceWriteup(race.slug)
-              ? []
-              : [
-                  {
-                    loc: `${siteConfig.url}/races/${race.slug}`,
-                    changefreq: 'daily' as const,
-                    lastmod,
-                    priority: '0.8',
-                  },
-                ];
-            // A practice page with nothing published is a placeholder line of
-            // text. Advertise it only once it has a real classification.
-            if (hasPracticeResults.has(race.slug)) {
-              entries.push({
-                loc: `${siteConfig.url}/races/${race.slug}/practice`,
-                changefreq: 'daily' as const,
-                lastmod,
-                priority: '0.7',
-              });
-            }
-            return entries;
-          }),
-      );
+      return liveRaces
+        .sort((a, b) => a.round - b.round)
+        .flatMap((race) => {
+          const lastmod = toIsoDate(race.updatedAt ?? race._creationTime);
+          // A race with an editorial write-up canonicalises to it, so listing
+          // the race URL here would ask Google to index a page that points
+          // somewhere else. The practice page below is its own content and
+          // stays listed either way.
+          const entries: SitemapEntry[] = getRaceWriteup(race.slug)
+            ? []
+            : [
+                {
+                  loc: `${siteConfig.url}/races/${race.slug}`,
+                  changefreq: 'daily' as const,
+                  lastmod,
+                  priority: '0.8',
+                },
+              ];
+          // A practice page with nothing published is a placeholder line of
+          // text. Advertise it only once it has a real classification.
+          if (hasPracticeResults.has(race.slug)) {
+            entries.push({
+              loc: `${siteConfig.url}/races/${race.slug}/practice`,
+              changefreq: 'daily' as const,
+              lastmod,
+              priority: '0.7',
+            });
+          }
+          return entries;
+        });
     } catch (error) {
       lastError = error;
       if (attempt < SITEMAP_FETCH_RETRY_COUNT) {

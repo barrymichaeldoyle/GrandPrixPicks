@@ -392,18 +392,15 @@ function RacesPage() {
             <h2 className="font-title text-xl font-semibold text-text">
               Read the track before you pick
             </h2>
+            {/* This used to open on the circuit index and offer it first.
+                Venue character is written per weekend now, in the round's own
+                preview above, so the block points at the method instead. */}
             <p className="gpp-reading-copy mt-2 max-w-3xl text-text-muted">
               Circuit character changes how closely the race tends to follow
-              qualifying. Compare overtaking difficulty, track type and upset
-              risk before choosing your Top 5.
+              qualifying. Each round&rsquo;s preview above covers the track it
+              is run on.
             </p>
             <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-              <Link
-                to="/circuits"
-                className="font-medium text-accent hover:text-accent-hover"
-              >
-                Compare every F1 circuit
-              </Link>
               <Link
                 to="/guides/$guideSlug"
                 params={{ guideSlug: 'how-to-predict-f1-top-five' }}

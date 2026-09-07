@@ -123,26 +123,20 @@ describe('sitemap.xml route', () => {
     );
   });
 
-  it('drops a circuit page whose race this season canonicalises over it', async () => {
+  it('lists no circuit page, because there are none', async () => {
     mockConvex({ slugsWithPractice: [] });
 
     const { xml } = await renderSitemap();
 
-    // Miami, Monza and Lusail host the seeded rounds, so their circuit pages
-    // are `noindex` and point at the race — advertising them here would ask
-    // Google to index pages that name somewhere else as canonical. See
-    // `circuitPageSeo.ts`.
-    for (const slug of ['miami', 'monza', 'lusail']) {
+    // The circuit template is gone: 23 venue essays and their index, each
+    // about 70% reproduced on the race page for the round held there. The
+    // routes 301 to `/races`, and a redirect never belongs in a sitemap.
+    expect(xml).not.toContain(`<loc>${siteConfig.url}/circuits</loc>`);
+    for (const slug of ['miami', 'monza', 'lusail', 'monaco', 'spa']) {
       expect(xml).not.toContain(
         `<loc>${siteConfig.url}/circuits/${slug}</loc>`,
       );
     }
-    // A circuit with no round this season is nobody's duplicate and keeps its
-    // place, so the rule stays a consolidation rather than a blanket removal.
-    expect(xml).toContain(`<loc>${siteConfig.url}/circuits/monaco</loc>`);
-    expect(xml).toContain(`<loc>${siteConfig.url}/circuits/spa</loc>`);
-    // The index the surviving pages are reached from is always listed.
-    expect(xml).toContain(`<loc>${siteConfig.url}/circuits</loc>`);
   });
 
   it('includes the content pages that carry the site editorially', async () => {

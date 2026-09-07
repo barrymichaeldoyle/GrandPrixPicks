@@ -1,136 +1,24 @@
-import { listCircuits } from '@grandprixpicks/shared/circuits';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
-import { PageHeader } from '@/components/PageHeader';
-import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
-import { getCircuitGuideBySlug } from '@/lib/circuitGuides';
-import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
-import { PicksCallToAction } from '@/components/PicksCallToAction/PicksCallToAction';
-
+/**
+ * The circuit pages are gone. This path stays as a permanent redirect.
+ *
+ * They were a template of 23 venue essays plus this index, and about 70% of
+ * each one's body text was already published on the race page for the round
+ * held there. That measurement is why they were made noindex and pointed their
+ * canonical at the race in the first place — see the deleted `circuitPageSeo`
+ * and `docs/seo-content-policy.md`. Once the write-ups became the place venue
+ * analysis is written, a second set of venue pages nobody was meant to find
+ * had no job left: they cost crawl budget, split the site's own linking, and
+ * were 23 pages of unfact-checked prose standing behind an editorial review.
+ *
+ * `/races` rather than a guessed circuit-to-race mapping. Inverting
+ * `CIRCUIT_BY_RACE_PREFIX` needs a season to pick the round, so a precise
+ * target would be a hand-kept table that rots every winter. The calendar is
+ * one hop from every race and every write-up, and it never goes stale.
+ */
 export const Route = createFileRoute('/circuits/')({
-  component: CircuitsIndexPage,
-  // The circuit pages are static prose off a shared constant, so they can sit
-  // at the edge for an hour like the other reference pages. This route had no
-  // cache headers at all, which meant every request paid a full server render
-  // for content that changes when someone edits a file.
-  loader: async () => {
-    await setStaticContentCacheHeaders();
-  },
-  head: () => {
-    const meta = pageMeta({
-      title: 'F1 Circuits | Track Types, Overtaking and Upset Risk',
-      description:
-        'Every circuit on the Formula 1 calendar compared side by side: what kind of track it is, how hard it is to overtake, and how often the favourites get beaten.',
-      path: '/circuits',
-    });
-    return {
-      ...meta,
-      scripts: [
-        {
-          type: 'application/ld+json',
-          children: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@graph': [
-              {
-                '@type': 'CollectionPage',
-                '@id': `${siteConfig.url}/circuits#page`,
-                url: `${siteConfig.url}/circuits`,
-                name: 'Formula 1 circuits',
-                inLanguage: 'en',
-                isPartOf: { '@id': `${siteConfig.url}/#app` },
-              },
-              breadcrumbSchema('/circuits', [
-                { name: 'Circuits', path: '/circuits' },
-              ]),
-            ],
-          }),
-        },
-      ],
-    };
+  beforeLoad: () => {
+    throw redirect({ to: '/races', statusCode: 301 });
   },
 });
-
-function CircuitsIndexPage() {
-  // Only circuits we have written a guide for. An entry with no guide would be
-  // a name and a country, which is the thin-page shape these exist to avoid.
-  const circuits = listCircuits().flatMap((circuit) => {
-    const guide = getCircuitGuideBySlug(circuit.slug);
-    return guide ? [{ circuit, guide }] : [];
-  });
-
-  return (
-    <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-5xl px-3 py-5 sm:px-4 sm:py-8">
-        <PageHeader
-          title="Every circuit, compared"
-          subtitle="The same three judgements for every track on the calendar. Track type tells you what kind of place it is, overtaking tells you whether Sunday can undo Saturday, and upset risk tells you how much to trust the favourites."
-        />
-
-        <div className="mt-8 overflow-x-auto">
-          <table className="w-full min-w-2xl border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-border text-left">
-                <th className="py-2 pr-4 text-xs font-semibold tracking-label text-text-muted uppercase">
-                  Circuit
-                </th>
-                <th className="py-2 pr-4 text-xs font-semibold tracking-label text-text-muted uppercase">
-                  Location
-                </th>
-                {['Track type', 'Overtaking', 'Upset risk'].map((label) => (
-                  <th
-                    key={label}
-                    className="py-2 pr-4 text-xs font-semibold tracking-label text-text-muted uppercase"
-                  >
-                    {label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {circuits.map(({ circuit, guide }) => (
-                <tr key={circuit.slug} className="border-b border-border/60">
-                  <td className="py-3 pr-4">
-                    <Link
-                      to="/circuits/$circuitSlug"
-                      params={{ circuitSlug: circuit.slug }}
-                      className="font-semibold text-accent hover:text-accent-hover"
-                    >
-                      {circuit.name}
-                    </Link>
-                  </td>
-                  <td className="py-3 pr-4 text-text-muted">
-                    {circuit.locality}, {circuit.country}
-                  </td>
-                  {guide.traits.map((trait) => (
-                    <td key={trait.label} className="py-3 pr-4 text-text">
-                      {trait.value}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <nav
-          aria-label="Related pages"
-          className="mt-10 border-t border-border pt-6"
-        >
-          <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
-            Keep reading
-          </p>
-          <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2 [&_a]:text-accent [&_a:hover]:text-accent-hover">
-            <li>
-              <Link to="/races">The current F1 race calendar</Link>
-            </li>
-            <li>
-              <Link to="/guides">Guides to the formats and the scoring</Link>
-            </li>
-          </ul>
-        </nav>
-
-        <PicksCallToAction className="mt-10" placement="circuits_index" />
-      </div>
-    </div>
-  );
-}

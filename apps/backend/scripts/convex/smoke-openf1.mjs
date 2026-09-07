@@ -2,12 +2,12 @@
 
 import { spawnSync } from 'node:child_process';
 
-const DEFAULT_SESSION_KEY = 11334;
-const sessionKey = Number(
-  process.env.OPENF1_SMOKE_SESSION_KEY ?? DEFAULT_SESSION_KEY,
-);
+// No default here on purpose: the session the check reads is declared once, in
+// `openF1Results.SMOKE_TEST_SESSION_KEY`, and omitting the argument uses it.
+const override = process.env.OPENF1_SMOKE_SESSION_KEY;
+const sessionKey = override === undefined ? null : Number(override);
 
-if (!Number.isInteger(sessionKey) || sessionKey <= 0) {
+if (sessionKey !== null && (!Number.isInteger(sessionKey) || sessionKey <= 0)) {
   throw new Error('OPENF1_SMOKE_SESSION_KEY must be a positive integer');
 }
 
@@ -17,7 +17,7 @@ const args = [
   'convex',
   'run',
   'openF1Results:smokeTest',
-  JSON.stringify({ sessionKey }),
+  JSON.stringify(sessionKey === null ? {} : { sessionKey }),
   '--typecheck',
   'disable',
   '--codegen',
@@ -26,7 +26,9 @@ const args = [
 ];
 
 console.log(
-  `Running read-only OpenF1 smoke test with session ${sessionKey}${targetFlags.length > 0 ? ' on production' : ''}`,
+  `Running read-only OpenF1 smoke test with ${
+    sessionKey === null ? 'the default session' : `session ${sessionKey}`
+  }${targetFlags.length > 0 ? ' on production' : ''}`,
 );
 const result = spawnSync('pnpm', args, {
   stdio: 'inherit',

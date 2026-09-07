@@ -400,6 +400,30 @@ export function isLiveSessionRestriction(error: unknown): boolean {
 }
 
 /**
+ * OpenF1 answers `session_result` with 404 `"No results found."` for a session
+ * it knows about but has not classified yet. The smoke test only reads, so a
+ * session without results is nothing to fix: it is the same "come back later"
+ * as the live-session block, and failing the deploy on it would mean no fix
+ * can ship between a session appearing and its result being published.
+ */
+const MISSING_SESSION_RESULTS = /HTTP 404[\s\S]*no results found/i;
+
+export function isMissingSessionResults(error: unknown): boolean {
+  return MISSING_SESSION_RESULTS.test(errorMessage(error));
+}
+
+/**
+ * Practice is the one session type whose entry list is not our roster: teams
+ * run reserves in FP1, and `practiceResults` reads their names from OpenF1's
+ * own per-session driver list rather than the `drivers` table. So an unmapped
+ * number in a practice result is expected, not a gap in the deployed map, and
+ * the smoke test's roster check does not apply to it.
+ */
+export function isPracticeSession(sessionName: string): boolean {
+  return /practice/i.test(sessionName);
+}
+
+/**
  * OpenF1's free tier rate-limits bursts, which a season-wide sweep hits easily.
  * Back off and retry on 429 rather than reporting the whole session as
  * unverifiable.
@@ -1070,15 +1094,30 @@ export const getDriverDisplayMap = internalQuery({
 });
 
 /**
+ * The session the smoke test reads when it is not told one: the 2026 Belgian
+ * Grand Prix race, long classified and never live again, so its answer only
+ * changes if OpenF1 itself does. `scripts/convex/smoke-openf1.mjs` passes the
+ * same key; the default is here so a hand-run `convex run
+ * openF1Results:smokeTest` is a check, not an argument error.
+ */
+export const SMOKE_TEST_SESSION_KEY = 11334;
+
+/**
  * Production-safe post-deployment smoke test. Exercises Convex outbound
  * networking, the same OpenF1 session discovery/result endpoints, response
  * validation, and the deployed driver-number mapping without writing data.
  */
 export const smokeTest = internalAction({
-  args: { sessionKey: v.number() },
+  args: { sessionKey: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    const sessionKey = args.sessionKey ?? SMOKE_TEST_SESSION_KEY;
+    if (!Number.isInteger(sessionKey) || sessionKey <= 0) {
+      throw new Error(
+        `sessionKey must be a positive OpenF1 session key, got ${sessionKey}`,
+      );
+    }
     try {
-      return await runSmokeTest(ctx, args.sessionKey);
+      return await runSmokeTest(ctx, sessionKey);
     } catch (error) {
       // A live-session block is not a failed smoke test, and failing the
       // deploy on it means the app cannot ship on a race weekend -- the one
@@ -1102,6 +1141,14 @@ export const smokeTest = internalAction({
             'Paid access is unavailable; anonymous result polling remains enabled.',
         );
         return { ok: true, skipped: 'authentication_unavailable' as const };
+      }
+      if (isMissingSessionResults(error)) {
+        console.warn(
+          `OpenF1 smoke test skipped: ${errorMessage(error)}. ` +
+            'The session has no published classification yet, which is a ' +
+            'timing fact about that session, not a deployment failure.',
+        );
+        return { ok: true, skipped: 'results_not_published' as const };
       }
       throw error;
     }
@@ -1156,9 +1203,18 @@ async function runSmokeTest(ctx: ActionCtx, sessionKey: number) {
   const unmappedNumbers = results
     .map(({ driver_number }) => driver_number)
     .filter((number) => !mappedNumbers.has(number));
-  if (unmappedNumbers.length > 0) {
+  // Practice is exempt: a reserve in FP1 is not on the roster by design, and
+  // practice ingestion never looks them up there.
+  const practice = isPracticeSession(sourceSession.session_name);
+  if (unmappedNumbers.length > 0 && !practice) {
     throw new Error(
       `Deployed drivers are missing OpenF1 number(s): ${unmappedNumbers.join(', ')}`,
+    );
+  }
+  if (unmappedNumbers.length > 0) {
+    console.warn(
+      `OpenF1 ${sourceSession.session_name} ran driver number(s) that are not ` +
+        `on the roster: ${unmappedNumbers.join(', ')}. Expected in practice.`,
     );
   }
 

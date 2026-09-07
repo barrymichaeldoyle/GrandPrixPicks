@@ -4,6 +4,8 @@ import {
   buildSessionDiscoveryUrl,
   getFallbackWindow,
   isLiveSessionRestriction,
+  isMissingSessionResults,
+  isPracticeSession,
   parseOpenF1Results,
   parseOpenF1Sessions,
 } from './openF1Results';
@@ -211,6 +213,69 @@ describe('OpenF1 live-session restriction', () => {
       'OpenF1 returned only 3 classified drivers',
     ]) {
       expect(isLiveSessionRestriction(new Error(message)), message).toBe(false);
+    }
+  });
+});
+
+describe('OpenF1 missing session results', () => {
+  // A session OpenF1 knows about but has not classified yet. Read-only, so
+  // there is nothing to fix and nothing to fail the deploy for.
+  const missingResultsBody =
+    'OpenF1 request failed with HTTP 404: {"detail":"No results found."}';
+
+  it('recognises the unclassified-session refusal', () => {
+    expect(isMissingSessionResults(new Error(missingResultsBody))).toBe(true);
+  });
+
+  it('reads the message off a non-Error rejection too', () => {
+    expect(isMissingSessionResults(missingResultsBody)).toBe(true);
+  });
+
+  it('does not match a 404 that is not about missing results', () => {
+    expect(
+      isMissingSessionResults(
+        new Error(
+          'OpenF1 request failed with HTTP 404: {"detail":"Not found"}',
+        ),
+      ),
+    ).toBe(false);
+  });
+
+  // The two skips must stay distinguishable: this one is silence from a
+  // session, the other is OpenF1 shutting the door on the whole account.
+  it('does not match the live-session block', () => {
+    expect(
+      isMissingSessionResults(
+        new Error(
+          'OpenF1 request failed with HTTP 401: Live F1 session in progress.',
+        ),
+      ),
+    ).toBe(false);
+  });
+
+  it('does not match the other OpenF1 failures the smoke test reports', () => {
+    for (const message of [
+      'OpenF1 session 11334 was not found',
+      'OpenF1 time-window session discovery did not round-trip',
+      'Deployed drivers are missing OpenF1 number(s): 81',
+    ]) {
+      expect(isMissingSessionResults(new Error(message)), message).toBe(false);
+    }
+  });
+});
+
+describe('OpenF1 practice sessions', () => {
+  // Teams run reserves in FP1, and those numbers are not on the roster by
+  // design. The smoke test's roster check has to know which sessions those are.
+  it('recognises the practice session names', () => {
+    for (const name of ['Practice 1', 'Practice 2', 'Practice 3']) {
+      expect(isPracticeSession(name), name).toBe(true);
+    }
+  });
+
+  it('does not exempt a session we score', () => {
+    for (const name of ['Qualifying', 'Sprint Qualifying', 'Sprint', 'Race']) {
+      expect(isPracticeSession(name), name).toBe(false);
     }
   });
 });

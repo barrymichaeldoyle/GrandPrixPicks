@@ -25,7 +25,15 @@ test inside the production Convex environment. It verifies outbound access,
 session discovery, result parsing, DNF handling, and driver-number mappings.
 It does not publish results or write database records. A failure stops the web
 build. Override its historical fixture when necessary with
-`OPENF1_SMOKE_SESSION_KEY`.
+`OPENF1_SMOKE_SESSION_KEY`; the session it reads by default is declared once, as
+`SMOKE_TEST_SESSION_KEY` in `openF1Results.ts`.
+
+Three answers from OpenF1 are reported as a skip rather than a failure, because
+none of them is something a deploy can fix: the live-session block on the free
+tier, unavailable paid access, and a session whose classification has not been
+published yet (HTTP 404 `No results found.`). The driver-number check is also
+skipped for practice sessions, where reserves who are not on the roster are
+expected: practice ingestion reads names from OpenF1's own session roster.
 
 There is no GitHub Action that deploys Convex — production Convex deploys happen
 only via the Cloudflare Pages build. To deploy Convex by hand (e.g. Cloudflare is

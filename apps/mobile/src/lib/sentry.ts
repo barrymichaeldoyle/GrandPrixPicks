@@ -28,7 +28,7 @@ export function initSentry() {
   const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
   if (!dsn) {
     // No DSN — skip silently. Common in dev / preview clients.
-    return;
+    return false;
   }
 
   Sentry.init({
@@ -44,6 +44,8 @@ export function initSentry() {
     // Don't auto-capture console logs — Convex + Clerk are noisy in dev.
     enableAutoSessionTracking: true,
   });
+
+  return true;
 }
 
 export { Sentry };

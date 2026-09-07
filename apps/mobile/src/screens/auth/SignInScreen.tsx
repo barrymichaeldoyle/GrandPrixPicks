@@ -39,7 +39,7 @@ WebBrowser.maybeCompleteAuthSession();
 const WEB_URL = 'https://grandprixpicks.com';
 
 type Mode = 'signIn' | 'signUp';
-type Screen = 'auth' | 'verify';
+type Screen = 'auth' | 'verify' | 'resetCode' | 'newPassword';
 
 function clerkMessage(err: unknown, fallback: string): string {
   const e = err as {
@@ -81,12 +81,15 @@ export function SignInScreen() {
   const [screen, setScreen] = useState<Screen>('auth');
 
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const passwordRef = useRef<RNTextInput>(null);
+  const confirmPasswordRef = useRef<RNTextInput>(null);
   const codeRef = useRef<RNTextInput>(null);
 
   // Recovery for the case where Clerk has a session resource on the device
@@ -112,6 +115,7 @@ export function SignInScreen() {
     setMode(next);
     setError(null);
     setPassword('');
+    setConfirmPassword('');
   }
 
   async function clearStuckSession() {
@@ -210,7 +214,11 @@ export function SignInScreen() {
     setLoading(true);
     captureAnalyticsEvent('auth_started', { method: 'email_sign_up' });
     try {
-      await signUp.create({ emailAddress: email.trim(), password });
+      await signUp.create({
+        emailAddress: email.trim(),
+        password,
+        username: username.trim(),
+      });
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       setScreen('verify');
     } catch (err) {
@@ -221,6 +229,86 @@ export function SignInScreen() {
       } else {
         setError(clerkMessage(err, 'Sign-up failed'));
       }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── Password reset ────────────────────────────────────────────────────────
+
+  async function handleForgotPassword() {
+    if (!signInLoaded || !signIn) {
+      return;
+    }
+    if (!email.trim()) {
+      setError('Enter your email first.');
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    captureAnalyticsEvent('auth_started', { method: 'password_reset' });
+    try {
+      await signIn.create({
+        identifier: email.trim(),
+        strategy: 'reset_password_email_code',
+      });
+      setCode('');
+      setPassword('');
+      setConfirmPassword('');
+      setScreen('resetCode');
+    } catch (err) {
+      captureAnalyticsEvent('auth_failed', { method: 'password_reset' });
+      setError(clerkMessage(err, 'Could not send reset code'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResetCode() {
+    if (!signInLoaded || !signIn) {
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await signIn.attemptFirstFactor({
+        strategy: 'reset_password_email_code',
+        code,
+      });
+      if (result.status === 'needs_new_password') {
+        setScreen('newPassword');
+      } else {
+        setError('Password reset could not continue. Request a new code.');
+      }
+    } catch (err) {
+      setError(clerkMessage(err, 'Invalid code'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!signInLoaded || !signIn) {
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await signIn.resetPassword({ password });
+      if (result.status === 'complete' && result.createdSessionId) {
+        await clerk.setActive({ session: result.createdSessionId });
+        captureAnalyticsEvent('auth_completed', { method: 'password_reset' });
+      } else {
+        setError('Password was reset. Sign in with your new password.');
+        setScreen('auth');
+      }
+    } catch (err) {
+      captureAnalyticsEvent('auth_failed', { method: 'password_reset' });
+      setError(clerkMessage(err, 'Could not reset password'));
     } finally {
       setLoading(false);
     }
@@ -253,7 +341,11 @@ export function SignInScreen() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   const isSignUp = mode === 'signUp';
-  const canSubmit = !!email && !!password && !loading;
+  const canSubmit =
+    !!email &&
+    !!password &&
+    (!isSignUp || username.trim().length >= 4) &&
+    !loading;
 
   return (
     <KeyboardAvoidingView
@@ -282,15 +374,14 @@ export function SignInScreen() {
 
         {/* Actions */}
         <View className="gap-3 border-t border-border px-6 pt-7 pb-12">
-          {screen === 'verify' ? (
+          {screen === 'verify' || screen === 'resetCode' ? (
             /* ── Verification code ── */
             <>
               <Text className="text-foreground text-center text-xl font-bold">
                 Check your email
               </Text>
               <Text className="text-muted text-center text-sm leading-5">
-                We sent a 6-digit code to {email}. Enter it below to confirm
-                your account.
+                We sent a 6-digit code to {email}.
               </Text>
               <TextInput
                 autoComplete="one-time-code"
@@ -301,7 +392,11 @@ export function SignInScreen() {
                   setCode(v);
                   setError(null);
                 }}
-                onSubmitEditing={() => void handleVerify()}
+                onSubmitEditing={() =>
+                  void (screen === 'verify'
+                    ? handleVerify()
+                    : handleResetCode())
+                }
                 placeholder="000000"
                 placeholderTextColor={colors.textMuted}
                 ref={codeRef}
@@ -315,12 +410,31 @@ export function SignInScreen() {
                   code.length < 6 || loading ? 'opacity-40' : ''
                 }`}
                 disabled={code.length < 6 || loading}
-                onPress={() => void handleVerify()}
+                onPress={() =>
+                  void (screen === 'verify'
+                    ? handleVerify()
+                    : handleResetCode())
+                }
               >
                 <Text className="text-[15px] font-bold text-text-on-accent">
-                  {loading ? 'Verifying…' : 'Verify email'}
+                  {loading
+                    ? 'Verifying…'
+                    : screen === 'verify'
+                      ? 'Verify email'
+                      : 'Continue'}
                 </Text>
               </Pressable>
+              {screen === 'resetCode' ? (
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={loading}
+                  onPress={() => void handleForgotPassword()}
+                >
+                  <Text className="text-center text-[13px] text-accent-hover">
+                    Resend code
+                  </Text>
+                </Pressable>
+              ) : null}
               <Pressable
                 accessibilityRole="button"
                 onPress={() => {
@@ -331,6 +445,60 @@ export function SignInScreen() {
               >
                 <Text className="text-center text-[13px] text-accent-hover">
                   ← Back
+                </Text>
+              </Pressable>
+              {error ? (
+                <Text className="text-center text-[13px] text-error">
+                  {error}
+                </Text>
+              ) : null}
+            </>
+          ) : screen === 'newPassword' ? (
+            <>
+              <Text className="text-foreground text-center text-xl font-bold">
+                Set a new password
+              </Text>
+              <TextInput
+                accessibilityLabel="New password"
+                autoComplete="new-password"
+                className="text-foreground h-[50px] rounded-md border border-border bg-surface px-3.5 text-[15px]"
+                onChangeText={(value) => {
+                  setPassword(value);
+                  setError(null);
+                }}
+                onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+                placeholder="New password"
+                placeholderTextColor={colors.textMuted}
+                returnKeyType="next"
+                secureTextEntry
+                value={password}
+              />
+              <TextInput
+                accessibilityLabel="Confirm new password"
+                autoComplete="new-password"
+                className="text-foreground h-[50px] rounded-md border border-border bg-surface px-3.5 text-[15px]"
+                onChangeText={(value) => {
+                  setConfirmPassword(value);
+                  setError(null);
+                }}
+                onSubmitEditing={() => void handleResetPassword()}
+                placeholder="Confirm new password"
+                placeholderTextColor={colors.textMuted}
+                ref={confirmPasswordRef}
+                returnKeyType="go"
+                secureTextEntry
+                value={confirmPassword}
+              />
+              <Pressable
+                accessibilityRole="button"
+                className={`h-[50px] items-center justify-center rounded-lg bg-button-accent ${
+                  !password || !confirmPassword || loading ? 'opacity-40' : ''
+                }`}
+                disabled={!password || !confirmPassword || loading}
+                onPress={() => void handleResetPassword()}
+              >
+                <Text className="text-[15px] font-bold text-text-on-accent">
+                  {loading ? 'Saving…' : 'Save password'}
                 </Text>
               </Pressable>
               {error ? (
@@ -418,6 +586,22 @@ export function SignInScreen() {
               </View>
 
               {/* Email / password */}
+              {isSignUp ? (
+                <TextInput
+                  accessibilityLabel="Username"
+                  autoCapitalize="none"
+                  autoComplete="username-new"
+                  className="text-foreground h-[50px] rounded-md border border-border bg-surface px-3.5 text-[15px]"
+                  onChangeText={(value) => {
+                    setUsername(value);
+                    setError(null);
+                  }}
+                  placeholder="Username"
+                  placeholderTextColor={colors.textMuted}
+                  returnKeyType="next"
+                  value={username}
+                />
+              ) : null}
               <TextInput
                 accessibilityLabel="Email"
                 autoCapitalize="none"
@@ -454,6 +638,17 @@ export function SignInScreen() {
                 secureTextEntry
                 value={password}
               />
+              {!isSignUp ? (
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={loading}
+                  onPress={() => void handleForgotPassword()}
+                >
+                  <Text className="text-right text-[13px] text-accent-hover">
+                    Forgot password?
+                  </Text>
+                </Pressable>
+              ) : null}
               <Pressable
                 accessibilityRole="button"
                 className={`h-[50px] items-center justify-center rounded-lg bg-button-accent ${
@@ -480,6 +675,8 @@ export function SignInScreen() {
                   {error}
                 </Text>
               ) : null}
+
+              {isSignUp ? <View nativeID="clerk-captcha" /> : null}
 
               {/* Terms & Privacy */}
               <Text className="text-muted -mb-2 text-center text-xs">

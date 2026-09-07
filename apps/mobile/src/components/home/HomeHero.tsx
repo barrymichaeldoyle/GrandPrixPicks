@@ -94,7 +94,7 @@ export function HomeHero() {
     <View
       className={`items-center ${isNarrow ? 'mb-5 gap-3' : 'mb-6 gap-3.5'}`}
     >
-      <View className="flex-col items-center justify-center gap-2.5">
+      <View className="w-full flex-col items-center justify-center gap-2.5">
         {countryCode ? (
           <View className="h-[30px] w-11 overflow-hidden rounded-md border border-white/20">
             <Image
@@ -107,8 +107,6 @@ export function HomeHero() {
           </View>
         ) : null}
         <Text
-          adjustsFontSizeToFit
-          minimumFontScale={0.75}
           numberOfLines={2}
           className={`text-foreground text-center font-bold ${
             isNarrow ? 'text-[21px]' : 'text-2xl'

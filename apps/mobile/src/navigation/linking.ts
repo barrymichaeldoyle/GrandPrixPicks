@@ -1,37 +1,42 @@
 import type { LinkingOptions } from '@react-navigation/native';
 
-import type { RootTabParamList } from './types';
+import type { RootStackParamList } from './types';
 
-export const linking: LinkingOptions<RootTabParamList> = {
+export const linking: LinkingOptions<RootStackParamList> = {
   config: {
     screens: {
-      PicksTab: {
-        path: 'predict',
+      SignIn: 'sign-in',
+      Tabs: {
         screens: {
-          PicksMain: '',
-          RaceDetail: 'races/:raceSlug',
-        },
-      },
-      HomeTab: {
-        path: 'feed',
-        screens: {
-          HomeMain: '',
-          FeedEventDetail: ':feedEventId',
-          PublicProfile: 'p/:username',
-        },
-      },
-      LeaderboardTab: {
-        path: 'leaderboard',
-        screens: {
-          LeaderboardMain: '',
-        },
-      },
-      MoreTab: {
-        path: 'more',
-        screens: {
-          MoreMain: '',
-          Notifications: 'notifications',
-          Settings: 'settings',
+          PicksTab: {
+            path: 'predict',
+            screens: {
+              PicksMain: '',
+              RaceDetail: 'races/:raceSlug',
+            },
+          },
+          HomeTab: {
+            path: 'feed',
+            screens: {
+              HomeMain: '',
+              FeedEventDetail: ':feedEventId',
+              PublicProfile: 'p/:username',
+            },
+          },
+          LeaderboardTab: {
+            path: 'leaderboard',
+            screens: {
+              LeaderboardMain: '',
+            },
+          },
+          MoreTab: {
+            path: 'more',
+            screens: {
+              MoreMain: '',
+              Notifications: 'notifications',
+              Settings: 'settings',
+            },
+          },
         },
       },
     },

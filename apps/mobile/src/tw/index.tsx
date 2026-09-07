@@ -7,7 +7,6 @@ import {
   Modal as RNModal,
   Pressable as RNPressable,
   RefreshControl as RNRefreshControl,
-  SafeAreaView as RNSafeAreaView,
   ScrollView as RNScrollView,
   SectionList as RNSectionList,
   Switch as RNSwitch,
@@ -38,7 +37,6 @@ export const KeyboardAvoidingView = cssElement(RNKeyboardAvoidingView);
 export const Modal = cssElement(RNModal);
 export const Pressable = cssElement(RNPressable);
 export const RefreshControl = cssElement(RNRefreshControl);
-export const SafeAreaView = cssElement(RNSafeAreaView);
 export const Switch = cssElement(RNSwitch);
 export const Text = cssElement(RNText);
 // React 19 forwards `ref` as a regular prop through the wrapper, but

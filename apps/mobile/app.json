@@ -19,7 +19,6 @@
       "expo-web-browser",
       "@sentry/react-native",
       "expo-localization",
-      "./plugins/withSentryPnpmWorkaround.cjs",
       "expo-status-bar",
       [
         "expo-splash-screen",
@@ -32,11 +31,16 @@
     ],
     "ios": {
       "bundleIdentifier": "com.barrymichaeldoyle.grandprixpicks",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
       "infoPlist": {
+        "EXDevMenuIsOnboardingFinished": true,
+        "EXDevMenuShowFloatingActionButton": false,
         "UIBackgroundModes": ["remote-notification"]
       },
       "appleTeamId": "LBZ6C9H52C",
-      "buildNumber": "1",
+      "associatedDomains": ["applinks:grandprixpicks.com"],
       "supportsTablet": false
     },
     "android": {

@@ -42,3 +42,7 @@
 
 /offline.html
   cache-control: no-cache
+
+/.well-known/apple-app-site-association
+  content-type: application/json
+  cache-control: public, max-age=3600

@@ -21,31 +21,39 @@ beforeEach(() => {
 describe('routePushUrl', () => {
   it('opens the standings for a results push', () => {
     routePushUrl('/leaderboard?time=weekend&raceId=k1&utm_source=push');
-    expect(navigate).toHaveBeenCalledWith('LeaderboardTab', {
-      screen: 'LeaderboardMain',
+    expect(navigate).toHaveBeenCalledWith('Tabs', {
+      screen: 'LeaderboardTab',
+      params: { screen: 'LeaderboardMain' },
     });
   });
 
   it('opens the race for a reminder push', () => {
     routePushUrl('/races/spain-2026?utm_source=push');
-    expect(navigate).toHaveBeenCalledWith('PicksTab', {
-      screen: 'RaceDetail',
-      params: { raceSlug: 'spain-2026' },
+    expect(navigate).toHaveBeenCalledWith('Tabs', {
+      screen: 'PicksTab',
+      params: {
+        screen: 'RaceDetail',
+        params: { raceSlug: 'spain-2026' },
+      },
     });
   });
 
   it('opens a feed event', () => {
     routePushUrl('/feed/abc123?utm_source=push');
-    expect(navigate).toHaveBeenCalledWith('HomeTab', {
-      screen: 'FeedEventDetail',
-      params: { feedEventId: 'abc123' },
+    expect(navigate).toHaveBeenCalledWith('Tabs', {
+      screen: 'HomeTab',
+      params: {
+        screen: 'FeedEventDetail',
+        params: { feedEventId: 'abc123' },
+      },
     });
   });
 
   it('accepts an absolute URL as well as a bare path', () => {
     routePushUrl('https://grandprixpicks.com/leaderboard?time=weekend');
-    expect(navigate).toHaveBeenCalledWith('LeaderboardTab', {
-      screen: 'LeaderboardMain',
+    expect(navigate).toHaveBeenCalledWith('Tabs', {
+      screen: 'LeaderboardTab',
+      params: { screen: 'LeaderboardMain' },
     });
   });
 
@@ -68,8 +76,9 @@ describe('routePushUrl', () => {
 
     ready = true;
     flushPendingPushRoute();
-    expect(navigate).toHaveBeenCalledWith('LeaderboardTab', {
-      screen: 'LeaderboardMain',
+    expect(navigate).toHaveBeenCalledWith('Tabs', {
+      screen: 'LeaderboardTab',
+      params: { screen: 'LeaderboardMain' },
     });
   });
 

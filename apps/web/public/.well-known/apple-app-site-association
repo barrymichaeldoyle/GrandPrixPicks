@@ -1,0 +1,20 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "LBZ6C9H52C.com.barrymichaeldoyle.grandprixpicks",
+        "paths": [
+          "/predict",
+          "/predict/*",
+          "/feed",
+          "/feed/*",
+          "/leaderboard",
+          "/more",
+          "/more/*",
+          "/sign-in"
+        ]
+      }
+    ]
+  }
+}

@@ -26,6 +26,11 @@ eas env:create --environment production --name EXPO_PUBLIC_CONVEX_URL --value ht
 | `EXPO_PUBLIC_POSTHOG_KEY`               |                                        |
 | `EXPO_PUBLIC_POSTHOG_HOST`              |                                        |
 
+The `eas-build-pre-install` hook checks all twelve variables below for the
+production profile, including the Sentry upload secrets, and rejects a build
+that would otherwise ship without them. It also rejects a non-live Clerk key
+or a Sentry environment other than `production`.
+
 **2. Set the Sentry upload secrets**, or the first production crash arrives as
 minified frames and tells you nothing:
 
@@ -35,18 +40,10 @@ eas env:create --environment production --name SENTRY_ORG --value <org>
 eas env:create --environment production --name SENTRY_PROJECT --value <project>
 ```
 
-**Setting those three is not enough on its own.** `ios/.xcode.env` is tracked
-in this repo and contains `export SENTRY_DISABLE_AUTO_UPLOAD=true`, written by
-`plugins/withSentryPnpmWorkaround.cjs` back when @sentry/react-native 7.x could
-not resolve @sentry/cli under pnpm. The upload step runs and does nothing, so
-crashes still arrive minified with the secrets apparently configured and no
-error anywhere.
-
-We are on 8.x now, which is the release that fixed that resolution. On the
-first production build that has the three secrets set, drop the plugin from
-`app.json`, delete the block from `ios/.xcode.env`, and confirm the build log
-shows a real upload. Replace the workaround with something that works rather
-than leaving an unverified one in place.
+Sentry 8's pnpm-aware build scripts and Metro integration are enabled. A
+production build intentionally fails if upload credentials are missing or an
+upload fails; do not bypass that check. Confirm the EAS build log contains
+successful source-map and dSYM uploads before sending the build to TestFlight.
 
 ## Building
 
@@ -58,8 +55,12 @@ eas submit --profile production --platform ios
 
 `appVersionSource` is `remote`, so EAS owns the build number and
 `autoIncrement` bumps it on every production build. The `version` in
-`app.json` is still yours to set; the `buildNumber` and `versionCode` there are
-only the starting point.
+`app.json` is still yours to set. The iOS build number is deliberately omitted
+from app config because EAS ignores it in remote-version mode.
+
+App Store listing fields are kept in `store.config.json`. Validate them with
+`eas metadata:lint`; after the first binary reaches App Store Connect, publish
+them with `eas metadata:push`.
 
 ## The `ios/` trap
 

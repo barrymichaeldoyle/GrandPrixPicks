@@ -28,24 +28,33 @@ function navigateTo(url: string): boolean {
 
   const raceMatch = /^\/races\/([^/]+)$/.exec(path);
   if (raceMatch) {
-    navigationRef.navigate('PicksTab', {
-      screen: 'RaceDetail',
-      params: { raceSlug: raceMatch[1] },
+    navigationRef.navigate('Tabs', {
+      screen: 'PicksTab',
+      params: {
+        screen: 'RaceDetail',
+        params: { raceSlug: raceMatch[1] },
+      },
     });
     return true;
   }
 
   const feedEventMatch = /^\/feed\/([^/]+)$/.exec(path);
   if (feedEventMatch) {
-    navigationRef.navigate('HomeTab', {
-      screen: 'FeedEventDetail',
-      params: { feedEventId: feedEventMatch[1] },
+    navigationRef.navigate('Tabs', {
+      screen: 'HomeTab',
+      params: {
+        screen: 'FeedEventDetail',
+        params: { feedEventId: feedEventMatch[1] },
+      },
     });
     return true;
   }
 
   if (path === '/feed') {
-    navigationRef.navigate('HomeTab', { screen: 'HomeMain' });
+    navigationRef.navigate('Tabs', {
+      screen: 'HomeTab',
+      params: { screen: 'HomeMain' },
+    });
     return true;
   }
 
@@ -54,12 +63,18 @@ function navigateTo(url: string): boolean {
   // screen takes no params, but a results push fires as the results publish,
   // so the weekend it opens on is already the one the push is about.
   if (path === '/leaderboard') {
-    navigationRef.navigate('LeaderboardTab', { screen: 'LeaderboardMain' });
+    navigationRef.navigate('Tabs', {
+      screen: 'LeaderboardTab',
+      params: { screen: 'LeaderboardMain' },
+    });
     return true;
   }
 
   if (path === '/races' || path === '/' || path === '/predict') {
-    navigationRef.navigate('PicksTab', { screen: 'PicksMain' });
+    navigationRef.navigate('Tabs', {
+      screen: 'PicksTab',
+      params: { screen: 'PicksMain' },
+    });
     return true;
   }
 

@@ -1,7 +1,7 @@
 # Mobile MVP — Handoff & Next Steps
 
-Status: feature-complete pending review and device verification
-Last updated: 2026-07-11
+Status: simulator-certified; pending production setup and physical-device verification
+Last updated: 2026-09-07
 
 Companion to `docs/mobile-mvp.md` (product scope). This documents what was
 built in the July 2026 push, what needs human hands before submission, and
@@ -24,46 +24,15 @@ how to verify it all.
 | Decisions recorded: dark-only appearance (matches web), randomize excluded from mobile                                                  | Done  | `6a9e978`, `32e1137` |
 
 Backend changes are deployed to the **dev** Convex instance. Production
-backend deploy (`pnpm deploy:backend`) has NOT been run.
+deployment still needs to be verified before the first store build.
 
-## Barry's checklist (in order)
+## Barry's checklist
 
-1. **Simulator review pass** — the app hasn't had a human eyeball since the
-   restructure. `pnpm dev:mobile` against dev; run
-   `convex run seed:reseedDevThroughMonaco` first so rounds 1–11 are scored,
-   matching where production is (pass `{"raceCount": N}` for a different point
-   in the season)
-   (scored picks view, leaderboard weekend boards, feed session groups all
-   need result data to show).
-2. **Rebuild the dev client** — native modules changed twice (SDK 57 pods,
-   then posthog-react-native + expo-application/device/localization with its
-   config plugin). The committed `ios/` is current except the localization
-   plugin: run `npx expo prebuild -p ios` once, then `pnpm ios`.
-3. **EAS environment variables** (before the next build):
-   - `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` — long-standing
-     TODO; until set, crashes arrive minified. Note `ios/.xcode.env` disables
-     the Sentry upload build phase (`SENTRY_DISABLE_AUTO_UPLOAD=true`)
-     because @sentry/react-native 7.11's scripts break under pnpm — remove
-     that flag only after Expo blesses Sentry 8.x.
-   - `EXPO_PUBLIC_POSTHOG_KEY` (and `EXPO_PUBLIC_POSTHOG_HOST` if not EU
-     default) — analytics is a silent no-op without it.
-4. **Production backend deploy** — `pnpm deploy:backend` ships the Expo push
-   delivery leg, `getCurrentWeekend`, and the notification fan-out changes.
-   Mobile builds pointed at prod need this before push/picks work.
-5. **App Store Connect**:
-   - APNs push credentials via EAS (`eas credentials`).
-   - Privacy nutrition labels — declare first-party analytics (PostHog) and
-     account data; no ATT needed (no cross-app tracking).
-6. **TestFlight on a physical device** — the remaining untestable-in-CI
-   surface: push delivery per category, tap deep links (warm + cold start),
-   permission pre-prompt after first pick save, token removal on sign-out,
-   account deletion end to end. Plan says one full race weekend on
-   TestFlight before submission.
-7. **Decide (optional)**: EU consent parity for mobile analytics — web only
-   captures after cookie consent; mobile captures by default in prod. Add a
-   first-run opt-in if wanted.
-8. **Web TODO (unrelated but open)**: remove the stale second Clerk instance
-   cookie on prod.
+The current, ordered owner checklist lives in `human-todos.md`. The 2026-09-07
+audit completed the simulator review, regenerated and rebuilt the native iOS
+project, added analytics consent, upgraded the Sentry integration, and fixed
+push/deep-link routing. Production service configuration and physical-device
+TestFlight QA remain.
 
 ## Deferred (post-MVP, by design)
 

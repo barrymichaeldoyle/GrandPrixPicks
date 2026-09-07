@@ -100,6 +100,21 @@ const PLIST_EXPECTATIONS = [
     plistKey: 'CFBundleShortVersionString',
     toPlist: (value) => value,
   },
+  {
+    appJson: (expo) => expo.ios?.config?.usesNonExemptEncryption,
+    plistKey: 'ITSAppUsesNonExemptEncryption',
+    read: (plist) => readBoolean(plist, 'ITSAppUsesNonExemptEncryption'),
+  },
+  {
+    appJson: (expo) => expo.ios?.infoPlist?.EXDevMenuIsOnboardingFinished,
+    plistKey: 'EXDevMenuIsOnboardingFinished',
+    read: (plist) => readBoolean(plist, 'EXDevMenuIsOnboardingFinished'),
+  },
+  {
+    appJson: (expo) => expo.ios?.infoPlist?.EXDevMenuShowFloatingActionButton,
+    plistKey: 'EXDevMenuShowFloatingActionButton',
+    read: (plist) => readBoolean(plist, 'EXDevMenuShowFloatingActionButton'),
+  },
 ];
 
 const PBXPROJ = path.join(
@@ -121,6 +136,13 @@ function readScalar(plist, key) {
     plist,
   );
   return match?.[1];
+}
+
+function readBoolean(plist, key) {
+  const match = new RegExp(`<key>${key}</key>\\s*<(true|false)\\s*/>`).exec(
+    plist,
+  );
+  return match ? match[1] === 'true' : undefined;
 }
 
 const drift = [];
@@ -175,6 +197,7 @@ const ENTITLEMENTS = [
     aps: 'production',
   },
 ];
+const associatedDomains = expo.ios?.associatedDomains ?? [];
 
 const apsDrift = [];
 for (const { config, file, aps } of ENTITLEMENTS) {
@@ -196,6 +219,14 @@ for (const { config, file, aps } of ENTITLEMENTS) {
   );
   if (!referenced) {
     apsDrift.push(`  ${config}: project.pbxproj does not reference ${file}`);
+  }
+
+  for (const domain of associatedDomains) {
+    if (!raw.includes(`<string>${domain}</string>`)) {
+      apsDrift.push(
+        `  ${config}: ${file} is missing associated domain ${domain}`,
+      );
+    }
   }
 }
 

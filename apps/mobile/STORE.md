@@ -2,6 +2,17 @@
 
 Draft copy for App Store Connect. iOS only for now.
 
+The same listing fields are encoded in `store.config.json` and validated with
+`eas metadata:lint`. Push them after the first binary reaches App Store Connect:
+
+```sh
+eas metadata:push --profile production
+```
+
+The machine-validated version lives in `store.config.json`. After the first
+binary is uploaded, run `eas metadata:push` from this directory to sync it to
+App Store Connect.
+
 Character limits are Apple's and are hard: the name and subtitle truncate in
 search results, so both are written to survive that rather than to fit exactly.
 
@@ -142,18 +153,20 @@ pnpm --filter @grandprixpicks/mobile exec expo run:ios --device "iPhone 17 Pro M
 TICKET=$(pnpm --filter @grandprixpicks/web dev:signin \
   | grep -o '__clerk_ticket=[^&]*' | cut -d= -f2)
 EXPO_PUBLIC_DEV_SIGNIN_TICKET="$TICKET" EXPO_PUBLIC_SCREENSHOT_MODE=1 \
-  pnpm --filter @grandprixpicks/mobile exec expo start --dev-client
+  pnpm --filter @grandprixpicks/mobile exec expo start --dev-client --host lan
 
 # 4. Launch, then capture each screen.
 xcrun simctl launch booted com.barrymichaeldoyle.grandprixpicks
 xcrun simctl io booted screenshot 01-home.png
 ```
 
-Two things that will otherwise cost you an afternoon. The dev client
+Three things that will otherwise cost you an afternoon. The dev client
 auto-connects to whatever Metro is on **port 8081**, so another project's
 bundler on that port will be loaded instead of this one, and the app will crash
 on someone else's bundle. Start Metro before anything else, or stop the other
-one.
+one. Use `--host lan`: on this setup, `localhost` bound Metro on IPv6 while the
+dev client attempted IPv4 and could not connect. The committed native config
+also suppresses the dev-menu onboarding and floating button during captures.
 
 Navigation does not need the simulator's UI. Every top-level screen has a deep
 link, and `simctl openurl` drives them headlessly, which is what makes an

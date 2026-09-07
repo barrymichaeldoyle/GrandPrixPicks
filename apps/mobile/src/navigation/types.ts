@@ -40,6 +40,6 @@ export type RootTabParamList = {
  * reader to sign-in" is a cross-cutting need, not a one-screen one.
  */
 export type RootStackParamList = {
-  Tabs: undefined;
+  Tabs: NavigatorScreenParams<RootTabParamList> | undefined;
   SignIn: undefined;
 };

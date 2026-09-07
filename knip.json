@@ -44,7 +44,7 @@
       "entry": ["App.tsx"],
       "project": ["**/*.{ts,tsx,js,cjs,css}"],
       "ignoreDependencies": ["expo-updates", "tailwind-merge", "clsx"],
-      "ignore": ["src/tw/index.tsx", "plugins/*.cjs"]
+      "ignore": ["src/tw/index.tsx"]
     },
     "packages/shared": {
       "project": ["src/**/*.{ts,tsx}"]

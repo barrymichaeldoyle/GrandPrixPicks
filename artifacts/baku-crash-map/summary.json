@@ -1,0 +1,197 @@
+[
+  {
+    "year": 2023,
+    "session": "Practice 1",
+    "session_key": 9063,
+    "messages": 86,
+    "candidates": 2,
+    "red_flags": 1,
+    "dnfs": []
+  },
+  {
+    "year": 2023,
+    "session": "Qualifying",
+    "session_key": 9064,
+    "messages": 71,
+    "candidates": 4,
+    "red_flags": 2,
+    "dnfs": []
+  },
+  {
+    "year": 2023,
+    "session": "Sprint Qualifying",
+    "session_key": 9278,
+    "messages": 64,
+    "candidates": 1,
+    "red_flags": 1,
+    "dnfs": []
+  },
+  {
+    "year": 2023,
+    "session": "Sprint",
+    "session_key": 9069,
+    "messages": 50,
+    "candidates": 0,
+    "red_flags": 0,
+    "dnfs": [
+      {
+        "driver": "TSU",
+        "team": "Red Bull Racing",
+        "laps": 2
+      }
+    ]
+  },
+  {
+    "year": 2023,
+    "session": "Race",
+    "session_key": 9070,
+    "messages": 54,
+    "candidates": 3,
+    "red_flags": 0,
+    "dnfs": [
+      {
+        "driver": "ZHO",
+        "team": "Kick Sauber",
+        "laps": 36
+      },
+      {
+        "driver": "DEV",
+        "team": "AlphaTauri",
+        "laps": 9
+      }
+    ]
+  },
+  {
+    "year": 2024,
+    "session": "Practice 1",
+    "session_key": 9591,
+    "messages": 64,
+    "candidates": 3,
+    "red_flags": 3,
+    "dnfs": []
+  },
+  {
+    "year": 2024,
+    "session": "Practice 2",
+    "session_key": 9592,
+    "messages": 64,
+    "candidates": 0,
+    "red_flags": 0,
+    "dnfs": []
+  },
+  {
+    "year": 2024,
+    "session": "Practice 3",
+    "session_key": 9593,
+    "messages": 65,
+    "candidates": 2,
+    "red_flags": 2,
+    "dnfs": []
+  },
+  {
+    "year": 2024,
+    "session": "Qualifying",
+    "session_key": 9594,
+    "messages": 82,
+    "candidates": 0,
+    "red_flags": 0,
+    "dnfs": []
+  },
+  {
+    "year": 2024,
+    "session": "Race",
+    "session_key": 9598,
+    "messages": 115,
+    "candidates": 2,
+    "red_flags": 0,
+    "dnfs": [
+      {
+        "driver": "PER",
+        "team": "Red Bull Racing",
+        "laps": 49
+      },
+      {
+        "driver": "SAI",
+        "team": "Williams",
+        "laps": 49
+      },
+      {
+        "driver": "STR",
+        "team": "Aston Martin",
+        "laps": 45
+      },
+      {
+        "driver": "TSU",
+        "team": "Red Bull Racing",
+        "laps": 14
+      }
+    ]
+  },
+  {
+    "year": 2025,
+    "session": "Practice 1",
+    "session_key": 9897,
+    "messages": 136,
+    "candidates": 2,
+    "red_flags": 2,
+    "dnfs": []
+  },
+  {
+    "year": 2025,
+    "session": "Practice 2",
+    "session_key": 9898,
+    "messages": 47,
+    "candidates": 1,
+    "red_flags": 1,
+    "dnfs": []
+  },
+  {
+    "year": 2025,
+    "session": "Practice 3",
+    "session_key": 9899,
+    "messages": 84,
+    "candidates": 0,
+    "red_flags": 0,
+    "dnfs": []
+  },
+  {
+    "year": 2025,
+    "session": "Qualifying",
+    "session_key": 9900,
+    "messages": 217,
+    "candidates": 9,
+    "red_flags": 6,
+    "dnfs": [
+      {
+        "driver": "PIA",
+        "team": "McLaren",
+        "laps": 18
+      },
+      {
+        "driver": "LEC",
+        "team": "Ferrari",
+        "laps": 19
+      },
+      {
+        "driver": "BEA",
+        "team": "Haas F1 Team",
+        "laps": 11
+      }
+    ]
+  },
+  {
+    "year": 2025,
+    "session": "Race",
+    "session_key": 9904,
+    "messages": 73,
+    "candidates": 6,
+    "red_flags": 0,
+    "dnfs": [
+      {
+        "driver": "PIA",
+        "team": "McLaren",
+        "laps": 0
+      }
+    ]
+  }
+]

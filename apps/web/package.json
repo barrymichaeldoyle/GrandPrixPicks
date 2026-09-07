@@ -10,6 +10,7 @@
     "dev:convex": "pnpm --filter @grandprixpicks/backend dev",
     "build": "pnpm generate-tokens && node scripts/render-logo-png.mjs && tsx scripts/render-og-default-png.mts && vite build && cp instrument.server.mjs .output/server",
     "build:cf": "pnpm generate-tokens && node scripts/render-logo-png.mjs && tsx scripts/render-og-default-png.mts && CF_PAGES=1 vite build",
+    "fetch-baku-crashes": "tsx scripts/fetch-baku-crash-data.mts",
     "render-x-banner": "tsx scripts/render-social-banners.mts --x-only",
     "render-x-posts": "tsx scripts/render-x-posts.mts",
     "schedule-x-launch": "tsx scripts/schedule-x-launch-posts.mts",

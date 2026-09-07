@@ -757,6 +757,50 @@ The section is 1,182px on desktop and 1,575px on a phone, against 7,257px for
 the first version. The growth over the 928px low point is the three visible
 incidents, which is the right thing to spend it on.
 
+## Cards and the dataset endpoint
+
+**Four cards**, two subjects: where the walls are, and who they have caught.
+`pnpm --filter @grandprixpicks/web social-baku-crash-map` renders X and
+Instagram frames of each into `artifacts/social/baku-crash-map-2026` and
+`public/social/`. Nothing is scheduled; Buffer attaches by URL, so those need a
+deploy and a hash check first. Draft copy and its reasoning are in the
+campaign's own `campaign.md`, and every figure in it was checked against the
+archive before it was written down.
+
+The map on the cards is **generated from the same data as the page**, unlike
+the Madrid lap map which embeds a hand-exported PNG. A card that is a picture
+of an older version of the data is the failure mode that avoids.
+
+Two things that went wrong and are worth remembering:
+
+- **resvg drops `<text>` silently.** It carries no font of its own and cannot
+  parse the WOFF satori uses, so the first render came out with unlabelled
+  markers on a map whose whole point is naming the corner. Passing font buffers
+  did not help, because the format is the problem. The fix was to draw the
+  callouts in the satori layer, which reads better anyway at the size a card is
+  actually seen.
+- **The stat row repeated the callouts.** Once the map named its top three
+  corners, the figures beside it were saying the same thing twice. It carries
+  the total, the span and how much of the lap is involved instead.
+
+**`/data/baku-crashes.json`** serves the archive as a download, generated from
+`bakuCrashes.ts` so it cannot disagree with the page. The write-up carries
+`Dataset` JSON-LD pointing at it. The markup and the route ship together or
+neither ships: the schema's guidelines expect the data to be obtainable, and
+describing a dataset nobody can fetch is a claim the site does not back.
+
+The counts inside that schema are **literals**, not read off the archive.
+TanStack keeps a route's `head` in the client entry, so touching `BAKU_CRASHES`
+there would have pulled thirty kilobytes of incident prose into the bundle every
+visitor downloads, which is the mistake that once cost 50KB of guide copy.
+`bakuDataset.test.ts` asserts the literals against the archive, so the saving
+does not buy a number that can quietly go wrong. Measured after: the client
+entry moved 0.37KB, not 30.
+
+Do not expect traffic from Google Dataset Search. The download exists because a
+citable file is the kind of thing that earns a referring domain, and referring
+domains are what this site is short of.
+
 ## Out of scope
 
 - Any other circuit.

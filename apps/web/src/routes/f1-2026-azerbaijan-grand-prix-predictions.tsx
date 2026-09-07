@@ -25,6 +25,7 @@ import {
   isRaceWriteupLive,
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
+import { bakuCrashDatasetSchema } from '@/lib/bakuDataset';
 import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
 import { routeQuery } from '@/lib/routeQuery';
 import {
@@ -182,6 +183,14 @@ export const Route = createFileRoute(
                 { name: 'Races', path: '/races' },
                 { name: 'Azerbaijan Grand Prix predictions', path: PATH },
               ]),
+              /*
+                The crash archive is a real dataset and it is downloadable, so
+                it is described as one. The markup is only legitimate because
+                `/data/baku-crashes.json` resolves: `Dataset` expects the data
+                to be obtainable, and describing one nobody can fetch would be
+                a claim this page cannot back.
+              */
+              bakuCrashDatasetSchema(PATH),
             ],
           }),
         },

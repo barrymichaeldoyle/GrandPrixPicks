@@ -106,14 +106,17 @@ describe('race write-up sections', () => {
       expect(el.querySelector('dl')).toBeNull();
     });
 
-    it('hides the column headings from assistive tech, not from sighted users', () => {
+    it('sets each signal as one sentence pair, punctuation supplied', () => {
       const el = render(
         <RaceSignalsSection heading="What matters" signals={signals} />,
       );
-      // Each row already reads as a heading plus two paragraphs, so repeating
-      // the column names per row would be noise.
-      const headings = el.querySelector('[aria-hidden]');
-      expect(headings?.textContent).toBe('SignalLook forWhy it matters');
+      // The rows are prose, not a table: the page data leaves `lookFor`
+      // without its full stop and the component closes the sentence, so a
+      // reader never meets "Lock-ups at Turn 1 A weak front end costs time".
+      expect([...el.querySelectorAll('p')].map((n) => n.textContent)).toEqual([
+        'Lock-ups at Turn 1. A weak front end costs time',
+        'Braking points move. References shift lap to lap',
+      ]);
     });
   });
 

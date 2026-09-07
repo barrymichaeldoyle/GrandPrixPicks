@@ -103,26 +103,22 @@ export function PicksCallToAction({
           </Link>
         )}
       </Button>
-      <p className="mt-4 text-sm leading-6 text-text-muted">
-        {isSignedIn ? (
-          <Link
-            to="/leaderboard"
-            className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-          >
-            The leaderboard
-          </Link>
-        ) : (
+      {/* Signed-out only. A signed-in reader has the leaderboard in the header
+          and the footer of the page they are standing on, so a third link to
+          it under the one button that matters competed with that button
+          instead of helping. The signed-out line survives because scoring is
+          the question a stranger actually has before they pick. */}
+      {isSignedIn ? null : (
+        <p className="mt-4 text-sm leading-6 text-text-muted">
           <Link
             to="/how-to-play"
             className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
           >
             How scoring works
-          </Link>
-        )}
-        {isSignedIn
-          ? ' shows where you sit this season.'
-          : ' covers the points for each position.'}
-      </p>
+          </Link>{' '}
+          covers the points for each position.
+        </p>
+      )}
     </section>
   );
 }

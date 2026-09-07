@@ -93,7 +93,7 @@ describe('picks call to action', () => {
     expect(container!.textContent).not.toContain('needs a free account');
   });
 
-  it('offers scoring to a newcomer and the leaderboard to a player', () => {
+  it('offers scoring to a newcomer and nothing extra to a player', () => {
     render({ placement: 'about' });
     expect(hrefs()).toContain('/how-to-play');
     expect(hrefs()).not.toContain('/leaderboard');
@@ -102,8 +102,9 @@ describe('picks call to action', () => {
     container!.remove();
     viewerSession.isSignedIn = true;
     render({ placement: 'about' });
-    expect(hrefs()).toContain('/leaderboard');
-    expect(hrefs()).not.toContain('/how-to-play');
+    // A signed-in reader already has the leaderboard in the header and the
+    // footer, so the panel leaves its one button alone.
+    expect(hrefs()).toEqual(['/f1-predictions-this-weekend']);
   });
 
   it('names the viewer’s existing picks instead of asking again', () => {

@@ -208,7 +208,7 @@ function AzerbaijanGrandPrixPredictionsPage() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-5xl px-3 py-5 sm:px-4 sm:py-8">
-        <div className="gpp-stripe grid gap-8 overflow-hidden rounded-sm bg-surface px-5 py-7 sm:px-8 sm:py-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
+        <div className="grid gap-8 border-b border-border pb-8 sm:pb-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
           <header>
             <div className="flex items-center gap-3">
               <Flag code="AZ" size="xl" />

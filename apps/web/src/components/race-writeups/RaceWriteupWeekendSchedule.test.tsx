@@ -1,7 +1,18 @@
+import { act } from 'react';
+import type { Root } from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { RaceWriteupWeekendSchedule } from './RaceWriteupWeekendSchedule';
+
+(
+  globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
+
+/** A zone the test runner is definitely not in, so the toggle has a job. */
+const DEVICE_ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const FOREIGN_ZONE = DEVICE_ZONE === 'Asia/Tokyo' ? 'UTC' : 'Asia/Tokyo';
 
 describe('RaceWriteupWeekendSchedule', () => {
   it('shows the sprint sessions instead of unused practice slots', () => {
@@ -48,5 +59,69 @@ describe('RaceWriteupWeekendSchedule', () => {
     expect(html).toContain('Practice 2');
     expect(html).toContain('Practice 3');
     expect(html).not.toContain('Sprint Qualifying');
+  });
+
+  it('server-renders track time only, so a cached page carries nobody’s zone', () => {
+    const html = renderToStaticMarkup(
+      <RaceWriteupWeekendSchedule
+        race={{ raceStartAt: Date.parse('2026-09-13T13:00:00Z') }}
+        timeZone="Europe/Madrid"
+        timeZoneLabel="MADRID TIME"
+      />,
+    );
+
+    expect(html).toContain('Sun 13 Sept, 15:00 CEST');
+    expect(html).not.toContain('My time');
+  });
+
+  describe('after hydration', () => {
+    let container: HTMLDivElement | null = null;
+    let root: Root | null = null;
+
+    afterEach(() => {
+      act(() => root?.unmount());
+      container?.remove();
+      container = null;
+      root = null;
+    });
+
+    function render(timeZone: string) {
+      container = document.createElement('div');
+      document.body.append(container);
+      root = createRoot(container);
+      act(() =>
+        root!.render(
+          <RaceWriteupWeekendSchedule
+            race={{ raceStartAt: Date.parse('2026-09-13T13:00:00Z') }}
+            timeZone={timeZone}
+            timeZoneLabel="TRACK TIME"
+          />,
+        ),
+      );
+      return container!;
+    }
+
+    it('re-reads the schedule in the viewer’s zone on request', () => {
+      const el = render(FOREIGN_ZONE);
+      function raceTime() {
+        return [...el.querySelectorAll('dd')].at(-1)?.textContent;
+      }
+      const trackTime = raceTime();
+
+      const myTime = [...el.querySelectorAll('button')].find(
+        (button) => button.textContent === 'My time',
+      );
+      expect(myTime).toBeDefined();
+      act(() => myTime!.click());
+
+      expect(raceTime()).not.toBe(trackTime);
+      expect(el.textContent).not.toContain('TRACK TIME');
+    });
+
+    it('offers no toggle to a reader already in the track’s zone', () => {
+      const el = render(DEVICE_ZONE);
+      expect(el.querySelector('button')).toBeNull();
+      expect(el.textContent).toContain('TRACK TIME');
+    });
   });
 });

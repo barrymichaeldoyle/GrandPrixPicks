@@ -16,6 +16,9 @@ export const RACE_SIGNALS_ANCHOR = 'what-to-watch';
  * One thing worth watching over a race weekend: what to call it, what to look
  * for, and why it changes a pick. Positional rather than named because the page
  * data is written as prose triples and reads better that way.
+ *
+ * `lookFor` is written without its full stop: the two halves are set as one
+ * sentence pair, and the component supplies the punctuation between them.
  */
 export type RaceSignal = readonly [
   signal: string,
@@ -57,35 +60,23 @@ export function RaceSignalsSection({
 
       {stats ? <CircuitStatStrip stats={stats} /> : null}
 
-      <div className="mt-8">
-        {/* Column headings for the table below. Hidden on small screens, where
-            each row stacks and the headings would repeat every entry, and
-            aria-hidden because each row already reads as a heading and two
-            paragraphs. */}
-        <div
-          className="hidden grid-cols-[10rem_1fr_1fr] gap-8 px-4 pb-3 text-xs font-semibold tracking-label text-text-muted uppercase sm:grid sm:px-5"
-          aria-hidden
-        >
-          <span>Signal</span>
-          <span>Look for</span>
-          <span>Why it matters</span>
-        </div>
-        <div className="rounded-sm bg-surface px-4 sm:px-5">
-          {signals.map(([signal, lookFor, whyItMatters]) => (
-            <div
-              key={signal}
-              className="grid gap-2 border-b border-border py-4 last:border-b-0 sm:grid-cols-[10rem_1fr_1fr] sm:gap-8"
-            >
-              <h3 className="font-title text-sm font-medium text-text">
-                {signal}
-              </h3>
-              <p className="text-sm leading-6 text-text">{lookFor}</p>
-              <p className="text-sm leading-6 text-text-muted">
-                {whyItMatters}
-              </p>
-            </div>
-          ))}
-        </div>
+      {/* Rows, not a table. The three-column grid under SIGNAL / LOOK FOR /
+          WHY IT MATTERS headings turned three written sentences into
+          spreadsheet cells, and a reader scrolled past it the way they scroll
+          past a spec sheet. Each entry now reads as what it is: a thing to
+          watch, then the sentence explaining it. */}
+      <div className="mt-8 max-w-3xl">
+        {signals.map(([signal, lookFor, whyItMatters]) => (
+          <div
+            key={signal}
+            className="border-b border-border py-5 last:border-b-0"
+          >
+            <h3 className="font-title font-medium text-text">{signal}</h3>
+            <p className="gpp-reading-copy mt-2 text-text-muted">
+              <span className="text-text">{lookFor}.</span> {whyItMatters}
+            </p>
+          </div>
+        ))}
       </div>
     </section>
   );

@@ -1,5 +1,8 @@
+import { useState, useSyncExternalStore } from 'react';
+
 import { WeatherIcon } from '@/components/weather/WeatherIcon';
 import { WeekendWeatherDetail } from '@/components/weather/WeekendWeatherDetail';
+import { formatTimeZoneAbbreviation } from '@/lib/date';
 import {
   buildWeatherSessions,
   conditionLabel,
@@ -20,6 +23,15 @@ type ScheduleRace = {
   qualiStartAt?: number;
   raceStartAt: number;
 };
+
+/** Two states of one control, so the difference between them is one place. */
+function toggleClass(active: boolean) {
+  return `px-2 py-1 text-xs transition-colors ${
+    active
+      ? 'bg-accent-muted font-medium text-accent'
+      : 'text-text-muted hover:text-text'
+  }`;
+}
 
 function formatTrackTime(timestamp: number | undefined, timeZone: string) {
   if (timestamp === undefined) {
@@ -70,6 +82,39 @@ function summaryFigures(summary: WeatherWindowSummary): string {
         ? `${summary.precipitationAmountMm.toFixed(1)} mm`
         : 'dry';
   return `${summary.temperatureC}°C · ${rain}`;
+}
+
+/**
+ * The viewer's own time zone, once the browser can be asked for it.
+ *
+ * Null on the server and through hydration, so the markup React hydrates is
+ * the markup Nitro sent: this card is on pages the edge caches for an hour, and
+ * a time zone baked into that HTML would be one reader's zone served to
+ * everybody. `useSyncExternalStore` is what makes that safe rather than an
+ * effect that sets state on mount. Null too when the viewer is already in the
+ * track's zone, where the toggle would offer a choice between two identical
+ * columns.
+ */
+function useViewerTimeZone(trackTimeZone: string): string | null {
+  const zone = useSyncExternalStore(
+    subscribeToNothing,
+    readDeviceTimeZone,
+    readNoTimeZone,
+  );
+  return zone !== null && zone !== trackTimeZone ? zone : null;
+}
+
+/** The device zone never changes under us, so there is nothing to subscribe to. */
+function subscribeToNothing() {
+  return () => {};
+}
+
+function readDeviceTimeZone(): string | null {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+}
+
+function readNoTimeZone(): string | null {
+  return null;
 }
 
 /**
@@ -125,6 +170,15 @@ export function RaceWriteupWeekendSchedule({
           ['Grand Prix', race.raceStartAt],
         ];
 
+  const viewerTimeZone = useViewerTimeZone(timeZone);
+  const [inViewerTime, setInViewerTime] = useState(false);
+  const showViewerTime = inViewerTime && viewerTimeZone !== null;
+  const activeTimeZone = showViewerTime ? viewerTimeZone! : timeZone;
+  const firstStartAt = race.fp1StartAt ?? race.raceStartAt;
+  const activeZoneLabel = showViewerTime
+    ? (formatTimeZoneAbbreviation(firstStartAt, viewerTimeZone!) ?? 'Your time')
+    : timeZoneLabel;
+
   const forecast = weather?.forecast ?? null;
   const weatherSessions = forecast ? buildWeatherSessions(race) : [];
   const nextSession =
@@ -143,9 +197,35 @@ export function RaceWriteupWeekendSchedule({
         <h2 id="weekend-timing" className="font-title font-medium text-text">
           {forecast ? 'Schedule and forecast' : 'Weekend schedule'}
         </h2>
-        <span className="gpp-mono text-xs text-text-muted uppercase">
-          {timeZoneLabel}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="gpp-mono text-xs text-text-muted uppercase">
+            {activeZoneLabel}
+          </span>
+          {viewerTimeZone ? (
+            <div
+              className="flex items-center overflow-hidden rounded-sm border border-border"
+              role="group"
+              aria-label="Show session times in"
+            >
+              <button
+                type="button"
+                onClick={() => setInViewerTime(false)}
+                aria-pressed={!showViewerTime}
+                className={toggleClass(!showViewerTime)}
+              >
+                Track time
+              </button>
+              <button
+                type="button"
+                onClick={() => setInViewerTime(true)}
+                aria-pressed={showViewerTime}
+                className={`border-l border-border ${toggleClass(showViewerTime)}`}
+              >
+                My time
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
       <dl>
         {sessions.map(([label, timestamp]) => {
@@ -179,8 +259,8 @@ export function RaceWriteupWeekendSchedule({
               </dt>
               <dd className="gpp-mono text-right text-sm text-text">
                 {forecast
-                  ? formatTrackTimeShort(timestamp, timeZone)
-                  : formatTrackTime(timestamp, timeZone)}
+                  ? formatTrackTimeShort(timestamp, activeTimeZone)
+                  : formatTrackTime(timestamp, activeTimeZone)}
               </dd>
               {forecast && (
                 // Third cell on its own line below `sm`, where the two above

@@ -3,6 +3,7 @@ import { scoreTopFive } from '@grandprixpicks/shared/scoring';
 import { DriverBadge } from '@/components/DriverBadge';
 import type { SessionType } from '@/lib/sessions';
 import { SESSION_LABELS } from '@/lib/sessions';
+import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 
 export type SessionConsensusData = {
   entrants: number;
@@ -23,12 +24,80 @@ export type SessionConsensusData = {
 type ConsensusSession = {
   session: SessionType;
   consensus: SessionConsensusData;
-  /** Published finishing order, when there is one. */
-  classification?: { driverId: string }[];
+  /**
+   * Published finishing order, when there is one. Carries the driver's own
+   * details because the winner is not always in the table below: a driver
+   * nobody picked has no consensus row to borrow a name from.
+   */
+  classification?: {
+    driverId: string;
+    code: string;
+    displayName: string;
+    team: string | null;
+  }[];
 };
 
 /** Rows shown per session. Beyond the top five the pick rate tails into noise. */
 const ROWS = 8;
+
+/** One rendered line. `position` is null for a driver nobody picked. */
+type ConsensusRow = {
+  driverId: string;
+  code: string;
+  displayName: string;
+  team: string | null;
+  position: number | null;
+  pickRate: number;
+  tookP1: boolean;
+};
+
+function teamColor(team: string | null) {
+  return (team && TEAM_COLORS[team]) || FALLBACK_TEAM_COLOR;
+}
+
+/**
+ * The rows to draw, with the driver who actually took P1 always among them.
+ *
+ * The table is ordered by what players did, so the winner can sit outside the
+ * eight rows worth showing, or be missing entirely because not one entry
+ * picked them. Both cases are the most interesting thing on the page rather
+ * than an edge case to drop: at Monza the pole-sitter appeared in no entry at
+ * all. When that happens the driver is appended with an empty bar, which is
+ * the honest shape of nobody having picked them.
+ */
+function buildRows({
+  consensus,
+  classification,
+}: Pick<ConsensusSession, 'consensus' | 'classification'>): ConsensusRow[] {
+  const winner = classification?.[0];
+  const rows: ConsensusRow[] = consensus.drivers
+    .slice(0, ROWS)
+    .map((driver) => ({
+      driverId: driver.driverId,
+      code: driver.code,
+      displayName: driver.displayName,
+      team: driver.team,
+      position: driver.consensusPosition,
+      pickRate: driver.pickRate,
+      tookP1: driver.driverId === winner?.driverId,
+    }));
+  if (!winner || rows.some((row) => row.tookP1)) {
+    return rows;
+  }
+  const picked = consensus.drivers.find(
+    (driver) => driver.driverId === winner.driverId,
+  );
+  rows.push({
+    driverId: winner.driverId,
+    code: picked?.code ?? winner.code,
+    displayName: picked?.displayName ?? winner.displayName,
+    team: picked?.team ?? winner.team,
+    position: picked?.consensusPosition ?? null,
+    pickRate: picked?.pickRate ?? 0,
+    tookP1: true,
+  });
+  return rows;
+}
 
 /** How the crowd's own top five would have scored, on the same 5/3/1/0. */
 function crowdScore({ consensus, classification }: ConsensusSession) {
@@ -47,6 +116,11 @@ function ConsensusTable({
   classification,
 }: ConsensusSession) {
   const score = crowdScore({ session, consensus, classification });
+  const rows = buildRows({ consensus, classification });
+  // A qualifying session is taken from pole, and calling it "won" reads as the
+  // race result on a page that carries both.
+  const outcomeLabel =
+    session === 'quali' || session === 'sprint_quali' ? 'Pole' : 'Won';
   return (
     <section className="mt-6">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
@@ -91,7 +165,7 @@ function ConsensusTable({
             </tr>
           </thead>
           <tbody>
-            {consensus.drivers.slice(0, ROWS).map((driver) => (
+            {rows.map((driver) => (
               <tr
                 key={driver.driverId}
                 className="border-b border-border last:border-0"
@@ -100,7 +174,7 @@ function ConsensusTable({
                   scope="row"
                   className="gpp-mono w-14 px-3 py-1.5 text-left text-xs font-semibold text-text-muted"
                 >
-                  P{driver.consensusPosition}
+                  {driver.position === null ? '—' : `P${driver.position}`}
                 </th>
                 <td className="min-w-0 px-3 py-1.5">
                   <div className="flex min-w-0 items-center gap-2">
@@ -114,15 +188,26 @@ function ConsensusTable({
                     <span className="min-w-0 truncate text-sm text-text">
                       {driver.displayName}
                     </span>
+                    {driver.tookP1 && (
+                      <span className="shrink-0 rounded-sm bg-accent px-1.5 py-0.5 text-xs font-semibold tracking-label text-text-on-accent uppercase">
+                        {outcomeLabel}
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td className="w-32 px-3 py-1.5">
                   <div className="flex items-center justify-end gap-2">
-                    {/* The bar is the comparison; the number is the fact. */}
+                    {/* The bar is the comparison; the number is the fact. The
+                        fill is the team's colour so the accent is left to mean
+                        one thing here: who actually took the session. A driver
+                        nobody picked leaves the track empty. */}
                     <span aria-hidden className="h-1 w-12 shrink-0 bg-border">
                       <span
-                        className="block h-1 bg-accent"
-                        style={{ width: `${driver.pickRate}%` }}
+                        className="block h-1"
+                        style={{
+                          width: `${driver.pickRate}%`,
+                          backgroundColor: teamColor(driver.team),
+                        }}
                       />
                     </span>
                     <span className="gpp-mono text-xs font-semibold text-text">
@@ -176,7 +261,7 @@ export function SessionConsensusSections({
         weights a driver by the positions they were picked in, so a driver
         everyone put second ranks above one everyone put fifth.
         {anyScored &&
-          ' Where a session has been classified, the score is what this five would have earned.'}
+          ' Where a session has been classified, the score is what this five would have earned, and the driver who took P1 is marked.'}
       </p>
       {sessions.map((entry) => (
         <ConsensusTable key={entry.session} {...entry} />

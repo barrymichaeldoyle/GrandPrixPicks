@@ -37,6 +37,16 @@ that also carried the schedule, the classification and the picks — 23 URLs, 28
 of the sitemap, asking to be indexed for content already published somewhere
 stronger.
 
+**Those 23 pages and their index were deleted on 2026-09-07** and now 301 to
+`/races`. Canonicalising them had already taken them out of the sitemap, so the
+remaining search win was one URL; the reason to finish the job was that the site
+was still linking readers into a duplicate of itself, from the footer, the
+dashboard rail, the calendar and every race page, and that they were 23 pages of
+unfact-checked prose standing behind an editorial review. The briefing itself
+survives: `circuitGuides.ts` renders in full on every race page, which is now
+the only place it is published. Venue analysis for a weekend belongs in that
+weekend's write-up.
+
 ## Rules
 
 1. **A new page must carry something no other page on this site carries.** Not
@@ -45,10 +55,15 @@ stronger.
 
 2. **When two pages overlap, the weaker one canonicalises to the stronger and
    leaves the sitemap.** It stays reachable and linked for players; it just
-   stops competing. Two implementations of exactly this, and the shape to copy:
-   `raceWriteupSeo.ts` (race page → write-up) and `circuitPageSeo.ts`
-   (circuit page → race). Never build a canonical chain: point at the page that
-   is itself indexed.
+   stops competing. The shape to copy is `raceWriteupSeo.ts` (race page →
+   write-up). Never build a canonical chain: point at the page that is itself
+   indexed.
+
+   Treat this as a holding position rather than a resting place. The circuit
+   pages sat here for a month and the honest read afterwards was that a page
+   worth reading should be merged into the page it duplicates, and a page that
+   is not should be deleted and redirected. `circuitPageSeo.ts` was the second
+   implementation of this rule and went with them.
 
 3. **Do not add a fifth template.** Bulk-generated per-entity pages are what
    the site already has too many of, and Google treats machine-scaled

@@ -512,29 +512,27 @@ function FormulaThreeTest() {
             The only laps anyone has run here
           </h2>
           <p className="gpp-reading-copy mt-4 text-text-muted">
-            Formula 3 tested at the Madring on 24 and 25 August, 30 drivers
-            across 10 teams over two days. It is the entire body of competitive
-            running this circuit has.{' '}
+            Formula 3 spent two days at the Madring on 24 and 25 August, 30
+            drivers across 10 teams, and stopped 19 times. Eleven of those were
+            cars in the barriers.{' '}
             <ExternalSource href={F3_OFFICIAL_SOURCE}>
               The FIA&rsquo;s test announcement
             </ExternalSource>
             .
           </p>
           <p className="gpp-reading-copy mt-3 text-text-muted">
-            It produced 19 red flags. Eleven were cars in the barriers, spread
-            around the lap: Turns 5 to 7 through the chicane and Turn 17 were
-            the most common, and the exit of Turn 3 and Turn 14 caught drivers
-            too.{' '}
+            The crashes were spread rather than concentrated. Turns 5 to 7
+            through the chicane and Turn 17 caught the most, and the exit of
+            Turn 3 and Turn 14 caught drivers too.{' '}
             <ExternalSource href={RED_FLAG_SOURCE}>
               PlanetF1 on the red flags
             </ExternalSource>
             .
           </p>
           <p className="gpp-reading-copy mt-3 text-text-muted">
-            Formula 3 lap times say nothing about Formula 1 pace. Where those
-            cars ended up does: the walls sit close enough to end a session, and
-            they caught drivers all around the lap. A safety car is more likely
-            here than at a permanent circuit.
+            Formula 1 will be far quicker than any of that, and will meet the
+            same walls. Nineteen stoppages in two days is the closest thing this
+            weekend has to a safety car forecast.
           </p>
         </div>
         {/* The one picture on this page whose subject is the thing the section
@@ -601,10 +599,10 @@ function TrackReadiness() {
           .
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          That asphalt is three months old and has barely been driven on. It
-          will be slippery on Friday morning and will keep getting faster all
-          weekend as Formula 2 and Formula 3 lay rubber down, so whoever tops
-          first practice may be nowhere near the front by Saturday.
+          The asphalt is three months old and has barely been driven on. It will
+          be green on Friday morning and quicker every session as Formula 2 and
+          Formula 3 lay rubber down. First practice will not look much like
+          Saturday.
         </p>
       </div>
     </section>
@@ -718,8 +716,8 @@ function LaMonumental() {
           the downforce of a Formula 1 car.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          So a team that is quick on Friday and then runs the car higher on
-          Saturday has decided the corner was not worth the risk.
+          Ride height is the tell. A team that raises the car between Friday and
+          Saturday has decided Turn 12 is not worth the lap time.
         </p>
       </div>
     </section>
@@ -761,7 +759,7 @@ function WatchTable() {
         [
           'The tight sector',
           'Traction and braking around the exhibition halls',
-          'The street-style section rewards a settled rear, and it is where a lap is lost.',
+          'A car that steps out on the exits loses more here than anywhere else on the lap.',
         ],
         [
           'Where a pass is possible',
@@ -785,8 +783,7 @@ function TyreChoice() {
         Pirelli&rsquo;s simulations put the loads here close to Silverstone and
         Spa, so it left the softest compound at home: on a hot weekend the C5
         would overheat. It stopped at the middle of the range rather than going
-        harder still because C2, C3 and C4 is the set it expects to need two
-        stops.{' '}
+        harder because C2, C3 and C4 is the set it expects to need two stops.{' '}
         <ExternalSource href={TYRE_SOURCE}>
           Read Pirelli&rsquo;s selection
         </ExternalSource>
@@ -831,12 +828,12 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
           Villeneuve won the last Grand Prix held in Madrid
         </h2>
         <p className="gpp-reading-copy mt-4 text-text-muted">
-          Jarama, north of the city, June 1981. Gilles Villeneuve had a Ferrari
-          with a big turbo engine and a chassis nobody wanted to drive, so he
-          used the straight to build a gap and the rest of the lap to block. He
-          led to the flag with four quicker cars stacked up behind him and won
-          by 0.22 seconds, with the whole top five covered by 1.24 seconds after
-          80 laps.{' '}
+          The last one was at Jarama, north of the city, in June 1981. Gilles
+          Villeneuve&rsquo;s Ferrari was quick in a straight line and awful
+          everywhere else, so he built his gap on the straight and blocked for
+          the rest of the lap. Eighty laps of that, four faster cars stacked up
+          behind him, and he won by 0.22 seconds with the top five covered by
+          1.24.{' '}
           <ExternalSource href={JARAMA_SOURCE}>
             Motor Sport on the drive
           </ExternalSource>
@@ -851,8 +848,8 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Carlos Sainz has been the Madring&rsquo;s ambassador since 2025 and
           said at its presentation that he would be racing 20 minutes from home.
-          He has also had a year&rsquo;s worth of reasons to run this layout in
-          a simulator, which nobody else on the grid has had.{' '}
+          He has also had a year to learn the layout in a simulator, which
+          nobody else on the grid has.{' '}
           <ExternalSource href={SAINZ_SOURCE}>
             PlanetF1 on the ambassador role
           </ExternalSource>
@@ -865,7 +862,8 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
       <div className="self-start">
         <div className="border border-border bg-surface">
           <div className="border-b border-border px-4 py-3">
-            <h3 className="font-title font-medium text-text">
+            <h3 className="font-title flex items-center gap-2 font-medium text-text">
+              <Flag code="ES" size="sm" />
               Spanish drivers
             </h3>
           </div>

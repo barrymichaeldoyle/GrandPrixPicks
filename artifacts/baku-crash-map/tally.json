@@ -1,41 +1,42 @@
 {
   "compiled": "2026-09-07",
-  "total": 59,
-  "unplaced": 10,
+  "verified": true,
+  "total": 57,
+  "unplaced": 6,
   "byCorner": {
     "3": 11,
-    "15": 9,
-    "2": 8,
+    "15": 10,
+    "2": 7,
     "1": 4,
+    "6": 4,
     "4": 4,
     "8": 3,
-    "6": 3,
-    "7": 2,
+    "7": 3,
     "20": 2,
-    "10": 1,
+    "11": 1,
     "13": 1,
     "5": 1
   },
   "byBucket": {
     "Practice": 13,
     "Qualifying": 21,
-    "Race": 25
+    "Race": 23
   },
   "byYear": {
     "2016": 7,
     "2017": 7,
-    "2018": 8,
+    "2018": 7,
     "2019": 6,
     "2021": 7,
     "2022": 3,
-    "2023": 6,
+    "2023": 5,
     "2024": 6,
     "2025": 9
   },
   "byDriver": {
     "HUL": 6,
+    "STR": 6,
     "RIC": 5,
-    "STR": 5,
     "PER": 4,
     "VER": 4,
     "RAI": 4,
@@ -45,7 +46,6 @@
     "TSU": 3,
     "COL": 3,
     "GUT": 2,
-    "BOT": 2,
     "VET": 2,
     "KVY": 2,
     "SAI": 2,
@@ -54,6 +54,7 @@
     "ALB": 2,
     "PIA": 2,
     "MAS": 1,
+    "BOT": 1,
     "ERI": 1,
     "WEH": 1,
     "SIR": 1,
@@ -66,26 +67,12 @@
     "SAR": 1
   },
   "byOutcome": {
-    "red-flag": 29,
-    "continued": 16,
-    "dnf": 14
+    "red-flag": 30,
+    "continued": 14,
+    "dnf": 13
   },
   "byConfidence": {
-    "high": 43,
-    "medium": 5,
-    "verify": 11
-  },
-  "needsVerification": [
-    "2016-fp3-massa-wall",
-    "2016-quali-hamilton",
-    "2016-race-gutierrez-l1",
-    "2017-quali-ricciardo",
-    "2017-race-hulkenberg-wall",
-    "2018-race-verstappen-ricciardo",
-    "2018-race-grosjean-sc",
-    "2018-race-bottas-debris",
-    "2023-race-lap1-t2",
-    "2024-race-tsunoda",
-    "2025-race-albon-colapinto"
-  ]
+    "high": 48,
+    "medium": 9
+  }
 }

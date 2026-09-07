@@ -216,81 +216,79 @@ cars" is the finding. Exact coordinates are not.
 - **No photos or video.** Unchanged, and non-negotiable: F1 owns and enforces
   all of it. Citations link out.
 
-## Research results (2026-09-07)
+## Research results, verified (2026-09-07)
 
-Task 2 is done. `artifacts/baku-crash-map/researched-incidents.json` holds **59
+`artifacts/baku-crash-map/researched-incidents.json` holds **57 verified
 incidents** across all nine Baku weekends, each with a driver, session, corner,
 outcome, confidence rating and citation. `tally.json` holds the aggregates.
 
-### There is a hot corner, and it is not the one the API suggested
+Every incident has been checked against a second source. **48 rated `high`, 9
+`medium`, none unverified.** The nine `medium` rows are sourced but their corner
+is either unnamed or disputed; six carry no corner at all and are listed in the
+table without being placed on the map.
+
+### The hot corners
 
 | Corner | Incidents |
 | --- | --- |
 | **Turn 3** | **11** |
-| **Turn 15** | **9** |
-| **Turn 2** | **8** |
+| **Turn 15** | **10** |
+| **Turn 2** | **7** |
 | Turn 1 | 4 |
 | Turn 4 | 4 |
+| Turn 6 | 4 |
+| Turn 7 | 3 |
 | Turn 8 | 3 |
-| Turn 6 | 3 |
-| Turn 7 | 2 |
 | Turn 20 | 2 |
-| Turns 5, 10, 13 | 1 each |
+| Turns 5, 11, 13 | 1 each |
 
-Turn 3 is the circuit's reserved parking space, and it collects cars in
-clusters: three cars in the 2021 qualifying session alone (Ricciardo in Q2, then
-Tsunoda and Sainz within seconds of each other in Q3), two more in 2023
-qualifying (de Vries, then Gasly at the same wall), Piastri in 2025. Turn 15 is
-the other pole of the map, and Turn 8 carries the Leclerc and Kubica crashes
-from the same 2019 session.
+Two poles, not one. Turn 3 collects cars in clusters: three in the 2021
+qualifying session alone (Ricciardo in Q2, then Tsunoda and Sainz within seconds
+of each other in Q3), two more in 2023 qualifying, Piastri in 2025. Turn 15 is
+the other, and it spans the whole history: Ricciardo and Pérez there in 2016,
+Vettel in 2022, Sargeant in 2023, Leclerc twice, and Grosjean's crash behind the
+safety car in 2018.
 
-Ten incidents have no corner in their source and are excluded from that table.
+### Sessions, and a correction
 
-### A finding from the API data was wrong
+Race 23, Qualifying 21, Practice 13.
 
-The earlier section says practice and qualifying, not the race, are where Baku's
-walls do their work. **The full history says the opposite**: Race 25,
-Qualifying 21, Practice 13. That earlier read was an artefact of OpenF1
-covering only 2023 to 2025, two of which had unusually chaotic qualifying
+The earlier API-only section claims practice and qualifying are where Baku's
+walls do their work. **The full history does not support that**: the three
+buckets are close, with the race marginally ahead. That earlier read was an
+artefact of OpenF1 covering only 2023 to 2025, two of which had freak qualifying
 sessions. Do not repeat it in the prose.
 
-### The driver table is the memeable part
+### The driver table
 
-Incidents by driver, counting each car involved in a collision:
-
-Hülkenberg 6, Ricciardo 5, Stroll 5, Pérez 4, Verstappen 4, Räikkönen 4,
+Hülkenberg 6, Stroll 6, Ricciardo 5, Pérez 4, Verstappen 4, Räikkönen 4,
 Ocon 4, Hamilton 3, Leclerc 3, Tsunoda 3, Colapinto 3.
 
-Hülkenberg leading the count at a circuit he has never had a result at is the
-single most postable fact in the dataset, and it is the one that matches the
-Reddit joke the feature came from. Handle it with a light touch and make sure
-the six are individually citable, because it is also the line most likely to be
+Hülkenberg and Stroll tied at the top is the most postable fact in the set and
+the one that matches the joke the feature came from. Every one of the twelve is
+individually cited, which matters because this is the line most likely to be
 challenged.
 
-### Per year
+### What verification changed
 
-2016: 7, 2017: 7, 2018: 8, 2019: 6, 2021: 7, 2022: 3, 2023: 6, 2024: 6,
-2025: 9.
+Checking the eleven flagged rows corrected three facts and removed two rows:
 
-2022 is the clean outlier: three incidents and not one of them in the race.
-Worth a sentence, because it stops the page reading as though Baku is
-uniformly chaotic.
+- **Wikipedia was wrong twice.** It places Ricciardo's 2017 qualifying crash in
+  Q1, which cannot be right because he qualified tenth; it was Q3, at the exit
+  of Turn 6. And it puts the 2025 Albon/Colapinto contact at Turn 7 on lap 17,
+  where race control and a contemporary report both say Turn 5 on lap 19.
+- **Grosjean's 2018 safety car crash was on the run down to Turn 15**, which
+  moved Turn 15 into a near-tie for the top of the table.
+- **Two rows dropped**, recorded with reasons under `dropped` in the data file.
+  Bottas's 2018 puncture fails the inclusion rules (debris, no contact with a
+  wall or car, no corner in any source) and belongs in the prose instead. A
+  Turn 2 collision race control logged on lap 1 of the 2023 race names no
+  drivers and matches no report, so it cannot be attributed to anyone.
+- **Hamilton's 2016 qualifying crash stays disputed.** Three sources give Turn
+  9, 10 and 11. All are in the narrow castle-adjacent section, so the map uses
+  Turn 11 as the most specific attribution and the note says so.
 
-### Confidence, and what is left to do
-
-43 incidents rated `high`, 5 `medium`, **11 `verify`**. The eleven are listed in
-`tally.json` under `needsVerification` and each needs a second source before it
-ships. They divide into two kinds:
-
-- **Corner not named by the source** (nine of them), including the 2018
-  Verstappen and Ricciardo collision and Grosjean's crash behind the safety car.
-  These are famous incidents with a missing detail, not doubtful ones.
-- **Genuinely unresolved** (two): a Turn 2 collision race control logged on lap
-  one of the 2023 race with no drivers named, and the 2025 Albon/Colapinto
-  contact, where race control says Turn 5 on lap 19 and Wikipedia says Turn 7 on
-  lap 17.
-
-**2018's practice and qualifying are a documented gap.** Wikipedia's article
+**2018's practice and qualifying remain a documented gap.** Wikipedia's article
 carries a "needs expansion" notice for its qualifying report and no session
 detail survives in the sources checked. Either find a contemporary report or
 state on the page that 2018's non-race sessions are not covered. Do not fill it
@@ -624,7 +622,7 @@ this sits above the fold on a phone and a reflow was worth 0.1 there.
 | --- | --- | --- |
 | 1 | ~~Fetch OpenF1 sessions, race control, results.~~ **Done 2026-09-07.** `apps/web/scripts/fetch-baku-crash-data.mts`, output in `artifacts/baku-crash-map/`. | done |
 | 2 | ~~Research pass across nine weekends.~~ **Done 2026-09-07.** 59 incidents in `artifacts/baku-crash-map/researched-incidents.json`. | done |
-| 2b | Verify the 11 `verify`-rated incidents against a second source; resolve or drop each. | 2-3h |
+| 2b | ~~Verify the flagged incidents.~~ **Done 2026-09-07.** All 57 second-sourced; 3 facts corrected, 2 rows dropped. | done |
 | 3 | Reconcile research against the fetched API data for 2023-2025. Resolve turn disagreements and record which source won. | 1-2h |
 | 4 | Write the `baku2026CrashData.ts` file: apply inclusion rules, write the one-line notes, final citation check. | 2-3h |
 | 5 | Geometry file: outline path, corner positions, marshal sectors, normalised and rotated for display. | 1h |

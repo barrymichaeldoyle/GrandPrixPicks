@@ -85,36 +85,53 @@ function summaryFigures(summary: WeatherWindowSummary): string {
 }
 
 /**
- * The viewer's own time zone, once the browser can be asked for it.
+ * The viewer's own time zone, and whether the browser has been asked yet.
  *
- * Null on the server and through hydration, so the markup React hydrates is
+ * Unknown on the server and through hydration, so the markup React hydrates is
  * the markup Nitro sent: this card is on pages the edge caches for an hour, and
  * a time zone baked into that HTML would be one reader's zone served to
  * everybody. `useSyncExternalStore` is what makes that safe rather than an
- * effect that sets state on mount. Null too when the viewer is already in the
- * track's zone, where the toggle would offer a choice between two identical
- * columns.
+ * effect that sets state on mount.
+ *
+ * The three states are the reason this is not just `string | null`. A null zone
+ * has two meanings that need different renders: nobody has asked yet, where the
+ * toggle is drawn so the header does not change width a frame after paint, and
+ * the viewer is already in the track's zone, where it is dropped because both
+ * columns would read the same. Guessing wrong in the first case is a layout
+ * shift on a page whose CLS budget is 0.02.
  */
-function useViewerTimeZone(trackTimeZone: string): string | null {
-  const zone = useSyncExternalStore(
+function useViewerTimeZone(trackTimeZone: string): {
+  resolved: boolean;
+  zone: string | null;
+} {
+  const deviceZone = useSyncExternalStore(
     subscribeToNothing,
     readDeviceTimeZone,
-    readNoTimeZone,
+    readUnknownTimeZone,
   );
-  return zone !== null && zone !== trackTimeZone ? zone : null;
+  if (deviceZone === UNKNOWN_ZONE) {
+    return { resolved: false, zone: null };
+  }
+  return {
+    resolved: true,
+    zone: deviceZone !== trackTimeZone ? deviceZone : null,
+  };
 }
+
+/** Distinct from a real zone name, and stable so the store never re-renders. */
+const UNKNOWN_ZONE = '';
 
 /** The device zone never changes under us, so there is nothing to subscribe to. */
 function subscribeToNothing() {
   return () => {};
 }
 
-function readDeviceTimeZone(): string | null {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+function readDeviceTimeZone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || UNKNOWN_ZONE;
 }
 
-function readNoTimeZone(): string | null {
-  return null;
+function readUnknownTimeZone(): string {
+  return UNKNOWN_ZONE;
 }
 
 /**
@@ -170,14 +187,17 @@ export function RaceWriteupWeekendSchedule({
           ['Grand Prix', race.raceStartAt],
         ];
 
-  const viewerTimeZone = useViewerTimeZone(timeZone);
+  const viewer = useViewerTimeZone(timeZone);
   const [inViewerTime, setInViewerTime] = useState(false);
-  const showViewerTime = inViewerTime && viewerTimeZone !== null;
-  const activeTimeZone = showViewerTime ? viewerTimeZone! : timeZone;
+  const showViewerTime = inViewerTime && viewer.zone !== null;
+  const activeTimeZone = showViewerTime ? viewer.zone! : timeZone;
   const firstStartAt = race.fp1StartAt ?? race.raceStartAt;
   const activeZoneLabel = showViewerTime
-    ? (formatTimeZoneAbbreviation(firstStartAt, viewerTimeZone!) ?? 'Your time')
+    ? (formatTimeZoneAbbreviation(firstStartAt, viewer.zone!) ?? 'Your time')
     : timeZoneLabel;
+  // Drawn until the browser says otherwise, and dropped only for the readers
+  // who are in the track's zone.
+  const showToggle = !viewer.resolved || viewer.zone !== null;
 
   const forecast = weather?.forecast ?? null;
   const weatherSessions = forecast ? buildWeatherSessions(race) : [];
@@ -201,7 +221,7 @@ export function RaceWriteupWeekendSchedule({
           <span className="gpp-mono text-xs text-text-muted uppercase">
             {activeZoneLabel}
           </span>
-          {viewerTimeZone ? (
+          {showToggle ? (
             <div
               className="flex items-center overflow-hidden rounded-sm border border-border"
               role="group"

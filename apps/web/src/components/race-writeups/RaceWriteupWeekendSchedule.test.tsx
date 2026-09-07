@@ -71,7 +71,13 @@ describe('RaceWriteupWeekendSchedule', () => {
     );
 
     expect(html).toContain('Sun 13 Sept, 15:00 CEST');
-    expect(html).not.toContain('My time');
+    // The toggle is in the cached markup, because taking up its width only
+    // after hydration would shift the whole card. What is not in the markup is
+    // any reader's zone: track time is what the server can honestly render.
+    expect(html).toContain('My time');
+    expect(html).not.toContain(
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+    );
   });
 
   describe('after hydration', () => {

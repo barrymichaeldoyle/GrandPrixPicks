@@ -91,6 +91,15 @@ const HEAT_HAZARD_SOURCE =
   'https://www.motorsport.com/f1/news/fia-declares-heat-hazard-for-f1s-italian-gp-in-monza/10851743/';
 const SAFETY_CAR_SOURCE =
   'https://www.motorsport.com/f1/news/lightning-mcqueen-debuts-as-f1-track-vehicle-at-italian-gp/10851782/';
+/** The three post-race sources, one per paragraph of the archive's report. */
+const RACE_REPORT_SOURCE =
+  'https://www.planetf1.com/news/italian-grand-prix-2026-race-report';
+const RACE_FINISH_SOURCE =
+  'https://www.formula1.com/en/latest/article/antonelli-beats-russell-to-italian-grand-prix-win-with-stunning-comeback-drive.15WtFEBT5JEe4drdeO88t2';
+const FINAL_CLASSIFICATION_SOURCE =
+  'https://www.gpfans.com/en/f1-news/1089963/f1-italian-grand-prix-2026-results-final-classification-late-penalties-applied/';
+const POST_MONZA_STANDINGS_SOURCE =
+  'https://www.motorsport.com/f1/news/standings-antonelli-unstoppable-at-the-top/10853059/';
 
 /**
  * The write-up section that carries a photo in its margin.
@@ -203,6 +212,19 @@ const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
  */
 function faqs(finished: boolean) {
   return [
+    // Only on the archive, because before Sunday the honest answer is that
+    // nobody knows, and a question the page cannot answer is worse than no
+    // question. The FAQ schema is built from this same list, so the two
+    // describe the same page in every phase.
+    ...(finished
+      ? [
+          {
+            question: 'Who won the 2026 Italian Grand Prix?',
+            answer:
+              'Kimi Antonelli, from 19th on the grid, ahead of George Russell and Max Verstappen. He is the first Italian to win at Monza since Ludovico Scarfiotti in 1966.',
+          },
+        ]
+      : []),
     {
       question: finished
         ? 'When was the 2026 Italian Grand Prix?'
@@ -488,6 +510,7 @@ function ItalianGrandPrixPredictionsPage() {
               venueName="Monza"
             />
             <SessionConsensusSections sessions={consensusSessions} />
+            <RaceReport />
             <RaceWriteupNextRound nextRace={nextRace} />
           </>
         ) : null}
@@ -562,6 +585,95 @@ function ItalianGrandPrixPredictionsPage() {
         </footer>
       </div>
     </div>
+  );
+}
+
+/**
+ * What decided the race, on the finished page only.
+ *
+ * The lifecycle doc asks a finished write-up for "a short account of the facts
+ * that decided the result", and it was the one part of the archive still
+ * missing: the page carried the classification and the player consensus, and
+ * nothing joining them. A reader who arrives after Sunday can see that the two
+ * tables disagree; this says why.
+ *
+ * It sits between them and the next round for that reason. The last paragraph
+ * is the only one that could not be written by any other site, so it closes
+ * the section: three named divergences between the order the field expected
+ * and the order that happened.
+ *
+ * Styled as an archive block rather than one of the big prose sections above.
+ * Those are the preview, at the preview's scale; this belongs with the result
+ * and the consensus it sits between.
+ *
+ * One source per paragraph, the standard the rest of the page and `raceNews`
+ * both hold to. The stewards paragraph exists because the Monday pass has to
+ * be visible: a reader whose score moved wants to know whether the numbers
+ * they see are final, and here they are.
+ */
+function RaceReport() {
+  return (
+    <section
+      className="mt-10 max-w-3xl border-t border-border pt-6"
+      aria-labelledby="race-report"
+    >
+      <h2
+        id="race-report"
+        className="font-title text-xl font-semibold text-text"
+      >
+        What decided the race
+      </h2>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Leclerc was out on lap 2. He put a left-rear wheel on a drain cover at
+        Parabolica, spun through the gravel and hit the barrier hard enough to
+        red-flag the race, and climbed out unaided.{' '}
+        <ExternalSource href={RACE_REPORT_SOURCE}>
+          Read the race report
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Antonelli started 19th, after the power unit change this page previewed
+        on Thursday. He was sixth by lap 4 of the restarted race and led by lap
+        18, and Mercedes let the two cars swap from there.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        A virtual safety car on lap 28, for Stroll&rsquo;s hydraulic failure,
+        settled it. Antonelli pitted for fresh mediums and Russell stayed out on
+        used hards that faded over the closing stint. Antonelli ran wide through
+        the gravel with five laps left, lost a second and a half, and passed
+        Russell on lap 50 of 53 to win by 3.8s. He is the first Italian to win
+        at Monza since Ludovico Scarfiotti in 1966.{' '}
+        <ExternalSource href={RACE_FINISH_SOURCE}>
+          Read the F1 race report
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        The classification above is final. Russell was investigated for a yellow
+        flag while leading and Tsunoda for his position at the restart, and both
+        were cleared. The one penalty applied after the flag was five seconds
+        for Perez, for failing to follow the race director&rsquo;s instructions,
+        which moved him from 18th to 19th.{' '}
+        <ExternalSource href={FINAL_CLASSIFICATION_SOURCE}>
+          Read the final classification
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Antonelli leaves Monza on 267 points, 66 clear of Russell.{' '}
+        <ExternalSource href={POST_MONZA_STANDINGS_SOURCE}>
+          Read the championship standings
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        The two tables above disagree in three places. Gasly took pole without
+        appearing in the qualifying consensus at all. Leclerc and Hamilton,
+        second and third in the race consensus, finished out and sixth. And
+        Antonelli, who won from 19th, was the fifth name on that list.
+      </p>
+    </section>
   );
 }
 

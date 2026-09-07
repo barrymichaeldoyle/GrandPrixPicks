@@ -8,7 +8,8 @@ template. Add a `Campaign` entry and run
 
 ## Status
 
-- **Race: for posting.** Copy and assets below are ready.
+- **Race: posted.** X and Instagram published 2026-09-07 10:10 SAST, plus a
+  Reddit post made by hand (Reddit has no API here; see the Reddit section).
 - **Qualifying: DO NOT POST.** The session is too far in the past to be worth
   posting. The card was rendered to prove the template handles a zero-count
   winner, and is kept as the reference for that case. It is not a scheduled
@@ -26,7 +27,8 @@ winner), VER 1, NOR 1.
 
 ### X
 
-Post: [not yet posted]
+Post: https://x.com/GrandPrixPicks/status/2096873613961879973
+Published 2026-09-07 10:10 SAST.
 
 > Madrid picks are open. Make yours and you're in the next one of these.
 
@@ -34,7 +36,8 @@ Asset: `monza-community-picks-race-x.png`
 
 ### Instagram
 
-Post: [not yet posted]
+Post: https://www.instagram.com/p/Dc-plj-lr_s/
+Published 2026-09-07 10:10 SAST.
 
 > Madrid picks are open. Make yours and you're in the next one of these.
 >

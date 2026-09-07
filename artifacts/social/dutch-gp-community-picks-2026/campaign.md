@@ -54,4 +54,6 @@ followed by Kimi Antonelli at 28.6%, George Russell at 21.4%, Charles Leclerc at
 - Keep the lower-left corner of X graphics clear because the platform's ALT
   control can cover content there. Right-align footer calls to action on X.
 - Avoid hashtags unless current platform-specific evidence supports them.
-- Do not expose small response counts. Use percentages in public copy.
+- ~~Do not expose small response counts. Use percentages in public copy.~~
+  Superseded from Monza onwards: the cards now show raw counts, which read as
+  more honest at this community size. See `monza-community-picks-2026`.

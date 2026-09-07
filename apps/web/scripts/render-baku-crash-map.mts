@@ -372,10 +372,12 @@ function mapWithLabels(art: MapArt): ReactNode {
       const dy = centre.y - corner.y;
       const length = Math.hypot(dx, dy) || 1;
       const offset = 92;
-      const text = `T${entry.corner} · ${entry.count}`;
+      // Written out, as on the page: the card is read by people who may not
+      // think in circuit shorthand.
+      const text = `Turn ${entry.corner} · ${entry.count}`;
       // Satori has no text metrics here, so the chip is centred on its anchor
       // using an estimate: mono glyphs at this size run about half the em.
-      const chipWidth = text.length * 12 + 24;
+      const chipWidth = text.length * 12 + 26;
       return e(
         'div',
         {

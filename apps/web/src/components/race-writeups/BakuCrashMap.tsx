@@ -450,7 +450,10 @@ function BreakdownPanel({
     breakdown === 'corner'
       ? corners.map((entry) => ({
           key: `T${entry.corner}`,
-          lead: `T${entry.corner}`,
+          /* Written out rather than abbreviated. "T3" is shorthand that
+             assumes the reader already thinks in it, and the row has the
+             width for the real words. */
+          lead: `Turn ${entry.corner}`,
           full: `Turn ${entry.corner}`,
           count: entry.count,
           onSelect: () => onSelectCorner(entry.corner),
@@ -528,7 +531,7 @@ function BreakdownPanel({
                   className="flex min-h-9 w-full items-center gap-3 text-left hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   <span
-                    className="w-24 shrink-0 truncate text-sm text-text"
+                    className="w-[5.5rem] shrink-0 truncate text-sm text-text"
                     title={row.full}
                   >
                     {row.lead}
@@ -541,7 +544,11 @@ function BreakdownPanel({
                       backgroundColor: heatColor(heatStep(row.count, max)),
                     }}
                   />
-                  <span className="sr-only">{row.full},</span>
+                  {/* Only when the visible label is an abbreviation of the
+                      real name, which is the driver rows and not the corners. */}
+                  {row.lead === row.full ? null : (
+                    <span className="sr-only">{row.full},</span>
+                  )}
                   <span className="gpp-mono ml-auto shrink-0 text-sm text-text-muted">
                     {row.count}
                   </span>

@@ -81,7 +81,18 @@ test.describe('[public] a11y smoke', () => {
          * dialog's labelling or about what the focus trap leaves reachable
          * behind it.
          */
-        await page.getByRole('button', { name: /^T\d+/ }).first().click();
+        /*
+         * Scoped to a list row rather than taken with `.first()`: the map's
+         * SVG markers carry the same role and the same "Turn n" label, and the
+         * first match in document order is one of those, which sits off screen
+         * and never resolves a click.
+         */
+        const cornerRow = page
+          .getByRole('listitem')
+          .getByRole('button', { name: /^Turn \d+/ })
+          .first();
+        await cornerRow.scrollIntoViewIfNeeded();
+        await cornerRow.click();
         await expect(page.getByRole('dialog')).toBeVisible();
         await expectNoA11yViolations(page);
         return;

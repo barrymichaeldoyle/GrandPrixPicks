@@ -842,13 +842,20 @@ drawing is an abstract shape, and "Turn 3" means nothing if you cannot tell
 which way the numbers run. The arrow sits beside the track rather than on it,
 because over the ribbon it was a grey shape on an orange band and invisible.
 
-**Driver nationality flags**, in the breakdown rows and the modal title. Three
-countries in the archive have no flag in `public/flags`: Sweden, Poland and
-Russia. Rather than request them and take a 404 on every page view, `driverCountry`
-returns nothing for those, so the row simply carries no flag. A test checks the
-shipped-asset list against the directory, so adding an asset without wiring it up
-fails rather than silently doing nothing. **Russia is an open question for
-Barry** rather than a missing download.
+**Driver nationality flags**, in the breakdown rows and the modal title.
+
+Three countries in the archive had no asset: Sweden, Poland and Russia. All
+three now exist in `public/flags`, authored to match the set already there (the
+same 640x480 viewBox and `flag-icons` id convention), so every one of the
+thirty-one drivers carries a flag. National flag designs are not copyrightable,
+which is why they could simply be drawn rather than sourced.
+
+The guard that hides a flag with no asset stays regardless. Without it the page
+requested the missing files anyway and took a 404 on every view, and because the
+`Flag` component hides a broken image nothing looked wrong: that is exactly why
+it would have gone unnoticed. The next driver from a country with no asset gets
+no flag rather than a silent 404, and a test checks both that every listed
+country resolves to a real file and that every driver resolves to a country.
 
 The total-JS budget moved again, 589 KB to 592 KB, for the placement maths, the
 flags and the start/finish marks. That is twice in one feature and worth saying

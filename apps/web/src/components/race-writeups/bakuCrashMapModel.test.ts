@@ -284,11 +284,16 @@ describe('baku crash map model', () => {
       }
     });
 
-    it('says nothing rather than guessing when there is no flag', () => {
-      // Ericsson is Swedish, and there is no se.svg. That is a missing asset,
-      // not a missing nationality, so the row simply carries no flag.
-      expect(BAKU_DRIVERS.ERI?.country).toBe('se');
-      expect(driverCountry('ERI')).toBeUndefined();
+    it('has a flag for every driver in the archive', () => {
+      // Sweden, Poland and Russia were the three gaps; their assets exist now,
+      // so no row in this archive should be flagless.
+      for (const code of Object.keys(BAKU_DRIVERS)) {
+        expect(driverCountry(code), `${code} has no flag`).toBeDefined();
+      }
+    });
+
+    it('says nothing rather than guessing for an unknown driver', () => {
+      expect(driverCountry('ZZZ')).toBeUndefined();
     });
   });
 });

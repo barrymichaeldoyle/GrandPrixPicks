@@ -237,16 +237,20 @@ export function driverSurname(code: string): string {
 }
 
 /**
- * Countries in this archive that the repo actually ships a flag for.
+ * Countries in this archive that the repo ships a flag for, which is now all of
+ * them.
  *
- * Sweden, Poland and Russia are the three it does not. Without this guard the
- * page requested them anyway and took four 404s on every view: the `Flag`
- * component hides a broken image, so nothing looked wrong, which is exactly why
- * it would have stayed that way.
+ * The guard stays even so. Without it the page requested missing flags anyway
+ * and took a 404 on every view: the `Flag` component hides a broken image, so
+ * nothing looked wrong, which is exactly why it would have stayed that way. The
+ * next driver added from a country with no asset should carry no flag rather
+ * than a silent 404.
  *
  * A literal rather than a directory read, because this runs in the browser.
- * `bakuCrashMapModel.test.ts` checks it against `public/flags`, so adding an
- * asset without adding it here fails rather than silently doing nothing.
+ * `bakuCrashMapModel.test.ts` checks that every country listed here resolves to
+ * a real file in `public/flags`, and that every driver in the archive resolves
+ * to a country, so a code that is wrong or an asset that was never added fails
+ * rather than silently rendering nothing.
  */
 const FLAG_ASSETS = new Set([
   'ar',
@@ -263,6 +267,9 @@ const FLAG_ASSETS = new Set([
   'mc',
   'mx',
   'nl',
+  'pl',
+  'ru',
+  'se',
   'th',
   'us',
 ]);

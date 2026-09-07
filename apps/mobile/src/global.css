@@ -43,6 +43,11 @@
     --color-podium-gold: #e0b64a;
     --color-podium-silver: #a1a1aa;
     --color-podium-bronze: #b07a44;
+    --color-crash-heat1: #a85f28;
+    --color-crash-heat2: #c9762c;
+    --color-crash-heat3: #e08f3c;
+    --color-crash-heat4: #f2a856;
+    --color-crash-heat5: #ffc278;
     --color-error: #facc15;
     --color-error-muted: #3a3416;
     --color-success: #4ade80;

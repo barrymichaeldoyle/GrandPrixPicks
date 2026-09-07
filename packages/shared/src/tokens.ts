@@ -122,6 +122,27 @@ export const colors = {
   podiumSilver: '#a1a1aa',
   podiumBronze: '#b07a44',
 
+  // Crash density — the sequential ramp on the Baku crash map, and the only
+  // ramp in the system. Like team colours it is DATA rather than theme: it
+  // encodes "how many cars this corner has collected", so it is ordered by
+  // magnitude and not by meaning, and it is scoped to that one map.
+  //
+  // One hue, five steps, lightness climbing monotonically. A sequential scale
+  // is never a rainbow: two hues would imply two kinds of thing where there is
+  // only more and less of one. The anchor is flipped for a dark ground, so the
+  // brightest step is the *most* incidents rather than the fewest.
+  //
+  // Every step clears 3:1 on `surface` (3.59 at the low end, 10.97 at the
+  // high), so a marker is legible on its own rather than relying on the size
+  // channel beside it. Orange rather than the obvious red because `resultMiss`
+  // owns the system's one loud red and means "you got this wrong", and amber
+  // means an error; neither should read as a quantity.
+  crashHeat1: '#a85f28',
+  crashHeat2: '#c9762c',
+  crashHeat3: '#e08f3c',
+  crashHeat4: '#f2a856',
+  crashHeat5: '#ffc278',
+
   // Semantic. Errors are amber and instructive, not red and alarming.
   error: '#facc15',
   errorMuted: '#3a3416',

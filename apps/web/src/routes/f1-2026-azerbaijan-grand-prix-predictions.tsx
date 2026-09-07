@@ -3,6 +3,7 @@ import { createFileRoute, notFound } from '@tanstack/react-router';
 
 import { Flag } from '@/components/Flag';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
+import { BakuCrashMap } from '@/components/race-writeups/BakuCrashMap';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
 import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
@@ -243,6 +244,7 @@ function AzerbaijanGrandPrixPredictionsPage() {
         <WatchTable />
         <TyreChoice />
         <RiskAndRecovery />
+        <BakuCrashMap />
         {isLive ? (
           <>
             <WeekendNewsSection items={news.items} />

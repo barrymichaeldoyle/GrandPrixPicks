@@ -15,6 +15,7 @@
     "apps/backend/.claude",
     "apps/backend/convex/_generated",
     "apps/web/src/routeTree.gen.ts",
+    "artifacts/baku-crash-map",
     "convex/_generated",
     "package-lock.json",
     "pnpm-lock.yaml",

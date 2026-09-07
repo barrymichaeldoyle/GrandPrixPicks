@@ -41,6 +41,19 @@ const PAGES = [
     path: '/f1-2026-italian-grand-prix-predictions',
     name: 'race write-up',
   },
+  /*
+   * A second write-up, which the rule above would normally exclude. It earns
+   * its place because of what only this page carries: the Baku crash map is an
+   * interactive SVG whose markers are `role="button"` groups sharing one tab
+   * stop through a roving tabindex, driven by a `role="radiogroup"` filter and
+   * reporting through a live region. Nothing else on the site builds a control
+   * that way, and a keyboard-unreachable marker or an unlabelled group is
+   * exactly what axe catches and a reader would not.
+   */
+  {
+    path: '/f1-2026-azerbaijan-grand-prix-predictions',
+    name: 'crash map',
+  },
 ];
 
 test.describe('[public] a11y smoke', () => {

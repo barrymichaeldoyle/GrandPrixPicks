@@ -32,16 +32,15 @@ Run against the live APIs on 2026-09-07. These numbers are real, not estimates.
 2023 is the only sprint weekend Baku has ever held, and it was the debut of the
 standalone Sprint Shootout format that is now called Sprint Qualifying. 2024 and
 2025 ran the conventional three-practice weekend, and **2026 does too**: meeting
-1295 is FP1, FP2, FP3, Qualifying and Race, with the race at `session_key`
-11377. That matters for the filter design below.
+1295 is FP1, FP2, FP3, Qualifying and Race, with the race at `session_key` 11377. That matters for the filter design below.
 
 **Raw incident volume**, counted across all fifteen sessions:
 
-| Signal | Count |
-| --- | --- |
-| Red flags | 18 |
+| Signal                                  | Count                                                   |
+| --------------------------------------- | ------------------------------------------------------- |
+| Red flags                               | 18                                                      |
 | `TURN n INCIDENT` race-control messages | 14 (these come in NOTED + REVIEWED pairs, so ~7 unique) |
-| Classified DNFs (`session_result.dnf`) | 11 |
+| Classified DNFs (`session_result.dnf`)  | 11                                                      |
 
 The 2025 qualifying session alone threw **six** red flags. 2024 FP1 threw
 three. The headline is that practice and qualifying, not the race, are where
@@ -59,7 +58,7 @@ races.
 - `GET /v1/race_control?session_key=…` gives flags with `scope`, `sector`
   (marshal sector, 1-21) and free-text messages that frequently name the turn
   outright: `TURN 2 INCIDENT INVOLVING CARS 11 (PER) AND 55 (SAI) NOTED -
-  CAUSING A COLLISION`.
+CAUSING A COLLISION`.
 - `GET /v1/session_result?session_key=…` carries a boolean `dnf` per driver.
   This endpoint is newer than most OpenF1 documentation suggests; it works.
 - `GET /v1/location?session_key=…&driver_number=…&date>…&date<…` gives x/y/z at
@@ -89,17 +88,17 @@ red flags.
 **Only 16 of 35 carry a location.** The turns named so far:
 
 | Turn | Located incidents |
-| --- | --- |
-| 2 | 5 |
-| 6 | 4 |
-| 3 | 3 |
-| 5 | 2 |
-| 1 | 1 |
-| 4 | 1 |
+| ---- | ----------------- |
+| 2    | 5                 |
+| 6    | 4                 |
+| 3    | 3                 |
+| 5    | 2                 |
+| 1    | 1                 |
+| 4    | 1                 |
 
 ### The sampling bias that must be fixed before publishing
 
-That table is not the answer. It is an artefact of *which* incidents race
+That table is not the answer. It is an artefact of _which_ incidents race
 control describes, and publishing it as-is would be actively misleading.
 
 The nineteen unlocated candidates are almost all bare `RED FLAG` messages, which
@@ -149,7 +148,7 @@ exists if the data comes from an API. Hand research removes the tradeoff, so
 take neither.
 
 Race-only would also cut the best material. Baku's most-remembered incidents are
-disproportionately *not* races: Leclerc into the Turn 8 barriers in 2019
+disproportionately _not_ races: Leclerc into the Turn 8 barriers in 2019
 qualifying, radioing "I am stupid", is the single most replayed Baku crash there
 is, and the kerbs at that corner were changed afterwards.
 
@@ -229,18 +228,18 @@ table without being placed on the map.
 
 ### The hot corners
 
-| Corner | Incidents |
-| --- | --- |
-| **Turn 3** | **11** |
-| **Turn 15** | **10** |
-| **Turn 2** | **7** |
-| Turn 1 | 4 |
-| Turn 4 | 4 |
-| Turn 6 | 4 |
-| Turn 7 | 3 |
-| Turn 8 | 3 |
-| Turn 20 | 2 |
-| Turns 5, 11, 13 | 1 each |
+| Corner          | Incidents |
+| --------------- | --------- |
+| **Turn 3**      | **11**    |
+| **Turn 15**     | **10**    |
+| **Turn 2**      | **7**     |
+| Turn 1          | 4         |
+| Turn 4          | 4         |
+| Turn 6          | 4         |
+| Turn 7          | 3         |
+| Turn 8          | 3         |
+| Turn 20         | 2         |
+| Turns 5, 11, 13 | 1 each    |
 
 Two poles, not one. Turn 3 collects cars in clusters: three in the 2021
 qualifying session alone (Ricciardo in Q2, then Tsunoda and Sainz within seconds
@@ -308,7 +307,7 @@ the next person knows what they are looking at.
 The fallback, if that reads as too close for comfort, is to derive the
 centreline ourselves from a clean OpenF1 `location` trace of one fast lap. We
 confirmed the coordinate spaces match, so this is a drop-in substitute for the
-outline. It does not give us corner *numbering*, which would then have to come
+outline. It does not give us corner _numbering_, which would then have to come
 from the race-control messages plus a public circuit diagram. Costs about half
 a day; only worth it if the licensing question actually bothers us.
 
@@ -336,7 +335,7 @@ infringements, false starts, and mechanical retirements with no contact.
 1. The turn named in the race-control message, when there is one.
 2. The car's last telemetry position before it stopped, matched to the nearest
    corner in the geometry file.
-3. The marshal sector of the *yellow* flag immediately preceding the red, when
+3. The marshal sector of the _yellow_ flag immediately preceding the red, when
    neither of the above resolves. Note that a red flag itself carries
    `scope: "Track"` and a **null sector**, so the red flag alone locates
    nothing. This was checked against the fetched data and the earlier version of
@@ -389,7 +388,7 @@ is a real reduction from the original idea and it is not negotiable.
 
 A kernel-density heatmap over 30 points would render as a lie: smooth gradients
 implying a continuous field we do not have. Two techniques give the heat
-*reading* truthfully.
+_reading_ truthfully.
 
 **1. Marshal-sector shading (the heat).** The track is a ribbon, not a plane,
 so the honest heat lives along it. Split the 837-point outline into the 21
@@ -618,29 +617,71 @@ this sits above the fold on a phone and a reflow was worth 0.1 there.
 
 ## Tasks
 
-| # | Task | Est. |
-| --- | --- | --- |
-| 1 | ~~Fetch OpenF1 sessions, race control, results.~~ **Done 2026-09-07.** `apps/web/scripts/fetch-baku-crash-data.mts`, output in `artifacts/baku-crash-map/`. | done |
-| 2 | ~~Research pass across nine weekends.~~ **Done 2026-09-07.** 59 incidents in `artifacts/baku-crash-map/researched-incidents.json`. | done |
-| 2b | ~~Verify the flagged incidents.~~ **Done 2026-09-07.** All 57 second-sourced; 3 facts corrected, 2 rows dropped. | done |
-| 3 | Reconcile research against the fetched API data for 2023-2025. Resolve turn disagreements and record which source won. | 1-2h |
-| 4 | Write the `baku2026CrashData.ts` file: apply inclusion rules, write the one-line notes, final citation check. | 2-3h |
-| 5 | Geometry file: outline path, corner positions, marshal sectors, normalised and rotated for display. | 1h |
-| 6 | `BakuCrashMap` component: SVG ribbon shading, graduated markers, popup, focus order, enlarge. | 3-4h |
-| 7 | Per-corner tally table (doubles as the accessible text equivalent). | 1h |
-| 8 | Filter control: four buckets, counts, shared derivation of markers and shading. | 1-2h |
-| 9 | Prose, section wiring, `raceWriteups.ts` update. | 1-2h |
-| 10 | Tests: data file invariants (corners in 1-20, every incident cited, ids unique), component render, axe spec coverage. | 1-2h |
-| 11 | Static social card render of the map, for the weekend post. | 1-2h |
-| 12 | Publish `/data/baku-crashes.json` and its `Dataset` JSON-LD. | 1h |
+| #   | Task                                              | Status                                            |
+| --- | ------------------------------------------------- | ------------------------------------------------- |
+| 1   | Fetch OpenF1 sessions, race control, results      | **Done.** `scripts/fetch-baku-crash-data.mts`     |
+| 2   | Research pass across nine weekends                | **Done.** 57 incidents, all cited                 |
+| 2b  | Second-source the flagged incidents               | **Done.** 3 facts corrected, 2 rows dropped       |
+| 3   | Reconcile research against the API data           | **Done.** Turn 3 and Turn 5 disputes resolved     |
+| 4   | `src/lib/bakuCrashes.ts`                          | **Done.** Hand-maintained from here on            |
+| 5   | Geometry module and its generator                 | **Done.** `generate-baku-geometry.mts`            |
+| 6   | `BakuCrashMap` component                          | **Done.**                                         |
+| 7   | Per-corner tally                                  | **Done.** Doubles as the text equivalent          |
+| 8   | Filter control                                    | **Done.**                                         |
+| 9   | Prose and section wiring                          | **Done.** Sits after `RiskAndRecovery`            |
+| 10  | Tests                                             | **Done.** 23, plus the page in the axe smoke spec |
+| 11  | Static social card of the map                     | Not started                                       |
+| 12  | `/data/baku-crashes.json` and its Dataset JSON-LD | Not started                                       |
 
-Around three and a half days, up from two and a half, and the increase is
-almost entirely task 2. That is the right place to spend it: the research is
-what the feature is, and it is the part that cannot be regenerated by rerunning
-a script.
+## What building it changed
 
-Telemetry resolution of unlocated red flags is held in reserve, not scheduled.
-Reach for it only if research leaves an incident worth showing and unplaceable.
+**`role="img"` was wrong, and axe caught it.** The SVG was labelled as an image
+with an accessible description, which collapses the subtree into a single node:
+every marker button would have stayed in the tab order while being unreachable
+to a screen reader. It is a `role="group"` now, and the corner tally carries the
+text equivalent. This is the argument for running the gate rather than reasoning
+about the markup, which looked right.
+
+**The dot label is the corner number, not the count.** Size and shading already
+encode magnitude twice over. What the picture cannot otherwise tell you is which
+corner you are looking at, and a numeral on every mark is what the dataviz
+guidance warns against.
+
+**Markers paint smallest first.** Turns 5, 6 and 20 sit within a few units of
+each other and their markers do overlap, as the scope predicted. Drawing bigger
+over smaller, each with a page-coloured ring, keeps the finding readable.
+Markers under an 18-unit radius drop their numeral rather than cram it.
+
+**The heat rescales to the filtered maximum.** Pinned to the all-sessions
+ceiling of eleven, every corner under the Practice filter rendered at the bottom
+step and the map read as empty rather than quiet. The caption states the range
+it is showing, so the scale is never implied.
+
+**`crashHeat1` to `crashHeat5` are new tokens**, the system's only sequential
+ramp, documented in `tokens.ts` as data rather than theme in the manner of team
+colours. One hue, monotone lightness, every step clearing 3:1 on `surface`.
+Orange rather than the obvious red because `resultMiss` owns the one loud red
+and means "you got this wrong", and amber means an error; neither should read as
+a quantity. The ramp was checked with the dataviz validator, not by eye.
+
+**The total-JS budget moved from 580 KB to 589 KB.** The feature costs about
+7 KB brotli, all of it in the Azerbaijan route chunk, which nobody who does not
+open that page downloads. The client entry did not move (102.5 KB against its
+104 KB limit), so the loader did not drag the data in. Deleting a duplicated
+copy of the lap geometry and rounding coordinates to whole units saved under
+1 KB: the weight is the incident prose, which is the content.
+
+## Deliberately not built
+
+**No enlarge control**, unlike `RaceWriteupTrackMap`. That component needs one
+because its corner badges are the only link between its prose and its picture.
+Here the tally sits directly under the map with every corner number, every count
+and a full-width target per row, which serves the reader who cannot use the
+small markers better than a zoom would. Revisit if anyone asks.
+
+**No modal popup per corner.** Selecting a corner narrows the list underneath
+instead. A panel already on the page beats one floating over it: nothing to
+position, nothing to trap focus in, and it behaves identically on a phone.
 
 ## Out of scope
 

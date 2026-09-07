@@ -10,6 +10,7 @@ import { BAKU_CRASHES } from '@/lib/bakuCrashes';
 import type { BakuFilter } from './bakuCrashMapModel';
 import {
   BAKU_FILTERS,
+  HEAT_STEPS,
   countByFilter,
   countsByCorner,
   driversLabel,
@@ -312,7 +313,9 @@ export function BakuCrashMap() {
         <figcaption className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-text-muted">
           <span className="flex items-center gap-1.5">
             <span aria-hidden>Fewer</span>
-            {Array.from({ length: 5 }, (_, index) => (
+            {/* One swatch per step of the ramp, so the legend cannot drift
+                from the scale it is describing. */}
+            {Array.from({ length: HEAT_STEPS }, (_, index) => (
               <span
                 key={index}
                 aria-hidden

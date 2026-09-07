@@ -671,17 +671,42 @@ open that page downloads. The client entry did not move (102.5 KB against its
 copy of the lap geometry and rounding coordinates to whole units saved under
 1 KB: the weight is the incident prose, which is the content.
 
-## Deliberately not built
+## Built to a vertical budget
 
-**No enlarge control**, unlike `RaceWriteupTrackMap`. That component needs one
-because its corner badges are the only link between its prose and its picture.
-Here the tally sits directly under the map with every corner number, every count
-and a full-width target per row, which serves the reader who cannot use the
-small markers better than a zoom would. Revisit if anyone asks.
+The first version listed all fifty-seven incidents inline and ran to **7,257
+pixels**. That is a fine page and a bad section: by race week this one also
+carries news, practice results, the weekend schedule and championship context,
+and the archive cannot take a screen and a half on the way past.
 
-**No modal popup per corner.** Selecting a corner narrows the list underneath
-instead. A panel already on the page beats one floating over it: nothing to
-position, nothing to trap focus in, and it behaves identically on a phone.
+The section is **928 pixels** now, an 87% cut, with nothing removed from the
+HTML. Three changes did it:
+
+- **The map and the tally are one row** on a wide screen. Stacked they were
+  800px between them; side by side they cost the height of the map, and the
+  tally now reads as the map's key rather than as a second module. They stack
+  again below `lg`.
+- **Drill-down is a modal.** Selecting a corner, from a marker or a tally row,
+  opens that corner's incidents over the page. This reverses an earlier call in
+  this doc: a panel on the page beats a floating one only while the section owns
+  the page, which stops being true during a race weekend.
+- **The full archive is a closed `details`.** All fifty-seven rows and every
+  citation still server-render, so a crawler, a reviewer and anyone without
+  JavaScript get the whole thing; it just costs one line of height instead of
+  six thousand pixels. It is also the only place the six incidents with no named
+  corner can be read, since nothing places them on the map.
+
+The `details` needed its own chevron: `list-none` removes the native marker, and
+without a replacement the summary read as a caption and nobody would have found
+the archive under it.
+
+The modal is `PracticeResultsModal`'s shell and the shared `useModalDialog`
+hook, so the focus trap, Escape and focus restoration are the ones already in
+use rather than a second implementation. Verified by hand: Escape closes and
+focus returns to the tally row that opened it.
+
+The axe smoke spec now scans this page **twice**, once closed and once with the
+dialog open. A page-level pass says nothing about a dialog whose content does
+not exist until it is opened.
 
 ## Out of scope
 

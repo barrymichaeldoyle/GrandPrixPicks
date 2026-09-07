@@ -53,11 +53,12 @@ const PAGES = [
   {
     path: '/f1-2026-azerbaijan-grand-prix-predictions',
     name: 'crash map',
+    crashModal: true,
   },
 ];
 
 test.describe('[public] a11y smoke', () => {
-  for (const { path, name, charts } of PAGES) {
+  for (const { path, name, charts, crashModal } of PAGES) {
     test(`${name} has no WCAG A/AA violations`, async ({ page }) => {
       await page.goto(path);
       // Axe reads the composed document, so it has to run against the page as
@@ -72,6 +73,20 @@ test.describe('[public] a11y smoke', () => {
       const main = page.locator('main');
       await expect(main).toBeVisible();
       await waitForHydration(main);
+      if (crashModal) {
+        await expectNoA11yViolations(page);
+        /*
+         * The drill-down is scanned open as well. Its content does not exist
+         * in the closed state, so a page-level pass says nothing about the
+         * dialog's labelling or about what the focus trap leaves reachable
+         * behind it.
+         */
+        await page.getByRole('button', { name: /^T\d+/ }).first().click();
+        await expect(page.getByRole('dialog')).toBeVisible();
+        await expectNoA11yViolations(page);
+        return;
+      }
+
       if (!charts) {
         await expectNoA11yViolations(page);
         return;

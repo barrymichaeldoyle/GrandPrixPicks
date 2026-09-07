@@ -630,12 +630,9 @@ function TrackReadiness() {
           .
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          The asphalt is the part that reaches a Top 5. A surface three months
-          old starts the weekend green, and there is a lot of support running to
-          rubber it in: Formula 2 is here, and Formula 3 closes its season over
-          two qualifying sessions, a sprint and two feature races. Grip climbs
-          all weekend, so a Friday order is a weaker guide here than it is
-          anywhere else on the calendar.
+          The three-month-old surface will start green, with Formula 2 and
+          Formula 3 laying down rubber through the weekend. Grip should improve
+          with every session, so treat Friday's order with caution.
         </p>
       </div>
     </section>

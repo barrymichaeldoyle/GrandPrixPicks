@@ -66,6 +66,12 @@ const PROSE_REVIEWED_AT = lastReviewedAt(PROSE_REVIEWED);
 
 const PATH = '/f1-2026-italian-grand-prix-predictions';
 const RACE_SLUG = 'italy-2026';
+
+/**
+ * The circuit section's heading, declared once because two places use it:
+ * the section itself and the hero link that scrolls to it.
+ */
+const SIGNALS_HEADING = 'What matters at Monza';
 const HADJAR_AUTOSPORT_SOURCE =
   'https://www.autosport.com/f1/news/red-bull-to-keep-dutch-gp-driver-line-up-for-monza/10851595/';
 const LIVERY_SOURCE =
@@ -485,8 +491,7 @@ function ItalianGrandPrixPredictionsPage() {
               }
               raceSlug={RACE_SLUG}
               venueName="Monza"
-              circuitName="Monza"
-              circuitSlug="monza"
+              signalsHeading={SIGNALS_HEADING}
             />
           </header>
 
@@ -680,7 +685,7 @@ function RaceReport() {
 function WatchTable() {
   return (
     <RaceSignalsSection
-      heading="What matters at Monza"
+      heading={SIGNALS_HEADING}
       stats={[
         ['5.793', 'km circuit'],
         ['53', 'race laps'],

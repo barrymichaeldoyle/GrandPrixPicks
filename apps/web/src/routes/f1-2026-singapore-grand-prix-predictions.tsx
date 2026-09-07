@@ -37,6 +37,12 @@ import {
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
 const RACE_SLUG = 'singapore-2026';
+
+/**
+ * The circuit section's heading, declared once because two places use it:
+ * the section itself and the hero link that scrolls to it.
+ */
+const SIGNALS_HEADING = 'What matters at Marina Bay';
 const PATH = '/f1-2026-singapore-grand-prix-predictions';
 const PROSE_REVIEWED = getRaceWriteupReviewedAt(RACE_SLUG);
 const PROSE_REVIEWED_AT = lastReviewedAt(PROSE_REVIEWED);
@@ -218,8 +224,7 @@ function SingaporeGrandPrixPredictionsPage() {
               phase={phase}
               raceSlug={RACE_SLUG}
               venueName="Singapore"
-              circuitName="Marina Bay"
-              circuitSlug="marina-bay"
+              signalsHeading={SIGNALS_HEADING}
             />
           </header>
 
@@ -336,7 +341,7 @@ function FirstSingaporeSprint() {
 function WatchTable() {
   return (
     <RaceSignalsSection
-      heading="What matters at Marina Bay"
+      heading={SIGNALS_HEADING}
       stats={[
         ['4.927', 'km circuit'],
         ['62', 'race laps'],

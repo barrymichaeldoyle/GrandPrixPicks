@@ -45,6 +45,12 @@ const PROSE_REVIEWED_AT = lastReviewedAt(PROSE_REVIEWED);
 
 const PATH = '/f1-2026-bahrain-grand-prix-predictions';
 const RACE_SLUG = 'bahrain-2026';
+
+/**
+ * The circuit section's heading, declared once because two places use it:
+ * the section itself and the hero link that scrolls to it.
+ */
+const SIGNALS_HEADING = 'What matters at Sepang';
 const F1_EVENT_SOURCE =
   'https://www.formula1.com/en/latest/article/formula-1-and-fia-confirm-malaysia-will-join-2026-calendar-as-host-venue-for-bahrain-grand-prix.6lL7vjFEM2VVynRHvg1TCf';
 const RELOCATION_SOURCE =
@@ -257,8 +263,7 @@ function BahrainGrandPrixPredictionsPage() {
               phase={phase}
               raceSlug={RACE_SLUG}
               venueName="Sepang"
-              circuitName="Sepang"
-              circuitSlug="sepang"
+              signalsHeading={SIGNALS_HEADING}
             />
           </header>
 
@@ -439,7 +444,7 @@ function NoCurrentForm() {
 function WatchTable() {
   return (
     <RaceSignalsSection
-      heading="What matters at Sepang"
+      heading={SIGNALS_HEADING}
       stats={[
         ['5.543', 'km circuit'],
         ['56', 'race laps'],

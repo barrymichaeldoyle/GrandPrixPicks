@@ -8,6 +8,7 @@ import {
   DeferredRaceWriteupPicks,
   RACE_WRITEUP_PICKS_ANCHOR,
 } from '@/components/race-writeups/DeferredRaceWriteupPicks';
+import { CircuitStatStrip } from '@/components/race-writeups/CircuitStatStrip';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
 import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
@@ -58,6 +59,12 @@ const PROSE_REVIEWED_AT = lastReviewedAt(PROSE_REVIEWED);
 
 const PATH = '/f1-2026-madrid-grand-prix-predictions';
 const RACE_SLUG = 'madrid-2026';
+
+/**
+ * The circuit section's heading, declared once because two places use it:
+ * the section itself and the hero link that scrolls to it.
+ */
+const SIGNALS_HEADING = 'What to watch in practice';
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/spain';
 const CORNER_SOURCE =
   'https://www.the-race.com/formula-1/madrid-f1-track-spanish-gp-standout-corner-la-monumental-our-verdict/';
@@ -350,8 +357,7 @@ function MadridGrandPrixPredictionsPage() {
               }
               raceSlug={RACE_SLUG}
               venueName="Madrid"
-              circuitName="Madring"
-              circuitSlug="madring"
+              signalsHeading={SIGNALS_HEADING}
             />
           </header>
 
@@ -468,14 +474,18 @@ function MadridGrandPrixPredictionsPage() {
 /**
  * The thing that actually separates this weekend from every other one, and the
  * reason the page leads with it rather than with the layout.
+ *
+ * Prose alone. The venue's figures used to sit in a four-row card down the
+ * right, which left a hole under two short paragraphs and said in small grey
+ * type what the strip in "What to watch in practice" already says in large
+ * ones: the same 5.416 km, the same 22 corners, the same 57 laps. A page does
+ * not need the lap length twice, so the section that is about history and not
+ * about geometry gives it up.
  */
 function NoFormGuide() {
   return (
-    <section
-      className="grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
-      aria-labelledby="no-form-guide"
-    >
-      <div>
+    <section className="py-8 sm:py-16" aria-labelledby="no-form-guide">
+      <div className="max-w-3xl">
         <h2
           id="no-form-guide"
           className="font-title text-2xl font-medium text-text sm:text-3xl"
@@ -491,24 +501,6 @@ function NoFormGuide() {
           guesswork until Friday.
         </p>
       </div>
-      <dl className="self-start rounded-sm bg-surface-elevated px-4">
-        {[
-          ['Circuit', 'Madring, Madrid'],
-          ['Layout', '5.416 km, 22 corners'],
-          ['Race', '57 laps'],
-          ['F1 history', 'None. Debut in 2026'],
-        ].map(([label, value]) => (
-          <div
-            key={label}
-            className="border-b border-border py-4 last:border-0"
-          >
-            <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
-              {label}
-            </dt>
-            <dd className="mt-1 text-sm text-text">{value}</dd>
-          </div>
-        ))}
-      </dl>
     </section>
   );
 }
@@ -520,73 +512,82 @@ function NoFormGuide() {
  * The red flag count is the fact worth carrying: it is not colour, it is the
  * closest thing this weekend has to a safety car probability. Formula 3 is not
  * Formula 1, so the copy claims the shape of the risk rather than a number.
+ *
+ * The figures are the shared four-up strip, across the foot of the section,
+ * rather than the labelled card in a right-hand column they used to be. That
+ * card had two problems. It ran five rows against three paragraphs, so it and
+ * the photo below it made a column half as tall again as the copy beside them,
+ * and the section ended on a wide patch of empty page. And three of its five
+ * rows restated the sentence next to them in smaller type: the test dates, the
+ * entry, the red flag count. A figure earns its place here by being scannable,
+ * which is a reason to make it large, not a reason to repeat a sentence.
+ *
+ * The fifth row, "Carries over: where it bites", said nothing at a glance. It
+ * was compressing the third paragraph's argument into three words and losing
+ * it. The paragraph makes the point; the strip counts.
+ *
+ * Ugochukwu gets his flag, because a driver's name carries one everywhere else
+ * on this site and he is not exempt for racing in a different championship.
  */
 function FormulaThreeTest() {
   return (
-    <section
-      className="grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
-      aria-labelledby="f3-test"
-    >
-      <div>
-        <h2
-          id="f3-test"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          The only laps anyone has run here
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Formula 3 tested at the Madring on 24 and 25 August, 30 drivers across
-          10 teams over two days. It is the entire body of competitive running
-          this circuit has.{' '}
-          <ExternalSource href={F3_OFFICIAL_SOURCE}>
-            The FIA&rsquo;s test announcement
-          </ExternalSource>
-          .
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          It produced 19 red flags. Eleven were cars in the barriers, at corners
-          spread around the lap: the braking zone into the Turn 5 to 7 chicane,
-          the exit of Turn 3, Turn 14 and Turn 17 all caught somebody.{' '}
-          <ExternalSource href={RED_FLAG_SOURCE}>
-            PlanetF1 on the red flags
-          </ExternalSource>
-          .
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Formula 3 cars are heavier on mistakes than Formula 1 cars and a test
-          is not a race, so the times do not transfer. Where the circuit
-          punishes an error does. A lap with that many walls close enough to end
-          a session makes a safety car more likely than at a permanent track,
-          and a safety car is the thing most likely to put a driver in the
-          finishing Top 5 who was not running there.
-        </p>
+    <section className="py-8 sm:py-16" aria-labelledby="f3-test">
+      <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div>
+          <h2
+            id="f3-test"
+            className="font-title text-2xl font-medium text-text sm:text-3xl"
+          >
+            The only laps anyone has run here
+          </h2>
+          <p className="gpp-reading-copy mt-4 text-text-muted">
+            Formula 3 tested at the Madring on 24 and 25 August, 30 drivers
+            across 10 teams over two days. It is the entire body of competitive
+            running this circuit has.{' '}
+            <ExternalSource href={F3_OFFICIAL_SOURCE}>
+              The FIA&rsquo;s test announcement
+            </ExternalSource>
+            .
+          </p>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            It produced 19 red flags. Eleven were cars in the barriers, at
+            corners spread around the lap: the braking zone into the Turn 5 to 7
+            chicane, the exit of Turn 3, Turn 14 and Turn 17 all caught
+            somebody.{' '}
+            <ExternalSource href={RED_FLAG_SOURCE}>
+              PlanetF1 on the red flags
+            </ExternalSource>
+            .
+          </p>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            Formula 3 cars are heavier on mistakes than Formula 1 cars and a
+            test is not a race, so the times do not transfer. Where the circuit
+            punishes an error does. A lap with that many walls close enough to
+            end a session makes a safety car more likely than at a permanent
+            track, and a safety car is the thing most likely to put a driver in
+            the finishing Top 5 who was not running there.
+          </p>
+        </div>
+        {/* The one picture on this page whose subject is the thing the section
+            is about: the car that has actually run here is a Formula 3 car. */}
+        <div className="self-start">
+          <WriteUpNewsPhoto {...FORMULA_THREE_WRITEUP_IMAGE} />
+        </div>
       </div>
-      {/* The card is five rows against three paragraphs, so the column ends
-          short of the copy. The photo takes the rest of it, and it is the one
-          picture on this page whose subject is the thing the section is about:
-          the car that has actually run here is a Formula 3 car. */}
-      <div className="self-start">
-        <dl className="rounded-sm bg-surface-elevated px-4">
-          {[
-            ['Test', '24–25 August 2026'],
-            ['Runners', '30 drivers, 10 teams'],
-            ['Red flags', '19 over two days'],
-            ['Fastest lap', 'Ugochukwu, 1:49.034'],
-            ['Carries over', 'Where it bites'],
-          ].map(([label, value]) => (
-            <div
-              key={label}
-              className="border-b border-border py-4 last:border-0"
-            >
-              <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                {label}
-              </dt>
-              <dd className="mt-1 text-sm text-text">{value}</dd>
-            </div>
-          ))}
-        </dl>
-        <WriteUpNewsPhoto {...FORMULA_THREE_WRITEUP_IMAGE} />
-      </div>
+      <CircuitStatStrip
+        stats={[
+          ['19', 'Red flags'],
+          ['11', 'Into the barriers'],
+          ['30', 'Drivers, 10 teams'],
+          [
+            '1:49.034',
+            <>
+              <Flag code="US" size="xs" />
+              Fastest: Ugochukwu
+            </>,
+          ],
+        ]}
+      />
     </section>
   );
 }
@@ -704,14 +705,18 @@ function TrackMap() {
  * Length is 550 m, matching F1's feature, Madring's own notes and the circuit
  * guide. Degree-of-arc figures disagree (270° in one F1 feature, semicircular
  * on the event page, "almost 180" from Sainz), so they stay off the page.
+ *
+ * Prose alone, like the two sections above it. The five-row card that used to
+ * sit beside this repeated the corner, its length, its banking and its load
+ * from the paragraph next to it, and closed on "Decides: ride height", which
+ * is the third paragraph compressed past the point of meaning. The banking
+ * figure a reader should be able to scan is already a tile in "What to watch
+ * in practice".
  */
 function LaMonumental() {
   return (
-    <section
-      className="grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
-      aria-labelledby="la-monumental"
-    >
-      <div>
+    <section className="py-8 sm:py-16" aria-labelledby="la-monumental">
+      <div className="max-w-3xl">
         <h2
           id="la-monumental"
           className="font-title text-2xl font-medium text-text sm:text-3xl"
@@ -738,25 +743,6 @@ function LaMonumental() {
           given something up for Sunday.
         </p>
       </div>
-      <dl className="self-start rounded-sm bg-surface-elevated px-4">
-        {[
-          ['Corner', 'Turn 12, La Monumental'],
-          ['Length', '550 m'],
-          ['Banking', '24 percent'],
-          ['Load', 'About 4G, estimated'],
-          ['Decides', 'Ride height'],
-        ].map(([label, value]) => (
-          <div
-            key={label}
-            className="border-b border-border py-4 last:border-0"
-          >
-            <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
-              {label}
-            </dt>
-            <dd className="mt-1 text-sm text-text">{value}</dd>
-          </div>
-        ))}
-      </dl>
     </section>
   );
 }
@@ -773,7 +759,7 @@ function LaMonumental() {
 function WatchTable() {
   return (
     <RaceSignalsSection
-      heading="What to watch in practice"
+      heading={SIGNALS_HEADING}
       stats={[
         ['5.416', 'km circuit'],
         ['22', 'corners'],

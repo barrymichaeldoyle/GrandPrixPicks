@@ -3,6 +3,16 @@ import type { ReactNode } from 'react';
 import { CircuitStatStrip } from './CircuitStatStrip';
 
 /**
+ * The id of this section, and the write-ups' one in-page destination.
+ *
+ * Exported because the hero's secondary action scrolls here rather than
+ * leaving for `/circuits/:slug`. That page is noindex and canonicalises back
+ * to the write-up, so the old link sent a reader out of the page they were
+ * reading and into a subset of it. See `circuitPageSeo.ts`.
+ */
+export const RACE_SIGNALS_ANCHOR = 'what-to-watch';
+
+/**
  * One thing worth watching over a race weekend: what to call it, what to look
  * for, and why it changes a pick. Positional rather than named because the page
  * data is written as prose triples and reads better that way.
@@ -28,16 +38,16 @@ export function RaceSignalsSection({
   children,
 }: {
   heading: string;
-  stats?: readonly (readonly [value: string, label: string])[];
+  stats?: readonly (readonly [value: string, label: ReactNode])[];
   signals: readonly RaceSignal[];
   /** The framing paragraphs between the heading and the figures. */
   children?: ReactNode;
 }) {
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="what-to-watch">
+    <section className="py-8 sm:py-16" aria-labelledby={RACE_SIGNALS_ANCHOR}>
       <div className="max-w-3xl">
         <h2
-          id="what-to-watch"
+          id={RACE_SIGNALS_ANCHOR}
           className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
           {heading}

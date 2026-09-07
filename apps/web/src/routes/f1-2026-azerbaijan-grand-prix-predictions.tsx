@@ -37,6 +37,12 @@ import {
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
 const RACE_SLUG = 'azerbaijan-2026';
+
+/**
+ * The circuit section's heading, declared once because two places use it:
+ * the section itself and the hero link that scrolls to it.
+ */
+const SIGNALS_HEADING = 'What matters in Baku';
 const PATH = '/f1-2026-azerbaijan-grand-prix-predictions';
 const PROSE_REVIEWED = getRaceWriteupReviewedAt(RACE_SLUG);
 const PROSE_REVIEWED_AT = lastReviewedAt(PROSE_REVIEWED);
@@ -220,8 +226,7 @@ function AzerbaijanGrandPrixPredictionsPage() {
               phase={phase}
               raceSlug={RACE_SLUG}
               venueName="Baku"
-              circuitName="Baku"
-              circuitSlug="baku"
+              signalsHeading={SIGNALS_HEADING}
             />
           </header>
 
@@ -333,7 +338,7 @@ function SaturdayRace() {
 function WatchTable() {
   return (
     <RaceSignalsSection
-      heading="What matters in Baku"
+      heading={SIGNALS_HEADING}
       stats={[
         ['6.003', 'km circuit'],
         ['51', 'race laps'],

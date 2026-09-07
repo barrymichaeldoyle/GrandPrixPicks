@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-09-07T08:04:20Z",
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "timezone": "Africa/Johannesburg",
+  "assetBaseUrl": "https://grandprixpicks.com/social/monza-community-picks-2026",
+  "posts": [
+    {
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "channelName": "GrandPrixPicks",
+      "service": "twitter",
+      "bufferPostId": "6a9e6fff1d34c06768f57345",
+      "dueAt": "2026-09-07T08:10:00.000Z",
+      "localDueAt": "2026-09-07T10:10:00+02:00",
+      "status": "scheduled",
+      "assetCount": 1,
+      "automaticPublishing": true,
+      "aiImageDisclosure": false,
+      "verified": true,
+      "assetUrl": "https://grandprixpicks.com/social/monza-community-picks-2026/monza-community-picks-race-x.png?v=1"
+    },
+    {
+      "channelId": "6a7050c899afb44349f18cbd",
+      "channelName": "grandprixpicks",
+      "service": "instagram",
+      "bufferPostId": "6a9e70021d34c06768f57395",
+      "dueAt": "2026-09-07T08:10:00.000Z",
+      "localDueAt": "2026-09-07T10:10:00+02:00",
+      "status": "scheduled",
+      "assetCount": 1,
+      "automaticPublishing": true,
+      "aiImageDisclosure": false,
+      "verified": true,
+      "assetUrl": "https://grandprixpicks.com/social/monza-community-picks-2026/monza-community-picks-race-instagram.png?v=1"
+    }
+  ],
+  "notes": [
+    "verified means each post was read back from Buffer after creation and its asset resolved to the expected dimensions (1600x900 and 1080x1350), with alt text attached.",
+    "Only the race cards are scheduled. Monza qualifying is marked do-not-post in campaign.md and must not be attached to a post.",
+    "Assets were polled after the deploy until both returned 200 and hashed byte-identical to the local renders. They went live 260s after the push. Buffer fetches an image when it is attached and keeps that copy, so republishing the same path later does not reach these posts.",
+    "aiImageDisclosure is false. The cards are bar charts of the site's own prediction counts, rendered by scripts in this repo.",
+    "Scheduled the same morning rather than in advance: this is a post-weekend recap and the nudge points at Madrid picks, which lock 12 and 13 September."
+  ]
+}

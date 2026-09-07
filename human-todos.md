@@ -6,6 +6,9 @@ The repository and simulator QA are complete. The items below need an Apple,
 EAS, Clerk, Convex, PostHog, or Sentry dashboard, a physical iPhone, or a
 product decision. Do them in this order.
 
+The universal-link association file was deployed to `grandprixpicks.com` and
+verified on 2026-09-07.
+
 ## 1. Prepare the production services
 
 - [ ] Confirm the Apple Developer Program membership for team `LBZ6C9H52C`
@@ -15,9 +18,6 @@ product decision. Do them in this order.
       numeric App Store Connect ID as `submit.production.ios.ascAppId` in
       `apps/mobile/eas.json`.
 - [ ] Deploy and verify the production Convex backend before building the app.
-- [ ] Deploy the web app so
-      `/.well-known/apple-app-site-association` is live before testing
-      universal links.
 - [ ] Use a Clerk production instance and confirm the Convex production auth
       issuer matches it. A `pk_test_…` key is intentionally rejected for a
       production build.

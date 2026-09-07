@@ -6,10 +6,15 @@ import { BAKU_CRASHES } from '@/lib/bakuCrashes';
 import {
   bucketOf,
   countsByCorner,
+  countsByDriver,
+  driverName,
+  driversLabel,
+  driverSurname,
   filterCrashes,
   heatStep,
   markerRadius,
   rankedCorners,
+  rankedDrivers,
   unplacedCount,
 } from './bakuCrashMapModel';
 
@@ -141,6 +146,66 @@ describe('baku crash map model', () => {
 
     it('draws nothing for a corner with no incidents', () => {
       expect(markerRadius(0, 11)).toBe(0);
+    });
+  });
+
+  describe('driver breakdown', () => {
+    it('counts every car involved, not just the one at fault', () => {
+      const counts = countsByDriver([
+        crash({ drivers: ['VER', 'RIC'] }),
+        crash({ drivers: ['VER'] }),
+      ]);
+      expect(counts.get('VER')).toBe(2);
+      expect(counts.get('RIC')).toBe(1);
+    });
+
+    it('keeps drivers who have left Formula 1', () => {
+      // This is circuit history, not form. Ricciardo and Raikkonen are part of
+      // what the place is, and filtering to the current grid would say less.
+      const counts = countsByDriver(BAKU_CRASHES);
+      expect(counts.get('RIC')).toBeGreaterThan(0);
+      expect(counts.get('RAI')).toBeGreaterThan(0);
+    });
+
+    it('ranks busiest first, then alphabetically for a stable tie', () => {
+      const ranked = rankedDrivers(
+        new Map([
+          ['STR', 6],
+          ['HUL', 6],
+          ['RIC', 5],
+        ]),
+      );
+      expect(ranked).toEqual([
+        { driver: 'HUL', count: 6 },
+        { driver: 'STR', count: 6 },
+        { driver: 'RIC', count: 5 },
+      ]);
+    });
+  });
+
+  describe('driver names', () => {
+    it('writes incidents with full names rather than codes', () => {
+      expect(driversLabel(['HUL'])).toBe('Nico Hülkenberg');
+      expect(driversLabel(['HUL', 'OCO'])).toBe(
+        'Nico Hülkenberg and Esteban Ocon',
+      );
+      expect(driversLabel(['SIR', 'ALO', 'HUL'])).toBe(
+        'Sergey Sirotkin, Fernando Alonso and Nico Hülkenberg',
+      );
+    });
+
+    it('says so when nobody was named', () => {
+      expect(driversLabel([])).toBe('Unattributed');
+    });
+
+    it('takes the surname for a table row, keeping multi-word ones whole', () => {
+      expect(driverSurname('HUL')).toBe('Hülkenberg');
+      expect(driverSurname('DEV')).toBe('de Vries');
+    });
+
+    it('falls back to the code rather than rendering undefined', () => {
+      expect(driverName('ZZZ')).toBe('ZZZ');
+      expect(driverSurname('ZZZ')).toBe('ZZZ');
     });
   });
 });

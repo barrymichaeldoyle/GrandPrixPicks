@@ -11,11 +11,14 @@ import {
 import type { BakuCrash } from '@/lib/bakuCrashes';
 import { BAKU_CRASHES } from '@/lib/bakuCrashes';
 
-import type { BakuFilter } from './bakuCrashMapModel';
+import type { BakuBreakdown, BakuFilter } from './bakuCrashMapModel';
 import {
   BAKU_FILTERS,
   countByFilter,
   countsByCorner,
+  countsByDriver,
+  driverName,
+  driverSurname,
   driversLabel,
   filterCrashes,
   HEAT_STEPS,
@@ -24,6 +27,7 @@ import {
   markerRadius,
   orderedForList,
   rankedCorners,
+  rankedDrivers,
   sessionLabel,
   unplacedCount,
 } from './bakuCrashMapModel';
@@ -55,10 +59,20 @@ import {
  * stay small enough to sit in the castle section without colliding: every
  * corner is reachable from a row, so the markers qualify for WCAG 2.5.8's
  * equivalent-control exception.
+ *
+ * **It is circuit history, not form.** Nothing here is advice about who to
+ * pick, and the copy must not drift that way: the cars and the regulations have
+ * both changed underneath these numbers, and a driver who put it in the wall in
+ * 2019 learned from it. The driver breakdown keeps everyone who has ever been
+ * caught out here, retired or not, because Ricciardo's five and Raikkonen's
+ * four are part of what makes the place what it is.
  */
 export function BakuCrashMap() {
   const [filter, setFilter] = useState<BakuFilter>('all');
+  const [breakdown, setBreakdown] = useState<BakuBreakdown>('corner');
   const [openCorner, setOpenCorner] = useState<number | null>(null);
+  const [openDriver, setOpenDriver] = useState<string | null>(null);
+  const [showAllRows, setShowAllRows] = useState(false);
   const headingId = useId();
   const markerGroupRef = useRef<SVGGElement>(null);
 
@@ -68,14 +82,22 @@ export function BakuCrashMap() {
   const counts = countsByCorner(visible);
   const max = Math.max(0, ...counts.values());
   const ranked = rankedCorners(counts);
+  const rankedDriverRows = rankedDrivers(countsByDriver(visible));
   const unplaced = unplacedCount(visible);
 
   function applyFilter(next: BakuFilter) {
     setFilter(next);
-    // A corner the new filter empties must not stay open over an empty list.
-    const nextCounts = countsByCorner(filterCrashes(BAKU_CRASHES, next));
-    if (openCorner !== null && !nextCounts.has(openCorner)) {
+    setShowAllRows(false);
+    /*
+     * A corner or driver the new filter empties must not stay open over an
+     * empty list.
+     */
+    const nextCrashes = filterCrashes(BAKU_CRASHES, next);
+    if (openCorner !== null && !countsByCorner(nextCrashes).has(openCorner)) {
       setOpenCorner(null);
+    }
+    if (openDriver !== null && !countsByDriver(nextCrashes).has(openDriver)) {
+      setOpenDriver(null);
     }
   }
 
@@ -121,11 +143,16 @@ export function BakuCrashMap() {
         Showing {visible.length}{' '}
         {visible.length === 1 ? 'incident' : 'incidents'},{' '}
         {BAKU_FILTERS.find((entry) => entry.value === filter)?.label}.
-        {ranked.length === 0
-          ? ' No corner has an incident in this filter.'
-          : ` Busiest: ${ranked
+        {breakdown === 'corner'
+          ? ranked.length === 0
+            ? ' No corner has an incident in this filter.'
+            : ` Busiest corners: ${ranked
+                .slice(0, 3)
+                .map((entry) => `Turn ${entry.corner}, ${entry.count}`)
+                .join('; ')}.`
+          : ` Most caught out: ${rankedDriverRows
               .slice(0, 3)
-              .map((entry) => `Turn ${entry.corner}, ${entry.count}`)
+              .map((entry) => `${driverName(entry.driver)}, ${entry.count}`)
               .join('; ')}.`}
       </p>
 
@@ -219,7 +246,14 @@ export function BakuCrashMap() {
                       aria-label={`Turn ${corner.number}, ${count} ${
                         count === 1 ? 'incident' : 'incidents'
                       }`}
-                      className="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      /*
+                        A marker that does nothing on hover reads as decoration.
+                        Brightness rather than a size change, because growing
+                        the circle would shift the one channel that encodes the
+                        count, and in the castle section it would also push a
+                        marker over its neighbour.
+                      */
+                      className="cursor-pointer transition-[filter] hover:brightness-125 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent motion-reduce:transition-none"
                       onClick={() => setOpenCorner(corner.number)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
@@ -301,20 +335,38 @@ export function BakuCrashMap() {
           </figcaption>
         </figure>
 
-        <CornerTally
-          ranked={ranked}
-          max={max}
-          onSelect={(corner) => setOpenCorner(corner)}
+        <BreakdownPanel
+          breakdown={breakdown}
+          onBreakdownChange={(next) => {
+            setBreakdown(next);
+            setShowAllRows(false);
+          }}
+          corners={ranked}
+          drivers={rankedDriverRows}
+          showAllRows={showAllRows}
+          onShowAllRows={() => setShowAllRows(true)}
+          onSelectCorner={setOpenCorner}
+          onSelectDriver={setOpenDriver}
         />
       </div>
 
       <FullArchive crashes={visible} unplaced={unplaced} filter={filter} />
 
       {openCorner === null ? null : (
-        <CornerModal
-          corner={openCorner}
+        <IncidentModal
+          title={`Turn ${openCorner}`}
           crashes={visible.filter((crash) => crash.corner === openCorner)}
           onClose={() => setOpenCorner(null)}
+        />
+      )}
+      {openDriver === null ? null : (
+        <IncidentModal
+          title={driverName(openDriver)}
+          showCorner
+          crashes={visible.filter((crash) =>
+            crash.drivers.includes(openDriver),
+          )}
+          onClose={() => setOpenDriver(null)}
         />
       )}
     </section>
@@ -367,65 +419,167 @@ function FilterBar({
 }
 
 /**
- * The same numbers as text, and the map's equivalent controls.
+ * The breakdown beside the map: the same numbers as text, and the map's
+ * equivalent controls.
  *
  * A full-width row is a target anyone can hit, which is what lets the markers
  * on the map stay small enough to sit in the castle section without colliding.
+ * On a phone, where a marker's hit area works out under ten pixels, these rows
+ * are the only practical way in.
  */
-function CornerTally({
-  ranked,
-  max,
-  onSelect,
+function BreakdownPanel({
+  breakdown,
+  onBreakdownChange,
+  corners,
+  drivers,
+  showAllRows,
+  onShowAllRows,
+  onSelectCorner,
+  onSelectDriver,
 }: {
-  ranked: readonly { corner: number; count: number }[];
-  max: number;
-  onSelect: (corner: number) => void;
+  breakdown: BakuBreakdown;
+  onBreakdownChange: (next: BakuBreakdown) => void;
+  corners: readonly { corner: number; count: number }[];
+  drivers: readonly { driver: string; count: number }[];
+  showAllRows: boolean;
+  onShowAllRows: () => void;
+  onSelectCorner: (corner: number) => void;
+  onSelectDriver: (driver: string) => void;
 }) {
-  if (ranked.length === 0) {
-    return (
-      <p className="text-sm text-text-muted">
-        No corner has an incident in this filter.
-      </p>
-    );
-  }
+  const rows =
+    breakdown === 'corner'
+      ? corners.map((entry) => ({
+          key: `T${entry.corner}`,
+          lead: `T${entry.corner}`,
+          full: `Turn ${entry.corner}`,
+          count: entry.count,
+          onSelect: () => onSelectCorner(entry.corner),
+        }))
+      : drivers.map((entry) => ({
+          key: entry.driver,
+          lead: driverSurname(entry.driver),
+          full: driverName(entry.driver),
+          count: entry.count,
+          onSelect: () => onSelectDriver(entry.driver),
+        }));
+  const max = Math.max(0, ...rows.map((row) => row.count));
+
   return (
     <div>
-      <h3 className="text-xs tracking-label text-text-muted uppercase">
-        Incidents by corner
-      </h3>
-      <ul className="mt-2 flex flex-col">
-        {ranked.map((entry) => (
-          <li
-            key={entry.corner}
-            className="border-b border-border last:border-0"
-          >
+      <div
+        role="radiogroup"
+        aria-label="Break incidents down by"
+        className="flex gap-2"
+      >
+        {(
+          [
+            ['corner', 'By corner'],
+            ['driver', 'By driver'],
+          ] as const
+        ).map(([value, label]) => {
+          const active = breakdown === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => onBreakdownChange(value)}
+              className={`min-h-9 rounded-sm border px-3 text-xs tracking-label uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                active
+                  ? 'border-accent bg-accent-muted font-semibold text-text'
+                  : 'border-border text-text-muted hover:border-border-strong hover:text-text'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {rows.length === 0 ? (
+        <p className="mt-3 text-sm text-text-muted">Nothing in this filter.</p>
+      ) : (
+        <>
+          <ul className="mt-3 flex flex-col">
+            {rows.map((row, index) => (
+              <li
+                key={row.key}
+                /*
+                 * Beyond the sixth row the list is hidden on a phone until
+                 * asked for. `display: none` also takes those rows out of the
+                 * tab order, which is the point: the whole archive is still one
+                 * disclosure away underneath.
+                 */
+                className={`border-b border-border last:border-0 ${
+                  showAllRows
+                    ? ''
+                    : index >= VISIBLE_ROWS
+                      ? 'hidden'
+                      : index >= VISIBLE_ROWS_ON_PHONE
+                        ? 'hidden lg:block'
+                        : ''
+                }`}
+              >
+                <button
+                  type="button"
+                  aria-haspopup="dialog"
+                  onClick={row.onSelect}
+                  className="flex min-h-9 w-full items-center gap-3 text-left hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                >
+                  <span
+                    className="w-24 shrink-0 truncate text-sm text-text"
+                    title={row.full}
+                  >
+                    {row.lead}
+                  </span>
+                  <span
+                    aria-hidden
+                    className="h-1.5 rounded-xs"
+                    style={{
+                      width: `${Math.round((row.count / max) * 100)}%`,
+                      backgroundColor: heatColor(heatStep(row.count, max)),
+                    }}
+                  />
+                  <span className="sr-only">{row.full},</span>
+                  <span className="gpp-mono ml-auto shrink-0 text-sm text-text-muted">
+                    {row.count}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {rows.length > VISIBLE_ROWS_ON_PHONE && !showAllRows ? (
             <button
               type="button"
-              aria-haspopup="dialog"
-              onClick={() => onSelect(entry.corner)}
-              className="flex min-h-9 w-full items-center gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              onClick={onShowAllRows}
+              /* Hidden above `lg` unless the list is long enough to be capped
+                 there too, so the control never offers to reveal nothing. */
+              className={`mt-2 min-h-9 text-sm text-text-muted underline underline-offset-2 hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                rows.length > VISIBLE_ROWS ? '' : 'lg:hidden'
+              }`}
             >
-              <span className="gpp-mono w-9 shrink-0 text-sm text-text">
-                T{entry.corner}
-              </span>
-              <span
-                aria-hidden
-                className="h-1.5 rounded-xs"
-                style={{
-                  width: `${Math.round((entry.count / max) * 100)}%`,
-                  backgroundColor: heatColor(heatStep(entry.count, max)),
-                }}
-              />
-              <span className="gpp-mono ml-auto shrink-0 text-sm text-text-muted">
-                {entry.count}
-              </span>
+              Show all {rows.length}{' '}
+              {breakdown === 'corner' ? 'corners' : 'drivers'}
             </button>
-          </li>
-        ))}
-      </ul>
+          ) : null}
+        </>
+      )}
     </div>
   );
 }
+
+/**
+ * How many rows the breakdown shows before asking.
+ *
+ * Six on a phone, where the panel stacks under the map and would otherwise
+ * double the section. Twelve elsewhere, which is the whole corner list and
+ * roughly the map's height: the driver list runs to thirty-one, and left
+ * uncapped it turned the panel into a column twice as tall as the thing it
+ * sits beside.
+ */
+const VISIBLE_ROWS_ON_PHONE = 6;
+const VISIBLE_ROWS = 12;
 
 /**
  * Every row, server-rendered, closed by default.
@@ -434,6 +588,15 @@ function CornerTally({
  * a crawler, a reviewer and anyone without JavaScript, while costing the
  * section one line of height. It is also the only place the incidents with no
  * corner can be read, since nothing places them on the map.
+ */
+/**
+ * The three newest incidents in view, then the rest behind a disclosure.
+ *
+ * Collapsing all fifty-seven was right for the section's height but it left no
+ * incident visible at all, and the notes are the part of this page that exists
+ * nowhere else. Three of them read above the fold, and the archive underneath
+ * holds the other fifty-four rather than repeating these: the same paragraph
+ * twice in one document helps nobody, least of all a crawler weighing it.
  */
 function FullArchive({
   crashes,
@@ -445,42 +608,60 @@ function FullArchive({
   filter: BakuFilter;
 }) {
   const listed = orderedForList(crashes);
+  const preview = listed.slice(0, PREVIEW_COUNT);
+  const rest = listed.slice(PREVIEW_COUNT);
   const label = BAKU_FILTERS.find((entry) => entry.value === filter)?.label;
   return (
-    <details className="group mt-6 border-t border-border">
-      {/*
-        `list-none` removes the native marker, so the chevron has to replace it
-        rather than sit beside it: without one the row reads as a caption and
-        nobody discovers the archive underneath.
-      */}
-      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm text-text-muted hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
-        <ChevronRight
-          aria-hidden
-          className="h-4 w-4 shrink-0 transition-transform group-open:rotate-90 motion-reduce:transition-none"
-        />
-        All {listed.length} {filter === 'all' ? '' : `${label?.toLowerCase()} `}
-        incidents, newest first
-        {unplaced > 0 ? `, including ${unplaced} with no corner named` : null}
-      </summary>
-      <ol className="mb-2 flex flex-col gap-px bg-border">
-        {listed.map((crash) => (
-          <li key={crash.id} className="bg-page p-3">
+    <>
+      <ol className="mt-8 flex flex-col gap-px bg-border">
+        {preview.map((crash) => (
+          <li key={crash.id} className="bg-page py-3">
             <IncidentRow crash={crash} showCorner />
           </li>
         ))}
       </ol>
-    </details>
+      <details className="group mt-2 border-t border-border">
+        {/*
+        `list-none` removes the native marker, so the chevron has to replace it
+        rather than sit beside it: without one the row reads as a caption and
+        nobody discovers the archive underneath.
+      */}
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm text-text-muted hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+          <ChevronRight
+            aria-hidden
+            className="h-4 w-4 shrink-0 transition-transform group-open:rotate-90 motion-reduce:transition-none"
+          />
+          The other {rest.length}{' '}
+          {filter === 'all' ? '' : `${label?.toLowerCase()} `}incidents, back to
+          2016
+          {unplaced > 0 ? `, including ${unplaced} with no corner named` : null}
+        </summary>
+        <ol className="mb-2 flex flex-col gap-px bg-border">
+          {rest.map((crash) => (
+            <li key={crash.id} className="bg-page py-3">
+              <IncidentRow crash={crash} showCorner />
+            </li>
+          ))}
+        </ol>
+      </details>
+    </>
   );
 }
 
-function CornerModal({
-  corner,
+/** Incidents shown before the archive folds. */
+const PREVIEW_COUNT = 3;
+
+function IncidentModal({
+  title,
   crashes,
   onClose,
+  showCorner = false,
 }: {
-  corner: number;
+  title: string;
   crashes: readonly BakuCrash[];
   onClose: () => void;
+  /** Driver drill-downs span corners, so the row has to name which. */
+  showCorner?: boolean;
 }) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useModalDialog<HTMLDivElement>({
@@ -502,16 +683,16 @@ function CornerModal({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="baku-corner-title"
+        aria-labelledby="baku-detail-title"
         className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-border bg-surface"
       >
         <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
           <div>
             <h3
-              id="baku-corner-title"
+              id="baku-detail-title"
               className="text-lg font-semibold text-text"
             >
-              Turn {corner}
+              {title}
             </h3>
             <p className="text-xs text-text-muted">
               {listed.length} {listed.length === 1 ? 'incident' : 'incidents'}{' '}
@@ -523,7 +704,7 @@ function CornerModal({
             type="button"
             onClick={onClose}
             className="rounded p-1 text-text-muted hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            aria-label={`Close Turn ${corner} incidents`}
+            aria-label={`Close ${title} incidents`}
           >
             <X className="h-5 w-5" />
           </button>
@@ -531,7 +712,7 @@ function CornerModal({
         <ol className="min-h-0 divide-y divide-border overflow-y-auto">
           {listed.map((crash) => (
             <li key={crash.id} className="px-4 py-3">
-              <IncidentRow crash={crash} />
+              <IncidentRow crash={crash} showCorner={showCorner} />
             </li>
           ))}
         </ol>

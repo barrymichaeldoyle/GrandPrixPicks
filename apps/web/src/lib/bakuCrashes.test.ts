@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { BAKU_CORNERS } from './bakuCircuitGeometry';
-import { BAKU_CRASHES } from './bakuCrashes';
+import { BAKU_CRASHES, BAKU_DRIVER_NAMES } from './bakuCrashes';
 
 /**
  * Invariants for the hand-maintained crash archive.
@@ -74,6 +74,26 @@ describe('baku crash data', () => {
     // House style: em dashes read as generic AI copy in player-facing text.
     for (const crash of BAKU_CRASHES) {
       expect(crash.note, `${crash.id} note`).not.toMatch(/—/);
+    }
+  });
+
+  it('has a full name for every driver code it uses', () => {
+    // A missing name silently renders the three-letter code in prose, which
+    // reads as a bug rather than as a fallback.
+    for (const crash of BAKU_CRASHES) {
+      for (const driver of crash.drivers) {
+        expect(
+          BAKU_DRIVER_NAMES[driver],
+          `${driver} needs a name`,
+        ).toBeTruthy();
+      }
+    }
+  });
+
+  it('carries no driver name the archive never mentions', () => {
+    const used = new Set(BAKU_CRASHES.flatMap((crash) => crash.drivers));
+    for (const code of Object.keys(BAKU_DRIVER_NAMES)) {
+      expect(used.has(code), `${code} is unused`).toBe(true);
     }
   });
 });

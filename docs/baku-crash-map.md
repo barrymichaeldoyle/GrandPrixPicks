@@ -708,6 +708,55 @@ The axe smoke spec now scans this page **twice**, once closed and once with the
 dialog open. A page-level pass says nothing about a dialog whose content does
 not exist until it is opened.
 
+## The polish pass
+
+Four things were wrong with the first compact version, and one framing error
+underneath them.
+
+**The framing first: this is not a picks aid.** An earlier draft justified the
+driver breakdown as pick-relevant, cross-referenced against the 2026 grid. That
+was wrong on the facts, and Barry called it: drivers learn from a wall, and the
+2026 cars are a different formula. So the section is informational, the copy
+never advises who to pick, and the driver table keeps everyone who has been
+caught out here rather than filtering to the current grid. Ricciardo's five and
+Raikkonen's four are part of what the place is; dropping them for being retired
+would say less, not more.
+
+**The driver dimension was missing entirely.** It was researched, reported, and
+then left out of the product, which is the worst place for a finding to sit. The
+panel beside the map now toggles between _By corner_ and _By driver_, sharing
+one modal: a driver drill-down lists their incidents across corners, spanning
+2016 to 2025. Hulkenberg and Stroll lead on six. It is the most postable thing
+here and it is now something a reader can actually reach.
+
+**No incident was visible without a click.** Collapsing all fifty-seven was
+right for the height, but the notes are the part of this page that exists
+nowhere else, and hiding every one of them gave a crawler and a reader nothing
+to read. The three newest now sit above the archive, and the `details` holds the
+other fifty-four rather than repeating them: the same paragraph twice in one
+document helps nobody.
+
+**Nothing responded to hover.** A marker with only `cursor-pointer` reads as
+decoration. Markers brighten on hover and rows take a surface fill. Brightness
+rather than a size change, because growing the circle would move the channel
+that encodes the count, and in the castle section it would push a marker over
+its neighbour.
+
+**Long lists dwarfed the map.** The driver breakdown runs to thirty-one rows,
+which made the panel twice the height of the thing it sits beside. Two caps now:
+six on a phone, twelve elsewhere, with a _Show all_ that only appears when there
+is something left to show. Hidden rows are `display: none`, so they leave the
+tab order too, and the full archive is one disclosure away underneath.
+
+Driver names are written out in the prose and the modal (`BAKU_DRIVER_NAMES`,
+thirty-one entries, tested for both directions so the map cannot drift from the
+archive). Table rows take the surname alone, which is how a broadcast names a
+driver and what fits the column.
+
+The section is 1,182px on desktop and 1,575px on a phone, against 7,257px for
+the first version. The growth over the 928px low point is the three visible
+incidents, which is the right thing to spend it on.
+
 ## Out of scope
 
 - Any other circuit.

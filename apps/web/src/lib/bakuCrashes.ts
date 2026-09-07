@@ -59,6 +59,48 @@ export type BakuCrash = {
   source: string;
 };
 
+/**
+ * Full names for the drivers in this archive.
+ *
+ * The list is for reading, not for the roster: it holds whoever appears above,
+ * including drivers who left Formula 1 years ago, and it is not a source of
+ * truth for who races now. Casing follows house style rather than the timing
+ * feed's shouted surnames.
+ */
+export const BAKU_DRIVER_NAMES: Readonly<Record<string, string>> = {
+  ALB: 'Alexander Albon',
+  ALO: 'Fernando Alonso',
+  BEA: 'Oliver Bearman',
+  BOT: 'Valtteri Bottas',
+  COL: 'Franco Colapinto',
+  DEV: 'Nyck de Vries',
+  ERI: 'Marcus Ericsson',
+  GAS: 'Pierre Gasly',
+  GIO: 'Antonio Giovinazzi',
+  GRO: 'Romain Grosjean',
+  GUT: 'Esteban Gutiérrez',
+  HAM: 'Lewis Hamilton',
+  HUL: 'Nico Hülkenberg',
+  KUB: 'Robert Kubica',
+  KVY: 'Daniil Kvyat',
+  LEC: 'Charles Leclerc',
+  MAS: 'Felipe Massa',
+  OCO: 'Esteban Ocon',
+  PER: 'Sergio Pérez',
+  PIA: 'Oscar Piastri',
+  RAI: 'Kimi Räikkönen',
+  RIC: 'Daniel Ricciardo',
+  RUS: 'George Russell',
+  SAI: 'Carlos Sainz',
+  SAR: 'Logan Sargeant',
+  SIR: 'Sergey Sirotkin',
+  STR: 'Lance Stroll',
+  TSU: 'Yuki Tsunoda',
+  VER: 'Max Verstappen',
+  VET: 'Sebastian Vettel',
+  WEH: 'Pascal Wehrlein',
+};
+
 export const BAKU_CRASHES: readonly BakuCrash[] = [
   {
     id: '2016-fp1-hamilton-t3',
@@ -220,7 +262,7 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: null,
     outcome: 'dnf',
     confidence: 'medium',
-    note: 'Force India team-mates collided and left debris across the track. Perez retired with front wing and wishbone damage.',
+    note: 'Force India team-mates collided and left debris across the track. Pérez retired with front wing and wishbone damage.',
     source: 'https://en.wikipedia.org/wiki/2017_Azerbaijan_Grand_Prix',
   },
   {
@@ -312,7 +354,7 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: 2,
     outcome: 'continued',
     confidence: 'high',
-    note: 'Sirotkin collided with Alonso and Hulkenberg on the straight after Turn 2, double-puncturing Alonso. Safety car deployed.',
+    note: 'Sirotkin collided with Alonso and Hülkenberg on the straight after Turn 2, double-puncturing Alonso. Safety car deployed.',
     source: 'https://en.wikipedia.org/wiki/2018_Azerbaijan_Grand_Prix',
   },
   {

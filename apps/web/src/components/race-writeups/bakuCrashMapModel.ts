@@ -1,4 +1,5 @@
 import type { BakuCrash, BakuSession } from '@/lib/bakuCrashes';
+import { BAKU_DRIVER_NAMES } from '@/lib/bakuCrashes';
 
 /**
  * The derivations behind the Baku crash map, kept apart from the component so
@@ -10,7 +11,7 @@ import type { BakuCrash, BakuSession } from '@/lib/bakuCrashes';
  * heat the map would contradict itself under a filter.
  */
 
-/** The filter buckets, which are the sessions of the weekend being picked. */
+/** The filter buckets, which are the sessions of a race weekend. */
 export type BakuFilter = 'all' | 'practice' | 'qualifying' | 'race';
 
 export const BAKU_FILTERS: readonly {
@@ -26,8 +27,8 @@ export const BAKU_FILTERS: readonly {
 /**
  * Sprint sessions fold into the neighbouring bucket rather than getting one of
  * their own: Baku has held a single sprint weekend, in 2023, and 2026 is not
- * one, so a Sprint filter would be a near-empty tab answering a question no
- * reader of this page is asking. The incident itself still says "Sprint",
+ * one, so a Sprint filter would be a near-empty tab for a format that is not
+ * running. The incident itself still says "Sprint",
  * because a filter bucket and a fact are different things.
  */
 export function bucketOf(session: BakuSession): Exclude<BakuFilter, 'all'> {
@@ -90,7 +91,7 @@ export const HEAT_STEPS = 5;
  *
  * Scaling to the filtered maximum rather than a fixed ceiling keeps the ramp
  * legible when a filter leaves only two or three incidents anywhere: pinned to
- * the all-sessions maximum of eleven, every corner in the Practice view would
+ * the all-sessions maximum of eleven, every corner under the Practice filter would
  * render at the bottom step and the map would look empty rather than quiet.
  * The legend states the range it is showing, so the scale is never implied.
  */
@@ -164,9 +165,73 @@ export function sessionLabel(session: BakuSession): string {
   return session;
 }
 
+/**
+ * The drivers in an incident, written out.
+ *
+ * Full names rather than the three-letter codes. The codes are right in a
+ * timing column where width is the constraint, but this is prose being read
+ * about something that happened, and it is the copy that ends up quoted in a
+ * post, so it should read the way a person would say it.
+ */
 export function driversLabel(drivers: readonly string[]): string {
   if (drivers.length === 0) {
     return 'Unattributed';
   }
-  return drivers.join(' and ');
+  const names = drivers.map(driverName);
+  if (names.length === 1) {
+    return names[0];
+  }
+  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+}
+
+/** Which dimension the panel beside the map is breaking the data down by. */
+export type BakuBreakdown = 'corner' | 'driver';
+
+/**
+ * Incidents per driver, counting every car involved in a collision.
+ *
+ * Deliberately not filtered to the current grid. This is circuit history
+ * rather than form: Ricciardo's five and Raikkonen's four are part of what
+ * makes Baku Baku, and dropping everyone who has since retired would leave a
+ * table that says less about the place. It is also why nothing here reads as
+ * advice about who to pick, since the cars and the regulations have both
+ * changed underneath these numbers.
+ */
+export function countsByDriver(
+  crashes: readonly BakuCrash[],
+): ReadonlyMap<string, number> {
+  const counts = new Map<string, number>();
+  for (const crash of crashes) {
+    for (const driver of crash.drivers) {
+      counts.set(driver, (counts.get(driver) ?? 0) + 1);
+    }
+  }
+  return counts;
+}
+
+/** Drivers ordered busiest first, then alphabetically for a stable tie. */
+export function rankedDrivers(
+  counts: ReadonlyMap<string, number>,
+): readonly { driver: string; count: number }[] {
+  return [...counts.entries()]
+    .map(([driver, count]) => ({ driver, count }))
+    .sort((a, b) => b.count - a.count || a.driver.localeCompare(b.driver));
+}
+
+export function driverName(code: string): string {
+  return BAKU_DRIVER_NAMES[code] ?? code;
+}
+
+/**
+ * Surname alone, which is how a Formula 1 broadcast names a driver and what
+ * fits a table row. The full name still carries the modal and the screen
+ * reader label, so nobody has to know that "de Vries" is Nyck.
+ */
+export function driverSurname(code: string): string {
+  const full = BAKU_DRIVER_NAMES[code];
+  if (full === undefined) {
+    return code;
+  }
+  const [first, ...rest] = full.split(' ');
+  return rest.length === 0 ? first : rest.join(' ');
 }

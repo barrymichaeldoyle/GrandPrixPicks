@@ -92,10 +92,10 @@ const RACE_WRITEUPS = {
   },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
-    reviewedAt: '2026-09-07',
+    reviewedAt: '2026-09-08',
     label: 'Madrid GP predictions',
     summary:
-      'What the Formula 3 test showed about a circuit nobody has raced, the banked corner that decides ride height, the tyre choice, and how far along the build is.',
+      'What the Formula 3 test showed about a circuit nobody has raced, the banked corner that decides ride height, the tyre choice, how far along the build is, and where Monza left the championship.',
     cta: 'Read the Madrid Grand Prix predictions',
   },
 } as const satisfies Record<string, RaceWriteup>;

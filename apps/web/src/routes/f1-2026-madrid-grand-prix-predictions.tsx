@@ -1,5 +1,5 @@
 import { api } from '@convex-generated/api';
-import { createFileRoute, notFound } from '@tanstack/react-router';
+import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import type { FunctionReturnType } from 'convex/server';
 
 import { DriverBadge } from '@/components/DriverBadge';
@@ -90,6 +90,9 @@ const LAYOUT_SOURCE =
   'https://www.the-race.com/formula-1/madrid-f1-circuit-layout-revealed/';
 const SAINZ_SOURCE =
   'https://www.planetf1.com/news/carlos-sainz-lands-new-role-ahead-of-key-f1-2026-arrival';
+const MONZA_RESULT_SOURCE =
+  'https://www.formula1.com/en/latest/article/antonelli-beats-russell-to-italian-grand-prix-win-with-stunning-comeback-drive.15WtFEBT5JEe4drdeO88t2';
+const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
 
 type Championship = FunctionReturnType<
   typeof api.f1Standings.getF1Championship
@@ -354,6 +357,13 @@ function MadridGrandPrixPredictionsPage() {
                 'Formula 1 has never raced at the Madring. It is a walled city lap with the longest banked corner on the calendar, and Formula 3 put eleven cars into the barriers testing on it.',
               )}
             </p>
+            {/* No secondary action. The hero's second link was the heading
+                of "What to watch in practice", and on this page that section
+                is the driest thing in it: three signals a reader meets anyway
+                on the way down. Offering it beside the picks button asked
+                somebody who arrived to make picks to go read a list instead.
+                `SIGNALS_HEADING` still exists because the section itself uses
+                it. */}
             <RaceWriteupActions
               phase={phase}
               primaryActionTargetId={
@@ -361,7 +371,6 @@ function MadridGrandPrixPredictionsPage() {
               }
               raceSlug={RACE_SLUG}
               venueName="Madrid"
-              signalsHeading={SIGNALS_HEADING}
             />
           </header>
 
@@ -402,12 +411,16 @@ function MadridGrandPrixPredictionsPage() {
         {isLive ? <TrackReadiness /> : null}
         <SpanishDrivers drivers={spanishDrivers} />
         {isLive ? (
-          <RaceWriteupChampionshipContext
-            championship={championship}
-            races={season.races}
-            thisRound={race.round}
-            venueName="Madrid"
-          />
+          <>
+            <MonzaRecap />
+            <RaceWriteupChampionshipContext
+              championship={championship}
+              races={season.races}
+              thisRound={race.round}
+              venueName="Madrid"
+              sourceUrl={F1_STANDINGS_SOURCE}
+            />
+          </>
         ) : null}
 
         <RaceFaqSection faqs={FAQS} />
@@ -764,7 +777,7 @@ function WatchTable() {
         [
           'Where a pass is possible',
           'Braking into the chicane at Turns 5 and 6',
-          'The Race calls it comfortably the best overtaking spot on the lap, and there is no obvious second one.',
+          'The Race calls it comfortably the best overtaking spot on the lap, and there is no obvious second one, which puts the weight of the weekend on Saturday.',
         ],
       ]}
     />
@@ -774,22 +787,77 @@ function WatchTable() {
 function TyreChoice() {
   return (
     <TyreCompoundSection
-      heading="Madrid gets the medium tyres"
+      heading="Pirelli skips the softest compound"
       venue="Madrid"
       hardest="C2"
       aside={<WriteUpNewsPhoto {...PIRELLI_MEDIUM_WRITEUP_IMAGE} />}
     >
       <p className="gpp-reading-copy mt-7 text-text-muted">
-        Pirelli&rsquo;s simulations put the loads here close to Silverstone and
-        Spa, so it left the softest compound at home: on a hot weekend the C5
-        would overheat. It stopped at the middle of the range rather than going
-        harder because C2, C3 and C4 is the set it expects to need two stops.{' '}
+        Simulated loads here sit close to Silverstone and Spa, and on a hot
+        weekend the C5 would overheat. Pirelli stopped at the middle of the
+        range rather than going harder because C2, C3 and C4 is the set it
+        expects to need two stops.{' '}
         <ExternalSource href={TYRE_SOURCE}>
           Read Pirelli&rsquo;s selection
         </ExternalSource>
         .
       </p>
     </TyreCompoundSection>
+  );
+}
+
+/**
+ * What happened seven days ago, because the table under it moved and a reader
+ * arriving from search has not necessarily seen the race.
+ *
+ * Live-only, and deliberately four sentences. The full account of Monza is the
+ * Italian Grand Prix write-up's archive, and reproducing it here would be the
+ * cross-template duplication `docs/seo-content-policy.md` exists to stop; what
+ * this page owes the reader is the result, the standings consequence, and a
+ * link. It sits directly above the championship section because "Antonelli won
+ * from 19th" is the reason that table reads the way it does.
+ *
+ * The closing line is the only editorial claim in it, and it is deliberately
+ * about aerodynamic demand rather than about a team. Monza ran the lowest-drag
+ * package of anyone's season and Madrid has 22 corners and a banked Turn 12,
+ * so a reader who takes the Monza order as a Madrid forecast is reading the
+ * wrong evidence.
+ */
+function MonzaRecap() {
+  return (
+    <section className="py-8 sm:py-16" aria-labelledby="monza-recap">
+      <div className="max-w-3xl">
+        <h2
+          id="monza-recap"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
+        >
+          Antonelli won Monza from 19th
+        </h2>
+        <p className="gpp-reading-copy mt-4 text-text-muted">
+          A power unit change on Thursday cost him the grid, and Leclerc
+          crashing out at Parabolica on lap 2 red-flagged the race. Antonelli
+          led the restart from lap 18 and won it. Russell finished second,
+          Verstappen third, Norris fourth, Piastri fifth and Hamilton sixth, and
+          Gasly had put an Alpine on pole on Saturday.{' '}
+          <ExternalSource href={MONZA_RESULT_SOURCE}>
+            Read the Monza race report
+          </ExternalSource>
+          .
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          That order came on the lowest-drag package anyone runs all season.
+          Madrid asks for 22 corners and a banked Turn 12, so it is weak
+          evidence for Friday.{' '}
+          <Link
+            to="/f1-2026-italian-grand-prix-predictions"
+            className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+          >
+            How Monza finished, and how the field picked it
+          </Link>
+          .
+        </p>
+      </div>
+    </section>
   );
 }
 
@@ -842,14 +910,23 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Formula 1 has not been back to Madrid in the 45 years since. Barcelona
           held the Spanish Grand Prix from 1991 until last season and now runs
-          as the Barcelona-Catalunya Grand Prix, so Spain has two rounds in
-          2026.
+          as the{' '}
+          <Link
+            to="/races/$raceSlug"
+            params={{ raceSlug: 'spain-2026' }}
+            className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+          >
+            Barcelona-Catalunya Grand Prix
+          </Link>
+          , so Spain has two rounds in 2026.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          Carlos Sainz has been the Madring&rsquo;s ambassador since 2025 and
-          said at its presentation that he would be racing 20 minutes from home.
-          He has also had a year to learn the layout in a simulator, which
-          nobody else on the grid has.{' '}
+          Carlos Sainz was born in Madrid, has been the Madring&rsquo;s
+          ambassador since 2025, and said at its presentation that he would be
+          racing 20 minutes from home. He has also had a year to learn the
+          layout in a simulator, which nobody else on the grid has. Fernando
+          Alonso is the other Spaniard here, and both of them are running in the
+          bottom third of the table.{' '}
           <ExternalSource href={SAINZ_SOURCE}>
             PlanetF1 on the ambassador role
           </ExternalSource>

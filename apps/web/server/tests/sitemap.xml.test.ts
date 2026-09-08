@@ -157,8 +157,10 @@ describe('sitemap.xml route', () => {
     }
     expect(xml).toContain('<loc>https://grandprixpicks.com/guides</loc>');
     expect(xml).toContain(
-      '<loc>https://grandprixpicks.com/guides/f1-sprint-weekends-explained</loc>',
+      '<loc>https://grandprixpicks.com/guides/f1-points-system-explained</loc>',
     );
+    // Retired 2026-09-08 and 301 to /how-to-play.
+    expect(xml).not.toContain('f1-sprint-weekends-explained');
   });
 
   // The practice pages are 301s now. They never appeared in a search result

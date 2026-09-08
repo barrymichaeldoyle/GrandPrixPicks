@@ -354,8 +354,7 @@ function RacesPage() {
             </p>
             <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
               <Link
-                to="/guides/$guideSlug"
-                params={{ guideSlug: 'how-to-predict-f1-top-five' }}
+                to="/how-to-play"
                 className="font-medium text-accent hover:text-accent-hover"
               >
                 Build a Top 5 prediction

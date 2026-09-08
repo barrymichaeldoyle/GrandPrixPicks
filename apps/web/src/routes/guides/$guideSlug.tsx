@@ -1,5 +1,10 @@
 import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
-import { createFileRoute, Link, notFound } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  Link,
+  notFound,
+  redirect,
+} from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 
 import { InAppBackLink } from '@/components/InAppBackLink';
@@ -14,7 +19,29 @@ import {
 } from '@/lib/site';
 import { PicksCallToAction } from '@/components/PicksCallToAction/PicksCallToAction';
 
+/**
+ * Guides retired on 2026-09-08, and where a reader is sent instead.
+ *
+ * All three earned nothing and were read by nobody: zero search
+ * impressions between them, and one pageview across the whole of `/guides`
+ * in 90 days. Two of them also explained what `/how-to-play` explains, which
+ * is the page they redirect to and the one the product links now point at.
+ *
+ * A 301 rather than a 404 because two were linked from the home page and the
+ * Singapore write-up, so the URLs are in the wild.
+ */
+const RETIRED_GUIDES = new Set([
+  'f1-half-points-races',
+  'f1-sprint-weekends-explained',
+  'how-to-predict-f1-top-five',
+]);
+
 export const Route = createFileRoute('/guides/$guideSlug')({
+  beforeLoad: ({ params }) => {
+    if (RETIRED_GUIDES.has(params.guideSlug)) {
+      throw redirect({ to: '/how-to-play', statusCode: 301 });
+    }
+  },
   loader: async ({ params }) => {
     await setStaticContentCacheHeaders();
     // Front matter only. `head` needs the title, description and FAQ schema;

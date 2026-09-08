@@ -149,8 +149,7 @@ export function ScoringSection({
             </li>
             <li>
               <Link
-                to="/guides/$guideSlug"
-                params={{ guideSlug: 'how-to-predict-f1-top-five' }}
+                to="/how-to-play"
                 className="font-medium text-accent hover:text-accent-hover"
               >
                 How to predict an F1 Top 5

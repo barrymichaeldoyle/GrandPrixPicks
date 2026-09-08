@@ -324,11 +324,10 @@ function FirstSingaporeSprint() {
           grip throughout the weekend, then commit before they have a second
           long-run sample.{' '}
           <Link
-            to="/guides/$guideSlug"
-            params={{ guideSlug: 'f1-sprint-weekends-explained' }}
+            to="/how-to-play"
             className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
           >
-            How sprint weekends work
+            How sprint weekends are scored
           </Link>
           .
         </p>

@@ -236,12 +236,12 @@ const ROUTES: {
   },
   {
     module: './guides/$guideSlug',
-    path: '/guides/f1-sprint-weekends-explained',
+    path: '/guides/f1-points-system-explained',
     loader: async () => {
       const { getGuide } = await import('@/lib/guides');
       return {
-        loaderData: { guide: getGuide('f1-sprint-weekends-explained') },
-        params: { guideSlug: 'f1-sprint-weekends-explained' },
+        loaderData: { guide: getGuide('f1-points-system-explained') },
+        params: { guideSlug: 'f1-points-system-explained' },
       };
     },
   },

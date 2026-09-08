@@ -95,11 +95,6 @@ const FAQS = [
     answer:
       'In 2017. Sepang held the Malaysian Grand Prix from 1999 to 2017, and this is the first Formula 1 race there since. The track has changed in that time: Dromo resurfaced it in 2016, the year before that last race, and relaid Turns 7 to 12 in 2023.',
   },
-  {
-    question: 'How are Bahrain Grand Prix predictions scored?',
-    answer:
-      'An exact Top 5 position earns 5 points, one position away earns 3, and selecting a driver who finishes elsewhere in the actual Top 5 earns 1 point.',
-  },
 ] as const;
 
 export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(

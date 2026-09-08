@@ -77,11 +77,6 @@ const FAQS = [
     answer:
       'Yes. The 6.003-kilometre Baku City Circuit uses public roads, including the narrow section through the old city and the long flat-out run to Turn 1.',
   },
-  {
-    question: 'How are Azerbaijan Grand Prix predictions scored?',
-    answer:
-      'An exact Top 5 position earns 5 points, one position away earns 3, and selecting a driver who finishes elsewhere in the actual Top 5 earns 1 point.',
-  },
 ] as const;
 
 export const Route = createFileRoute(

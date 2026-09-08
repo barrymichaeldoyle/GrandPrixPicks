@@ -66,11 +66,17 @@ export type TeammatePairing = {
 export const TEAMMATE_PAIRINGS_2026: ReadonlyArray<TeammatePairing> = [
   { team: 'McLaren', driver1Code: 'NOR', driver2Code: 'PIA', fromRound: 1 },
   { team: 'Ferrari', driver1Code: 'LEC', driver2Code: 'HAM', fromRound: 1 },
-  // Hadjar injured his wrist before round 12 (Dutch GP). Lawson steps up from
-  // Racing Bulls to partner Verstappen; Tsunoda takes the vacated Racing Bulls
-  // seat. Open-ended on purpose: Hadjar remains out for Monza, and his return
-  // is a third pairing from whichever later round he is fit for, not an edit
-  // to these.
+  // Hadjar fractured his left wrist boxing during the summer shutdown, before
+  // round 12 (Dutch GP). Lawson steps up from Racing Bulls to partner
+  // Verstappen; Tsunoda takes the vacated Racing Bulls seat.
+  //
+  // Confirmed out through round 14 (Madrid), his third weekend on the sidelines
+  // after Zandvoort and Monza. Open-ended on purpose: his return is a third
+  // pairing from whichever round he is fit for, never an edit to these two.
+  // When it is confirmed, close both round-12 entries with `toRound` at the
+  // last round he misses, add the two replacing them, then run
+  // `seed:applyLineup --prod` followed by a dry run of
+  // `seed:migrateOrphanedH2HPicks`, because a duel pick backs a seat.
   {
     team: 'Red Bull Racing',
     driver1Code: 'VER',

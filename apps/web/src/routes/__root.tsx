@@ -27,7 +27,6 @@ import { Header } from '@/components/Header';
 import { MobileTabBar } from '@/components/MobileTabBar';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { PendingPickSubmitter } from '@/components/PendingPickSubmitter';
-import { PWAInstallBanner } from '@/components/PWAInstallBanner';
 import {
   AuthCurtainHost,
   reportPrePaintCurtainTimeout,
@@ -425,10 +424,6 @@ function RootDocument({ children }: PropsWithChildren) {
                 </a>
                 {bare ? null : <Header />}
                 <OfflineBanner />
-                {/* Mount before `load`: Chromium can dispatch
-                    `beforeinstallprompt` before deferred global features are
-                    requested, and that event cannot be recovered later. */}
-                {bare ? null : <PWAInstallBanner />}
                 <DeferredFeaturesBoundary>
                   <DeferredShellFeatures />
                 </DeferredFeaturesBoundary>

@@ -182,3 +182,47 @@ Review the pattern after three race weekends using:
    cancelled states.
 8. Run typecheck, focused tests, SEO invariants, copy audit and accessibility
    smoke coverage.
+9. Verify every claim against its source (below), then set `reviewedAt`.
+
+## Verifying a claim
+
+`reviewedAt` means the hand-written content was substantively checked. It is a
+date anyone can type, so it is worth saying what has to be true before you type
+it.
+
+On 2026-09-08 an audit of all five write-ups found four fabrications. One
+attributed to The Race a claim neither cited article makes, and used it to rule
+out the rest of the lap. One gave Sainz "a year to learn the layout in a
+simulator, which nobody else on the grid has" — an invented competitive
+advantage, on the page whose job is to inform a Top 5, for the local driver a
+reader is already tempted to move up. One said Sepang had not been resurfaced
+since 2017, in four places including an FAQ answer feeding structured data,
+when Dromo resurfaced it in 2016 and relaid Turns 7 to 12 in 2023. A live feed
+card carried a medical claim about a named driver that its source did not make.
+
+Every one of them sat next to a citation, and every one would pass
+`lint:writeup-sources`. So:
+
+- **Read the cited article, not a summary of it.** During that audit both
+  WebFetch's summariser and web search returned confident wrong answers: a
+  3.365 km Madring, and "this article does not discuss overtaking" about an
+  article that does. Fetch the page, strip the tags, search the text for the
+  figure.
+- **Verify the whole sentence, not the half you are editing.** Two of the four
+  were found only because someone changed a nearby clause and looked up.
+- **Grep the claim across the page before you fix it.** "30 drivers across 10
+  teams" was removed from the prose and the stat strip, and a fourth copy
+  survived in the FAQ, and so in the FAQPage schema.
+- **When a claim cannot be sourced, delete it.** Do not replace it with a
+  better guess. A page reads perfectly well without a superlative, and
+  "similar to Zandvoort, but longer", which a source actually says, tells a
+  reader more than "the longest banked corner in Formula 1", which none does.
+- **Check what a number lets a reader compute.** "The Sprint comes four hours
+  before Qualifying" invites the reading "four hours between the sessions",
+  which is wrong; it starts four hours before. Prefer the specific verb.
+- **A superlative needs a scope, and the scope has to be sourced.** The same
+  corner was "longest on the calendar" in one place and "longest in Formula 1"
+  in another. Those are different assertions.
+
+Run `pnpm --filter @grandprixpicks/web check:writeup-links` before a weekend
+when the page gets traffic, and `check:duplication` before adding any page.

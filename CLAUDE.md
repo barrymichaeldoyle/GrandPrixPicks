@@ -101,6 +101,35 @@ The manual scripts are the exception, not the norm:
 Verify rather than assume: `npx convex function-spec --prod` shows what is
 actually live. Full detail in `docs/convex-cicd.md`.
 
+## Docs
+
+`docs/` describes behaviour the code owns, so it drifts, and it is believed
+because it reads like a specification.
+
+- **Where a doc and the code disagree, the code is right and the doc is the
+  bug.** Fix it in the same commit. `race-news.md` promised driver badges that
+  both news surfaces had already removed, and that sentence cost a request:
+  it produced a confident report of a defect that did not exist.
+- **A doc describing UI names the component it describes**, so a change to that
+  component knows what to update.
+- Product vocabulary is the other recurring drift. Check the code before
+  writing player-facing copy: reactions were called "revs" in this file long
+  after the rename.
+
+## Guardrails
+
+Beyond `pnpm lint` / `typecheck` / `test`, three checks are hand-run because
+they talk to the network:
+
+- `check:duplication` — the AdSense measurement in `docs/seo-content-policy.md`.
+  Run before adding any page or requesting a review.
+- `check:writeup-links` — every citation on the race write-ups still resolves.
+- `check:baku-sources` — the same, for the Baku crash archive.
+
+`lint:writeup-sources` runs in `pnpm lint` and is mechanical only: it cannot
+tell whether a source supports the claim beside it. That is
+`docs/race-writeup-lifecycle.md`.
+
 ## Git Workflow
 
 - **Work directly on `main`.** Do not create a feature branch, switch branches,

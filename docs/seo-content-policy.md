@@ -100,6 +100,31 @@ weekend's write-up.
 ## How to measure
 
 ```
+pnpm --filter @grandprixpicks/web check:duplication
+```
+
+That script is this section, made repeatable, and it is the one to run before
+requesting a review or adding a page. It reports content words per page with
+the chrome subtracted, the templated ratio, worst sibling overlap inside each
+template, and every page's closest match anywhere on the site, and it exits
+non-zero on cross-template overlap at or above 50%.
+
+Two things it has to get right, both of which a hand-rolled version gets wrong.
+The chrome is measured rather than assumed, because the 135 words move when the
+footer does; they were 138 on 2026-09-08. And it is measured by majority rather
+than unanimity: a strict common suffix across all pages returned 0 words of
+footer on one run and 118 on the next, because `/f1-predictions-this-weekend`
+renders a signed-out "Sign in" control after its footer and whether that reaches
+the crawler depends on the edge cache.
+
+Baseline on 2026-09-08, after the circuit pages were deleted: 58 sitemap URLs
+(82 at the last refusal), 71% templated (72%), worst overlap anywhere 37% and
+that between two race pages, and nothing cross-template at or above 50%. The
+67-74% band that got the circuit pages deleted is gone.
+
+The manual version, if the script is ever in doubt:
+
+```
 curl -s https://grandprixpicks.com/sitemap.xml | grep -o '<loc>[^<]*</loc>' | sed 's/<[^>]*>//g'
 ```
 
@@ -120,5 +145,11 @@ hardcode 135, it moves when the header or footer changes), then report:
   review was requested before the content deploy landed.
 - Wait for Search Console to show the changes indexed. Repeat requests with no
   substantive change slow subsequent ones.
-- The 22 circuit guides and the evergreen guides were written by Claude and are
-  **not fact-checked**. That is a standing risk on an editorial review.
+- The evergreen guides were written by Claude and are **not fact-checked**.
+  That is a standing risk on an editorial review. The 22 circuit guides were
+  the larger part of it and are deleted.
+- The five race write-ups **were** audited on 2026-09-08, every claim against
+  the raw text of the article cited beside it. Four fabrications and three
+  wrong figures came out of it; see `docs/race-writeup-lifecycle.md` for how
+  and what to repeat. That leaves the guides and `circuitGuides.ts`, which
+  still renders on every race page, as the unchecked prose on the site.

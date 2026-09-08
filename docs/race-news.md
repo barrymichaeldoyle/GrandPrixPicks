@@ -43,11 +43,29 @@ weekend card flag the item on the Race tab and leave Qualifying alone, which is
 | `key`                     | Stable slug, e.g. `antonelli-grid-penalty`. The idempotency key |
 | `headline`, `body`        | One line and one or two sentences on what it means for picks    |
 | `affectsSessions`         | Required, non-empty. The editorial gate and the UI hook         |
-| `driverCodes`             | Optional. Puts the driver badge and team colour on the card     |
+| `driverCodes`             | Optional. Colours the card with the first driver's team          |
 | `sourceName`, `sourceUrl` | Attribution, same standard as the write-up pages                |
 | `sourcePublishedAt`       | Optional. When the source published it, shown on the write-up   |
 | `startingGrid`            | Optional. The confirmed grid, on the item that announces it     |
 | `active`                  | Retraction without deletion, so a mistake leaves a trail        |
+
+### What `driverCodes` actually does
+
+It sets the card's team colour, taken from the **first** code, on both surfaces
+(`WeekendNewsSection` on the write-up and `RaceNewsItem` in the feed). It does
+not draw driver badges: those were deliberately removed, and the colour is what
+replaced them, so a run of news reads as a Ferrari story then a Williams one
+rather than as grey blocks. Order the codes so the story's team comes first.
+
+Two things that look like bugs and are not:
+
+- **A driver who is not in the car this round still resolves.** The lookup hits
+  the `drivers` table directly, so an injured or replaced driver keeps their
+  code. `drivers:listDrivers` is the one that filters to the round's grid, and
+  it is a different question: who can be picked. Hadjar was badgeable on the
+  card announcing he was out.
+- **`drivers.team` is the driver's current team**, so the colour follows the
+  seat they hold now, not the one they held when the news broke.
 
 `key` is the load-bearing field. Agents retry, and the same weekend gets
 prompted about more than once, so publishing is an upsert rather than an insert.

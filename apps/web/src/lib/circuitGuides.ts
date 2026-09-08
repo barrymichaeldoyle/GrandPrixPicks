@@ -235,9 +235,9 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
     character:
       'Madring makes its Formula 1 debut in 2026 as a 5.416-kilometre, 22-corner circuit around the IFEMA exhibition complex in north-east Madrid. It combines public roads with purpose-built sections, so one lap moves between a street-circuit feel and the elevation changes and fast sweepers of a permanent track.',
     layout:
-      'The 1.3-kilometre longest straight and several heavy stops reward straight-line speed and braking stability, while the near-flat Valdebebas sequence asks for high-speed balance. Turn 12, La Monumental, is the signature: a 550-metre corner with 24% banking, approached at high speed and followed by heavy braking for Turn 13.',
+      'The 837-metre run down Ribera del Sena and several heavy stops reward straight-line speed and braking stability, while the Valdebebas sequence, taken flat out through Turns 14 to 16, asks for high-speed balance. Turn 12, La Monumental, is the signature: a 548-metre corner banked at 24 percent, taken at speed and followed by heavy braking for Turn 13.',
     racing:
-      'The organisers identify Turns 1, 13 and 17 as overtaking opportunities, with large speed reductions at the latter two. La Monumental may also help a following car build a tow before Turn 13. Those ingredients are promising, but no Formula 1 race has yet shown whether cars can follow closely through the fast sections, so treat overtaking claims as unproven.',
+      'The organisers name four overtaking spots, each at the end of a long run: Turns 1, 5, 13 and 17. The heaviest are Turn 13, where cars come off the banking at over 300 kph and take an 84-degree corner at 140, and Turn 17 at the end of the flat-out Valdebebas run. Those ingredients are promising, but no Formula 1 race has yet shown whether cars can follow closely through the fast sections, so treat overtaking claims as unproven.',
     predicting:
       'Treat this as the highest-uncertainty weekend on the calendar. There is no historical form, tyre-degradation pattern or proven overtaking baseline, and teams begin with simulation rather than race data. Give practice more weight than usual: watch braking confidence, pace through the fast linked corners, long-run tyre behaviour and how quickly each team adapts as the new surface evolves.',
     traits: [

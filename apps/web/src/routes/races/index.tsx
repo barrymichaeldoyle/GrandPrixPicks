@@ -26,24 +26,16 @@ export const Route = createFileRoute('/races/')({
   loader: async ({ context }) => {
     await setRaceDataCacheHeaders();
 
-    // The practice slugs drive the practice-results index below. Those pages
-    // are in the sitemap but the only in-app link to them lives in a
-    // client-only Convex card, so without this list they have no
-    // server-rendered inbound link at all and read as orphans to a crawler.
-    const [currentSeason, nextRace, practiceSlugs] = await Promise.all([
+    const [currentSeason, nextRace] = await Promise.all([
       context.queryClient.ensureQueryData(
         routeQuery(api.races.listCurrentSeason),
       ),
       context.queryClient.ensureQueryData(routeQuery(api.races.getNextRace)),
-      context.queryClient.ensureQueryData(
-        routeQuery(api.practiceResults.listRaceSlugsWithPracticeResults),
-      ),
     ]);
     return {
       races: currentSeason.races,
       season: currentSeason.season,
       nextRace,
-      practiceSlugs,
     };
   },
   head: ({ loaderData }) => {
@@ -105,7 +97,6 @@ function RacesPage() {
     races: initialRaces,
     season: initialSeason,
     nextRace: initialNextRace,
-    practiceSlugs: initialPracticeSlugs,
   } = Route.useLoaderData();
   // These are also the observers that keep the loader's cache entries
   // subscribed; without them the entries would sit unwatched behind an
@@ -114,39 +105,29 @@ function RacesPage() {
     routeQuery(api.races.listCurrentSeason),
   );
   const { data: liveNextRace } = useQuery(routeQuery(api.races.getNextRace));
-  const { data: livePracticeSlugs } = useQuery(
-    routeQuery(api.practiceResults.listRaceSlugsWithPracticeResults),
-  );
   const races = liveSeason?.races ?? initialRaces;
   const season = liveSeason?.season ?? initialSeason;
   const nextRace = liveNextRace ?? initialNextRace;
-  const practiceSlugs = livePracticeSlugs ?? initialPracticeSlugs;
   const now = useNow(0);
   const [view, setView] = useState<'upcoming' | 'completed' | 'all'>(
     'upcoming',
   );
   const orderedRaces = [...races].sort((a, b) => a.round - b.round);
-  // Rendered independently of the Upcoming/Completed filter so the links are
-  // always in the SSR markup, not just when a crawler happens to see the
-  // completed tab.
-  const practiceSlugSet = new Set(practiceSlugs);
   /*
    * The calendar is where a write-up gets found.
    *
    * Each one used to have exactly one inbound link, from its own race page,
    * which is a page Google visits rarely. That is why URL Inspection reported
    * "Referring page: None detected" for them: not because the link was missing,
-   * but because nothing Google crawls often enough was pointing at it. This is
-   * the same shape that fixed the orphaned practice pages, one list up.
+   * but because nothing Google crawls often enough was pointing at it. The
+   * same shape once fixed the orphaned practice pages; those are 301s now, so
+   * the all-rounds list below is the only one of its kind left.
    */
   const previewRaces = orderedRaces.flatMap((race) => {
     const writeup = getRaceWriteup(race.slug);
     return writeup ? [{ race, writeup }] : [];
   });
 
-  const practiceRaces = orderedRaces.filter((race) =>
-    practiceSlugSet.has(race.slug),
-  );
   const displayedRaces = orderedRaces.filter((race) => {
     if (view === 'all') {
       return true;
@@ -297,11 +278,10 @@ function RacesPage() {
           {/*
             Every round, linked, regardless of which tab is showing. The card
             grid above renders the selected filter only, so on a default load a
-            crawler sees the upcoming races and nothing else; completed rounds
-            were reachable only through their practice pages, which meant a
-            round with no published practice results had no inbound link at all
-            and dropped out of the crawlable site. Same reasoning as the
-            practice index below, which is why it sits next to it.
+            crawler sees the upcoming races and nothing else, and a completed
+            round would drop out of the crawlable site. It used to lean on the
+            practice pages for that, which is one reason they were kept long
+            after nobody read them; this list does the job on its own.
           */}
           {orderedRaces.length > 0 ? (
             <nav
@@ -323,34 +303,6 @@ function RacesPage() {
                       className="text-accent hover:text-accent-hover"
                     >
                       Round {race.round}: {race.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ) : null}
-
-          {practiceRaces.length > 0 ? (
-            <nav
-              aria-label="Practice results by round"
-              className="mt-10 border-t border-border pt-6"
-            >
-              <h2 className="font-title text-xl font-semibold text-text">
-                Free practice classifications
-              </h2>
-              <p className="mt-1 text-sm text-text-muted">
-                FP1, FP2 and FP3 lap times and gaps for every round that has
-                run.
-              </p>
-              <ul className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
-                {practiceRaces.map((race) => (
-                  <li key={race._id}>
-                    <Link
-                      to="/races/$raceSlug/practice"
-                      params={{ raceSlug: race.slug }}
-                      className="text-accent hover:text-accent-hover"
-                    >
-                      Round {race.round}: {race.name} practice results
                     </Link>
                   </li>
                 ))}

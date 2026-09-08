@@ -198,11 +198,7 @@ async function loadRaceEntries() {
   for (let attempt = 1; attempt <= SITEMAP_FETCH_RETRY_COUNT; attempt += 1) {
     try {
       const convex = new ConvexHttpClient(convexUrl);
-      const [races, slugsWithPractice] = await Promise.all([
-        convex.query(api.races.listRaces, {}),
-        convex.query(api.practiceResults.listRaceSlugsWithPracticeResults, {}),
-      ]);
-      const hasPracticeResults = new Set(slugsWithPractice);
+      const races = await convex.query(api.races.listRaces, {});
       const liveRaces = races.filter((race) => race.status !== 'cancelled');
       return liveRaces
         .sort((a, b) => a.round - b.round)
@@ -210,8 +206,12 @@ async function loadRaceEntries() {
           const lastmod = toIsoDate(race.updatedAt ?? race._creationTime);
           // A race with an editorial write-up canonicalises to it, so listing
           // the race URL here would ask Google to index a page that points
-          // somewhere else. The practice page below is its own content and
-          // stays listed either way.
+          // somewhere else.
+          //
+          // The practice pages used to be listed beside these. They are 301s
+          // now: thirteen URLs of free-practice classification and nothing
+          // else, which never once appeared in a search result and took 8
+          // pageviews from 3 people in 60 days. See `races/$raceSlug/practice`.
           const entries: SitemapEntry[] = getRaceWriteup(race.slug)
             ? []
             : [
@@ -222,16 +222,6 @@ async function loadRaceEntries() {
                   priority: '0.8',
                 },
               ];
-          // A practice page with nothing published is a placeholder line of
-          // text. Advertise it only once it has a real classification.
-          if (hasPracticeResults.has(race.slug)) {
-            entries.push({
-              loc: `${siteConfig.url}/races/${race.slug}/practice`,
-              changefreq: 'daily' as const,
-              lastmod,
-              priority: '0.7',
-            });
-          }
           return entries;
         });
     } catch (error) {

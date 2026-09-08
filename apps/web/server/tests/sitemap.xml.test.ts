@@ -108,15 +108,12 @@ describe('sitemap.xml route', () => {
     expect(xml).not.toContain('<loc>https://grandprixpicks.com/pricing</loc>');
     expect(xml).not.toContain('cancelled-race');
     // The race page canonicalises to its write-up, so only the write-up is
-    // advertised. The practice page is its own content and stays listed.
+    // advertised.
     expect(xml).not.toContain(
       '<loc>https://grandprixpicks.com/races/italy-2026</loc>',
     );
     expect(xml).toContain(
       '<loc>https://grandprixpicks.com/f1-2026-italian-grand-prix-predictions</loc>',
-    );
-    expect(xml).toContain(
-      '<loc>https://grandprixpicks.com/races/italy-2026/practice</loc>',
     );
     expect(xml).toContain(
       '<loc>https://grandprixpicks.com/f1-predictions-this-weekend</loc>',
@@ -164,21 +161,17 @@ describe('sitemap.xml route', () => {
     );
   });
 
-  it('lists a practice page only once that race has published results', async () => {
+  // The practice pages are 301s now. They never appeared in a search result
+  // and took 8 pageviews from 3 people in 60 days, so a URL each was 13 of the
+  // sitemap's 58 entries advertising a timing table with no prose on it.
+  it('advertises no practice page', async () => {
     mockConvex({ slugsWithPractice: ['miami-2026'] });
 
     const { xml } = await renderSitemap();
 
-    expect(xml).toContain(
-      '<loc>https://grandprixpicks.com/races/miami-2026/practice</loc>',
-    );
-    // qatar-2026 has run no practice sessions, so its practice page is a
-    // placeholder and must stay out of the sitemap.
+    expect(xml).not.toContain('/practice</loc>');
     expect(xml).toContain(
       '<loc>https://grandprixpicks.com/races/qatar-2026</loc>',
-    );
-    expect(xml).not.toContain(
-      '<loc>https://grandprixpicks.com/races/qatar-2026/practice</loc>',
     );
   });
 });

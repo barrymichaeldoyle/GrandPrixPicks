@@ -1,5 +1,4 @@
-import { Link } from '@tanstack/react-router';
-import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useId, useState } from 'react';
 
 import { DriverBadge } from '@/components/DriverBadge';
@@ -48,19 +47,6 @@ function ClassificationRow({ entry }: { entry: PracticeEntry }) {
         {practiceGapOrLap(entry)}
       </td>
     </tr>
-  );
-}
-
-function PracticePageLink({ raceSlug }: { raceSlug: string }) {
-  return (
-    <Link
-      to="/races/$raceSlug/practice"
-      params={{ raceSlug }}
-      className="gpp-touch-target inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-accent hover:text-accent-hover sm:text-sm"
-    >
-      Full lap times and gaps
-      <ExternalLink className="h-3 w-3" aria-hidden />
-    </Link>
   );
 }
 
@@ -227,15 +213,12 @@ export function PracticeClassification({
       data-testid="weekend-practice"
       className="py-8 sm:py-16"
     >
-      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
-        <h2
-          id={headingId}
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          Free practice
-        </h2>
-        <PracticePageLink raceSlug={raceSlug} />
-      </div>
+      <h2
+        id={headingId}
+        className="font-title text-2xl font-medium text-text sm:text-3xl"
+      >
+        Free practice
+      </h2>
       <p className="mt-2 text-sm font-semibold text-text">
         {practiceSessionFact(selected)}
       </p>

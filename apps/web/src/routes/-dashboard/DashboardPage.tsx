@@ -210,7 +210,6 @@ export function DashboardPage({
     <DashboardPracticeCard
       key={currentWeekend.race._id}
       raceId={currentWeekend.race._id}
-      raceSlug={currentWeekend.race.slug}
       initialResults={initialDashboard?.practice ?? undefined}
     />
   ) : null;

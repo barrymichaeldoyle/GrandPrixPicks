@@ -1,9 +1,8 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
-import { Link } from '@tanstack/react-router';
 import type { FunctionReturnType } from 'convex/server';
 import { useQuery } from '@/integrations/convex/query';
-import { ChevronDown, ExternalLink } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 
@@ -401,16 +400,6 @@ export function PracticeResultsCard({
       {open ? (
         <div id="session-results-panel" className="border-t border-border">
           <PracticeResultsPanel results={results} layout="compact" />
-          <div className="border-t border-border px-4 py-2.5 text-right">
-            <Link
-              to="/races/$raceSlug/practice"
-              params={{ raceSlug }}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-hover"
-            >
-              Full lap times and gaps
-              <ExternalLink className="h-3 w-3" />
-            </Link>
-          </div>
         </div>
       ) : null}
     </section>

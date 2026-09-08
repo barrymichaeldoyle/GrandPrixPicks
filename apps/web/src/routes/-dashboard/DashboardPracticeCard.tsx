@@ -22,16 +22,14 @@ export type { PracticeResults };
  */
 export function DashboardPracticeCard({
   raceId,
-  raceSlug,
   initialResults,
 }: {
   raceId: Id<'races'>;
-  raceSlug: string;
   initialResults?: PracticeResults;
 }) {
   const results = liveOrSsr(
     useQuery(api.practiceResults.getPracticeResultsForRace, { raceId }),
     initialResults,
   );
-  return <PracticeHighlights results={results} raceSlug={raceSlug} />;
+  return <PracticeHighlights results={results} />;
 }

@@ -1,8 +1,7 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
-import { Link } from '@tanstack/react-router';
 import { useQuery } from '@/integrations/convex/query';
-import { BarChart3, ExternalLink, X } from 'lucide-react';
+import { BarChart3, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -150,17 +149,6 @@ export function PracticeResultsModal({
               }}
             />
           )}
-        </div>
-        <div className="border-t border-border px-4 py-3 text-right">
-          <Link
-            to="/races/$raceSlug/practice"
-            params={{ raceSlug }}
-            onClick={onClose}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-hover"
-          >
-            Open full results page
-            <ExternalLink className="h-3 w-3" />
-          </Link>
         </div>
       </div>
     </div>,

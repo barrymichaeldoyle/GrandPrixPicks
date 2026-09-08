@@ -1,6 +1,3 @@
-import { Link } from '@tanstack/react-router';
-import { ExternalLink } from 'lucide-react';
-
 import { DriverBadge } from '@/components/DriverBadge';
 import { practiceGapOrLap } from '@/components/PracticeResultsCard';
 import {
@@ -88,10 +85,8 @@ function SessionColumn({
  */
 export function PracticeHighlights({
   results,
-  raceSlug,
 }: {
   results: PracticeResults | undefined;
-  raceSlug: string;
 }) {
   const sessions = publishedPracticeSessions(results);
   const latest = latestPracticeResult(results);
@@ -118,14 +113,6 @@ export function PracticeHighlights({
             {practiceSessionFact(latest)}
           </span>
         </h2>
-        <Link
-          to="/races/$raceSlug/practice"
-          params={{ raceSlug }}
-          className="gpp-touch-target inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-accent hover:text-accent-hover sm:text-sm"
-        >
-          Full lap times and gaps
-          <ExternalLink className="h-3 w-3" aria-hidden />
-        </Link>
       </div>
       <div className={`grid ${columns}`}>
         {sessions.map((result, index) => (

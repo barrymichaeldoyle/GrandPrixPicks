@@ -76,7 +76,6 @@ describe('DashboardPracticeCard', () => {
     const view = render(
       <DashboardPracticeCard
         raceId={RACE_ID}
-        raceSlug="bahrain-2026"
         initialResults={[session('fp2', 20), session('fp1', 20)]}
       />,
     );
@@ -93,23 +92,20 @@ describe('DashboardPracticeCard', () => {
     const view = render(
       <DashboardPracticeCard
         raceId={RACE_ID}
-        raceSlug="bahrain-2026"
         initialResults={[session('fp1', 20)]}
       />,
     );
 
     expect(view.textContent).toContain('D06');
     expect(view.textContent).not.toContain('D07');
-    expect(view.textContent).toContain('Full lap times and gaps');
+    // No "Full lap times and gaps" link any more: it pointed at the practice
+    // page, which is a 301 to the race page now.
+    expect(view.textContent).not.toContain('Full lap times');
   });
 
   it('renders nothing while no practice session is published', () => {
     const view = render(
-      <DashboardPracticeCard
-        raceId={RACE_ID}
-        raceSlug="bahrain-2026"
-        initialResults={[]}
-      />,
+      <DashboardPracticeCard raceId={RACE_ID} initialResults={[]} />,
     );
 
     expect(view.querySelector('[data-testid="dashboard-practice"]')).toBeNull();

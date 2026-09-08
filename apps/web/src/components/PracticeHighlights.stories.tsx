@@ -69,7 +69,7 @@ const meta = {
       </div>
     ),
   ],
-  args: { raceSlug: 'italy-2026', results: MONZA },
+  args: { results: MONZA },
 } satisfies Meta<typeof PracticeHighlights>;
 
 export default meta;

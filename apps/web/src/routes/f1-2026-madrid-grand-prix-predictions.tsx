@@ -90,6 +90,8 @@ const LAYOUT_SOURCE =
   'https://www.the-race.com/formula-1/madrid-f1-circuit-layout-revealed/';
 const SAINZ_SOURCE =
   'https://www.planetf1.com/news/carlos-sainz-lands-new-role-ahead-of-key-f1-2026-arrival';
+const HAMILTON_SOURCE =
+  'https://www.motorsportweek.com/2026/07/17/lewis-hamilton-ferrari-madrid-f1-test/';
 const MONZA_RESULT_SOURCE =
   'https://www.formula1.com/en/latest/article/antonelli-beats-russell-to-italian-grand-prix-win-with-stunning-comeback-drive.15WtFEBT5JEe4drdeO88t2';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
@@ -479,6 +481,11 @@ function MadridGrandPrixPredictionsPage() {
             </ExternalSource>
             . Ambassador role:{' '}
             <ExternalSource href={SAINZ_SOURCE}>PlanetF1</ExternalSource>.
+            Hamilton on the lap:{' '}
+            <ExternalSource href={HAMILTON_SOURCE}>
+              Motorsport Week
+            </ExternalSource>
+            .
           </p>
           <p className="gpp-mono mt-2 text-xs">
             LAST REVIEWED {reviewedStamp(PROSE_REVIEWED_AT)}
@@ -761,6 +768,21 @@ function LaMonumental() {
  * track is finished". A reader who has scrolled past both meets them twice and
  * starts skimming. What replaced them is the one thing the page had nowhere
  * else: where a driver can actually pass.
+ *
+ * That third signal used to read "The Race calls it comfortably the best
+ * overtaking spot on the lap, and there is no obvious second one". Neither
+ * cited The Race article says that. The corner verdict piece points at La
+ * Monumental instead, on the Turn 9 to 11 energy recovery, and says explicitly
+ * that there are "plenty of other areas" that should throw up action. Both
+ * halves of the sentence were wrong and it was attributed.
+ *
+ * What is here now is the two candidates the sources actually name, kept as
+ * candidates: PlanetF1 on the braking zone into the narrow Turn 5/6 chicane,
+ * and the Madring's own chief operations officer on deployment onto the
+ * banking. Nobody has raced here, so a confident answer is not available and
+ * the copy should not manufacture one. Hamilton closes it because he has
+ * driven the lap and a driver saying "no real straights" is the honest version
+ * of the point the false sentence was reaching for.
  */
 function WatchTable() {
   return (
@@ -785,8 +807,8 @@ function WatchTable() {
         ],
         [
           'Where a pass is possible',
-          'Braking into the chicane at Turns 5 and 6',
-          'The Race calls it comfortably the best overtaking spot on the lap, and there is no obvious second one, which puts the weight of the weekend on Saturday.',
+          'Braking into the Turn 5/6 chicane, and the run into Turn 12',
+          'A long curved straight feeds the heavy braking into the narrow chicane, and cars recover energy through the dip at Turns 9 to 11 to deploy onto the banking. Hamilton, who has driven the lap, called it a qualifying-lap circuit with no real straights.',
         ],
       ]}
     />
@@ -935,7 +957,7 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
           racing 20 minutes from home. He has also had a year to learn the
           layout in a simulator, which nobody else on the grid has. Fernando
           Alonso is the other Spaniard here, and both of them are running in the
-          bottom third of the table.{' '}
+          bottom third of the driver standings table.{' '}
           <ExternalSource href={SAINZ_SOURCE}>
             PlanetF1 on the ambassador role
           </ExternalSource>

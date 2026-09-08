@@ -133,7 +133,7 @@ const FAQS = [
   {
     question: 'Is the Madring ready for the Spanish Grand Prix?',
     answer:
-      'The circuit was signed off by the FIA for Formula 1 on 23 June 2026, and Formula 3 completed a two-day test on it in August. Around 300 metres of cable was stolen from a tunnel section on 31 August and Spanish police are investigating, but the race schedule is unchanged.',
+      'The circuit was signed off by the FIA for Formula 1 on 23 June 2026, and Formula 3 completed a two-day test on it in August. Around 300 metres of cable was stolen from a tunnel section on Sunday 30 August and Spanish police are investigating, but the race schedule is unchanged.',
   },
   {
     question: 'What did the Formula 3 test show about the Madring?',
@@ -356,7 +356,7 @@ function MadridGrandPrixPredictionsPage() {
               {raceWriteupHeroSummary(
                 phase,
                 'The Spanish Grand Prix',
-                'Formula 1 has never raced at the Madring. It is a walled city lap with the longest banked corner on the calendar, and Formula 3 put eleven cars into the barriers testing on it.',
+                'Formula 1 has never raced at the Madring. It is a walled city lap with the longest banked corner on the calendar, and Formula 3 hit the barriers eleven times testing on it.',
               )}
             </p>
             {/* No secondary action. The hero's second link was the heading
@@ -532,9 +532,8 @@ function FormulaThreeTest() {
             The only laps anyone has run here
           </h2>
           <p className="gpp-reading-copy mt-4 text-text-muted">
-            Formula 3 spent two days at the Madring on 24 and 25 August, 30
-            drivers across 10 teams, and stopped 19 times. Eleven of those were
-            cars in the barriers.{' '}
+            Formula 3 spent two days at the Madring on 24 and 25 August and
+            stopped 19 times. Eleven of those were cars in the barriers.{' '}
             <ExternalSource href={F3_OFFICIAL_SOURCE}>
               The FIA&rsquo;s test announcement
             </ExternalSource>
@@ -565,7 +564,7 @@ function FormulaThreeTest() {
         stats={[
           ['19', 'Red flags'],
           ['11', 'Into the barriers'],
-          ['30', 'Drivers, 10 teams'],
+          ['24–25', 'August, two days'],
           [
             '1:49.034',
             <>
@@ -599,7 +598,7 @@ function TrackReadiness() {
           Somebody stole 300 metres of the circuit&rsquo;s cable
         </h2>
         <p className="gpp-reading-copy mt-5 text-text-muted">
-          It went on Sunday 31 August, cut from generators powering site
+          It went on Sunday 30 August, cut from generators powering site
           installations in a tunnel section of the track. Spanish police are
           investigating and nobody has been arrested. None of it has moved the
           race schedule.{' '}
@@ -952,12 +951,12 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
           , so Spain has two rounds in 2026.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          Carlos Sainz was born in Madrid, has been the Madring&rsquo;s
-          ambassador since 2025, and said at its presentation that he would be
-          racing 20 minutes from home. He has also had a year to learn the
-          layout in a simulator, which nobody else on the grid has. Fernando
-          Alonso is the other Spaniard here, and both of them are running in the
-          bottom third of the driver standings table.{' '}
+          Carlos Sainz has been the Madring&rsquo;s ambassador since April 2025,
+          when he stood with the organisers on the day it broke ground.
+          &ldquo;As a Madrile&ntilde;o, seeing Madring begin construction today
+          feels truly special,&rdquo; he wrote afterwards. Fernando Alonso is
+          the other Spaniard here, and both of them are running in the bottom
+          third of the driver standings table.{' '}
           <ExternalSource href={SAINZ_SOURCE}>
             PlanetF1 on the ambassador role
           </ExternalSource>

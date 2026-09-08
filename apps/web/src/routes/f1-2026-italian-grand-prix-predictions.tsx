@@ -1075,7 +1075,7 @@ function HeatHazard({ showPickRead }: { showPickRead: boolean }) {
           <p className="gpp-reading-copy mt-4 text-text-muted">
             The official forecast put the heat index above 31°C for the race,
             which is the threshold in Article B1.5.10. Austria in June was the
-            season&rsquo;s first.
+            season&rsquo;s first heat hazard.
           </p>
           <p className="gpp-reading-copy mt-3 text-text-muted">
             A heat hazard makes the driver cooling system mandatory and raises

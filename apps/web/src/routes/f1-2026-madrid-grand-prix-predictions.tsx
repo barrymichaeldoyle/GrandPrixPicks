@@ -138,7 +138,7 @@ const FAQS = [
   {
     question: 'What did the Formula 3 test show about the Madring?',
     answer:
-      'Thirty drivers ran over two days in August and the test produced 19 red flags, 11 of them cars in the barriers. Ugo Ugochukwu set the fastest lap at 1:49.034. Those lap times say nothing about Formula 1 pace, but the corners that caught drivers are the same corners.',
+      'Formula 3 ran at the Madring on 24 and 25 August and the test produced 19 red flags, 11 of them cars in the barriers. Ugo Ugochukwu set the fastest lap at 1:49.034. Those lap times say nothing about Formula 1 pace, but the corners that caught drivers are the same corners.',
   },
   {
     question: 'How likely is a safety car at the Madring?',
@@ -356,7 +356,7 @@ function MadridGrandPrixPredictionsPage() {
               {raceWriteupHeroSummary(
                 phase,
                 'The Spanish Grand Prix',
-                'Formula 1 has never raced at the Madring. It is a walled city lap with the longest banked corner on the calendar, and Formula 3 hit the barriers eleven times testing on it.',
+                'Formula 1 has never raced at the Madring. It is a walled city lap with a banked corner longer than Zandvoort\u2019s, and Formula 3 hit the barriers eleven times testing on it.',
               )}
             </p>
             {/* No secondary action. The hero's second link was the heading
@@ -695,7 +695,12 @@ function TrackMap() {
  * plank infringement and moving on.
  *
  * Length is 550 m, matching F1's feature, Madring's own notes and the circuit
- * guide. Degree-of-*arc* figures disagree (270° in one F1 feature,
+ * guide. "The longest banked corner in Formula 1" came off on 2026-09-08: no
+ * source claims it, the hero claimed it in a different scope ("on the
+ * calendar", which is a different assertion), and what The Race actually
+ * carries is better anyway. Zandvoort is a reference a reader already has.
+ *
+ * Degree-of-*arc* figures disagree (270° in one F1 feature,
  * semicircular on the event page, "almost 180" from Sainz), so how far round
  * the corner goes stays off the page. The degrees in the copy are the banking
  * angle, which is a different measurement and is not in dispute.
@@ -723,12 +728,13 @@ function LaMonumental() {
           Everyone has to compromise for Turn 12
         </h2>
         <p className="gpp-reading-copy mt-4 text-text-muted">
-          La Monumental is a banked right-hander, 550 metres of it, the longest
-          banked corner in Formula 1. The banking is quoted as a gradient rather
-          than an angle: 24 percent, or about 13.5 degrees, which is the
-          steepest the FIA allows on a Formula 1 circuit. Estimates put
-          mid-corner speed around 250 kph and the load on the car at about 4G
-          for a couple of seconds.{' '}
+          La Monumental is a banked right-hander, 550 metres of it and 10 metres
+          high. The circuit&rsquo;s chief operations officer calls it similar to
+          Zandvoort&rsquo;s banking, but longer. The banking is quoted as a
+          gradient rather than an angle: 24 percent, or about 13.5 degrees,
+          which is the steepest the FIA allows on a Formula 1 circuit. Estimates
+          put mid-corner speed around 250 kph and the load on the car at about
+          4G for a couple of seconds.{' '}
           <ExternalSource href={CORNER_SOURCE}>
             The Race on La Monumental
           </ExternalSource>

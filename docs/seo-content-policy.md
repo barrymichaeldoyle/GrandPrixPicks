@@ -117,10 +117,20 @@ footer on one run and 118 on the next, because `/f1-predictions-this-weekend`
 renders a signed-out "Sign in" control after its footer and whether that reaches
 the crawler depends on the edge cache.
 
-Baseline on 2026-09-08, after the circuit pages were deleted: 58 sitemap URLs
-(82 at the last refusal), 71% templated (72%), worst overlap anywhere 37% and
-that between two race pages, and nothing cross-template at or above 50%. The
-67-74% band that got the circuit pages deleted is gone.
+Baseline, measured against prod on 2026-09-08 after the practice pages and
+three guides were removed:
+
+| | 2026-09-06 refusal | after circuit pages | now |
+| --- | --- | --- | --- |
+| Sitemap URLs | 82 | 58 | **42** |
+| Templated | 72% | 71% | **60%** |
+| Worst overlap anywhere | 67-74% | 37% | **37%** |
+| Cross-template at 50%+ | 19 pages | none | **none** |
+
+The 67-74% band that got the circuit pages deleted is gone, and the worst
+figure left is 37% between two race pages, inside the 17-35% band this doc
+calls normal. Templates are now race (18), write-up (5) and guide (2), with 17
+standalone pages.
 
 The manual version, if the script is ever in doubt:
 

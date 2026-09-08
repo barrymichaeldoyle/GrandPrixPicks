@@ -60,6 +60,9 @@ const TYRE_SOURCE =
   'https://press.pirelli.com/tyre-compound-selections-for-baku-sepang-and-singapore/';
 const PIRELLI_DATA_SOURCE =
   'https://www.autosport.com/f1/news/how-pirelli-will-deal-with-f1s-unexpected-return-to-sepang/10843289/';
+/** Dromo resurfaced Sepang in 2016 and relaid Turns 7 to 12 in 2023. */
+const SURFACE_SOURCE =
+  'https://www.studiodromo.it/portfolio/sepang-international-circuit/';
 const START_TIME_SOURCE =
   'https://www.news.gp/en/fia-confirms-start-time-for-relocated-bahrain-grand-prix';
 
@@ -90,7 +93,7 @@ const FAQS = [
   {
     question: 'When did Formula 1 last race at Sepang?',
     answer:
-      'In 2017. Sepang held the Malaysian Grand Prix from 1999 to 2017, and this is the first Formula 1 race there since. The circuit has not been resurfaced in that time.',
+      'In 2017. Sepang held the Malaysian Grand Prix from 1999 to 2017, and this is the first Formula 1 race there since. The track has changed in that time: Dromo resurfaced it in 2016, the year before that last race, and relaid Turns 7 to 12 in 2023.',
   },
   {
     question: 'How are Bahrain Grand Prix predictions scored?',
@@ -318,7 +321,8 @@ function BahrainGrandPrixPredictionsPage() {
             <ExternalSource href={PIRELLI_DATA_SOURCE}>
               Autosport
             </ExternalSource>
-            .
+            . Track surface:{' '}
+            <ExternalSource href={SURFACE_SOURCE}>Dromo</ExternalSource>.
           </p>
           <p className="gpp-mono mt-2 text-xs">
             LAST REVIEWED {reviewedStamp(PROSE_REVIEWED_AT)}
@@ -403,6 +407,14 @@ function WhyMalaysia() {
  * Sepang is not a new circuit, so the Madrid page's "nobody has raced here"
  * framing would be wrong. What is true is narrower and more useful: the
  * reference laps are nine years old and were set by a different formula.
+ *
+ * This section, the tyre copy, the signals table and an FAQ answer all used to
+ * say the circuit had not been resurfaced since 2017. None of it was true and
+ * none of it was in the Autosport piece cited beside it. Dromo resurfaced
+ * Sepang in 2016, the year *before* that last Grand Prix, and relaid Turns 7
+ * to 12 in 2023 — the middle sector, which is exactly the part the first
+ * signal is about. The 2016 surface was also laid for wet grip, so "abrasive"
+ * was working against the only description anyone has published of it.
  */
 function NoCurrentForm() {
   return (
@@ -423,11 +435,19 @@ function NoCurrentForm() {
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Pirelli is working from 2017 data for the same reason. Its motorsport
           director has said the 2017 tyre sizes are reasonably close to the
-          current ones, which is the closest thing to a reference anyone has.
-          The circuit has not been resurfaced since, and the asphalt was already
-          abrasive.{' '}
+          current ones, which is the closest thing to a reference anyone has.{' '}
           <ExternalSource href={PIRELLI_DATA_SOURCE}>
             Read how Pirelli prepared
+          </ExternalSource>
+          .
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          The road itself is not the one those 2017 laps were set on either,
+          quite. Dromo resurfaced the circuit in 2016 and relaid Turns 7 to 12
+          in 2023, so the middle sector is seven years newer than the rest of
+          the lap.{' '}
+          <ExternalSource href={SURFACE_SOURCE}>
+            Dromo on the work it did
           </ExternalSource>
           .
         </p>
@@ -459,8 +479,8 @@ function WatchTable() {
         ],
         [
           'Tyre management',
-          'Long-run degradation on abrasive asphalt',
-          'The surface is nine years old and rough. A driver who is quick over one lap may not hold a stint together.',
+          'Long-run degradation, and whether it changes across the lap',
+          'The 2016 surface was laid for wet grip, and Turns 7 to 12 were relaid in 2023. A driver who is quick over one lap may not hold a stint together.',
         ],
         [
           'Braking into the hairpins',
@@ -509,9 +529,8 @@ function TyreChoice() {
     >
       <p className="gpp-reading-copy mt-7 text-text-muted">
         C2, C3 and C4, one step harder than the C3, C4 and C5 going to Baku and
-        Singapore either side of this weekend. Sepang puts medium loads through
-        a tyre, but the asphalt is abrasive and has not been resurfaced since
-        2017.
+        Singapore either side of this weekend. That is the same set, in current
+        names, that Pirelli brought to the last race here.
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
         Pirelli picked the middle of the range to narrow the gap between a

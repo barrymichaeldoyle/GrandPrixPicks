@@ -690,7 +690,7 @@ function WatchTable() {
         ['5.793', 'km circuit'],
         ['53', 'race laps'],
         ['80%', 'full throttle'],
-        ['1.2', 'km main straight'],
+        ['1.1', 'km main straight'],
       ]}
       signals={[
         [

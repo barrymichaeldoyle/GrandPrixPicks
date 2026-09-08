@@ -60,7 +60,7 @@ export type RaceWriteup = {
 const RACE_WRITEUPS = {
   'italy-2026': {
     to: '/f1-2026-italian-grand-prix-predictions',
-    reviewedAt: '2026-09-07',
+    reviewedAt: '2026-09-08',
     label: 'Monza results',
     summary:
       'How Monza finished, how the field picked it, and the circuit facts that decided the result.',
@@ -68,7 +68,7 @@ const RACE_WRITEUPS = {
   },
   'bahrain-2026': {
     to: '/f1-2026-bahrain-grand-prix-predictions',
-    reviewedAt: '2026-09-04',
+    reviewedAt: '2026-09-08',
     label: 'Sepang predictions',
     summary:
       'Why a Bahrain Grand Prix is running in Malaysia, what nine years without a Formula 1 race has done to the circuit, and the tyre choice that opens up strategy.',

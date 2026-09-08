@@ -416,7 +416,7 @@ function SaturdayEvidence() {
             The Sprint is the only race-pace evidence before qualifying
           </h2>
           <p className="gpp-reading-copy mt-4 text-text-muted">
-            The Sprint comes four hours before Grand Prix Qualifying. It shows
+            The Sprint starts four hours before Grand Prix Qualifying. It shows
             tyre behaviour, traffic pace and who can keep the car out of the
             walls, but it does not set Sunday&rsquo;s grid.
           </p>

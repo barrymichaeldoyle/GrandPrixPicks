@@ -61,7 +61,8 @@
     "social-card": "tsx scripts/render-social-card.mts",
     "social-madrid-lap-map": "tsx scripts/render-madrid-lap-map.mts",
     "social-baku-crash-map": "tsx scripts/render-baku-crash-map.mts",
-    "check:baku-sources": "tsx scripts/check-baku-sources.mts"
+    "check:baku-sources": "tsx scripts/check-baku-sources.mts",
+    "check:duplication": "tsx scripts/check-duplication.mts"
   },
   "dependencies": {
     "@clerk/backend": "3.17.0",

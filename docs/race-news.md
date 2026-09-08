@@ -43,7 +43,7 @@ weekend card flag the item on the Race tab and leave Qualifying alone, which is
 | `key`                     | Stable slug, e.g. `antonelli-grid-penalty`. The idempotency key |
 | `headline`, `body`        | One line and one or two sentences on what it means for picks    |
 | `affectsSessions`         | Required, non-empty. The editorial gate and the UI hook         |
-| `driverCodes`             | Optional. Colours the card with the first driver's team          |
+| `driverCodes`             | Optional. Colours the card with the first driver's team         |
 | `sourceName`, `sourceUrl` | Attribution, same standard as the write-up pages                |
 | `sourcePublishedAt`       | Optional. When the source published it, shown on the write-up   |
 | `startingGrid`            | Optional. The confirmed grid, on the item that announces it     |

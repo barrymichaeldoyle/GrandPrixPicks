@@ -14,7 +14,9 @@ export function LandingTopFivePicker({
   onPicksChange,
   onStartOver,
   draftNoticeTarget,
-  continueLabel = 'Continue to team-mate picks',
+  continueLabel = 'Add team-mate picks',
+  onSaveIntent,
+  showSave = false,
 }: {
   raceId: Id<'races'>;
   initialDrivers: Doc<'drivers'>[];
@@ -36,6 +38,13 @@ export function LandingTopFivePicker({
   /** Extends "Start over" to the whole card, not just this step's draft. */
   onStartOver?: () => void;
   draftNoticeTarget?: HTMLElement | null;
+  /** Funnel bookkeeping, before a Top 5 is submitted without the duels. */
+  onSaveIntent?: () => void;
+  /**
+   * Offer submitting the Top 5 on its own, with the duels as the second,
+   * optional action. Off in the edit overlay, which is not a funnel step.
+   */
+  showSave?: boolean;
 }) {
   return (
     <PredictionForm
@@ -51,40 +60,92 @@ export function LandingTopFivePicker({
       enableNavigationBlocker={false}
       onStartOver={onStartOver}
       draftNoticeTarget={draftNoticeTarget}
-      renderActionArea={({ complete }) => (
+      renderActionArea={({ complete, submit }) => (
         <TopFiveHandoff
           complete={complete}
           onContinue={onContinue}
           label={continueLabel}
+          showSave={showSave}
+          onSave={() => {
+            onSaveIntent?.();
+            submit();
+          }}
         />
       )}
     />
   );
 }
 
+/**
+ * What a finished Top 5 can do next.
+ *
+ * Submitting comes first and the duels second, because the duels used to be
+ * the only way out of this step: the sole submit button on the landing card
+ * lived at the foot of eleven team-mate battles, so a visitor who had ranked
+ * five drivers could not keep them without answering eleven more questions.
+ * Six of the eleven people who finished a Top 5 in the 60 days to 2026-09-08
+ * never reached that button.
+ *
+ * The duels stay, as the secondary action, because the people who do want them
+ * are already in flow and the entry event still fires the same way.
+ */
 function TopFiveHandoff({
   complete,
   onContinue,
   label,
+  showSave,
+  onSave,
 }: {
   complete: boolean;
   onContinue: () => void;
   label: string;
+  showSave: boolean;
+  onSave: () => void;
 }) {
   if (!complete) {
     return null;
   }
 
+  if (!showSave) {
+    return (
+      <div className="mt-3" data-testid="top5-handoff">
+        <Button
+          variant="primary"
+          size="md"
+          className="w-full sm:w-auto"
+          onClick={onContinue}
+        >
+          {label}
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-3" data-testid="top5-handoff">
-      <Button
-        variant="primary"
-        size="md"
-        className="w-full sm:w-auto"
-        onClick={onContinue}
-      >
-        {label}
-      </Button>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <Button
+          variant="primary"
+          size="md"
+          className="w-full sm:w-auto"
+          onClick={onSave}
+          data-testid="top5-save"
+        >
+          Sign in to submit
+        </Button>
+        <Button
+          variant="secondary"
+          size="md"
+          className="w-full sm:w-auto"
+          onClick={onContinue}
+        >
+          {label}
+        </Button>
+      </div>
+      <p className="mt-3 text-sm text-text-muted">
+        Free to play. Your picks are kept when you sign in. Team-mate picks are
+        optional and score separately.
+      </p>
     </div>
   );
 }

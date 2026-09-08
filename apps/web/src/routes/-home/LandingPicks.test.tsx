@@ -49,6 +49,7 @@ vi.mock('./LandingTopFivePicker', () => ({
     draftNoticeTarget,
     initialDraftPicks,
     suppressDraftRestoredNotice,
+    showSave,
   }: {
     onComplete: () => void;
     onContinue: () => void;
@@ -58,12 +59,14 @@ vi.mock('./LandingTopFivePicker', () => ({
     draftNoticeTarget?: HTMLElement | null;
     initialDraftPicks?: Id<'drivers'>[];
     suppressDraftRestoredNotice?: boolean;
+    showSave?: boolean;
   }) => (
     <div
       data-testid="top5-step"
       data-has-draft-target={String(Boolean(draftNoticeTarget))}
       data-initial-draft={initialDraftPicks?.join(',') ?? ''}
       data-suppress-draft-notice={String(suppressDraftRestoredNotice)}
+      data-show-save={String(Boolean(showSave))}
     >
       <button type="button" onClick={onContinue}>
         Attempt early continue
@@ -164,7 +167,7 @@ describe('LandingPicks linear journey', () => {
   it('keeps H2H unavailable until Top 5 is complete', async () => {
     await renderJourney();
 
-    expect(container.textContent).toContain('Step 1 of 2');
+    expect(container.textContent).toContain('Your Top 5');
     expect(container.textContent).toContain('Choose your Top 5');
     expect(container.querySelector('[data-testid="h2h-step"]')).toBeNull();
     expect(container.querySelector('[role="tab"]')).toBeNull();
@@ -175,7 +178,7 @@ describe('LandingPicks linear journey', () => {
     ).toBe('true');
 
     act(() => button(container, 'Attempt early continue')?.click());
-    expect(container.textContent).toContain('Step 1 of 2');
+    expect(container.textContent).toContain('Your Top 5');
     expect(container.querySelector('[data-testid="h2h-step"]')).toBeNull();
 
     act(() => button(container, 'Complete Top 5')?.click());
@@ -183,7 +186,7 @@ describe('LandingPicks linear journey', () => {
       button(container, 'Continue to team-mate picks')?.click();
     });
 
-    expect(container.textContent).toContain('Step 2 of 2');
+    expect(container.textContent).toContain('Team-mate picks');
     expect(container.textContent).toContain('Pick each team-mate winner');
     expect(
       container
@@ -197,11 +200,25 @@ describe('LandingPicks linear journey', () => {
     ).toBe('true');
   });
 
+  // The duels used to be the only way to a submit button, and six of the
+  // eleven people who finished a Top 5 in the 60 days to 2026-09-08 never
+  // reached it. Step 1 offers its own submit now; re-gating it would silently
+  // restore that funnel.
+  it('lets a finished Top 5 be submitted without the team-mate picks', async () => {
+    await renderJourney();
+
+    expect(
+      container
+        .querySelector('[data-testid="top5-step"]')
+        ?.getAttribute('data-show-save'),
+    ).toBe('true');
+  });
+
   it('preserves the visible picks step across the auth-provider remount', async () => {
     await renderJourney();
     act(() => button(container, 'Complete Top 5')?.click());
 
-    expect(container.textContent).toContain('Step 1 of 2');
+    expect(container.textContent).toContain('Your Top 5');
     expect(container.querySelector('[data-testid="h2h-step"]')).toBeNull();
 
     act(() => root.unmount());
@@ -209,7 +226,7 @@ describe('LandingPicks linear journey', () => {
     await renderJourney();
 
     const topFiveStep = container.querySelector('[data-testid="top5-step"]');
-    expect(container.textContent).toContain('Step 1 of 2');
+    expect(container.textContent).toContain('Your Top 5');
     expect(container.textContent).toContain('Choose your Top 5');
     expect(container.querySelector('[data-testid="h2h-step"]')).toBeNull();
     expect(topFiveStep?.getAttribute('data-initial-draft')).toBe(
@@ -239,7 +256,7 @@ describe('LandingPicks linear journey', () => {
         .querySelector<HTMLButtonElement>('[aria-label="Back to your Top 5"]')
         ?.click(),
     );
-    expect(container.textContent).toContain('Step 1 of 2');
+    expect(container.textContent).toContain('Your Top 5');
     expect(container.textContent).toContain('Choose your Top 5');
     expect(
       container.querySelector('[data-testid="h2h-step"]')?.closest('[hidden]'),
@@ -258,7 +275,7 @@ describe('LandingPicks linear journey', () => {
     await act(async () => {
       button(container, 'Continue to team-mate picks')?.click();
     });
-    expect(container.textContent).toContain('Step 2 of 2');
+    expect(container.textContent).toContain('Team-mate picks');
 
     act(() => button(container, 'H2H start over')?.click());
 
@@ -268,7 +285,7 @@ describe('LandingPicks linear journey', () => {
       window.sessionStorage.getItem(`${top5Key}:pending-submit`),
     ).toBeNull();
     // Back to an empty step 1, with the team-mate step unvisited again.
-    expect(container.textContent).toContain('Step 1 of 2');
+    expect(container.textContent).toContain('Your Top 5');
     expect(container.querySelector('[data-testid="h2h-step"]')).toBeNull();
     expect(
       container.querySelector('[aria-label="Back to your Top 5"]'),

@@ -120,12 +120,12 @@ the crawler depends on the edge cache.
 Baseline, measured against prod on 2026-09-08 after the practice pages and
 three guides were removed:
 
-| | 2026-09-06 refusal | after circuit pages | now |
-| --- | --- | --- | --- |
-| Sitemap URLs | 82 | 58 | **42** |
-| Templated | 72% | 71% | **60%** |
-| Worst overlap anywhere | 67-74% | 37% | **37%** |
-| Cross-template at 50%+ | 19 pages | none | **none** |
+|                        | 2026-09-06 refusal | after circuit pages | now      |
+| ---------------------- | ------------------ | ------------------- | -------- |
+| Sitemap URLs           | 82                 | 58                  | **42**   |
+| Templated              | 72%                | 71%                 | **60%**  |
+| Worst overlap anywhere | 67-74%             | 37%                 | **37%**  |
+| Cross-template at 50%+ | 19 pages           | none                | **none** |
 
 The 67-74% band that got the circuit pages deleted is gone, and the worst
 figure left is 37% between two race pages, inside the 17-35% band this doc

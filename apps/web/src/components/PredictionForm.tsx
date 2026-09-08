@@ -468,6 +468,13 @@ interface PredictionFormProps {
     complete: boolean;
     saveState: SaveState;
     saveNow: () => Promise<void>;
+    /**
+     * The real submit, including the signed-out path: it parks the draft and
+     * opens sign-in, where `saveNow` only flushes a debounced write for an
+     * already-authenticated player. A funnel that offers its own save button
+     * needs this one.
+     */
+    submit: () => void;
   }) => ReactNode;
   /** Moves restored-draft status into parent chrome such as a step header. */
   draftNoticeTarget?: HTMLElement | null;
@@ -1250,6 +1257,7 @@ export function PredictionForm({
                 complete: picks.length === 5,
                 saveState,
                 saveNow,
+                submit: () => requestSubmit(),
               })
             ) : showSaveWall && renderSaveWall ? (
               renderSaveWall({ lockIn: () => requestSubmit() })

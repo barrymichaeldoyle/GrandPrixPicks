@@ -383,6 +383,21 @@ export function LandingPicks({
     revealActiveStep();
   }
 
+  /**
+   * A Top 5 submitted on its own, without the duels. Same funnel event as the
+   * combined save so the two paths can be compared, distinguished by
+   * `includes_h2h`.
+   */
+  function prepareTopFiveOnlySave() {
+    captureAnalyticsEvent('landing_prediction_card_save_started', {
+      race_id: raceId,
+      race_slug: raceSlug,
+      includes_top_five: true,
+      includes_h2h: false,
+      h2h_entry_method: h2hEntryMethod,
+    });
+  }
+
   function prepareCombinedSave() {
     if (topFiveComplete) {
       setPendingSubmit(getWebTop5DraftStorageKey(raceId));
@@ -457,9 +472,12 @@ export function LandingPicks({
                   onClick={editTopFive}
                 />
               ) : null}
+              {/* Named rather than counted. "Step 1 of 2" promised a second
+                  step that is now optional: a Top 5 can be submitted on its
+                  own. */}
               {cardComplete ? null : (
                 <p className="gpp-label text-accent">
-                  Step {activeStep === 'top5' ? '1' : '2'} of 2
+                  {activeStep === 'top5' ? 'Your Top 5' : 'Team-mate picks'}
                 </p>
               )}
             </div>
@@ -512,6 +530,8 @@ export function LandingPicks({
                 suppressDraftRestoredNotice={Boolean(rememberedState)}
                 onComplete={handleTopFiveComplete}
                 onContinue={continueToH2H}
+                showSave
+                onSaveIntent={prepareTopFiveOnlySave}
                 onCompletionStateChange={setTopFiveComplete}
                 onPicksChange={setTopFivePicks}
                 onStartOver={startOver}

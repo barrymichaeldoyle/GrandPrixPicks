@@ -55,6 +55,17 @@ const TYRE_SOURCE =
 const HEAT_SOURCE =
   'https://press.pirelli.com/managing-the-heat-under-the-lights-in-singapore/';
 
+/*
+ * Weekend facts only.
+ *
+ * The scoring question came off on 2026-09-08: it is the game's rule rather
+ * than this weekend's fact, `/how-to-play` and `/results-policy` own it, and
+ * the same answer on every write-up is the cross-page duplication
+ * `docs/seo-content-policy.md` exists to stop. Madrid dropped it for the same
+ * reason. What replaced it is the thing a player needs here that no other page
+ * on the site says: a sprint weekend is four sets of picks, not two, and the
+ * Sprint has run before the Grand Prix Qualifying set locks.
+ */
 const FAQS = [
   {
     question: 'Is the 2026 Singapore Grand Prix a sprint weekend?',
@@ -72,9 +83,9 @@ const FAQS = [
       'One. Practice 1 runs on Friday before Sprint Qualifying. There is no second or third practice session on a sprint weekend.',
   },
   {
-    question: 'How are Singapore Grand Prix predictions scored?',
+    question: 'How does a sprint weekend change your predictions?',
     answer:
-      'Each session scores separately. An exact Top 5 position earns 5 points, one position away earns 3, and selecting a driver who finishes elsewhere in the actual Top 5 earns 1 point.',
+      'You make four sets of picks instead of two: a Top 5 for Sprint Qualifying, the Sprint, Grand Prix Qualifying and the Grand Prix. Each set locks when its own session starts, so the Sprint has already run by the time your Grand Prix Qualifying picks close.',
   },
 ] as const;
 

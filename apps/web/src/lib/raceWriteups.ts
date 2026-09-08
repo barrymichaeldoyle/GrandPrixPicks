@@ -76,7 +76,7 @@ const RACE_WRITEUPS = {
   },
   'singapore-2026': {
     to: '/f1-2026-singapore-grand-prix-predictions',
-    reviewedAt: '2026-09-04',
+    reviewedAt: '2026-09-08',
     label: 'Singapore predictions',
     summary:
       'Singapore’s first sprint weekend, the single practice session before competitive running, and what matters at Marina Bay.',

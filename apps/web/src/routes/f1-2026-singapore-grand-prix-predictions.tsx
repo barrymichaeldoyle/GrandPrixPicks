@@ -404,6 +404,16 @@ function TyreChoice() {
   );
 }
 
+/**
+ * What the Sprint tells you before qualifying, and what it does not.
+ *
+ * A second paragraph telling the reader to "use the Sprint to update the back
+ * of your Grand Prix Top 5" and to "keep qualifying weighted heavily" came off
+ * on 2026-09-08, for the reasons the same shape came off the Baku page: it
+ * instructs rather than reports, and its one fact, that Marina Bay rewards
+ * track position, is already the framing above the signals table. The heading
+ * and the paragraph under it carry the point on their own.
+ */
 function SaturdayEvidence() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="saturday-evidence">
@@ -419,11 +429,6 @@ function SaturdayEvidence() {
             The Sprint starts four hours before Grand Prix Qualifying. It shows
             tyre behaviour, traffic pace and who can keep the car out of the
             walls, but it does not set Sunday&rsquo;s grid.
-          </p>
-          <p className="gpp-reading-copy mt-3 text-text-muted">
-            Use the Sprint to update the back of your Grand Prix Top 5. Keep
-            qualifying weighted heavily: Marina Bay still rewards track
-            position, even when one driver looked quicker over the short race.
           </p>
         </div>
         <div className="self-start rounded-sm bg-surface-elevated p-5">

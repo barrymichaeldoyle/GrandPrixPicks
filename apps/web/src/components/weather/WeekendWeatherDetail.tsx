@@ -59,12 +59,18 @@ export function WeekendWeatherDetail({
         </div>
       )}
 
+      {/* Full width. The card above it is a five-row table that uses every
+          pixel of the column, and a button sized to its own label left a
+          ragged notch under the last row. Centring it instead would have put
+          it out of line with the session names and the attribution, which are
+          both flush left. */}
       <Button
         type="button"
         variant="secondary"
         size="sm"
         leftIcon={CalendarClock}
         onClick={() => setHoursOpen(true)}
+        className="w-full"
       >
         Hour-by-hour forecast
       </Button>

@@ -29,6 +29,12 @@ vi.mock('./RaceWriteupPicksForm', () => ({
   RaceWriteupPicksForm: () => <div data-testid="prediction-form" />,
 }));
 
+const viewerSession = { isSignedIn: false, confirmedSignedIn: false };
+
+vi.mock('@/integrations/clerk/useViewerSession', () => ({
+  useViewerSession: () => viewerSession,
+}));
+
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -56,6 +62,8 @@ describe('deferred race write-up picks', () => {
 
   beforeEach(() => {
     observerCallback = null;
+    viewerSession.isSignedIn = false;
+    viewerSession.confirmedSignedIn = false;
     vi.stubGlobal('IntersectionObserver', IntersectionObserverMock);
   });
 
@@ -98,10 +106,23 @@ describe('deferred race write-up picks', () => {
     expect(section.querySelector('[role="status"]')).not.toBeNull();
   });
 
-  // The picker replaces the hero's race-page button with a same-page anchor,
-  // so without these the page a crawler reads has no link to the round it is
-  // written about and none to the board the picks feed.
-  it('links out to the race page and the leaderboard before the picker loads', () => {
+  // A stranger who has scrolled the whole article to reach this form is one
+  // decision away from signing up, and the links out are three ways not to.
+  //
+  // What still carries the round into the server-rendered HTML is the
+  // `<noscript>` link under the picker, which React only emits when rendering
+  // to a string. `check:orphans` asserts it against the real response; there
+  // is nothing for a client render to look at here.
+  it('offers a signed-out reader no way out of the picker', () => {
+    render();
+    const links = [...container!.querySelectorAll('section > div a')];
+
+    expect(links.map((link) => link.getAttribute('href'))).toEqual([]);
+  });
+
+  it('links out to the race page and the leaderboard once signed in', () => {
+    viewerSession.isSignedIn = true;
+    viewerSession.confirmedSignedIn = true;
     render();
     const hrefs = [...container!.querySelectorAll('section > div a')].map(
       (link) => link.getAttribute('href'),

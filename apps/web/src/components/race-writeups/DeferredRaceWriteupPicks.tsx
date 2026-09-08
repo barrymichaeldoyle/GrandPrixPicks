@@ -78,17 +78,21 @@ export function DeferredRaceWriteupPicks({
   // section once Clerk boots.
   const { isSignedIn } = useViewerSession();
   /*
-   * The hub's job for a signed-out visitor is one decision: make five picks
-   * and sign in to keep them. These are two links out of that decision, placed
-   * between the heading and the picker, and on this page they are the only
-   * thing between a stranger and the form. So the hub shows them once there is
-   * no conversion left to lose.
+   * One decision for a signed-out visitor: make five picks and sign in to keep
+   * them. Three links out of that decision, set between the heading and the
+   * form, are the only thing standing between a stranger and the picker, so
+   * both surfaces now wait until there is no conversion left to lose.
    *
-   * The write-ups keep them either way. They are editorial pages that search
-   * sends people to and were terminal without this line, and it is where the
-   * HTML a crawler reads links to the round the piece is about.
+   * The write-ups used to keep them either way, on the grounds that they are
+   * editorial pages search sends people to and that the line is where the
+   * server-rendered HTML links to the round the piece is about. The second
+   * half of that is still true and is why this is gated rather than deleted:
+   * the `<noscript>` link below carries the race page into the same HTML, the
+   * footer carries the leaderboard, and `check:orphans` proves both against
+   * the real response. What is left is a reader who has scrolled past the
+   * whole article to reach a form, being offered somewhere else to go.
    */
-  const showNextLinks = surface === 'writeup' || isSignedIn;
+  const showNextLinks = isSignedIn;
 
   useEffect(() => {
     if (shouldLoad) {

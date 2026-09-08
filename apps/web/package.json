@@ -50,7 +50,8 @@
     "lint:cached-reads": "node scripts/check-cached-convex-reads.mjs",
     "lint:clerk-free": "node scripts/check-clerk-free-routes.mjs",
     "lint:css-layers": "node scripts/check-css-layers.mjs",
-    "lint": "pnpm run lint:barrels && pnpm run lint:tokens && pnpm run lint:cached-reads && pnpm run lint:clerk-free && pnpm run lint:css-layers && pnpm --dir ../.. exec oxlint -c .oxlintrc.json apps/web/src apps/web/server apps/web/vite.config.ts",
+    "lint:writeup-sources": "tsx scripts/check-writeup-sources.mts",
+    "lint": "pnpm run lint:barrels && pnpm run lint:tokens && pnpm run lint:cached-reads && pnpm run lint:clerk-free && pnpm run lint:css-layers && pnpm run lint:writeup-sources && pnpm --dir ../.. exec oxlint -c .oxlintrc.json apps/web/src apps/web/server apps/web/vite.config.ts",
     "lint:fix": "pnpm --dir ../.. exec oxlint -c .oxlintrc.json apps/web/src apps/web/server apps/web/vite.config.ts --fix",
     "fix": "pnpm run format && pnpm run lint:fix",
     "format": "pnpm --dir ../.. exec oxfmt apps/web",
@@ -62,7 +63,8 @@
     "social-madrid-lap-map": "tsx scripts/render-madrid-lap-map.mts",
     "social-baku-crash-map": "tsx scripts/render-baku-crash-map.mts",
     "check:baku-sources": "tsx scripts/check-baku-sources.mts",
-    "check:duplication": "tsx scripts/check-duplication.mts"
+    "check:duplication": "tsx scripts/check-duplication.mts",
+    "check:writeup-links": "tsx scripts/check-writeup-sources.mts --links"
   },
   "dependencies": {
     "@clerk/backend": "3.17.0",

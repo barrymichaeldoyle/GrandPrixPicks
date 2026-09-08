@@ -689,8 +689,15 @@ function TrackMap() {
  * plank infringement and moving on.
  *
  * Length is 550 m, matching F1's feature, Madring's own notes and the circuit
- * guide. Degree-of-arc figures disagree (270° in one F1 feature, semicircular
- * on the event page, "almost 180" from Sainz), so they stay off the page.
+ * guide. Degree-of-*arc* figures disagree (270° in one F1 feature,
+ * semicircular on the event page, "almost 180" from Sainz), so how far round
+ * the corner goes stays off the page. The degrees in the copy are the banking
+ * angle, which is a different measurement and is not in dispute.
+ *
+ * Both banking units are published because 24% is a gradient, not an angle,
+ * and reads as one. The sources lead with the percentage (it is how the FIA
+ * writes its limit) but a reader who takes it for degrees puts this corner at
+ * half Zandvoort's.
  *
  * Prose alone, like the two sections above it. The five-row card that used to
  * sit beside this repeated the corner, its length, its banking and its load
@@ -710,8 +717,10 @@ function LaMonumental() {
           Everyone has to compromise for Turn 12
         </h2>
         <p className="gpp-reading-copy mt-4 text-text-muted">
-          La Monumental is a banked right-hander, 550 metres of it at 24
-          percent, the longest banked corner in Formula 1. Estimates put
+          La Monumental is a banked right-hander, 550 metres of it, the longest
+          banked corner in Formula 1. The banking is quoted as a gradient rather
+          than an angle: 24 percent, or about 13.5 degrees, which is the
+          steepest the FIA allows on a Formula 1 circuit. Estimates put
           mid-corner speed around 250 kph and the load on the car at about 4G
           for a couple of seconds.{' '}
           <ExternalSource href={CORNER_SOURCE}>
@@ -761,7 +770,7 @@ function WatchTable() {
         ['5.416', 'km circuit'],
         ['22', 'corners'],
         ['57', 'race laps'],
-        ['24%', 'banking at Turn 12'],
+        ['24%', 'banking at Turn 12 (13.5°)'],
       ]}
       signals={[
         [

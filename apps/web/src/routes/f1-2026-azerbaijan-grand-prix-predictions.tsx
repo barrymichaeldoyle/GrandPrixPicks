@@ -56,6 +56,8 @@ const TYRE_SOURCE =
   'https://press.pirelli.com/tyre-compound-selections-for-baku-sepang-and-singapore/';
 const FORM_SOURCE =
   'https://www.formula1.com/en/latest/article/strategy-guide-what-are-the-tactical-options-for-the-azerbaijan-grand-prix.7tfp6ZvfiLy6dJ0D598abf.7tfp6ZvfiLy6dJ0D598abf';
+const QUALIFYING_2025_SOURCE =
+  'https://www.autosport.com/f1/news/six-shunts-azerbaijans-2025-f1-qualifying-broke-a-red-flag-record/10761064/';
 const RACE_SOURCE =
   'https://www.formula1.com/en/latest/article/what-the-teams-said-race-day-in-azerbaijan-2025.6AWm00FUiNNbYWhkFqRjLH';
 
@@ -252,7 +254,6 @@ function AzerbaijanGrandPrixPredictionsPage() {
         <SaturdayRace />
         <WatchTable />
         <TyreChoice />
-        <RiskAndRecovery />
         <BakuCrashMap />
         {isLive ? (
           <>
@@ -285,7 +286,12 @@ function AzerbaijanGrandPrixPredictionsPage() {
             Tyres: <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>.
             2025 form:{' '}
             <ExternalSource href={FORM_SOURCE}>Formula 1</ExternalSource> and{' '}
-            <ExternalSource href={RACE_SOURCE}>Pirelli</ExternalSource>.
+            <ExternalSource href={RACE_SOURCE}>Formula 1</ExternalSource>. 2025
+            qualifying:{' '}
+            <ExternalSource href={QUALIFYING_2025_SOURCE}>
+              Autosport
+            </ExternalSource>
+            .
           </p>
           <p className="gpp-mono mt-2 text-xs">
             LAST REVIEWED {reviewedStamp(PROSE_REVIEWED_AT)}
@@ -383,6 +389,14 @@ function WatchTable() {
         Baku asks for low drag on its enormous straight and grip through the
         slow old-city section. Every setup gives something away.
       </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Qualifying is where that bites. The 2025 session was stopped six times,
+        a Formula 1 record, and six different drivers put it into the walls.{' '}
+        <ExternalSource href={QUALIFYING_2025_SOURCE}>
+          Autosport on the record
+        </ExternalSource>
+        .
+      </p>
     </RaceSignalsSection>
   );
 }
@@ -409,32 +423,5 @@ function TyreChoice() {
         .
       </p>
     </TyreCompoundSection>
-  );
-}
-
-function RiskAndRecovery() {
-  return (
-    <section className="py-8 sm:py-16" aria-labelledby="risk-and-recovery">
-      <div className="max-w-3xl">
-        <h2
-          id="risk-and-recovery"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          A mixed grid does not guarantee a recovery drive
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Baku qualifying can produce a strange order because the walls punish
-          small mistakes. In 2025, qualifying set a record for red flags, but
-          the race then settled into a queue and a one-stop strategy.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Do not move every front-runner straight back into your Top 5 after a
-          poor qualifying result. The main straight creates passes, but the
-          narrow technical section and low tyre degradation can also keep a
-          train together. Separate drivers who were quick before an isolated
-          mistake from cars that lacked pace all weekend.
-        </p>
-      </div>
-    </section>
   );
 }

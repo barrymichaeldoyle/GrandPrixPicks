@@ -84,10 +84,10 @@ const RACE_WRITEUPS = {
   },
   'azerbaijan-2026': {
     to: '/f1-2026-azerbaijan-grand-prix-predictions',
-    reviewedAt: '2026-09-04',
+    reviewedAt: '2026-09-08',
     label: 'Baku predictions',
     summary:
-      'Why Baku races on Saturday in 2026, where the lap is won and lost, and how to treat a mixed qualifying order.',
+      'Why Baku races on Saturday in 2026, where the lap is won and lost, and the qualifying session that set a Formula 1 red-flag record.',
     cta: 'Read the Baku predictions',
   },
   'madrid-2026': {

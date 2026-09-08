@@ -472,14 +472,14 @@ export function LandingPicks({
                   onClick={editTopFive}
                 />
               ) : null}
-              {/* Named rather than counted. "Step 1 of 2" promised a second
-                  step that is now optional: a Top 5 can be submitted on its
-                  own. */}
-              {cardComplete ? null : (
-                <p className="gpp-label text-accent">
-                  {activeStep === 'top5' ? 'Your Top 5' : 'Team-mate picks'}
-                </p>
-              )}
+              {/* No kicker over the heading. This was "Step 1 of 2", which
+                  told the reader something the heading could not — where they
+                  were in a sequence. When step 2 became optional it was renamed
+                  to "Your Top 5" / "Team-mate picks", and from that point it
+                  only restated the `h2` two lines below it in tracked capitals.
+                  The dashboard's counter (`PicksInvitation`) still earns its
+                  place, and every other `gpp-label` on this page names a block
+                  of data rather than a heading. */}
             </div>
             <div ref={setDraftNoticeTarget} />
           </div>

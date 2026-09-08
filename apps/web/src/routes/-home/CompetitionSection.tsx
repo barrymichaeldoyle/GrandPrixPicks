@@ -264,7 +264,6 @@ export function CompetitionSection({
     >
       <div className="mx-auto w-full max-w-5xl">
         <div className="max-w-3xl">
-          <p className="gpp-label text-text-muted">Leaderboards</p>
           {/*
            * Two facts, each said once: the weekend resets, and one save reaches
            * both boards. The heading is the one that answers "have I already
@@ -276,7 +275,7 @@ export function CompetitionSection({
            */}
           <h2
             id="landing-competition-heading"
-            className="mt-2 text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"
+            className="text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"
           >
             Every weekend is scored from zero.
           </h2>

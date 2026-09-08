@@ -58,9 +58,9 @@ describe('landing conversion sections', () => {
 
     expect(container.textContent).toContain('Close still counts.');
     expect(container.textContent).toContain(
-      'A perfect five earns 25 points, but you do not need the exact order',
+      'Each of your five picks is scored against where that driver actually finished.',
     );
-    expect(container.textContent).not.toContain('points,but');
+    expect(container.textContent).toContain('Five exact calls is 25 points.');
     expect(container.textContent).toContain('5pointsExact position');
     expect(container.textContent).toContain('3pointsOne position away');
     expect(container.textContent).toContain('1pointIn the actual Top 5');

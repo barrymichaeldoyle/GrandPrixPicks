@@ -24,7 +24,7 @@ const scoringBands = [
     points: 1,
     unit: 'point',
     title: 'In the actual Top 5',
-    copy: 'Your driver still finishes in the Top 5, but further away.',
+    copy: 'Your driver finishes in the Top 5, two or more places from your pick.',
     textClass: 'text-result-top5',
     ruleClass: 'bg-result-top5',
   },
@@ -53,16 +53,15 @@ export function ScoringSection({
     >
       <div className="mx-auto w-full max-w-5xl">
         <div className="max-w-3xl">
-          <p className="gpp-label text-text-muted">How scoring works</p>
           <h2
             id="landing-scoring-heading"
-            className="mt-2 text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"
+            className="text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"
           >
             Close still counts.
           </h2>
           <p className="gpp-reading-copy-lg mt-3 text-text-muted">
-            Each Top 5 pick scores on its own. A perfect five earns 25 points,
-            but you do not need the exact order to get on the board.
+            Each of your five picks is scored against where that driver actually
+            finished. Five exact calls is 25 points.
           </p>
         </div>
 
@@ -101,8 +100,8 @@ export function ScoringSection({
 
         <div className="mt-4 flex flex-col gap-4 border border-border bg-surface px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="gpp-reading-copy text-text-muted">
-            <strong className="text-text">Team-mate Head-to-Head:</strong> every
-            correct call adds 1 point to your Combined score.
+            <strong className="text-text">Team-mate picks:</strong> each correct
+            call adds 1 point to your Combined score.
           </p>
           <Link
             to="/how-to-play"
@@ -125,10 +124,6 @@ export function ScoringSection({
           <h3 className="font-title text-lg font-medium text-text">
             Form and scoring guides
           </h3>
-          <p className="gpp-reading-copy mt-2 max-w-3xl text-text-muted">
-            Use the live championship order, the official F1 points system and a
-            practical Top 5 routine before the next session locks.
-          </p>
           <ul className="mt-4 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
             <li>
               <Link

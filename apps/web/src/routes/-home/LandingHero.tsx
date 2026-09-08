@@ -39,41 +39,35 @@ export function LandingHero({
           the wide gap between the hook and the edge of the page. */}
       <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:items-center lg:gap-x-12 xl:gap-x-16">
         <div className="flex flex-col justify-center">
-          <p className="gpp-label">F1 prediction game</p>
           {/*
-           * The break is authored, not left to the browser. Balanced wrapping
-           * of the whole sentence strands "Everyone's a" on its own line,
-           * because balance minimises the longest line rather than reading the
-           * phrase. Two lines of roughly equal weight, each a complete thought,
-           * beat three ragged ones — and save ~50px above the fold.
+           * The break is authored, not left to the browser: balance minimises
+           * the longest line rather than reading the phrase, and left to itself
+           * it splits at the comma's wrong side. Two lines, each a complete
+           * clause, beat three ragged ones and save ~50px above the fold.
            *
-           * "Everyone's a strategist" is the constraint: it needs ~374px at
-           * text-4xl, which a phone does not have. Rather than let the authored
-           * break collapse back into three ragged lines, phones take the step
-           * down to text-3xl, where both lines fit with room to spare — two
-           * clean lines at 32px beat three broken ones at 40px, and the shorter
-           * hero puts the picker that much closer to the fold.
+           * Phones still take the step down to text-3xl. The longest line here
+           * is shorter than the headline this replaced, so it clears 390px at
+           * text-4xl with room to spare, but the size step is what keeps the
+           * authored break from collapsing on the narrowest phones at all.
            * `text-balance` stays as the safety net.
            */}
           <h1
             id="landing-hero-title"
-            className="mt-4 max-w-2xl text-3xl leading-[1.08] font-light tracking-display text-balance text-text min-[430px]:text-4xl sm:text-5xl lg:text-[3.5rem]"
+            className="max-w-2xl text-3xl leading-[1.08] font-light tracking-display text-balance text-text min-[430px]:text-4xl sm:text-5xl lg:text-[3.5rem]"
           >
             {/*
              * The space between the spans is load-bearing despite being
              * invisible: both are `block`, so it collapses on screen, but
-             * without it the heading's text content is "strategiston Sunday"
-             * — which is what a screen reader, a search snippet and the OG
-             * scraper all read.
+             * without it the heading's text content is "Top 5,session by
+             * session" — which is what a screen reader, a search snippet and
+             * the OG scraper all read.
              */}
-            <span className="block">Everyone&apos;s a strategist</span>{' '}
-            <span className="block">
-              on Sunday. <span className="text-accent">Prove it.</span>
-            </span>
+            <span className="block">Predict the F1 Top 5,</span>{' '}
+            <span className="block text-accent">session by session.</span>
           </h1>
           <p className="gpp-reading-copy-lg mt-5 max-w-[48ch] text-text-muted">
-            Pick your Top 5. Choose who finishes ahead in each team. Score
-            points across qualifying, sprints and race day.
+            Then choose who finishes ahead in each team. Points come from
+            qualifying, sprints and race day.
           </p>
           {/*
            * Mobile order: headline → subtext → deadline chip → CTA. The chip

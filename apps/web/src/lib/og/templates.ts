@@ -382,20 +382,14 @@ function brandHeadline(): ReactNode {
         maxWidth: 660,
       },
     },
-    // Typographic apostrophe: the straight quote is the one glyph on this card
-    // that gives away that it was written in a code editor.
-    e('div', {}, 'Everyone’s a strategist'),
-    // "Prove it." in chartreuse, and the only accent on the card that lands on
-    // a word rather than on chrome. Split into two boxes rather than a nested
-    // span because satori's inline handling is not reliable enough to trust a
-    // colour change mid-line; the gap stands in for the word space that flex
-    // would otherwise collapse.
-    e(
-      'div',
-      { style: { display: 'flex', gap: 18 } },
-      e('div', {}, 'on Sunday.'),
-      e('div', { style: { color: colors.accent } }, 'Prove it.'),
-    ),
+    // Same two lines as the landing `h1`, and they have to stay that way: this
+    // card is what the bare domain unfurls to, so a visitor meets the headline
+    // here and then again at the top of the page they land on.
+    e('div', {}, 'Predict the F1 Top 5,'),
+    // The accent lands on a word rather than on chrome, the one place on this
+    // card that happens. Its own box rather than a nested span because satori's
+    // inline handling is not reliable enough to trust a colour change mid-line.
+    e('div', { style: { color: colors.accent } }, 'session by session.'),
   );
 }
 

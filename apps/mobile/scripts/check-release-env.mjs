@@ -1,10 +1,15 @@
+// EXPO_PUBLIC_SENTRY_RELEASE and EXPO_PUBLIC_SENTRY_DIST are deliberately absent.
+// @sentry/react-native uploads source maps and dSYMs under
+// `<bundleId>@<version>+<buildNumber>` with dist `<buildNumber>`, and derives the
+// same pair at runtime when neither is set. Pinning them by hand only creates a
+// way for the two to disagree: `eas.json` uses `autoIncrement`, so any literal
+// goes stale on the next build, and the symptom is silent. Uploads succeed, the
+// build log looks clean, and every crash arrives minified.
 const productionVariables = [
   'EXPO_PUBLIC_CONVEX_URL',
   'EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY',
   'EXPO_PUBLIC_SENTRY_DSN',
   'EXPO_PUBLIC_SENTRY_ENV',
-  'EXPO_PUBLIC_SENTRY_RELEASE',
-  'EXPO_PUBLIC_SENTRY_DIST',
   'EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE',
   'EXPO_PUBLIC_POSTHOG_KEY',
   'EXPO_PUBLIC_POSTHOG_HOST',

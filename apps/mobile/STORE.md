@@ -137,12 +137,17 @@ restriction is unrelated to these answers: it shows on every combination.
 Declare what is actually collected. The same five types are declared in
 `ios/GrandPrixPicks/PrivacyInfo.xcprivacy`, so keep the two in step:
 
-| Data                                    | Purpose                        | Linked to identity |
-| --------------------------------------- | ------------------------------ | ------------------ |
-| Email address                           | Account authentication (Clerk) | Yes                |
-| User content (picks, league membership) | App functionality              | Yes                |
-| Usage data                              | Analytics (PostHog)            | Yes                |
-| Crash and performance data              | Diagnostics (Sentry)           | Yes                |
+**Declared and published 2026-09-09.** Apple has no "diagnostics" purpose, so
+crash and performance data are filed under App Functionality. Nothing is used
+for tracking, so the app needs no ATT prompt.
+
+| Data (ASC data type)          | Apple purpose     | Linked | Tracking |
+| ----------------------------- | ----------------- | ------ | -------- |
+| Email Address (Clerk)         | App Functionality | Yes    | No       |
+| Other User Content (picks)    | App Functionality | Yes    | No       |
+| Product Interaction (PostHog) | Analytics         | Yes    | No       |
+| Crash Data (Sentry)           | App Functionality | Yes    | No       |
+| Performance Data (Sentry)     | App Functionality | Yes    | No       |
 
 ## Screenshots
 

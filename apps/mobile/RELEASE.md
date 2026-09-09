@@ -20,13 +20,21 @@ eas env:create --environment production --name EXPO_PUBLIC_CONVEX_URL --value ht
 | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`     | The `pk_live_…` key for production     |
 | `EXPO_PUBLIC_SENTRY_DSN`                |                                        |
 | `EXPO_PUBLIC_SENTRY_ENV`                | `production`                           |
-| `EXPO_PUBLIC_SENTRY_RELEASE`            |                                        |
-| `EXPO_PUBLIC_SENTRY_DIST`               |                                        |
-| `EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` |                                        |
+| `EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` | Defaults to `0.2`                      |
 | `EXPO_PUBLIC_POSTHOG_KEY`               |                                        |
 | `EXPO_PUBLIC_POSTHOG_HOST`              |                                        |
 
-The `eas-build-pre-install` hook checks all twelve variables below for the
+**Do not set `EXPO_PUBLIC_SENTRY_RELEASE` or `EXPO_PUBLIC_SENTRY_DIST`.**
+`@sentry/react-native` uploads source maps and dSYMs under
+`<bundleId>@<version>+<buildNumber>` with dist `<buildNumber>`, and derives the
+same pair at runtime when neither is set, so leaving them empty is what keeps
+the two in agreement. A hand-pinned value only creates a way for them to
+diverge: `autoIncrement` moves the build number every build, and the symptom is
+silent, since the upload still succeeds and the build log still looks clean
+while every crash arrives minified. They were removed from
+`check-release-env.mjs` on 2026-09-09 for that reason.
+
+The `eas-build-pre-install` hook checks all ten variables below for the
 production profile, including the Sentry upload secrets, and rejects a build
 that would otherwise ship without them. It also rejects a non-live Clerk key
 or a Sentry environment other than `production`.

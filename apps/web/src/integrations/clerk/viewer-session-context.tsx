@@ -15,13 +15,10 @@ const ViewerSessionContext = createContext<ViewerSession>({
 /**
  * Derives the header's auth state from the SSR signal and Clerk's client state.
  *
- * `isLoaded && !clientSignedIn` is ambiguous on its own: it is both Clerk's
- * mid-boot transient (must not flash "Sign in") and a genuine sign-out (must
- * not stay stuck on the avatar placeholder). `hasConfirmedSession` disambiguates
- * them — it is only true once Clerk has actually confirmed a session on this
- * page load, so a signed-out report after that is real. Sign-out can only be
- * reached through the UserButton, which mounts solely when `confirmedSignedIn`
- * is true, so a real sign-out is always preceded by a confirmation.
+ * `useAuth` can report loaded from its SSR initial state before the browser
+ * SDK has booted. Keep the first-paint assumption until `clerk.loaded` too,
+ * then trust either answer. Requiring a previous signed-in confirmation leaves
+ * expired sessions on a dashboard whose authenticated queries cannot resolve.
  *
  * Kept pure and exported so the provider and its tests share one definition.
  */
@@ -29,19 +26,20 @@ export function deriveViewerSession({
   isLoaded,
   clientSignedIn,
   initialSignedIn,
-  hasConfirmedSession,
+  clientLoaded,
 }: {
   isLoaded: boolean;
   clientSignedIn: boolean | undefined;
   initialSignedIn: boolean;
-  hasConfirmedSession: boolean;
+  clientLoaded: boolean;
 }): ViewerSession {
-  const confirmedSignedIn = isLoaded && !!clientSignedIn;
+  const sessionLoaded = isLoaded && clientLoaded;
+  const confirmedSignedIn = sessionLoaded && !!clientSignedIn;
   return {
-    isLoaded,
+    isLoaded: sessionLoaded,
     // Once Clerk has spoken for this page load it is authoritative; before that
     // the SSR signal carries the first paint.
-    isSignedIn: hasConfirmedSession
+    isSignedIn: sessionLoaded
       ? confirmedSignedIn
       : initialSignedIn || confirmedSignedIn,
     confirmedSignedIn,

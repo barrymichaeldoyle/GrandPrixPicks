@@ -1,7 +1,6 @@
-import { ClerkProvider, useAuth } from '@clerk/tanstack-react-start';
+import { ClerkProvider, useAuth, useClerk } from '@clerk/tanstack-react-start';
 import { dark } from '@clerk/ui/themes';
 import type { PropsWithChildren } from 'react';
-import { useState } from 'react';
 
 import { HEADER_NAV_TAB_CLASS } from '@/components/headerNavTabStyles';
 import { useInitialAuth } from './initial-auth';
@@ -131,7 +130,7 @@ export function AppClerkProvider({
  * `assumeSignedIn` covers the one case the SSR signal cannot: signing in from a
  * page that was server-rendered signed *out*. Activating the authenticated
  * runtime swaps the provider tree, so this bridge mounts fresh with
- * `hasConfirmedSession` back at false and `initialAuth.isSignedIn` still
+ * `initialAuth.isSignedIn` still
  * reporting the (now stale) signed-out SSR answer. Without the override the app
  * renders its logged-out self for a beat before Clerk finishes booting, which is
  * exactly the landing-page flash the curtain is there to hide.
@@ -141,15 +140,8 @@ function ClerkViewerSessionBridge({
   assumeSignedIn,
 }: PropsWithChildren<{ assumeSignedIn: boolean }>) {
   const { isLoaded, isSignedIn: clientSignedIn } = useAuth();
+  const clerk = useClerk();
   const initialAuth = useInitialAuth();
-  // Sticky: once Clerk confirms a session on this page load, a later
-  // signed-out report is a real sign-out rather than its boot transient.
-  const [hasConfirmedSession, setHasConfirmedSession] = useState(false);
-  const confirmedSignedIn = isLoaded && !!clientSignedIn;
-
-  if (confirmedSignedIn && !hasConfirmedSession) {
-    setHasConfirmedSession(true);
-  }
 
   return (
     <ViewerSessionProvider
@@ -157,7 +149,7 @@ function ClerkViewerSessionBridge({
         isLoaded,
         clientSignedIn,
         initialSignedIn: initialAuth.isSignedIn || assumeSignedIn,
-        hasConfirmedSession,
+        clientLoaded: clerk.loaded,
       })}
     >
       {children}

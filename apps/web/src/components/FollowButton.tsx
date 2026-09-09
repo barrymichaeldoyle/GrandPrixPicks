@@ -1,6 +1,6 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
-import { useMutation } from 'convex/react';
+import { useConvexAuth, useMutation } from 'convex/react';
 import { useQuery } from '@/integrations/convex/query';
 import { User, UserCheck, UserPlus } from 'lucide-react';
 import type { MouseEvent } from 'react';
@@ -24,9 +24,10 @@ export function FollowButton({
   source = 'follow_button',
   isFollowing: isFollowingProp,
 }: FollowButtonProps) {
+  const { isAuthenticated } = useConvexAuth();
   const queriedIsFollowing = useQuery(
     api.follows.isFollowing,
-    isFollowingProp === undefined ? { followeeId } : 'skip',
+    isAuthenticated && isFollowingProp === undefined ? { followeeId } : 'skip',
   );
   const isFollowing = isFollowingProp ?? queriedIsFollowing;
   const followMutation = useMutation(api.follows.follow);
@@ -47,13 +48,16 @@ export function FollowButton({
   const following = optimistic ?? isFollowing;
   const offeringUnfollow = isHovered && !heldSinceAction;
 
-  if (isFollowing === undefined) {
+  if (!isAuthenticated || isFollowing === undefined) {
     return null;
   }
 
   async function handleClick(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     e.stopPropagation();
+    if (!isAuthenticated) {
+      return;
+    }
     const willFollow = !following;
     setOptimistic(willFollow);
     setHeldSinceAction(true);

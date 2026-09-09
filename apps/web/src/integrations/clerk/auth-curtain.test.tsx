@@ -47,8 +47,12 @@ describe('AuthCurtainHost', () => {
     confirmedSignedIn,
     gate,
     label = 'Signing you in',
+    isSignedIn = true,
+    isLoaded = true,
   }: {
     handoff: boolean;
+    isSignedIn?: boolean;
+    isLoaded?: boolean;
     confirmedSignedIn: boolean;
     /** Omitted means the page mounts no gate at all. */
     gate?: boolean;
@@ -57,7 +61,7 @@ describe('AuthCurtainHost', () => {
     act(() =>
       root.render(
         <ViewerSessionProvider
-          value={{ isSignedIn: true, confirmedSignedIn, isLoaded: true }}
+          value={{ isSignedIn, confirmedSignedIn, isLoaded }}
         >
           <AuthCurtainHost handoff={handoff} label={label}>
             {gate === undefined ? <p>page content</p> : <Gate ready={gate} />}
@@ -173,6 +177,29 @@ describe('AuthCurtainHost', () => {
     render({ handoff: true, confirmedSignedIn: true });
     expect(isScrollLocked()).toBe(false);
     expect(document.body.style.overflow).toBe('');
+  });
+
+  it('releases a stale-session curtain when Clerk finishes signed out', () => {
+    vi.useFakeTimers();
+    captureMessage.mockClear();
+    render({
+      handoff: true,
+      confirmedSignedIn: false,
+      isLoaded: false,
+      gate: false,
+    });
+    expect(curtain()).not.toBeNull();
+
+    render({
+      handoff: true,
+      confirmedSignedIn: false,
+      isSignedIn: false,
+      gate: false,
+    });
+    expect(curtain()).toBeNull();
+    expect(isScrollLocked()).toBe(false);
+    act(() => void vi.advanceTimersByTime(8_000));
+    expect(captureMessage).not.toHaveBeenCalled();
   });
 
   it('gives up after the timeout rather than trapping the visitor', () => {

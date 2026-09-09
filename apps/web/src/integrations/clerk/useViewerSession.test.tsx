@@ -19,8 +19,8 @@ const auth: { isLoaded: boolean; isSignedIn: boolean | undefined } = {
   isSignedIn: undefined,
 };
 const initialAuth: { isSignedIn: boolean } = { isSignedIn: false };
-/** Sticky flag the provider keeps once Clerk has confirmed a session. */
-let hasConfirmedSession = false;
+/** Browser SDK readiness, independent of the SSR-derived useAuth result. */
+let clientLoaded = true;
 
 let result: ReturnType<typeof useViewerSession>;
 
@@ -39,7 +39,7 @@ describe('useViewerSession', () => {
   beforeEach(() => {
     container = document.createElement('div');
     root = createRoot(container);
-    hasConfirmedSession = false;
+    clientLoaded = true;
   });
   afterEach(() => {
     act(() => root.unmount());
@@ -52,11 +52,8 @@ describe('useViewerSession', () => {
       isLoaded: auth.isLoaded,
       clientSignedIn: auth.isSignedIn,
       initialSignedIn: initialAuth.isSignedIn,
-      hasConfirmedSession,
+      clientLoaded,
     });
-    if (session.confirmedSignedIn) {
-      hasConfirmedSession = true;
-    }
     act(() =>
       root.render(
         <ViewerSessionProvider value={session}>
@@ -84,9 +81,25 @@ describe('useViewerSession', () => {
     initialAuth.isSignedIn = true;
     auth.isLoaded = true;
     auth.isSignedIn = false;
+    clientLoaded = false;
+    expect(render()).toEqual({
+      isLoaded: false,
+      isSignedIn: true,
+      confirmedSignedIn: false,
+    });
+  });
+
+  it('drops a stale SSR session when the browser finishes signed out', () => {
+    initialAuth.isSignedIn = true;
+    auth.isLoaded = true;
+    auth.isSignedIn = false;
+    clientLoaded = false;
+    expect(render().isSignedIn).toBe(true);
+
+    clientLoaded = true;
     expect(render()).toEqual({
       isLoaded: true,
-      isSignedIn: true,
+      isSignedIn: false,
       confirmedSignedIn: false,
     });
   });

@@ -1,7 +1,7 @@
 import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { FollowButton } from './FollowButton';
 
@@ -19,9 +19,13 @@ vi.mock('@convex-generated/api', () => ({
   },
 }));
 
+const auth = vi.hoisted(() => ({ isAuthenticated: true }));
+const mutate = vi.hoisted(() => vi.fn(async () => null));
+
 vi.mock('convex/react', () => ({
+  useConvexAuth: () => auth,
   useQuery: vi.fn(() => false),
-  useMutation: vi.fn(() => vi.fn(async () => null)),
+  useMutation: vi.fn(() => mutate),
 }));
 
 vi.mock('@/lib/analytics', () => ({
@@ -31,6 +35,10 @@ vi.mock('@/lib/analytics', () => ({
 const followeeId = 'user_1' as Parameters<typeof FollowButton>[0]['followeeId'];
 
 describe('follow button confirmation', () => {
+  beforeEach(() => {
+    auth.isAuthenticated = true;
+    mutate.mockClear();
+  });
   let container: HTMLDivElement | null = null;
   let root: Root | null = null;
 
@@ -41,11 +49,15 @@ describe('follow button confirmation', () => {
     root = null;
   });
 
-  function render() {
+  function render(isFollowing?: boolean) {
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
-    act(() => root!.render(<FollowButton followeeId={followeeId} />));
+    act(() =>
+      root!.render(
+        <FollowButton followeeId={followeeId} isFollowing={isFollowing} />,
+      ),
+    );
   }
 
   function button() {
@@ -80,6 +92,30 @@ describe('follow button confirmation', () => {
       button().dispatchEvent(new MouseEvent('mouseout', { bubbles: true }));
     });
   }
+
+  it('does not offer a mutation before Convex authenticates, even with cached follow state', () => {
+    auth.isAuthenticated = false;
+    render(false);
+    expect(container?.querySelector('button')).toBeNull();
+    expect(mutate).not.toHaveBeenCalled();
+
+    auth.isAuthenticated = true;
+    act(() =>
+      root!.render(
+        <FollowButton followeeId={followeeId} isFollowing={false} />,
+      ),
+    );
+    act(() => button().click());
+    expect(mutate).toHaveBeenCalledWith({ followeeId });
+
+    auth.isAuthenticated = false;
+    act(() =>
+      root!.render(
+        <FollowButton followeeId={followeeId} isFollowing={false} />,
+      ),
+    );
+    expect(container?.querySelector('button')).toBeNull();
+  });
 
   it('still says Following while the cursor sits where the click landed', () => {
     // The click leaves the pointer on the button. Swapping straight to

@@ -1,0 +1,42 @@
+# Sentry triage — 9 September 2026
+
+Scope: `barry-michael-doyle/grand-prix-picks`, whose events identify
+`grandprixpicks.com` (the production hostname includes the final **s**).
+Reviewed 27 issues with events in the last 90 days, including resolved/ignored
+issues, and checked unresolved issues over 2020–2026: the same 10 were returned.
+No other projects were changed.
+
+| Issue | Last seen (UTC) | Finding and action |
+| --- | --- | --- |
+| [28](https://barry-michael-doyle.sentry.io/issues/7712030037/) | Sep 8, 22:41 | Auth curtain timeout, three events, all awaiting Clerk. Latest event follows successful Clerk client/environment requests. Found an indefinite SSR signed-in assumption in the viewer bridge, plus a curtain that never accepts a signed-out result. Fixed locally; remains open pending deployment and observation. Existing events do not record SDK readiness, so this is a demonstrated code defect consistent with the events, not proof that every timeout has this cause. Added readiness/session fields to future timeout reports. |
+| [2F](https://barry-michael-doyle.sentry.io/issues/7715284849/) | Sep 6, 13:20 | Operator publish payload included a grid `newsKey` before the validator accepted it. Current validator supports it; existing fix `9d436e24`. Resolved. |
+| [2E](https://barry-michael-doyle.sentry.io/issues/7715267558/) | Sep 6, 13:05 | Explicit `__probe__`, `dryRun: true`, placeholder content and unsupported `sourcePublishedAt`. Current code supports the field (`8f699135`). Resolved. |
+| [2D](https://barry-michael-doyle.sentry.io/issues/7715267228/) | Sep 6, 13:04 | Same pre-update publish validator, dry-run placeholder payload. Existing fix `8f699135`. Resolved. |
+| [29](https://barry-michael-doyle.sentry.io/issues/7713459523/) | Sep 5, 09:39 | `raceNews:list` called with `{}`. Current web callers supply `raceSlug`, and the operator runbook specifies it. Validation correctly rejected the call; no reason to weaken the required argument. Resolved as invalid invocation. |
+| [24](https://barry-michael-doyle.sentry.io/issues/7706461157/) | Sep 2, 08:59 | Lazy-route `component` dereference while navigating to `/admin`. Existing fix `0be1f03f` explicitly identifies this issue and handles downstream errors during stale-chunk reload. Regression tests pass. Resolved. |
+| [22](https://barry-michael-doyle.sentry.io/issues/7699661428/) | Aug 29, 16:42 | Fetch failure in the same old-build session as 21, with failed Clerk boot and server-function fetch breadcrumbs. Only one event. Kept open for monitoring: the event does not prove whether the network, a removed server function, or another delivery failure caused it. No broad fetch-error suppression added. |
+| [21](https://barry-michael-doyle.sentry.io/issues/7699661427/) | Aug 29, 16:42 | Source-mapped loader calls removed `races:getRaceBySlugOrLegacyRef`; matches resolved backend issue 1E at the same time. Existing service-worker cache expiry fix `0e39cc7e` specifically addresses this old-build incident. Resolved. |
+| [20](https://barry-michael-doyle.sentry.io/issues/7690300768/) | Aug 24, 21:52 | One serialized server error on `/races`; no useful underlying server stack. Live route loads with zero console errors now, but that cannot prove the original cause is fixed. Kept open for monitoring. |
+| [1R](https://barry-michael-doyle.sentry.io/issues/7635256584/) | Aug 13, 06:51 | `follows:follow` rejected an unauthenticated call. Found the Follow button could submit using supplied/cached follow state before Convex authenticates. It now skips the read and offers no mutation until `useConvexAuth().isAuthenticated`. Backend authorization remains intact. Fixed locally; remains open pending deployment. |
+
+## Local changes
+
+The viewer bridge now distinguishes SSR-derived `useAuth().isLoaded` from
+`clerk.loaded`. It retains first-paint assumptions during browser SDK boot and
+accepts the actual signed-in or signed-out answer when boot completes. The
+curtain releases on confirmed sign-out, even if page gates still await data.
+Genuine boot/gate timeouts remain reported.
+
+Follow and Unfollow require Convex authentication, including when a caller
+supplies the follow state and would otherwise bypass the initial query.
+
+## Validation
+
+- 41 tests passed across viewer-session, auth-curtain, FollowButton,
+  stale-chunk recovery, and service-worker cache policy tests.
+- Web typecheck passed (including the shared package).
+- Live `/races` navigation: correct calendar page title, zero console errors.
+- No deployment performed. New auth fixes still need production verification.
+
+Six Sentry issues were marked resolved through the API. Four remain open:
+28 and 1R await deployment; 20 and 22 require further evidence if they recur.

@@ -43,10 +43,14 @@ const CURTAIN_TIMEOUT_MS = 8_000;
 function reportCurtainTimeout({
   label,
   confirmedSignedIn,
+  isLoaded,
+  isSignedIn,
   pendingGates,
 }: {
   label: string;
   confirmedSignedIn: boolean;
+  isLoaded: boolean;
+  isSignedIn: boolean;
   pendingGates: number;
 }) {
   try {
@@ -56,7 +60,7 @@ function reportCurtainTimeout({
         ...errorDiagnosticTags(),
         curtain_waiting_for: confirmedSignedIn ? 'gates' : 'clerk',
       },
-      extra: { label, confirmedSignedIn, pendingGates },
+      extra: { label, confirmedSignedIn, isLoaded, isSignedIn, pendingGates },
     });
   } catch {
     // A report is never worth taking the page down for, least of all on the
@@ -162,7 +166,7 @@ export function AuthCurtainHost({
    */
   label: string;
 }>) {
-  const { confirmedSignedIn } = useViewerSession();
+  const { confirmedSignedIn, isLoaded, isSignedIn } = useViewerSession();
   const [pendingGates, setPendingGates] = useState(0);
   const [expired, setExpired] = useState(false);
 
@@ -177,15 +181,23 @@ export function AuthCurtainHost({
   });
 
   const active =
-    handoff && !expired && (!confirmedSignedIn || pendingGates > 0);
+    handoff &&
+    !expired &&
+    !(isLoaded && !isSignedIn) &&
+    (!confirmedSignedIn || pendingGates > 0);
 
   // What the curtain was still waiting for, for the timeout report. A ref so
   // reading it cannot restart the timeout that reads it.
-  const stateRef = useRef({ confirmedSignedIn, pendingGates });
+  const stateRef = useRef({
+    confirmedSignedIn,
+    isLoaded,
+    isSignedIn,
+    pendingGates,
+  });
   // Written during render on purpose, per the note above: the timeout
   // must read the latest values without listing them as dependencies.
   // oxlint-disable-next-line react/refs
-  stateRef.current = { confirmedSignedIn, pendingGates };
+  stateRef.current = { confirmedSignedIn, isLoaded, isSignedIn, pendingGates };
 
   useEffect(() => {
     if (!active) {

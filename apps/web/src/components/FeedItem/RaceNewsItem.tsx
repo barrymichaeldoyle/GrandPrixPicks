@@ -53,7 +53,7 @@ export function RaceNewsItem({
   // then a Mercedes one rather than two grey blocks. With the badges gone it is
   // the only thing saying whose story this is before the headline.
   const team = event.newsDrivers?.[0]?.team ?? null;
-  const teamColour = (team && TEAM_COLORS[team]) || null;
+  const teamColour = (team && TEAM_COLORS[team]) || 'var(--accent)';
 
   return (
     <div

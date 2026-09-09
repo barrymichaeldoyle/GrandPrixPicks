@@ -68,12 +68,14 @@ const SIGNALS_HEADING = 'What to watch in practice';
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/spain';
 const CORNER_SOURCE =
   'https://www.the-race.com/formula-1/madrid-f1-track-spanish-gp-standout-corner-la-monumental-our-verdict/';
+const VERSTAPPEN_SIM_SOURCE =
+  'https://racingnews365.com/max-verstappen-predicts-big-shunts-at-madrid-f1-weekend';
 const TEST_SOURCE =
   'https://www.grandprix.com/news/madring-praise-red-flags-first-formula-3-test-2026.html';
 const FILMING_SOURCE =
   'https://www.madring.com/en/press-releases/ferrari-estrena-madring';
 const TYRE_SOURCE =
-  'https://press.pirelli.com/tyre-compounds-selected-for-zandvoort-monza-and-madrid/';
+  'https://press.pirelli.com/the-madring-makes-its-world-championship-debut-with-the-challenge-of-the-monumental/';
 const F3_OFFICIAL_SOURCE =
   'https://www.fiaformula3.com/en/latest/article/fia-formula-3-to-hold-official-tests-at-madring-in-august-as-the-2026-f3-season-finale-expands-with-additional-feature-race.1VGQYdEuNMGEGVM51PyEDH';
 const RED_FLAG_SOURCE =
@@ -88,6 +90,8 @@ const THEFT_SOURCE =
   'https://www.grandprix.com/news/police-investigate-cable-theft-at-madring.html';
 const BUILD_SOURCE =
   'https://www.racingcircuits.info/europe/spain/madring.html';
+const WILLIAMS_LIVERY_SOURCE =
+  'https://www.williamsf1.com/articles/10ecea73-d25f-42fe-9208-6728bb35f0bd/atlassian-and-williams-f1-team-drive-a-legacy-of-teamwork-forwards-with-special-madrid-race';
 const JARAMA_SOURCE =
   'https://www.motorsportmagazine.com/articles/single-seaters/f1/gilles-villeneuves-1981-spanish-caravan-he-won-with-a-dog-of-a-car/';
 const LAYOUT_SOURCE =
@@ -142,12 +146,12 @@ const FAQS = [
   {
     question: 'What did the Formula 3 test show about the Madring?',
     answer:
-      'Formula 3 ran at the Madring on 24 and 25 August and the test produced 19 red flags, 11 of them cars in the barriers. Ugo Ugochukwu set the fastest lap at 1:49.034. Those lap times say nothing about Formula 1 pace, but the corners that caught drivers are the same corners.',
+      'Formula 3 ran at the Madring on 24 and 25 August and the test produced 19 red flags, 11 of them cars in the barriers. Ugo Ugochukwu set the fastest lap at 1:49.034. The test highlighted several difficult corners, though Formula 3 lap times cannot tell us how the Formula 1 teams will compare.',
   },
   {
     question: 'How likely is a safety car at the Madring?',
     answer:
-      'There is no Formula 1 history to count from. The lap is walled for long stretches and the Formula 3 test stopped 19 times in two days, so treat the chance of a safety car as higher than at a permanent circuit.',
+      'There is no Formula 1 race history here to base a probability on. Barriers line much of the lap, and the Formula 3 test had frequent stoppages. Safety cars are a possibility, but that test does not tell us how often they will be needed in a Grand Prix.',
   },
 ] as const;
 
@@ -360,7 +364,7 @@ function MadridGrandPrixPredictionsPage() {
               {raceWriteupHeroSummary(
                 phase,
                 'The Spanish Grand Prix',
-                'Formula 1 has never raced at the Madring. It is a walled city lap with a banked corner longer than Zandvoort\u2019s, and Formula 3 hit the barriers eleven times testing on it.',
+                'Formula 1 returns to Madrid for the first time since 1981. The new Madring circuit has 22 corners, long stretches lined with barriers and a banked Turn 12 that will test the cars and tyres.',
               )}
             </p>
             {/* No secondary action. The hero's second link was the heading
@@ -500,39 +504,7 @@ function MadridGrandPrixPredictionsPage() {
   );
 }
 
-/**
- * The only on-track evidence that exists for this circuit, and therefore the
- * section that answers the one above.
- *
- * The red flag count is the fact worth carrying: it is not colour, it is the
- * closest thing this weekend has to a safety car probability. Formula 3 is not
- * Formula 1, so the copy claims the shape of the risk rather than a number.
- *
- * The figures are the shared four-up strip, across the foot of the section,
- * rather than the labelled card in a right-hand column they used to be. That
- * card had two problems. It ran five rows against three paragraphs, so it and
- * the photo below it made a column half as tall again as the copy beside them,
- * and the section ended on a wide patch of empty page. And three of its five
- * rows restated the sentence next to them in smaller type: the test dates, the
- * entry, the red flag count. A figure earns its place here by being scannable,
- * which is a reason to make it large, not a reason to repeat a sentence.
- *
- * The fifth row, "Carries over: where it bites", said nothing at a glance. It
- * was compressing the third paragraph's argument into three words and losing
- * it. The paragraph makes the point; the strip counts.
- *
- * Ugochukwu gets his flag, because a driver's name carries one everywhere else
- * on this site and he is not exempt for racing in a different championship.
- *
- * The last two paragraphs are the argument about what the test means, and they
- * are both quotes rather than ours. Williams counted the broken parts and
- * Vowles called the place car-wrecking; Sainz, at Monza two days later, said
- * that verdict is about Formula 3 cars until Formula 1 runs. They replaced a
- * sentence of our own saying Formula 1 "will meet the same walls", which was
- * the same point unsourced. The 4.5-second load figure from the same Vowles
- * interview is in "Everyone has to compromise for Turn 12", beside the corner
- * estimate it lengthens, rather than here.
- */
+/** Formula 3 test findings and drivers’ first impressions. */
 function FormulaThreeTest() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="f3-test">
@@ -542,41 +514,48 @@ function FormulaThreeTest() {
             id="f3-test"
             className="font-title text-2xl font-medium text-text sm:text-3xl"
           >
-            The only laps anyone has run here
+            What Formula 3 testing showed
           </h2>
           <p className="gpp-reading-copy mt-4 text-text-muted">
-            Formula 3 spent two days at the Madring on 24 and 25 August and
-            stopped 19 times. Eleven of those were cars in the barriers.{' '}
-            <ExternalSource href={F3_OFFICIAL_SOURCE}>
-              The FIA&rsquo;s test announcement
-            </ExternalSource>
-            .
-          </p>
-          <p className="gpp-reading-copy mt-3 text-text-muted">
-            The crashes were spread rather than concentrated. Turns 5 to 7
-            through the chicane and Turn 17 caught the most, and the exit of
-            Turn 3 and Turn 14 caught drivers too.{' '}
+            Formula 3 tested at the Madring on 24 and 25 August. The two days
+            produced 19 red flags, including 11 crashes into the barriers.{' '}
             <ExternalSource href={RED_FLAG_SOURCE}>
-              PlanetF1 on the red flags
+              PlanetF1&rsquo;s test report
             </ExternalSource>
             .
           </p>
           <p className="gpp-reading-copy mt-3 text-text-muted">
-            Williams went through the test data and counted the rest of the
-            damage: three broken chassis and six broken suspensions. Team
-            principal James Vowles called the Madring a car-wrecking track.{' '}
+            Most of the crashes happened around Turns 5 to 7 and at Turn 17.
+            Drivers also hit the barriers at the exit of Turn 3 and at Turn 14.{' '}
+            <ExternalSource href={RED_FLAG_SOURCE}>
+              Where the test was interrupted
+            </ExternalSource>
+            .
+          </p>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            Williams counted three broken chassis and six damaged suspensions in
+            the test data. Team principal James Vowles said the circuit could be
+            particularly hard on the cars.{' '}
             <ExternalSource href={VOWLES_SOURCE}>
-              Vowles on the test data
+              Vowles on the test damage
             </ExternalSource>
             .
           </p>
           <p className="gpp-reading-copy mt-3 text-text-muted">
-            Carlos Sainz was asked about that at Monza. He said the car-killer
-            name belongs to Formula 3 for now, and that nobody yet knows whether
-            it fits a Formula 1 car. Nineteen stoppages in two days is still the
-            closest thing this weekend has to a safety car forecast.{' '}
+            Sainz was more cautious when asked about the crashes at Monza. He
+            said it was too early to judge how Formula 1 cars would handle the
+            circuit from the Formula 3 test alone.{' '}
             <ExternalSource href={SAINZ_LABEL_SOURCE}>
-              Sainz on the label
+              Sainz on the Formula 3 comparison
+            </ExternalSource>
+            .
+          </p>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            After driving the circuit in the simulator, Verstappen compared it
+            with Jeddah and warned that mistakes could lead to heavy crashes. He
+            also said it was difficult to put a clean lap together.{' '}
+            <ExternalSource href={VERSTAPPEN_SIM_SOURCE}>
+              Verstappen&rsquo;s first impressions
             </ExternalSource>
             .
           </p>
@@ -605,15 +584,7 @@ function FormulaThreeTest() {
   );
 }
 
-/**
- * Live-only. "Is the circuit finished" is a real question for a venue this new
- * and a search people are running this week, and it stops being either the
- * moment the race runs.
- *
- * The theft is the reason a reader arrives at this section, so it opens rather
- * than sitting second behind the homologation dates. The surface age is the
- * reason the section changes a pick, and it closes.
- */
+/** Construction status and surface preparation. */
 function TrackReadiness() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="track-readiness">
@@ -622,33 +593,30 @@ function TrackReadiness() {
           id="track-readiness"
           className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
-          Somebody stole 300 metres of the circuit&rsquo;s cable
+          Circuit preparations
         </h2>
         <p className="gpp-reading-copy mt-5 text-text-muted">
-          It went on Sunday 30 August, cut from generators powering site
-          installations in a tunnel section of the track. Spanish police are
-          investigating and nobody has been arrested. None of it has moved the
-          race schedule.{' '}
+          Around 300 metres of cable was stolen on Sunday 30 August from
+          generators serving a tunnel section of the circuit. Spanish police are
+          investigating. The race schedule is unchanged.{' '}
           <ExternalSource href={THEFT_SOURCE}>
-            Grandprix.com on the theft
+            Report on the cable theft
           </ExternalSource>
           .
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          The circuit itself has been ready for months. The last layer of
-          asphalt went down on 31 May and the FIA signed it off for Formula 1 on
-          23 June. Everything built since is grandstands, hospitality and
-          temporary infrastructure.{' '}
+          The final layer of asphalt was laid on 31 May, and the FIA approved
+          the circuit for Formula 1 on 23 June. Work since then has focused on
+          grandstands, hospitality and temporary facilities.{' '}
           <ExternalSource href={BUILD_SOURCE}>
-            RacingCircuits.info on the build
+            Circuit construction timeline
           </ExternalSource>
           .
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          The asphalt is three months old and has barely been driven on. It will
-          be green on Friday morning and quicker every session as Formula 2 and
-          Formula 3 lay rubber down. First practice will not look much like
-          Saturday.
+          With little running on the new surface, grip should improve as Formula
+          1, Formula 2 and Formula 3 lay down rubber over the weekend. That will
+          make it harder to compare lap times from different sessions.
         </p>
       </div>
     </section>
@@ -710,46 +678,7 @@ function TrackMap() {
   );
 }
 
-/**
- * The one corner with a genuine predictive consequence, which is why it gets a
- * section rather than a line in the layout table. The compromise it forces is
- * the closest thing this weekend has to a known variable.
- *
- * Written for someone watching, not someone building the car. The old version
- * opened "Run the car low and..." in the imperative, which addresses a race
- * engineer; the reader is a fan who wants to know why a team would give up lap
- * time, so the copy explains what a worn plank costs rather than naming a
- * plank infringement and moving on.
- *
- * Length is 550 m, matching F1's feature, Madring's own notes and the circuit
- * guide. "The longest banked corner in Formula 1" came off on 2026-09-08: no
- * source claims it, the hero claimed it in a different scope ("on the
- * calendar", which is a different assertion), and what The Race actually
- * carries is better anyway. Zandvoort is a reference a reader already has.
- *
- * Degree-of-*arc* figures disagree (270° in one F1 feature,
- * semicircular on the event page, "almost 180" from Sainz), so how far round
- * the corner goes stays off the page. The degrees in the copy are the banking
- * angle, which is a different measurement and is not in dispute.
- *
- * Both banking units are published because 24% is a gradient, not an angle,
- * and reads as one. The sources lead with the percentage (it is how the FIA
- * writes its limit) but a reader who takes it for degrees puts this corner at
- * half Zandvoort's.
- *
- * The Race's estimate and Vowles's figure are both here because they disagree
- * about the one thing a reader can act on: how long the car is loaded up. Two
- * seconds and four and a half seconds in different sections would read as one
- * of them being wrong; next to each other they read as an estimate made before
- * anyone ran here and a number taken off the only test data that exists.
- *
- * Prose alone, like the two sections above it. The five-row card that used to
- * sit beside this repeated the corner, its length, its banking and its load
- * from the paragraph next to it, and closed on "Decides: ride height", which
- * is the third paragraph compressed past the point of meaning. The banking
- * figure a reader should be able to scan is already a tile in "What to watch
- * in practice".
- */
+/** Banking is expressed as both a percentage gradient and an angle. */
 function LaMonumental() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="la-monumental">
@@ -758,80 +687,44 @@ function LaMonumental() {
           id="la-monumental"
           className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
-          Everyone has to compromise for Turn 12
+          La Monumental: Madrid&rsquo;s banked Turn 12
         </h2>
         <p className="gpp-reading-copy mt-4 text-text-muted">
-          La Monumental is a banked right-hander, 550 metres of it and 10 metres
-          high. The circuit&rsquo;s chief operations officer calls it similar to
-          Zandvoort&rsquo;s banking, but longer. The banking is quoted as a
-          gradient rather than an angle: 24 percent, or about 13.5 degrees,
-          which is the steepest the FIA allows on a Formula 1 circuit. Estimates
-          put mid-corner speed around 250 kph and the load on the car at about
-          4G for a couple of seconds.{' '}
+          La Monumental is a 550-metre right-hander with 24% banking, equivalent
+          to an angle of about 13.5 degrees. The circuit&rsquo;s chief
+          operations officer compares it with Zandvoort&rsquo;s banking,
+          stretched over a longer corner.{' '}
           <ExternalSource href={CORNER_SOURCE}>
-            The Race on La Monumental
+            The Race&rsquo;s guide to La Monumental
           </ExternalSource>
           .
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          The Formula 3 test put a longer figure on that. James Vowles said the
-          banking holds a car under load for about four and a half seconds. It
-          surprised Williams, and he expects it to be hard on the car and on the
-          systems in it.{' '}
+          James Vowles said the Formula 3 test showed cars staying under load
+          through the banking for roughly four and a half seconds. That puts
+          sustained stress on the car as well as the tyres.{' '}
           <ExternalSource href={VOWLES_SOURCE}>
-            Vowles on the banking load
+            Vowles on the banking
           </ExternalSource>
           .
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          All that load presses the car into the road, and that is where the
-          compromise starts. A car running low is quicker over the lap, but its
-          floor can touch down through the banking, and a worn plank is a
-          disqualification. Sit the car higher and Turn 12 is safe while the
-          other 21 corners are slower. Formula 3 cars were reported to be
-          scraping the surface there in testing, and they generate nowhere near
-          the downforce of a Formula 1 car.
+          Teams will need enough ground clearance to keep the floor from
+          scraping through the banking. Raising the ride height can help, but
+          may reduce aerodynamic performance elsewhere on the lap. If the plank
+          underneath the car wears beyond the permitted limit, the car can be
+          disqualified.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          Ride height is the tell. A team that raises the car between Friday and
-          Saturday has decided Turn 12 is not worth the lap time.
+          Practice will show how well each team manages that compromise,
+          particularly on longer runs with more fuel on board.
         </p>
       </div>
     </section>
   );
 }
 
-/**
- * The same section every other write-up carries, drawn by the same component.
- *
- * This was a hand-rolled four-up card grid saying what `RaceSignalsSection`
- * says, which meant Madrid was the one write-up whose signals read as a
- * different component and the one with no circuit figures above them. The
- * numbers were on the page already, scattered through three asides; the strip
- * is where a reader who skims goes looking for them.
- *
- * Two signals were cut for saying what a section beside them already says:
- * "Ride height changes" was the closing line of "Everyone has to compromise
- * for Turn 12", and "Long-run pace" was the green-surface paragraph in "The
- * track is finished". A reader who has scrolled past both meets them twice and
- * starts skimming. What replaced them is the one thing the page had nowhere
- * else: where a driver can actually pass.
- *
- * That third signal used to read "The Race calls it comfortably the best
- * overtaking spot on the lap, and there is no obvious second one". Neither
- * cited The Race article says that. The corner verdict piece points at La
- * Monumental instead, on the Turn 9 to 11 energy recovery, and says explicitly
- * that there are "plenty of other areas" that should throw up action. Both
- * halves of the sentence were wrong and it was attributed.
- *
- * What is here now is the two candidates the sources actually name, kept as
- * candidates: PlanetF1 on the braking zone into the narrow Turn 5/6 chicane,
- * and the Madring's own chief operations officer on deployment onto the
- * banking. Nobody has raced here, so a confident answer is not available and
- * the copy should not manufacture one. Hamilton closes it because he has
- * driven the lap and a driver saying "no real straights" is the honest version
- * of the point the false sentence was reaching for.
- */
+/** Practice observations; keep untested overtaking prospects conditional. */
 function WatchTable() {
   return (
     <RaceSignalsSection
@@ -844,19 +737,19 @@ function WatchTable() {
       ]}
       signals={[
         [
-          'Friday running',
-          'The first time the whole grid is here',
-          'Nobody arrives with data. Even Ferrari’s filming day was 100 km a driver on demonstration tyres.',
+          'Learning the circuit',
+          'Teams need to check their simulations against real running',
+          'Ferrari has driven here on demonstration tyres, but Friday is the first chance for every team to test its race setup. Consistent laps will be more useful than an early headline time.',
         ],
         [
-          'The tight sector',
-          'Traction and braking around the exhibition halls',
-          'A car that steps out on the exits loses more here than anywhere else on the lap.',
+          'The final sector',
+          'Watch for lock-ups and wheelspin around the exhibition halls',
+          'The closely spaced corners leave little time to recover from a mistake. Drivers need confidence on the brakes and good traction on the exits.',
         ],
         [
-          'Where a pass is possible',
-          'Braking into the Turn 5/6 chicane, and the run into Turn 12',
-          'A long curved straight feeds the heavy braking into the narrow chicane, and cars recover energy through the dip at Turns 9 to 11 to deploy onto the banking. Hamilton, who has driven the lap, called it a qualifying-lap circuit with no real straights.',
+          'Overtaking',
+          'The approaches to the Turn 5/6 chicane and Turn 12 are worth watching',
+          'Both could offer passing opportunities, but we still need to see how closely the cars can follow. Hamilton described the layout as a qualifying-lap circuit with no real straights.',
         ],
       ]}
     />
@@ -866,42 +759,32 @@ function WatchTable() {
 function TyreChoice() {
   return (
     <TyreCompoundSection
-      heading="Pirelli skips the softest compound"
+      heading="Tyres for Madrid"
       venue="Madrid"
       hardest="C2"
       aside={<WriteUpNewsPhoto {...PIRELLI_MEDIUM_WRITEUP_IMAGE} />}
     >
       <p className="gpp-reading-copy mt-7 text-text-muted">
-        Simulated loads here sit close to Silverstone and Spa, and on a hot
-        weekend the C5 would overheat. Pirelli stopped at the middle of the
-        range rather than going harder because C2, C3 and C4 is the set it
-        expects to need two stops.{' '}
+        Pirelli expects Madrid to be one of the five most demanding circuits for
+        the tyres. Cornering forces should be similar to Barcelona and
+        Silverstone, while La Monumental is expected to produce the highest
+        vertical load of the season.{' '}
         <ExternalSource href={TYRE_SOURCE}>
-          Read Pirelli&rsquo;s selection
+          Pirelli&rsquo;s Madrid preview
         </ExternalSource>
         .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        The smooth asphalt offers relatively little grip. It has been cleaned
+        with high-pressure water jets to remove dust and oily residues. Teams
+        may save sets of the Hard tyre for Sunday if practice shows the softer
+        compounds wearing out quickly.
       </p>
     </TyreCompoundSection>
   );
 }
 
-/**
- * What happened seven days ago, because the table under it moved and a reader
- * arriving from search has not necessarily seen the race.
- *
- * Live-only, and deliberately four sentences. The full account of Monza is the
- * Italian Grand Prix write-up's archive, and reproducing it here would be the
- * cross-template duplication `docs/seo-content-policy.md` exists to stop; what
- * this page owes the reader is the result, the standings consequence, and a
- * link. It sits directly above the championship section because "Antonelli won
- * from 19th" is the reason that table reads the way it does.
- *
- * The closing line is the only editorial claim in it, and it is deliberately
- * about aerodynamic demand rather than about a team. Monza ran the lowest-drag
- * package of anyone's season and Madrid has 22 corners and a banked Turn 12,
- * so a reader who takes the Monza order as a Madrid forecast is reading the
- * wrong evidence.
- */
+/** The previous round’s result, with a link to its full write-up. */
 function MonzaRecap() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="monza-recap">
@@ -913,25 +796,24 @@ function MonzaRecap() {
           Antonelli won Monza from 19th
         </h2>
         <p className="gpp-reading-copy mt-4 text-text-muted">
-          A power unit change on Thursday cost him the grid, and Leclerc
-          crashing out at Parabolica on lap 2 red-flagged the race. Antonelli
-          led the restart from lap 18 and won it. Russell finished second,
-          Verstappen third, Norris fourth, Piastri fifth and Hamilton sixth, and
-          Gasly had put an Alpine on pole on Saturday.{' '}
+          Antonelli recovered from 19th on the grid to win at Monza after a
+          power unit penalty. Leclerc&rsquo;s crash at Parabolica brought out a
+          red flag on lap 2. Russell finished second ahead of Verstappen,
+          Norris, Piastri and Hamilton. Gasly had taken pole for Alpine.{' '}
           <ExternalSource href={MONZA_RESULT_SOURCE}>
-            Read the Monza race report
+            The Monza race report
           </ExternalSource>
           .
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          That order came on the lowest-drag package anyone runs all season.
-          Madrid asks for 22 corners and a banked Turn 12, so it is weak
-          evidence for Friday.{' '}
+          Monza rewards straight-line speed. Madrid&rsquo;s 22 corners will ask
+          different things of the cars, so the order could change again this
+          weekend.{' '}
           <Link
             to="/f1-2026-italian-grand-prix-predictions"
             className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
           >
-            How Monza finished, and how the field picked it
+            Monza results and predictions
           </Link>
           .
         </p>
@@ -940,23 +822,7 @@ function MonzaRecap() {
   );
 }
 
-/**
- * Two Spanish drivers and a 45-year gap, which is the fact this weekend is
- * actually about outside the game.
- *
- * The 1981 race leads because it is the interesting half of "Madrid last held
- * a Grand Prix in 1981": a date on its own is trivia, and Villeneuve holding
- * off four faster cars for a 1.24-second top five is the reason anyone
- * remembers Jarama. The closing line used to tell a reader not to move a
- * driver up their Top 5 for the crowd, which is neither about this circuit nor
- * about that race; what survives of it is the one concrete thing the
- * ambassador role buys, which is simulator time.
- *
- * The list is filtered off the standings rather than written down, so a
- * mid-season seat change cannot leave this paragraph naming an old team, and
- * the closing line exists because a home race is exactly the sort of thing a
- * player talks themselves into moving up a Top 5.
- */
+/** Madrid’s racing history, event news and home drivers. */
 function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
   if (drivers.length === 0) {
     return null;
@@ -975,17 +841,33 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
           Villeneuve won the last Grand Prix held in Madrid
         </h2>
         <p className="gpp-reading-copy mt-4 text-text-muted">
-          The last one was at Jarama, north of the city, in June 1981. Gilles
-          Villeneuve&rsquo;s Ferrari was quick in a straight line and awful
-          everywhere else, so he built his gap on the straight and blocked for
-          the rest of the lap. Eighty laps of that, four faster cars stacked up
-          behind him, and he won by 0.22 seconds with the top five covered by
-          1.24.{' '}
+          Gilles Villeneuve won at Jarama in June 1981 by holding off four
+          faster cars. His Ferrari&rsquo;s straight-line speed helped him defend
+          the lead despite its poor handling through the corners. He finished
+          0.22 seconds ahead of Jacques Laffite, with the top five separated by
+          just 1.24 seconds.{' '}
           <ExternalSource href={JARAMA_SOURCE}>
-            Motor Sport on the drive
+            Motor Sport&rsquo;s account of the 1981 race
           </ExternalSource>
           .
         </p>
+        <h3 className="font-title mt-6 text-xl font-medium text-text">
+          Williams brings back its 1981 colours
+        </h3>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Williams revealed a special white, green and navy livery on Tuesday 8
+          September. It is based on the FW07C driven by Alan Jones and Carlos
+          Reutemann at Jarama in 1981, the year Williams won the
+          constructors&rsquo; championship. Sainz unveiled the car at
+          Madrid&rsquo;s Plaza del Callao.{' '}
+          <ExternalSource href={WILLIAMS_LIVERY_SOURCE}>
+            See the Williams livery
+          </ExternalSource>
+          .
+        </p>
+        <h3 className="font-title mt-6 text-xl font-medium text-text">
+          A home race for Sainz and Alonso
+        </h3>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Formula 1 has not been back to Madrid in the 45 years since. Barcelona
           held the Spanish Grand Prix from 1991 until last season and now runs
@@ -1000,14 +882,11 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
           , so Spain has two rounds in 2026.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          Carlos Sainz has been the Madring&rsquo;s ambassador since April 2025,
-          when he stood with the organisers on the day it broke ground.
-          &ldquo;As a Madrile&ntilde;o, seeing Madring begin construction today
-          feels truly special,&rdquo; he wrote afterwards. Fernando Alonso is
-          the other Spaniard here, and both of them are running in the bottom
-          third of the driver standings table.{' '}
+          Madrid-born Carlos Sainz has been the circuit&rsquo;s ambassador since
+          April 2025 and joined the organisers for the start of construction. He
+          and Fernando Alonso are the two Spanish drivers on the grid.{' '}
           <ExternalSource href={SAINZ_SOURCE}>
-            PlanetF1 on the ambassador role
+            Sainz&rsquo;s role at the Madring
           </ExternalSource>
           .
         </p>

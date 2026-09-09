@@ -95,20 +95,16 @@ export function TyreCompoundScale({
               >
                 {compound}
               </p>
-              <p
-                className={
-                  role
-                    ? 'mt-1 text-[10px] tracking-label text-text-muted uppercase sm:text-xs'
-                    : 'sr-only'
-                }
-              >
-                {role ?? `Not used at ${venue}`}
+              <p className={role ? 'mt-1 text-xs text-text-muted' : 'sr-only'}>
+                {role
+                  ? role[0].toUpperCase() + role.slice(1)
+                  : `Not used at ${venue}`}
               </p>
             </li>
           );
         })}
       </ul>
-      <div className="mt-2 flex justify-between gap-4 text-[10px] tracking-label text-text-muted uppercase sm:text-xs">
+      <div className="mt-2 flex justify-between gap-4 text-xs text-text-muted">
         <span>Lasts longer</span>
         <span>More grip</span>
       </div>

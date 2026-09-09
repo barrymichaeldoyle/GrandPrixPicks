@@ -135,7 +135,7 @@ describe('race write-up sections', () => {
       ]);
       // A nomination is three consecutive compounds, so the hardest names the set.
       expect(cells.map((c) => c.querySelectorAll('p')[1]?.textContent)).toEqual(
-        ['Not used at Baku', 'Not used at Baku', 'hard', 'medium', 'soft'],
+        ['Not used at Baku', 'Not used at Baku', 'Hard', 'Medium', 'Soft'],
       );
     });
 

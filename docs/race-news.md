@@ -1,11 +1,12 @@
 # Race News
 
-Short, pick-relevant news items attached to a race weekend, written by an agent
-and shown in the activity feed.
+Research and publish the stories that help fans follow a race weekend. Cover
+both sporting developments and noteworthy event news.
 
-Antonelli taking a grid penalty at Monza changes who you put in your race Top 5
-and leaves your qualifying picks untouched. That is the kind of thing this
-carries. A tribute livery is not, however good the story.
+A grid penalty belongs in the activity feed and the write-up. A special livery,
+tribute or local celebration can also deserve coverage in the write-up, even
+when it has no effect on predictions. Do not discard a useful story because it
+does not change a pick.
 
 ## Why the mutation is the product
 
@@ -22,12 +23,24 @@ to be read by something that will re-run them.
 
 ## Editorial rule
 
-**Publish only what changes a pick.**
+**Research the event, not just the picks.**
 
-The rule is enforced by the schema rather than by this paragraph.
-`affectsSessions` is required and must be non-empty, so publishing an item means
-naming the sessions it changes. An agent that cannot answer that is holding
-something that does not belong in the feed.
+Use two publishing paths:
+
+- Sporting news with a real effect on a session goes through `raceNews` and
+  appears in both the feed and the write-up.
+- Event news such as a special livery, a tribute, a launch or a local story
+  belongs in the relevant write-up section, with a source and the event date
+  where useful. Include it when it adds something a fan would want to know.
+
+The current feed API requires a non-empty `affectsSessions` list. That is a
+constraint of that publishing path, not a reason to omit event coverage.
+Never invent a qualifying or race impact to fit a story into the feed.
+
+Before finishing a weekend research task, check both sporting and event news
+and account for both in the update. For example, Williams unveiling its 1981
+colours for Madrid belongs beside the Jarama history; it should not disappear
+from the task because the livery does not affect lap time.
 
 It pays for itself downstream: `['race']` on a grid penalty is what lets the
 weekend card flag the item on the Race tab and leave Qualifying alone, which is

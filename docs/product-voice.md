@@ -14,6 +14,7 @@ Decide what the person needs from the text:
 1. The one fact they need now.
 2. The action they can take next.
 3. Any detail that changes that action.
+4. For editorial pages, the context or event story a fan came to read.
 
 If a line does none of those jobs, remove it. Do not invent helper text,
 headings, taglines, or explanatory prose just to make a surface feel complete.
@@ -121,6 +122,31 @@ Prefer copy that names the failed action and a real recovery path:
 > Your picks weren’t saved. Try again.
 
 Do not invent a cause or promise when the system does not know one.
+
+## Race write-ups
+
+Write connected prose for a Formula 1 fan. Keep the technical terms that help,
+but explain their consequences in natural sentences. Brevity must not turn the
+copy into fragments or slogans.
+
+Avoid:
+
+> Ride height is the tell. A worn plank is a disqualification.
+
+Prefer:
+
+> Teams may raise the car to stop the floor scraping through the banking.
+> If the plank wears beyond the permitted limit, the car can be disqualified.
+
+Separate observed facts, estimates and interpretation. A setup change does not
+prove a team's motive, and a difficult corner does not make a crash inevitable.
+Do not turn every paragraph into advice about picks. History, special liveries,
+tributes and local stories can make a race preview worth reading in their own
+right. Follow `docs/race-news.md` for where each kind of story is published.
+
+Use sentence case for explanatory captions, including tyre-scale labels such
+as “Lasts longer” and “More grip”. Read headings and practice notes aloud as a
+continuous passage, not as isolated labels.
 
 ## Line breaks
 

@@ -46,13 +46,28 @@ export function getNextSessionLockAt(
   race: Doc<'races'>,
   now: number = Date.now(),
 ): number {
+  return getNextSessionLock(race, now)?.lockAt ?? race.predictionLockAt;
+}
+
+/**
+ * The same deadline, carrying the session it belongs to.
+ *
+ * Copy that names the deadline has to name what is locking — "picks lock Sat
+ * 16:00" is ambiguous on a sprint weekend, where two sessions lock on the
+ * Saturday. Null once the whole weekend is locked, which is the caller's cue
+ * to say nothing rather than to count down to a deadline that has passed.
+ */
+export function getNextSessionLock(
+  race: Doc<'races'>,
+  now: number = Date.now(),
+): { session: SessionType; lockAt: number } | null {
   for (const session of getSessionsForWeekend(!!race.hasSprint)) {
     const lockAt = getRaceSessionLockAt(race, session);
     if (lockAt > now) {
-      return lockAt;
+      return { session, lockAt };
     }
   }
-  return race.predictionLockAt;
+  return null;
 }
 
 type RaceSessionTimesShape = Pick<

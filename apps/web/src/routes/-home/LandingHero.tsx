@@ -65,9 +65,20 @@ export function LandingHero({
             <span className="block">Predict the F1 Top 5,</span>{' '}
             <span className="block text-accent">session by session.</span>
           </h1>
+          {/*
+           * Sentences are authored onto their own lines for the same reason as
+           * the headline: left to the browser the first line ended on "Every
+           * session" and carried "scores:" over the break. Both sentences fit
+           * inside the 48ch measure, so each is one line on desktop and wraps
+           * within itself on phones.
+           */}
           <p className="gpp-reading-copy-lg mt-5 max-w-[48ch] text-text-muted">
-            Then choose who finishes ahead in each team. Every session scores:
-            qualifying, sprints and the race.
+            <span className="block">
+              Then choose who finishes ahead in each team.
+            </span>{' '}
+            <span className="block">
+              Qualifying, sprints and the race all score.
+            </span>
           </p>
           {/*
            * Mobile order: headline → subtext → deadline chip → CTA. The chip

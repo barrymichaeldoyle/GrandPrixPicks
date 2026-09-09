@@ -256,6 +256,76 @@
    ========================================================================== */
 
 @layer base {
+  /*
+   * Line breaking is a default, not a per-surface decision.
+   *
+   * Every ragged heading and every one-word last line reported so far came
+   * from the same place: nothing set `text-wrap`, so the browser filled each
+   * line greedily and dumped the remainder on the last one. The 404's "has
+   * been moved." and the home hero carrying "scores:" over the break were the
+   * same bug on two pages, and fixing them one `text-balance` at a time means
+   * finding them one screenshot at a time.
+   *
+   * So the defaults live here instead:
+   *   - headings BALANCE, which evens the lines of a short block. Chrome caps
+   *     it at a handful of lines, which is all a heading should ever be.
+   *   - prose is PRETTY, which costs nothing on a long paragraph and only
+   *     changes the last two lines to avoid the orphan.
+   *
+   * Both are in `base`, so an authored break (`whitespace-nowrap`, a `block`
+   * span per clause, or an explicit `text-balance` / `text-wrap-stable`
+   * utility) still wins beside them. A surface that needs an exact break
+   * should keep authoring it — see the home hero headline.
+   */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .gpp-heading-balance {
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  dd,
+  figcaption,
+  blockquote {
+    text-wrap: pretty;
+  }
+
+  /*
+   * Centred prose balances instead. `pretty` only rescues a last line of ONE
+   * word, which is not the shape that goes wrong here: the 404's last line was
+   * "has been moved." — three words, and still visibly stranded under a full
+   * one. Centred copy in this app is short by construction (empty states, CTA
+   * cards, the hero subtext), so evening the lines is always the better read,
+   * and Chrome stops balancing past a handful of lines on its own.
+   *
+   * It matches Tailwind's own class, which is how centring is expressed
+   * everywhere in this codebase. The attribute selector is NOT wrapped in
+   * `:where()`: at zero specificity the bare `p` rule above (0,0,1) beat it and
+   * centred copy computed `pretty`. Overriding is still one layer away —
+   * utilities beat base whatever the specificity — so `text-wrap-stable` or an
+   * authored break beside it wins as before.
+   */
+  p[class~='text-center'],
+  li[class~='text-center'],
+  dd[class~='text-center'],
+  [class~='text-center'] :is(p, li, dd) {
+    text-wrap: balance;
+  }
+
+  /* A `sm:`-centred block is left-aligned below the breakpoint, and the class
+     is in the list at every width, so the query has to be re-stated here. */
+  @media (width >= 40rem) {
+    p[class~='sm:text-center'],
+    [class~='sm:text-center'] :is(p, li, dd) {
+      text-wrap: balance;
+    }
+  }
+
   /* Backgrounds are flat colour. No grid, no gradient, no grain, no imagery —
      if photography is ever introduced it goes inside a 4px-radius container as
      content, never behind the page. */

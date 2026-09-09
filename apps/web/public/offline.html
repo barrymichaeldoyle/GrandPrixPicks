@@ -46,17 +46,23 @@
         height: 64px;
         margin-bottom: 24px;
       }
+      /* This page never loads styles.css — the service worker serves it when
+         nothing else can be fetched — so the app's wrapping defaults have to be
+         restated here by hand. Centred copy balances; see the base layer in
+         styles.css for why that beats leaving it to the browser. */
       h1 {
         margin: 0 0 8px;
         font-size: 32px;
         line-height: 1.2;
         font-weight: 400;
         letter-spacing: -0.01em;
+        text-wrap: balance;
       }
       p {
         margin: 0 auto 24px;
         max-width: 38ch;
         color: #a7a8ad;
+        text-wrap: balance;
       }
       a {
         display: inline-flex;
@@ -91,8 +97,7 @@
       </svg>
       <h1>You&apos;re offline</h1>
       <p>
-        Reconnect, then try again. Public pages you opened earlier remain
-        available offline.
+        Reconnect, then try again. Public pages you opened earlier still work.
       </p>
       <a href="/">Try again</a>
     </main>

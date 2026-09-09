@@ -122,6 +122,28 @@ Prefer copy that names the failed action and a real recovery path:
 
 Do not invent a cause or promise when the system does not know one.
 
+## Line breaks
+
+How copy wraps is a writing problem before it is a CSS one. A heading that
+splits into one long line and one short one, or a paragraph whose last line
+carries three words, reads as an accident on every screenshot.
+
+The stylesheet already sets the default: headings balance, prose avoids
+orphans, and centred prose balances (`apps/web/src/styles.css`, base layer). No
+surface needs to opt in, and nothing should be hand-tuned with `<br>`.
+
+What the writing still has to do:
+
+- Keep each sentence short enough to be one line at the width it is shown.
+  Centred copy in a card or an empty state is roughly 40 characters wide; hero
+  subtext is 48.
+- Author the break yourself only for hero-scale type, where balance evens the
+  lines without reading the phrase. Use one `block` span per clause and keep
+  the whitespace between the spans, or the accessible name loses the space (see
+  `LandingHero`).
+- Say it in fewer words instead of adding a break. Every ragged line reported so
+  far shortened cleanly.
+
 ## Review checklist
 
 - Does every line supply a fact, an action, or decision-changing context?
@@ -131,6 +153,7 @@ Do not invent a cause or promise when the system does not know one.
 - Would a regular Formula 1 fan use these words in conversation?
 - Is the terminology factually correct for the session and scoring rule?
 - Does the text still work at mobile width and when read out of context?
+- Does each line end on a clause at the width the surface actually renders?
 - Are errors and blocked states clear about what happened and what to do next?
 
 ## Automated check

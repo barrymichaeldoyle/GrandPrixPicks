@@ -152,20 +152,119 @@ function GuidePage() {
         </InAppBackLink>
 
         <article className="mt-6">
-          <header>
+          {/* The accent arrives as the site's stripe rather than as coloured
+              words in the heading: the title is one string of front matter, so
+              accenting "part" of it would mean inventing a split per guide, and
+              in this system the accent is a 3px edge, not a text colour. */}
+          <header className="gpp-stripe pl-5">
             <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
               {guide.title}
             </h1>
             <p className="gpp-reading-copy-lg mt-3 text-text-muted">
               {guide.summary}
             </p>
+            {/* Both dates when there are two. Showing only the revision date
+                hides how long the guide has stood; showing only the original
+                makes a piece revised this week read as months stale. */}
+            <p className="mt-4 text-sm text-text-muted">
+              By {siteConfig.author.name} · Published{' '}
+              <GuideDate value={guide.publishedAt} />
+              {guide.updatedAt ? (
+                <>
+                  {' '}
+                  · Updated <GuideDate value={guide.updatedAt} />
+                </>
+              ) : null}
+            </p>
+            {guide.status && (
+              <p className="gpp-reading-copy mt-6 border border-border bg-surface p-4 text-text">
+                {guide.status}
+              </p>
+            )}
           </header>
+
+          {guide.hero && (
+            <figure className="mt-8">
+              <img
+                src={guide.hero.src}
+                alt={guide.hero.alt}
+                width={guide.hero.width}
+                height={guide.hero.height}
+                fetchPriority="high"
+                className="h-auto w-full rounded-sm"
+              />
+              <figcaption className="mt-3 text-sm text-text-muted">
+                {guide.hero.caption} Photo:{' '}
+                <a
+                  href={guide.hero.sourceUrl}
+                  className="underline underline-offset-4 hover:text-text"
+                >
+                  {guide.hero.credit}
+                </a>
+                ,{' '}
+                <a
+                  href={guide.hero.licenseUrl}
+                  className="underline underline-offset-4 hover:text-text"
+                >
+                  {guide.hero.license}
+                </a>
+                . Resized.
+              </figcaption>
+            </figure>
+          )}
 
           {guide.sections.map((section) => (
             <section
               key={section.heading}
-              className="mt-10 border-t border-border pt-8"
+              className={
+                section.card
+                  ? 'mt-6 rounded-sm border border-border bg-surface p-5 sm:p-6'
+                  : // Spacing, no rule. A line between every section turned a
+                    // six-section guide into six horizontal rules, which reads
+                    // as a form rather than an article. The only rule left on
+                    // the page is the one below the writing, where the
+                    // appendices start.
+                    'mt-12'
+              }
             >
+              {/* Portrait beside the name, not above it: these panels sit in
+                  a run of five, and a full-width photo in each one turns a
+                  shortlist into five hero images. Square crop because the
+                  source photographs are every shape from 3:4 to 16:9, and a
+                  row of ragged heights reads as broken rather than varied. */}
+              {section.image ? (
+                <figure className="float-right mb-2 ml-4 w-20 sm:w-24">
+                  <img
+                    src={section.image.src}
+                    alt={section.image.alt}
+                    width={section.image.width}
+                    height={section.image.height}
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-square w-full rounded-sm object-cover"
+                    style={
+                      section.image.focus
+                        ? { objectPosition: section.image.focus }
+                        : undefined
+                    }
+                  />
+                  <figcaption className="mt-1 text-[11px] leading-tight text-text-muted">
+                    <a
+                      href={section.image.sourceUrl}
+                      className="underline underline-offset-2 hover:text-text"
+                    >
+                      {section.image.credit}
+                    </a>
+                    ,{' '}
+                    <a
+                      href={section.image.licenseUrl}
+                      className="underline underline-offset-2 hover:text-text"
+                    >
+                      {section.image.license}
+                    </a>
+                  </figcaption>
+                </figure>
+              ) : null}
               <h2 className="font-title text-2xl font-semibold text-text">
                 {section.heading}
               </h2>
@@ -177,6 +276,20 @@ function GuidePage() {
                   {paragraph}
                 </p>
               ))}
+              {section.sources && (
+                <ul className="mt-4 space-y-2 text-sm text-text-muted">
+                  {section.sources.map((source) => (
+                    <li key={source.url}>
+                      <a
+                        href={source.url}
+                        className="underline underline-offset-4 hover:text-text"
+                      >
+                        {source.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
               {/* Scrolls in its own container rather than widening the page:
                   four columns do not fit a phone, and a body that scrolls
                   sideways breaks every other section too. */}
@@ -244,7 +357,7 @@ function GuidePage() {
             </section>
           ))}
           {guide.faqs && guide.faqs.length > 0 ? (
-            <section className="mt-10 border-t border-border pt-8">
+            <section className="mt-12">
               <h2 className="font-title text-2xl font-semibold text-text">
                 Common questions
               </h2>
@@ -252,7 +365,9 @@ function GuidePage() {
                 {guide.faqs.map((faq) => (
                   <div
                     key={faq.question}
-                    className="border-b border-border py-5"
+                    // No rule on the last row: the block below opens with its
+                    // own, and the two stacked read as a mistake.
+                    className="border-b border-border py-5 last:border-b-0"
                   >
                     <dt className="font-semibold text-text">{faq.question}</dt>
                     <dd className="gpp-reading-copy mt-2 text-text-muted">
@@ -278,7 +393,7 @@ function GuidePage() {
               id="guide-live-links"
               className="font-title text-lg font-semibold text-text"
             >
-              See it live
+              On the site
             </h2>
             <ul className="mt-4 space-y-4">
               {guide.liveLinks.map((link) => (
@@ -326,5 +441,19 @@ function GuidePage() {
         <PicksCallToAction className="mt-12" placement="guide" />
       </div>
     </div>
+  );
+}
+
+/** A guide's date, rendered the same way wherever it appears in the header. */
+function GuideDate({ value }: { value: string }) {
+  return (
+    <time dateTime={value}>
+      {new Date(`${value}T12:00:00Z`).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+      })}
+    </time>
   );
 }

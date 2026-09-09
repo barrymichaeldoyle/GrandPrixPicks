@@ -54,6 +54,17 @@ export type GuideMeta = {
 
 const GUIDE_META: readonly GuideMeta[] = [
   {
+    slug: 'f1-2027-haas-second-seat',
+    publishedAt: '2026-09-09',
+    title: 'The 2027 Haas seat: five drivers in contention',
+    metaTitle:
+      '2027 Haas Seat: The Five Candidates to Partner Bearman | Grand Prix Picks',
+    metaDescription:
+      'Ocon, Doohan, Hirakawa, Rafael Câmara and Leonardo Fornaroli are in contention for Haas’s second 2027 seat. Their records, Haas experience and decision status.',
+    summary:
+      'Oliver Bearman is staying. Esteban Ocon, Jack Doohan, Ryo Hirakawa, Rafael Câmara and Leonardo Fornaroli are in contention for the other Haas seat.',
+  },
+  {
     slug: 'f1-points-system-explained',
     publishedAt: '2026-08-03',
     updatedAt: '2026-08-24',
@@ -96,17 +107,21 @@ const GUIDE_META: readonly GuideMeta[] = [
   {
     slug: 'f1-race-weekend-format',
     publishedAt: '2026-08-03',
+    // Sprint weekends added and the prose rewritten on this date. Only ever
+    // set for a substantive revision: the header and `dateModified` both read
+    // it, so touching it for a typo is a freshness claim we did not earn.
+    updatedAt: '2026-09-09',
     title: 'What happens across an F1 race weekend',
     metaTitle: 'F1 Race Weekend Format Explained | Grand Prix Picks',
     metaDescription:
       'A session-by-session explanation of a Formula 1 race weekend: what practice is for, how the three-part qualifying session works, and what happens on race day.',
     summary:
-      'A session-by-session walkthrough for anyone who wants to know what teams are actually doing on Friday.',
+      'What happens in each session of a Grand Prix weekend, from Friday practice to the classification after the flag.',
     faqs: [
       {
         question: 'How many sessions are there in an F1 race weekend?',
         answer:
-          'Five on a conventional weekend: three practice sessions, qualifying, and the Grand Prix. A sprint weekend runs five as well, but cuts practice to one session and adds sprint qualifying and the sprint.',
+          'Five either way. A conventional weekend runs three practice sessions, qualifying and the Grand Prix. A sprint weekend drops two of the practice sessions and adds sprint qualifying and the sprint.',
       },
       {
         question: 'What order do the sessions run in?',
@@ -116,7 +131,7 @@ const GUIDE_META: readonly GuideMeta[] = [
       {
         question: 'Does qualifying decide the starting grid?',
         answer:
-          'It sets the classification, but grid penalties are applied afterwards. A driver can be classified third in qualifying and still start tenth, which is why a qualifying prediction and a race prediction are different problems.',
+          'It sets the qualifying classification. Grid penalties are applied afterwards, so a driver can be classified third in qualifying and start the race tenth.',
       },
       {
         question: 'Why does practice matter if it does not affect the grid?',

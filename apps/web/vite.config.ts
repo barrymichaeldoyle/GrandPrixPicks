@@ -75,7 +75,9 @@ const config = defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
-      include: ['@clerk/tanstack-react-start'],
+      // Clerk's lazy UI requests this entry after the initial crawl. Include it
+      // up front so opening a page does not invalidate loaded React/devtools chunks.
+      include: ['@clerk/tanstack-react-start', '@clerk/react/internal'],
     },
     build: {
       sourcemap: 'hidden',

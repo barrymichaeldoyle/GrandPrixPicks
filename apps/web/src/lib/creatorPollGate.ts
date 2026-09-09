@@ -22,7 +22,7 @@ import { createServerFn } from '@tanstack/react-start';
  * The comparison runs on the server so the key never reaches the bundle.
  */
 const checkPreviewKey = createServerFn({ method: 'GET' })
-  .inputValidator((key: string) => key)
+  .validator((key: string) => key)
   .handler(async ({ data: key }): Promise<boolean> => {
     if (import.meta.env.DEV) {
       return true;

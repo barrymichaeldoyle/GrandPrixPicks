@@ -250,12 +250,11 @@ function HowToPlayPage() {
                 id="top-five-heading"
                 className="font-title text-2xl font-semibold text-text"
               >
-                Close still counts.
+                Top 5 scoring
               </h2>
               <p className="gpp-reading-copy mt-2 max-w-3xl text-text-muted">
                 Your prediction does not need to be perfect to score. Each of
-                your five picks is judged on its own, and a perfect Top 5 earns
-                25 points.
+                your five picks is judged on its own.
               </p>
             </div>
 

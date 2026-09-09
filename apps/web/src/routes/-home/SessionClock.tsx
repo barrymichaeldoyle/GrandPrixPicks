@@ -199,7 +199,7 @@ export function SessionClock({
 
       {/* The label and countdown read as one direct sentence:
           "Sprint Qualifying picks lock in 19 days." */}
-      <p className="gpp-label mt-2">
+      <p className="gpp-reading-meta mt-2 text-text-muted">
         {locked
           ? `${sessionLabel} picks are locked`
           : `${sessionLabel} picks lock in`}
@@ -296,7 +296,9 @@ export function SessionClock({
            * be read as "come back later", and this is the line that answers.
            */}
           {lockDate ? (
-            <p className={`gpp-label mt-2 ${large ? '' : 'text-[0.625rem]'}`}>
+            <p
+              className={`mt-3 text-text-muted ${large ? 'text-sm' : 'text-xs'}`}
+            >
               {lockDate.date} · {lockDate.time}
               {farOut ? ' · Picks open now' : ''}
             </p>

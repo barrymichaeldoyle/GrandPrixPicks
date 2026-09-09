@@ -6,8 +6,10 @@ import {
   useClerkRuntimeControl,
   useClerkWarmHandlers,
 } from '@/integrations/clerk/runtime-control';
+import { Flag } from '@/components/Flag';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { sizedAvatarUrl } from '@/lib/avatar';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
 
 import { PointsCell } from './TimingTower';
 
@@ -107,15 +109,19 @@ function PlayerAvatar({ name, url }: { name: string; url?: string }) {
 function BoardHeader({
   title,
   detail,
+  countryCode,
   example = false,
 }: {
   title: string;
   detail: string;
+  /** Absent on the example league, which is not held at any venue. */
+  countryCode?: string | null;
   example?: boolean;
 }) {
   return (
     <div className="flex min-h-16 flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
       <h3 className="flex items-center gap-2 font-semibold text-text">
+        {countryCode ? <Flag code={countryCode} size="sm" /> : null}
         {title}
         {/* The only thing separating a made-up league from a live one. It was
             previously said in an aria-label alone, which meant the visitors
@@ -141,10 +147,18 @@ function BoardHeader({
  * avatars were added to fix.
  */
 function GlobalBoard({ board }: { board: WeekendBoard | null }) {
+  // Derived from the slug rather than carried on the board: the projection in
+  // `home.getHomePageData` has no country on it, and every other flag on the
+  // page reads the same map.
+  const countryCode = board
+    ? getCountryCodeForRace({ slug: board.raceSlug })
+    : null;
+
   return (
     <article className="flex min-h-full flex-col border border-border bg-surface">
       <BoardHeader
         title={board ? board.raceName : 'Global leaderboard'}
+        countryCode={countryCode}
         detail={
           board
             ? `${board.playerCount} ${board.playerCount === 1 ? 'player' : 'players'}`
@@ -294,9 +308,10 @@ export function CompetitionSection({
            * in words, which is what a phone had to rely on anyway.
            */}
           <div className="hidden md:block">
+            {/* "One score" lived here until the line above said the same thing
+                in a full sentence. The branch below is what carries it now. */}
             <div className="mx-auto w-fit border border-accent-hairline bg-surface-elevated px-6 py-3 text-center">
               <p className="gpp-label text-accent">Your saved picks</p>
-              <p className="mt-1 text-sm text-text-muted">One score</p>
             </div>
 
             <div className="mx-auto h-7 w-px bg-accent" aria-hidden="true" />

@@ -290,7 +290,7 @@ export const Route = createFileRoute('/races/$raceSlug/')({
                 loaderData?.initialResults?.resultsBySession?.race
                   ?.enrichedClassification,
               )
-            : 'Pick your top 5 finishers for this Grand Prix. Earn up to 25 points per session and compete on the season leaderboard.';
+            : 'Pick your top 5 finishers for this Grand Prix and compete on the season leaderboard.';
     const scripts: { type: string; children: string }[] = [];
     if (race) {
       const circuit = getCircuitForRace(race.slug);
@@ -376,9 +376,9 @@ function raceDescription(
   // it is to pass there is exactly the judgement a player is about to make.
   const facts = getCircuitSeoFacts(getCircuitForRace(race.slug)?.slug ?? '');
   if (facts) {
-    return `Pick your top 5 for the ${race.season} ${race.name} at ${facts.shortName}, where overtaking is ${facts.overtaking} and upset risk is ${facts.upsetRisk}. Free to play, 25 points a session.`;
+    return `Pick your top 5 for the ${race.season} ${race.name} at ${facts.shortName}, where overtaking is ${facts.overtaking} and upset risk is ${facts.upsetRisk}. Free to play.`;
   }
-  return `Pick your top 5 finishers for the ${race.season} ${race.name}. Earn up to 25 points per session and compete on the season leaderboard.`;
+  return `Pick your top 5 finishers for the ${race.season} ${race.name} and compete on the season leaderboard.`;
 }
 
 /**

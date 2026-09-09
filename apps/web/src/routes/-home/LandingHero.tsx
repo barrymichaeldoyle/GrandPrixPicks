@@ -66,8 +66,8 @@ export function LandingHero({
             <span className="block text-accent">session by session.</span>
           </h1>
           <p className="gpp-reading-copy-lg mt-5 max-w-[48ch] text-text-muted">
-            Then choose who finishes ahead in each team. Points come from
-            qualifying, sprints and race day.
+            Then choose who finishes ahead in each team. Every session scores:
+            qualifying, sprints and the race.
           </p>
           {/*
            * Mobile order: headline → subtext → deadline chip → CTA. The chip
@@ -85,7 +85,7 @@ export function LandingHero({
             timing rail anchors it without turning it into another card. */}
         {clock ? (
           <aside
-            className="hidden border-l-2 border-accent py-5 pl-8 lg:block"
+            className="gpp-stripe hidden py-5 pl-8 lg:block"
             aria-label="Next prediction deadline"
           >
             {clock}

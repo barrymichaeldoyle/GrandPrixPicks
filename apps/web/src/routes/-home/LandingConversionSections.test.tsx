@@ -56,11 +56,10 @@ describe('landing conversion sections', () => {
   it('explains every scoring band without relying on colour alone', () => {
     act(() => root.render(<ScoringSection />));
 
-    expect(container.textContent).toContain('Close still counts.');
+    expect(container.textContent).toContain('How scoring works');
     expect(container.textContent).toContain(
       'Each of your five picks is scored against where that driver actually finished.',
     );
-    expect(container.textContent).toContain('Five exact calls is 25 points.');
     expect(container.textContent).toContain('5pointsExact position');
     expect(container.textContent).toContain('3pointsOne position away');
     expect(container.textContent).toContain('1pointIn the actual Top 5');

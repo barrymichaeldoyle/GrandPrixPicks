@@ -69,7 +69,7 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
         </p>
         <p className="mb-4 text-sm text-text-muted">
           Pick your Top 5 for each session and choose who finishes ahead in each
-          team. It&apos;s free, and each session is worth up to 25 points.
+          team. It&apos;s free to play.
         </p>
         <SignInActionButton size="sm">Sign In</SignInActionButton>
       </div>

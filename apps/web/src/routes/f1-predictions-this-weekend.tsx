@@ -114,7 +114,7 @@ function descriptionFor(race: NextRace): string {
   if (!race) {
     return 'No Grand Prix is scheduled. Browse the Formula 1 calendar and see how the season finished.';
   }
-  return `Pick your top 5 for the ${race.name} before the first session locks. Free to play, 25 points a session, and a global leaderboard.`;
+  return `Pick your top 5 for the ${race.name} before the first session locks. Free to play, with a global leaderboard and private leagues.`;
 }
 
 /** Drivers arrive in championship-team order, so grouping preserves it. */

@@ -57,11 +57,11 @@ export function ScoringSection({
             id="landing-scoring-heading"
             className="text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"
           >
-            Close still counts.
+            How scoring works
           </h2>
           <p className="gpp-reading-copy-lg mt-3 text-text-muted">
             Each of your five picks is scored against where that driver actually
-            finished. Five exact calls is 25 points.
+            finished.
           </p>
         </div>
 

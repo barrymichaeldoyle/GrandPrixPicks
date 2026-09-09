@@ -1,8 +1,5 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
-import {
-  markPendingEntryDrivers,
-  pendingEntryNoteForSlug,
-} from '@grandprixpicks/shared/pendingEntry';
+import { pendingEntryNoteForSlug } from '@grandprixpicks/shared/pendingEntry';
 import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
@@ -21,7 +18,7 @@ import { loadPracticeResultsForRace } from './practiceResults';
 import { loadCurrentWeekend } from './races';
 import { toUserIdentity } from './lib/userIdentity';
 import { loadMe } from './users';
-import { loadStintsForSeason, rosterForRound } from './lib/lineups';
+import { loadRosterForRound } from './drivers';
 import {
   getDefaultLeaderboardSeason,
   getFollowedUserIds,
@@ -148,7 +145,7 @@ export function rankBeforeLastScoredRace(
 export const getHomePageData = query({
   args: { now: v.number() },
   handler: async (ctx, { now }) => {
-    const [nextRace, races, allDrivers] = await Promise.all([
+    const [nextRace, races] = await Promise.all([
       ctx.db
         .query('races')
         .withIndex('by_status_and_predictionLockAt', (q) =>
@@ -164,29 +161,29 @@ export const getHomePageData = query({
             a.season !== b.season ? a.season - b.season : a.round - b.round,
           ),
         ),
-      // Drivers are stable, bounded landing-page data. Returning them with the
-      // SSR payload means the try-before-signup picker is actionable on first
-      // paint and never depends on a second websocket round trip to escape its
-      // loading skeleton.
-      ctx.db.query('drivers').withIndex('by_displayName').take(30),
     ]);
 
-    // The landing picker must offer the grid that is actually racing next, so
-    // the roster is resolved for the upcoming round: an injured driver is not
-    // pickable and his stand-in is, each under the team they will drive for.
-    // A race still waiting on its entry list is offered as the lineup that
-    // last raced, with the seats that could still change flagged: see
-    // `pendingEntry.ts` for why this is a mark and not an earlier round.
-    const drivers = nextRace
-      ? markPendingEntryDrivers(
-          nextRace.slug,
-          rosterForRound(
-            allDrivers,
-            await loadStintsForSeason(ctx, nextRace.season),
-            nextRace.round,
-          ),
-        )
-      : allDrivers;
+    // Drivers are stable, bounded landing-page data. Returning them with the
+    // SSR payload means the try-before-signup picker is actionable on first
+    // paint and never depends on a second websocket round trip to escape its
+    // loading skeleton.
+    //
+    // Resolved by `loadRosterForRound` rather than by a roster assembled here,
+    // and with the arguments the picker's own subscription passes, so the two
+    // answers are the same array. This block used to read the drivers table in
+    // alphabetical index order and stop there; `listDrivers` sorts by
+    // constructor standings. The picker therefore server-rendered one order and
+    // re-ordered itself the moment the subscription landed, which is a full
+    // grid of drivers moving under the cursor of someone mid-pick.
+    //
+    // `includeNotRacing` matches the client for the same reason the race page
+    // gives: a saved pick naming a driver who has since lost their seat has to
+    // resolve to five slots on the server too.
+    const drivers = await loadRosterForRound(ctx, {
+      round: nextRace?.round,
+      season: nextRace?.season,
+      includeNotRacing: true,
+    });
 
     const startedRaces = races
       .filter((race) => race.raceStartAt <= now && race.status !== 'cancelled')

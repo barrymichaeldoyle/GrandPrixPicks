@@ -15,8 +15,6 @@ const ignoredPathPatterns = [
   /\.(?:test|spec|stories)\.[cm]?[jt]sx?$/,
   /\/routeTree\.gen\.ts$/,
   /\/routes\/(?:terms|privacy|refund-policy|results-policy)\.tsx$/,
-  /\/routes\/f1-(?:2026|2027)-/,
-  /\/lib\/(?:circuitGuides|guideMeta|guides)\.ts$/,
 ];
 
 const ignoredAttributeNames = new Set([
@@ -133,8 +131,8 @@ for (const target of targets) {
         trimmed.startsWith('*') ||
         trimmed.startsWith('//');
       if (startsBlockComment && !trimmed.includes('*/'))
-        insideBlockComment = true;
-      if (trimmed.includes('*/')) insideBlockComment = false;
+        {insideBlockComment = true;}
+      if (trimmed.includes('*/')) {insideBlockComment = false;}
 
       const copyCandidate = lineText.replace(/\/\/.*$/, '');
       const ignored =
@@ -144,7 +142,7 @@ for (const target of targets) {
         trimmed.includes('copy-audit-ignore') ||
         lines[lineIndex - 1]?.includes('copy-audit-ignore') ||
         [...ignoredAttributeNames].some((token) => trimmed.startsWith(token));
-      if (ignored) return;
+      if (ignored) {return;}
 
       for (const rule of activeRules) {
         if (rule.pattern.test(copyCandidate)) {

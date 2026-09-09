@@ -44,7 +44,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
     racing:
       'The long straights and multiple straight-mode zones give a genuinely quick car a route past, but the corners in between are hard to follow through. Passes tend to happen in bursts on the run to the heavy braking zones rather than steadily across the lap.',
     predicting:
-      'Being the season opener is the complication, not the track. Nobody has a reliable read on the pecking order yet, testing form is a weak signal, and reliability failures are more common here than at any other point in the year. Treat the back half of your Top 5 as the volatile part and expect at least one surprise.',
+      'The season opener is what makes this one hard to call. Nobody has a reliable read on the pecking order yet, testing form is a weak signal, and reliability failures are more common here than at any other point in the year. Treat the back half of your Top 5 as the volatile part and expect at least one surprise.',
     traits: [
       { label: 'Track type', value: 'Temporary parkland' },
       { label: 'Overtaking', value: 'Moderate' },

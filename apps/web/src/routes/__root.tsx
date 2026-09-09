@@ -3,13 +3,12 @@ import type { QueryClient } from '@tanstack/react-query';
 import {
   createRootRouteWithContext,
   HeadContent,
-  Link,
   Scripts,
   useLocation,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { ConvexProviderWithAuth } from 'convex/react';
-import { Flag, Home, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import {
   lazy,
@@ -21,6 +20,7 @@ import {
 } from 'react';
 
 import { AppMotionProvider } from '@/components/AppMotionProvider';
+import { NotFoundPage } from '@/components/error/NotFoundPage';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
@@ -256,48 +256,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   notFoundComponent: NotFoundPage,
   shellComponent: RootDocument,
 });
-
-export function NotFoundPage() {
-  useEffect(() => {
-    document.title = 'Page Not Found | Grand Prix Picks';
-    const meta = document.createElement('meta');
-    meta.name = 'robots';
-    meta.content = 'noindex';
-    document.head.appendChild(meta);
-    return () => {
-      meta.remove();
-    };
-  }, []);
-
-  return (
-    <div className="flex min-h-[50vh] items-center justify-center px-4">
-      <div className="w-full max-w-md text-center">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-warning-muted">
-          <Flag className="h-8 w-8 text-warning" aria-hidden="true" />
-        </div>
-
-        <h1 className="mb-2 text-2xl font-semibold text-text">
-          Page not found
-        </h1>
-
-        <p className="mb-8 text-text-muted">
-          Looks like you've taken a wrong turn. This page doesn't exist or has
-          been moved.
-        </p>
-
-        <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-2.5 font-semibold text-text-on-accent transition-colors hover:bg-accent-hover"
-          >
-            <Home className="h-4 w-4" aria-hidden="true" />
-            Go home
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function RootDocument({ children }: PropsWithChildren) {
   const { initialAuth } = Route.useLoaderData();
@@ -890,3 +848,7 @@ function DeferredFeaturesBoundary({ children }: PropsWithChildren) {
 
   return <Suspense fallback={null}>{children}</Suspense>;
 }
+
+/* Five routes render the 404 for their own missing-record case and import it
+   from here. The component moved to `components/error`; this keeps the path. */
+export { NotFoundPage };

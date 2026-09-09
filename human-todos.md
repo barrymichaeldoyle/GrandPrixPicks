@@ -11,12 +11,16 @@ verified on 2026-09-07.
 
 ## 1. Prepare the production services
 
-- [ ] Confirm the Apple Developer Program membership for team `LBZ6C9H52C`
+- [x] Confirm the Apple Developer Program membership for team `LBZ6C9H52C`
       is active.
-- [ ] Create the App Store Connect record for bundle ID
-      `com.barrymichaeldoyle.grandprixpicks`, if it does not exist yet. Add its
-      numeric App Store Connect ID as `submit.production.ios.ascAppId` in
-      `apps/mobile/eas.json`.
+- [x] Create the App Store Connect record for bundle ID
+      `com.barrymichaeldoyle.grandprixpicks`. Created 2026-09-09 as
+      "Grand Prix Picks" (SKU `grand-prix-picks-ios`, Apple ID `6810265048`,
+      now set as `submit.production.ios.ascAppId` in `apps/mobile/eas.json`).
+      The App ID itself already existed as "A Formula 1 Results Prediction
+      App"; Push Notifications and Associated Domains were missing from it and
+      were enabled by hand, so the next build regenerates provisioning
+      profiles.
 - [ ] Deploy and verify the production Convex backend before building the app.
 - [ ] Use a Clerk production instance and confirm the Convex production auth
       issuer matches it. A `pk_test_…` key is intentionally rejected for a

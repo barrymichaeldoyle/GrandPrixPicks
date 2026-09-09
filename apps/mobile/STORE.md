@@ -115,9 +115,22 @@ Settings > Delete account, which removes the account and its data.
 
 ## Age rating
 
-Expect 4+. There is no gambling: nothing is staked, bought or won. If the
-questionnaire asks about "Contests", the honest answer is that scores are for
-standing only, with no prize.
+**Declared 2026-09-09: 4+** (172 countries; Brazil A6, Korea ALL, Vietnam 00+).
+There is no gambling: nothing is staked, bought or won.
+
+"Contests" is answered **Infrequent**, not None. Apple's current wording is
+"events that allow users to compete with one another for rankings, rewards, or
+the achievement of personal goals", which the leaderboard meets even with no
+prize, so None would contradict the definition on screen. Frequent computes to
+**13+**; Infrequent computes to **4+**, which is why the answer is Infrequent
+and `store.config.json` carries `"contests": "INFREQUENT"`.
+
+Two other questionnaire answers are not in `store.config.json` because the
+schema has no field for them: **Social Media = No** (the feed carries
+app-generated events and reactions, with no user-authored text) and **Social
+Media Disabled for Users Under 13 = No** (nothing to disable, and the app does
+not call the Declared Age Range API). The Afghanistan and Morocco sales
+restriction is unrelated to these answers: it shows on every combination.
 
 ## Privacy nutrition labels
 

@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Doc } from '@convex-generated/dataModel';
 
+import type { RosterDriver } from '@/lib/roster';
+
 import { SignedOutRacePreview } from './SignedOutRacePreview';
 
 (
@@ -137,6 +139,40 @@ describe('SignedOutRacePreview', () => {
     for (const code of ['NOR', 'PIA', 'LEC', 'VER']) {
       expect(text).toContain(code);
     }
+  });
+
+  it('leaves a driver who is not in a car this round off the grid', () => {
+    // The roster arrives with `includeNotRacing`, and a driver who has lost the
+    // seat keeps `drivers.team` as a fallback. Unfiltered, Madrid showed
+    // Verstappen, Hadjar and Lawson in the same Red Bull.
+    const drivers = [
+      ...makeDrivers(),
+      {
+        _id: 'driver_had' as Doc<'drivers'>['_id'],
+        _creationTime: 9,
+        createdAt: 0,
+        updatedAt: 0,
+        code: 'HAD',
+        displayName: 'Isack Hadjar',
+        team: 'Red Bull Racing',
+        number: 6,
+        racing: false,
+      } as RosterDriver,
+    ];
+
+    act(() => {
+      root.render(
+        <SignedOutRacePreview
+          race={makeRace()}
+          drivers={drivers}
+          onStartPicks={() => {}}
+        />,
+      );
+    });
+
+    const text = container.textContent ?? '';
+    expect(text).toContain('VER');
+    expect(text).not.toContain('HAD');
   });
 
   it('omits the driver grid when the roster is empty', () => {

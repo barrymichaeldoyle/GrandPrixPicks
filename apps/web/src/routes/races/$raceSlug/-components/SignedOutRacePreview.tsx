@@ -4,12 +4,13 @@ import { ArrowRight, Trophy } from 'lucide-react';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { Button } from '@/components/Button/Button';
+import { pickPool, type RosterDriver } from '@/lib/roster';
 import {
   useClerkRuntimeControl,
   useClerkWarmHandlers,
 } from '@/integrations/clerk/runtime-control';
 
-type DriverRecord = Doc<'drivers'>;
+type DriverRecord = RosterDriver;
 
 /**
  * The signed-out view of an upcoming race. Search engines and first-time
@@ -36,7 +37,12 @@ export function SignedOutRacePreview({
   drivers: DriverRecord[];
   onStartPicks: () => void;
 }) {
-  const teams = groupByTeam(drivers);
+  // The roster arrives with `includeNotRacing`, so a driver who has lost the
+  // seat for this round is in it, carrying `drivers.team` (their *current*
+  // team) as a fallback. That is right for resolving a saved pick and wrong
+  // here: this strip is who is in a car, and unfiltered it put Verstappen,
+  // Hadjar and Lawson in the same Red Bull for Madrid.
+  const teams = groupByTeam(pickPool(drivers));
   const { requestSignIn } = useClerkRuntimeControl();
   const warmHandlers = useClerkWarmHandlers();
 
@@ -118,6 +124,8 @@ export function SignedOutRacePreview({
  * Group the roster by team, preserving first-seen order (the roster arrives
  * sorted by driver name, so teams surface in a stable order). Team-less drivers
  * fall under an "Unassigned" bucket rather than being dropped.
+ *
+ * Takes the racing subset only: see the call site.
  */
 function groupByTeam(
   drivers: DriverRecord[],

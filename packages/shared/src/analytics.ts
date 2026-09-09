@@ -23,6 +23,8 @@ export const analyticsEventNames = [
   'checkout_start_failed',
   'checkout_started',
   'checkout_ui_completed',
+  'command_palette_command_run',
+  'command_palette_opened',
   'feed_event_opened',
   'feed_event_reaction_added',
   'feed_event_reaction_changed',

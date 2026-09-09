@@ -8,6 +8,7 @@ import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { PICKS_ANCHOR, useHasPicksAnchorOnPage } from '@/lib/picksAnchor';
 import { BrandMark } from './BrandMark.tsx';
+import { CommandPaletteShortcut } from './CommandPalette/CommandPaletteShortcut.tsx';
 import { APP_NAV_TABS, NavTab } from './NavTab.tsx';
 import { NotificationBell } from './NotificationBell.tsx';
 
@@ -214,6 +215,12 @@ export function Header() {
           </div>
         </div>
       </div>
+
+      {/* Renders nothing. It lives here because the header is the one component
+          that mounts on every page and already knows the viewer, and the
+          palette needs both. Signed-out visitors get a shorter list, not no
+          palette. */}
+      <CommandPaletteShortcut signedIn={isSignedIn} />
     </header>
   );
 }

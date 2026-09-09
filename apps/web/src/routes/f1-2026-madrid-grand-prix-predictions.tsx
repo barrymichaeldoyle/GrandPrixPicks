@@ -78,6 +78,10 @@ const F3_OFFICIAL_SOURCE =
   'https://www.fiaformula3.com/en/latest/article/fia-formula-3-to-hold-official-tests-at-madring-in-august-as-the-2026-f3-season-finale-expands-with-additional-feature-race.1VGQYdEuNMGEGVM51PyEDH';
 const RED_FLAG_SOURCE =
   'https://www.planetf1.com/news/madring-spanish-grand-prix-2026-red-flags';
+const VOWLES_SOURCE =
+  'https://www.grandprix.com/news/vowles-warns-madring-could-be-car-wrecking.html';
+const SAINZ_LABEL_SOURCE =
+  'https://www.grandprix.com/news/sainz-questions-madring-car-killer-description.html';
 const LAP_TIME_SOURCE =
   'https://www.pitdebrief.com/post/2026-f3-in-season-testing-madrid-2/';
 const THEFT_SOURCE =
@@ -519,6 +523,15 @@ function MadridGrandPrixPredictionsPage() {
  *
  * Ugochukwu gets his flag, because a driver's name carries one everywhere else
  * on this site and he is not exempt for racing in a different championship.
+ *
+ * The last two paragraphs are the argument about what the test means, and they
+ * are both quotes rather than ours. Williams counted the broken parts and
+ * Vowles called the place car-wrecking; Sainz, at Monza two days later, said
+ * that verdict is about Formula 3 cars until Formula 1 runs. They replaced a
+ * sentence of our own saying Formula 1 "will meet the same walls", which was
+ * the same point unsourced. The 4.5-second load figure from the same Vowles
+ * interview is in "Everyone has to compromise for Turn 12", beside the corner
+ * estimate it lengthens, rather than here.
  */
 function FormulaThreeTest() {
   return (
@@ -549,9 +562,23 @@ function FormulaThreeTest() {
             .
           </p>
           <p className="gpp-reading-copy mt-3 text-text-muted">
-            Formula 1 will be far quicker than any of that, and will meet the
-            same walls. Nineteen stoppages in two days is the closest thing this
-            weekend has to a safety car forecast.
+            Williams went through the test data and counted the rest of the
+            damage: three broken chassis and six broken suspensions. Team
+            principal James Vowles called the Madring a car-wrecking track.{' '}
+            <ExternalSource href={VOWLES_SOURCE}>
+              Vowles on the test data
+            </ExternalSource>
+            .
+          </p>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            Carlos Sainz was asked about that at Monza. He said the car-killer
+            name belongs to Formula 3 for now, and that nobody yet knows whether
+            it fits a Formula 1 car. Nineteen stoppages in two days is still the
+            closest thing this weekend has to a safety car forecast.{' '}
+            <ExternalSource href={SAINZ_LABEL_SOURCE}>
+              Sainz on the label
+            </ExternalSource>
+            .
           </p>
         </div>
         {/* The one picture on this page whose subject is the thing the section
@@ -710,6 +737,12 @@ function TrackMap() {
  * writes its limit) but a reader who takes it for degrees puts this corner at
  * half Zandvoort's.
  *
+ * The Race's estimate and Vowles's figure are both here because they disagree
+ * about the one thing a reader can act on: how long the car is loaded up. Two
+ * seconds and four and a half seconds in different sections would read as one
+ * of them being wrong; next to each other they read as an estimate made before
+ * anyone ran here and a number taken off the only test data that exists.
+ *
  * Prose alone, like the two sections above it. The five-row card that used to
  * sit beside this repeated the corner, its length, its banking and its load
  * from the paragraph next to it, and closed on "Decides: ride height", which
@@ -737,6 +770,16 @@ function LaMonumental() {
           4G for a couple of seconds.{' '}
           <ExternalSource href={CORNER_SOURCE}>
             The Race on La Monumental
+          </ExternalSource>
+          .
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          The Formula 3 test put a longer figure on that. James Vowles said the
+          banking holds a car under load for about four and a half seconds. It
+          surprised Williams, and he expects it to be hard on the car and on the
+          systems in it.{' '}
+          <ExternalSource href={VOWLES_SOURCE}>
+            Vowles on the banking load
           </ExternalSource>
           .
         </p>

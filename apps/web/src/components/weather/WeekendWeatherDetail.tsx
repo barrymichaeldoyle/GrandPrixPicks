@@ -61,9 +61,9 @@ export function WeekendWeatherDetail({
 
       {/* Full width. The card above it is a five-row table that uses every
           pixel of the column, and a button sized to its own label left a
-          ragged notch under the last row. Centring it instead would have put
-          it out of line with the session names and the attribution, which are
-          both flush left. */}
+          ragged notch under the last row. Full width is also what keeps it
+          reading as centred under the card's centred heading and attribution
+          without being a third width in the same footer. */}
       <Button
         type="button"
         variant="secondary"
@@ -84,7 +84,11 @@ export function WeekendWeatherDetail({
         timeZoneLabel={timeZoneLabel}
       />
 
-      <WeatherAttribution weather={weather} now={now} className="mt-3" />
+      <WeatherAttribution
+        weather={weather}
+        now={now}
+        className="mt-3 text-center"
+      />
     </div>
   );
 }

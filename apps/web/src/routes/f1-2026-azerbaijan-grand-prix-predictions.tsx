@@ -210,7 +210,7 @@ function AzerbaijanGrandPrixPredictionsPage() {
             <div className="flex items-center gap-3">
               <Flag code="AZ" size="xl" />
               <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                <p className="gpp-mono text-sm text-text-muted uppercase">
+                <p className="gpp-mono text-sm text-text-muted">
                   24–26 Sep · Baku · Round {race.round}
                 </p>
                 <span className="text-text-disabled" aria-hidden>

@@ -24,12 +24,19 @@ type ScheduleRace = {
   raceStartAt: number;
 };
 
-/** Two states of one control, so the difference between them is one place. */
+/**
+ * Two states of one control, so the difference between them is one place.
+ *
+ * `-outline-offset-2` because the group clips to its own radius: the global
+ * focus ring sits 2px outside the button, which is 2px inside `overflow:
+ * hidden`, so keyboard focus on the only control in this card was invisible.
+ * Drawn inside the button instead.
+ */
 function toggleClass(active: boolean) {
-  return `px-2 py-1 text-xs transition-colors ${
+  return `gpp-touch-target inline-flex min-h-9 items-center px-3 text-xs transition-colors focus-visible:-outline-offset-2 pointer-coarse:min-h-11 ${
     active
       ? 'bg-accent-muted font-medium text-accent'
-      : 'text-text-muted hover:text-text'
+      : 'text-text-muted hover:bg-surface-elevated hover:text-text'
   }`;
 }
 
@@ -209,43 +216,50 @@ export function RaceWriteupWeekendSchedule({
     forecast && nextSession ? forecastAlert(forecast, nextSession) : null;
 
   return (
+    // Named for assistive technology rather than by a visible heading. A
+    // heading here would have read "Schedule and forecast" over five rows
+    // that say `Practice 1 · Fri 13:30 · 28°C`, which is the redundant
+    // heading `docs/product-voice.md` rules out: the table states its own
+    // subject. `WeekendScheduleList` on the dashboard is named the same way.
     <section
-      aria-labelledby="weekend-timing"
-      className="rounded-sm bg-surface-elevated"
+      aria-label={forecast ? 'Schedule and forecast' : 'Weekend schedule'}
+      className="rounded-sm border border-border bg-surface"
     >
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border px-4 py-2.5 sm:py-3">
-        <h2 id="weekend-timing" className="font-title font-medium text-text">
-          {forecast ? 'Schedule and forecast' : 'Weekend schedule'}
-        </h2>
-        <div className="flex items-center gap-2">
-          <span className="gpp-mono text-xs text-text-muted uppercase">
-            {activeZoneLabel}
-          </span>
-          {showToggle ? (
-            <div
-              className="flex items-center overflow-hidden rounded-sm border border-border"
-              role="group"
-              aria-label="Show session times in"
+      {/* The column head, in the timing-sheet sense: what unit the figures
+          below are in, and the control that changes it. The zone label and the
+          toggle are pinned to opposite edges rather than sharing one group at
+          the right. Grouped, the label's width was the toggle's left edge, so
+          switching to a zone with a shorter name ("Madrid time" to "SAST")
+          slid the whole control sideways under the cursor that had just
+          clicked it. */}
+      <div className="flex items-center justify-between gap-x-3 border-b border-border px-4 py-2">
+        <span className="gpp-mono text-xs text-text-muted">
+          {activeZoneLabel}
+        </span>
+        {showToggle ? (
+          <div
+            className="flex shrink-0 items-center overflow-hidden rounded-sm border border-border"
+            role="group"
+            aria-label="Show session times in"
+          >
+            <button
+              type="button"
+              onClick={() => setInViewerTime(false)}
+              aria-pressed={!showViewerTime}
+              className={toggleClass(!showViewerTime)}
             >
-              <button
-                type="button"
-                onClick={() => setInViewerTime(false)}
-                aria-pressed={!showViewerTime}
-                className={toggleClass(!showViewerTime)}
-              >
-                Track time
-              </button>
-              <button
-                type="button"
-                onClick={() => setInViewerTime(true)}
-                aria-pressed={showViewerTime}
-                className={`border-l border-border ${toggleClass(showViewerTime)}`}
-              >
-                My time
-              </button>
-            </div>
-          ) : null}
-        </div>
+              Track time
+            </button>
+            <button
+              type="button"
+              onClick={() => setInViewerTime(true)}
+              aria-pressed={showViewerTime}
+              className={`border-l border-border ${toggleClass(showViewerTime)}`}
+            >
+              My time
+            </button>
+          </div>
+        ) : null}
       </div>
       <dl>
         {sessions.map(([label, timestamp]) => {
@@ -260,6 +274,11 @@ export function RaceWriteupWeekendSchedule({
           return (
             <div
               key={label}
+              // The stripe sits inside the shared 16px gutter rather than
+              // pushing the row to `pl-5` the way a leaderboard row does: it is
+              // 8px wide, the gutter clears it twice over, and the session
+              // names are a column that has to stay straight to read as one.
+              //
               // Centred, not baseline-aligned. The forecast cell is a flex box
               // whose first item is a 16px icon, so its baseline came from the
               // icon rather than the temperature beside it and the whole cell
@@ -270,11 +289,20 @@ export function RaceWriteupWeekendSchedule({
                 forecast
                   ? 'sm:grid-cols-[minmax(0,1fr)_auto_auto]'
                   : 'sm:grid-cols-[6.5rem_1fr]'
-              } ${isNext ? 'bg-accent-muted' : ''}`}
+              } ${isNext ? 'gpp-stripe bg-surface-elevated' : ''}`}
             >
               <dt
-                className={`text-sm ${isNext ? 'font-medium text-accent' : 'text-text-muted'}`}
+                className={`text-sm ${isNext ? 'font-medium text-text' : 'text-text-muted'}`}
               >
+                {/* The row that matters carries the stripe, a surface step and
+                    the heavier weight. It used to be an accent fill with accent
+                    text, which is the treatment the pressed toggle above it
+                    already owns: two elements lit the same way meaning "you
+                    chose this" and "this one runs next". Colour alone also does
+                    not say which, hence the name. */}
+                {isNext ? (
+                  <span className="sr-only">Next session: </span>
+                ) : null}
                 {label}
               </dt>
               <dd className="gpp-mono text-right text-sm text-text">

@@ -76,14 +76,14 @@ function getFeatured(
 
 export function HomeHero() {
   const { titleFontFamily } = useTypography();
-  const { races } = useRaceWeekends();
+  const { isLoading, races } = useRaceWeekends();
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const { width } = useWindowDimensions();
   const now = useNow(30_000);
   const isNarrow = width < NARROW_WIDTH;
 
   const featured = getFeatured(races, now);
-  if (!featured) {
+  if (isLoading || !featured) {
     return null;
   }
   const { race, round, nextSession } = featured;

@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/expo';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useMutation } from 'convex/react';
@@ -19,7 +20,10 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
 import { captureAnalyticsEvent } from '../../lib/analytics';
+import { homePaintIsPending } from '../../lib/homePaint';
 import { useIsSignedIn } from '../../lib/useIsSignedIn';
+import { useHomePaintGate } from '../../lib/useHomePaintGate';
+import { useRaceWeekends } from '../../lib/useRaceWeekends';
 import { useRefreshSpinner } from '../../lib/useRefreshSpinner';
 import type { HomeStackParamList } from '../../navigation/types';
 import { useMobileConfig } from '../../providers/mobile-config';
@@ -45,10 +49,12 @@ type FeedGroup =
   | { kind: 'standalone'; key: string; event: FeedEvent };
 
 export function FeedScreen() {
-  const { convexEnabled } = useMobileConfig();
+  const { clerkEnabled, convexEnabled } = useMobileConfig();
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const { refreshing, onRefresh } = useRefreshSpinner();
+  const { isLoaded: authLoaded } = useAuth();
   const isSignedIn = useIsSignedIn();
+  const { isLoading: racesLoading } = useRaceWeekends();
 
   const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
     Array(MAX_EXTRA_PAGES).fill(null),
@@ -84,6 +90,15 @@ export function FeedScreen() {
   ) as FeedPage;
 
   const me = useQuery(api.users.me, convexEnabled ? {} : 'skip');
+  const recap = useQuery(api.home.getRaceRecap, convexEnabled ? {} : 'skip');
+  const weekend = useQuery(
+    api.races.getCurrentWeekend,
+    convexEnabled ? {} : 'skip',
+  );
+  const topPlayers = useQuery(
+    api.leaderboards.getCombinedSeasonLeaderboard,
+    convexEnabled ? { limit: 6 } : 'skip',
+  );
 
   const feedLoadedRef = useRef(false);
   useEffect(() => {
@@ -130,6 +145,25 @@ export function FeedScreen() {
     });
   }
 
+  const discoveryPending =
+    isSignedIn &&
+    page0 != null &&
+    page0.events.length === 0 &&
+    topPlayers === undefined;
+  const holdPaint = useHomePaintGate(
+    homePaintIsPending({
+      authLoaded,
+      clerkEnabled,
+      convexEnabled,
+      discoveryPending,
+      feed: page0,
+      me,
+      racesLoading,
+      recap,
+      weekend,
+    }),
+  );
+
   if (!convexEnabled) {
     return (
       <View className="flex-1 bg-page px-4 pt-3">
@@ -146,7 +180,7 @@ export function FeedScreen() {
     );
   }
 
-  if (page0 === undefined) {
+  if (holdPaint) {
     return <LoadingScreen />;
   }
 

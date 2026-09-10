@@ -252,6 +252,7 @@ function TabsNavigator() {
 }
 
 export function AppNavigator() {
+  const isSignedIn = useIsSignedIn();
   const previousRouteKeyRef = useRef<string | null>(null);
 
   function captureCurrentScreen() {
@@ -275,20 +276,22 @@ export function AppNavigator() {
       ref={navigationRef}
     >
       {/*
-        No auth gate above the tabs any more. The calendar, the countdown and
-        the leaderboard are all public data, and a visitor can build a card
-        before they have an account: the screens that genuinely need an
-        identity ask for it themselves, and sign-in is a sheet they can reach
-        from wherever they hit that point.
+        No auth gate above the tabs. The calendar, the countdown and the
+        leaderboard are public, and a visitor can build a card before they
+        have an account. Sign-in is a sheet they reach from those screens —
+        and it is omitted once they have a session, so a signed-in viewer
+        cannot land on it via navigate, back-gesture, or a leftover modal.
       */}
       <PendingPickSubmitter />
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         <RootStack.Screen component={TabsNavigator} name="Tabs" />
-        <RootStack.Screen
-          component={SignInScreen}
-          name="SignIn"
-          options={{ presentation: 'modal' }}
-        />
+        {isSignedIn ? null : (
+          <RootStack.Screen
+            component={SignInScreen}
+            name="SignIn"
+            options={{ presentation: 'modal' }}
+          />
+        )}
       </RootStack.Navigator>
     </NavigationContainer>
   );

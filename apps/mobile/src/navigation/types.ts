@@ -37,7 +37,8 @@ export type RootTabParamList = {
  *
  * It lives here rather than inline in the navigator so any screen can ask for
  * sign-in without a cast. Every tab is reachable signed out now, so "send this
- * reader to sign-in" is a cross-cutting need, not a one-screen one.
+ * reader to sign-in" is a cross-cutting need, not a one-screen one. The sheet
+ * is unregistered while signed in; the param remains so callers type-check.
  */
 export type RootStackParamList = {
   Tabs: NavigatorScreenParams<RootTabParamList> | undefined;

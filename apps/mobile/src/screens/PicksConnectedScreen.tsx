@@ -1,5 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import {
+  analyticsEvents,
+  analyticsFailureReason,
+} from '@grandprixpicks/shared/analytics';
+import {
   getSessionsForWeekend,
   SESSION_LABELS,
   SESSION_LABELS_SHORT,
@@ -7,16 +11,17 @@ import {
 } from '@grandprixpicks/shared/sessions';
 import { buildScoreShareText } from '@grandprixpicks/shared/share';
 import { useMutation } from 'convex/react';
-import { useQuery } from '../integrations/convex/query';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import { Share } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
+import { RaceRecapCard } from '../components/home/RaceRecapCard';
+import { SignedOutPicksNotice } from '../components/picks/SignedOutPicksNotice';
 import { DraggableTop5 } from '../components/predict/DraggableTop5';
 import { H2HMatchupGrid } from '../components/predict/H2HMatchupGrid';
-import { RaceRecapCard } from '../components/home/RaceRecapCard';
-import { SessionResultsCard } from '../components/races/SessionResultsCard';
 import { PracticeResultsSheet } from '../components/races/practice-results-sheet';
+import { SessionResultsCard } from '../components/races/SessionResultsCard';
 import { EmptyState } from '../components/ui/EmptyState';
 import { FlagImage } from '../components/ui/FlagImage';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -27,24 +32,20 @@ import { useOfferPushAfterFirstSave } from '../hooks/useOfferPushAfterFirstSave'
 import { useRequestReviewAfterScoredWeekend } from '../hooks/useRequestReviewAfterScoredWeekend';
 import type { ConvexDoc, ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
+import { useQuery } from '../integrations/convex/query';
 import { captureAnalyticsEvent } from '../lib/analytics';
-import {
-  analyticsEvents,
-  analyticsFailureReason,
-} from '@grandprixpicks/shared/analytics';
 import { useUserDateFormat } from '../lib/dates';
-import { getTeamColor } from '../lib/teamColors';
 import { formatCountdown, getLockStatusViewModel } from '../lib/lockTime';
 import { loadConnectedDraft, patchConnectedDraft } from '../lib/picksDrafts';
+import { displayTeamName, getTeamColor } from '../lib/teamColors';
+import { useIsSignedIn } from '../lib/useIsSignedIn';
 import { useNow } from '../lib/useNow';
+import { useSignInSheet } from '../lib/useSignInSheet';
 import { useMobileConfig } from '../providers/mobile-config';
 import { useToast } from '../providers/ToastProvider';
 import { colors } from '../theme/tokens';
 import { useTypography } from '../theme/typography';
-import { Pressable, ScrollView, Text, View } from '../tw';
-import { SignedOutPicksNotice } from '../components/picks/SignedOutPicksNotice';
-import { useIsSignedIn } from '../lib/useIsSignedIn';
-import { useSignInSheet } from '../lib/useSignInSheet';
+import { Pressable, Text, View } from '../tw';
 
 const MAX_TOP5 = 5;
 const CASCADE_DRAFT_SESSION: SessionType = 'race';
@@ -144,6 +145,7 @@ function PredictForRace({
   );
   const [resultsSheetVisible, setResultsSheetVisible] = useState(false);
   const [viewedFormGuide, setViewedFormGuide] = useState(false);
+  const [listScrollEnabled, setListScrollEnabled] = useState(true);
 
   const submitPrediction = useMutation(api.predictions.submitPrediction);
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
@@ -263,9 +265,15 @@ function PredictForRace({
   return (
     <View className="flex-1 bg-page">
       <ScrollView
-        className="flex-1"
-        contentContainerClassName="gap-[18px] px-4 pt-3 pb-10"
+        contentContainerStyle={{
+          gap: 18,
+          paddingBottom: 40,
+          paddingHorizontal: 16,
+          paddingTop: 12,
+        }}
+        scrollEnabled={listScrollEnabled}
         showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
       >
         {/* Above the picker, for the eight hours after a race starts. This
             screen advances to the next round the moment results publish, which
@@ -355,6 +363,7 @@ function PredictForRace({
               selectedLockAt={selectedLockAt}
               cascadeMode={!hasAnyTop5}
               existingPicks={predictionsBySession[selectedSession] ?? []}
+              onDraggingChange={(dragging) => setListScrollEnabled(!dragging)}
               sessionIsLocked={selectedSessionIsLocked}
               onSubmit={async (picks, sessionType) => {
                 if (!isSignedIn) {
@@ -511,16 +520,16 @@ function WeekendPointsStrip({
   return (
     <View className="flex-row items-center gap-1.5">
       <View className="flex-1 flex-row items-baseline gap-1.5">
-        <Text className="text-muted text-[10px] font-extrabold uppercase">
+        <Text className="text-muted text-[10px] font-semibold uppercase">
           Weekend so far
         </Text>
-        <Text className="text-sm font-extrabold text-accent-hover">
+        <Text className="text-sm font-semibold text-accent-hover">
           {totalPoints} pts
         </Text>
       </View>
       <Pressable
         accessibilityRole="button"
-        className="flex-row items-center gap-1 rounded-full border border-border px-2.5 py-1 active:opacity-70"
+        className="flex-row items-center gap-1 rounded-sm border border-border px-2.5 py-1 active:opacity-70"
         hitSlop={6}
         onPress={() => void handleShare()}
       >
@@ -571,7 +580,7 @@ function ScoredSessionSection({
             action={
               h2hScore ? (
                 <Text className="text-xs">
-                  <Text className="text-foreground font-extrabold">
+                  <Text className="text-foreground font-semibold">
                     {h2hScore.correctPicks}/{h2hScore.totalPicks}
                   </Text>
                   <Text className="text-muted">
@@ -582,11 +591,7 @@ function ScoredSessionSection({
               ) : null
             }
           />
-          <H2HReadonly
-            matchups={matchups}
-            selections={h2hPicks}
-            sessionLocked
-          />
+          <H2HReadonly matchups={matchups} selections={h2hPicks} />
         </View>
       ) : null}
     </View>
@@ -632,7 +637,7 @@ function PageHeader({
 
   return (
     <View className="gap-1">
-      <Text className="text-[10px] font-extrabold text-accent uppercase">
+      <Text className="text-[10px] font-semibold text-accent uppercase">
         Round {race.round} · {race.season}
       </Text>
       <View className="flex-row items-center gap-2.5">
@@ -772,7 +777,7 @@ function SectionHeader({
 }) {
   return (
     <View className="flex-row items-center justify-between pb-0.5">
-      <Text className="text-muted text-[10px] font-extrabold uppercase">
+      <Text className="text-muted text-[10px] font-semibold uppercase">
         {title}
       </Text>
       {action ?? null}
@@ -818,6 +823,7 @@ function Top5Section({
   cascadeMode,
   existingPicks,
   sessionIsLocked,
+  onDraggingChange,
   onSubmit,
 }: {
   race: RaceDoc;
@@ -827,6 +833,7 @@ function Top5Section({
   cascadeMode: boolean;
   existingPicks: ReadonlyArray<string>;
   sessionIsLocked: boolean;
+  onDraggingChange?: (dragging: boolean) => void;
   onSubmit: (
     picks: string[],
     sessionType: SessionType | undefined,
@@ -865,6 +872,7 @@ function Top5Section({
           existingPicks={existingPicks}
           sessionIsLocked={sessionIsLocked}
           onCancel={() => setEditing(false)}
+          onDraggingChange={onDraggingChange}
           onSubmit={onSubmit}
         />
       ) : (
@@ -887,6 +895,7 @@ function Top5Editor({
   existingPicks,
   sessionIsLocked,
   onCancel,
+  onDraggingChange,
   onSubmit,
 }: {
   race: RaceDoc;
@@ -897,6 +906,7 @@ function Top5Editor({
   existingPicks: ReadonlyArray<string>;
   sessionIsLocked: boolean;
   onCancel: () => void;
+  onDraggingChange?: (dragging: boolean) => void;
   onSubmit: (
     picks: string[],
     sessionType: SessionType | undefined,
@@ -1064,6 +1074,7 @@ function Top5Editor({
         disabled={sessionIsLocked}
         drivers={drivers}
         onChange={updatePicks}
+        onDraggingChange={onDraggingChange}
         picks={picks}
       />
     </View>
@@ -1090,39 +1101,78 @@ function Top5Readonly({
   }
 
   return (
-    <View>
-      {picks.map((id, index) => {
-        const driver = driverById.get(id);
-        return (
-          <View key={`${id}-${index}`}>
-            {index > 0 ? <View className="ml-[7px] h-px bg-border" /> : null}
-            <View className="flex-row items-center gap-2.5 py-2.5">
-              <View
-                className="w-[3px] self-stretch rounded-sm"
-                style={{ backgroundColor: getTeamColor(driver?.team) }}
-              />
-              <Numeral style={{ minWidth: 30 }} variant="large">
-                {`P${index + 1}`}
+    <View className="overflow-hidden rounded-xl border border-border bg-surface">
+      <View className="flex-row">
+        <View className="border-r border-border bg-surface-muted">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <View
+              className="w-10 items-center justify-center border-b border-border last:border-b-0"
+              key={n}
+              style={{ height: 56 }}
+            >
+              <Numeral tone="accent" variant="small">
+                {`P${n}`}
               </Numeral>
-              <View className="flex-1 gap-0.5">
-                <Text className="text-foreground text-[13px] font-extrabold">
-                  {driver?.code ?? '???'}
-                </Text>
-                <Text className="text-muted text-[11px]" numberOfLines={1}>
-                  {driver?.displayName ?? 'Unknown driver'}
-                </Text>
-              </View>
-              {sessionLocked ? (
-                <Ionicons
-                  color={colors.textMuted}
-                  name="lock-closed-outline"
-                  size={12}
-                />
-              ) : null}
             </View>
-          </View>
-        );
-      })}
+          ))}
+        </View>
+        <View className="min-w-0 flex-1">
+          {picks.map((id, index) => {
+            const driver = driverById.get(id);
+            return (
+              <View
+                className="h-14 flex-row items-stretch border-b border-border last:border-b-0"
+                key={`${id}-${index}`}
+              >
+                <View className="w-12 shrink-0 flex-row items-stretch border-r border-border">
+                  <View
+                    className="w-[3px] self-stretch"
+                    style={{ backgroundColor: getTeamColor(driver?.team) }}
+                  />
+                  <View className="flex-1 items-center justify-center gap-0.5">
+                    {driver?.number != null ? (
+                      <Numeral variant="small">{driver.number}</Numeral>
+                    ) : null}
+                    <Numeral tone="muted" variant="small">
+                      {driver?.code ?? '???'}
+                    </Numeral>
+                  </View>
+                </View>
+                <View className="min-w-0 flex-1 justify-center gap-0.5 px-2.5">
+                  <Text
+                    className="text-foreground text-[13px] font-medium"
+                    numberOfLines={1}
+                  >
+                    {driver?.displayName ?? 'Unknown driver'}
+                  </Text>
+                  {driver?.team ? (
+                    <Text className="text-muted text-[11px]" numberOfLines={1}>
+                      {displayTeamName(driver.team)}
+                    </Text>
+                  ) : null}
+                </View>
+                {sessionLocked ? (
+                  <View className="justify-center pr-3">
+                    <Ionicons
+                      color={colors.textMuted}
+                      name="lock-closed-outline"
+                      size={12}
+                    />
+                  </View>
+                ) : null}
+              </View>
+            );
+          })}
+          {Array.from({ length: Math.max(0, 5 - picks.length) }).map((_, i) => (
+            <View
+              className="h-14 justify-center border-b border-dashed border-border bg-surface px-3 last:border-b-0"
+              key={`empty-${i}`}
+            >
+              <Text className="text-muted text-sm">Select a driver</Text>
+            </View>
+          ))}
+        </View>
+      </View>
     </View>
   );
 }
@@ -1193,11 +1243,7 @@ function H2HSection({
           sessionIsLocked={sessionIsLocked}
         />
       ) : (
-        <H2HReadonly
-          matchups={matchups}
-          selections={existingPicks}
-          sessionLocked={sessionIsLocked}
-        />
+        <H2HReadonly matchups={matchups} selections={existingPicks} />
       )}
     </View>
   );
@@ -1407,11 +1453,9 @@ function H2HEditor({
 function H2HReadonly({
   matchups,
   selections,
-  sessionLocked,
 }: {
   matchups: ReadonlyArray<Matchup>;
   selections: Record<string, string>;
-  sessionLocked: boolean;
 }) {
   if (matchups.length === 0) {
     return null;
@@ -1425,63 +1469,11 @@ function H2HReadonly({
     );
   }
   return (
-    <View>
-      {matchups.map((matchup, index) => {
-        const teamColor = getTeamColor(matchup.team);
-        const winnerId = selections[matchup._id];
-        const winner =
-          winnerId === matchup.driver1._id
-            ? matchup.driver1
-            : winnerId === matchup.driver2._id
-              ? matchup.driver2
-              : null;
-        const loser = winner
-          ? winner._id === matchup.driver1._id
-            ? matchup.driver2
-            : matchup.driver1
-          : null;
-        return (
-          <View key={matchup._id}>
-            {index > 0 ? <View className="ml-[7px] h-px bg-border" /> : null}
-            <View className="flex-row items-center gap-2.5 py-2.5">
-              <View
-                className="w-[3px] self-stretch rounded-sm"
-                style={{ backgroundColor: teamColor }}
-              />
-              <Text className="text-foreground flex-1 text-xs font-semibold">
-                {matchup.team}
-              </Text>
-              <View className="flex-row items-center gap-1.5">
-                {winner ? (
-                  <>
-                    <Text className="text-foreground text-[13px] font-extrabold">
-                      {winner.code}
-                    </Text>
-                    <Text className="text-muted text-[10px] uppercase">
-                      over
-                    </Text>
-                    <Text className="text-muted text-xs font-bold">
-                      {loser?.code ?? '—'}
-                    </Text>
-                  </>
-                ) : (
-                  <Text className="text-[11px] font-semibold text-warning">
-                    Not picked
-                  </Text>
-                )}
-              </View>
-              {sessionLocked ? (
-                <Ionicons
-                  color={colors.textMuted}
-                  name="lock-closed-outline"
-                  size={12}
-                />
-              ) : null}
-            </View>
-          </View>
-        );
-      })}
-    </View>
+    <H2HMatchupGrid
+      matchups={[...matchups]}
+      mode="readonly"
+      selections={selections}
+    />
   );
 }
 

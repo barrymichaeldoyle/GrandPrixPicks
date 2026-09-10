@@ -14,6 +14,8 @@ import { useAuth, useClerk, useSSO } from '@clerk/expo';
  * worth doing deliberately rather than folding into a package rename.
  */
 import { useSignIn, useSignUp } from '@clerk/expo/legacy';
+import type { NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useRef, useState } from 'react';
@@ -21,8 +23,9 @@ import type { TextInput as RNTextInput } from 'react-native';
 import { Platform } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 
-import { captureAnalyticsEvent } from '../../lib/analytics';
 import { BrandMark } from '../../components/ui/BrandMark';
+import { captureAnalyticsEvent } from '../../lib/analytics';
+import type { RootStackParamList } from '../../navigation/types';
 import { colors } from '../../theme/tokens';
 import { useTypography } from '../../theme/typography';
 import {
@@ -98,6 +101,7 @@ function isAlreadySignedInError(err: unknown): boolean {
 
 export function SignInScreen() {
   const { titleFontFamily } = useTypography();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { startSSOFlow } = useSSO();
   const clerk = useClerk();
   const { isLoaded: authLoaded, isSignedIn, sessionId } = useAuth();
@@ -131,6 +135,20 @@ export function SignInScreen() {
   const passwordRef = useRef<RNTextInput>(null);
   const confirmPasswordRef = useRef<RNTextInput>(null);
   const codeRef = useRef<RNTextInput>(null);
+
+  // The sheet is a route, not a gate. Successful auth used to leave it up:
+  // `setActive` flipped the session and every handler just `return`ed. Pop
+  // the moment there is a session so a signed-in viewer cannot stay here.
+  useEffect(() => {
+    if (!isSignedIn) {
+      return;
+    }
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+    navigation.navigate('Tabs');
+  }, [isSignedIn, navigation]);
 
   // Recovery for the case where Clerk has a session resource on the device
   // but `setActive` never fired (e.g. OAuth flow returned a session and then
@@ -402,6 +420,10 @@ export function SignInScreen() {
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
+
+  if (isSignedIn) {
+    return <View className="flex-1 bg-page" />;
+  }
 
   const isSignUp = mode === 'signUp';
   const canSubmit =

@@ -1,17 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import DraggableFlatList, {
-  type RenderItemParams,
-  ScaleDecorator,
-  ShadowDecorator,
-} from 'react-native-draggable-flatlist';
+import { useLayoutEffect } from 'react';
+import { View as RNView } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  type SharedValue,
+} from 'react-native-reanimated';
 
 import { compareDriversByTeam } from '@grandprixpicks/shared/teams';
 
 import type { ConvexDoc } from '../../integrations/convex/api';
-import { getTeamColor } from '../../lib/teamColors';
+import { displayTeamName, getTeamColor } from '../../lib/teamColors';
 import { colors } from '../../theme/tokens';
-import { FlatList, Pressable, Text, View } from '../../tw';
+import { Pressable, Text, View } from '../../tw';
+import { NationalityFlag } from '../ui/FlagImage';
 import { Numeral } from '../ui/Numeral';
 
 /**
@@ -22,6 +28,8 @@ import { Numeral } from '../ui/Numeral';
 type Driver = ConvexDoc<'drivers'> & {
   team?: string | null;
   racing?: boolean;
+  familyName?: string;
+  nationality?: string | null;
 };
 
 function isRacing(driver: Driver): boolean {
@@ -33,189 +41,329 @@ type DraggableTop5Props = {
   drivers: Driver[];
   onChange: (picks: string[]) => void;
   disabled?: boolean;
+  /** Parent scroll should lock while a row is being dragged. */
+  onDraggingChange?: (dragging: boolean) => void;
   /** Primary action (Save CTA), rendered between the picks and the pool. */
   action?: React.ReactNode;
 };
 
 const MAX_PICKS = 5;
+const ROW_HEIGHT = 56;
+/** Same spring the web picker uses for layout (`stiffness: 350, damping: 30`). */
+const SPRING = { damping: 30, mass: 1, stiffness: 350 };
+/** Matches web `@dnd-kit` PointerSensor `activationConstraint.distance`. */
+const ACTIVATION_DISTANCE = 8;
 
 type PickedItem = { driverId: string; driver: Driver; index: number };
 
-function PickedRow({
-  item,
-  drag,
-  isActive,
-  canMoveUp,
-  canMoveDown,
-  disabled,
-  onMoveUp,
-  onMoveDown,
-  onRemove,
-}: {
-  item: PickedItem;
-  drag: () => void;
-  isActive: boolean;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
-  disabled: boolean;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  onRemove: () => void;
-}) {
-  const teamColor = getTeamColor(item.driver.team);
+function driverSurname(driver: Driver): string {
+  return driver.familyName || driver.displayName.split(' ').slice(1).join(' ');
+}
 
+function arrayMove(items: string[], from: number, to: number): string[] {
+  const next = [...items];
+  const [moved] = next.splice(from, 1);
+  if (moved === undefined) {
+    return items;
+  }
+  next.splice(to, 0, moved);
+  return next;
+}
+
+function TeamEdge({ team }: { team?: string | null }) {
   return (
     <View
-      className={`flex-row items-center gap-2.5 py-1.5 ${
-        isActive ? 'rounded-md bg-surface-elevated px-1.5' : ''
-      }`}
-    >
-      <Pressable
-        accessibilityRole="button"
-        delayLongPress={120}
-        disabled={disabled}
-        onLongPress={() => {
-          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          drag();
-        }}
-        className="h-11 w-[52px] items-center justify-center rounded-md"
-        style={{ backgroundColor: teamColor }}
-      >
-        <View className="items-center gap-px rounded-md bg-black/35 px-1.5 py-[3px]">
-          {item.driver.number != null ? (
-            <Text className="text-sm leading-4 font-extrabold text-white">
-              {item.driver.number}
-            </Text>
-          ) : null}
-          <Text className="text-[11px] font-extrabold text-white">
-            {item.driver.code}
-          </Text>
-        </View>
-      </Pressable>
-      <Pressable
-        accessibilityRole="button"
-        delayLongPress={120}
-        disabled={disabled}
-        onLongPress={() => {
-          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          drag();
-        }}
-        className="flex-1 gap-0.5"
-      >
-        <Text
-          className="text-foreground text-[13px] font-bold"
-          numberOfLines={1}
-        >
-          {item.driver.displayName}
-        </Text>
-        {item.driver.team ? (
-          <Text className="text-muted text-[11px]" numberOfLines={1}>
-            {item.driver.team}
-          </Text>
+      className="w-[3px] self-stretch"
+      style={{ backgroundColor: getTeamColor(team) }}
+    />
+  );
+}
+
+function TeamDot({ team }: { team?: string | null }) {
+  return (
+    <View
+      className="h-[5px] w-[5px] rounded-full"
+      style={{ backgroundColor: getTeamColor(team) }}
+    />
+  );
+}
+
+function DriverPickBadge({ driver }: { driver: Driver }) {
+  return (
+    <View className="w-12 shrink-0 flex-row items-stretch border-r border-border">
+      <TeamEdge team={driver.team} />
+      <View className="flex-1 items-center justify-center gap-0.5">
+        {driver.number != null ? (
+          <Numeral variant="small">{driver.number}</Numeral>
         ) : null}
-      </Pressable>
-      {!disabled ? (
-        <View className="flex-row gap-1">
-          <Pressable
-            accessibilityLabel={`Move ${item.driver.displayName} up`}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !canMoveUp }}
-            disabled={!canMoveUp}
-            onPress={onMoveUp}
-            className={`h-7 w-7 items-center justify-center rounded-lg bg-surface-muted ${
-              canMoveUp ? '' : 'opacity-30'
-            }`}
-          >
-            <Ionicons
-              color={canMoveUp ? colors.text : colors.textMuted}
-              name="chevron-up"
-              size={14}
-            />
-          </Pressable>
-          <Pressable
-            accessibilityLabel={`Move ${item.driver.displayName} down`}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !canMoveDown }}
-            disabled={!canMoveDown}
-            onPress={onMoveDown}
-            className={`h-7 w-7 items-center justify-center rounded-lg bg-surface-muted ${
-              canMoveDown ? '' : 'opacity-30'
-            }`}
-          >
-            <Ionicons
-              color={canMoveDown ? colors.text : colors.textMuted}
-              name="chevron-down"
-              size={14}
-            />
-          </Pressable>
-          <Pressable
-            accessibilityLabel={`Remove ${item.driver.displayName} from your picks`}
-            accessibilityRole="button"
-            className="h-7 w-7 items-center justify-center rounded-lg bg-surface-muted"
-            onPress={onRemove}
-          >
-            <Ionicons color={colors.textMuted} name="close" size={14} />
-          </Pressable>
-        </View>
-      ) : null}
+        <Numeral tone="muted" variant="small">
+          {driver.code}
+        </Numeral>
+      </View>
     </View>
   );
 }
 
-function EmptySlot({ position }: { position: number }) {
-  return (
-    <View className="flex-row items-center gap-2.5 py-1 opacity-45">
-      <View className="h-8 w-[52px] items-center justify-center rounded-md border border-dashed border-border-strong">
-        <Numeral style={{ fontSize: 12 }} tone="muted" variant="large">
-          {`P${position}`}
-        </Numeral>
+function hapticSelection() {
+  void Haptics.selectionAsync();
+}
+
+function PickedRow({
+  item,
+  index,
+  count,
+  disabled,
+  dragIndex,
+  hoverIndex,
+  dragTranslation,
+  onMoveUp,
+  onMoveDown,
+  onRemove,
+  onReorder,
+  onDraggingChange,
+}: {
+  item: PickedItem;
+  index: number;
+  count: number;
+  disabled: boolean;
+  dragIndex: SharedValue<number>;
+  hoverIndex: SharedValue<number>;
+  dragTranslation: SharedValue<number>;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onRemove: () => void;
+  onReorder: (from: number, to: number) => void;
+  onDraggingChange?: (dragging: boolean) => void;
+}) {
+  const notifyDragging = onDraggingChange;
+  const animatedStyle = useAnimatedStyle(() => {
+    const from = dragIndex.value;
+    if (from === index) {
+      return {
+        zIndex: 10,
+        opacity: 0.6,
+        transform: [{ translateY: dragTranslation.value }],
+      };
+    }
+    let shift = 0;
+    const to = hoverIndex.value;
+    if (from >= 0 && to >= 0 && from !== to) {
+      if (from < to && index > from && index <= to) {
+        shift = -ROW_HEIGHT;
+      } else if (from > to && index >= to && index < from) {
+        shift = ROW_HEIGHT;
+      }
+    }
+    return {
+      zIndex: 0,
+      opacity: 1,
+      transform: [{ translateY: withSpring(shift, SPRING) }],
+    };
+  });
+
+  const pan = Gesture.Pan()
+    .enabled(!disabled && count > 1)
+    .maxPointers(1)
+    .minDistance(ACTIVATION_DISTANCE)
+    .onBegin(() => {
+      if (notifyDragging) {
+        runOnJS(notifyDragging)(true);
+      }
+    })
+    .onStart(() => {
+      // Reanimated shared values are mutable by design.
+      // oxlint-disable-next-line react/immutability
+      dragIndex.value = index;
+      // oxlint-disable-next-line react/immutability
+      hoverIndex.value = index;
+      // oxlint-disable-next-line react/immutability
+      dragTranslation.value = 0;
+      runOnJS(hapticSelection)();
+    })
+    .onUpdate((event) => {
+      // oxlint-disable-next-line react/immutability
+      dragTranslation.value = event.translationY;
+      const next = Math.round(index + event.translationY / ROW_HEIGHT);
+      const clamped = Math.max(0, Math.min(count - 1, next));
+      if (clamped !== hoverIndex.value) {
+        // oxlint-disable-next-line react/immutability
+        hoverIndex.value = clamped;
+        runOnJS(hapticSelection)();
+      }
+    })
+    .onEnd(() => {
+      const from = dragIndex.value;
+      const to = hoverIndex.value;
+      // oxlint-disable-next-line react/immutability
+      dragTranslation.value = (to - from) * ROW_HEIGHT;
+      runOnJS(onReorder)(from, to);
+    })
+    .onFinalize(() => {
+      if (notifyDragging) {
+        runOnJS(notifyDragging)(false);
+      }
+    });
+
+  const handle = (
+    <>
+      <DriverPickBadge driver={item.driver} />
+      <View className="min-w-0 flex-1 justify-center gap-0.5 px-2.5">
+        <View className="flex-row items-center gap-2">
+          {item.driver.nationality ? (
+            <NationalityFlag code={item.driver.nationality} />
+          ) : null}
+          <Text
+            className="text-foreground min-w-0 flex-1 text-[13px] font-medium"
+            numberOfLines={1}
+          >
+            {item.driver.displayName}
+          </Text>
+        </View>
+        {item.driver.racing === false ? (
+          <Text className="text-[11px] text-error" numberOfLines={1}>
+            Not racing this round
+          </Text>
+        ) : item.driver.team ? (
+          <View className="flex-row items-center gap-1.5">
+            <TeamDot team={item.driver.team} />
+            <Text
+              className="text-muted min-w-0 flex-1 text-[11px]"
+              numberOfLines={1}
+            >
+              {displayTeamName(item.driver.team)}
+            </Text>
+          </View>
+        ) : null}
       </View>
-      <Text className="text-muted flex-1 text-xs">Pick #{position}</Text>
+    </>
+  );
+
+  return (
+    <Animated.View
+      collapsable={false}
+      style={[{ height: ROW_HEIGHT }, animatedStyle]}
+    >
+      <View className="h-14 flex-row items-stretch border-b border-border bg-surface-muted">
+        {disabled || count <= 1 ? (
+          <View className="min-w-0 flex-1 flex-row items-stretch">
+            {handle}
+          </View>
+        ) : (
+          <GestureDetector gesture={pan}>
+            <RNView
+              accessibilityLabel="Drag to reorder"
+              accessibilityRole="button"
+              collapsable={false}
+              style={{
+                alignItems: 'stretch',
+                alignSelf: 'stretch',
+                flex: 1,
+                flexDirection: 'row',
+                minWidth: 0,
+              }}
+            >
+              {handle}
+            </RNView>
+          </GestureDetector>
+        )}
+        {!disabled ? (
+          <View className="flex-row items-center gap-0.5 border-l border-border px-1.5">
+            <View>
+              <Pressable
+                accessibilityLabel={`Move ${item.driver.displayName} up`}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: index === 0 }}
+                className="h-6 w-6 items-center justify-center"
+                disabled={index === 0}
+                onPress={onMoveUp}
+                style={{ opacity: index === 0 ? 0.3 : 1 }}
+              >
+                <Ionicons color={colors.accent} name="chevron-up" size={14} />
+              </Pressable>
+              <Pressable
+                accessibilityLabel={`Move ${item.driver.displayName} down`}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: index >= count - 1 }}
+                className="h-6 w-6 items-center justify-center"
+                disabled={index >= count - 1}
+                onPress={onMoveDown}
+                style={{ opacity: index >= count - 1 ? 0.3 : 1 }}
+              >
+                <Ionicons color={colors.accent} name="chevron-down" size={14} />
+              </Pressable>
+            </View>
+            <Pressable
+              accessibilityLabel={`Remove ${item.driver.displayName} from your picks`}
+              accessibilityRole="button"
+              className="h-6 w-6 items-center justify-center"
+              onPress={onRemove}
+            >
+              <Ionicons color={colors.error} name="close" size={16} />
+            </Pressable>
+          </View>
+        ) : null}
+      </View>
+    </Animated.View>
+  );
+}
+
+function EmptySlot() {
+  return (
+    <View className="h-14 justify-center border-b border-dashed border-border bg-surface px-3 last:border-b-0">
+      <Text className="text-muted text-sm">Select a driver</Text>
     </View>
   );
 }
 
 function PoolDriverCard({
   driver,
-  inPicks,
+  pickedPosition,
   poolFull,
   disabled,
   onPress,
 }: {
   driver: Driver;
-  inPicks: boolean;
+  pickedPosition: number | null;
   poolFull: boolean;
   disabled: boolean;
   onPress: () => void;
 }) {
-  const teamColor = getTeamColor(driver.team);
-  const isDisabled = disabled || (!inPicks && poolFull);
+  const picked = pickedPosition !== null;
+  const isDisabled = disabled || (!picked && poolFull);
+  const surname = driverSurname(driver);
 
   return (
     <Pressable
       accessibilityRole="button"
-      className={`m-[3px] h-14 flex-1 items-center justify-center rounded-md ${
-        inPicks ? 'opacity-40' : isDisabled ? 'opacity-35' : ''
+      className={`min-h-11 flex-row overflow-hidden rounded-sm border ${
+        picked
+          ? 'border-accent/40 bg-accent-muted/15'
+          : 'border-border bg-surface-elevated'
       }`}
-      disabled={isDisabled && !inPicks}
+      disabled={isDisabled && !picked}
       onPress={onPress}
-      style={{ backgroundColor: teamColor }}
+      style={{ opacity: !picked && isDisabled ? 0.4 : 1 }}
     >
-      <View className="flex-row items-center gap-1 rounded-md bg-black/35 px-2 py-1">
-        {driver.number != null ? (
-          <Text className="text-[11px] font-bold text-white opacity-85">
-            {driver.number}
+      <TeamEdge team={driver.team} />
+      <View className="min-w-0 flex-1 justify-center gap-0.5 py-2.5 pr-2 pl-2.5">
+        {picked ? (
+          <Numeral
+            style={{ position: 'absolute', top: 4, right: 6 }}
+            tone="accent"
+            variant="small"
+          >
+            {`P${pickedPosition}`}
+          </Numeral>
+        ) : null}
+        <Numeral tone={picked ? 'muted' : 'default'} variant="small">
+          {driver.code}
+        </Numeral>
+        {surname ? (
+          <Text className="text-muted text-[11px]" numberOfLines={1}>
+            {surname}
           </Text>
         ) : null}
-        <Text className="text-[13px] font-extrabold text-white">
-          {driver.code}
-        </Text>
       </View>
-      {inPicks ? (
-        <View className="absolute top-1 right-1 h-4 w-4 items-center justify-center rounded-full bg-black/55">
-          <Ionicons color="#fff" name="checkmark" size={10} />
-        </View>
-      ) : null}
     </Pressable>
   );
 }
@@ -230,11 +378,30 @@ function sortDrivers(drivers: Driver[]): Driver[] {
   return [...drivers].sort((a, b) => compareDriversByTeam(a, b));
 }
 
+function TimingRail() {
+  return (
+    <View className="border-r border-border bg-surface-muted">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <View
+          className="w-10 items-center justify-center border-b border-border last:border-b-0"
+          key={n}
+          style={{ height: ROW_HEIGHT }}
+        >
+          <Numeral tone="accent" variant="small">
+            {`P${n}`}
+          </Numeral>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export function DraggableTop5({
   picks,
   drivers,
   onChange,
   disabled = false,
+  onDraggingChange,
   action,
 }: DraggableTop5Props) {
   // The pool only offers drivers in a car this round; the lookup keeps
@@ -256,6 +423,20 @@ export function DraggableTop5({
     .filter((item): item is PickedItem => item !== null);
 
   const emptyCount = MAX_PICKS - pickedItems.length;
+  const dragIndex = useSharedValue(-1);
+  const hoverIndex = useSharedValue(-1);
+  const dragTranslation = useSharedValue(0);
+
+  useLayoutEffect(() => {
+    // Reanimated shared values are mutable by design; the React rule cannot
+    // distinguish them from ordinary values returned by hooks.
+    // oxlint-disable-next-line react/immutability
+    dragIndex.value = -1;
+    // oxlint-disable-next-line react/immutability
+    hoverIndex.value = -1;
+    // oxlint-disable-next-line react/immutability
+    dragTranslation.value = 0;
+  }, [dragIndex, dragTranslation, hoverIndex, picks]);
 
   function handlePoolTap(driverId: string) {
     if (pickSet.has(driverId)) {
@@ -272,7 +453,7 @@ export function DraggableTop5({
     if (targetIndex < 0 || targetIndex >= picks.length) {
       return;
     }
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    void Haptics.selectionAsync();
     const next = [...picks];
     [next[index], next[targetIndex]] = [next[targetIndex]!, next[index]!];
     onChange(next);
@@ -283,57 +464,47 @@ export function DraggableTop5({
     onChange(picks.filter((_, i) => i !== index));
   }
 
-  function renderItem({
-    item,
-    drag,
-    isActive,
-    getIndex,
-  }: RenderItemParams<PickedItem>) {
-    const index = getIndex() ?? item.index;
-    return (
-      // The scaled row needs slack on both sides or it clips at the list
-      // container — the list pulls -2 margin and rows pad it back (px-2),
-      // so a 1.03 scale stays inside the bounds.
-      <ScaleDecorator activeScale={1.03}>
-        <ShadowDecorator opacity={0.4} radius={8}>
-          <View className="px-2">
-            <PickedRow
-              canMoveDown={index < pickedItems.length - 1}
-              canMoveUp={index > 0}
-              disabled={disabled}
-              drag={drag}
-              isActive={isActive}
-              item={item}
-              onMoveDown={() => handleMove(index, 'down')}
-              onMoveUp={() => handleMove(index, 'up')}
-              onRemove={() => handleRemove(index)}
-            />
-          </View>
-        </ShadowDecorator>
-      </ScaleDecorator>
-    );
+  function handleReorder(from: number, to: number) {
+    if (from < 0 || to < 0 || from === to) {
+      // oxlint-disable-next-line react/immutability
+      dragIndex.value = -1;
+      // oxlint-disable-next-line react/immutability
+      hoverIndex.value = -1;
+      // oxlint-disable-next-line react/immutability
+      dragTranslation.value = 0;
+      return;
+    }
+    onChange(arrayMove(picks, from, to));
   }
 
   return (
     <View className="gap-3.5">
-      <View className="gap-1">
-        {pickedItems.length > 0 ? (
-          <DraggableFlatList
-            activationDistance={8}
-            containerStyle={{ flexGrow: 0, marginHorizontal: -8 }}
-            data={pickedItems}
-            keyExtractor={(item) => item.driverId}
-            onDragEnd={({ data }) => {
-              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              onChange(data.map((item) => item.driverId));
-            }}
-            renderItem={renderItem}
-            scrollEnabled={false}
-          />
-        ) : null}
-        {Array.from({ length: emptyCount }).map((_, i) => (
-          <EmptySlot key={`empty-${i}`} position={pickedItems.length + i + 1} />
-        ))}
+      <View className="overflow-hidden rounded-xl border border-border bg-surface">
+        <View className="flex-row">
+          <TimingRail />
+          <View className="min-w-0 flex-1">
+            {pickedItems.map((item, index) => (
+              <PickedRow
+                count={pickedItems.length}
+                disabled={disabled}
+                dragIndex={dragIndex}
+                dragTranslation={dragTranslation}
+                hoverIndex={hoverIndex}
+                index={index}
+                item={item}
+                key={item.driverId}
+                onDraggingChange={onDraggingChange}
+                onMoveDown={() => handleMove(index, 'down')}
+                onMoveUp={() => handleMove(index, 'up')}
+                onRemove={() => handleRemove(index)}
+                onReorder={handleReorder}
+              />
+            ))}
+            {Array.from({ length: emptyCount }).map((_, i) => (
+              <EmptySlot key={`empty-${pickedItems.length + i}`} />
+            ))}
+          </View>
+        </View>
       </View>
 
       {/* The primary action sits above the pool so a completed list never
@@ -344,25 +515,25 @@ export function DraggableTop5({
         <View className="gap-2.5">
           <Text className="text-muted text-xs">
             {poolFull
-              ? 'Tap a pick to remove · long-press a row to reorder'
+              ? 'Drag a row to reorder'
               : `${MAX_PICKS - picks.length} remaining. Tap to add`}
           </Text>
-          <FlatList
-            columnWrapperClassName="gap-0"
-            data={sortedDrivers}
-            keyExtractor={(d) => d._id}
-            numColumns={4}
-            renderItem={({ item }) => (
-              <PoolDriverCard
-                disabled={disabled}
-                driver={item}
-                inPicks={pickSet.has(item._id)}
-                onPress={() => handlePoolTap(item._id)}
-                poolFull={poolFull}
-              />
-            )}
-            scrollEnabled={false}
-          />
+          <View className="-mx-[3px] flex-row flex-wrap">
+            {sortedDrivers.map((driver) => {
+              const pickIndex = picks.indexOf(driver._id);
+              return (
+                <View className="w-1/4 p-[3px]" key={driver._id}>
+                  <PoolDriverCard
+                    disabled={disabled}
+                    driver={driver}
+                    onPress={() => handlePoolTap(driver._id)}
+                    pickedPosition={pickIndex === -1 ? null : pickIndex + 1}
+                    poolFull={poolFull}
+                  />
+                </View>
+              );
+            })}
+          </View>
         </View>
       ) : (
         <View className="flex-row items-center gap-1.5 py-1">

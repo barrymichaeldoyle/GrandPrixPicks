@@ -21,3 +21,16 @@ export function FlagImage({ raceSlug }: FlagImageProps) {
     </View>
   );
 }
+
+/** 4:3 nationality flag, same box the web picker uses at `xs`. */
+export function NationalityFlag({ code }: { code: string }) {
+  return (
+    <View className="h-3 w-4 shrink-0 overflow-hidden rounded-[1px] border border-border">
+      <Image
+        source={{ uri: `https://flagcdn.com/w40/${code.toLowerCase()}.png` }}
+        className="h-full w-full"
+        resizeMode="cover"
+      />
+    </View>
+  );
+}

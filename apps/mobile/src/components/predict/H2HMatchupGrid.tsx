@@ -1,5 +1,6 @@
-import { getTeamColor } from '../../lib/teamColors';
+import { displayTeamName, getTeamColor } from '../../lib/teamColors';
 import { Pressable, Text, View } from '../../tw';
+import { Numeral } from '../ui/Numeral';
 
 type H2HDriver = {
   _id: string;
@@ -37,44 +38,37 @@ export function H2HMatchupGrid({
   }
 
   return (
-    <View>
-      {matchups.map((matchup, index) => {
-        const teamColor = getTeamColor(matchup.team);
+    <View className="gap-2">
+      {matchups.map((matchup) => {
         const selected = selections[matchup._id];
 
         return (
-          <View key={matchup._id}>
-            {index > 0 ? <View className="ml-[7px] h-px bg-border" /> : null}
-            <View className="flex-row items-center gap-2.5 py-2.5">
+          <View
+            className="overflow-hidden rounded-lg bg-surface"
+            key={matchup._id}
+          >
+            <View className="flex-row items-center gap-1.5 px-3 pt-2">
               <View
-                className="w-[3px] self-stretch rounded-sm"
-                style={{ backgroundColor: teamColor }}
+                className="h-[5px] w-[5px] rounded-full"
+                style={{ backgroundColor: getTeamColor(matchup.team) }}
               />
-              <Text
-                className="text-foreground flex-1 text-xs font-bold"
-                numberOfLines={1}
-              >
-                {matchup.team}
+              <Text className="text-muted text-xs font-semibold uppercase">
+                {displayTeamName(matchup.team)}
               </Text>
-              <View className="flex-row items-center gap-2">
-                <DriverButton
-                  driver={matchup.driver1}
-                  isSelected={selected === matchup.driver1._id}
-                  mode={mode}
-                  onPress={() => onSelect?.(matchup._id, matchup.driver1._id)}
-                  teamColor={teamColor}
-                />
-                <Text className="text-muted text-[10px] font-bold uppercase">
-                  vs
-                </Text>
-                <DriverButton
-                  driver={matchup.driver2}
-                  isSelected={selected === matchup.driver2._id}
-                  mode={mode}
-                  onPress={() => onSelect?.(matchup._id, matchup.driver2._id)}
-                  teamColor={teamColor}
-                />
-              </View>
+            </View>
+            <View className="flex-row gap-1 p-1">
+              <DriverButton
+                driver={matchup.driver1}
+                isSelected={selected === matchup.driver1._id}
+                mode={mode}
+                onPress={() => onSelect?.(matchup._id, matchup.driver1._id)}
+              />
+              <DriverButton
+                driver={matchup.driver2}
+                isSelected={selected === matchup.driver2._id}
+                mode={mode}
+                onPress={() => onSelect?.(matchup._id, matchup.driver2._id)}
+              />
             </View>
           </View>
         );
@@ -88,33 +82,25 @@ function DriverButton({
   isSelected,
   mode,
   onPress,
-  teamColor,
 }: {
   driver: H2HDriver;
   isSelected: boolean;
   mode: 'interactive' | 'readonly';
   onPress: () => void;
-  teamColor: string;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
-      disabled={mode === 'readonly'}
-      className="min-w-14 items-center rounded-md border border-border py-[7px]"
-      onPress={onPress}
-      style={
+      accessibilityState={{ selected: isSelected }}
+      className={`min-h-12 flex-1 items-center justify-center rounded-sm border px-3 py-2 ${
         isSelected
-          ? { backgroundColor: teamColor, borderColor: teamColor }
-          : undefined
-      }
+          ? 'border-border-strong bg-surface-elevated'
+          : 'border-transparent'
+      }`}
+      disabled={mode === 'readonly'}
+      onPress={onPress}
     >
-      <Text
-        className={`text-[13px] font-extrabold ${
-          isSelected ? 'text-white' : 'text-foreground'
-        }`}
-      >
-        {driver.code}
-      </Text>
+      <Numeral variant="small">{driver.code}</Numeral>
     </Pressable>
   );
 }

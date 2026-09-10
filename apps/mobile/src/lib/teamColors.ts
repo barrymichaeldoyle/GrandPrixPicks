@@ -9,3 +9,15 @@ import { fallbackTeamColor, teams } from '@grandprixpicks/shared/tokens';
 export function getTeamColor(team?: string | null): string {
   return (team && teams[team as keyof typeof teams]) || fallbackTeamColor;
 }
+
+const TEAM_DISPLAY_NAMES: Record<string, string> = {
+  'Red Bull Racing': 'Red Bull',
+};
+
+/** User-facing team label. Colour lookups still use the full name. */
+export function displayTeamName(team: string | null | undefined): string {
+  if (team == null || team === '') {
+    return '';
+  }
+  return TEAM_DISPLAY_NAMES[team] ?? team;
+}

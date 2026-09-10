@@ -99,9 +99,6 @@ importers:
       '@grandprixpicks/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@react-email/render':
-        specifier: 2.1.0
-        version: 2.1.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       convex:
         specifier: 'catalog:'
         version: 1.45.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6)

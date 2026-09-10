@@ -26,7 +26,6 @@
     "@convex-dev/rate-limiter": "^0.3.2",
     "@convex-dev/resend": "0.2.8",
     "@grandprixpicks/shared": "workspace:*",
-    "@react-email/render": "2.1.0",
     "convex": "catalog:",
     "dotenv-cli": "11.0.0",
     "react": "19.2.8",

@@ -302,7 +302,7 @@ export const seedDrivers = internalMutation({
 // Standard weekend: Fri practice, Sat quali, Sun race
 // Sprint weekend: Fri sprint quali, Sat sprint + quali, Sun race
 // Times are approximate based on typical F1 scheduling
-const F1_RACES_2026: Array<{
+export const F1_RACES_2026: Array<{
   round: number;
   name: string;
   hashtag: string;

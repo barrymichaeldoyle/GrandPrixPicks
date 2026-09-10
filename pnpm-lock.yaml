@@ -190,6 +190,9 @@ importers:
       expo:
         specifier: ~57.0.21
         version: 57.0.21(d7c9631d35ec4c754fe7b226aba6be24)
+      expo-apple-authentication:
+        specifier: ~57.0.1
+        version: 57.0.1(expo@57.0.21)(react-native@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(bufferutil@4.1.0)(supports-color@10.2.2)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@10.2.2)(utf-8-validate@6.0.6))(react@19.2.8)
       expo-application:
         specifier: ~57.0.0
         version: 57.0.2(expo@57.0.21)
@@ -14640,7 +14643,6 @@ snapshots:
       expo: 57.0.21(d7c9631d35ec4c754fe7b226aba6be24)
       react: 19.2.8
       react-native: 0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(bufferutil@4.1.0)(supports-color@10.2.2)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@10.2.2)(utf-8-validate@6.0.6)
-    optional: true
 
   expo-application@57.0.2(expo@57.0.21):
     dependencies:

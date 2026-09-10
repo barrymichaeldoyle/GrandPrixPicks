@@ -17,7 +17,14 @@
       "expo-font",
       "expo-secure-store",
       "expo-web-browser",
-      "@sentry/react-native",
+      "expo-apple-authentication",
+      [
+        "@sentry/react-native",
+        {
+          "organization": "barry-michael-doyle",
+          "project": "grand-prix-picks"
+        }
+      ],
       "expo-localization",
       "expo-status-bar",
       [
@@ -31,6 +38,7 @@
     ],
     "ios": {
       "bundleIdentifier": "com.barrymichaeldoyle.grandprixpicks",
+      "usesAppleSignIn": true,
       "config": {
         "usesNonExemptEncryption": false
       },

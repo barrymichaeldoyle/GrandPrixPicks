@@ -228,6 +228,15 @@ for (const { config, file, aps } of ENTITLEMENTS) {
       );
     }
   }
+
+  if (
+    expo.ios?.usesAppleSignIn &&
+    !raw.includes('com.apple.developer.applesignin')
+  ) {
+    apsDrift.push(
+      `  ${config}: ${file} is missing Sign in with Apple (com.apple.developer.applesignin)`,
+    );
+  }
 }
 
 if (apsDrift.length > 0) {

@@ -38,6 +38,33 @@ WebBrowser.maybeCompleteAuthSession();
 
 const WEB_URL = 'https://grandprixpicks.com';
 
+/** Shown when Clerk has not produced a client, so no button here can work. */
+const NOT_READY_MESSAGE =
+  'Sign-in is not ready yet. Check your connection and try again.';
+
+/**
+ * Primary button styling, with a disabled state that is a state rather than a
+ * dimmed version of the enabled one.
+ *
+ * `opacity-40` over `bg-button-accent` turned chartreuse into a murky olive
+ * and the white label into low-contrast grey — it read as a rendering fault,
+ * not as "fill this in first". A flat surface with muted text is the system's
+ * own vocabulary for an inert container and states the same thing legibly.
+ */
+function primaryButtonClass(enabled: boolean): string {
+  return `h-[50px] items-center justify-center rounded-lg ${
+    enabled
+      ? 'bg-button-accent active:bg-accent-press'
+      : 'border border-border bg-surface'
+  }`;
+}
+
+function primaryButtonTextClass(enabled: boolean): string {
+  return `text-[15px] font-bold ${
+    enabled ? 'text-text-on-accent' : 'text-muted'
+  }`;
+}
+
 type Mode = 'signIn' | 'signUp';
 type Screen = 'auth' | 'verify' | 'resetCode' | 'newPassword';
 
@@ -88,6 +115,19 @@ export function SignInScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Whether Clerk's sign-in/sign-up resources are usable yet.
+   *
+   * Every handler on this screen used to open with `if (!signInLoaded) return`
+   * and Clerk's own `startSSOFlow` does the same internally, so when the client
+   * resource never arrived, all five buttons swallowed the tap: no browser, no
+   * spinner, no message, and no network request. A dead button is
+   * indistinguishable from a broken app, so nothing here fails silently any
+   * more — the controls go inert and say why, and a handler reached in that
+   * state reports it.
+   */
+  const authReady = signInLoaded && signUpLoaded && !!signIn && !!signUp;
+
   const passwordRef = useRef<RNTextInput>(null);
   const confirmPasswordRef = useRef<RNTextInput>(null);
   const codeRef = useRef<RNTextInput>(null);
@@ -130,26 +170,41 @@ export function SignInScreen() {
   // ── OAuth ──────────────────────────────────────────────────────────────────
 
   async function handleSSO(strategy: 'oauth_google' | 'oauth_apple') {
+    if (!authReady) {
+      setError(NOT_READY_MESSAGE);
+      return;
+    }
     setError(null);
     const method = strategy === 'oauth_apple' ? 'apple' : 'google';
     captureAnalyticsEvent('auth_started', { method });
+    setLoading(true);
     try {
-      const { createdSessionId, signIn: ssoSignIn } = await startSSOFlow({
+      const {
+        createdSessionId,
+        signIn: ssoSignIn,
+        authSessionResult,
+      } = await startSSOFlow({
         strategy,
-        redirectUrl: AuthSession.makeRedirectUri(),
+        // `sso-callback` is Clerk's own default path, and the path matters:
+        // a bare `grandprixpicks://` redirect collides with the deep-link
+        // prefix React Navigation already claims in `navigation/linking.ts`.
+        redirectUrl: AuthSession.makeRedirectUri({ path: 'sso-callback' }),
       });
       if (createdSessionId) {
         await clerk.setActive({ session: createdSessionId });
         captureAnalyticsEvent('auth_completed', { method });
         return;
       }
-      // No session was created but the flow didn't throw — most commonly the
-      // user dismissed the browser, or signIn returned with a non-complete
-      // status (e.g. needs 2FA, requires more info). Surface a clear message
-      // instead of leaving the user confused.
+      // No session, and no throw. That is a dismissed browser, a sign-in that
+      // needs more steps (2FA, more info), or Clerk's own internal `isLoaded`
+      // guard bailing before it made a request. Only the dismissal is
+      // silent-worthy; the rest have to say something.
       const status = ssoSignIn?.status ?? null;
       if (status && status !== 'complete') {
         setError(`Sign-in needs more steps (status: ${status}).`);
+      } else if (authSessionResult?.type !== 'cancel') {
+        captureAnalyticsEvent('auth_failed', { method });
+        setError('Sign-in did not complete. Try again.');
       }
     } catch (err) {
       if (isAlreadySignedInError(err)) {
@@ -170,6 +225,8 @@ export function SignInScreen() {
             : 'Apple sign-in failed',
         ),
       );
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -177,6 +234,7 @@ export function SignInScreen() {
 
   async function handleSignIn() {
     if (!signInLoaded || !signIn) {
+      setError(NOT_READY_MESSAGE);
       return;
     }
     setError(null);
@@ -208,6 +266,7 @@ export function SignInScreen() {
 
   async function handleSignUp() {
     if (!signUpLoaded || !signUp) {
+      setError(NOT_READY_MESSAGE);
       return;
     }
     setError(null);
@@ -238,6 +297,7 @@ export function SignInScreen() {
 
   async function handleForgotPassword() {
     if (!signInLoaded || !signIn) {
+      setError(NOT_READY_MESSAGE);
       return;
     }
     if (!email.trim()) {
@@ -266,6 +326,7 @@ export function SignInScreen() {
 
   async function handleResetCode() {
     if (!signInLoaded || !signIn) {
+      setError(NOT_READY_MESSAGE);
       return;
     }
     setError(null);
@@ -289,6 +350,7 @@ export function SignInScreen() {
 
   async function handleResetPassword() {
     if (!signInLoaded || !signIn) {
+      setError(NOT_READY_MESSAGE);
       return;
     }
     if (password !== confirmPassword) {
@@ -316,6 +378,7 @@ export function SignInScreen() {
 
   async function handleVerify() {
     if (!signUpLoaded || !signUp) {
+      setError(NOT_READY_MESSAGE);
       return;
     }
     setError(null);
@@ -342,6 +405,7 @@ export function SignInScreen() {
 
   const isSignUp = mode === 'signUp';
   const canSubmit =
+    authReady &&
     !!email &&
     !!password &&
     (!isSignUp || username.trim().length >= 4) &&
@@ -356,8 +420,15 @@ export function SignInScreen() {
         contentContainerClassName="grow"
         keyboardShouldPersistTaps="handled"
       >
-        {/* Hero */}
-        <View className="flex-1 items-center justify-center gap-3 px-6 py-10">
+        {/* Hero.
+            Natural height, never `flex-1`. As a flex child it was the only
+            thing absorbing slack, so every difference between the two modes
+            landed on it: sign-up adds a username field (+62) and drops the
+            "Forgot password?" row (-29), and the hero silently gave up 33px,
+            moving the brand mark, the title and everything under them on each
+            toggle. Anchored here, and with the form below anchored at both
+            ends, only the fields on either side of the username row move. */}
+        <View className="items-center justify-center gap-3 px-6 py-10">
           <View className="mb-1">
             <BrandMark />
           </View>
@@ -372,8 +443,10 @@ export function SignInScreen() {
           </Text>
         </View>
 
-        {/* Actions */}
-        <View className="gap-3 border-t border-border px-6 pt-7 pb-12">
+        {/* Actions. `flex-1` so the leftover height collects *inside* this
+            block rather than above it, which keeps the tab row, both SSO
+            buttons and the divider still across a mode switch. */}
+        <View className="flex-1 gap-3 border-t border-border px-6 pt-7 pb-12">
           {screen === 'verify' || screen === 'resetCode' ? (
             /* ── Verification code ── */
             <>
@@ -406,9 +479,7 @@ export function SignInScreen() {
               />
               <Pressable
                 accessibilityRole="button"
-                className={`h-[50px] items-center justify-center rounded-lg bg-button-accent ${
-                  code.length < 6 || loading ? 'opacity-40' : ''
-                }`}
+                className={primaryButtonClass(code.length === 6 && !loading)}
                 disabled={code.length < 6 || loading}
                 onPress={() =>
                   void (screen === 'verify'
@@ -416,7 +487,11 @@ export function SignInScreen() {
                     : handleResetCode())
                 }
               >
-                <Text className="text-[15px] font-bold text-text-on-accent">
+                <Text
+                  className={primaryButtonTextClass(
+                    code.length === 6 && !loading,
+                  )}
+                >
                   {loading
                     ? 'Verifying…'
                     : screen === 'verify'
@@ -491,13 +566,17 @@ export function SignInScreen() {
               />
               <Pressable
                 accessibilityRole="button"
-                className={`h-[50px] items-center justify-center rounded-lg bg-button-accent ${
-                  !password || !confirmPassword || loading ? 'opacity-40' : ''
-                }`}
+                className={primaryButtonClass(
+                  Boolean(password && confirmPassword) && !loading,
+                )}
                 disabled={!password || !confirmPassword || loading}
                 onPress={() => void handleResetPassword()}
               >
-                <Text className="text-[15px] font-bold text-text-on-accent">
+                <Text
+                  className={primaryButtonTextClass(
+                    Boolean(password && confirmPassword) && !loading,
+                  )}
+                >
                   {loading ? 'Saving…' : 'Save password'}
                 </Text>
               </Pressable>
@@ -548,6 +627,12 @@ export function SignInScreen() {
                 </Pressable>
               </View>
 
+              {!authReady ? (
+                <Text className="text-muted pb-1 text-center text-[13px]">
+                  {NOT_READY_MESSAGE}
+                </Text>
+              ) : null}
+
               {/* OAuth */}
               {Platform.OS === 'ios' ? (
                 <Pressable
@@ -555,7 +640,10 @@ export function SignInScreen() {
                     isSignUp ? 'Sign up with Apple' : 'Sign in with Apple'
                   }
                   accessibilityRole="button"
-                  className="h-[50px] flex-row items-center justify-center gap-3 rounded-lg bg-black active:opacity-80"
+                  className={`h-[50px] flex-row items-center justify-center gap-3 rounded-lg bg-black ${
+                    authReady ? 'active:opacity-80' : 'opacity-50'
+                  }`}
+                  disabled={!authReady || loading}
                   onPress={() => void handleSSO('oauth_apple')}
                 >
                   <AppleLogo />
@@ -569,7 +657,10 @@ export function SignInScreen() {
                   isSignUp ? 'Sign up with Google' : 'Sign in with Google'
                 }
                 accessibilityRole="button"
-                className="h-[50px] flex-row items-center justify-center gap-3 rounded-lg bg-white active:opacity-80"
+                className={`h-[50px] flex-row items-center justify-center gap-3 rounded-lg bg-white ${
+                  authReady ? 'active:opacity-80' : 'opacity-50'
+                }`}
+                disabled={!authReady || loading}
                 onPress={() => void handleSSO('oauth_google')}
               >
                 <GoogleLogo />
@@ -651,15 +742,13 @@ export function SignInScreen() {
               ) : null}
               <Pressable
                 accessibilityRole="button"
-                className={`h-[50px] items-center justify-center rounded-lg bg-button-accent ${
-                  !canSubmit ? 'opacity-40' : ''
-                }`}
+                className={primaryButtonClass(canSubmit)}
                 disabled={!canSubmit}
                 onPress={() =>
                   void (isSignUp ? handleSignUp() : handleSignIn())
                 }
               >
-                <Text className="text-foreground text-[15px] font-bold">
+                <Text className={primaryButtonTextClass(canSubmit)}>
                   {loading
                     ? isSignUp
                       ? 'Creating account…'
@@ -678,8 +767,8 @@ export function SignInScreen() {
 
               {isSignUp ? <View nativeID="clerk-captcha" /> : null}
 
-              {/* Terms & Privacy */}
-              <Text className="text-muted -mb-2 text-center text-xs">
+              {/* Terms & Privacy, held at the bottom edge. */}
+              <Text className="text-muted mt-auto -mb-2 pt-3 text-center text-xs">
                 By continuing you agree to our
               </Text>
               <Text className="text-muted text-center text-xs">

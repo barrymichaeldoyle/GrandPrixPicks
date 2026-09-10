@@ -19,6 +19,7 @@ import { formatViewerLockDate } from '@/lib/raceLockTime';
 import { getNextSessionLock } from '@/lib/raceSessions';
 import { getRaceWriteupPhase, isRaceWriteupLive } from '@/lib/raceWriteupPhase';
 import { SESSION_LABELS } from '@/lib/sessions';
+import { useNow } from '@/lib/testing/now';
 
 /**
  * The same picker the write-ups and the predictions hub embed, opened in the
@@ -138,6 +139,9 @@ export function PicksCallToAction({
     api.races.getQuickPickRace,
     needsWeekend ? {} : 'skip',
   );
+  // Coarse: the panel names a lock date, it does not count seconds, and the
+  // live/locked boundary is the only thing that has to notice the clock.
+  const now = useNow(30_000);
 
   const state: PicksCtaState = !isSignedIn
     ? 'signed-out'
@@ -149,7 +153,7 @@ export function PicksCallToAction({
     (weekendRace ? abbreviateGrandPrix(weekendRace.name) : undefined);
   const copy = picksCtaCopy(state, resolvedVenue);
   const destination = raceSlug ? 'race_page' : 'predictions_hub';
-  const deadline = weekendRace ? nextLockLine(weekendRace) : null;
+  const deadline = weekendRace ? nextLockLine(weekendRace, now) : null;
   const countryCode = weekendRace ? getCountryCodeForRace(weekendRace) : null;
 
   const [picksOpen, setPicksOpen] = useState(false);
@@ -159,9 +163,7 @@ export function PicksCallToAction({
    * overlay would open on a picker that can save nothing, so the button goes
    * back to being a link and the hub explains the state.
    */
-  const phase = weekendRace
-    ? getRaceWriteupPhase(weekendRace, Date.now())
-    : null;
+  const phase = weekendRace ? getRaceWriteupPhase(weekendRace, now) : null;
   const canPickHere = Boolean(weekendRace && phase && isRaceWriteupLive(phase));
 
   function track(openedOverlay: boolean) {
@@ -293,8 +295,8 @@ export function PicksCallToAction({
  * round has resolved on the client, so there is no server rendering of it to
  * mismatch.
  */
-function nextLockLine(race: Doc<'races'>): string | null {
-  const next = getNextSessionLock(race);
+function nextLockLine(race: Doc<'races'>, now: number): string | null {
+  const next = getNextSessionLock(race, now);
   if (!next) {
     return null;
   }

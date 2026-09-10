@@ -68,7 +68,7 @@ describe('race write-up next round', () => {
     expect(link?.getAttribute('href')).toBe(
       '/f1-2026-madrid-grand-prix-predictions',
     );
-    expect(link?.textContent).toBe('Read the Madrid Grand Prix predictions');
+    expect(link?.textContent).toBe('Read the Madrid preview');
   });
 
   // A weekend nobody has written a piece for still gets a link, rather than

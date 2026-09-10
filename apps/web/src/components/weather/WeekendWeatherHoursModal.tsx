@@ -1,3 +1,7 @@
+import {
+  WeatherTimeToggle,
+  type WeatherTimeToggleProps,
+} from './WeatherTimeToggle';
 import { X } from 'lucide-react';
 import { useRef } from 'react';
 import { createPortal } from 'react-dom';
@@ -28,6 +32,10 @@ export function WeekendWeatherHoursModal({
   race,
   now,
   timeZoneLabel,
+  timeZone,
+  showToggle,
+  showViewerTime,
+  onTimeViewChange,
 }: {
   open: boolean;
   onClose: () => void;
@@ -35,7 +43,9 @@ export function WeekendWeatherHoursModal({
   race: RaceSchedule;
   now: number;
   timeZoneLabel: string;
-}) {
+  timeZone: string;
+  showToggle: boolean;
+} & WeatherTimeToggleProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useModalDialog<HTMLDivElement>({
     open,
@@ -71,22 +81,33 @@ export function WeekendWeatherHoursModal({
             Hour-by-hour forecast
           </h2>
           <div className="flex items-center gap-3">
-            <span className="gpp-mono text-xs text-text-muted uppercase">
-              {timeZoneLabel}
-            </span>
             <button
               ref={closeButtonRef}
               type="button"
               onClick={onClose}
-              className="rounded p-1 text-text-muted hover:text-text"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded text-text-muted hover:bg-surface-hover hover:text-text"
               aria-label="Close hour-by-hour forecast"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
         </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+          <span className="text-sm text-text-muted">{timeZoneLabel}</span>
+          {showToggle && (
+            <WeatherTimeToggle
+              showViewerTime={showViewerTime}
+              onTimeViewChange={onTimeViewChange}
+            />
+          )}
+        </div>
         <div className="min-h-0 overflow-y-auto px-4 py-4">
-          <WeekendWeatherHours weather={weather} race={race} now={now} />
+          <WeekendWeatherHours
+            weather={weather}
+            race={race}
+            now={now}
+            timeZone={timeZone}
+          />
         </div>
         <div className="border-t border-border px-4 py-3">
           <WeatherAttribution weather={weather} now={now} />

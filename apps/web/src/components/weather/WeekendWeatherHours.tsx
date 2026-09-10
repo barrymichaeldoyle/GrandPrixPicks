@@ -4,6 +4,7 @@ import {
   conditionLabel,
   localDateKey,
   type RaceWeather,
+  type WeatherTimelineDay,
 } from '@/lib/weatherPresentation';
 
 import { WeatherIcon } from './WeatherIcon';
@@ -17,18 +18,6 @@ function formatWeatherDay(localDate: string, timeZone: string): string {
     month: 'short',
     timeZone,
   }).format(new Date(`${localDate}T12:00:00Z`));
-}
-
-/**
- * Grid columns the "not yet forecast" cell should cover so the row finishes
- * flush. The grid is 2 columns on mobile and 3 from `sm`, so a day holding a
- * single period leaves one gap on mobile and two above it.
- */
-function fillerSpan(periods: number): string {
-  if (periods === 1) {
-    return 'col-span-1 sm:col-span-2';
-  }
-  return 'col-span-full sm:col-span-1';
 }
 
 /**
@@ -46,14 +35,51 @@ export function WeekendWeatherHours({
   weather,
   race,
   now,
+  timeZone = weather.forecast.timeZone,
 }: {
   weather: RaceWeather;
   race: RaceSchedule;
   now: number;
+  timeZone?: string;
 }) {
   const { forecast } = weather;
   const sessions = buildWeatherSessions(race);
-  const timeline = buildWeatherTimeline(forecast, sessions);
+  // Keep the model's periods intact; only their displayed date and time change.
+  const trackTimeline = buildWeatherTimeline(forecast, sessions);
+  const days = new Map<string, WeatherTimelineDay>();
+  for (const period of trackTimeline.flatMap((day) => day.periods)) {
+    const localDate = localDateKey(period.startsAt, timeZone);
+    const day = days.get(localDate) ?? { localDate, periods: [], sessions: [] };
+    day.periods.push(period);
+    days.set(localDate, day);
+  }
+  const coveredSessions = new Set(
+    trackTimeline.flatMap((day) =>
+      day.periods.flatMap((period) =>
+        period.sessions.map((session) => session.key),
+      ),
+    ),
+  );
+  for (const session of sessions) {
+    if (coveredSessions.has(session.key)) {
+      continue;
+    }
+    const localDate = localDateKey(session.startsAt, timeZone);
+    if (!days.has(localDate)) {
+      days.set(localDate, { localDate, periods: [], sessions: [] });
+    }
+  }
+  const timeline = [...days.values()].sort((a, b) =>
+    a.localDate.localeCompare(b.localDate),
+  );
+  function formatTime(at: number) {
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(at);
+  }
 
   return (
     <div className="space-y-5">
@@ -64,11 +90,12 @@ export function WeekendWeatherHours({
         // flagged, and nothing would ever be reported as uncovered.
         const uncovered = sessions.filter(
           (session) =>
-            localDateKey(session.startsAt, forecast.timeZone) ===
-              day.localDate &&
-            !day.periods.some((period) =>
-              period.sessions.some((held) => held.key === session.key),
-            ),
+            localDateKey(session.startsAt, timeZone) === day.localDate &&
+            !trackTimeline
+              .flatMap((entry) => entry.periods)
+              .some((period) =>
+                period.sessions.some((held) => held.key === session.key),
+              ),
         );
         // A session goes missing from the forecast at both ends of the
         // weekend, and only one of them means "not yet". The model runs
@@ -84,53 +111,51 @@ export function WeekendWeatherHours({
         return (
           <section
             key={day.localDate}
-            aria-label={formatWeatherDay(day.localDate, forecast.timeZone)}
+            aria-label={formatWeatherDay(day.localDate, 'UTC')}
           >
-            <h3 className="font-title mb-2 text-sm font-medium text-text">
-              {formatWeatherDay(day.localDate, forecast.timeZone)}
+            <h3 className="font-title mb-3 text-base font-medium text-text">
+              {formatWeatherDay(day.localDate, 'UTC')}
             </h3>
-            <ol className="grid grid-cols-2 gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-3">
+            <ol className="divide-y divide-border overflow-hidden rounded-sm border border-border">
               {day.periods.map((period) => {
                 const highlighted = period.sessions.length > 0;
                 return (
                   <li
                     key={period.startsAt}
-                    className={
-                      highlighted
-                        ? 'bg-accent-muted px-3 py-2.5'
-                        : 'bg-surface px-3 py-2.5'
-                    }
+                    className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-3 py-3 sm:grid-cols-[9rem_minmax(0,1fr)_4rem_8rem] ${highlighted ? 'bg-surface-hover' : 'bg-surface'}`}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <time className="gpp-mono text-sm text-text">
-                        {String(period.localHour).padStart(2, '0')}:00
-                        {period.endsAt - period.startsAt >= 6 * 60 * 60_000
-                          ? `–${String((period.localHour + 6) % 24).padStart(2, '0')}:00`
-                          : ''}
+                    <div className="min-w-0">
+                      <time
+                        dateTime={new Date(period.startsAt).toISOString()}
+                        className="gpp-mono text-sm whitespace-nowrap text-text"
+                      >
+                        {formatTime(period.startsAt)}–
+                        {formatTime(period.endsAt)}
                       </time>
+                      {highlighted && (
+                        <p className="mt-1 text-xs font-medium text-text">
+                          {period.sessions
+                            .map((session) => session.label)
+                            .join(' · ')}
+                        </p>
+                      )}
+                    </div>
+                    <div className="col-start-1 row-start-2 flex items-center gap-2 text-sm text-text-muted sm:col-start-2 sm:row-start-1">
                       <WeatherIcon
                         conditionCode={period.conditionCode}
-                        className="h-4 w-4 text-text-muted"
+                        className="h-5 w-5 shrink-0"
                       />
-                    </div>
-                    {highlighted && (
-                      <p className="mt-1 text-xs font-semibold text-accent">
-                        {period.sessions
-                          .map((session) => session.label)
-                          .join(' · ')}
-                      </p>
-                    )}
-                    <p className="mt-1 text-sm text-text-muted">
                       {conditionLabel(period.conditionCode)}
-                    </p>
-                    <p className="gpp-mono mt-0.5 text-sm text-text">
+                    </div>
+                    <p className="gpp-mono col-start-2 row-start-1 text-right text-base text-text sm:col-start-3">
                       {period.temperatureC}°C
-                      <span className="text-text-muted"> · </span>
+                    </p>
+                    <p className="col-start-2 row-start-2 text-right text-xs text-text-muted sm:col-start-4 sm:row-start-1">
                       {period.precipitationProbability != null
-                        ? `${Math.round(period.precipitationProbability)}%`
+                        ? `${Math.round(period.precipitationProbability)}% chance of rain`
                         : period.precipitationAmountMm > 0
-                          ? `${period.precipitationAmountMm.toFixed(1)} mm`
-                          : 'dry'}
+                          ? `${period.precipitationAmountMm.toFixed(1)} mm rain`
+                          : 'Dry'}
                     </p>
                   </li>
                 );
@@ -142,10 +167,8 @@ export function WeekendWeatherHours({
                   the current hour. Say which, and name the session rather
                   than leaving a hole. */}
               {uncovered.length > 0 && (
-                <li
-                  className={`bg-surface px-3 py-2.5 ${fillerSpan(day.periods.length)}`}
-                >
-                  <p className="gpp-mono text-sm text-text-muted">
+                <li className="bg-surface px-3 py-3">
+                  <p className="text-sm font-medium text-text">
                     {notYetForecast.length > 0
                       ? 'Not yet forecast'
                       : 'Already run'}

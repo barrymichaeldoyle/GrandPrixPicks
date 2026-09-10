@@ -699,10 +699,21 @@
    * good. An attribute composes with Clerk instead of fighting it for one slot.
    *
    * In `utilities` so it beats them on specificity (it was unlayered for this
-   * reason before the layer sweep). Both elements are set because `body` alone
-   * leaves the document scrolling on some engines.
+   * reason before the layer sweep).
+   *
+   * The lock lives on `body`, and must never move to `html`: a non-visible
+   * overflow on the root element makes `html` itself the scroll container, and
+   * the sticky header stops sticking to the viewport — it jumps off-screen by
+   * the scroll offset the instant a modal opens. `body`'s hidden overflow
+   * propagates to the viewport (its own used value stays `visible`), so the
+   * page stops scrolling and everything sticky stays exactly where it was.
+   *
+   * `scrollbar-gutter` keeps the space the scrollbar occupied reserved while
+   * the lock holds, so opening a modal does not shift the page sideways.
    */
-  html[data-scroll-locked],
+  html[data-scroll-locked] {
+    scrollbar-gutter: stable;
+  }
   html[data-scroll-locked] body {
     overflow: hidden;
   }

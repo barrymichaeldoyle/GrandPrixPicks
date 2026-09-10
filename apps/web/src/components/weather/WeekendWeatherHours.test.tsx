@@ -1,3 +1,5 @@
+import { act } from 'react';
+import { createRoot } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
@@ -143,4 +145,70 @@ describe('WeekendWeatherHours', () => {
     expect(html).toContain('Hour-by-hour forecast');
     expect(html).not.toContain('Already run');
   });
+});
+
+it('keeps the modal and hero time controls in sync in both directions', async () => {
+  (
+    globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
+  const container = document.createElement('div');
+  document.body.append(container);
+  const root = createRoot(container);
+  const now = Date.UTC(2026, 8, 3);
+  const deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const trackZone = deviceZone === 'Asia/Tokyo' ? 'Europe/Rome' : 'Asia/Tokyo';
+  function button(scope: ParentNode, label: string) {
+    return [...scope.querySelectorAll('button')].find(
+      (item) => item.textContent === label,
+    )!;
+  }
+  try {
+    await act(async () =>
+      root.render(
+        <RaceWriteupWeekendSchedule
+          race={race}
+          timeZone={trackZone}
+          timeZoneLabel="Track time"
+          weather={weatherWith(hoursForDay(0), now)}
+          now={now}
+        />,
+      ),
+    );
+    await act(async () => button(container, 'My time').click());
+    await act(async () => button(container, 'Hour-by-hour forecast').click());
+    const dialog = document.querySelector('[role="dialog"]')!;
+    expect(button(dialog, 'My time').getAttribute('aria-pressed')).toBe('true');
+    const viewerHours = dialog.querySelector('time')!.textContent;
+    await act(async () => button(dialog, 'Track time').click());
+    expect(button(container, 'Track time').getAttribute('aria-pressed')).toBe(
+      'true',
+    );
+    expect(dialog.querySelector('time')!.textContent).not.toBe(viewerHours);
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('moves forecast periods to the viewer’s calendar date and preserves fractional offsets', () => {
+  const now = Date.UTC(2026, 8, 3);
+  const html = renderToStaticMarkup(
+    <WeekendWeatherHours
+      race={race}
+      weather={weatherWith(hoursForDay(0, 6, 8), now)}
+      now={now}
+      timeZone="Pacific/Honolulu"
+    />,
+  );
+  expect(html).toContain('Thursday 3 Sept');
+  expect(html).toContain('18:00–21:00');
+  const india = renderToStaticMarkup(
+    <WeekendWeatherHours
+      race={race}
+      weather={weatherWith(hoursForDay(0, 6, 8), now)}
+      now={now}
+      timeZone="Asia/Kolkata"
+    />,
+  );
+  expect(india).toContain('09:30–12:30');
 });

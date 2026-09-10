@@ -1,3 +1,4 @@
+import { WeatherTimeToggle } from '@/components/weather/WeatherTimeToggle';
 import { useState, useSyncExternalStore } from 'react';
 
 import { WeatherIcon } from '@/components/weather/WeatherIcon';
@@ -23,22 +24,6 @@ type ScheduleRace = {
   qualiStartAt?: number;
   raceStartAt: number;
 };
-
-/**
- * Two states of one control, so the difference between them is one place.
- *
- * `-outline-offset-2` because the group clips to its own radius: the global
- * focus ring sits 2px outside the button, which is 2px inside `overflow:
- * hidden`, so keyboard focus on the only control in this card was invisible.
- * Drawn inside the button instead.
- */
-function toggleClass(active: boolean) {
-  return `gpp-touch-target inline-flex min-h-9 items-center px-3 text-xs transition-colors focus-visible:-outline-offset-2 pointer-coarse:min-h-11 ${
-    active
-      ? 'bg-accent-muted font-medium text-accent'
-      : 'text-text-muted hover:bg-surface-elevated hover:text-text'
-  }`;
-}
 
 function formatTrackTime(timestamp: number | undefined, timeZone: string) {
   if (timestamp === undefined) {
@@ -237,28 +222,10 @@ export function RaceWriteupWeekendSchedule({
           {activeZoneLabel}
         </span>
         {showToggle ? (
-          <div
-            className="flex shrink-0 items-center overflow-hidden rounded-sm border border-border"
-            role="group"
-            aria-label="Show session times in"
-          >
-            <button
-              type="button"
-              onClick={() => setInViewerTime(false)}
-              aria-pressed={!showViewerTime}
-              className={toggleClass(!showViewerTime)}
-            >
-              Track time
-            </button>
-            <button
-              type="button"
-              onClick={() => setInViewerTime(true)}
-              aria-pressed={showViewerTime}
-              className={`border-l border-border ${toggleClass(showViewerTime)}`}
-            >
-              My time
-            </button>
-          </div>
+          <WeatherTimeToggle
+            showViewerTime={showViewerTime}
+            onTimeViewChange={setInViewerTime}
+          />
         ) : null}
       </div>
       <dl>
@@ -362,7 +329,11 @@ export function RaceWriteupWeekendSchedule({
           race={race}
           now={now}
           alert={alert}
-          timeZoneLabel={timeZoneLabel}
+          timeZoneLabel={activeZoneLabel}
+          timeZone={activeTimeZone}
+          showToggle={showToggle}
+          showViewerTime={showViewerTime}
+          onTimeViewChange={setInViewerTime}
         />
       )}
     </section>

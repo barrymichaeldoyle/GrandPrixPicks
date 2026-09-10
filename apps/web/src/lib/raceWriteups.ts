@@ -95,8 +95,8 @@ const RACE_WRITEUPS = {
     reviewedAt: '2026-09-10',
     label: 'Madrid GP predictions',
     summary:
-      'What the Formula 3 test showed about a circuit nobody has raced, the banked corner that decides ride height, the tyre choice, how far along the build is, and where Monza left the championship.',
-    cta: 'Read the Madrid Grand Prix predictions',
+      'F1 heads to a new circuit in Madrid. The Formula 3 test offers an early look at the circuit and what teams will need to get right.',
+    cta: 'Read the Madrid preview',
   },
 } as const satisfies Record<string, RaceWriteup>;
 

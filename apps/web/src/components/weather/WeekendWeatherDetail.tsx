@@ -1,3 +1,4 @@
+import type { WeatherTimeToggleProps } from './WeatherTimeToggle';
 import { CalendarClock } from 'lucide-react';
 import { useState } from 'react';
 
@@ -35,13 +36,19 @@ export function WeekendWeatherDetail({
   now,
   alert,
   timeZoneLabel,
+  timeZone,
+  showToggle,
+  showViewerTime,
+  onTimeViewChange,
 }: {
   weather: RaceWeather;
   race: RaceSchedule;
   now: number;
   alert: string | null;
   timeZoneLabel: string;
-}) {
+  timeZone: string;
+  showToggle: boolean;
+} & WeatherTimeToggleProps) {
   const [hoursOpen, setHoursOpen] = useState(false);
   const { isStale } = weather;
 
@@ -82,6 +89,10 @@ export function WeekendWeatherDetail({
         race={race}
         now={now}
         timeZoneLabel={timeZoneLabel}
+        timeZone={timeZone}
+        showToggle={showToggle}
+        showViewerTime={showViewerTime}
+        onTimeViewChange={onTimeViewChange}
       />
 
       <WeatherAttribution

@@ -16,15 +16,17 @@ import { navigationRef } from '../navigation/navigationRef';
 
 let pendingUrl: string | null = null;
 
-function pathnameOf(url: string): string {
-  // `url` may be a bare path or a full https URL; strip origin and query.
-  const withoutOrigin = url.replace(/^https?:\/\/[^/]+/, '');
-  const [pathname] = withoutOrigin.split(/[?#]/);
-  return pathname || '/';
-}
-
 function navigateTo(url: string): boolean {
-  const path = pathnameOf(url);
+  let parsed: URL;
+  try {
+    parsed = new URL(url, 'https://grandprixpicks.com');
+  } catch {
+    return false;
+  }
+  if (parsed.origin !== 'https://grandprixpicks.com') {
+    return false;
+  }
+  const path = parsed.pathname;
 
   const raceMatch = /^\/races\/([^/]+)$/.exec(path);
   if (raceMatch) {
@@ -50,7 +52,7 @@ function navigateTo(url: string): boolean {
     return true;
   }
 
-  if (path === '/feed') {
+  if (path === '/feed' || path === '/') {
     navigationRef.navigate('Tabs', {
       screen: 'HomeTab',
       params: { screen: 'HomeMain' },
@@ -58,19 +60,23 @@ function navigateTo(url: string): boolean {
     return true;
   }
 
-  // Results pushes land here: "how did I do" is a standings question, and the
-  // web link carries `?time=weekend&raceId=…` to say which round. The mobile
-  // screen takes no params, but a results push fires as the results publish,
-  // so the weekend it opens on is already the one the push is about.
+  // Preserve the weekend even when an old notification opens a mounted tab.
   if (path === '/leaderboard') {
     navigationRef.navigate('Tabs', {
       screen: 'LeaderboardTab',
-      params: { screen: 'LeaderboardMain' },
+      params: {
+        screen: 'LeaderboardMain',
+        params: {
+          raceId: parsed.searchParams.get('raceId') ?? undefined,
+          time:
+            parsed.searchParams.get('time') === 'season' ? 'season' : 'weekend',
+        },
+      },
     });
     return true;
   }
 
-  if (path === '/races' || path === '/' || path === '/predict') {
+  if (path === '/races' || path === '/predict') {
     navigationRef.navigate('Tabs', {
       screen: 'PicksTab',
       params: { screen: 'PicksMain' },

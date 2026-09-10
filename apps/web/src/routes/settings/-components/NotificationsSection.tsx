@@ -13,13 +13,18 @@ const IN_APP_NOTIFICATIONS = [
 ];
 
 const PUSH_NOTIFICATION_ROWS = [
+  { key: 'pushNews', label: 'Selected news (at most once a day)' },
+  {
+    key: 'notificationQuietHours',
+    label: 'Quiet hours for news and reactions (22:00–08:00)',
+  },
   {
     key: 'pushPredictionReminders',
     label: 'Prediction reminders',
   },
   {
     key: 'pushPredictionLockReminders',
-    label: 'Picks lock soon',
+    label: 'Missing picks: two hours before session lock',
   },
   {
     key: 'pushResults',
@@ -37,15 +42,20 @@ const PUSH_NOTIFICATION_ROWS = [
 
 const EMAIL_NOTIFICATION_ROWS = [
   {
+    key: 'preferPushReminders',
+    label: 'Prefer push reminders',
+    description: 'Use email reminders only when push is unavailable.',
+  },
+  {
     key: 'emailPredictionReminders',
     label: 'Prediction reminders',
     description:
-      "Sent 24h before picks lock. Not sent if you've already predicted.",
+      'Missing picks and a first-pick reminder. Turn off “Prefer push reminders” to receive both.',
   },
   {
     key: 'emailResults',
     label: 'Results & scores',
-    description: 'Sent when session results and your score are published.',
+    description: 'One scoring summary after the weekend.',
   },
 ] as const;
 

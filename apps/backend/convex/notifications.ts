@@ -1,113 +1,19 @@
-import { SESSION_LABELS_FULL } from '@grandprixpicks/shared/sessions';
-import type { FunctionReference } from 'convex/server';
 import { v } from 'convex/values';
-
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
 import { internalMutation, internalQuery, mutation } from './_generated/server';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { getViewer, requireAdmin } from './lib/auth';
-import { getExpoTokensForUser } from './push';
 import {
-  wantsEmailPredictionReminders,
-  wantsEmailResults,
-  wantsPushPredictionReminders,
-} from './lib/notificationChannels';
-
-const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
-const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
-const BATCH_SIZE = 50;
-export const USER_NOTIFICATION_BATCH_SIZE = 200;
-
-/** Map race slug prefix to ISO 3166-1 alpha-2 country code (mirrors RaceCard.tsx). */
-const SLUG_TO_COUNTRY: Record<string, string> = {
-  australia: 'au',
-  australian: 'au',
-  china: 'cn',
-  chinese: 'cn',
-  japan: 'jp',
-  japanese: 'jp',
-  bahrain: 'bh',
-  'saudi-arabia': 'sa',
-  'saudi-arabian': 'sa',
-  saudi: 'sa',
-  miami: 'us',
-  canada: 'ca',
-  monaco: 'mc',
-  spain: 'es',
-  madrid: 'es',
-  austria: 'at',
-  britain: 'gb',
-  belgium: 'be',
-  hungary: 'hu',
-  netherlands: 'nl',
-  italy: 'it',
-  'emilia-romagna': 'it',
-  imola: 'it',
-  singapore: 'sg',
-  usa: 'us',
-  'united-states': 'us',
-  mexico: 'mx',
-  brazil: 'br',
-  qatar: 'qa',
-  'abu-dhabi': 'ae',
-  uae: 'ae',
-  portugal: 'pt',
-  'las-vegas': 'us',
-  azerbaijan: 'az',
-};
-
-function getCountryCodeForRace(slug: string): string | null {
-  const key = slug.replace(/-\d{4}$/, '').toLowerCase();
-  return SLUG_TO_COUNTRY[key] ?? null;
-}
-
-function getUsersBatchQuery(ctx: MutationCtx, startAfter?: string) {
-  return startAfter
-    ? ctx.db
-        .query('users')
-        .withIndex('by_clerkUserId', (q) => q.gt('clerkUserId', startAfter))
-    : ctx.db.query('users').withIndex('by_clerkUserId');
-}
-
-function buildPredictionReminderSessions(race: Doc<'races'>) {
-  const sessions: Array<{
-    label: string;
-    startAt: number;
-    isSprint: boolean;
-  }> = [];
-  if (race.hasSprint) {
-    if (race.sprintQualiStartAt) {
-      sessions.push({
-        label: 'Sprint Qualifying',
-        startAt: race.sprintQualiStartAt,
-        isSprint: true,
-      });
-    }
-    if (race.sprintStartAt) {
-      sessions.push({
-        label: 'Sprint',
-        startAt: race.sprintStartAt,
-        isSprint: true,
-      });
-    }
-  }
-  if (race.qualiStartAt) {
-    sessions.push({
-      label: 'Qualifying',
-      startAt: race.qualiStartAt,
-      isSprint: false,
-    });
-  }
-  sessions.push({
-    label: 'Race',
-    startAt: race.raceStartAt,
-    isSprint: false,
-  });
-  return sessions;
-}
-
+  sessionLocks,
+  healthyReminderPush,
+} from './lib/notificationEligibility';
+import { shouldEmailReminder } from './lib/notificationChannels';
+import { getExpoTokensForUser, dispatchPushTargets } from './push';
+const TWENTY_FOUR_HOURS_MS = 86400000;
+const TWO_HOURS_MS = 7200000;
+export const USER_NOTIFICATION_BATCH_SIZE = 100;
 const sessionTypeValidator = v.union(
   v.literal('quali'),
   v.literal('sprint_quali'),
@@ -115,13 +21,6 @@ const sessionTypeValidator = v.union(
   v.literal('race'),
 );
 type SessionType = 'quali' | 'sprint_quali' | 'sprint' | 'race';
-
-function requiredSessionsForRace(hasSprint: boolean): Array<SessionType> {
-  return hasSprint
-    ? ['quali', 'sprint_quali', 'sprint', 'race']
-    : ['quali', 'race'];
-}
-
 export function getIncompleteH2HNudgeEligibility(params: {
   raceStatus: string;
   predictionLockAt: number;
@@ -186,25 +85,6 @@ export function getSignupPredictionNudgeEligibility(params: {
   return { eligible: true };
 }
 
-/**
- * Scheduled mutation: sends prediction reminder emails for a race.
- * Called by the scheduler 24h before the first session locks.
- */
-export const sendPredictionReminders = internalMutation({
-  args: { raceId: v.id('races') },
-  handler: async (ctx, args) => {
-    const race = await ctx.db.get(args.raceId);
-    if (!race || race.status !== 'upcoming') {
-      return { skipped: true, reason: 'Race not upcoming' };
-    }
-
-    const result = await sendPredictionRemindersBatchCore(ctx, {
-      raceId: args.raceId,
-    });
-    return result;
-  },
-});
-
 export async function sendPredictionRemindersBatchCore(
   ctx: MutationCtx,
   args: {
@@ -214,87 +94,17 @@ export async function sendPredictionRemindersBatchCore(
     batchesScheduled?: number;
   },
 ) {
-  const race = await ctx.db.get(args.raceId);
-  if (!race || race.status !== 'upcoming') {
-    return { skipped: true, reason: 'Race not upcoming' as const };
-  }
-
-  const usersWithPredictions = new Set<Id<'users'>>();
-  for await (const prediction of ctx.db
-    .query('predictions')
-    .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
-    usersWithPredictions.add(prediction.userId);
-  }
-
-  const users = await getUsersBatchQuery(ctx, args.startAfter).take(
-    USER_NOTIFICATION_BATCH_SIZE,
-  );
-
-  const recipients: Array<{
-    email: string;
-    timezone?: string;
-    locale?: string;
-  }> = [];
-  for (const user of users) {
-    if (!user.email || !wantsEmailPredictionReminders(user)) {
-      continue;
-    }
-    if (usersWithPredictions.has(user._id)) {
-      continue;
-    }
-    recipients.push({
-      email: user.email,
-      timezone: user.timezone,
-      locale: user.locale,
-    });
-  }
-
-  const sessions = buildPredictionReminderSessions(race);
-  const countryCode = getCountryCodeForRace(race.slug);
-  let recipientCount = args.recipientCount ?? 0;
-  let batchesScheduled = args.batchesScheduled ?? 0;
-
-  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
-    const batch = recipients.slice(i, i + BATCH_SIZE);
-    await ctx.scheduler.runAfter(
-      0,
-      internal.emails.sendReminderEmails.sendBatch,
-      {
-        recipients: batch,
-        raceName: race.name,
-        timeUntilLock: '24 hours',
-        raceId: race._id,
-        raceSlug: race.slug,
-        sessions,
-        round: race.round,
-        countryCode,
-      },
-    );
-    batchesScheduled++;
-  }
-  recipientCount += recipients.length;
-
-  const lastUser = users[users.length - 1];
-  if (lastUser && users.length === USER_NOTIFICATION_BATCH_SIZE) {
-    await ctx.scheduler.runAfter(
-      0,
-      'notifications:sendPredictionRemindersBatch' as unknown as FunctionReference<'mutation'>,
-      {
-        raceId: args.raceId,
-        startAfter: lastUser.clerkUserId,
-        recipientCount,
-        batchesScheduled,
-      },
-    );
-  }
-
-  return {
-    recipientCount,
-    batchesScheduled,
-    done: users.length < USER_NOTIFICATION_BATCH_SIZE,
-  };
+  await ctx.runMutation(internal.notificationEmails.fanout, {
+    raceId: args.raceId,
+    kind: 'reminder',
+  });
+  return null;
 }
-
+export const sendPredictionReminders = internalMutation({
+  args: { raceId: v.id('races') },
+  returns: v.null(),
+  handler: sendPredictionRemindersBatchCore,
+});
 export const sendPredictionRemindersBatch = internalMutation({
   args: {
     raceId: v.id('races'),
@@ -302,236 +112,22 @@ export const sendPredictionRemindersBatch = internalMutation({
     recipientCount: v.optional(v.number()),
     batchesScheduled: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    return await sendPredictionRemindersBatchCore(ctx, args);
-  },
+  returns: v.null(),
+  handler: sendPredictionRemindersBatchCore,
 });
-
-/**
- * Scheduled mutation: gathers data and fans out result notification emails.
- * Called ~30s after scoring completes for a session.
- */
 export const sendResultEmailsForSession = internalMutation({
-  args: {
-    raceId: v.id('races'),
-    sessionType: sessionTypeValidator,
-  },
+  args: { raceId: v.id('races'), sessionType: sessionTypeValidator },
+  returns: v.null(),
   handler: async (ctx, args) => {
-    const result = await sendResultEmailsForSessionBatchCore(ctx, args);
-    return result;
+    if (args.sessionType === 'race') {
+      await ctx.runMutation(internal.notificationEmails.fanout, {
+        raceId: args.raceId,
+        kind: 'summary',
+      });
+    }
+    return null;
   },
 });
-
-type ResultEmailVariant =
-  | 'pre_race_ready'
-  | 'pre_race_missing_h2h'
-  | 'pre_race_missed'
-  | 'post_race_ready'
-  | 'post_race_missing_h2h'
-  | 'post_race_missed';
-
-type ResultEmailRecipientPayload = {
-  email: string;
-  variant: ResultEmailVariant;
-  sessionPoints: number;
-  bestPick: {
-    code: string;
-    position: number;
-    points: number;
-  } | null;
-  globalRank: number;
-  globalTotal: number;
-  leagueRanks: Array<{
-    leagueName: string;
-    rank: number;
-    total: number;
-  }>;
-  racePredictionCtaLabel?: string;
-};
-
-async function sendResultEmailsForSessionBatchCore(
-  ctx: MutationCtx,
-  args: {
-    raceId: Id<'races'>;
-    sessionType: SessionType;
-    startAfter?: string;
-    recipientCount?: number;
-    batchesScheduled?: number;
-  },
-) {
-  // 1. Load race
-  const race = await ctx.db.get(args.raceId);
-  if (!race) {
-    return { skipped: true, reason: 'Race not found' as const };
-  }
-
-  const sessionLabel = SESSION_LABELS_FULL[args.sessionType];
-  const now = Date.now();
-  const nextRace =
-    args.sessionType === 'race'
-      ? await ctx.db
-          .query('races')
-          .withIndex('by_predictionLockAt', (q) =>
-            q.gt('predictionLockAt', now),
-          )
-          .first()
-      : null;
-  const hasUpcomingNextRace = Boolean(
-    nextRace && nextRace.status === 'upcoming',
-  );
-
-  const allStandings = [];
-  for await (const standing of ctx.db
-    .query('seasonStandings')
-    .withIndex('by_season_points', (q) => q.eq('season', race.season))) {
-    allStandings.push(standing);
-  }
-  allStandings.sort((a, b) => b.totalPoints - a.totalPoints);
-
-  const globalRankMap = new Map<string, number>();
-  for (let i = 0; i < allStandings.length; i++) {
-    globalRankMap.set(allStandings[i].userId, i + 1);
-  }
-  const globalTotal = allStandings.length;
-
-  const scoreMap = new Map<string, Doc<'scores'>>();
-  for await (const s of ctx.db
-    .query('scores')
-    .withIndex('by_race_session', (q) =>
-      q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-    )) {
-    scoreMap.set(s.userId, s);
-  }
-
-  const usersWithRacePredictions = new Set<Id<'users'>>();
-  for await (const prediction of ctx.db
-    .query('predictions')
-    .withIndex('by_race_session', (q) =>
-      q.eq('raceId', args.raceId).eq('sessionType', 'race'),
-    )) {
-    usersWithRacePredictions.add(prediction.userId);
-  }
-  const usersWithH2HPredictions = new Set<Id<'users'>>();
-  for await (const prediction of ctx.db
-    .query('h2hPredictions')
-    .withIndex('by_race_session', (q) =>
-      q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-    )) {
-    usersWithH2HPredictions.add(prediction.userId);
-  }
-
-  const users = await getUsersBatchQuery(ctx, args.startAfter).take(
-    USER_NOTIFICATION_BATCH_SIZE,
-  );
-
-  const recipients: Array<ResultEmailRecipientPayload> = [];
-  const isPreRaceSession = args.sessionType !== 'race';
-  const canStillEditRacePredictions =
-    isPreRaceSession && race.predictionLockAt > now;
-
-  for (const user of users) {
-    if (!user.email || !wantsEmailResults(user)) {
-      continue;
-    }
-
-    const score = scoreMap.get(user._id);
-    const hasRacePrediction = usersWithRacePredictions.has(user._id);
-    const hasH2HPrediction = usersWithH2HPredictions.has(user._id);
-
-    if (!score) {
-      if (isPreRaceSession && !canStillEditRacePredictions) {
-        continue;
-      }
-
-      recipients.push({
-        email: user.email,
-        variant: isPreRaceSession ? 'pre_race_missed' : 'post_race_missed',
-        sessionPoints: 0,
-        bestPick: null,
-        globalRank: 0,
-        globalTotal: 0,
-        leagueRanks: [],
-        ...(isPreRaceSession &&
-          canStillEditRacePredictions && {
-            racePredictionCtaLabel: hasRacePrediction
-              ? 'Review Race Picks'
-              : 'Make Race Picks',
-          }),
-      });
-      continue;
-    }
-
-    recipients.push({
-      email: user.email,
-      variant: isPreRaceSession
-        ? hasH2HPrediction
-          ? 'pre_race_ready'
-          : 'pre_race_missing_h2h'
-        : hasH2HPrediction
-          ? 'post_race_ready'
-          : 'post_race_missing_h2h',
-      sessionPoints: score.points,
-      bestPick: null,
-      globalRank: globalRankMap.get(user._id) ?? globalTotal,
-      globalTotal,
-      leagueRanks: [],
-      ...(isPreRaceSession &&
-        canStillEditRacePredictions && {
-          racePredictionCtaLabel: hasRacePrediction
-            ? 'Review Race Picks'
-            : 'Make Race Picks',
-        }),
-    });
-  }
-
-  let recipientCount = args.recipientCount ?? 0;
-  let batchesScheduled = args.batchesScheduled ?? 0;
-  const countryCode = getCountryCodeForRace(race.slug);
-  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
-    const batch = recipients.slice(i, i + BATCH_SIZE);
-    await ctx.scheduler.runAfter(
-      0,
-      internal.emails.sendResultEmails.sendBatch,
-      {
-        recipients: batch,
-        raceName: race.name,
-        raceSlug: race.slug,
-        raceId: race._id,
-        sessionLabel,
-        round: race.round,
-        countryCode,
-        ...(hasUpcomingNextRace && {
-          nextRaceName: nextRace!.name,
-          nextRaceSlug: nextRace!.slug,
-        }),
-      },
-    );
-    batchesScheduled++;
-  }
-  recipientCount += recipients.length;
-
-  const lastUser = users[users.length - 1];
-  if (lastUser && users.length === USER_NOTIFICATION_BATCH_SIZE) {
-    await ctx.scheduler.runAfter(
-      0,
-      'notifications:sendResultEmailsForSessionBatch' as unknown as FunctionReference<'mutation'>,
-      {
-        raceId: args.raceId,
-        sessionType: args.sessionType,
-        startAfter: lastUser.clerkUserId,
-        recipientCount,
-        batchesScheduled,
-      },
-    );
-  }
-
-  return {
-    recipientCount,
-    batchesScheduled,
-    done: users.length < USER_NOTIFICATION_BATCH_SIZE,
-  };
-}
-
 export const sendResultEmailsForSessionBatch = internalMutation({
   args: {
     raceId: v.id('races'),
@@ -540,390 +136,52 @@ export const sendResultEmailsForSessionBatch = internalMutation({
     recipientCount: v.optional(v.number()),
     batchesScheduled: v.optional(v.number()),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
-    return await sendResultEmailsForSessionBatchCore(ctx, args);
-  },
-});
-
-/**
- * Scheduled mutation: nudge a single user if they completed Top 5 picks but still
- * haven't completed H2H for the same weekend.
- */
-export const sendIncompleteH2HNudgeForUser = internalMutation({
-  args: {
-    raceId: v.id('races'),
-    userId: v.id('users'),
-  },
-  handler: async (ctx, args) => {
-    const [race, user] = await Promise.all([
-      ctx.db.get(args.raceId),
-      ctx.db.get(args.userId),
-    ]);
-
-    if (!race) {
-      return { skipped: true, reason: 'Race not found' };
-    }
-    if (!user) {
-      return { skipped: true, reason: 'User not found' };
-    }
-
-    const now = Date.now();
-    const requiredSessions = requiredSessionsForRace(race.hasSprint ?? false);
-
-    const [top5Rows, h2hRows] = await Promise.all([
-      ctx.db
-        .query('predictions')
-        .withIndex('by_user_race_session', (q) =>
-          q.eq('userId', args.userId).eq('raceId', args.raceId),
-        )
-        .take(8),
-      ctx.db
-        .query('h2hPredictions')
-        .withIndex('by_user_race_session', (q) =>
-          q.eq('userId', args.userId).eq('raceId', args.raceId),
-        )
-        .take(32),
-    ]);
-
-    const top5Sessions = new Set(
-      top5Rows.map((p) => p.sessionType as SessionType),
-    );
-    const h2hSessions = new Set(
-      h2hRows.map((p) => p.sessionType as SessionType),
-    );
-
-    const eligibility = getIncompleteH2HNudgeEligibility({
-      raceStatus: race.status,
-      predictionLockAt: race.predictionLockAt,
-      now,
-      requiredSessions,
-      top5Sessions,
-      h2hSessions,
-    });
-    if (!eligibility.eligible) {
-      return { skipped: true, reason: eligibility.reason };
-    }
-
-    const racePath = `/races/${race.slug}`;
-    let emailQueued = false;
-    let pushQueued = 0;
-
-    if (user.email && wantsEmailPredictionReminders(user)) {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.emails.sendReminderEmails.sendH2HNudge,
-        {
-          email: user.email,
-          raceName: race.name,
-          racePath,
-        },
-      );
-      emailQueued = true;
-    }
-
-    const subscriptions = await ctx.db
-      .query('pushSubscriptions')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .take(20);
-    const expoTokens = await getExpoTokensForUser(ctx, user._id);
-
-    if (
-      wantsPushPredictionReminders(user) &&
-      (subscriptions.length > 0 || expoTokens.length > 0)
-    ) {
-      const title = `🏎️ ${race.name}`;
-      const body = 'Your Top 5 picks were recorded. Submit your H2H picks.';
-      const url = `${racePath}?utm_source=push&utm_medium=push&utm_campaign=h2h_nudge`;
-      if (subscriptions.length > 0) {
-        await ctx.scheduler.runAfter(
-          0,
-          internal.pushNotifications.sendPushBatch,
-          {
-            subscriptions: subscriptions.map((s) => ({
-              endpoint: s.endpoint,
-              p256dh: s.p256dh,
-              auth: s.auth,
-            })),
-            title,
-            body,
-            url,
-          },
-        );
-      }
-      if (expoTokens.length > 0) {
-        await ctx.scheduler.runAfter(
-          0,
-          internal.pushNotifications.sendExpoPushBatch,
-          { tokens: expoTokens, title, body, url },
-        );
-      }
-      pushQueued = subscriptions.length + expoTokens.length;
-    }
-
-    return { ok: true, emailQueued, pushQueued };
-  },
-});
-
-export async function sendH2HRemindersForRaceBatchCore(
-  ctx: MutationCtx,
-  args: {
-    raceId: Id<'races'>;
-    startAfter?: string;
-    scheduled?: number;
-  },
-) {
-  const race = await ctx.db.get(args.raceId);
-  if (!race || race.status !== 'upcoming') {
-    return { skipped: true, reason: 'Race not upcoming' as const };
-  }
-  if (race.predictionLockAt <= Date.now()) {
-    return { skipped: true, reason: 'Predictions locked' as const };
-  }
-
-  const requiredSessions = requiredSessionsForRace(race.hasSprint ?? false);
-
-  const top5ByUser = new Map<string, Set<SessionType>>();
-  for await (const p of ctx.db
-    .query('predictions')
-    .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
-    const sessions = top5ByUser.get(p.userId) ?? new Set<SessionType>();
-    sessions.add(p.sessionType as SessionType);
-    top5ByUser.set(p.userId, sessions);
-  }
-
-  const h2hByUser = new Map<string, Set<SessionType>>();
-  for await (const p of ctx.db
-    .query('h2hPredictions')
-    .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
-    const sessions = h2hByUser.get(p.userId) ?? new Set<SessionType>();
-    sessions.add(p.sessionType as SessionType);
-    h2hByUser.set(p.userId, sessions);
-  }
-
-  const candidateUserIds = [...top5ByUser.keys()].filter((userId) => {
-    const top5Sessions = top5ByUser.get(userId) ?? new Set<SessionType>();
-    const h2hSessions = h2hByUser.get(userId) ?? new Set<SessionType>();
-    const hasCompleteTop5 = requiredSessions.every((s) => top5Sessions.has(s));
-    const hasCompleteH2H = requiredSessions.every((s) => h2hSessions.has(s));
-    return hasCompleteTop5 && !hasCompleteH2H;
-  });
-
-  candidateUserIds.sort((a, b) => String(a).localeCompare(String(b)));
-  const startIndex = args.startAfter
-    ? candidateUserIds.findIndex((id) => String(id) > args.startAfter!)
-    : 0;
-  const page =
-    startIndex === -1
-      ? []
-      : candidateUserIds.slice(
-          startIndex,
-          startIndex + USER_NOTIFICATION_BATCH_SIZE,
-        );
-
-  const racePath = `/races/${race.slug}`;
-  let scheduled = args.scheduled ?? 0;
-  for (const userId of page) {
-    const user = await ctx.db.get(userId as Id<'users'>);
-    if (!user?.email || !wantsEmailPredictionReminders(user)) {
-      continue;
-    }
-
-    await ctx.scheduler.runAfter(
-      0,
-      internal.emails.sendReminderEmails.sendH2HNudge,
-      { email: user.email, raceName: race.name, racePath },
-    );
-    scheduled++;
-  }
-
-  const lastUserId = page[page.length - 1];
-  if (lastUserId && startIndex + page.length < candidateUserIds.length) {
-    await ctx.scheduler.runAfter(
-      0,
-      'notifications:sendH2HRemindersForRaceBatch' as unknown as FunctionReference<'mutation'>,
-      {
+    if (args.sessionType === 'race') {
+      await ctx.runMutation(internal.notificationEmails.fanout, {
         raceId: args.raceId,
-        startAfter: String(lastUserId),
-        scheduled,
-      },
-    );
-  }
-
-  return {
-    scheduled,
-    done:
-      startIndex === -1 || startIndex + page.length >= candidateUserIds.length,
-  };
+        kind: 'summary',
+      });
+    }
+    return null;
+  },
+});
+// Retired: completion nudges now share the missing-picks deadline reminder.
+// Keep old scheduled entry points safe during rollout.
+export const sendIncompleteH2HNudgeForUser = internalMutation({
+  args: { raceId: v.id('races'), userId: v.id('users') },
+  returns: v.null(),
+  handler: async () => null,
+});
+export async function sendH2HRemindersForRaceBatchCore(
+  _ctx: MutationCtx,
+  _args: { raceId: Id<'races'>; startAfter?: string; scheduled?: number },
+) {
+  return null;
 }
-
-/**
- * Internal mutation: batch H2H reminder emails for users who completed Top 5
- * but still haven't submitted all H2H picks for the race.
- */
 export const sendH2HRemindersForRace = internalMutation({
   args: { raceId: v.id('races') },
-  handler: async (ctx, args) => {
-    return await sendH2HRemindersForRaceBatchCore(ctx, args);
-  },
+  returns: v.null(),
+  handler: sendH2HRemindersForRaceBatchCore,
 });
-
 export const sendH2HRemindersForRaceBatch = internalMutation({
   args: {
     raceId: v.id('races'),
     startAfter: v.optional(v.string()),
     scheduled: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    return await sendH2HRemindersForRaceBatchCore(ctx, args);
-  },
+  returns: v.null(),
+  handler: sendH2HRemindersForRaceBatchCore,
 });
-
-/**
- * Scheduled mutation: 1h after signup, nudge users who still haven't made
- * any Top 5 prediction.
- */
 export const sendSignupPredictionNudgeForUser = internalMutation({
-  args: {
-    userId: v.id('users'),
-  },
+  args: { userId: v.id('users') },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const user = await ctx.db.get(args.userId);
-    if (!user) {
-      return { skipped: true, reason: 'User not found' };
+    if (!user || user.deletingAt) {
+      return null;
     }
-
-    const firstPrediction = await ctx.db
-      .query('predictions')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .first();
-    const hasPredictions = firstPrediction !== null;
-
-    const subscriptions = await ctx.db
-      .query('pushSubscriptions')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .take(20);
-    const expoTokens = await getExpoTokensForUser(ctx, user._id);
-
-    const canEmail = Boolean(user.email) && wantsEmailPredictionReminders(user);
-    const canPush =
-      wantsPushPredictionReminders(user) &&
-      (subscriptions.length > 0 || expoTokens.length > 0);
-    const remindersEnabled = canEmail || canPush;
-
-    const eligibility = getSignupPredictionNudgeEligibility({
-      hasPredictions,
-      remindersEnabled,
-      canEmail,
-      canPush,
-    });
-    if (!eligibility.eligible) {
-      return { skipped: true, reason: eligibility.reason };
-    }
-
-    const now = Date.now();
-    const nextRace = await ctx.db
-      .query('races')
-      .withIndex('by_predictionLockAt', (q) => q.gt('predictionLockAt', now))
-      .first();
-
-    const hasUpcomingRace = Boolean(nextRace && nextRace.status === 'upcoming');
-    const raceName = hasUpcomingRace ? nextRace!.name : null;
-    const racePath = hasUpcomingRace ? `/races/${nextRace!.slug}` : '/races';
-
-    let emailQueued = false;
-    let pushQueued = 0;
-
-    if (canEmail && user.email) {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.emails.sendReminderEmails.sendSignupNudge,
-        {
-          email: user.email,
-          raceName,
-          racePath,
-        },
-      );
-      emailQueued = true;
-    }
-
-    if (canPush) {
-      const title = '🏎️ Make your first prediction';
-      const body = hasUpcomingRace
-        ? `Pick your top 5 for ${nextRace!.name}.`
-        : 'Pick your top 5 for the next race.';
-      const url = `${racePath}?utm_source=push&utm_medium=push&utm_campaign=signup_nudge`;
-      if (subscriptions.length > 0) {
-        await ctx.scheduler.runAfter(
-          0,
-          internal.pushNotifications.sendPushBatch,
-          {
-            subscriptions: subscriptions.map((s) => ({
-              endpoint: s.endpoint,
-              p256dh: s.p256dh,
-              auth: s.auth,
-            })),
-            title,
-            body,
-            url,
-          },
-        );
-      }
-      if (expoTokens.length > 0) {
-        await ctx.scheduler.runAfter(
-          0,
-          internal.pushNotifications.sendExpoPushBatch,
-          { tokens: expoTokens, title, body, url },
-        );
-      }
-      pushQueued = subscriptions.length + expoTokens.length;
-    }
-
-    return { ok: true, emailQueued, pushQueued };
-  },
-});
-
-/**
- * Public admin mutation: manually trigger Top 5 and H2H reminder emails
- * for an upcoming race. Useful when the scheduled 24h reminder was missed
- * or you want to send a last-minute nudge.
- */
-export const adminTriggerReminders = mutation({
-  args: { raceId: v.id('races') },
-  handler: async (ctx, args) => {
-    const viewer = await getViewer(ctx);
-    requireAdmin(viewer);
-
-    const race = await ctx.db.get(args.raceId);
-    if (!race) {
-      throw new Error('Race not found');
-    }
-    if (race.status !== 'upcoming') {
-      throw new Error('Race is not upcoming');
-    }
-
-    await ctx.scheduler.runAfter(
-      0,
-      internal.notifications.sendPredictionReminders,
-      { raceId: args.raceId },
-    );
-    await ctx.scheduler.runAfter(
-      0,
-      internal.notifications.sendH2HRemindersForRace,
-      { raceId: args.raceId },
-    );
-
-    return { triggered: true };
-  },
-});
-
-/**
- * CLI-runnable internal mutation: sends Top 5 + H2H reminder emails for the
- * next upcoming race without requiring an authenticated context.
- * Usage: npx convex run notifications:triggerRemindersForNextRace --prod
- */
-export const triggerRemindersForNextRace = internalMutation({
-  args: {},
-  handler: async (ctx) => {
     const now = Date.now();
     const race = await ctx.db
       .query('races')
@@ -931,201 +189,255 @@ export const triggerRemindersForNextRace = internalMutation({
         q.eq('status', 'upcoming').gt('predictionLockAt', now),
       )
       .first();
-
     if (!race) {
-      return { skipped: true, reason: 'No upcoming race found' };
+      return null;
     }
-
-    await ctx.scheduler.runAfter(
-      0,
-      internal.notifications.sendPredictionReminders,
-      { raceId: race._id },
-    );
-    await ctx.scheduler.runAfter(
-      0,
-      internal.notifications.sendH2HRemindersForRace,
-      { raceId: race._id },
-    );
-
-    return { triggered: true, raceName: race.name, raceId: race._id };
+    const first = sessionLocks(race)[0];
+    if (!first || first.lockAt - now <= 25 * 3600000) {
+      return null;
+    }
+    if (
+      await ctx.db
+        .query('predictions')
+        .withIndex('by_user', (q) => q.eq('userId', user._id))
+        .first()
+    ) {
+      return null;
+    }
+    const push = await healthyReminderPush(ctx, user, now);
+    if (shouldEmailReminder(user, push)) {
+      await ctx.runMutation(internal.notificationEmails.queue, {
+        userId: user._id,
+        raceId: race._id,
+        kind: 'signup',
+      });
+    }
+    if (push) {
+      const subscriptions = await ctx.db
+        .query('pushSubscriptions')
+        .withIndex('by_user', (q) => q.eq('userId', user._id))
+        .take(20);
+      await dispatchPushTargets(
+        ctx,
+        {
+          subscriptions: subscriptions.map((s) => ({
+            endpoint: s.endpoint,
+            p256dh: s.p256dh,
+            auth: s.auth,
+          })),
+          tokens: await getExpoTokensForUser(ctx, user._id),
+        },
+        {
+          title: race.name,
+          body: 'Make your first Top 5 and head-to-head picks.',
+          url: `/races/${race.slug}?utm_campaign=signup_nudge`,
+          category: 'reminder',
+          eventKey: `signup:${user._id}`,
+          expiresAt: first.lockAt - 24 * 3600000,
+          raceId: race._id,
+        },
+      );
+    }
+    return null;
   },
 });
-
+export const adminTriggerReminders = mutation({
+  args: { raceId: v.id('races') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    requireAdmin(await getViewer(ctx));
+    await ctx.runMutation(internal.notificationEmails.fanout, {
+      raceId: args.raceId,
+      kind: 'reminder',
+    });
+    return null;
+  },
+});
+export const triggerRemindersForNextRace = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_status_and_predictionLockAt', (q) =>
+        q.eq('status', 'upcoming').gt('predictionLockAt', Date.now()),
+      )
+      .first();
+    if (race) {
+      await ctx.runMutation(internal.notificationEmails.fanout, {
+        raceId: race._id,
+        kind: 'reminder',
+      });
+    }
+    return null;
+  },
+});
 export async function scheduleReminder(
   ctx: MutationCtx,
   race: Doc<'races'>,
 ): Promise<void> {
-  if (race.status === 'cancelled') {
-    return;
-  }
-
-  // Compute the first session lock time for this weekend
-  const firstLockTime = race.hasSprint
-    ? race.sprintQualiLockAt
-    : race.qualiLockAt;
-
-  if (!firstLockTime) {
-    return;
-  }
-
-  const reminderTime = firstLockTime - TWENTY_FOUR_HOURS_MS;
-
-  // Don't schedule if reminder time is in the past
-  if (reminderTime <= Date.now()) {
-    return;
-  }
-
-  // Cancel existing scheduled reminder if present
-  if (race.reminderScheduledId) {
+  for (const id of [
+    ...(race.reminderJobIds ?? []),
+    ...(race.reminderScheduledId
+      ? [race.reminderScheduledId as Id<'_scheduled_functions'>]
+      : []),
+  ]) {
     try {
-      await ctx.scheduler.cancel(
-        race.reminderScheduledId as Id<'_scheduled_functions'>,
-      );
+      await ctx.scheduler.cancel(id);
     } catch {
-      // Already ran or was cancelled — safe to ignore
+      /* Already completed. */
     }
   }
-
-  // Schedule the new reminder
-  const scheduledId = await ctx.scheduler.runAt(
-    reminderTime,
-    internal.notifications.sendPredictionReminders,
-    { raceId: race._id },
-  );
-
-  // Store the scheduled function ID on the race
+  const version = (race.reminderVersion ?? 0) + 1;
+  const ids: Id<'_scheduled_functions'>[] = [];
+  const now = Date.now();
+  if (race.status !== 'cancelled' && race.status !== 'finished') {
+    const locks = sessionLocks(race);
+    const first = locks[0];
+    if (first && first.lockAt - TWENTY_FOUR_HOURS_MS > now) {
+      ids.push(
+        await ctx.scheduler.runAt(
+          first.lockAt - TWENTY_FOUR_HOURS_MS,
+          internal.notifications.sendPredictionReminders,
+          { raceId: race._id },
+        ),
+      );
+      ids.push(
+        await ctx.scheduler.runAt(
+          first.lockAt - TWENTY_FOUR_HOURS_MS,
+          internal.push.sendPushRemindersForRace,
+          {
+            raceId: race._id,
+            filterUnpredicted: false,
+            sessionType: first.sessionType,
+            expectedLockAt: first.lockAt,
+            version,
+          },
+        ),
+      );
+    }
+    for (const lock of locks) {
+      if (lock.lockAt - TWO_HOURS_MS > now) {
+        ids.push(
+          await ctx.scheduler.runAt(
+            lock.lockAt - TWO_HOURS_MS,
+            internal.push.sendPushRemindersForRace,
+            {
+              raceId: race._id,
+              filterUnpredicted: true,
+              sessionType: lock.sessionType,
+              expectedLockAt: lock.lockAt,
+              version,
+            },
+          ),
+        );
+      }
+    }
+  }
   await ctx.db.patch(race._id, {
-    reminderScheduledId: scheduledId as unknown as string,
+    reminderVersion: version,
+    reminderJobIds: ids,
+    reminderScheduledId: undefined,
   });
-
-  // Schedule push notifications alongside email reminder
-  // 24h push: all subscribed users
-  const push24hTime = firstLockTime - TWENTY_FOUR_HOURS_MS;
-  if (push24hTime > Date.now()) {
-    await ctx.scheduler.runAt(
-      push24hTime,
-      internal.push.sendPushRemindersForRace,
-      { raceId: race._id, filterUnpredicted: false },
-    );
-  }
-
-  // 2h push: only users who haven't made any predictions yet
-  const push2hTime = firstLockTime - TWO_HOURS_MS;
-  if (push2hTime > Date.now()) {
-    await ctx.scheduler.runAt(
-      push2hTime,
-      internal.push.sendPushRemindersForRace,
-      { raceId: race._id, filterUnpredicted: true },
-    );
-  }
 }
 
-/**
- * CLI-runnable internal mutation: recreates future reminder and lock schedules
- * for all upcoming races after a backup import into a fresh deployment.
- *
- * Run this once on the new deployment after code deploy + env var setup:
- *   npx convex run notifications:rescheduleUpcomingRaceReminders --prod
- */
 export const rescheduleUpcomingRaceReminders = internalMutation({
   args: {},
+  returns: v.null(),
   handler: async (ctx) => {
-    const now = Date.now();
-    const upcomingRaces = await ctx.db
+    const races = await ctx.db
       .query('races')
       .withIndex('by_status_and_predictionLockAt', (q) =>
-        q.eq('status', 'upcoming').gt('predictionLockAt', now),
+        q.eq('status', 'upcoming').gt('predictionLockAt', Date.now()),
       )
       .take(50);
-
-    const scheduledRaceNames: string[] = [];
-
-    for (const race of upcomingRaces) {
+    for (const race of races) {
       await scheduleReminder(ctx, race);
       await scheduleSessionLockNotifications(ctx, race);
-      scheduledRaceNames.push(race.name);
     }
-
-    return {
-      ok: true,
-      scheduledCount: scheduledRaceNames.length,
-      scheduledRaceNames,
-    };
+    return null;
   },
 });
-
-/** Read-only forensic summary of what the notification pipeline actually ran. */
 export const inspectRecentNotificationJobs = internalQuery({
-  args: { sinceMs: v.number() },
+  args: { sinceMs: v.number(), nowMs: v.number() },
+  returns: v.object({
+    counts: v.record(v.string(), v.number()),
+    sampleLimit: v.number(),
+  }),
   handler: async (ctx, args) => {
-    const cutoff = Date.now() - args.sinceMs;
-    const byName: Record<string, Record<string, number>> = {};
-
-    for await (const job of ctx.db.system.query('_scheduled_functions')) {
-      if (job._creationTime < cutoff) {
-        continue;
+    const cutoff = args.nowMs - Math.min(args.sinceMs, 30 * 86400000);
+    const rows = await ctx.db
+      .query('notificationDeliveries')
+      .order('desc')
+      .take(1000);
+    const counts: Record<string, number> = {};
+    for (const row of rows) {
+      if (row.createdAt >= cutoff) {
+        const key = `${row.category}:${row.channel}:${row.status}`;
+        counts[key] = (counts[key] ?? 0) + 1;
       }
-      byName[job.name] ??= {};
-      byName[job.name][job.state.kind] =
-        (byName[job.name][job.state.kind] ?? 0) + 1;
     }
-
-    return byName;
+    return { counts, sampleLimit: 1000 };
   },
 });
-
-/**
- * Emergency stop: cancel every queued result email / push send.
- *
- * A bulk rescore re-runs `checkScoringComplete` for each session, which
- * schedules result notifications for any result whose `notificationsSent` flag
- * was never set. Run this the moment an unintended send starts, then use
- * `markResultNotificationsSent` so a retry cannot re-arm them.
- */
 export const cancelQueuedResultNotifications = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    const cancelled: Record<string, number> = {};
-    let scanned = 0;
-
-    for await (const job of ctx.db.system.query('_scheduled_functions')) {
-      scanned += 1;
-      if (job.state.kind !== 'pending' && job.state.kind !== 'inProgress') {
-        continue;
-      }
-      const name = job.name;
-      if (
-        !name.includes('sendResultEmailsForSession') &&
-        !name.includes('sendPushResultsForSession') &&
-        !name.includes('sendResultEmail') &&
-        !name.includes('notifyResultsAmended')
-      ) {
-        continue;
-      }
-      if (job.state.kind === 'pending') {
-        await ctx.scheduler.cancel(job._id);
-        cancelled[name] = (cancelled[name] ?? 0) + 1;
+  args: { cursor: v.optional(v.union(v.string(), v.null())) },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const page = await ctx.db
+      .query('races')
+      .paginate({ cursor: args.cursor ?? null, numItems: 50 });
+    for (const race of page.page) {
+      for (const key of [
+        `summary:${race._id}`,
+        ...['quali', 'sprint_quali', 'sprint', 'race'].map(
+          (s) => `results:${race._id}:${s}`,
+        ),
+      ]) {
+        const campaign = await ctx.db
+          .query('notificationCampaigns')
+          .withIndex('by_key', (q) => q.eq('key', key))
+          .unique();
+        if (campaign) {
+          await ctx.db.patch(campaign._id, { cancelled: true });
+        } else {
+          await ctx.db.insert('notificationCampaigns', {
+            key,
+            cancelled: true,
+            createdAt: Date.now(),
+          });
+        }
       }
     }
-
-    return { scanned, cancelled };
+    if (!page.isDone) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.notifications.cancelQueuedResultNotifications,
+        { cursor: page.continueCursor },
+      );
+    }
+    return null;
   },
 });
-
-/**
- * Set `notificationsSent` on every published result so a rescore can never
- * re-arm result emails or pushes for sessions players were already told about.
- */
 export const markResultNotificationsSent = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    let patched = 0;
-    for await (const result of ctx.db.query('results')) {
-      if (!result.notificationsSent) {
-        await ctx.db.patch(result._id, { notificationsSent: true });
-        patched += 1;
+  args: { cursor: v.optional(v.union(v.string(), v.null())) },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const page = await ctx.db
+      .query('results')
+      .paginate({ cursor: args.cursor ?? null, numItems: 100 });
+    for (const row of page.page) {
+      if (!row.notificationsSent) {
+        await ctx.db.patch(row._id, { notificationsSent: true });
       }
     }
-    return { patched };
+    if (!page.isDone) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.notifications.markResultNotificationsSent,
+        { cursor: page.continueCursor },
+      );
+    }
+    return null;
   },
 });

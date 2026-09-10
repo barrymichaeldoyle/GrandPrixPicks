@@ -1,3 +1,4 @@
+import { AppState } from 'react-native';
 import { useUser } from '@clerk/expo';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useRef } from 'react';
@@ -6,17 +7,21 @@ import { useQuery } from '../integrations/convex/query';
 
 import { api } from '../integrations/convex/api';
 import { captureAnalyticsEvent } from '../lib/analytics';
-import { obtainExpoPushTokenIfGranted } from '../lib/pushRegistration';
+import {
+  obtainExpoPushTokenIfGranted,
+  getStoredExpoPushToken,
+  clearStoredExpoPushToken,
+} from '../lib/pushRegistration';
 import { routePushUrl } from '../lib/pushRouting';
 import { useMobileConfig } from './mobile-config';
 
 // Configure how notifications are displayed when the app is foregrounded
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldPlaySound: true,
+    shouldPlaySound: false,
     shouldSetBadge: false,
-    shouldShowAlert: true,
-    shouldShowBanner: true,
+    shouldShowAlert: false,
+    shouldShowBanner: false,
     shouldShowList: true,
   }),
 });
@@ -45,9 +50,10 @@ export function NotificationsProvider() {
 }
 
 function ClerkAwareNotifications() {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, user } = useUser();
   const saveToken = useMutation(api.push.saveExpoPushToken);
-  const tokenRef = useRef<string | null>(null);
+  const deleteToken = useMutation(api.push.deleteExpoPushToken);
+  const markOpened = useMutation(api.notificationDelivery.markOpened);
 
   // Mirror the in-app unread count on the home-screen icon badge. The count
   // query reads only unread rows, so the badge never depends on how much of
@@ -63,35 +69,65 @@ function ClerkAwareNotifications() {
     });
   }, [unreadCount]);
 
-  // Silent re-registration: refreshes the server-side token for devices that
-  // already granted permission (reinstalls, token rotation). No prompt.
+  // Refresh on account/permission changes. Cache only successful persistence.
   useEffect(() => {
-    if (!isSignedIn) {
+    if (!isSignedIn || !user?.id) {
       return;
     }
-
     let cancelled = false;
-
-    void obtainExpoPushTokenIfGranted()
-      .then((token) => {
-        if (cancelled || !token || tokenRef.current === token) {
+    let running = false;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+    async function register() {
+      if (cancelled || running) {
+        return;
+      }
+      running = true;
+      try {
+        const previous = await getStoredExpoPushToken();
+        const token = await obtainExpoPushTokenIfGranted();
+        if (cancelled) {
           return;
         }
-        tokenRef.current = token;
-        void saveToken({ token }).catch((err: unknown) => {
-          console.warn('[notifications] saveExpoPushToken failed', err);
-        });
-      })
-      .catch((err: unknown) => {
-        // Best-effort — most commonly fails when the EAS projectId is
-        // missing/invalid. Swallow so it doesn't surface as unhandled.
-        console.warn('[notifications] push token registration failed', err);
-      });
-
+        if (!token) {
+          if (previous && !cancelled) {
+            await deleteToken({ token: previous });
+            await clearStoredExpoPushToken();
+          }
+          return;
+        }
+        await saveToken({ token });
+        if (previous && previous !== token && !cancelled) {
+          await deleteToken({ token: previous });
+        }
+        attempts = 0;
+      } catch (err) {
+        console.warn('[notifications] registration failed', err);
+        if (!cancelled && attempts < 5) {
+          retry = setTimeout(
+            () => void register(),
+            Math.min(1000 * 2 ** attempts++, 30000),
+          );
+        }
+      } finally {
+        running = false;
+      }
+    }
+    void register();
+    const appState = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        attempts = 0;
+        void register();
+      }
+    });
+    const rotation = Notifications.addPushTokenListener(() => void register());
     return () => {
       cancelled = true;
+      clearTimeout(retry);
+      appState.remove();
+      rotation.remove();
     };
-  }, [isSignedIn, saveToken]);
+  }, [isSignedIn, user?.id, saveToken, deleteToken]);
 
   // Notification taps: warm-state listener + the response that may have
   // cold-started the app. pushRouting buffers until the navigator is ready.
@@ -109,14 +145,23 @@ function ClerkAwareNotifications() {
       handledResponseIdRef.current = id;
       const url = urlFromResponse(response);
       captureAnalyticsEvent('notification_opened', { url });
+      const deliveryId = response.notification.request.content.data?.deliveryId;
+      if (isSignedIn && typeof deliveryId === 'string') {
+        void markOpened({
+          deliveryId: deliveryId as Parameters<
+            typeof markOpened
+          >[0]['deliveryId'],
+        }).catch(() => {});
+      }
       routePushUrl(url);
+      void Notifications.clearLastNotificationResponseAsync().catch(() => {});
     }
 
     const sub = Notifications.addNotificationResponseReceivedListener(handle);
     void Notifications.getLastNotificationResponseAsync().then(handle);
 
     return () => sub.remove();
-  }, []);
+  }, [isSignedIn, markOpened]);
 
   return null;
 }

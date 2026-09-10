@@ -48,6 +48,11 @@ export default defineSchema({
     // Email: opt-out, default true
     emailPredictionReminders: v.optional(v.boolean()),
     emailResults: v.optional(v.boolean()),
+    pushNews: v.optional(v.boolean()),
+    notificationQuietHours: v.optional(v.boolean()),
+    preferPushReminders: v.optional(v.boolean()),
+    emailSuppressed: v.optional(v.boolean()),
+    unsubscribeToken: v.optional(v.string()),
     // Push: opt-out, default true (if device is subscribed)
     pushPredictionReminders: v.optional(v.boolean()),
     pushPredictionLockReminders: v.optional(v.boolean()),
@@ -96,7 +101,9 @@ export default defineSchema({
   })
     .index('by_clerkUserId', ['clerkUserId'])
     .index('by_clerkSubject', ['clerkSubject'])
-    .index('by_username', ['username']),
+    .index('by_username', ['username'])
+    .index('by_email', ['email'])
+    .index('by_unsubscribeToken', ['unsubscribeToken']),
 
   drivers: defineTable({
     code: v.string(), // "VER"
@@ -172,6 +179,8 @@ export default defineSchema({
 
     status: raceStatus,
     reminderScheduledId: v.optional(v.string()),
+    reminderJobIds: v.optional(v.array(v.id('_scheduled_functions'))),
+    reminderVersion: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -642,6 +651,74 @@ export default defineSchema({
     createdAt: v.number(),
   }).index('by_user_season', ['userId', 'season']),
 
+  notificationEmails: defineTable({
+    key: v.string(),
+    userId: v.id('users'),
+    raceId: v.id('races'),
+    kind: v.union(
+      v.literal('reminder'),
+      v.literal('summary'),
+      v.literal('signup'),
+    ),
+    status: v.union(
+      v.literal('queued'),
+      v.literal('accepted'),
+      v.literal('cancelled'),
+      v.literal('failed'),
+    ),
+    expectedLockAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index('by_key', ['key'])
+    .index('by_user', ['userId'])
+    .index('by_status', ['status']),
+  notificationDeliveries: defineTable({
+    key: v.string(),
+    eventKey: v.string(),
+    userId: v.id('users'),
+    channel: v.union(v.literal('expo'), v.literal('web')),
+    target: v.string(),
+    title: v.string(),
+    body: v.string(),
+    url: v.string(),
+    category: v.union(
+      v.literal('reminder'),
+      v.literal('lock_reminder'),
+      v.literal('results'),
+      v.literal('session_locked'),
+      v.literal('reaction'),
+      v.literal('news'),
+    ),
+    status: v.union(
+      v.literal('queued'),
+      v.literal('sending'),
+      v.literal('accepted'),
+      v.literal('handed_off'),
+      v.literal('failed'),
+      v.literal('cancelled'),
+    ),
+    attempts: v.number(),
+    dueAt: v.number(),
+    expiresAt: v.number(),
+    ticketId: v.optional(v.string()),
+    error: v.optional(v.string()),
+    openedAt: v.optional(v.number()),
+    raceId: v.optional(v.id('races')),
+    sessionType: v.optional(sessionType),
+    expectedLockAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_key', ['key'])
+    .index('by_status_due', ['status', 'dueAt'])
+    .index('by_event', ['eventKey'])
+    .index('by_user', ['userId']),
+  notificationCampaigns: defineTable({
+    key: v.string(),
+    cancelled: v.boolean(),
+    createdAt: v.number(),
+  }).index('by_key', ['key']),
+
   pushSubscriptions: defineTable({
     userId: v.id('users'),
     endpoint: v.string(),
@@ -655,6 +732,7 @@ export default defineSchema({
   expoPushTokens: defineTable({
     userId: v.id('users'),
     token: v.string(),
+    refreshedAt: v.optional(v.number()),
     createdAt: v.number(),
   })
     .index('by_user', ['userId'])

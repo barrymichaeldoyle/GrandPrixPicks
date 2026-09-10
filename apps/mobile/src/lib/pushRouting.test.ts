@@ -23,7 +23,10 @@ describe('routePushUrl', () => {
     routePushUrl('/leaderboard?time=weekend&raceId=k1&utm_source=push');
     expect(navigate).toHaveBeenCalledWith('Tabs', {
       screen: 'LeaderboardTab',
-      params: { screen: 'LeaderboardMain' },
+      params: {
+        screen: 'LeaderboardMain',
+        params: { raceId: 'k1', time: 'weekend' },
+      },
     });
   });
 
@@ -53,7 +56,10 @@ describe('routePushUrl', () => {
     routePushUrl('https://grandprixpicks.com/leaderboard?time=weekend');
     expect(navigate).toHaveBeenCalledWith('Tabs', {
       screen: 'LeaderboardTab',
-      params: { screen: 'LeaderboardMain' },
+      params: {
+        screen: 'LeaderboardMain',
+        params: { raceId: undefined, time: 'weekend' },
+      },
     });
   });
 
@@ -78,7 +84,10 @@ describe('routePushUrl', () => {
     flushPendingPushRoute();
     expect(navigate).toHaveBeenCalledWith('Tabs', {
       screen: 'LeaderboardTab',
-      params: { screen: 'LeaderboardMain' },
+      params: {
+        screen: 'LeaderboardMain',
+        params: { raceId: 'k1', time: 'weekend' },
+      },
     });
   });
 
@@ -89,5 +98,13 @@ describe('routePushUrl', () => {
     flushPendingPushRoute();
     flushPendingPushRoute();
     expect(navigate).toHaveBeenCalledTimes(1);
+  });
+});
+
+it('opens the home feed for a session-lock link', () => {
+  routePushUrl('/?utm_campaign=session_locked');
+  expect(navigate).toHaveBeenCalledWith('Tabs', {
+    screen: 'HomeTab',
+    params: { screen: 'HomeMain' },
   });
 });

@@ -1,121 +1,79 @@
-import { describe, expect, it, vi } from 'vitest';
-
+/// <reference types="vite/client" />
+import { convexTest } from 'convex-test';
+import { describe, expect, it } from 'vitest';
 import { internal } from './_generated/api';
-import type { Id } from './_generated/dataModel';
-import {
-  USER_NOTIFICATION_BATCH_SIZE,
-  sendPredictionRemindersBatchCore,
-} from './notifications';
-
-function raceId(id: string): Id<'races'> {
-  return id as Id<'races'>;
-}
-
-type MockUser = {
-  _id: Id<'users'>;
-  clerkUserId: string;
-  email?: string;
-  timezone?: string;
-  locale?: string;
-  emailPredictionReminders?: boolean;
-};
-
-function emptyAsyncQuery<T>() {
-  return {
-    async *[Symbol.asyncIterator]() {
-      const rows: T[] = [];
-      for (const row of rows) {
-        yield row;
+import schema from './schema';
+const modules = import.meta.glob('./**/*.ts');
+describe('notification email fan-out', () => {
+  it('pages the roster and deduplicates separately enqueued campaign work', async () => {
+    const t = convexTest(schema, modules);
+    const raceId = await t.run(async (ctx) => {
+      const now = Date.now();
+      const id = await ctx.db.insert('races', {
+        season: 2026,
+        round: 1,
+        name: 'Test',
+        slug: 'test-2026',
+        status: 'upcoming',
+        qualiLockAt: now + 86400000,
+        raceStartAt: now + 172800000,
+        predictionLockAt: now + 172800000,
+        createdAt: now,
+        updatedAt: now,
+      });
+      for (let i = 0; i < 201; i++) {
+        await ctx.db.insert('users', {
+          clerkUserId: `u${i}`,
+          email: `${i}@example.com`,
+          createdAt: now,
+          updatedAt: now,
+        });
       }
-    },
-  };
-}
-
-describe('sendPredictionRemindersBatchCore', () => {
-  it('schedules email batches and a continuation when more users remain', async () => {
-    const users: MockUser[] = Array.from(
-      { length: USER_NOTIFICATION_BATCH_SIZE },
-      (_, index) => ({
-        _id: `u${index + 1}` as Id<'users'>,
-        clerkUserId: `clerk_${String(index + 1).padStart(3, '0')}`,
-        email: `user${index + 1}@example.com`,
+      return id;
+    });
+    await t.mutation(internal.notificationEmails.fanout, {
+      raceId,
+      kind: 'reminder',
+    });
+    const first = await t.run((ctx) =>
+      ctx.db.query('notificationEmails').collect(),
+    );
+    expect(first).toHaveLength(100);
+    await t.mutation(internal.notificationEmails.fanout, {
+      raceId,
+      kind: 'reminder',
+    });
+    expect(
+      await t.run((ctx) => ctx.db.query('notificationEmails').collect()),
+    ).toHaveLength(100);
+    const jobs = await t.run((ctx) =>
+      ctx.db.system.query('_scheduled_functions').collect(),
+    );
+    expect(jobs.some((j) => j.name.includes('notificationEmails:fanout'))).toBe(
+      true,
+    );
+  });
+  it('does not send a separate email for qualifying results', async () => {
+    const t = convexTest(schema, modules);
+    const raceId = await t.run((ctx) =>
+      ctx.db.insert('races', {
+        season: 2026,
+        round: 1,
+        name: 'Test',
+        slug: 'test',
+        status: 'upcoming',
+        raceStartAt: 1,
+        predictionLockAt: 1,
+        createdAt: 1,
+        updatedAt: 1,
       }),
     );
-
-    const runAfter = vi.fn().mockResolvedValue(undefined);
-    const ctx = {
-      db: {
-        get: vi.fn(async (id: Id<'races'>) => ({
-          _id: id,
-          name: 'Bahrain Grand Prix',
-          slug: 'bahrain-2026',
-          round: 1,
-          season: 2026,
-          status: 'upcoming',
-          raceStartAt: Date.now() + 86_400_000,
-          predictionLockAt: Date.now() + 80_000_000,
-        })),
-        query: vi.fn((table: string) => {
-          if (table === 'predictions') {
-            return {
-              withIndex: () =>
-                emptyAsyncQuery<{
-                  userId: Id<'users'>;
-                }>(),
-            };
-          }
-
-          if (table === 'users') {
-            return {
-              withIndex: (
-                _indexName: string,
-                _builder?: (q: {
-                  gt: (field: string, value: string) => unknown;
-                }) => unknown,
-              ) => ({
-                take: async (limit: number) => users.slice(0, limit),
-              }),
-            };
-          }
-
-          throw new Error(`Unexpected table ${table}`);
-        }),
-      },
-      scheduler: { runAfter },
-    };
-
-    const result = await sendPredictionRemindersBatchCore(ctx as never, {
-      raceId: raceId('race_1'),
+    await t.mutation(internal.notifications.sendResultEmailsForSession, {
+      raceId,
+      sessionType: 'quali',
     });
-
-    expect(result).toEqual({
-      recipientCount: USER_NOTIFICATION_BATCH_SIZE,
-      batchesScheduled: USER_NOTIFICATION_BATCH_SIZE / 50,
-      done: false,
-    });
-    expect(runAfter).toHaveBeenCalledTimes(
-      USER_NOTIFICATION_BATCH_SIZE / 50 + 1,
-    );
-    expect(runAfter).toHaveBeenNthCalledWith(
-      1,
-      0,
-      internal.emails.sendReminderEmails.sendBatch,
-      expect.objectContaining({
-        recipients: expect.arrayContaining([
-          expect.objectContaining({ email: 'user1@example.com' }),
-        ]),
-        raceName: 'Bahrain Grand Prix',
-      }),
-    );
-    expect(runAfter).toHaveBeenLastCalledWith(
-      0,
-      'notifications:sendPredictionRemindersBatch',
-      {
-        raceId: raceId('race_1'),
-        startAfter: users.at(-1)!.clerkUserId,
-        recipientCount: USER_NOTIFICATION_BATCH_SIZE,
-        batchesScheduled: USER_NOTIFICATION_BATCH_SIZE / 50,
-      },
-    );
+    expect(
+      await t.run((ctx) => ctx.db.query('notificationEmails').collect()),
+    ).toHaveLength(0);
   });
 });

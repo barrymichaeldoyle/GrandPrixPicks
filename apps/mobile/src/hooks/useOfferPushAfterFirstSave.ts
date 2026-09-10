@@ -32,8 +32,8 @@ export function useOfferPushAfterFirstSave() {
     }
 
     Alert.alert(
-      'Never miss a session',
-      'Get a reminder before picks lock and a ping when results land.',
+      'Turn on pick reminders?',
+      'Get reminders for missing picks and updates when your scores are ready.',
       [
         {
           style: 'cancel',
@@ -54,11 +54,15 @@ export function useOfferPushAfterFirstSave() {
                 source: 'first_save_pre_prompt',
               });
               if (token) {
-                await saveToken({ token }).catch((err: unknown) => {
-                  console.warn('[notifications] saveExpoPushToken failed', err);
-                });
+                await saveToken({ token });
               }
-            })();
+            })().catch((err: unknown) => {
+              console.warn('[notifications] registration failed', err);
+              Alert.alert(
+                'Notifications weren’t enabled',
+                'Try again in Settings.',
+              );
+            });
           },
         },
       ],

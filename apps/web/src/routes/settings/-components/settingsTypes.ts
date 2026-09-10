@@ -6,6 +6,9 @@ export type NotificationSettings = {
   pushResults: boolean;
   pushSessionLocked: boolean;
   pushRevReceived: boolean;
+  pushNews: boolean;
+  notificationQuietHours: boolean;
+  preferPushReminders: boolean;
 };
 
 export type SettingsUser = {

@@ -40,19 +40,32 @@ type NotificationKey =
   | 'pushResults'
   | 'pushSessionLocked'
   | 'pushRevReceived'
+  | 'pushNews'
+  | 'notificationQuietHours'
+  | 'preferPushReminders'
   | 'emailPredictionReminders'
   | 'emailResults';
 
 const PUSH_TOGGLES: { key: NotificationKey; label: string; help: string }[] = [
   {
+    key: 'pushNews',
+    label: 'Selected news',
+    help: 'Selected stories, at most once a day. Off by default.',
+  },
+  {
+    key: 'notificationQuietHours',
+    label: 'Quiet hours',
+    help: 'Hold news and reactions from 22:00 to 08:00 in your timezone.',
+  },
+  {
     key: 'pushPredictionReminders',
     label: 'Prediction reminders',
-    help: 'Heads-up when picks are open for the next weekend.',
+    help: 'Missing picks, 24 hours before the first session.',
   },
   {
     key: 'pushPredictionLockReminders',
     label: 'Lock reminders',
-    help: 'A nudge an hour before a session locks.',
+    help: 'Missing picks, two hours before each session locks.',
   },
   {
     key: 'pushResults',
@@ -73,14 +86,19 @@ const PUSH_TOGGLES: { key: NotificationKey; label: string; help: string }[] = [
 
 const EMAIL_TOGGLES: { key: NotificationKey; label: string; help: string }[] = [
   {
+    key: 'preferPushReminders',
+    label: 'Prefer push reminders',
+    help: 'Use email reminders only when push is unavailable.',
+  },
+  {
     key: 'emailPredictionReminders',
     label: 'Prediction reminders',
-    help: 'Weekend opening + closing emails.',
+    help: 'Missing picks and a first-pick reminder. Turn off “Prefer push reminders” to receive both.',
   },
   {
     key: 'emailResults',
-    label: 'Results published',
-    help: 'Your scoring summary after each race.',
+    label: 'Weekend summary',
+    help: 'One scoring summary after the weekend.',
   },
 ];
 
@@ -465,22 +483,25 @@ export function SettingsScreen() {
           canAskAgain={pushPermission.canAskAgain}
           onOpenSettings={pushPermission.openSystemSettings}
           onRequest={async () => {
-            void Haptics.selectionAsync();
-            const granted = await pushPermission.requestPermission();
-            captureAnalyticsEvent('push_permission_result', {
-              granted,
-              source: 'settings',
-            });
-            if (granted) {
-              const token = await obtainExpoPushToken();
-              if (token) {
-                await saveExpoPushToken({ token }).catch((err: unknown) => {
-                  console.warn('[settings] saveExpoPushToken failed', err);
-                });
+            try {
+              void Haptics.selectionAsync();
+              const granted = await pushPermission.requestPermission();
+              captureAnalyticsEvent('push_permission_result', {
+                granted,
+                source: 'settings',
+              });
+              if (granted) {
+                const token = await obtainExpoPushToken();
+                if (token) {
+                  await saveExpoPushToken({ token });
+                }
+                void Haptics.notificationAsync(
+                  Haptics.NotificationFeedbackType.Success,
+                );
               }
-              void Haptics.notificationAsync(
-                Haptics.NotificationFeedbackType.Success,
-              );
+            } catch (error) {
+              console.warn('[settings] push registration failed', error);
+              Alert.alert('Notifications weren’t enabled', 'Try again.');
             }
           }}
           status={pushPermission.status}
@@ -492,7 +513,10 @@ export function SettingsScreen() {
             key={toggle.key}
             label={toggle.label}
             onValueChange={(value) => toggleNotification(toggle.key, value)}
-            value={Boolean(me?.[toggle.key as keyof typeof me] ?? true)}
+            value={Boolean(
+              me?.[toggle.key as keyof typeof me] ??
+              !['pushNews', 'pushSessionLocked'].includes(toggle.key),
+            )}
           />
         ))}
       </SettingsSection>
@@ -505,7 +529,10 @@ export function SettingsScreen() {
             help={toggle.help}
             label={toggle.label}
             onValueChange={(value) => toggleNotification(toggle.key, value)}
-            value={Boolean(me?.[toggle.key as keyof typeof me] ?? true)}
+            value={Boolean(
+              me?.[toggle.key as keyof typeof me] ??
+              !['pushNews', 'pushSessionLocked'].includes(toggle.key),
+            )}
           />
         ))}
       </SettingsSection>

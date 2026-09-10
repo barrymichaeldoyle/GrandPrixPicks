@@ -1,3 +1,4 @@
+import { useRoute, type RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
@@ -120,10 +121,21 @@ export function LeaderboardScreen() {
   const { refreshing, onRefresh } = useRefreshSpinner();
   const now = useNow(60_000);
 
+  const route =
+    useRoute<RouteProp<LeaderboardStackParamList, 'LeaderboardMain'>>();
   const [timeChoice, setTimeChoice] = useState<TimeScope | null>(null);
   const [mode, setMode] = useState<GameMode>('combined');
   const [scope, setScope] = useState<Scope>('global');
   const [chosenRaceId, setChosenRaceId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!route.params) {
+      return;
+    }
+    // Synchronize a mounted tab with an external notification navigation event.
+    // oxlint-disable-next-line react/set-state-in-effect
+    setChosenRaceId(route.params.raceId ?? null);
+    setTimeChoice(route.params.time ?? 'weekend');
+  }, [route.params]);
 
   const defaultRace = useQuery(
     api.races.getWeekendLeaderboardRace,

@@ -1,9 +1,10 @@
 import { Resend, type SendEmailOptions } from '@convex-dev/resend';
 
-import { components } from '../_generated/api';
+import { components, internal } from '../_generated/api';
 import type { ActionCtx } from '../_generated/server';
 
-const resend = new Resend(components.resend, {
+export const resend = new Resend(components.resend, {
+  onEmailEvent: internal.notificationEmails.onEmailEvent,
   testMode: process.env.RESEND_TEST_MODE !== 'false',
 });
 

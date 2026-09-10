@@ -1,3 +1,5 @@
+import { missingPicks, sessionLocks } from './lib/notificationEligibility';
+import type { Message } from './notificationDelivery';
 import { REACTION_BY_TYPE } from '@grandprixpicks/shared/reactions';
 import { SESSION_LABELS_FULL } from '@grandprixpicks/shared/sessions';
 import { v } from 'convex/values';
@@ -65,30 +67,28 @@ async function getSubscriptionsForUser(
   ctx: QueryCtx | MutationCtx,
   userId: Id<'users'>,
 ): Promise<Array<PushSubscriptionPayload>> {
-  const subscriptions: Array<PushSubscriptionPayload> = [];
-  for await (const sub of ctx.db
+  const subscriptions = await ctx.db
     .query('pushSubscriptions')
-    .withIndex('by_user', (q) => q.eq('userId', userId))) {
-    subscriptions.push({
-      endpoint: sub.endpoint,
-      p256dh: sub.p256dh,
-      auth: sub.auth,
-    });
-  }
-  return subscriptions;
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .order('desc')
+    .take(20);
+  return subscriptions.map((sub) => ({
+    endpoint: sub.endpoint,
+    p256dh: sub.p256dh,
+    auth: sub.auth,
+  }));
 }
 
 export async function getExpoTokensForUser(
   ctx: QueryCtx | MutationCtx,
   userId: Id<'users'>,
 ): Promise<Array<string>> {
-  const tokens: Array<string> = [];
-  for await (const row of ctx.db
+  const tokens = await ctx.db
     .query('expoPushTokens')
-    .withIndex('by_user', (q) => q.eq('userId', userId))) {
-    tokens.push(row.token);
-  }
-  return tokens;
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .order('desc')
+    .take(20);
+  return tokens.map((row) => row.token);
 }
 
 /**
@@ -137,10 +137,10 @@ async function addUserPushTargets(
   targets.tokens.push(...(await getExpoTokensForUser(ctx, userId)));
 }
 
-async function dispatchPushTargets(
+export async function dispatchPushTargets(
   ctx: MutationCtx,
   targets: PushTargets,
-  message: { title: string; body: string; url: string },
+  message: Message,
 ): Promise<number> {
   if (targets.subscriptions.length > 0) {
     await scheduleSendPushBatches(ctx, {
@@ -155,21 +155,6 @@ async function dispatchPushTargets(
     });
   }
   return pushTargetCount(targets);
-}
-
-/** Has this user submitted a pick for any session of the race? */
-async function hasPredictionForRace(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-  raceId: Id<'races'>,
-): Promise<boolean> {
-  const existing = await ctx.db
-    .query('predictions')
-    .withIndex('by_user_race_session', (q) =>
-      q.eq('userId', userId).eq('raceId', raceId),
-    )
-    .first();
-  return existing !== null;
 }
 
 export const saveSubscription = mutation({
@@ -193,6 +178,7 @@ export const saveSubscription = mutation({
 
     if (existing) {
       await ctx.db.patch(existing._id, {
+        userId: viewer._id,
         p256dh: args.p256dh,
         auth: args.auth,
       });
@@ -236,10 +222,21 @@ export const saveExpoPushToken = mutation({
       .withIndex('by_token', (q) => q.eq('token', args.token))
       .unique();
 
-    if (!existing) {
+    if (
+      !/^(ExponentPushToken|ExpoPushToken)\[[A-Za-z0-9_-]+\]$/.test(args.token)
+    ) {
+      throw new Error('Invalid Expo push token');
+    }
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        userId: viewer._id,
+        refreshedAt: Date.now(),
+      });
+    } else {
       await ctx.db.insert('expoPushTokens', {
         userId: viewer._id,
         token: args.token,
+        refreshedAt: Date.now(),
         createdAt: Date.now(),
       });
     }
@@ -304,79 +301,84 @@ export const sendPushRemindersForRace = internalMutation({
     filterUnpredicted: v.boolean(),
     cursor: v.optional(v.union(v.string(), v.null())),
     queued: v.optional(v.number()),
+    sessionType: v.optional(sessionTypeValidator),
+    expectedLockAt: v.optional(v.number()),
+    version: v.optional(v.number()),
   },
+  returns: v.object({
+    queued: v.number(),
+    done: v.boolean(),
+    reason: v.optional(v.string()),
+  }),
   handler: async (ctx, args): Promise<PushFanoutResult> => {
-    const queuedSoFar = args.queued ?? 0;
     const race = await ctx.db.get(args.raceId);
-    // Re-checked on every page rather than only the first: if the weekend locks
-    // while the fan-out is still paging, the remaining pages stop instead of
-    // nagging people about picks they can no longer make.
-    if (!race || race.status !== 'upcoming') {
-      return { queued: queuedSoFar, done: true, reason: 'Race not upcoming' };
+    const now = Date.now();
+    let queued = args.queued ?? 0;
+    if (
+      !race ||
+      race.status === 'cancelled' ||
+      race.status === 'finished' ||
+      (args.version !== undefined && args.version !== race.reminderVersion)
+    ) {
+      return { queued, done: true, reason: 'Inactive schedule' };
     }
-
+    const lock = sessionLocks(race).find(
+      (s) => !args.sessionType || s.sessionType === args.sessionType,
+    );
+    if (
+      !lock ||
+      lock.lockAt <= now ||
+      (args.expectedLockAt !== undefined && lock.lockAt !== args.expectedLockAt)
+    ) {
+      return { queued, done: true, reason: 'Deadline changed or passed' };
+    }
     const page = await ctx.db.query('users').paginate({
       numItems: PUSH_FANOUT_PAGE_SIZE,
       cursor: args.cursor ?? null,
     });
-
-    const unpredicted = emptyPushTargets();
-    const predicted = emptyPushTargets();
-
+    const targets = emptyPushTargets();
     for (const user of page.page) {
-      if (await hasPredictionForRace(ctx, user._id, args.raceId)) {
-        // The 2h send exists to catch people with nothing in; someone who has
-        // already picked has nothing left to be warned about.
-        if (args.filterUnpredicted || !wantsPushPredictionLockReminders(user)) {
-          continue;
-        }
-        await addUserPushTargets(ctx, predicted, user._id);
+      if (
+        user.deletingAt ||
+        !(args.filterUnpredicted
+          ? wantsPushPredictionLockReminders(user)
+          : wantsPushPredictionReminders(user))
+      ) {
         continue;
       }
-
-      if (!wantsPushPredictionReminders(user)) {
+      if (
+        !(await missingPicks(
+          ctx,
+          user._id,
+          race,
+          now,
+          args.filterUnpredicted ? lock.sessionType : undefined,
+        ))
+      ) {
         continue;
       }
-      await addUserPushTargets(ctx, unpredicted, user._id);
+      await addUserPushTargets(ctx, targets, user._id);
     }
-
-    let queued = queuedSoFar;
-
-    if (pushTargetCount(unpredicted) > 0) {
-      queued += await dispatchPushTargets(
-        ctx,
-        unpredicted,
-        args.filterUnpredicted
-          ? {
-              title: `⏰ ${race.name}`,
-              body: `Picks close in 2 hours. You haven't made your predictions yet!`,
-              url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=last_chance`,
-            }
-          : {
-              title: `🏎️ ${race.name}`,
-              body: `Picks are open. You have 24 hours to make your predictions`,
-              url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=prediction_reminder`,
-            },
-      );
-    }
-
-    if (pushTargetCount(predicted) > 0) {
-      queued += await dispatchPushTargets(ctx, predicted, {
-        title: `🔒 ${race.name}`,
-        body: `Your picks are in. Picks lock in 24 hours, so edit before then.`,
-        url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=lock_approaching`,
-      });
-    }
-
+    queued += await dispatchPushTargets(ctx, targets, {
+      title: race.name,
+      body: args.filterUnpredicted
+        ? `You have missing picks for ${SESSION_LABELS_FULL[lock.sessionType]}. Submit them before the session starts.`
+        : 'You have missing picks for this weekend. Submit them before each session starts.',
+      url: `/races/${race.slug}?utm_source=push&utm_campaign=${args.filterUnpredicted ? 'last_chance' : 'prediction_reminder'}`,
+      eventKey: `reminder:${race._id}:${lock.sessionType}:${lock.lockAt}:${args.filterUnpredicted ? '2h' : '24h'}`,
+      category: args.filterUnpredicted ? 'lock_reminder' : 'reminder',
+      expiresAt: lock.lockAt,
+      raceId: race._id,
+      sessionType: lock.sessionType,
+      expectedLockAt: lock.lockAt,
+    });
     if (!page.isDone) {
       await ctx.scheduler.runAfter(0, internal.push.sendPushRemindersForRace, {
-        raceId: args.raceId,
-        filterUnpredicted: args.filterUnpredicted,
+        ...args,
         cursor: page.continueCursor,
         queued,
       });
     }
-
     return { queued, done: page.isDone };
   },
 });
@@ -388,15 +390,13 @@ async function scheduleSendPushBatches(
     title: string;
     body: string;
     url: string;
-  },
+  } & Message,
 ): Promise<void> {
   const BATCH_SIZE = 100;
   for (let i = 0; i < args.subscriptions.length; i += BATCH_SIZE) {
-    await ctx.scheduler.runAfter(0, internal.pushNotifications.sendPushBatch, {
+    await ctx.runMutation(internal.notificationDelivery.enqueueWeb, {
+      ...args,
       subscriptions: args.subscriptions.slice(i, i + BATCH_SIZE),
-      title: args.title,
-      body: args.body,
-      url: args.url,
     });
   }
 }
@@ -408,20 +408,14 @@ export async function scheduleSendExpoPushBatches(
     title: string;
     body: string;
     url: string;
-  },
+  } & Message,
 ): Promise<void> {
   const BATCH_SIZE = 100;
   for (let i = 0; i < args.tokens.length; i += BATCH_SIZE) {
-    await ctx.scheduler.runAfter(
-      0,
-      internal.pushNotifications.sendExpoPushBatch,
-      {
-        tokens: args.tokens.slice(i, i + BATCH_SIZE),
-        title: args.title,
-        body: args.body,
-        url: args.url,
-      },
-    );
+    await ctx.runMutation(internal.notificationDelivery.enqueueExpo, {
+      ...args,
+      tokens: args.tokens.slice(i, i + BATCH_SIZE),
+    });
   }
 }
 
@@ -458,12 +452,35 @@ export const sendPushResultsForSession = internalMutation({
       if (!wantsPushResults(user)) {
         continue;
       }
+      const [top5, h2h] = await Promise.all([
+        ctx.db
+          .query('predictions')
+          .withIndex('by_user_race_session', (q) =>
+            q
+              .eq('userId', user._id)
+              .eq('raceId', race._id)
+              .eq('sessionType', args.sessionType),
+          )
+          .first(),
+        ctx.db
+          .query('h2hPredictions')
+          .withIndex('by_user_race_session', (q) =>
+            q
+              .eq('userId', user._id)
+              .eq('raceId', race._id)
+              .eq('sessionType', args.sessionType),
+          )
+          .first(),
+      ]);
+      if (!top5 && !h2h) {
+        continue;
+      }
       await addUserPushTargets(ctx, targets, user._id);
     }
 
     const sessionLabel = SESSION_LABELS_FULL[args.sessionType];
     const title = `🏁 ${race.name}: ${sessionLabel} results`;
-    const body = `Session results are in. See how you scored!`;
+    const body = `Your session score is ready.`;
     // Matches the results email: "See how you scored" is a standings question,
     // so it opens the weekend leaderboard for this round rather than the race
     // page. `time`/`raceId` scope it on web; mobile's push router maps the
@@ -473,7 +490,15 @@ export const sendPushResultsForSession = internalMutation({
 
     let queued = queuedSoFar;
     if (pushTargetCount(targets) > 0) {
-      queued += await dispatchPushTargets(ctx, targets, { title, body, url });
+      queued += await dispatchPushTargets(ctx, targets, {
+        title,
+        body,
+        url,
+        category: 'results',
+        eventKey: `results:${race._id}:${args.sessionType}`,
+        raceId: race._id,
+        sessionType: args.sessionType,
+      });
     }
 
     if (!page.isDone) {
@@ -539,7 +564,7 @@ export const sendPushForSessionLocked = internalMutation({
       // The dashboard, not `/feed`: that page has been removed and its activity
       // stream is the lower half of the dashboard now. Pushes already delivered
       // with the old URL still work — `/feed` redirects here.
-      url: `/?utm_source=push&utm_medium=push&utm_campaign=session_locked`,
+      url: `/feed?utm_source=push&utm_medium=push&utm_campaign=session_locked`,
     };
     if (subscriptions.length > 0) {
       await scheduleSendPushBatches(ctx, { subscriptions, ...message });

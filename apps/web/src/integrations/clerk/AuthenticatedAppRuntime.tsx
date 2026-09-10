@@ -1,3 +1,4 @@
+import { PushRegistrationSync } from '@/components/PushRegistrationSync';
 import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { useMutation } from 'convex/react';
@@ -19,6 +20,7 @@ export function AuthenticatedAppRuntime({
     <AppClerkProvider darkMode={true} assumeSignedIn={assumeSignedIn}>
       <AppConvexProvider>
         <ProfileSync />
+        <PushRegistrationSync />
         <AfterSignInIntentNavigator />
         {children}
       </AppConvexProvider>

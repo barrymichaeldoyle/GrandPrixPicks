@@ -1,4 +1,8 @@
 import * as Notifications from 'expo-notifications';
+import {
+  hasPushPermission,
+  prepareNotificationChannels,
+} from './pushRegistration';
 import { useEffect, useState } from 'react';
 import { AppState, Linking, Platform } from 'react-native';
 
@@ -19,7 +23,7 @@ export function usePushPermission() {
   async function refresh() {
     const perm = await Notifications.getPermissionsAsync();
     setStatus(
-      perm.status === 'granted'
+      hasPushPermission(perm)
         ? 'granted'
         : perm.status === 'denied'
           ? 'denied'
@@ -41,16 +45,17 @@ export function usePushPermission() {
   }, []);
 
   async function requestPermission() {
+    await prepareNotificationChannels();
     const perm = await Notifications.requestPermissionsAsync();
     setStatus(
-      perm.status === 'granted'
+      hasPushPermission(perm)
         ? 'granted'
         : perm.status === 'denied'
           ? 'denied'
           : 'undetermined',
     );
     setCanAskAgain(perm.canAskAgain ?? true);
-    return perm.status === 'granted';
+    return hasPushPermission(perm);
   }
 
   function openSystemSettings() {

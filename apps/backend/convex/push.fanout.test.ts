@@ -1,392 +1,384 @@
 /// <reference types="vite/client" />
-
+import { beforeEach } from 'vitest';
 import { convexTest } from 'convex-test';
-import { describe, expect, it } from 'vitest';
-
-import { internal } from './_generated/api';
-import type { Id } from './_generated/dataModel';
+import rateLimiter from '@convex-dev/rate-limiter/test';
+import { describe, expect, it, vi, afterEach } from 'vitest';
+import { api, internal } from './_generated/api';
 import schema from './schema';
-
+import { scheduleReminder } from './notifications';
+import { quietUntil } from './notificationDelivery';
+import {
+  resolvedNotificationSettings,
+  shouldEmailReminder,
+} from './lib/notificationChannels';
 const modules = import.meta.glob('./**/*.ts');
-
-/**
- * One page of the roster, mirroring PUSH_FANOUT_PAGE_SIZE in push.ts. The tests
- * below deliberately cross this boundary: the whole point of the fan-out is
- * that it survives a roster larger than a single transaction can read.
- */
-const PAGE_SIZE = 100;
-
-type SeedUser = {
-  /** Web-push subscription rows to create for this user. */
-  subscriptions?: number;
-  /** Expo token rows to create for this user. */
-  tokens?: number;
-  /** Whether the user has already submitted a Top 5 for the race. */
-  predicted?: boolean;
-  pushPredictionReminders?: boolean;
-  pushPredictionLockReminders?: boolean;
-  pushResults?: boolean;
-};
-
-type ScheduledJob = {
-  name: string;
-  args: Record<string, unknown>;
-};
-
-function makeTest() {
-  return convexTest(schema, modules);
+function setup() {
+  const t = convexTest(schema, modules);
+  rateLimiter.register(t);
+  return t;
 }
-
-async function seed(
-  t: ReturnType<typeof makeTest>,
-  users: Array<SeedUser>,
-  raceStatus: 'upcoming' | 'locked' | 'finished' = 'upcoming',
-): Promise<Id<'races'>> {
+async function seed(t: ReturnType<typeof setup>, count = 1) {
   return await t.run(async (ctx) => {
-    const now = 1_000;
+    const now = Date.now();
     const raceId = await ctx.db.insert('races', {
       season: 2026,
       round: 1,
-      name: 'Bahrain Grand Prix',
-      slug: 'bahrain-2026',
-      raceStartAt: now + 86_400_000,
-      predictionLockAt: now + 80_000_000,
-      status: raceStatus,
+      name: 'Test Grand Prix',
+      slug: 'test-2026',
+      status: 'upcoming',
+      qualiLockAt: now + 86400000,
+      predictionLockAt: now + 172800000,
+      raceStartAt: now + 172800000,
       createdAt: now,
       updatedAt: now,
     });
-
-    const driverId = await ctx.db.insert('drivers', {
-      code: 'VER',
-      displayName: 'Max Verstappen',
-      team: 'Red Bull Racing',
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    for (const [index, spec] of users.entries()) {
+    const userIds = [];
+    for (let i = 0; i < count; i++) {
       const userId = await ctx.db.insert('users', {
-        clerkUserId: `clerk_${index}`,
-        pushPredictionReminders: spec.pushPredictionReminders,
-        pushPredictionLockReminders: spec.pushPredictionLockReminders,
-        pushResults: spec.pushResults,
+        clerkUserId: `user_${i}`,
         createdAt: now,
         updatedAt: now,
       });
-
-      for (let n = 0; n < (spec.subscriptions ?? 1); n += 1) {
-        await ctx.db.insert('pushSubscriptions', {
-          userId,
-          endpoint: `https://fcm.googleapis.com/fcm/send/u${index}-${n}`,
-          p256dh: 'p256dh',
-          auth: 'auth',
-          createdAt: now,
-        });
-      }
-
-      for (let n = 0; n < (spec.tokens ?? 0); n += 1) {
-        await ctx.db.insert('expoPushTokens', {
-          userId,
-          token: `ExponentPushToken[u${index}-${n}]`,
-          createdAt: now,
-        });
-      }
-
-      if (spec.predicted) {
-        await ctx.db.insert('predictions', {
-          userId,
-          raceId,
-          sessionType: 'race',
-          picks: [driverId, driverId, driverId, driverId, driverId],
-          submittedAt: now,
-          updatedAt: now,
-        });
-      }
-    }
-
-    return raceId;
-  });
-}
-
-/**
- * Read the scheduler queue rather than executing it. `pushNotifications` is a
- * `'use node'` action that talks to FCM and Expo for real, so draining the
- * queue would put the suite on the network. The queue itself is the contract
- * we care about: who was told what, and whether another page was booked.
- */
-async function scheduled(
-  t: ReturnType<typeof makeTest>,
-): Promise<Array<ScheduledJob>> {
-  return await t.run(async (ctx) => {
-    const jobs: Array<ScheduledJob> = [];
-    for await (const job of ctx.db.system.query('_scheduled_functions')) {
-      jobs.push({
-        name: job.name,
-        args: (job.args[0] ?? {}) as Record<string, unknown>,
+      await ctx.db.insert('expoPushTokens', {
+        userId,
+        token: `ExponentPushToken[test${i}]`,
+        refreshedAt: now,
+        createdAt: now,
       });
+      userIds.push(userId);
     }
-    return jobs;
+    return { raceId, userIds };
   });
 }
-
-function matching(jobs: Array<ScheduledJob>, fn: string): Array<ScheduledJob> {
-  return jobs.filter((job) => job.name.includes(fn));
-}
-
-/** Every endpoint the queued web-push batches would deliver to. */
-function deliveredEndpoints(jobs: Array<ScheduledJob>): Array<string> {
-  return matching(jobs, 'sendPushBatch').flatMap((job) =>
-    (job.args.subscriptions as Array<{ endpoint: string }>).map(
-      (s) => s.endpoint,
-    ),
-  );
-}
-
-function deliveredTokens(jobs: Array<ScheduledJob>): Array<string> {
-  return matching(jobs, 'sendExpoPushBatch').flatMap(
-    (job) => job.args.tokens as Array<string>,
-  );
-}
-
-function campaignsFor(
-  jobs: Array<ScheduledJob>,
-  endpoint: string,
-): Array<string> {
-  return matching(jobs, 'sendPushBatch')
-    .filter((job) =>
-      (job.args.subscriptions as Array<{ endpoint: string }>).some(
-        (s) => s.endpoint === endpoint,
-      ),
-    )
-    .map(
-      (job) =>
-        new URL(job.args.url as string, 'https://x').searchParams.get(
-          'utm_campaign',
-        ) as string,
-    );
-}
-
-describe('sendPushRemindersForRace', () => {
-  it('pages a roster larger than one transaction and reaches everyone once', async () => {
-    const t = makeTest();
-    const roster = PAGE_SIZE + 25;
-    const raceId = await seed(
-      t,
-      Array.from({ length: roster }, () => ({ subscriptions: 1, tokens: 1 })),
-    );
-
-    const first = await t.mutation(internal.push.sendPushRemindersForRace, {
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
+});
+describe('notification delivery', () => {
+  it('pages 201 users and creates at most one delivery per event and device', async () => {
+    const t = setup();
+    const { raceId } = await seed(t, 201);
+    await t.mutation(internal.push.sendPushRemindersForRace, {
       raceId,
       filterUnpredicted: false,
     });
-
-    // The first transaction must stop at a page boundary and book the rest.
-    expect(first.done).toBe(false);
-    expect(first.queued).toBe(PAGE_SIZE * 2); // one subscription + one token each
-
-    const afterFirst = await scheduled(t);
-    const continuations = matching(afterFirst, 'sendPushRemindersForRace');
-    expect(continuations).toHaveLength(1);
-    expect(continuations[0].args.cursor).toEqual(expect.any(String));
-
-    const second = await t.mutation(internal.push.sendPushRemindersForRace, {
-      raceId,
-      filterUnpredicted: false,
-      cursor: continuations[0].args.cursor as string,
-      queued: continuations[0].args.queued as number,
-    });
-
-    expect(second.done).toBe(true);
-    // `queued` accumulates across pages, so the last page reports the total.
-    expect(second.queued).toBe(roster * 2);
-
-    const all = await scheduled(t);
-    const endpoints = deliveredEndpoints(all);
-    expect(endpoints).toHaveLength(roster);
-    expect(new Set(endpoints).size).toBe(roster); // nobody told twice
-    expect(deliveredTokens(all)).toHaveLength(roster);
-  });
-
-  it('splits the 24h send into a reminder and a lock warning', async () => {
-    const t = makeTest();
-    const raceId = await seed(t, [
-      { predicted: false }, // u0 — needs the nudge
-      { predicted: true }, // u1 — already in, warn about the lock
-    ]);
-
-    const result = await t.mutation(internal.push.sendPushRemindersForRace, {
-      raceId,
-      filterUnpredicted: false,
-    });
-    expect(result).toEqual({ queued: 2, done: true });
-
-    const jobs = await scheduled(t);
     expect(
-      campaignsFor(jobs, 'https://fcm.googleapis.com/fcm/send/u0-0'),
-    ).toEqual(['prediction_reminder']);
+      await t.run((ctx) => ctx.db.query('notificationDeliveries').collect()),
+    ).toHaveLength(100);
+    const jobs = await t.run((ctx) =>
+      ctx.db.system.query('_scheduled_functions').collect(),
+    );
+    const continuation = jobs.find((j) =>
+      j.name.includes('sendPushRemindersForRace'),
+    )!;
+    await t.mutation(
+      internal.push.sendPushRemindersForRace,
+      continuation.args[0] as never,
+    );
     expect(
-      campaignsFor(jobs, 'https://fcm.googleapis.com/fcm/send/u1-0'),
-    ).toEqual(['lock_approaching']);
-  });
-
-  it('the 2h send skips anyone who already has picks in', async () => {
-    const t = makeTest();
-    const raceId = await seed(t, [{ predicted: false }, { predicted: true }]);
-
-    const result = await t.mutation(internal.push.sendPushRemindersForRace, {
+      await t.run((ctx) => ctx.db.query('notificationDeliveries').collect()),
+    ).toHaveLength(200);
+    await t.mutation(internal.push.sendPushRemindersForRace, {
       raceId,
+      filterUnpredicted: false,
+    });
+    expect(
+      await t.run((ctx) => ctx.db.query('notificationDeliveries').collect()),
+    ).toHaveLength(200);
+  });
+  it('reminds partial Top 5 users, and suppresses reminders once all open picks are complete', async () => {
+    const t = setup();
+    const {
+      raceId,
+      userIds: [userId],
+    } = await seed(t);
+    await t.run((ctx) =>
+      ctx.db.insert('predictions', {
+        raceId,
+        userId,
+        sessionType: 'quali',
+        picks: [],
+        submittedAt: Date.now(),
+        updatedAt: Date.now(),
+      }),
+    );
+    await t.mutation(internal.push.sendPushRemindersForRace, {
+      raceId,
+      sessionType: 'race',
       filterUnpredicted: true,
     });
-    expect(result).toEqual({ queued: 1, done: true });
-
-    const jobs = await scheduled(t);
-    expect(deliveredEndpoints(jobs)).toEqual([
-      'https://fcm.googleapis.com/fcm/send/u0-0',
-    ]);
-    expect(
-      campaignsFor(jobs, 'https://fcm.googleapis.com/fcm/send/u0-0'),
-    ).toEqual(['last_chance']);
-  });
-
-  it('honours both reminder opt-outs independently', async () => {
-    const t = makeTest();
-    const raceId = await seed(t, [
-      { predicted: false, pushPredictionReminders: false },
-      { predicted: true, pushPredictionLockReminders: false },
-      { predicted: false, pushPredictionReminders: true },
-    ]);
-
-    const result = await t.mutation(internal.push.sendPushRemindersForRace, {
-      raceId,
-      filterUnpredicted: false,
-    });
-    expect(result).toEqual({ queued: 1, done: true });
-
-    expect(deliveredEndpoints(await scheduled(t))).toEqual([
-      'https://fcm.googleapis.com/fcm/send/u2-0',
-    ]);
-  });
-
-  it('stops paging if the weekend locks part-way through the fan-out', async () => {
-    const t = makeTest();
-    const raceId = await seed(
-      t,
-      Array.from({ length: PAGE_SIZE + 5 }, () => ({})),
+    const [row] = await t.run((ctx) =>
+      ctx.db.query('notificationDeliveries').collect(),
     );
-
-    const first = await t.mutation(internal.push.sendPushRemindersForRace, {
-      raceId,
-      filterUnpredicted: false,
-    });
-    expect(first.done).toBe(false);
-
-    const cursor = matching(await scheduled(t), 'sendPushRemindersForRace')[0]
-      .args.cursor as string;
-
-    // Picks close before the continuation runs. Reminding the remaining page
-    // now would point them at a race they can no longer pick.
+    expect(row.category).toBe('lock_reminder');
     await t.run(async (ctx) => {
-      await ctx.db.patch(raceId, { status: 'locked' });
+      await ctx.db.insert('predictions', {
+        raceId,
+        userId,
+        sessionType: 'race',
+        picks: [],
+        submittedAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      await ctx.db.patch(row._id, { status: 'sending' });
     });
-
-    const second = await t.mutation(internal.push.sendPushRemindersForRace, {
-      raceId,
-      filterUnpredicted: false,
-      cursor,
-      queued: first.queued,
-    });
-
-    expect(second).toEqual({
-      queued: PAGE_SIZE,
-      done: true,
-      reason: 'Race not upcoming',
-    });
-    expect(deliveredEndpoints(await scheduled(t))).toHaveLength(PAGE_SIZE);
+    expect(
+      await t.mutation(internal.notificationDelivery.prepare, {
+        deliveryId: row._id,
+      }),
+    ).toBeNull();
   });
-
-  it('queues nothing when no one has a device registered', async () => {
-    const t = makeTest();
-    const raceId = await seed(t, [{ subscriptions: 0, tokens: 0 }]);
-
-    const result = await t.mutation(internal.push.sendPushRemindersForRace, {
+  it('only sends result pushes to participants', async () => {
+    const t = setup();
+    const {
+      raceId,
+      userIds: [userId],
+    } = await seed(t, 2);
+    await t.run((ctx) =>
+      ctx.db.insert('predictions', {
+        raceId,
+        userId,
+        sessionType: 'race',
+        picks: [],
+        submittedAt: Date.now(),
+        updatedAt: Date.now(),
+      }),
+    );
+    await t.mutation(internal.push.sendPushResultsForSession, {
+      raceId,
+      sessionType: 'race',
+    });
+    const rows = await t.run((ctx) =>
+      ctx.db.query('notificationDeliveries').collect(),
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].userId).toBe(userId);
+  });
+  it('transfers a token to the authenticated account and cancels queued work for its previous owner', async () => {
+    const t = setup();
+    const { raceId, userIds } = await seed(t, 2);
+    await t.mutation(internal.push.sendPushRemindersForRace, {
       raceId,
       filterUnpredicted: false,
     });
-
-    expect(result).toEqual({ queued: 0, done: true });
-    expect(await scheduled(t)).toEqual([]);
+    const rows = await t.run((ctx) =>
+      ctx.db.query('notificationDeliveries').collect(),
+    );
+    const row = rows.find((r) => r.userId === userIds[0])!;
+    await t
+      .withIdentity({ subject: 'user_1' })
+      .mutation(api.push.saveExpoPushToken, { token: row.target });
+    await t.run((ctx) => ctx.db.patch(row._id, { status: 'sending' }));
+    expect(
+      await t.mutation(internal.notificationDelivery.prepare, {
+        deliveryId: row._id,
+      }),
+    ).toBeNull();
+    const token = await t.run((ctx) =>
+      ctx.db
+        .query('expoPushTokens')
+        .withIndex('by_token', (q) => q.eq('token', row.target))
+        .unique(),
+    );
+    expect(token?.userId).toBe(userIds[1]);
+  });
+  it('honors an opt-out after enqueue', async () => {
+    const t = setup();
+    const {
+      raceId,
+      userIds: [userId],
+    } = await seed(t);
+    await t.mutation(internal.push.sendPushRemindersForRace, {
+      raceId,
+      filterUnpredicted: false,
+    });
+    const [row] = await t.run((ctx) =>
+      ctx.db.query('notificationDeliveries').collect(),
+    );
+    await t.run(async (ctx) => {
+      await ctx.db.patch(userId, { pushPredictionReminders: false });
+      await ctx.db.patch(row._id, { status: 'sending' });
+    });
+    expect(
+      await t.mutation(internal.notificationDelivery.prepare, {
+        deliveryId: row._id,
+      }),
+    ).toBeNull();
+  });
+  it('records Expo acceptance and later provider receipt, rather than claiming delivery immediately', async () => {
+    const t = setup();
+    const { raceId } = await seed(t);
+    await t.mutation(internal.push.sendPushRemindersForRace, {
+      raceId,
+      filterUnpredicted: false,
+    });
+    const [row] = await t.run((ctx) =>
+      ctx.db.query('notificationDeliveries').collect(),
+    );
+    await t.run((ctx) =>
+      ctx.db.patch(row._id, { status: 'sending', attempts: 1 }),
+    );
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: { status: 'ok', id: 'ticket1' } })),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: { ticket1: { status: 'ok' } } })),
+      );
+    vi.stubGlobal('fetch', fetch);
+    await t.action(internal.pushNotifications.deliver, { deliveryId: row._id });
+    expect((await t.run((ctx) => ctx.db.get(row._id)))?.status).toBe(
+      'accepted',
+    );
+    await t.action(internal.pushNotifications.checkReceipts, {
+      deliveryIds: [row._id],
+    });
+    expect((await t.run((ctx) => ctx.db.get(row._id)))?.status).toBe(
+      'handed_off',
+    );
+    expect(JSON.parse(fetch.mock.calls[0][1].body).ttl).toBeLessThanOrEqual(
+      86400,
+    );
+  });
+  it('rejects malformed tickets, retries transient failures and prunes unregistered tokens', async () => {
+    const t = setup();
+    const { raceId } = await seed(t);
+    await t.mutation(internal.push.sendPushRemindersForRace, {
+      raceId,
+      filterUnpredicted: false,
+    });
+    const [row] = await t.run((ctx) =>
+      ctx.db.query('notificationDeliveries').collect(),
+    );
+    await t.run((ctx) =>
+      ctx.db.patch(row._id, { status: 'sending', attempts: 1 }),
+    );
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}')));
+    await t.action(internal.pushNotifications.deliver, { deliveryId: row._id });
+    expect((await t.run((ctx) => ctx.db.get(row._id)))?.status).toBe('failed');
+    await t.mutation(internal.notificationDelivery.record, {
+      deliveryId: row._id,
+      status: 'failed',
+      retryable: true,
+      error: 'HTTP 503',
+    });
+    expect((await t.run((ctx) => ctx.db.get(row._id)))?.status).toBe('queued');
+    await t.mutation(internal.notificationDelivery.record, {
+      deliveryId: row._id,
+      status: 'failed',
+      error: 'DeviceNotRegistered',
+    });
+    expect(
+      await t.run((ctx) => ctx.db.query('expoPushTokens').collect()),
+    ).toHaveLength(0);
+  });
+  it('can schedule 2h reminders inside the 24h window, and cancels old schedules', async () => {
+    const t = setup();
+    const { raceId } = await seed(t);
+    await t.run(async (ctx) => {
+      await ctx.db.patch(raceId, { qualiLockAt: Date.now() + 3 * 3600000 });
+      await scheduleReminder(ctx, (await ctx.db.get(raceId))!);
+    });
+    const first = await t.run((ctx) => ctx.db.get(raceId));
+    expect(first?.reminderJobIds).toHaveLength(2);
+    await t.run(async (ctx) => {
+      await scheduleReminder(ctx, (await ctx.db.get(raceId))!);
+    });
+    expect((await t.run((ctx) => ctx.db.get(raceId)))?.reminderVersion).toBe(2);
+    for (const id of first!.reminderJobIds!) {
+      expect((await t.run((ctx) => ctx.db.system.get(id)))?.state.kind).toBe(
+        'canceled',
+      );
+    }
+  });
+  it('preserves legacy opt-outs and explicit both-channel choices', async () => {
+    const t = setup();
+    const {
+      userIds: [id],
+    } = await seed(t);
+    await t.run((ctx) =>
+      ctx.db.patch(id, {
+        predictionReminderChannel: 'none',
+        resultsNotificationChannel: 'none',
+      }),
+    );
+    const user = (await t.run((ctx) => ctx.db.get(id)))!;
+    expect(resolvedNotificationSettings(user)).toMatchObject({
+      emailPredictionReminders: false,
+      pushPredictionReminders: false,
+      emailResults: false,
+      pushResults: false,
+      pushNews: false,
+    });
+    expect(
+      shouldEmailReminder({ ...user, predictionReminderChannel: 'both' }, true),
+    ).toBe(true);
+    expect(
+      shouldEmailReminder(
+        { ...user, predictionReminderChannel: undefined },
+        true,
+      ),
+    ).toBe(false);
+  });
+  it('calculates quiet hours in the recipient timezone', () => {
+    const now = Date.parse('2026-09-10T21:00:00Z');
+    expect(new Date(quietUntil(now, 'Africa/Johannesburg')).toISOString()).toBe(
+      '2026-09-11T06:00:00.000Z',
+    );
   });
 });
 
-describe('sendPushResultsForSession', () => {
-  it('pages the roster and delivers to every device exactly once', async () => {
-    const t = makeTest();
-    const roster = PAGE_SIZE + 10;
-    const raceId = await seed(
-      t,
-      Array.from({ length: roster }, () => ({ subscriptions: 2 })),
-      'finished',
-    );
+beforeEach(() => {
+  vi.stubEnv('NOTIFICATION_DELIVERY_ENABLED', 'true');
+});
 
-    const first = await t.mutation(internal.push.sendPushResultsForSession, {
-      raceId,
-      sessionType: 'race',
-    });
-    expect(first.done).toBe(false);
-
-    const continuation = matching(
-      await scheduled(t),
-      'sendPushResultsForSession',
-    )[0];
-    const second = await t.mutation(internal.push.sendPushResultsForSession, {
-      raceId,
-      sessionType: 'race',
-      cursor: continuation.args.cursor as string,
-      queued: continuation.args.queued as number,
-    });
-
-    expect(second.done).toBe(true);
-    expect(second.queued).toBe(roster * 2);
-
-    const endpoints = deliveredEndpoints(await scheduled(t));
-    expect(endpoints).toHaveLength(roster * 2);
-    expect(new Set(endpoints).size).toBe(roster * 2);
+it('does not contact a provider while delivery is paused', async () => {
+  const t = setup();
+  const { raceId } = await seed(t);
+  await t.mutation(internal.push.sendPushRemindersForRace, {
+    raceId,
+    filterUnpredicted: false,
   });
+  const [row] = await t.run((ctx) =>
+    ctx.db.query('notificationDeliveries').collect(),
+  );
+  await t.run((ctx) => ctx.db.patch(row._id, { status: 'sending' }));
+  vi.stubEnv('NOTIFICATION_DELIVERY_ENABLED', 'false');
+  const fetch = vi.fn();
+  vi.stubGlobal('fetch', fetch);
+  await t.action(internal.pushNotifications.deliver, { deliveryId: row._id });
+  expect(fetch).not.toHaveBeenCalled();
+});
 
-  it('respects the results opt-out', async () => {
-    const t = makeTest();
-    const raceId = await seed(
-      t,
-      [{ pushResults: false }, { pushResults: true }, {}],
-      'finished',
-    );
-
-    const result = await t.mutation(internal.push.sendPushResultsForSession, {
+it('cancels expanded result deliveries when the emergency stop runs', async () => {
+  const t = setup();
+  const {
+    raceId,
+    userIds: [userId],
+  } = await seed(t);
+  await t.run((ctx) =>
+    ctx.db.insert('predictions', {
       raceId,
+      userId,
       sessionType: 'race',
-    });
-
-    // u1 opted in explicitly, u2 left the default (push is opt-out).
-    expect(result).toEqual({ queued: 2, done: true });
-    expect(deliveredEndpoints(await scheduled(t)).sort()).toEqual([
-      'https://fcm.googleapis.com/fcm/send/u1-0',
-      'https://fcm.googleapis.com/fcm/send/u2-0',
-    ]);
+      picks: [],
+      submittedAt: Date.now(),
+      updatedAt: Date.now(),
+    }),
+  );
+  await t.mutation(internal.push.sendPushResultsForSession, {
+    raceId,
+    sessionType: 'race',
   });
-
-  it('skips a race that no longer exists', async () => {
-    const t = makeTest();
-    const raceId = await seed(t, [{}], 'finished');
-    await t.run(async (ctx) => {
-      await ctx.db.delete(raceId);
-    });
-
-    const result = await t.mutation(internal.push.sendPushResultsForSession, {
-      raceId,
-      sessionType: 'race',
-    });
-
-    expect(result).toEqual({ queued: 0, done: true, reason: 'Race not found' });
-    expect(await scheduled(t)).toEqual([]);
-  });
+  const [row] = await t.run((ctx) =>
+    ctx.db.query('notificationDeliveries').collect(),
+  );
+  await t.mutation(internal.notifications.cancelQueuedResultNotifications, {});
+  await t.run((ctx) => ctx.db.patch(row._id, { status: 'sending' }));
+  expect(
+    await t.mutation(internal.notificationDelivery.prepare, {
+      deliveryId: row._id,
+    }),
+  ).toBeNull();
 });

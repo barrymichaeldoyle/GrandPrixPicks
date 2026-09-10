@@ -15,7 +15,7 @@ export type HomeStackParamList = {
 };
 
 export type LeaderboardStackParamList = {
-  LeaderboardMain: undefined;
+  LeaderboardMain: { raceId?: string; time?: 'weekend' | 'season' } | undefined;
   PublicProfile: { username: string };
 };
 

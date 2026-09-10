@@ -165,14 +165,24 @@ self.addEventListener('push', (event) => {
       body: data.body,
       icon: '/android-chrome-192x192.png',
       badge: '/notification-badge.png',
-      data: { url: safeNotificationUrl(data.url) },
+      tag: typeof data.tag === 'string' ? data.tag : undefined,
+      data: { url: safeNotificationUrl(data.url), deliveryId: data.deliveryId },
     }),
   );
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = safeNotificationUrl(event.notification.data?.url);
+  const target = new URL(
+    safeNotificationUrl(event.notification.data?.url),
+    self.location.origin,
+  );
+  if (typeof event.notification.data?.deliveryId === 'string')
+    target.searchParams.set(
+      'notificationDelivery',
+      event.notification.data.deliveryId,
+    );
+  const targetUrl = `${target.pathname}${target.search}${target.hash}`;
   event.waitUntil(focusOrOpenWindow(targetUrl));
 });
 

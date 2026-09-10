@@ -590,6 +590,21 @@ export const notifyUsersSessionLocked = internalMutation({
       return;
     }
 
+    const currentLock = {
+      quali: race.qualiLockAt,
+      sprint_quali: race.sprintQualiLockAt,
+      sprint: race.sprintLockAt,
+      race: race.predictionLockAt,
+    }[args.sessionType];
+    if (
+      race.status === 'cancelled' ||
+      !currentLock ||
+      currentLock > Date.now() ||
+      Date.now() - currentLock > 15 * 60000
+    ) {
+      return;
+    }
+
     // Race and sprint only. The helper creates the empty snapshot before it
     // schedules the first action, so duplicate lock jobs cannot create two
     // self-rescheduling polling loops.

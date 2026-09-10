@@ -48,4 +48,11 @@ crons.interval(
   {},
 );
 
+crons.interval(
+  'deliver notifications',
+  { minutes: 1 },
+  internal.notificationDelivery.dispatchDue,
+  {},
+);
+
 export default crons;

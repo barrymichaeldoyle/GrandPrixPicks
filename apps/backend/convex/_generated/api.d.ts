@@ -33,6 +33,7 @@ import type * as feed from "../feed.js";
 import type * as follows from "../follows.js";
 import type * as h2h from "../h2h.js";
 import type * as home from "../home.js";
+import type * as http from "../http.js";
 import type * as inAppNotifications from "../inAppNotifications.js";
 import type * as indexNow from "../indexNow.js";
 import type * as leaderboards from "../leaderboards.js";
@@ -47,6 +48,7 @@ import type * as lib_leaderboard from "../lib/leaderboard.js";
 import type * as lib_leaguePassword from "../lib/leaguePassword.js";
 import type * as lib_lineups from "../lib/lineups.js";
 import type * as lib_notificationChannels from "../lib/notificationChannels.js";
+import type * as lib_notificationEligibility from "../lib/notificationEligibility.js";
 import type * as lib_raceNewsStartingGrid from "../lib/raceNewsStartingGrid.js";
 import type * as lib_raceNewsWriteUpImage from "../lib/raceNewsWriteUpImage.js";
 import type * as lib_raceTimezones from "../lib/raceTimezones.js";
@@ -61,6 +63,9 @@ import type * as lib_userIdentity from "../lib/userIdentity.js";
 import type * as lib_weather from "../lib/weather.js";
 import type * as lib_weekendCapabilities from "../lib/weekendCapabilities.js";
 import type * as liveScoring from "../liveScoring.js";
+import type * as newsNotifications from "../newsNotifications.js";
+import type * as notificationDelivery from "../notificationDelivery.js";
+import type * as notificationEmails from "../notificationEmails.js";
 import type * as notifications from "../notifications.js";
 import type * as openF1LiveTiming from "../openF1LiveTiming.js";
 import type * as openF1Results from "../openF1Results.js";
@@ -115,6 +120,7 @@ declare const fullApi: ApiFromModules<{
   follows: typeof follows;
   h2h: typeof h2h;
   home: typeof home;
+  http: typeof http;
   inAppNotifications: typeof inAppNotifications;
   indexNow: typeof indexNow;
   leaderboards: typeof leaderboards;
@@ -129,6 +135,7 @@ declare const fullApi: ApiFromModules<{
   "lib/leaguePassword": typeof lib_leaguePassword;
   "lib/lineups": typeof lib_lineups;
   "lib/notificationChannels": typeof lib_notificationChannels;
+  "lib/notificationEligibility": typeof lib_notificationEligibility;
   "lib/raceNewsStartingGrid": typeof lib_raceNewsStartingGrid;
   "lib/raceNewsWriteUpImage": typeof lib_raceNewsWriteUpImage;
   "lib/raceTimezones": typeof lib_raceTimezones;
@@ -143,6 +150,9 @@ declare const fullApi: ApiFromModules<{
   "lib/weather": typeof lib_weather;
   "lib/weekendCapabilities": typeof lib_weekendCapabilities;
   liveScoring: typeof liveScoring;
+  newsNotifications: typeof newsNotifications;
+  notificationDelivery: typeof notificationDelivery;
+  notificationEmails: typeof notificationEmails;
   notifications: typeof notifications;
   openF1LiveTiming: typeof openF1LiveTiming;
   openF1Results: typeof openF1Results;
@@ -194,4 +204,5 @@ export declare const internal: FilterApi<
 
 export declare const components: {
   resend: import("@convex-dev/resend/_generated/component.js").ComponentApi<"resend">;
+  rateLimiter: import("@convex-dev/rate-limiter/_generated/component.js").ComponentApi<"rateLimiter">;
 };

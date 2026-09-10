@@ -274,7 +274,14 @@ function resolveNotificationSettings(
       true,
     pushResults: optimistic?.pushResults ?? user?.pushResults ?? true,
     pushSessionLocked:
-      optimistic?.pushSessionLocked ?? user?.pushSessionLocked ?? true,
+      optimistic?.pushSessionLocked ?? user?.pushSessionLocked ?? false,
+    preferPushReminders:
+      optimistic?.preferPushReminders ?? user?.preferPushReminders ?? true,
+    pushNews: optimistic?.pushNews ?? user?.pushNews ?? false,
+    notificationQuietHours:
+      optimistic?.notificationQuietHours ??
+      user?.notificationQuietHours ??
+      true,
     pushRevReceived:
       optimistic?.pushRevReceived ?? user?.pushRevReceived ?? true,
   };

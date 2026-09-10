@@ -24,24 +24,31 @@ export async function markPushPrePromptHandled(): Promise<void> {
  * to save server-side, or null when permission was not granted.
  */
 export async function obtainExpoPushToken(): Promise<string | null> {
-  const existing = await Notifications.getPermissionsAsync();
-  let status = existing.status;
-  if (status !== 'granted') {
-    const requested = await Notifications.requestPermissionsAsync();
-    status = requested.status;
+  await prepareNotificationChannels();
+  let permission = await Notifications.getPermissionsAsync();
+  if (!hasPushPermission(permission) && permission.canAskAgain !== false) {
+    permission = await Notifications.requestPermissionsAsync();
   }
-  if (status !== 'granted') {
+  if (!hasPushPermission(permission)) {
     return null;
   }
+  return await getAndStoreToken();
+}
 
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', {
-      importance: Notifications.AndroidImportance.MAX,
-      name: 'default',
-      vibrationPattern: [0, 250, 250, 250],
-    });
+export function hasPushPermission(
+  permission: Notifications.NotificationPermissionsStatus,
+): boolean {
+  if (permission.ios) {
+    return [
+      Notifications.IosAuthorizationStatus.AUTHORIZED,
+      Notifications.IosAuthorizationStatus.PROVISIONAL,
+      Notifications.IosAuthorizationStatus.EPHEMERAL,
+    ].includes(permission.ios.status);
   }
+  return permission.status === 'granted';
+}
 
+async function getAndStoreToken(): Promise<string> {
   const tokenData = await Notifications.getExpoPushTokenAsync();
   await setStoredJson(TOKEN_KEY, tokenData.data);
   return tokenData.data;
@@ -53,12 +60,33 @@ export async function obtainExpoPushToken(): Promise<string | null> {
  */
 export async function obtainExpoPushTokenIfGranted(): Promise<string | null> {
   const perm = await Notifications.getPermissionsAsync();
-  if (perm.status !== 'granted') {
+  if (!hasPushPermission(perm)) {
     return null;
   }
-  return obtainExpoPushToken();
+  await prepareNotificationChannels();
+  return await getAndStoreToken();
 }
 
 export async function clearStoredExpoPushToken(): Promise<void> {
   await removeStoredValue(TOKEN_KEY);
+}
+
+export async function prepareNotificationChannels(): Promise<void> {
+  if (Platform.OS !== 'android') {
+    return;
+  }
+  await Promise.all([
+    Notifications.setNotificationChannelAsync('reminders', {
+      name: 'Pick reminders',
+      importance: Notifications.AndroidImportance.DEFAULT,
+    }),
+    Notifications.setNotificationChannelAsync('results', {
+      name: 'Results',
+      importance: Notifications.AndroidImportance.DEFAULT,
+    }),
+    Notifications.setNotificationChannelAsync('social', {
+      name: 'News and reactions',
+      importance: Notifications.AndroidImportance.LOW,
+    }),
+  ]);
 }

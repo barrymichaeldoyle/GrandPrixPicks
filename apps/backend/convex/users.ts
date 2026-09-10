@@ -33,6 +33,7 @@ import {
 } from './lib/standings';
 import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
 import { toUserIdentity } from './lib/userIdentity';
+import { resolvedNotificationSettings } from './lib/notificationChannels';
 
 type AccountDeletionSummary = {
   follows: number;
@@ -245,6 +246,42 @@ async function processDeletionStep(
       };
     }
     case 'push_subscriptions': {
+      const deliveries = await ctx.db
+        .query('notificationDeliveries')
+        .withIndex('by_user', (q) => q.eq('userId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      await deleteRows(ctx, deliveries);
+      if (deliveries.length === DELETION_BATCH_SIZE) {
+        return {
+          summary,
+          repeatCurrentStep: true,
+          nextStep: 'push_subscriptions' as const,
+        };
+      }
+      const emails = await ctx.db
+        .query('notificationEmails')
+        .withIndex('by_user', (q) => q.eq('userId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      await deleteRows(ctx, emails);
+      if (emails.length === DELETION_BATCH_SIZE) {
+        return {
+          summary,
+          repeatCurrentStep: true,
+          nextStep: 'push_subscriptions' as const,
+        };
+      }
+      const tokens = await ctx.db
+        .query('expoPushTokens')
+        .withIndex('by_user', (q) => q.eq('userId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      await deleteRows(ctx, tokens);
+      if (tokens.length === DELETION_BATCH_SIZE) {
+        return {
+          summary,
+          repeatCurrentStep: true,
+          nextStep: 'push_subscriptions' as const,
+        };
+      }
       const rows = await ctx.db
         .query('pushSubscriptions')
         .withIndex('by_user', (q) => q.eq('userId', args.userId))
@@ -561,13 +598,7 @@ export async function loadMe(ctx: QueryCtx) {
       email: viewer.email,
       avatarUrl: viewer.avatarUrl,
       usernameChangedAt: viewer.usernameChangedAt,
-      emailPredictionReminders: viewer.emailPredictionReminders,
-      emailResults: viewer.emailResults,
-      pushPredictionReminders: viewer.pushPredictionReminders,
-      pushPredictionLockReminders: viewer.pushPredictionLockReminders,
-      pushResults: viewer.pushResults,
-      pushSessionLocked: viewer.pushSessionLocked,
-      pushRevReceived: viewer.pushRevReceived,
+      ...resolvedNotificationSettings(viewer),
       timezone: viewer.timezone,
       locale: viewer.locale,
       isAdmin: viewer.isAdmin ?? false,
@@ -983,6 +1014,9 @@ export const updateNotificationSettings = mutation({
   args: {
     emailPredictionReminders: v.optional(v.boolean()),
     emailResults: v.optional(v.boolean()),
+    pushNews: v.optional(v.boolean()),
+    notificationQuietHours: v.optional(v.boolean()),
+    preferPushReminders: v.optional(v.boolean()),
     pushPredictionReminders: v.optional(v.boolean()),
     pushPredictionLockReminders: v.optional(v.boolean()),
     pushResults: v.optional(v.boolean()),

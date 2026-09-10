@@ -23,6 +23,7 @@
     "test:ci": "vitest run --reporter=dot"
   },
   "dependencies": {
+    "@convex-dev/rate-limiter": "^0.3.2",
     "@convex-dev/resend": "0.2.8",
     "@grandprixpicks/shared": "workspace:*",
     "@react-email/render": "2.1.0",

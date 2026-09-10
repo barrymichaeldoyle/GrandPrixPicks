@@ -287,11 +287,12 @@ npx convex run --prod raceNews:releaseToFeed '{"raceId":"jd7...","key":"..."}'
 
 ## Deliberately not doing
 
-**No notifications.** Not push, not in-app, not for now. Publishing news that
-wakes a phone is one prompt away from the result-email incident that put three
-guards in `notifications.ts`, and the feed is the right place to prove this
-first. An opt-in in-app category for F1 news is a reasonable later step, and
-opt-in is the word that matters.
+**Publishing does not send notifications.** Selected stories can receive an
+editorially approved push through `newsNotifications:select`, separately from
+publication. News push is opt-in, limited to one story per user per 24 hours,
+and respects quiet hours. Preview before selecting, reuse a story key across
+related articles, and exclude result spoilers. See [Notifications](notifications.md)
+for the commands and delivery policy. News emails remain disabled.
 
 **No cap per weekend.** A busy weekend with several real items is a better feed
 than a quiet one, and the editorial rule is the limit that counts.

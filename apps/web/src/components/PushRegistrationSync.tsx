@@ -1,6 +1,8 @@
 import { api } from '@convex-generated/api';
-import { useConvexAuth, useMutation, useQuery } from 'convex/react';
+import { useConvexAuth, useMutation } from 'convex/react';
 import { useEffect } from 'react';
+
+import { useQuery } from '@/integrations/convex/query';
 
 /** Rebind existing browser subscriptions when the authenticated account changes. */
 export function PushRegistrationSync() {

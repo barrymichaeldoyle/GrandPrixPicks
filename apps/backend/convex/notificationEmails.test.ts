@@ -1,3 +1,8 @@
+/**
+ * @vitest-environment node
+ *
+ * Resend stores bodies as Convex bytes; jsdom's ArrayBuffer is rejected.
+ */
 /// <reference types="vite/client" />
 import { beforeEach } from 'vitest';
 import { convexTest } from 'convex-test';

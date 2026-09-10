@@ -136,8 +136,7 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
           // First driver, not all of them: an item about two team mates is one
           // team's story, and the badges already name both.
           const team = item.drivers?.[0]?.team ?? null;
-          const teamColour =
-            (team && TEAM_COLORS[team]) || 'var(--accent)';
+          const teamColour = (team && TEAM_COLORS[team]) || 'var(--accent)';
 
           return (
             // A column so the source row can be pushed to the bottom: the

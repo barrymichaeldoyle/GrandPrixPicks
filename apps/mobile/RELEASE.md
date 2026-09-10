@@ -61,6 +61,16 @@ eas build --profile production --platform all    # store builds
 eas submit --profile production --platform ios
 ```
 
+A submission that ends in `EAS_UPLOAD_TO_ASC_VERSION_DUPLICATE` has usually
+already succeeded. Apple burns a build number the moment it accepts the upload,
+permanently and per version train, so the second `eas submit` of the same
+binary is refused whether or not the first one worked. `eas submit` prints only
+"Something went wrong" and the Expo web page shows no logs; the real message
+lives on the submission's `jobRun.errors` in the GraphQL API. **Look in
+TestFlight before resubmitting.** If the build is there, you are done. If it is
+not, Apple accepted and then discarded it during processing (check the rejection
+email), and the fix is a rebuild for a fresh number, never a retry.
+
 `appVersionSource` is `remote`, so EAS owns the build number and
 `autoIncrement` bumps it on every production build. The `version` in
 `app.json` is still yours to set. The iOS build number is deliberately omitted

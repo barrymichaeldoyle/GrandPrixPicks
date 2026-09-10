@@ -70,6 +70,14 @@ const CORNER_SOURCE =
   'https://www.the-race.com/formula-1/madrid-f1-track-spanish-gp-standout-corner-la-monumental-our-verdict/';
 const VERSTAPPEN_SIM_SOURCE =
   'https://racingnews365.com/max-verstappen-predicts-big-shunts-at-madrid-f1-weekend';
+const SAINZ_WEDNESDAY_SOURCE =
+  'https://www.local10.com/sports/2026/09/09/sainz-expects-fun-but-intense-new-track-as-spanish-gp-returns-to-madrid-to-sold-out-crowd/';
+const MADRID_ATTENDANCE_SOURCE =
+  'https://www.madring.com/notas-prensa/madring-ya-esta-listo';
+const WILLIAMS_UPGRADE_SOURCE =
+  'https://cadenaser.com/nacional/2026/09/09/carlos-sainz-tengo-ganas-de-probar-el-madring-que-diria-que-es-parecido-a-baku-y-a-yeda-cadena-ser/';
+const WEATHER_SOURCE =
+  'https://www.formula1.com/en/latest/article/what-is-the-weather-forecast-for-the-2026-spanish-grand-prix.5TA3WMRX4zHfd8MWH0KjtI';
 const TEST_SOURCE =
   'https://www.grandprix.com/news/madring-praise-red-flags-first-formula-3-test-2026.html';
 const FILMING_SOURCE =
@@ -551,6 +559,16 @@ function FormulaThreeTest() {
             .
           </p>
           <p className="gpp-reading-copy mt-3 text-text-muted">
+            Speaking in Madrid on Wednesday 9 September, Sainz said simulator
+            laps and Formula 3 footage suggested an intense circuit, with
+            &ldquo;turn after turn, wall after wall&rdquo;. He compared it with
+            Baku and Jeddah, two tracks he enjoys racing on.{' '}
+            <ExternalSource href={SAINZ_WEDNESDAY_SOURCE}>
+              Sainz on the Madrid lap
+            </ExternalSource>
+            .
+          </p>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
             After driving the circuit in the simulator, Verstappen compared it
             with Jeddah and warned that mistakes could lead to heavy crashes. He
             also said it was difficult to put a clean lap together.{' '}
@@ -780,6 +798,16 @@ function TyreChoice() {
         may save sets of the Hard tyre for Sunday if practice shows the softer
         compounds wearing out quickly.
       </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Formula 1&rsquo;s forecast, published on 9 September, expects a dry
+        weekend with air temperatures reaching 30°C on Friday, 31°C on Saturday
+        and 32°C on Sunday. It also flags the heat index for monitoring over the
+        weekend.{' '}
+        <ExternalSource href={WEATHER_SOURCE}>
+          Formula 1&rsquo;s weather forecast
+        </ExternalSource>
+        .
+      </p>
     </TyreCompoundSection>
   );
 }
@@ -882,11 +910,29 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
           , so Spain has two rounds in 2026.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
+          Organisers announced on 9 September that the debut is sold out. They
+          expect a total attendance of nearly 350,000 across the three days,
+          with more than 60% of the audience coming from Spain.{' '}
+          <ExternalSource href={MADRID_ATTENDANCE_SOURCE}>
+            Madring&rsquo;s attendance announcement
+          </ExternalSource>
+          .
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
           Madrid-born Carlos Sainz has been the circuit&rsquo;s ambassador since
           April 2025 and joined the organisers for the start of construction. He
           and Fernando Alonso are the two Spanish drivers on the grid.{' '}
           <ExternalSource href={SAINZ_SOURCE}>
             Sainz&rsquo;s role at the Madring
+          </ExternalSource>
+          .
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Sainz expects a difficult weekend for Williams. He said on Wednesday
+          that the team&rsquo;s next upgrade is due at Baku and that scoring
+          points in Madrid would be a challenge.{' '}
+          <ExternalSource href={WILLIAMS_UPGRADE_SOURCE}>
+            Sainz on Williams&rsquo; prospects
           </ExternalSource>
           .
         </p>

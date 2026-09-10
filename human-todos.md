@@ -71,7 +71,13 @@ PostHog projects as the web app; split them later if the noise gets annoying.
 
 ## 3. Create the first store build
 
-No iOS EAS build exists yet.
+Build 1.0.0 (**build 2**) was built and submitted on 2026-09-09 and reached
+App Store Connect: EAS submission `69e73a91` at 15:38 UTC finished successfully.
+Every `eas submit` of that build since has failed with
+`EAS_UPLOAD_TO_ASC_VERSION_DUPLICATE`, which is correct, not a fault: Apple
+burns a build number permanently once it is accepted. Check TestFlight before
+resubmitting, and rebuild (`autoIncrement` gives you build 3) rather than
+retrying the same binary.
 
 **TestFlight needs far less than the store does.** Internal TestFlight testing
 (your own team, up to 100 testers) requires only a processed build and the

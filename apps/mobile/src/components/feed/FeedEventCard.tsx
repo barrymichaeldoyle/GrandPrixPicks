@@ -270,7 +270,7 @@ function LineupChangeCard({ event }: { event: FeedEvent }) {
   return (
     <Card>
       <View className="gap-0.5">
-        <Text className="text-xs font-bold tracking-widest text-accent uppercase">
+        <Text className="text-[10px] font-extrabold text-accent uppercase">
           Grid change
         </Text>
         <Text className="text-foreground text-sm font-bold">

@@ -186,13 +186,24 @@ function PredictForRace({
   // Server capabilities are the authority on writability; the device clock
   // only advances the locked state between query refreshes (a Convex query
   // re-runs on data changes, not on the passage of time).
+  //
+  // A `sign_in` denial is the exception, and reading it as a lock is what
+  // broke this screen for every signed-out visitor: `deriveSessionCapability`
+  // answers `canEdit: false, denialReason: 'sign_in'` for all four sessions
+  // when there is no viewer, so an entirely open weekend rendered read-only
+  // with "Session locked" on the button. Missing an account is not a closed
+  // session — it is the whole premise of drafting picks before you have one —
+  // and it also covers the signed-in first payload, which arrives before
+  // Clerk's token reaches Convex and says the same thing.
   const sessionLockState = weekendSessions.map((session) => {
     const cap = capabilities.find((c) => c.sessionType === session);
     const lockAt = cap?.lockAt ?? getSessionLockAt(race, session);
     const remaining =
       typeof lockAt === 'number' ? lockAt - now : Number.POSITIVE_INFINITY;
     const status = getLockStatusViewModel(remaining, now);
-    const isLocked = status.isLocked || cap?.canEdit === false;
+    const deniedByServer =
+      cap?.canEdit === false && cap.denialReason !== 'sign_in';
+    const isLocked = status.isLocked || deniedByServer;
     return { session, lockAt, isLocked, hasResult: cap?.hasResult ?? false };
   });
 
@@ -391,6 +402,14 @@ function PredictForRace({
                   selectedSession={selectedSession}
                   sessionIsLocked={selectedSessionIsLocked}
                   onSubmit={async (picks, sessionType) => {
+                    // The same guard Top 5 has. Without it the auto-save that
+                    // fires on the last matchup called the mutation for a
+                    // signed-out reader, which throws, so completing the grid
+                    // answered with a red "Save failed" toast.
+                    if (!isSignedIn) {
+                      requireAccountToSave();
+                      return;
+                    }
                     const scope =
                       sessionType === undefined ? 'cascade' : 'session';
                     try {
@@ -427,8 +446,8 @@ function PredictForRace({
                 />
               )
             ) : (
-              <Text className="text-muted pt-1 text-xs italic">
-                Save your Top 5 first to unlock H2H picks.
+              <Text className="text-muted pt-1 text-xs">
+                Save your Top 5 first. Teammate picks open after that.
               </Text>
             )}
           </>
@@ -1208,6 +1227,7 @@ function H2HEditor({
 }) {
   const { showToast } = useToast();
   const { formatDateTime } = useUserDateFormat();
+  const isSignedIn = useIsSignedIn();
   const draftSession = cascadeMode ? CASCADE_DRAFT_SESSION : selectedSession;
   const [selections, setSelections] = useState<Record<string, string>>({
     ...existingPicks,
@@ -1267,8 +1287,12 @@ function H2HEditor({
 
   // First-time picks save themselves as the last matchup is tapped — users
   // kept completing the grid and forgetting the Save button. Edits stay manual.
+  // Never auto-save a signed-out grid: the save path for a guest is the
+  // sign-in sheet, and throwing that over the screen 1.2s after the last tap
+  // is an interruption they did not ask for. They get the explicit button.
   const { markInteraction } = useAutoSaveOnFirstComplete({
     enabled:
+      isSignedIn &&
       Object.keys(existingPicks).length === 0 &&
       matchups.length > 0 &&
       !sessionIsLocked &&

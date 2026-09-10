@@ -118,7 +118,7 @@ export function HomeHero() {
       </View>
 
       <View className="flex-row flex-wrap items-center justify-center gap-1">
-        <Text className="text-muted text-[10px] font-bold">ROUND</Text>
+        <Text className="text-muted text-[10px] font-bold">Round</Text>
         <Numeral tone="muted" variant="small">
           {round}
         </Numeral>
@@ -131,7 +131,7 @@ export function HomeHero() {
           <>
             <Text className="text-[10px] text-border-strong">·</Text>
             <Text className="text-[10px] font-bold text-accent-hover">
-              SPRINT WEEKEND
+              Sprint weekend
             </Text>
           </>
         ) : null}

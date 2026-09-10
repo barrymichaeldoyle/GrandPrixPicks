@@ -10,6 +10,7 @@ import type { SessionHeader } from '../../components/feed/SessionGroupCard';
 import { SessionGroupCard } from '../../components/feed/SessionGroupCard';
 import { HomeExplore } from '../../components/home/HomeExplore';
 import { HomeHero } from '../../components/home/HomeHero';
+import { SignedOutHomePanel } from '../../components/home/SignedOutHomePanel';
 import { RaceRecapCard } from '../../components/home/RaceRecapCard';
 import { Avatar } from '../../components/ui/Avatar';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -18,9 +19,11 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
 import { captureAnalyticsEvent } from '../../lib/analytics';
+import { useIsSignedIn } from '../../lib/useIsSignedIn';
 import { useRefreshSpinner } from '../../lib/useRefreshSpinner';
 import type { HomeStackParamList } from '../../navigation/types';
 import { useMobileConfig } from '../../providers/mobile-config';
+import { useToast } from '../../providers/ToastProvider';
 import { colors } from '../../theme/tokens';
 import { FlatList, Pressable, RefreshControl, Text, View } from '../../tw';
 
@@ -45,6 +48,7 @@ export function FeedScreen() {
   const { convexEnabled } = useMobileConfig();
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const { refreshing, onRefresh } = useRefreshSpinner();
+  const isSignedIn = useIsSignedIn();
 
   const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
     Array(MAX_EXTRA_PAGES).fill(null),
@@ -196,15 +200,16 @@ export function FeedScreen() {
                 watched a Grand Prix came here for the one that finished. */}
             <RaceRecapCard className="mb-3" />
             <HomeHero />
-            {groups.length > 0 ? (
-              <Text className="text-muted mb-2 px-1 text-[11px] font-bold uppercase">
-                Activity
-              </Text>
-            ) : (
+            {/* No "Activity" heading over the list. The tab is Home, the rows
+                below are plainly the activity, and the web feed dropped the
+                same label. */}
+            {groups.length > 0 ? null : isSignedIn ? (
               <View className="gap-5">
                 <HomeExplore />
                 <TopPlayersToFollow />
               </View>
+            ) : (
+              <SignedOutHomePanel />
             )}
           </View>
         }
@@ -248,9 +253,14 @@ export function FeedScreen() {
 /**
  * Empty-feed discovery: the season's top players with one-tap follow,
  * so a new account can fill its feed without leaving the tab.
+ *
+ * Signed-in only. `follows.follow` requires a viewer, so for a guest every
+ * button here threw and rolled its own optimistic state back with nothing
+ * shown — a Follow button that visibly un-pressed itself.
  */
 function TopPlayersToFollow() {
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+  const { showToast } = useToast();
   const topPlayers = useQuery(api.leaderboards.getCombinedSeasonLeaderboard, {
     limit: 6,
   });
@@ -275,6 +285,7 @@ function TopPlayersToFollow() {
         next.delete(String(userId));
         return next;
       });
+      showToast('Could not follow that player. Try again.', 'error');
     }
   }
 

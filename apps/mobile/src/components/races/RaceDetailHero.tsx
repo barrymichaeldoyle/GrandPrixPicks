@@ -33,8 +33,8 @@ export function RaceDetailHero({ race, round }: RaceDetailHeroProps) {
       <View className="absolute inset-0 bg-page/80" />
       <View className="gap-1 px-[18px] py-[18px]">
         <Text className="text-[10px] font-extrabold text-accent-hover">
-          {round != null ? `ROUND ${round}` : race.country.toUpperCase()}
-          {race.hasSprint ? '  ·  SPRINT' : ''}
+          {round != null ? `Round ${round}` : race.country}
+          {race.hasSprint ? '  ·  Sprint' : ''}
         </Text>
         <Text
           numberOfLines={2}

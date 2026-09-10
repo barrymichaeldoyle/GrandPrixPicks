@@ -238,13 +238,13 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
   },
   head: ({ loaderData }) => {
     const race = loaderData?.race;
-    const title = '2026 Madrid Grand Prix Predictions | Spanish GP Picks';
+    const title = '2026 Spanish Grand Prix Predictions | Madrid';
     const description =
       race?.status === 'finished'
-        ? '2026 Madrid Grand Prix predictions scored against the official Spanish Grand Prix classification. See who read the new Madring circuit right in its first year.'
+        ? '2026 Spanish Grand Prix predictions scored against the official Madring classification. See who called the top 5 for qualifying and the race.'
         : race?.status === 'cancelled'
           ? 'The 2026 Spanish Grand Prix was called off.'
-          : '2026 Madrid Grand Prix predictions for the Spanish Grand Prix at the Madring, the first Formula 1 race at Madrid\u2019s new circuit.';
+          : '2026 Spanish Grand Prix predictions at the Madring in Madrid. Pick a top 5 for qualifying and the race at the circuit\u2019s Formula 1 debut.';
     const circuit = getCircuitForRace(RACE_SLUG);
     const meta = pageMeta({
       title,
@@ -300,7 +300,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
               },
               breadcrumbSchema(PATH, [
                 { name: 'Races', path: '/races' },
-                { name: 'Madrid Grand Prix predictions', path: PATH },
+                { name: 'Spanish Grand Prix predictions', path: PATH },
               ]),
             ],
           }),

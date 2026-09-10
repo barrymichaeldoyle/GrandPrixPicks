@@ -22,7 +22,12 @@ vi.mock('@/integrations/convex/client', () => ({
 
 type HeadResult = {
   links?: { href: string; rel: string }[];
-  meta?: { content: string; name?: string; property?: string }[];
+  meta?: {
+    content?: string;
+    name?: string;
+    property?: string;
+    title?: string;
+  }[];
   scripts?: { children: string; type: string }[];
 };
 
@@ -223,7 +228,7 @@ describe('SEO head metadata', () => {
     // Google truncates around 60 characters of title and 155 of description.
     // Past those, the part that answers the searcher's question is cut off.
     expect(title?.title.length).toBeLessThanOrEqual(60);
-    expect(description?.content.length).toBeLessThanOrEqual(160);
+    expect(description?.content?.length).toBeLessThanOrEqual(160);
 
     expect(head.meta).not.toContainEqual({
       name: 'robots',
@@ -284,7 +289,7 @@ describe('SEO head metadata', () => {
       | undefined;
 
     expect(title?.title.length).toBeLessThanOrEqual(60);
-    expect(description?.content.length).toBeLessThanOrEqual(160);
+    expect(description?.content?.length).toBeLessThanOrEqual(160);
     expect(description?.content).toContain('Qualifying, sprint and race');
     expect(head.links).toEqual([
       {
@@ -332,6 +337,52 @@ describe('SEO head metadata', () => {
       to: '/f1-team-mate-battles',
       statusCode: 301,
     });
+  });
+
+  it('sends a circuit URL with a write-up to that write-up', async () => {
+    const [{ Route: circuitRoute }, { redirect }] = await Promise.all([
+      import('./circuits/$circuitSlug'),
+      import('@tanstack/react-router'),
+    ]);
+    const { beforeLoad } = circuitRoute as unknown as {
+      beforeLoad: (args: { params: { circuitSlug: string } }) => void;
+    };
+
+    expect(() => beforeLoad({ params: { circuitSlug: 'madring' } })).toThrow();
+    expect(redirect).toHaveBeenCalledWith({
+      href: '/f1-2026-madrid-grand-prix-predictions',
+      statusCode: 301,
+    });
+
+    expect(() =>
+      beforeLoad({ params: { circuitSlug: 'barcelona' } }),
+    ).toThrow();
+    expect(redirect).toHaveBeenCalledWith({
+      href: '/races',
+      statusCode: 301,
+    });
+  });
+
+  it('titles the Madrid write-up after the official Grand Prix name', async () => {
+    const { Route: madridRoute } =
+      await import('./f1-2026-madrid-grand-prix-predictions');
+    const { head } = madridRoute as unknown as {
+      head: (args: {
+        loaderData: { race: { raceStartAt: number; status: string } };
+      }) => HeadResult;
+    };
+
+    const result = head({
+      loaderData: {
+        race: { status: 'upcoming', raceStartAt: 1_789_304_400_000 },
+      },
+    });
+    expect(result.meta?.find((tag) => tag.title)?.title).toBe(
+      '2026 Spanish Grand Prix Predictions | Madrid',
+    );
+    expect(
+      result.meta?.find((tag) => tag.name === 'description')?.content,
+    ).toMatch(/^2026 Spanish Grand Prix predictions at the Madring/);
   });
 
   it('hands a written-up race page to its write-up canonical', async () => {

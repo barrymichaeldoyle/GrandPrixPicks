@@ -15,7 +15,8 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
  * `/races` rather than a guessed circuit-to-race mapping. Inverting
  * `CIRCUIT_BY_RACE_PREFIX` needs a season to pick the round, so a precise
  * target would be a hand-kept table that rots every winter. The calendar is
- * one hop from every race and every write-up, and it never goes stale.
+ * one hop from every race and every write-up, and it never goes stale. Per-
+ * circuit URLs that do have a write-up are retargeted in `$circuitSlug.tsx`.
  */
 export const Route = createFileRoute('/circuits/')({
   beforeLoad: () => {

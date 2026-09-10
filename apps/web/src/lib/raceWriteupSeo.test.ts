@@ -2,7 +2,10 @@ import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import { listRaceWriteups } from './raceWriteups';
-import { racePageWriteupHeadOptions } from './raceWriteupSeo';
+import {
+  circuitPageRedirectTarget,
+  racePageWriteupHeadOptions,
+} from './raceWriteupSeo';
 
 describe('racePageWriteupHeadOptions', () => {
   it('canonicalises a race page with a write-up to the write-up, noindexed', () => {
@@ -18,6 +21,27 @@ describe('racePageWriteupHeadOptions', () => {
 
   it('leaves a race page without a write-up self-canonical and indexable', () => {
     expect(racePageWriteupHeadOptions('miami-2026')).toBeNull();
+  });
+});
+
+describe('circuitPageRedirectTarget', () => {
+  it('sends a circuit with a write-up to that write-up', () => {
+    expect(circuitPageRedirectTarget('madring')).toBe(
+      '/f1-2026-madrid-grand-prix-predictions',
+    );
+    expect(circuitPageRedirectTarget('monza')).toBe(
+      '/f1-2026-italian-grand-prix-predictions',
+    );
+    expect(circuitPageRedirectTarget('sepang')).toBe(
+      '/f1-2026-bahrain-grand-prix-predictions',
+    );
+  });
+
+  it('leaves circuits without a write-up on the calendar', () => {
+    // Barcelona is the other Spanish round; its slug is still spain-2026.
+    expect(circuitPageRedirectTarget('barcelona')).toBe('/races');
+    expect(circuitPageRedirectTarget('sakhir')).toBe('/races');
+    expect(circuitPageRedirectTarget('unknown-circuit')).toBe('/races');
   });
 });
 

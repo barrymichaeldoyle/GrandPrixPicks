@@ -37,15 +37,17 @@ that also carried the schedule, the classification and the picks — 23 URLs, 28
 of the sitemap, asking to be indexed for content already published somewhere
 stronger.
 
-**Those 23 pages and their index were deleted on 2026-09-07** and now 301 to
-`/races`. Canonicalising them had already taken them out of the sitemap, so the
-remaining search win was one URL; the reason to finish the job was that the site
-was still linking readers into a duplicate of itself, from the footer, the
-dashboard rail, the calendar and every race page, and that they were 23 pages of
-unfact-checked prose standing behind an editorial review. The briefing itself
-survives: `circuitGuides.ts` renders in full on every race page, which is now
-the only place it is published. Venue analysis for a weekend belongs in that
-weekend's write-up.
+**Those 23 pages and their index were deleted on 2026-09-07.** The index and
+any circuit without a write-up 301 to `/races`. A circuit that has a write-up
+301s to that write-up (`circuitPageRedirectTarget`), so `/circuits/madring`
+does not hand Madrid queries to the calendar. Canonicalising them had already
+taken them out of the sitemap, so the remaining search win was one URL; the
+reason to finish the job was that the site was still linking readers into a
+duplicate of itself, from the footer, the dashboard rail, the calendar and
+every race page, and that they were 23 pages of unfact-checked prose standing
+behind an editorial review. The briefing itself survives: `circuitGuides.ts`
+renders in full on every race page, which is now the only place it is
+published. Venue analysis for a weekend belongs in that weekend's write-up.
 
 ## Rules
 

@@ -1,4 +1,6 @@
-import { getRaceWriteup } from '@/lib/raceWriteups';
+import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
+
+import { getRaceWriteup, listRaceWriteups } from '@/lib/raceWriteups';
 
 /**
  * Head metadata that hands a race page's search equity to its write-up.
@@ -23,4 +25,27 @@ export function racePageWriteupHeadOptions(raceSlug: string): {
     return null;
   }
   return { canonicalPath: writeup.to, noIndex: true };
+}
+
+/**
+ * Where a deleted circuit page should 301.
+ *
+ * The circuit pages all used to go to `/races` because inverting race→circuit
+ * needs a season, and a hand-kept table would rot. Write-ups now exist for
+ * some venues, and those are the indexed page for that circuit. Pointing
+ * `/circuits/madring` at the calendar asked Google to transfer Madrid queries
+ * onto a list of every round.
+ *
+ * Derived from the write-up registry and the existing race→circuit map, so
+ * adding a write-up is what retargets the redirect. Circuits nobody wrote up
+ * still go to `/races`.
+ */
+export function circuitPageRedirectTarget(circuitSlug: string): string {
+  for (const writeup of listRaceWriteups()) {
+    const circuit = getCircuitForRace(writeup.raceSlug);
+    if (circuit?.slug === circuitSlug) {
+      return writeup.to;
+    }
+  }
+  return '/races';
 }

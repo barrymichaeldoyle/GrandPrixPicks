@@ -20,7 +20,7 @@
     },
     "advisory": {
       "alcoholTobaccoOrDrugUseOrReferences": "NONE",
-      "contests": "INFREQUENT",
+      "contests": "INFREQUENT_OR_MILD",
       "gamblingSimulated": "NONE",
       "horrorOrFearThemes": "NONE",
       "matureOrSuggestiveThemes": "NONE",

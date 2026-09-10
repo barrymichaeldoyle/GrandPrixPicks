@@ -123,7 +123,7 @@ There is no gambling: nothing is staked, bought or won.
 the achievement of personal goals", which the leaderboard meets even with no
 prize, so None would contradict the definition on screen. Frequent computes to
 **13+**; Infrequent computes to **4+**, which is why the answer is Infrequent
-and `store.config.json` carries `"contests": "INFREQUENT"`.
+and `store.config.json` carries `"contests": "INFREQUENT_OR_MILD"`.
 
 Two other questionnaire answers are not in `store.config.json` because the
 schema has no field for them: **Social Media = No** (the feed carries

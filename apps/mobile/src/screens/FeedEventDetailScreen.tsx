@@ -1,7 +1,10 @@
-import type { ReactionType } from '@grandprixpicks/shared/reactions';
+import type {
+  ReactionContext,
+  ReactionType,
+} from '@grandprixpicks/shared/reactions';
 import {
-  REACTION_BY_TYPE,
-  REACTION_OPTIONS,
+  reactionOptionFor,
+  reactionOptionsFor,
 } from '@grandprixpicks/shared/reactions';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '../integrations/convex/query';
@@ -77,8 +80,12 @@ export function FeedEventDetailScreen({ route }: Props) {
   }
 
   const event = detail.event as FeedEvent;
+  const reactionContext: ReactionContext =
+    event.type === 'race_news' ? 'news' : 'pick';
   const users = (reactionUsers ?? []) as ReactionUser[];
-  const listItems: ReactionListItem[] = REACTION_OPTIONS.flatMap((reaction) => {
+  const listItems: ReactionListItem[] = reactionOptionsFor(
+    reactionContext,
+  ).flatMap((reaction) => {
     const matchingUsers = users.filter(
       (user) => user.reactionType === reaction.type,
     );
@@ -127,11 +134,12 @@ export function FeedEventDetailScreen({ route }: Props) {
       renderItem={({ item }) =>
         item.kind === 'header' ? (
           <ReactionSectionHeader
+            context={reactionContext}
             count={item.count}
             reactionType={item.reactionType}
           />
         ) : (
-          <ReactionUserRow user={item.user} />
+          <ReactionUserRow context={reactionContext} user={item.user} />
         )
       }
       showsVerticalScrollIndicator={false}
@@ -142,11 +150,13 @@ export function FeedEventDetailScreen({ route }: Props) {
 function ReactionSectionHeader({
   reactionType,
   count,
+  context,
 }: {
   reactionType: ReactionType;
   count: number;
+  context: ReactionContext;
 }) {
-  const reaction = REACTION_BY_TYPE[reactionType];
+  const reaction = reactionOptionFor(context, reactionType);
   return (
     <View className="mt-2 flex-row items-center gap-2 rounded-md bg-surface px-3 py-2">
       <Text className="text-lg">{reaction.emoji}</Text>
@@ -163,7 +173,13 @@ function ReactionSectionHeader({
   );
 }
 
-function ReactionUserRow({ user }: { user: ReactionUser }) {
+function ReactionUserRow({
+  context,
+  user,
+}: {
+  context: ReactionContext;
+  user: ReactionUser;
+}) {
   const name = user.displayName ?? user.username ?? 'Unknown';
   return (
     <View className="ml-3 flex-row items-center gap-3 border-b border-border py-2.5">
@@ -175,7 +191,7 @@ function ReactionUserRow({ user }: { user: ReactionUser }) {
         ) : null}
       </View>
       <Text className="pr-2 text-base">
-        {REACTION_BY_TYPE[user.reactionType].emoji}
+        {reactionOptionFor(context, user.reactionType).emoji}
       </Text>
     </View>
   );

@@ -32,12 +32,13 @@ search results, so both are written to survive that rather than to fit exactly.
 ### Keywords (100 characters)
 
 ```
-f1,formula1,racing,motorsport,prediction,predictor,fantasy,league,qualifying,grid,standings
+f1,formula1,racing,motorsport,prediction,predictor,fantasy,qualifying,grid,standings
 ```
 
-90 characters. Deliberately excludes "grand", "prix" and "picks": the app name
-is already indexed, and repeating it wastes the field. Comma separated with no
-spaces, because spaces count.
+84 characters. Deliberately excludes "grand", "prix" and "picks": the app name
+is already indexed, and repeating it wastes the field. "league" is omitted
+because private leagues are managed on the website, not in the app. Comma
+separated with no spaces, because spaces count.
 
 ### Promotional text (170 characters)
 
@@ -70,9 +71,9 @@ separate chances to be right, and a bad Saturday does not cost you Sunday.
 
 PLAY WITH PEOPLE
 
-Start a private league for the group chat, or take on the global leaderboard.
-Follow other players, watch their picks land or fall apart, and react to them
-in the feed.
+Take on the global leaderboard. Follow other players, watch their picks land
+or fall apart, and react to them in the feed. Private leagues are on
+grandprixpicks.com.
 
 BUILT ON THE OFFICIAL RESULT
 
@@ -111,6 +112,9 @@ orders and are scored on accuracy.
 
 Sign in with Apple is supported. Accounts can be deleted from
 Settings > Delete account, which removes the account and its data.
+
+Private leagues are managed on grandprixpicks.com. The More tab opens that
+page; there is no league screen in the app.
 ```
 
 ## Age rating

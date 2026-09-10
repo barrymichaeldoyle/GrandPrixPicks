@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { groupFeedEvents } from './groupFeedEvents';
+import { groupFeedEvents } from './feedGroups';
 
 function news(id: string) {
   return { _id: id, type: 'race_news' };

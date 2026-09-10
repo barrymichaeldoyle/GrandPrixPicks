@@ -1,3 +1,4 @@
+import { groupFeedEvents } from '@grandprixpicks/shared/feedGroups';
 import { useAuth } from '@clerk/expo';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
@@ -7,6 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import type { FeedEvent } from '../../components/feed/FeedEventCard';
 import { FeedEventCard } from '../../components/feed/FeedEventCard';
+import { NewsGroupCard } from '../../components/feed/NewsGroupCard';
 import type { SessionHeader } from '../../components/feed/SessionGroupCard';
 import { SessionGroupCard } from '../../components/feed/SessionGroupCard';
 import { HomeExplore } from '../../components/home/HomeExplore';
@@ -43,10 +45,6 @@ type FeedPage =
     }
   | null
   | undefined;
-
-type FeedGroup =
-  | { kind: 'session'; key: string; events: FeedEvent[] }
-  | { kind: 'standalone'; key: string; event: FeedEvent };
 
 export function FeedScreen() {
   const { clerkEnabled, convexEnabled } = useMobileConfig();
@@ -190,35 +188,20 @@ export function FeedScreen() {
     ...loadedPages.map((p) => p.sessions),
   );
 
-  // Group session_locked / score_published by race+session, keep the rest
-  // standalone, preserving feed order (matches web).
-  const groups: FeedGroup[] = [];
-  const sessionGroups = new Map<string, FeedGroup & { kind: 'session' }>();
-  for (const event of allEvents) {
-    if (
-      (event.type === 'score_published' || event.type === 'session_locked') &&
-      event.raceId &&
-      event.sessionType
-    ) {
-      const key = `${event.raceId}_${event.sessionType}`;
-      let group = sessionGroups.get(key);
-      if (!group) {
-        group = { kind: 'session', key, events: [] };
-        sessionGroups.set(key, group);
-        groups.push(group);
-      }
-      group.events.push(event);
-    } else {
-      groups.push({ kind: 'standalone', key: String(event._id), event });
-    }
-  }
+  const groups = groupFeedEvents(allEvents);
 
   return (
     <View className="flex-1 bg-page px-4 pt-3">
       <FlatList
         contentContainerClassName="gap-3 pb-6"
         data={groups}
-        keyExtractor={(group) => group.key}
+        keyExtractor={(group) =>
+          group.kind === 'standalone'
+            ? String(group.event._id)
+            : group.kind === 'news'
+              ? `news-${group.events[0]?._id}`
+              : group.key
+        }
         ListEmptyComponent={null}
         ListFooterComponent={
           isLoadingMore ? (
@@ -257,13 +240,19 @@ export function FeedScreen() {
             tintColor={colors.accent}
           />
         }
-        renderItem={({ item }) =>
-          item.kind === 'standalone' ? (
-            <FeedEventCard
-              event={item.event}
-              onPress={() => openEvent(item.event)}
-            />
-          ) : (
+        renderItem={({ item }) => {
+          if (item.kind === 'standalone') {
+            return (
+              <FeedEventCard
+                event={item.event}
+                onPress={() => openEvent(item.event)}
+              />
+            );
+          }
+          if (item.kind === 'news') {
+            return <NewsGroupCard events={item.events} />;
+          }
+          return (
             <SessionGroupCard
               events={item.events}
               onPressEvent={openEvent}
@@ -276,8 +265,8 @@ export function FeedScreen() {
               }
               viewerId={me?._id as ConvexId<'users'> | undefined}
             />
-          )
-        }
+          );
+        }}
         showsVerticalScrollIndicator={false}
       />
     </View>

@@ -1,11 +1,12 @@
 import type {
+  ReactionContext,
   ReactionCounts,
   ReactionType,
 } from '@grandprixpicks/shared/reactions';
 import {
-  REACTION_BY_TYPE,
-  REACTION_OPTIONS,
   emptyReactionCounts,
+  reactionOptionFor,
+  reactionOptionsFor,
 } from '@grandprixpicks/shared/reactions';
 import { useMutation } from 'convex/react';
 import * as Haptics from 'expo-haptics';
@@ -21,6 +22,7 @@ type ReactionButtonProps = {
   reactionCount: number;
   reactionCounts: ReactionCounts;
   viewerReaction: ReactionType | null;
+  context?: ReactionContext;
 };
 
 function updateCounts(
@@ -43,6 +45,7 @@ export function ReactionButton({
   reactionCount,
   reactionCounts,
   viewerReaction,
+  context = 'pick',
 }: ReactionButtonProps) {
   const setReaction = useMutation(api.feed.setReaction);
   const removeReaction = useMutation(api.feed.removeReaction);
@@ -145,12 +148,12 @@ export function ReactionButton({
     }
   }
 
+  const options = reactionOptionsFor(context);
   const selectedDefinition = selectedReaction
-    ? REACTION_BY_TYPE[selectedReaction]
+    ? reactionOptionFor(context, selectedReaction)
     : null;
-  const topEmojis = REACTION_OPTIONS.filter(
-    (reaction) => counts[reaction.type] > 0,
-  )
+  const topEmojis = options
+    .filter((reaction) => counts[reaction.type] > 0)
     .sort((a, b) => counts[b.type] - counts[a.type])
     .slice(0, 3)
     .map((reaction) => reaction.emoji)
@@ -243,7 +246,7 @@ export function ReactionButton({
               </Text>
             </View>
             <View className="flex-row justify-between gap-1">
-              {REACTION_OPTIONS.map((reaction) => {
+              {options.map((reaction) => {
                 const isSelected = reaction.type === selectedReaction;
                 return (
                   <Pressable

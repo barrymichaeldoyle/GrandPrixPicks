@@ -1,101 +1,17 @@
-import type {
-  ReactionCounts,
-  ReactionType,
-} from '@grandprixpicks/shared/reactions';
 import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 
-import type { ConvexId } from '../../integrations/convex/api';
 import { getTeamColor } from '../../lib/teamColors';
 import { colors } from '../../theme/tokens';
 import { Pressable, Text, View } from '../../tw';
 import { FlagImage } from '../ui/FlagImage';
 import { Avatar } from '../ui/Avatar';
 import { Card } from '../ui/Card';
+import { formatRelativeTime } from './helpers';
+import { NewsGroupCard } from './NewsGroupCard';
 import { ReactionButton } from './ReactionButton';
+import type { FeedEvent } from './types';
 
-type ScoredPick = {
-  code: string;
-  team?: string;
-  predictedPosition: number;
-  actualPosition?: number;
-  points: number;
-};
-
-type H2HScore = {
-  correctPicks: number;
-  totalPicks: number;
-  points: number;
-};
-
-export type FeedEvent = {
-  _id: ConvexId<'feedEvents'>;
-  type:
-    | 'score_published'
-    | 'results_amended'
-    | 'session_locked'
-    | 'joined_league'
-    | 'streak_milestone'
-    | 'lineup_change';
-  /** Absent on `lineup_change`: the site authors it, not a player. */
-  userId?: ConvexId<'users'>;
-  username?: string;
-  displayName?: string;
-  avatarUrl?: string;
-  // score_published
-  raceId?: ConvexId<'races'>;
-  sessionType?: string;
-  points?: number;
-  raceName?: string;
-  raceSlug?: string;
-  // results_amended
-  previousPoints?: number;
-  amendmentNote?: string;
-  // enriched picks
-  picks?: ScoredPick[];
-  h2hScore?: H2HScore | null;
-  // joined_league
-  leagueName?: string;
-  leagueSlug?: string;
-  // streak_milestone
-  streakCount?: number;
-  // lineup_change
-  round?: number;
-  seatMoves?: {
-    team: string;
-    outDriverCode?: string;
-    outDriverName?: string;
-    inDriverCode: string;
-    inDriverName: string;
-  }[];
-  lineupNote?: string;
-  reactionCount: number;
-  reactionCounts: ReactionCounts;
-  createdAt: number;
-  viewerReaction: ReactionType | null;
-};
-
-function formatRelativeTime(timestamp: number): string {
-  const diff = Date.now() - timestamp;
-  const minutes = Math.floor(diff / 60_000);
-  const hours = Math.floor(diff / 3_600_000);
-  const days = Math.floor(diff / 86_400_000);
-  if (minutes < 1) {
-    return 'just now';
-  }
-  if (minutes < 60) {
-    return `${minutes}m ago`;
-  }
-  if (hours < 24) {
-    return `${hours}h ago`;
-  }
-  if (days < 7) {
-    return `${days}d ago`;
-  }
-  return new Date(timestamp).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  });
-}
+export type { FeedEvent } from './types';
 
 function pickColor(points: number): string {
   if (points === 5) {
@@ -356,10 +272,13 @@ export function FeedEventCard({
       const description = `🔥 ${event.streakCount}-race prediction streak`;
       return <SimpleEventCard event={event} description={description} />;
     }
+    if (event.type === 'race_news') {
+      return <NewsGroupCard events={[event]} />;
+    }
     return null;
   })();
 
-  if (!inner || !onPress) {
+  if (!inner || !onPress || event.type === 'race_news') {
     return inner;
   }
   return (

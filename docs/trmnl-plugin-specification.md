@@ -58,18 +58,18 @@ These overturn several intuitions. Read them before designing anything.
 
 ### Verified
 
-| Constraint | Detail |
-| --- | --- |
-| Render model | Device requests content on a timer; TRMNL's server generates a PNG. The device never receives a push. |
-| Marketplace plugins are **pull, not push** | TRMNL POSTs to our `plugin_markup_url` every N minutes. We respond. We cannot initiate. |
-| We return **HTML, not images** | Response is JSON with `markup`, `markup_half_horizontal`, `markup_half_vertical`, `markup_quadrant`, `shared`. TRMNL rasterises it. |
-| All four layouts are **required to publish** | A public marketplace plugin must supply markup for every layout. |
-| Webhook strategy is **private plugins only** | 12 payloads/hour (5 min), 30/hour on TRMNL+ (2 min). |
-| Webhook payload size | 2kb, 5kb on TRMNL+. `deep_merge` and `stream` merge strategies exist for staying under it. |
-| Request metadata | The POST body carries `user_uuid` and a `trmnl` object with the user's IANA timezone, locale, device dimensions and battery. Bearer token in the `authorization` header. |
-| Two marketplace lanes | **Recipe**: lives inside TRMNL, no OAuth, supports custom form fields, may call our services. **Third Party**: OAuth2 flow, we hold user PII and own the privacy obligation. |
-| Publishing is a manual review | Email `team@trmnl.com` with plugin ID, a no-audio install video, and test credentials. They screen on ethos ("breeds distraction, not focus") and ask how you will promote TRMNL. |
-| No content retention | TRMNL stores only the most recent rendered screen per plugin. |
+| Constraint                                   | Detail                                                                                                                                                                            |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Render model                                 | Device requests content on a timer; TRMNL's server generates a PNG. The device never receives a push.                                                                             |
+| Marketplace plugins are **pull, not push**   | TRMNL POSTs to our `plugin_markup_url` every N minutes. We respond. We cannot initiate.                                                                                           |
+| We return **HTML, not images**               | Response is JSON with `markup`, `markup_half_horizontal`, `markup_half_vertical`, `markup_quadrant`, `shared`. TRMNL rasterises it.                                               |
+| All four layouts are **required to publish** | A public marketplace plugin must supply markup for every layout.                                                                                                                  |
+| Webhook strategy is **private plugins only** | 12 payloads/hour (5 min), 30/hour on TRMNL+ (2 min).                                                                                                                              |
+| Webhook payload size                         | 2kb, 5kb on TRMNL+. `deep_merge` and `stream` merge strategies exist for staying under it.                                                                                        |
+| Request metadata                             | The POST body carries `user_uuid` and a `trmnl` object with the user's IANA timezone, locale, device dimensions and battery. Bearer token in the `authorization` header.          |
+| Two marketplace lanes                        | **Recipe**: lives inside TRMNL, no OAuth, supports custom form fields, may call our services. **Third Party**: OAuth2 flow, we hold user PII and own the privacy obligation.      |
+| Publishing is a manual review                | Email `team@trmnl.com` with plugin ID, a no-audio install video, and test credentials. They screen on ethos ("breeds distraction, not focus") and ask how you will promote TRMNL. |
+| No content retention                         | TRMNL stores only the most recent rendered screen per plugin.                                                                                                                     |
 
 ### The three that change the design
 
@@ -94,16 +94,16 @@ This is the feature. It is what makes the demo video, it is the argument for
 public listing, and it is what makes the quadrant layout solvable, because the
 phase decides which single number matters right now.
 
-| Phase | Full screen leads with | Quadrant shows |
-| --- | --- | --- |
-| Tuesday to Thursday | Next race, weather, latest news item | Days to lights out |
-| Friday to Saturday, picks incomplete | News filtered to unpicked sessions, lock clock | Time to next lock |
-| Friday to Saturday, picks complete | Practice pace, news | Time to next lock |
-| Session locked, not running | Your five against the consensus five | Your divergence count |
-| Race or sprint running | Race pulse (section 5.6) | Your live points |
-| Session scored | Score out of 25, rank delta | Score out of 25 |
-| Sunday night | Weekend total, league table | Season rank |
-| Off week | Season form, last five weekends | Season rank |
+| Phase                                | Full screen leads with                         | Quadrant shows        |
+| ------------------------------------ | ---------------------------------------------- | --------------------- |
+| Tuesday to Thursday                  | Next race, weather, latest news item           | Days to lights out    |
+| Friday to Saturday, picks incomplete | News filtered to unpicked sessions, lock clock | Time to next lock     |
+| Friday to Saturday, picks complete   | Practice pace, news                            | Time to next lock     |
+| Session locked, not running          | Your five against the consensus five           | Your divergence count |
+| Race or sprint running               | Race pulse (section 5.6)                       | Your live points      |
+| Session scored                       | Score out of 25, rank delta                    | Score out of 25       |
+| Sunday night                         | Weekend total, league table                    | Season rank           |
+| Off week                             | Season form, last five weekends                | Season rank           |
 
 Phase is computed server-side from the race document, session lock times and
 whether a live snapshot is active. Reuse `apps/web/src/lib/raceSessions.ts` and
@@ -247,14 +247,14 @@ path needs it.
 
 Verified public Convex queries, no auth required:
 
-| Card | Query |
-| --- | --- |
-| Next race, weekend | `races.getNextRace`, `races.getCurrentWeekend`, `races.getRaceBySlug` |
-| News | `raceNews.list` |
-| Consensus | `consensus.getWeekendConsensusForRaceSlug`, `consensus.getSessionConsensus` |
-| Race pulse | `liveScoring.getActiveSnapshot` |
-| Practice | `practiceResults.getPracticeSessionSummariesForRace` |
-| Weather | `weather.getByRaceSlug` |
+| Card               | Query                                                                       |
+| ------------------ | --------------------------------------------------------------------------- |
+| Next race, weekend | `races.getNextRace`, `races.getCurrentWeekend`, `races.getRaceBySlug`       |
+| News               | `raceNews.list`                                                             |
+| Consensus          | `consensus.getWeekendConsensusForRaceSlug`, `consensus.getSessionConsensus` |
+| Race pulse         | `liveScoring.getActiveSnapshot`                                             |
+| Practice           | `practiceResults.getPracticeSessionSummariesForRace`                        |
+| Weather            | `weather.getByRaceSlug`                                                     |
 
 **A fully public, no-auth Recipe can already render next race, weather, news,
 consensus, practice pace and a race pulse without one new backend function.**

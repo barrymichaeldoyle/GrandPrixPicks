@@ -309,7 +309,9 @@ await initWasm(
 const fonts = await loadFonts();
 
 for (const campaign of campaigns) {
-  if (only && !campaign.dir.includes(only)) {continue;}
+  if (only && !campaign.dir.includes(only)) {
+    continue;
+  }
   const outputDir = fileURLToPath(
     new URL(`../../../artifacts/social/${campaign.dir}/`, import.meta.url),
   );

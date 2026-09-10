@@ -4,6 +4,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 
+import { bucketWeatherNow } from '@/lib/weatherNow';
 import { getClerkSessionToken } from '../../../server/lib/auth';
 
 export type DashboardSsrData = FunctionReturnType<
@@ -53,7 +54,7 @@ export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
 
       const client = new ConvexHttpClient(convexUrl);
       client.setAuth(token);
-      const weatherNow = Date.now();
+      const weatherNow = bucketWeatherNow(Date.now());
       const [dashboard, weather] = await Promise.all([
         client.query(api.home.getDashboardPageData, {}),
         client.query(api.weather.getUpcoming, { now: weatherNow }),

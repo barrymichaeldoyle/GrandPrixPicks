@@ -19,6 +19,7 @@ import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { AD_SLOTS } from '@/lib/adsense';
 import { promotedRaceRecap } from '@grandprixpicks/shared/raceRecap';
 import { useIsBefore } from '@/lib/testing/now';
+import { bucketWeatherNow } from '@/lib/weatherNow';
 import { useState } from 'react';
 
 import { DashboardPracticeCard } from './DashboardPracticeCard';
@@ -74,8 +75,10 @@ export function DashboardPage({
     useQuery(api.leagues.getMyLeagues),
     initialDashboard?.leagues ?? undefined,
   );
+  // Bucketed so a client navigation reuses the cached subscription instead of
+  // asking again with a unique `Date.now()`. See `bucketWeatherNow`.
   const [weatherNow] = useState(
-    () => initialDashboard?.weatherNow ?? Date.now(),
+    () => initialDashboard?.weatherNow ?? bucketWeatherNow(Date.now()),
   );
   const weather = liveOrSsr(
     useQuery(api.weather.getUpcoming, { now: weatherNow }),
@@ -198,7 +201,6 @@ export function DashboardPage({
       leading={!pickerFollowsFeed}
       weekend={currentWeekend}
       weather={weather}
-      weatherNow={weatherNow}
       initialDrivers={initialDrivers}
       initialMatchups={initialMatchups}
       initialPredictions={initialDashboard?.predictions ?? null}

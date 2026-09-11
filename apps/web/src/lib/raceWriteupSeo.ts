@@ -1,6 +1,14 @@
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
+import { reviewedIsoDate } from '@/lib/lastReviewed';
 import { getRaceWriteup, listRaceWriteups } from '@/lib/raceWriteups';
+import {
+  breadcrumbSchema,
+  pageMeta,
+  raceOgImageUrl,
+  siteConfig,
+  sportsEventSchema,
+} from '@/lib/site';
 
 /**
  * Head metadata that hands a race page's search equity to its write-up.
@@ -48,4 +56,125 @@ export function circuitPageRedirectTarget(circuitSlug: string): string {
     }
   }
   return '/races';
+}
+
+type WriteupHeadRace = {
+  raceStartAt: number;
+  status: string;
+};
+
+type WriteupHeadFaq = {
+  question: string;
+  answer: string;
+};
+
+/**
+ * The `<head>` every race write-up emits: title, description, OG, JSON-LD.
+ *
+ * Five pages had grown five copies of this graph, and the copies had already
+ * drifted once: a three-property SportsEvent stub that Search Console
+ * discarded. One builder, so the next write-up cannot ship a second shape.
+ */
+export function raceWriteupPageHead({
+  path,
+  raceSlug,
+  title,
+  description,
+  imageAlt,
+  reviewedAt,
+  eventName,
+  eventAlternateName,
+  breadcrumbName,
+  race,
+  faqs,
+  extraGraph = [],
+}: {
+  path: string;
+  raceSlug: string;
+  title: string;
+  description: {
+    live: string;
+    finished: string;
+    cancelled: string;
+  };
+  imageAlt: string;
+  reviewedAt: number;
+  /** The official Grand Prix name, used as the SportsEvent `name`. */
+  eventName: string;
+  /** A common shorthand the page also ranks for, e.g. "2026 Madrid Grand Prix". */
+  eventAlternateName?: string;
+  breadcrumbName: string;
+  race?: WriteupHeadRace | null;
+  faqs: readonly WriteupHeadFaq[];
+  extraGraph?: readonly object[];
+}) {
+  const resolvedDescription =
+    race?.status === 'finished'
+      ? description.finished
+      : race?.status === 'cancelled'
+        ? description.cancelled
+        : description.live;
+  const circuit = getCircuitForRace(raceSlug);
+  const image = raceOgImageUrl(raceSlug);
+  const meta = pageMeta({
+    title,
+    description: resolvedDescription,
+    path,
+    image,
+    imageAlt,
+  });
+  const event =
+    race && circuit
+      ? {
+          ...sportsEventSchema({
+            name: eventName,
+            startAt: race.raceStartAt,
+            path,
+            description: resolvedDescription,
+            image,
+            location: circuit,
+            cancelled: race.status === 'cancelled',
+          }),
+          ...(eventAlternateName ? { alternateName: eventAlternateName } : {}),
+        }
+      : null;
+
+  return {
+    ...meta,
+    scripts: [
+      {
+        type: 'application/ld+json',
+        children: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@graph': [
+            {
+              '@type': 'WebPage',
+              '@id': `${siteConfig.url}${path}#page`,
+              url: `${siteConfig.url}${path}`,
+              name: title,
+              description: resolvedDescription,
+              dateModified: reviewedIsoDate(reviewedAt),
+              inLanguage: 'en',
+              isPartOf: { '@id': `${siteConfig.url}/#app` },
+              ...(event ? { about: event } : {}),
+            },
+            {
+              '@type': 'FAQPage',
+              '@id': `${siteConfig.url}${path}#faq`,
+              mainEntity: faqs.map((faq) => ({
+                '@type': 'Question',
+                name: faq.question,
+                acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+              })),
+            },
+            breadcrumbSchema(path, [
+              { name: 'Races', path: '/races' },
+              { name: breadcrumbName, path },
+            ]),
+            ...extraGraph,
+          ],
+        }),
+      },
+    ],
+  };
 }

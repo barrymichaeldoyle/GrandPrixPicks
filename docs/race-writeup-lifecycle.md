@@ -173,8 +173,8 @@ Review the pattern after three race weekends using:
    `reviewedAt` date.
 2. Add it to the SEO invariant fixtures and signed-out smoke coverage.
 3. Use `getRaceWriteupPhase()` with the loader's server timestamp.
-4. Render `RaceWriteupPhaseLabel`, `RaceWriteupActions` and the shared weekend
-   schedule.
+4. Render `RaceWriteupPage`, `RaceWriteupHero` and `raceWriteupPageHead`. Put
+   labelled sections in `RaceWriteupSection` or the photo shells.
 5. Put weather, weekend news and other expiring sections behind
    `isRaceWriteupLive()`.
 6. Pass cancellation state into SportsEvent structured data.

@@ -5,6 +5,7 @@ import { listRaceWriteups } from './raceWriteups';
 import {
   circuitPageRedirectTarget,
   racePageWriteupHeadOptions,
+  raceWriteupPageHead,
 } from './raceWriteupSeo';
 
 describe('racePageWriteupHeadOptions', () => {
@@ -73,5 +74,108 @@ describe('write-up route registration', () => {
       onDisk.filter((route) => !registered.has(route)),
       'unregistered write-up routes compete with their own race page',
     ).toEqual([]);
+  });
+});
+
+describe('raceWriteupPageHead', () => {
+  const faqs = [
+    {
+      question: 'When is the 2026 Spanish Grand Prix in Madrid?',
+      answer: 'The Spanish Grand Prix runs from 11 to 13 September 2026.',
+    },
+  ];
+
+  it('picks the live description until the race is finished or cancelled', () => {
+    const result = raceWriteupPageHead({
+      path: '/f1-2026-madrid-grand-prix-predictions',
+      raceSlug: 'madrid-2026',
+      title: '2026 Spanish Grand Prix Predictions | Madrid',
+      description: {
+        live: 'Pick a top 5 at the Madring.',
+        finished: 'Scored against the official classification.',
+        cancelled: 'The 2026 Spanish Grand Prix was called off.',
+      },
+      imageAlt: 'The Madrid race card.',
+      reviewedAt: Date.parse('2026-09-10T00:00:00Z'),
+      eventName: '2026 Spanish Grand Prix',
+      eventAlternateName: '2026 Madrid Grand Prix',
+      breadcrumbName: 'Spanish Grand Prix predictions',
+      race: { status: 'upcoming', raceStartAt: 1_789_304_400_000 },
+      faqs,
+    });
+
+    const titleTag = result.meta?.find((tag) => 'title' in tag) as
+      | { title: string }
+      | undefined;
+    expect(titleTag?.title).toBe(
+      '2026 Spanish Grand Prix Predictions | Madrid',
+    );
+    const descriptionTag = result.meta?.find(
+      (tag) => 'name' in tag && tag.name === 'description',
+    ) as { content: string } | undefined;
+    expect(descriptionTag?.content).toBe('Pick a top 5 at the Madring.');
+
+    const graph = JSON.parse(result.scripts?.[0]?.children as string) as {
+      '@graph': Record<string, unknown>[];
+    };
+    const page = graph['@graph'][0] as {
+      about: { name: string; alternateName: string };
+    };
+    expect(page.about.name).toBe('2026 Spanish Grand Prix');
+    expect(page.about.alternateName).toBe('2026 Madrid Grand Prix');
+    expect(graph['@graph'][1]?.['@type']).toBe('FAQPage');
+  });
+
+  it('uses the finished description once results are published', () => {
+    const result = raceWriteupPageHead({
+      path: '/f1-2026-italian-grand-prix-predictions',
+      raceSlug: 'italy-2026',
+      title: '2026 Italian Grand Prix Predictions & Picks',
+      description: {
+        live: 'Pick a top 5 at Monza.',
+        finished: 'Scored against the official Monza classification.',
+        cancelled: 'The 2026 Italian Grand Prix was called off.',
+      },
+      imageAlt: 'The Monza race card.',
+      reviewedAt: Date.parse('2026-09-08T00:00:00Z'),
+      eventName: '2026 Italian Grand Prix',
+      breadcrumbName: 'Italian Grand Prix predictions',
+      race: { status: 'finished', raceStartAt: 1_788_000_000_000 },
+      faqs,
+    });
+
+    const descriptionTag = result.meta?.find(
+      (tag) => 'name' in tag && tag.name === 'description',
+    ) as { content: string } | undefined;
+    expect(descriptionTag?.content).toBe(
+      'Scored against the official Monza classification.',
+    );
+  });
+
+  it('appends extra graph nodes a page actually owns', () => {
+    const result = raceWriteupPageHead({
+      path: '/f1-2026-azerbaijan-grand-prix-predictions',
+      raceSlug: 'azerbaijan-2026',
+      title: '2026 Azerbaijan Grand Prix Predictions & Picks | Baku',
+      description: {
+        live: 'Pick a top 5 in Baku.',
+        finished: 'Scored against the official Baku classification.',
+        cancelled: 'The 2026 Azerbaijan Grand Prix was called off.',
+      },
+      imageAlt: 'The Baku race card.',
+      reviewedAt: Date.parse('2026-09-08T00:00:00Z'),
+      eventName: '2026 Azerbaijan Grand Prix',
+      breadcrumbName: 'Azerbaijan Grand Prix predictions',
+      faqs,
+      extraGraph: [{ '@type': 'Dataset', name: 'Baku crashes' }],
+    });
+
+    const graph = JSON.parse(result.scripts?.[0]?.children as string) as {
+      '@graph': Record<string, unknown>[];
+    };
+    expect(graph['@graph'].at(-1)).toEqual({
+      '@type': 'Dataset',
+      name: 'Baku crashes',
+    });
   });
 });

@@ -1,24 +1,22 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, notFound } from '@tanstack/react-router';
 
-import { Flag } from '@/components/Flag';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { BakuCrashMap } from '@/components/race-writeups/BakuCrashMap';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
 import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
-import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
-import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
-import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
+import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
+import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
+import {
+  RaceWriteupFactList,
+  RaceWriteupSection,
+} from '@/components/race-writeups/RaceWriteupSection';
 import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
-import {
-  lastReviewedAt,
-  reviewedIsoDate,
-  reviewedStamp,
-} from '@/lib/lastReviewed';
+import { lastReviewedAt } from '@/lib/lastReviewed';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
   getRaceWriteupPhase,
@@ -26,17 +24,9 @@ import {
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
 import { bakuCrashDatasetSchema } from '@/lib/bakuDataset';
+import { raceWriteupPageHead } from '@/lib/raceWriteupSeo';
 import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
 import { routeQuery } from '@/lib/routeQuery';
-import {
-  breadcrumbSchema,
-  pageMeta,
-  raceOgImageUrl,
-  siteConfig,
-  sportsEventSchema,
-} from '@/lib/site';
-
-import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
 const RACE_SLUG = 'azerbaijan-2026';
 
@@ -117,83 +107,26 @@ export const Route = createFileRoute(
     }
     return { race, championship, weather, weatherNow, news, season, practice };
   },
-  head: ({ loaderData }) => {
-    const race = loaderData?.race;
-    const title = '2026 Azerbaijan Grand Prix Predictions & Picks | Baku';
-    const description =
-      race?.status === 'finished'
-        ? '2026 Azerbaijan Grand Prix predictions scored against the official Baku classification. See who called the top 5 on a street circuit that punishes a mistake.'
-        : race?.status === 'cancelled'
-          ? 'The 2026 Azerbaijan Grand Prix was called off.'
-          : 'Make your 2026 Azerbaijan Grand Prix predictions. Baku races on Saturday this year, with practice starting Thursday. Pick a top 5 for every session.';
-    const circuit = getCircuitForRace(RACE_SLUG);
-    const meta = pageMeta({
-      title,
-      description,
+  head: ({ loaderData }) =>
+    raceWriteupPageHead({
       path: PATH,
-      image: raceOgImageUrl(RACE_SLUG),
+      raceSlug: RACE_SLUG,
+      title: '2026 Azerbaijan Grand Prix Predictions & Picks | Baku',
+      description: {
+        live: 'Make your 2026 Azerbaijan Grand Prix predictions. Baku races on Saturday this year, with practice starting Thursday. Pick a top 5 for every session.',
+        finished:
+          '2026 Azerbaijan Grand Prix predictions scored against the official Baku classification. See who called the top 5 on a street circuit that punishes a mistake.',
+        cancelled: 'The 2026 Azerbaijan Grand Prix was called off.',
+      },
       imageAlt:
         'Grand Prix Picks race card for the 2026 Azerbaijan Grand Prix at Baku City Circuit.',
-    });
-
-    return {
-      ...meta,
-      scripts: [
-        {
-          type: 'application/ld+json',
-          children: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@graph': [
-              {
-                '@type': 'WebPage',
-                '@id': `${siteConfig.url}${PATH}#page`,
-                url: `${siteConfig.url}${PATH}`,
-                name: title,
-                description,
-                dateModified: reviewedIsoDate(PROSE_REVIEWED_AT),
-                inLanguage: 'en',
-                isPartOf: { '@id': `${siteConfig.url}/#app` },
-                ...(race && circuit
-                  ? {
-                      about: sportsEventSchema({
-                        name: '2026 Azerbaijan Grand Prix',
-                        startAt: race.raceStartAt,
-                        path: PATH,
-                        description,
-                        image: raceOgImageUrl(RACE_SLUG),
-                        location: circuit,
-                        cancelled: race.status === 'cancelled',
-                      }),
-                    }
-                  : {}),
-              },
-              {
-                '@type': 'FAQPage',
-                '@id': `${siteConfig.url}${PATH}#faq`,
-                mainEntity: FAQS.map((faq) => ({
-                  '@type': 'Question',
-                  name: faq.question,
-                  acceptedAnswer: { '@type': 'Answer', text: faq.answer },
-                })),
-              },
-              breadcrumbSchema(PATH, [
-                { name: 'Races', path: '/races' },
-                { name: 'Azerbaijan Grand Prix predictions', path: PATH },
-              ]),
-              /*
-                The crash archive is a real dataset and it is downloadable, so
-                it is described as one. The markup is only legitimate because
-                `/data/baku-crashes.json` resolves: `Dataset` expects the data
-                to be obtainable, and describing one nobody can fetch would be
-                a claim this page cannot back.
-              */
-              bakuCrashDatasetSchema(PATH),
-            ],
-          }),
-        },
-      ],
-    };
-  },
+      reviewedAt: PROSE_REVIEWED_AT,
+      eventName: '2026 Azerbaijan Grand Prix',
+      breadcrumbName: 'Azerbaijan Grand Prix predictions',
+      race: loaderData?.race,
+      faqs: FAQS,
+      extraGraph: [bakuCrashDatasetSchema(PATH)],
+    }),
 });
 
 function AzerbaijanGrandPrixPredictionsPage() {
@@ -203,155 +136,112 @@ function AzerbaijanGrandPrixPredictionsPage() {
   const isLive = isRaceWriteupLive(phase);
 
   return (
-    <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-5xl px-3 py-5 sm:px-4 sm:py-8">
-        {/* No rule under the stacked hero: the schedule card already draws a
-            full frame, and a second line below it was a divider with nothing
-            left to divide. Side by side at `lg`, the rule spans both columns
-            and is the break before the body. */}
-        <div className="grid gap-8 pb-8 sm:pb-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:border-b lg:border-border">
-          <header>
-            <div className="flex items-center gap-3">
-              <Flag code="AZ" size="xl" />
-              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                <p className="gpp-mono text-sm text-text-muted">
-                  24–26 Sep · Baku · Round {race.round}
-                </p>
-                <span className="text-text-disabled" aria-hidden>
-                  ·
-                </span>
-                <RaceWriteupPhaseLabel phase={phase} />
-              </div>
-            </div>
-            <h1 className="font-title mt-4 max-w-3xl text-4xl font-light tracking-tight text-text sm:text-5xl">
-              Azerbaijan Grand Prix 2026 predictions
-            </h1>
-            <p className="gpp-reading-copy-lg mt-5 max-w-2xl text-text-muted">
-              {raceWriteupHeroSummary(
-                phase,
-                'The Azerbaijan Grand Prix',
-                'Baku races on Saturday this year. The long straight rewards efficiency; the old-city walls punish every mistake.',
-              )}
-            </p>
-            <RaceWriteupActions
-              phase={phase}
-              raceSlug={RACE_SLUG}
-              venueName="Baku"
-              signalsHeading={SIGNALS_HEADING}
-            />
-          </header>
+    <RaceWriteupPage
+      reviewedAt={PROSE_REVIEWED_AT}
+      sources={
+        <>
+          Schedule and circuit:{' '}
+          <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>.
+          Saturday change:{' '}
+          <ExternalSource href={SATURDAY_SOURCE}>Formula 1</ExternalSource>.
+          Tyres: <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>.
+          2025 form:{' '}
+          <ExternalSource href={FORM_SOURCE}>Formula 1</ExternalSource> and{' '}
+          <ExternalSource href={RACE_SOURCE}>Formula 1</ExternalSource>. 2025
+          qualifying:{' '}
+          <ExternalSource href={QUALIFYING_2025_SOURCE}>
+            Autosport
+          </ExternalSource>
+          .
+        </>
+      }
+    >
+      <RaceWriteupHero
+        flagCode="AZ"
+        eyebrow={`24–26 Sep · Baku · Round ${race.round}`}
+        title="Azerbaijan Grand Prix 2026 predictions"
+        summary={raceWriteupHeroSummary(
+          phase,
+          'The Azerbaijan Grand Prix',
+          'Baku races on Saturday this year. The long straight rewards efficiency; the old-city walls punish every mistake.',
+        )}
+        phase={phase}
+        raceSlug={RACE_SLUG}
+        venueName="Baku"
+        signalsHeading={SIGNALS_HEADING}
+        schedule={{
+          race,
+          timeZone: 'Asia/Baku',
+          timeZoneLabel: 'Baku time',
+          weather,
+          now: weatherNow,
+        }}
+      />
 
-          <RaceWriteupWeekendSchedule
-            race={race}
-            timeZone="Asia/Baku"
-            timeZoneLabel="Baku time"
-            weather={isLive ? weather : null}
-            now={weatherNow}
+      <SaturdayRace />
+      <WatchTable />
+      <TyreChoice />
+      <BakuCrashMap />
+      {isLive ? (
+        <>
+          <WeekendNewsSection items={news.items} />
+          <WeekendPracticeSection
+            results={practice}
+            raceSlug={RACE_SLUG}
+            schedule={race}
           />
-        </div>
+          <RaceWriteupChampionshipContext
+            championship={championship}
+            races={season.races}
+            thisRound={race.round}
+            venueName="Baku"
+          />
+        </>
+      ) : null}
 
-        <SaturdayRace />
-        <WatchTable />
-        <TyreChoice />
-        <BakuCrashMap />
-        {isLive ? (
-          <>
-            <WeekendNewsSection items={news.items} />
-            <WeekendPracticeSection
-              results={practice}
-              raceSlug={RACE_SLUG}
-              schedule={race}
-            />
-            <RaceWriteupChampionshipContext
-              championship={championship}
-              races={season.races}
-              thisRound={race.round}
-              venueName="Baku"
-            />
-          </>
-        ) : null}
+      <RaceFaqSection faqs={FAQS} />
 
-        <RaceFaqSection faqs={FAQS} />
-
-        <RaceWriteupClosingPanel
-          phase={phase}
-          raceId={race._id}
-          raceSlug={RACE_SLUG}
-          venueName="Baku"
-        />
-
-        <footer className="mt-10 pb-4 text-sm leading-6 text-text-muted">
-          <p>
-            Schedule and circuit:{' '}
-            <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>.
-            Saturday change:{' '}
-            <ExternalSource href={SATURDAY_SOURCE}>Formula 1</ExternalSource>.
-            Tyres: <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>.
-            2025 form:{' '}
-            <ExternalSource href={FORM_SOURCE}>Formula 1</ExternalSource> and{' '}
-            <ExternalSource href={RACE_SOURCE}>Formula 1</ExternalSource>. 2025
-            qualifying:{' '}
-            <ExternalSource href={QUALIFYING_2025_SOURCE}>
-              Autosport
-            </ExternalSource>
-            .
-          </p>
-          <p className="gpp-mono mt-2 text-xs">
-            LAST REVIEWED {reviewedStamp(PROSE_REVIEWED_AT)}
-          </p>
-        </footer>
-      </div>
-    </div>
+      <RaceWriteupClosingPanel
+        phase={phase}
+        raceId={race._id}
+        raceSlug={RACE_SLUG}
+        venueName="Baku"
+      />
+    </RaceWriteupPage>
   );
 }
 
 function SaturdayRace() {
   return (
-    <section
-      className="grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
-      aria-labelledby="saturday-race"
+    <RaceWriteupSection
+      id="saturday-race"
+      heading="The Grand Prix is on Saturday"
+      aside={
+        <RaceWriteupFactList
+          facts={[
+            ['Thursday', 'Practice 1 and Practice 2'],
+            ['Friday', 'Practice 3 and Qualifying'],
+            ['Saturday', 'Grand Prix'],
+            ['Race start', '15:00 Baku time'],
+          ]}
+        />
+      }
     >
-      <div>
-        <h2
-          id="saturday-race"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          The Grand Prix is on Saturday
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          The Azerbaijan Grand Prix was originally due on Sunday 27 September.
-          Formula 1 and the FIA moved it to Saturday 26 September at the
-          promoter&rsquo;s request, to accommodate a national day.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          The entire programme moved with it. Practice starts on Thursday,
-          qualifying is Friday, and race picks lock on Saturday. The sessions
-          are in their usual order; only the days changed.{' '}
-          <ExternalSource href={SATURDAY_SOURCE}>
-            Formula 1 announcement
-          </ExternalSource>
-          .
-        </p>
-      </div>
-      <dl className="self-start rounded-sm bg-surface-elevated px-4">
-        {[
-          ['Thursday', 'Practice 1 and Practice 2'],
-          ['Friday', 'Practice 3 and Qualifying'],
-          ['Saturday', 'Grand Prix'],
-          ['Race start', '15:00 Baku time'],
-        ].map(([label, value]) => (
-          <div
-            key={label}
-            className="border-b border-border py-4 last:border-0"
-          >
-            <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
-              {label}
-            </dt>
-            <dd className="mt-2 text-sm text-text">{value}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        The Azerbaijan Grand Prix was originally due on Sunday 27 September.
+        Formula 1 and the FIA moved it to Saturday 26 September at the
+        promoter&rsquo;s request, to accommodate a national day.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        The entire programme moved with it. Practice starts on Thursday,
+        qualifying is Friday, and race picks lock on Saturday. The sessions are
+        in their usual order; only the days changed.{' '}
+        <ExternalSource href={SATURDAY_SOURCE}>
+          Formula 1 announcement
+        </ExternalSource>
+        .
+      </p>
+    </RaceWriteupSection>
   );
 }
 

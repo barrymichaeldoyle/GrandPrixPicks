@@ -7,6 +7,12 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { CircuitStatStrip } from './CircuitStatStrip';
 import { RaceFaqSection } from './RaceFaqSection';
 import { RaceSignalsSection } from './RaceSignalsSection';
+import { RaceWriteupFactList, RaceWriteupSection } from './RaceWriteupSection';
+import { RaceWriteupPage } from './RaceWriteupPage';
+import {
+  RaceWriteupPhotoLayout,
+  RaceWriteupPhotoSection,
+} from './RaceWriteupPhotoLayout';
 import { TyreCompoundScale, TyreCompoundSection } from './TyreCompoundSection';
 
 (
@@ -219,6 +225,130 @@ describe('race write-up sections', () => {
       for (const p of el.querySelectorAll('details p')) {
         expect(p.children).toHaveLength(0);
       }
+    });
+  });
+
+  describe('RaceWriteupSection', () => {
+    it('names the landmark from the heading', () => {
+      const el = render(
+        <RaceWriteupSection id="the-lap" heading="What the lap looks like">
+          <p>Sector 1 is the long run from Turn 1.</p>
+        </RaceWriteupSection>,
+      );
+
+      const section = el.querySelector('section');
+      expect(section?.getAttribute('aria-labelledby')).toBe('the-lap');
+      expect(el.querySelector('h2')?.id).toBe('the-lap');
+      expect(el.querySelector('h2')?.textContent).toBe(
+        'What the lap looks like',
+      );
+      expect(el.textContent).toContain('Sector 1 is the long run from Turn 1.');
+    });
+
+    it('puts a margin card beside the copy and extra content below both', () => {
+      const el = render(
+        <RaceWriteupSection
+          id="f3-test"
+          heading="What Formula 3 testing showed"
+          aside={<p>The car that has run here.</p>}
+          extra={<p>19 red flags</p>}
+        >
+          <p>Formula 3 tested in August.</p>
+        </RaceWriteupSection>,
+      );
+
+      expect(el.querySelector('section')?.className).toContain('py-8');
+      expect(el.textContent).toContain('The car that has run here.');
+      expect(el.textContent).toContain('19 red flags');
+    });
+  });
+
+  describe('RaceWriteupFactList', () => {
+    it('reads each label as its value’s term', () => {
+      const el = render(
+        <RaceWriteupFactList
+          facts={[
+            ['Thursday', 'Practice 1 and Practice 2'],
+            ['Race start', '15:00 Baku time'],
+          ]}
+        />,
+      );
+
+      expect([...el.querySelectorAll('dt')].map((n) => n.textContent)).toEqual([
+        'Thursday',
+        'Race start',
+      ]);
+      expect([...el.querySelectorAll('dd')].map((n) => n.textContent)).toEqual([
+        'Practice 1 and Practice 2',
+        '15:00 Baku time',
+      ]);
+    });
+  });
+
+  describe('RaceWriteupPage', () => {
+    it('stamps the editorial review under the sources', () => {
+      const el = render(
+        <RaceWriteupPage
+          sources="Race facts and schedule: Formula 1."
+          reviewedAt={Date.parse('2026-09-10T00:00:00Z')}
+        >
+          <p>The body.</p>
+        </RaceWriteupPage>,
+      );
+
+      expect(el.textContent).toContain('The body.');
+      expect(el.textContent).toContain('Race facts and schedule: Formula 1.');
+      expect(el.textContent).toContain('LAST REVIEWED 10 SEPT 2026');
+    });
+  });
+
+  describe('RaceWriteupPhotoLayout', () => {
+    it('keeps copy before the photo in the DOM, even when mirrored', () => {
+      const el = render(
+        <RaceWriteupPhotoLayout mirrored photo={<img alt="The car" />}>
+          <p>The story.</p>
+        </RaceWriteupPhotoLayout>,
+      );
+
+      const rootEl = el.firstElementChild as HTMLElement;
+      expect(rootEl.className).toContain('md:grid-cols-[auto_minmax(0,1fr)]');
+      expect(rootEl.children[0]?.textContent).toContain('The story.');
+      expect(
+        rootEl.children[1]?.querySelector('img')?.getAttribute('alt'),
+      ).toBe('The car');
+    });
+
+    it('indents a stacked photo when a team bar has already indented the copy', () => {
+      const el = render(
+        <RaceWriteupPhotoSection
+          id="tribute"
+          heading="Ferrari runs a Schumacher tribute"
+          teamColour="#ff2800"
+          photo={<img alt="The livery" />}
+        >
+          <p>Extra red.</p>
+        </RaceWriteupPhotoSection>,
+      );
+
+      expect(el.querySelector('img')?.parentElement?.className).toContain(
+        'pl-4',
+      );
+    });
+
+    it('does not indent a stacked photo when there is no team bar', () => {
+      const el = render(
+        <RaceWriteupPhotoSection
+          id="heat"
+          heading="The FIA declared a heat hazard"
+          photo={<img alt="The heat" />}
+        >
+          <p>The threshold.</p>
+        </RaceWriteupPhotoSection>,
+      );
+
+      expect(el.querySelector('img')?.parentElement?.className).not.toContain(
+        'pl-4',
+      );
     });
   });
 });

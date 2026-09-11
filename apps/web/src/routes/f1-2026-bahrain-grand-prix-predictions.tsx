@@ -2,47 +2,33 @@ import { api } from '@convex-generated/api';
 import { createFileRoute, notFound } from '@tanstack/react-router';
 import type { FunctionReturnType } from 'convex/server';
 
-import { Flag } from '@/components/Flag';
-import {
-  DeferredRaceWriteupPicks,
-  RACE_WRITEUP_PICKS_ANCHOR,
-} from '@/components/race-writeups/DeferredRaceWriteupPicks';
+import { RACE_WRITEUP_PICKS_ANCHOR } from '@/components/race-writeups/DeferredRaceWriteupPicks';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
-import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
-import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { RaceNameLink } from '@/components/race-writeups/RaceNameLink';
+import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
-import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
-import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
-import { RaceWriteupNextRound } from '@/components/race-writeups/RaceWriteupNextRound';
-import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
-import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
+import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
+import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
+import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
+import {
+  RaceWriteupFactList,
+  RaceWriteupSection,
+} from '@/components/race-writeups/RaceWriteupSection';
+import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { SessionConsensusSections } from '@/components/SessionConsensus';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
+import { lastReviewedAt } from '@/lib/lastReviewed';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
-import {
-  lastReviewedAt,
-  reviewedIsoDate,
-  reviewedStamp,
-} from '@/lib/lastReviewed';
 import { routeQuery } from '@/lib/routeQuery';
 import {
   getRaceWriteupPhase,
   isRaceWriteupLive,
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
+import { raceWriteupPageHead } from '@/lib/raceWriteupSeo';
 import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
-import {
-  breadcrumbSchema,
-  pageMeta,
-  raceOgImageUrl,
-  siteConfig,
-  sportsEventSchema,
-} from '@/lib/site';
-
-import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
 /** The date the hand-written prose on this page was last checked. */
 const PROSE_REVIEWED = getRaceWriteupReviewedAt('bahrain-2026');
@@ -179,81 +165,26 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
         nextRace,
       };
     },
-    head: ({ loaderData }) => {
-      const race = loaderData?.race;
-      const title = '2026 Bahrain Grand Prix Predictions | Sepang';
-      const description =
-        race?.status === 'finished'
-          ? '2026 Bahrain Grand Prix predictions scored against the official Sepang classification. See who called the top 5 for qualifying and the race.'
-          : race?.status === 'cancelled'
-            ? 'The 2026 Bahrain Grand Prix was called off.'
-            : '2026 Bahrain Grand Prix predictions at Sepang in Malaysia. Pick a top 5 for qualifying and the race at a circuit the 2026 cars have never run.';
-      const circuit = getCircuitForRace(RACE_SLUG);
-      const meta = pageMeta({
-        title,
-        description,
+    head: ({ loaderData }) =>
+      raceWriteupPageHead({
         path: PATH,
-        image: raceOgImageUrl(RACE_SLUG),
+        raceSlug: RACE_SLUG,
+        title: '2026 Bahrain Grand Prix Predictions | Sepang',
+        description: {
+          live: '2026 Bahrain Grand Prix predictions at Sepang in Malaysia. Pick a top 5 for qualifying and the race at a circuit the 2026 cars have never run.',
+          finished:
+            '2026 Bahrain Grand Prix predictions scored against the official Sepang classification. See who called the top 5 for qualifying and the race.',
+          cancelled: 'The 2026 Bahrain Grand Prix was called off.',
+        },
         imageAlt:
           'Grand Prix Picks race card for the 2026 Bahrain Grand Prix at Sepang in Malaysia.',
-      });
-
-      return {
-        ...meta,
-        scripts: [
-          {
-            type: 'application/ld+json',
-            children: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@graph': [
-                {
-                  '@type': 'WebPage',
-                  '@id': `${siteConfig.url}${PATH}#page`,
-                  url: `${siteConfig.url}${PATH}`,
-                  name: title,
-                  description,
-                  dateModified: reviewedIsoDate(PROSE_REVIEWED_AT),
-                  inLanguage: 'en',
-                  isPartOf: { '@id': `${siteConfig.url}/#app` },
-                  // The location is Sepang, not Sakhir. `getCircuitForRace`
-                  // already resolves that override, which is the whole reason
-                  // circuits are keyed separately from races.
-                  ...(race && circuit
-                    ? {
-                        about: {
-                          ...sportsEventSchema({
-                            name: '2026 Bahrain Grand Prix',
-                            startAt: race.raceStartAt,
-                            path: PATH,
-                            description,
-                            image: raceOgImageUrl(RACE_SLUG),
-                            location: circuit,
-                            cancelled: race.status === 'cancelled',
-                          }),
-                          alternateName: '2026 Sepang Grand Prix',
-                        },
-                      }
-                    : {}),
-                },
-                {
-                  '@type': 'FAQPage',
-                  '@id': `${siteConfig.url}${PATH}#faq`,
-                  mainEntity: FAQS.map((faq) => ({
-                    '@type': 'Question',
-                    name: faq.question,
-                    acceptedAnswer: { '@type': 'Answer', text: faq.answer },
-                  })),
-                },
-                breadcrumbSchema(PATH, [
-                  { name: 'Races', path: '/races' },
-                  { name: 'Bahrain Grand Prix predictions', path: PATH },
-                ]),
-              ],
-            }),
-          },
-        ],
-      };
-    },
+        reviewedAt: PROSE_REVIEWED_AT,
+        eventName: '2026 Bahrain Grand Prix',
+        eventAlternateName: '2026 Sepang Grand Prix',
+        breadcrumbName: 'Bahrain Grand Prix predictions',
+        race: loaderData?.race,
+        faqs: FAQS,
+      }),
   },
 );
 
@@ -277,135 +208,90 @@ function BahrainGrandPrixPredictionsPage() {
   });
 
   return (
-    <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-5xl px-3 py-5 sm:px-4 sm:py-8">
-        {/* No rule under the stacked hero: the schedule card already draws a
-            full frame, and a second line below it was a divider with nothing
-            left to divide. Side by side at `lg`, the rule spans both columns
-            and is the break before the body. */}
-        <div className="grid gap-8 pb-8 sm:pb-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:border-b lg:border-border">
-          <header>
-            <div className="flex items-center gap-3">
-              {/* Bahrain's flag on a race run in Malaysia is not a bug. The
-                  race keeps its identity and the circuit is a separate fact,
-                  which is exactly the split `circuits.ts` exists to hold. The
-                  eyebrow names Sepang so the two are never read as one. */}
-              <Flag code="BH" size="xl" />
-              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                <p className="gpp-mono text-sm text-text-muted">
-                  02–04 Oct · Sepang · Round {race.round}
-                </p>
-                <span
-                  className="hidden text-text-disabled sm:inline"
-                  aria-hidden
-                >
-                  ·
-                </span>
-                <RaceWriteupPhaseLabel phase={phase} />
-              </div>
-            </div>
-            <h1 className="font-title mt-4 max-w-3xl text-4xl font-light tracking-tight text-text sm:text-5xl">
-              2026 Bahrain Grand Prix predictions
-            </h1>
-            <p className="gpp-reading-copy-lg mt-5 max-w-2xl text-text-muted">
-              {raceWriteupHeroSummary(
-                phase,
-                'The Bahrain Grand Prix',
-                'Formula 1 last raced at Sepang in 2017. The 2026 cars have never run here, and this year\u2019s Bahrain Grand Prix is being held in Malaysia.',
-              )}
-            </p>
-            <RaceWriteupActions
-              phase={phase}
-              primaryActionTargetId={
-                isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined
-              }
-              raceSlug={RACE_SLUG}
-              venueName="Sepang"
-            />
-          </header>
-
-          <RaceWriteupWeekendSchedule
-            race={race}
-            timeZone="Asia/Kuala_Lumpur"
-            timeZoneLabel="Sepang time"
-            weather={isLive ? weather : null}
-            now={weatherNow}
-          />
-        </div>
-
-        <WhyMalaysia />
-        {isLive ? (
-          <>
-            <WeekendNewsSection items={news.items} />
-            <WeekendPracticeSection
-              results={practice}
-              raceSlug={RACE_SLUG}
-              schedule={race}
-            />
-          </>
-        ) : null}
-        <SessionConsensusSections sessions={consensusSessions} />
-        <NoCurrentForm />
-        <WatchTable />
-        <TyreChoice />
-        <TripleHeader season={season} />
-        {isLive ? (
-          <RaceWriteupChampionshipContext
-            championship={championship}
-            races={season.races}
-            thisRound={race.round}
-            venueName="Sepang"
-            sourceUrl={F1_STANDINGS_SOURCE}
-          />
-        ) : null}
-
-        <RaceFaqSection faqs={FAQS} />
-
-        {isLive ? (
-          <DeferredRaceWriteupPicks
-            phase={phase}
-            raceId={race._id}
-            round={race.round}
-            season={race.season}
-            raceSlug={RACE_SLUG}
-            venueName="Sepang"
-          />
-        ) : (
-          <>
-            <RaceWriteupClosingPanel
-              phase={phase}
-              raceId={race._id}
-              raceSlug={RACE_SLUG}
-              venueName="Sepang"
-            />
-            <RaceWriteupNextRound nextRace={nextRace} />
-          </>
+    <RaceWriteupPage
+      reviewedAt={PROSE_REVIEWED_AT}
+      sources={
+        <>
+          Calendar change:{' '}
+          <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource> and{' '}
+          <ExternalSource href={RELOCATION_SOURCE}>Sky Sports</ExternalSource>.
+          Funding and tickets:{' '}
+          <ExternalSource href={COMMERCIAL_SOURCE}>Bernama</ExternalSource>.
+          Start time:{' '}
+          <ExternalSource href={START_TIME_SOURCE}>News.GP</ExternalSource>.
+          Tyres: <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>.
+          Tyre data:{' '}
+          <ExternalSource href={PIRELLI_DATA_SOURCE}>Autosport</ExternalSource>.
+          Track surface:{' '}
+          <ExternalSource href={SURFACE_SOURCE}>Dromo</ExternalSource>.
+        </>
+      }
+    >
+      {/* Bahrain's flag on a race run in Malaysia is not a bug. The race
+          keeps its identity and the circuit is a separate fact, which is
+          exactly the split `circuits.ts` exists to hold. The eyebrow names
+          Sepang so the two are never read as one. */}
+      <RaceWriteupHero
+        flagCode="BH"
+        eyebrow={`02–04 Oct · Sepang · Round ${race.round}`}
+        title="2026 Bahrain Grand Prix predictions"
+        summary={raceWriteupHeroSummary(
+          phase,
+          'The Bahrain Grand Prix',
+          'Formula 1 last raced at Sepang in 2017. The 2026 cars have never run here, and this year\u2019s Bahrain Grand Prix is being held in Malaysia.',
         )}
+        phase={phase}
+        raceSlug={RACE_SLUG}
+        venueName="Sepang"
+        primaryActionTargetId={isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
+        schedule={{
+          race,
+          timeZone: 'Asia/Kuala_Lumpur',
+          timeZoneLabel: 'Sepang time',
+          weather,
+          now: weatherNow,
+        }}
+      />
 
-        <footer className="mt-10 pb-4 text-sm leading-6 text-text-muted">
-          <p>
-            Calendar change:{' '}
-            <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>{' '}
-            and{' '}
-            <ExternalSource href={RELOCATION_SOURCE}>Sky Sports</ExternalSource>
-            . Funding and tickets:{' '}
-            <ExternalSource href={COMMERCIAL_SOURCE}>Bernama</ExternalSource>.
-            Start time:{' '}
-            <ExternalSource href={START_TIME_SOURCE}>News.GP</ExternalSource>.
-            Tyres: <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>.
-            Tyre data:{' '}
-            <ExternalSource href={PIRELLI_DATA_SOURCE}>
-              Autosport
-            </ExternalSource>
-            . Track surface:{' '}
-            <ExternalSource href={SURFACE_SOURCE}>Dromo</ExternalSource>.
-          </p>
-          <p className="gpp-mono mt-2 text-xs">
-            LAST REVIEWED {reviewedStamp(PROSE_REVIEWED_AT)}
-          </p>
-        </footer>
-      </div>
-    </div>
+      <WhyMalaysia />
+      {isLive ? (
+        <>
+          <WeekendNewsSection items={news.items} />
+          <WeekendPracticeSection
+            results={practice}
+            raceSlug={RACE_SLUG}
+            schedule={race}
+          />
+        </>
+      ) : null}
+      <SessionConsensusSections sessions={consensusSessions} />
+      <NoCurrentForm />
+      <WatchTable />
+      <TyreChoice />
+      <TripleHeader season={season} />
+      {isLive ? (
+        <RaceWriteupChampionshipContext
+          championship={championship}
+          races={season.races}
+          thisRound={race.round}
+          venueName="Sepang"
+          sourceUrl={F1_STANDINGS_SOURCE}
+        />
+      ) : null}
+
+      <RaceFaqSection faqs={FAQS} />
+
+      <RaceWriteupFinish
+        isLive={isLive}
+        phase={phase}
+        raceId={race._id}
+        round={race.round}
+        season={race.season}
+        raceSlug={RACE_SLUG}
+        venueName="Sepang"
+        nextRace={nextRace}
+      />
+    </RaceWriteupPage>
   );
 }
 
@@ -419,61 +305,45 @@ function BahrainGrandPrixPredictionsPage() {
  */
 function WhyMalaysia() {
   return (
-    <section
-      className="grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
-      aria-labelledby="why-malaysia"
+    <RaceWriteupSection
+      id="why-malaysia"
+      heading="A Bahrain Grand Prix in Malaysia"
+      aside={
+        <RaceWriteupFactList
+          facts={[
+            ['Race name', 'Bahrain Grand Prix'],
+            ['Venue', 'Sepang, Malaysia'],
+            ['Originally', 'Sakhir, 10–12 April'],
+            ['Now', '2–4 October, round 16'],
+          ]}
+        />
+      }
     >
-      <div>
-        <h2
-          id="why-malaysia"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          A Bahrain Grand Prix in Malaysia
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          The Bahrain Grand Prix was the fourth round of the season, due at
-          Sakhir from 10 to 12 April. It was called off on safety grounds
-          following the outbreak of conflict in the region, as was the Saudi
-          Arabian Grand Prix the week after.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Formula 1, the FIA and the governments of Bahrain and Malaysia then
-          agreed to reinstate the race at Sepang in October. It keeps the
-          Bahrain Grand Prix name, and Bahrain keeps the ticket pricing rights
-          and the ticket revenue because it is paying the hosting fee.{' '}
-          <ExternalSource href={COMMERCIAL_SOURCE}>
-            Bernama on how the race is funded
-          </ExternalSource>
-          .{' '}
-          <ExternalSource href={RELOCATION_SOURCE}>
-            Sky Sports on the calendar change
-          </ExternalSource>
-          .
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          This is round 16 at Sepang. Scoring is the same as every other round.
-          The layout is two long straights and a fast middle sector.
-        </p>
-      </div>
-      <dl className="self-start rounded-sm bg-surface-elevated px-4">
-        {[
-          ['Race name', 'Bahrain Grand Prix'],
-          ['Venue', 'Sepang, Malaysia'],
-          ['Originally', 'Sakhir, 10–12 April'],
-          ['Now', '2–4 October, round 16'],
-        ].map(([label, value]) => (
-          <div
-            key={label}
-            className="border-b border-border py-4 last:border-0"
-          >
-            <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
-              {label}
-            </dt>
-            <dd className="mt-2 text-sm text-text">{value}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        The Bahrain Grand Prix was the fourth round of the season, due at Sakhir
+        from 10 to 12 April. It was called off on safety grounds following the
+        outbreak of conflict in the region, as was the Saudi Arabian Grand Prix
+        the week after.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Formula 1, the FIA and the governments of Bahrain and Malaysia then
+        agreed to reinstate the race at Sepang in October. It keeps the Bahrain
+        Grand Prix name, and Bahrain keeps the ticket pricing rights and the
+        ticket revenue because it is paying the hosting fee.{' '}
+        <ExternalSource href={COMMERCIAL_SOURCE}>
+          Bernama on how the race is funded
+        </ExternalSource>
+        .{' '}
+        <ExternalSource href={RELOCATION_SOURCE}>
+          Sky Sports on the calendar change
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        This is round 16 at Sepang. Scoring is the same as every other round.
+        The layout is two long straights and a fast middle sector.
+      </p>
+    </RaceWriteupSection>
   );
 }
 
@@ -494,44 +364,39 @@ function WhyMalaysia() {
  */
 function NoCurrentForm() {
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="no-current-form">
-      <div className="max-w-3xl">
-        <h2
-          id="no-current-form"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          The last Formula 1 race here was in 2017
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Sepang held the Malaysian Grand Prix from 1999 to 2017. Nine years of
-          regulation changes sit between that race and this one, and the 2026
-          cars are new this season, so no driver on the grid has a lap here in
-          anything resembling the car they will drive.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Pirelli is working from 2017 data for the same reason. Its motorsport
-          director has said the 2017 tyre sizes are reasonably close to the
-          current ones, which is the closest thing to a reference anyone has.{' '}
-          <ExternalSource href={PIRELLI_DATA_SOURCE}>
-            How Pirelli is using 2017 data
-          </ExternalSource>
-          .
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          The asphalt has changed since those 2017 laps were set. Dromo
-          resurfaced the circuit in 2016 and relaid Turns 7 to 12 in 2023, so
-          the middle sector is seven years newer than the rest of the lap.{' '}
-          <ExternalSource href={SURFACE_SOURCE}>
-            Dromo on the work it did
-          </ExternalSource>
-          .
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Simulations built on old data are the starting point for every team.
-          Friday is the first chance to correct them.
-        </p>
-      </div>
-    </section>
+    <RaceWriteupSection
+      id="no-current-form"
+      heading="The last Formula 1 race here was in 2017"
+    >
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Sepang held the Malaysian Grand Prix from 1999 to 2017. Nine years of
+        regulation changes sit between that race and this one, and the 2026 cars
+        are new this season, so no driver on the grid has a lap here in anything
+        resembling the car they will drive.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Pirelli is working from 2017 data for the same reason. Its motorsport
+        director has said the 2017 tyre sizes are reasonably close to the
+        current ones, which is the closest thing to a reference anyone has.{' '}
+        <ExternalSource href={PIRELLI_DATA_SOURCE}>
+          How Pirelli is using 2017 data
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        The asphalt has changed since those 2017 laps were set. Dromo resurfaced
+        the circuit in 2016 and relaid Turns 7 to 12 in 2023, so the middle
+        sector is seven years newer than the rest of the lap.{' '}
+        <ExternalSource href={SURFACE_SOURCE}>
+          Dromo on the work it did
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Simulations built on old data are the starting point for every team.
+        Friday is the first chance to correct them.
+      </p>
+    </RaceWriteupSection>
   );
 }
 
@@ -630,42 +495,38 @@ function TripleHeader({
     .sort((a, b) => a.round - b.round);
 
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="triple-header">
-      <div className="max-w-3xl">
-        <h2
-          id="triple-header"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          The middle race of a triple-header
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Sepang was slotted between Azerbaijan and Singapore, so the teams run
-          three races in three weekends and travel from Baku to Malaysia to
-          Singapore. Two of the three are hot and humid, and the third is a
-          street circuit.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Reliability and damage carry across a run like this. A car that breaks
-          in Baku may take a penalty here, and a driver who struggles with the
-          heat here has Singapore a week later. Singapore is a sprint weekend,
-          with four sessions instead of two.
-        </p>
-      </div>
-
-      {neighbours.length > 0 ? (
-        <ol className="mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-3">
-          {neighbours.map((race) => (
-            <li key={race.slug} className="bg-surface p-4 sm:p-5">
-              <p className="gpp-mono text-xs text-text-muted uppercase">
-                Round {race.round}
-              </p>
-              <p className="font-title mt-2 font-medium text-text">
-                <RaceNameLink race={race} />
-              </p>
-            </li>
-          ))}
-        </ol>
-      ) : null}
-    </section>
+    <RaceWriteupSection
+      id="triple-header"
+      heading="The middle race of a triple-header"
+      extra={
+        neighbours.length > 0 ? (
+          <ol className="mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-3">
+            {neighbours.map((race) => (
+              <li key={race.slug} className="bg-surface p-4 sm:p-5">
+                <p className="gpp-mono text-xs text-text-muted uppercase">
+                  Round {race.round}
+                </p>
+                <p className="font-title mt-2 font-medium text-text">
+                  <RaceNameLink race={race} />
+                </p>
+              </li>
+            ))}
+          </ol>
+        ) : null
+      }
+    >
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Sepang was slotted between Azerbaijan and Singapore, so the teams run
+        three races in three weekends and travel from Baku to Malaysia to
+        Singapore. Two of the three are hot and humid, and the third is a street
+        circuit.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Reliability and damage carry across a run like this. A car that breaks
+        in Baku may take a penalty here, and a driver who struggles with the
+        heat here has Singapore a week later. Singapore is a sprint weekend,
+        with four sessions instead of two.
+      </p>
+    </RaceWriteupSection>
   );
 }

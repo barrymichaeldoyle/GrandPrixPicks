@@ -1,40 +1,27 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 
-import { Flag } from '@/components/Flag';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
 import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
-import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
-import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
-import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
-import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
+import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
+import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
+import { RaceWriteupSection } from '@/components/race-writeups/RaceWriteupSection';
+import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
-import {
-  lastReviewedAt,
-  reviewedIsoDate,
-  reviewedStamp,
-} from '@/lib/lastReviewed';
+import { lastReviewedAt } from '@/lib/lastReviewed';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
   getRaceWriteupPhase,
   isRaceWriteupLive,
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
+import { raceWriteupPageHead } from '@/lib/raceWriteupSeo';
 import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
 import { routeQuery } from '@/lib/routeQuery';
-import {
-  breadcrumbSchema,
-  pageMeta,
-  raceOgImageUrl,
-  siteConfig,
-  sportsEventSchema,
-} from '@/lib/site';
-
-import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
 const RACE_SLUG = 'singapore-2026';
 
@@ -127,75 +114,25 @@ export const Route = createFileRoute(
     }
     return { race, championship, weather, weatherNow, news, season, practice };
   },
-  head: ({ loaderData }) => {
-    const race = loaderData?.race;
-    const title = '2026 Singapore Grand Prix Predictions & Sprint Picks';
-    const description =
-      race?.status === 'finished'
-        ? '2026 Singapore Grand Prix predictions scored against the official Marina Bay classification. See who called the top 5 across the sprint and the race.'
-        : race?.status === 'cancelled'
-          ? 'The 2026 Singapore Grand Prix was called off.'
-          : 'Make your 2026 Singapore Grand Prix and Sprint predictions. Marina Bay hosts its first sprint weekend, with one practice session.';
-    const circuit = getCircuitForRace(RACE_SLUG);
-    const meta = pageMeta({
-      title,
-      description,
+  head: ({ loaderData }) =>
+    raceWriteupPageHead({
       path: PATH,
-      image: raceOgImageUrl(RACE_SLUG),
+      raceSlug: RACE_SLUG,
+      title: '2026 Singapore Grand Prix Predictions & Sprint Picks',
+      description: {
+        live: 'Make your 2026 Singapore Grand Prix and Sprint predictions. Marina Bay hosts its first sprint weekend, with one practice session.',
+        finished:
+          '2026 Singapore Grand Prix predictions scored against the official Marina Bay classification. See who called the top 5 across the sprint and the race.',
+        cancelled: 'The 2026 Singapore Grand Prix was called off.',
+      },
       imageAlt:
         'Grand Prix Picks race card for the 2026 Singapore Grand Prix at Marina Bay.',
-    });
-
-    return {
-      ...meta,
-      scripts: [
-        {
-          type: 'application/ld+json',
-          children: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@graph': [
-              {
-                '@type': 'WebPage',
-                '@id': `${siteConfig.url}${PATH}#page`,
-                url: `${siteConfig.url}${PATH}`,
-                name: title,
-                description,
-                dateModified: reviewedIsoDate(PROSE_REVIEWED_AT),
-                inLanguage: 'en',
-                isPartOf: { '@id': `${siteConfig.url}/#app` },
-                ...(race && circuit
-                  ? {
-                      about: sportsEventSchema({
-                        name: '2026 Singapore Grand Prix',
-                        startAt: race.raceStartAt,
-                        path: PATH,
-                        description,
-                        image: raceOgImageUrl(RACE_SLUG),
-                        location: circuit,
-                        cancelled: race.status === 'cancelled',
-                      }),
-                    }
-                  : {}),
-              },
-              {
-                '@type': 'FAQPage',
-                '@id': `${siteConfig.url}${PATH}#faq`,
-                mainEntity: FAQS.map((faq) => ({
-                  '@type': 'Question',
-                  name: faq.question,
-                  acceptedAnswer: { '@type': 'Answer', text: faq.answer },
-                })),
-              },
-              breadcrumbSchema(PATH, [
-                { name: 'Races', path: '/races' },
-                { name: 'Singapore Grand Prix predictions', path: PATH },
-              ]),
-            ],
-          }),
-        },
-      ],
-    };
-  },
+      reviewedAt: PROSE_REVIEWED_AT,
+      eventName: '2026 Singapore Grand Prix',
+      breadcrumbName: 'Singapore Grand Prix predictions',
+      race: loaderData?.race,
+      faqs: FAQS,
+    }),
 });
 
 function SingaporeGrandPrixPredictionsPage() {
@@ -205,101 +142,74 @@ function SingaporeGrandPrixPredictionsPage() {
   const isLive = isRaceWriteupLive(phase);
 
   return (
-    <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-5xl px-3 py-5 sm:px-4 sm:py-8">
-        {/* No rule under the stacked hero: the schedule card already draws a
-            full frame, and a second line below it was a divider with nothing
-            left to divide. Side by side at `lg`, the rule spans both columns
-            and is the break before the body. */}
-        <div className="grid gap-8 pb-8 sm:pb-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:border-b lg:border-border">
-          <header>
-            <div className="flex items-center gap-3">
-              <Flag code="SG" size="xl" />
-              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                <p className="gpp-mono text-sm text-text-muted">
-                  09–11 Oct · Marina Bay · Round {race.round}
-                </p>
-                <span className="text-text-disabled" aria-hidden>
-                  ·
-                </span>
-                <RaceWriteupPhaseLabel phase={phase} />
-              </div>
-            </div>
-            <h1 className="font-title mt-4 max-w-3xl text-4xl font-light tracking-tight text-text sm:text-5xl">
-              Singapore Grand Prix 2026 predictions
-            </h1>
-            <p className="gpp-reading-copy-lg mt-5 max-w-2xl text-text-muted">
-              {raceWriteupHeroSummary(
-                phase,
-                'The Singapore Grand Prix',
-                'Singapore hosts its first sprint weekend. One practice session has to answer every question before the competitive running starts.',
-              )}
-            </p>
-            <RaceWriteupActions
-              phase={phase}
-              raceSlug={RACE_SLUG}
-              venueName="Singapore"
-              signalsHeading={SIGNALS_HEADING}
-            />
-          </header>
+    <RaceWriteupPage
+      reviewedAt={PROSE_REVIEWED_AT}
+      sources={
+        <>
+          Schedule and circuit:{' '}
+          <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>.
+          Sprint format:{' '}
+          <ExternalSource href={SPRINT_SOURCE}>
+            FIA and Formula 1
+          </ExternalSource>
+          . Tyres: <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>.
+          Heat and strategy:{' '}
+          <ExternalSource href={HEAT_SOURCE}>Pirelli</ExternalSource>.
+        </>
+      }
+    >
+      <RaceWriteupHero
+        flagCode="SG"
+        eyebrow={`09–11 Oct · Marina Bay · Round ${race.round}`}
+        title="Singapore Grand Prix 2026 predictions"
+        summary={raceWriteupHeroSummary(
+          phase,
+          'The Singapore Grand Prix',
+          'Singapore hosts its first sprint weekend. One practice session has to answer every question before the competitive running starts.',
+        )}
+        phase={phase}
+        raceSlug={RACE_SLUG}
+        venueName="Singapore"
+        signalsHeading={SIGNALS_HEADING}
+        schedule={{
+          race,
+          timeZone: 'Asia/Singapore',
+          timeZoneLabel: 'Singapore time',
+          weather,
+          now: weatherNow,
+        }}
+      />
 
-          <RaceWriteupWeekendSchedule
-            race={race}
-            timeZone="Asia/Singapore"
-            timeZoneLabel="Singapore time"
-            weather={isLive ? weather : null}
-            now={weatherNow}
+      <FirstSingaporeSprint />
+      <WatchTable />
+      <TyreChoice />
+      <SaturdayEvidence />
+      {isLive ? (
+        <>
+          <WeekendNewsSection items={news.items} />
+          <WeekendPracticeSection
+            results={practice}
+            raceSlug={RACE_SLUG}
+            schedule={race}
           />
-        </div>
+          <RaceWriteupChampionshipContext
+            championship={championship}
+            races={season.races}
+            thisRound={race.round}
+            venueName="Singapore"
+          />
+        </>
+      ) : null}
 
-        <FirstSingaporeSprint />
-        <WatchTable />
-        <TyreChoice />
-        <SaturdayEvidence />
-        {isLive ? (
-          <>
-            <WeekendNewsSection items={news.items} />
-            <WeekendPracticeSection
-              results={practice}
-              raceSlug={RACE_SLUG}
-              schedule={race}
-            />
-            <RaceWriteupChampionshipContext
-              championship={championship}
-              races={season.races}
-              thisRound={race.round}
-              venueName="Singapore"
-            />
-          </>
-        ) : null}
+      <RaceFaqSection faqs={FAQS} />
 
-        <RaceFaqSection faqs={FAQS} />
-
-        <RaceWriteupClosingPanel
-          phase={phase}
-          raceId={race._id}
-          raceSlug={RACE_SLUG}
-          venueName="Singapore"
-        />
-
-        <footer className="mt-10 pb-4 text-sm leading-6 text-text-muted">
-          <p>
-            Schedule and circuit:{' '}
-            <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>.
-            Sprint format:{' '}
-            <ExternalSource href={SPRINT_SOURCE}>
-              FIA and Formula 1
-            </ExternalSource>
-            . Tyres: <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>
-            . Heat and strategy:{' '}
-            <ExternalSource href={HEAT_SOURCE}>Pirelli</ExternalSource>.
-          </p>
-          <p className="gpp-mono mt-2 text-xs">
-            LAST REVIEWED {reviewedStamp(PROSE_REVIEWED_AT)}
-          </p>
-        </footer>
-      </div>
-    </div>
+      <RaceWriteupClosingPanel
+        phase={phase}
+        raceId={race._id}
+        raceSlug={RACE_SLUG}
+        venueName="Singapore"
+      />
+    </RaceWriteupPage>
   );
 }
 
@@ -313,46 +223,44 @@ function FirstSingaporeSprint() {
   ] as const;
 
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="first-sprint">
-      <div className="max-w-3xl">
-        <h2
-          id="first-sprint"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
+    <RaceWriteupSection
+      id="first-sprint"
+      heading="One hour of practice before the first pick locks"
+      extra={
+        <ol className="mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-5">
+          {sessions.map(([day, session, note], index) => (
+            <li key={session} className="bg-surface p-4 sm:p-5">
+              <p className="gpp-mono text-xs text-text-muted">
+                {String(index + 1).padStart(2, '0')} · {day.toUpperCase()}
+              </p>
+              <h3 className="font-title mt-2 font-medium text-text">
+                {session}
+              </h3>
+              <p className="mt-2 text-xs leading-5 text-text-muted">{note}</p>
+            </li>
+          ))}
+        </ol>
+      }
+    >
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Marina Bay has never hosted the sprint format. Friday has one practice
+        session, followed by Sprint Qualifying that evening. The usual second
+        and third practice sessions are replaced by competitive running.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        That makes the first hour unusually valuable. Teams have to establish
+        ride height, cooling and tyre behaviour on a street circuit that gains
+        grip throughout the weekend, then commit before they have a second
+        long-run sample.{' '}
+        <Link
+          to="/how-to-play"
+          className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
         >
-          One hour of practice before the first pick locks
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Marina Bay has never hosted the sprint format. Friday has one practice
-          session, followed by Sprint Qualifying that evening. The usual second
-          and third practice sessions are replaced by competitive running.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          That makes the first hour unusually valuable. Teams have to establish
-          ride height, cooling and tyre behaviour on a street circuit that gains
-          grip throughout the weekend, then commit before they have a second
-          long-run sample.{' '}
-          <Link
-            to="/how-to-play"
-            className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-          >
-            How sprint weekends are scored
-          </Link>
-          .
-        </p>
-      </div>
-
-      <ol className="mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-5">
-        {sessions.map(([day, session, note], index) => (
-          <li key={session} className="bg-surface p-4 sm:p-5">
-            <p className="gpp-mono text-xs text-text-muted">
-              {String(index + 1).padStart(2, '0')} · {day.toUpperCase()}
-            </p>
-            <h3 className="font-title mt-2 font-medium text-text">{session}</h3>
-            <p className="mt-2 text-xs leading-5 text-text-muted">{note}</p>
-          </li>
-        ))}
-      </ol>
-    </section>
+          How sprint weekends are scored
+        </Link>
+        .
+      </p>
+    </RaceWriteupSection>
   );
 }
 
@@ -434,21 +342,10 @@ function TyreChoice() {
  */
 function SaturdayEvidence() {
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="saturday-evidence">
-      <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <div>
-          <h2
-            id="saturday-evidence"
-            className="font-title text-2xl font-medium text-text sm:text-3xl"
-          >
-            The Sprint is the only race-pace evidence before qualifying
-          </h2>
-          <p className="gpp-reading-copy mt-4 text-text-muted">
-            The Sprint starts four hours before Grand Prix Qualifying. It shows
-            tyre behaviour, traffic pace and who can keep the car out of the
-            walls, but it does not set Sunday&rsquo;s grid.
-          </p>
-        </div>
+    <RaceWriteupSection
+      id="saturday-evidence"
+      heading="The Sprint is the only race-pace evidence before qualifying"
+      aside={
         <div className="self-start rounded-sm bg-surface-elevated p-5">
           <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
             Pick order
@@ -460,7 +357,13 @@ function SaturdayEvidence() {
             <li>4. Grand Prix Top 5</li>
           </ol>
         </div>
-      </div>
-    </section>
+      }
+    >
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        The Sprint starts four hours before Grand Prix Qualifying. It shows tyre
+        behaviour, traffic pace and who can keep the car out of the walls, but
+        it does not set Sunday&rsquo;s grid.
+      </p>
+    </RaceWriteupSection>
   );
 }

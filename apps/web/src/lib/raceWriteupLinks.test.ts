@@ -7,15 +7,17 @@ import { listRaceWriteups } from './raceWriteups';
  * Every write-up has to end on the round's picks and the board they feed.
  *
  * Both links live in components (`RaceWriteupClosingPanel` and, where the
- * picker is inline, `DeferredRaceWriteupPicks`), so the thing that can break
- * is a new write-up route that renders neither. That is a whole-page property
- * no component test can see, and the pages are too heavy to render here, so
- * this reads the routes as source: the check is cheap and the failure it
- * catches is a page search sends readers to that leads nowhere.
+ * picker is inline, `DeferredRaceWriteupPicks`). Most write-ups render those
+ * through `RaceWriteupFinish`, so the thing that can break is a new write-up
+ * route that renders none of the three. That is a whole-page property no
+ * component test can see, and the pages are too heavy to render here, so this
+ * reads the routes as source: the check is cheap and the failure it catches is
+ * a page search sends readers to that leads nowhere.
  */
 const LINK_BEARING_SECTIONS = [
   'RaceWriteupClosingPanel',
   'DeferredRaceWriteupPicks',
+  'RaceWriteupFinish',
 ];
 
 // Vitest runs with `apps/web` as the working directory.

@@ -4,53 +4,38 @@ import type { FunctionReturnType } from 'convex/server';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { Flag } from '@/components/Flag';
-import {
-  DeferredRaceWriteupPicks,
-  RACE_WRITEUP_PICKS_ANCHOR,
-} from '@/components/race-writeups/DeferredRaceWriteupPicks';
 import { CircuitStatStrip } from '@/components/race-writeups/CircuitStatStrip';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
 import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
-import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
-import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
-import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
-import { RaceWriteupNextRound } from '@/components/race-writeups/RaceWriteupNextRound';
-import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
+import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
+import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
+import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
+import { RaceWriteupSection } from '@/components/race-writeups/RaceWriteupSection';
 import { RaceWriteupTrackMap } from '@/components/race-writeups/RaceWriteupTrackMap';
-import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
+import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { SessionConsensusSections } from '@/components/SessionConsensus';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
+import { lastReviewedAt } from '@/lib/lastReviewed';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
-import {
-  lastReviewedAt,
-  reviewedIsoDate,
-  reviewedStamp,
-} from '@/lib/lastReviewed';
-import { routeQuery } from '@/lib/routeQuery';
 import {
   getRaceWriteupPhase,
   isRaceWriteupLive,
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
+import { raceWriteupPageHead } from '@/lib/raceWriteupSeo';
 import {
   FORMULA_THREE_WRITEUP_IMAGE,
   JARAMA_WRITEUP_IMAGE,
   PIRELLI_MEDIUM_WRITEUP_IMAGE,
 } from '@/lib/madrid2026WriteUpImages';
 import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
-import {
-  breadcrumbSchema,
-  pageMeta,
-  raceOgImageUrl,
-  siteConfig,
-  sportsEventSchema,
-} from '@/lib/site';
+import { routeQuery } from '@/lib/routeQuery';
 
-import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
+import { RACE_WRITEUP_PICKS_ANCHOR } from '@/components/race-writeups/DeferredRaceWriteupPicks';
 
 /** The date the hand-written prose on this page was last checked. */
 const PROSE_REVIEWED = getRaceWriteupReviewedAt('madrid-2026');
@@ -236,78 +221,26 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
       nextRace,
     };
   },
-  head: ({ loaderData }) => {
-    const race = loaderData?.race;
-    const title = '2026 Spanish Grand Prix Predictions | Madrid';
-    const description =
-      race?.status === 'finished'
-        ? '2026 Spanish Grand Prix predictions scored against the official Madring classification. See who called the top 5 for qualifying and the race.'
-        : race?.status === 'cancelled'
-          ? 'The 2026 Spanish Grand Prix was called off.'
-          : '2026 Spanish Grand Prix predictions at the Madring in Madrid. Pick a top 5 for qualifying and the race at the circuit\u2019s Formula 1 debut.';
-    const circuit = getCircuitForRace(RACE_SLUG);
-    const meta = pageMeta({
-      title,
-      description,
+  head: ({ loaderData }) =>
+    raceWriteupPageHead({
       path: PATH,
-      image: raceOgImageUrl(RACE_SLUG),
+      raceSlug: RACE_SLUG,
+      title: '2026 Spanish Grand Prix Predictions | Madrid',
+      description: {
+        live: '2026 Spanish Grand Prix predictions at the Madring in Madrid. Pick a top 5 for qualifying and the race at the circuit\u2019s Formula 1 debut.',
+        finished:
+          '2026 Spanish Grand Prix predictions scored against the official Madring classification. See who called the top 5 for qualifying and the race.',
+        cancelled: 'The 2026 Spanish Grand Prix was called off.',
+      },
       imageAlt:
         'Grand Prix Picks race card for the 2026 Spanish Grand Prix at the Madring in Madrid.',
-    });
-
-    return {
-      ...meta,
-      scripts: [
-        {
-          type: 'application/ld+json',
-          children: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@graph': [
-              {
-                '@type': 'WebPage',
-                '@id': `${siteConfig.url}${PATH}#page`,
-                url: `${siteConfig.url}${PATH}`,
-                name: title,
-                description,
-                dateModified: reviewedIsoDate(PROSE_REVIEWED_AT),
-                inLanguage: 'en',
-                isPartOf: { '@id': `${siteConfig.url}/#app` },
-                ...(race && circuit
-                  ? {
-                      about: {
-                        ...sportsEventSchema({
-                          name: '2026 Spanish Grand Prix',
-                          startAt: race.raceStartAt,
-                          path: PATH,
-                          description,
-                          image: raceOgImageUrl(RACE_SLUG),
-                          location: circuit,
-                          cancelled: race.status === 'cancelled',
-                        }),
-                        alternateName: '2026 Madrid Grand Prix',
-                      },
-                    }
-                  : {}),
-              },
-              {
-                '@type': 'FAQPage',
-                '@id': `${siteConfig.url}${PATH}#faq`,
-                mainEntity: FAQS.map((faq) => ({
-                  '@type': 'Question',
-                  name: faq.question,
-                  acceptedAnswer: { '@type': 'Answer', text: faq.answer },
-                })),
-              },
-              breadcrumbSchema(PATH, [
-                { name: 'Races', path: '/races' },
-                { name: 'Spanish Grand Prix predictions', path: PATH },
-              ]),
-            ],
-          }),
-        },
-      ],
-    };
-  },
+      reviewedAt: PROSE_REVIEWED_AT,
+      eventName: '2026 Spanish Grand Prix',
+      eventAlternateName: '2026 Madrid Grand Prix',
+      breadcrumbName: 'Spanish Grand Prix predictions',
+      race: loaderData?.race,
+      faqs: FAQS,
+    }),
 });
 
 function MadridGrandPrixPredictionsPage() {
@@ -341,311 +274,239 @@ function MadridGrandPrixPredictionsPage() {
   );
 
   return (
-    <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-5xl px-3 py-5 sm:px-4 sm:py-8">
-        {/* No rule under the stacked hero: the schedule card already draws a
-            full frame, and a second line below it was a divider with nothing
-            left to divide. Side by side at `lg`, the rule spans both columns
-            and is the break before the body. */}
-        <div className="grid gap-8 pb-8 sm:pb-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:border-b lg:border-border">
-          <header>
-            <div className="flex items-center gap-3">
-              <Flag code="ES" size="xl" />
-              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                <p className="gpp-mono text-sm text-text-muted">
-                  11–13 Sep · Madring · Round {race.round}
-                </p>
-                {/* Only where the eyebrow fits on one line. A phone wraps
-                    before the phase label, and a separator is punctuation
-                    between two things on the same line: dropped to the next
-                    one it becomes a dot opening a sentence, which is what the
-                    hero read as at 390px. The line break separates them. */}
-                <span
-                  className="hidden text-text-disabled sm:inline"
-                  aria-hidden
-                >
-                  ·
-                </span>
-                <RaceWriteupPhaseLabel phase={phase} />
-              </div>
-            </div>
-            <h1 className="font-title mt-4 max-w-3xl text-4xl font-light tracking-tight text-text sm:text-5xl">
-              2026 Spanish Grand Prix predictions
-            </h1>
-            <p className="gpp-reading-copy-lg mt-5 max-w-2xl text-text-muted">
-              {raceWriteupHeroSummary(
-                phase,
-                'The Spanish Grand Prix',
-                'Formula 1 returns to Madrid for the first time since 1981. The new Madring circuit has 22 corners, long stretches lined with barriers and a banked Turn 12 that will test the cars and tyres.',
-              )}
-            </p>
-            {/* No secondary action. The hero's second link was the heading
-                of "What to watch in practice", and on this page that section
-                is the driest thing in it: three signals a reader meets anyway
-                on the way down. Offering it beside the picks button asked
-                somebody who arrived to make picks to go read a list instead.
-                `SIGNALS_HEADING` still exists because the section itself uses
-                it. */}
-            <RaceWriteupActions
-              phase={phase}
-              primaryActionTargetId={
-                isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined
-              }
-              raceSlug={RACE_SLUG}
-              venueName="Madrid"
-            />
-          </header>
-
-          <RaceWriteupWeekendSchedule
-            race={race}
-            timeZone="Europe/Madrid"
-            timeZoneLabel="Madrid time"
-            weather={isLive ? weather : null}
-            now={weatherNow}
-          />
-        </div>
-
-        <FormulaThreeTest />
-        {/* What changed this week, then what the cars did, then what the field
-            made of it. All three date from this weekend, and all three used to
-            sit below five sections of circuit analysis that will read the same
-            in a year: a reader on Friday met 1981 before they met today. The
-            durable material follows, which is also the order it stops
-            mattering in. */}
-        {isLive ? (
-          <>
-            <WeekendNewsSection items={news.items} />
-            <WeekendPracticeSection
-              results={practice}
-              raceSlug={RACE_SLUG}
-              schedule={race}
-            />
-          </>
-        ) : null}
-        {/* Not gated on the phase. It appears session by session as each one
-            locks and it is still the best thing on the page once the race is
-            done, so the gate it needs is "has anything locked", which is the
-            question the empty list already answers. */}
-        <SessionConsensusSections sessions={consensusSessions} />
-        <TrackMap />
-        <LaMonumental />
-        <WatchTable />
-        <TyreChoice />
-        {/* The build and the theft answer "will this happen at all", which
-            stops being a question the moment the race runs. The F3 test and
-            the Spanish drivers stay: both are still true in the archive. */}
-        {isLive ? <TrackReadiness /> : null}
-        <SpanishDrivers drivers={spanishDrivers} />
-        {isLive ? (
-          <>
-            <MonzaRecap />
-            <RaceWriteupChampionshipContext
-              championship={championship}
-              races={season.races}
-              thisRound={race.round}
-              venueName="Madrid"
-              sourceUrl={F1_STANDINGS_SOURCE}
-            />
-          </>
-        ) : null}
-
-        <RaceFaqSection faqs={FAQS} />
-
-        {/* The picks finish on this page while there are picks to make. The
-            closing panel's button leaves for the race page, which is the right
-            answer for a weekend that is over and the wrong one for the round a
-            reader arrived here to play. */}
-        {isLive ? (
-          <DeferredRaceWriteupPicks
-            phase={phase}
-            raceId={race._id}
-            round={race.round}
-            season={race.season}
-            raceSlug={RACE_SLUG}
-            venueName="Madrid"
-          />
-        ) : (
-          <>
-            <RaceWriteupClosingPanel
-              phase={phase}
-              raceId={race._id}
-              raceSlug={RACE_SLUG}
-              venueName="Madrid"
-            />
-            <RaceWriteupNextRound nextRace={nextRace} />
-          </>
+    <RaceWriteupPage
+      reviewedAt={PROSE_REVIEWED_AT}
+      sources={
+        <>
+          Race facts and schedule:{' '}
+          <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>.
+          Corner detail:{' '}
+          <ExternalSource href={CORNER_SOURCE}>The Race</ExternalSource>. Lap
+          layout: <ExternalSource href={LAYOUT_SOURCE}>The Race</ExternalSource>
+          . F3 test:{' '}
+          <ExternalSource href={TEST_SOURCE}>Grandprix.com</ExternalSource>.
+          Ferrari filming:{' '}
+          <ExternalSource href={FILMING_SOURCE}>Madring</ExternalSource>. Tyres:{' '}
+          <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>. F3 test
+          format:{' '}
+          <ExternalSource href={F3_OFFICIAL_SOURCE}>
+            FIA Formula 3
+          </ExternalSource>
+          . Test red flags:{' '}
+          <ExternalSource href={RED_FLAG_SOURCE}>PlanetF1</ExternalSource>. Test
+          times:{' '}
+          <ExternalSource href={LAP_TIME_SOURCE}>Pit Debrief</ExternalSource>.
+          Cable theft:{' '}
+          <ExternalSource href={THEFT_SOURCE}>Grandprix.com</ExternalSource>.
+          Construction and homologation:{' '}
+          <ExternalSource href={BUILD_SOURCE}>
+            RacingCircuits.info
+          </ExternalSource>
+          . Ambassador role:{' '}
+          <ExternalSource href={SAINZ_SOURCE}>PlanetF1</ExternalSource>.
+          Hamilton on the lap:{' '}
+          <ExternalSource href={HAMILTON_SOURCE}>
+            Motorsport Week
+          </ExternalSource>
+          .
+        </>
+      }
+    >
+      {/* No secondary action. The hero's second link was the heading of
+          "What to watch in practice", and on this page that section is the
+          driest thing in it. `SIGNALS_HEADING` still exists because the
+          section itself uses it. */}
+      <RaceWriteupHero
+        flagCode="ES"
+        eyebrow={`11–13 Sep · Madring · Round ${race.round}`}
+        title="2026 Spanish Grand Prix predictions"
+        summary={raceWriteupHeroSummary(
+          phase,
+          'The Spanish Grand Prix',
+          'Formula 1 returns to Madrid for the first time since 1981. The new Madring circuit has 22 corners, long stretches lined with barriers and a banked Turn 12 that will test the cars and tyres.',
         )}
+        phase={phase}
+        raceSlug={RACE_SLUG}
+        venueName="Madrid"
+        primaryActionTargetId={isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
+        schedule={{
+          race,
+          timeZone: 'Europe/Madrid',
+          timeZoneLabel: 'Madrid time',
+          weather,
+          now: weatherNow,
+        }}
+      />
 
-        <footer className="mt-10 pb-4 text-sm leading-6 text-text-muted">
-          <p>
-            Race facts and schedule:{' '}
-            <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>.
-            Corner detail:{' '}
-            <ExternalSource href={CORNER_SOURCE}>The Race</ExternalSource>. Lap
-            layout:{' '}
-            <ExternalSource href={LAYOUT_SOURCE}>The Race</ExternalSource>. F3
-            test:{' '}
-            <ExternalSource href={TEST_SOURCE}>Grandprix.com</ExternalSource>.
-            Ferrari filming:{' '}
-            <ExternalSource href={FILMING_SOURCE}>Madring</ExternalSource>.
-            Tyres: <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>.
-            F3 test format:{' '}
-            <ExternalSource href={F3_OFFICIAL_SOURCE}>
-              FIA Formula 3
-            </ExternalSource>
-            . Test red flags:{' '}
-            <ExternalSource href={RED_FLAG_SOURCE}>PlanetF1</ExternalSource>.
-            Test times:{' '}
-            <ExternalSource href={LAP_TIME_SOURCE}>Pit Debrief</ExternalSource>.
-            Cable theft:{' '}
-            <ExternalSource href={THEFT_SOURCE}>Grandprix.com</ExternalSource>.
-            Construction and homologation:{' '}
-            <ExternalSource href={BUILD_SOURCE}>
-              RacingCircuits.info
-            </ExternalSource>
-            . Ambassador role:{' '}
-            <ExternalSource href={SAINZ_SOURCE}>PlanetF1</ExternalSource>.
-            Hamilton on the lap:{' '}
-            <ExternalSource href={HAMILTON_SOURCE}>
-              Motorsport Week
-            </ExternalSource>
-            .
-          </p>
-          <p className="gpp-mono mt-2 text-xs">
-            LAST REVIEWED {reviewedStamp(PROSE_REVIEWED_AT)}
-          </p>
-        </footer>
-      </div>
-    </div>
+      <FormulaThreeTest />
+      {/* What changed this week, then what the cars did, then what the field
+          made of it. All three date from this weekend, and all three used to
+          sit below five sections of circuit analysis that will read the same
+          in a year: a reader on Friday met 1981 before they met today. The
+          durable material follows, which is also the order it stops
+          mattering in. */}
+      {isLive ? (
+        <>
+          <WeekendNewsSection items={news.items} />
+          <WeekendPracticeSection
+            results={practice}
+            raceSlug={RACE_SLUG}
+            schedule={race}
+          />
+        </>
+      ) : null}
+      {/* Not gated on the phase. It appears session by session as each one
+          locks and it is still the best thing on the page once the race is
+          done, so the gate it needs is "has anything locked", which is the
+          question the empty list already answers. */}
+      <SessionConsensusSections sessions={consensusSessions} />
+      <TrackMap />
+      <LaMonumental />
+      <WatchTable />
+      <TyreChoice />
+      {/* The build and the theft answer "will this happen at all", which
+          stops being a question the moment the race runs. The F3 test and
+          the Spanish drivers stay: both are still true in the archive. */}
+      {isLive ? <TrackReadiness /> : null}
+      <SpanishDrivers drivers={spanishDrivers} />
+      {isLive ? (
+        <>
+          <MonzaRecap />
+          <RaceWriteupChampionshipContext
+            championship={championship}
+            races={season.races}
+            thisRound={race.round}
+            venueName="Madrid"
+            sourceUrl={F1_STANDINGS_SOURCE}
+          />
+        </>
+      ) : null}
+
+      <RaceFaqSection faqs={FAQS} />
+
+      <RaceWriteupFinish
+        isLive={isLive}
+        phase={phase}
+        raceId={race._id}
+        round={race.round}
+        season={race.season}
+        raceSlug={RACE_SLUG}
+        venueName="Madrid"
+        nextRace={nextRace}
+      />
+    </RaceWriteupPage>
   );
 }
 
 /** Formula 3 test findings and drivers’ first impressions. */
 function FormulaThreeTest() {
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="f3-test">
-      <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <div>
-          <h2
-            id="f3-test"
-            className="font-title text-2xl font-medium text-text sm:text-3xl"
-          >
-            What Formula 3 testing showed
-          </h2>
-          <p className="gpp-reading-copy mt-4 text-text-muted">
-            Formula 3 tested at the Madring on 24 and 25 August. The two days
-            produced 19 red flags, including 11 crashes into the barriers.{' '}
-            <ExternalSource href={RED_FLAG_SOURCE}>
-              PlanetF1&rsquo;s test report
-            </ExternalSource>
-            .
-          </p>
-          <p className="gpp-reading-copy mt-3 text-text-muted">
-            Most of the crashes happened around Turns 5 to 7 and at Turn 17.
-            Drivers also hit the barriers at the exit of Turn 3 and at Turn 14.{' '}
-            <ExternalSource href={RED_FLAG_SOURCE}>
-              Where the test was interrupted
-            </ExternalSource>
-            .
-          </p>
-          <p className="gpp-reading-copy mt-3 text-text-muted">
-            Williams counted three broken chassis and six damaged suspensions in
-            the test data. Team principal James Vowles said the circuit could be
-            particularly hard on the cars.{' '}
-            <ExternalSource href={VOWLES_SOURCE}>
-              Vowles on the test damage
-            </ExternalSource>
-            .
-          </p>
-          <p className="gpp-reading-copy mt-3 text-text-muted">
-            Sainz was more cautious when asked about the crashes at Monza. He
-            said it was too early to judge how Formula 1 cars would handle the
-            circuit from the Formula 3 test alone.{' '}
-            <ExternalSource href={SAINZ_LABEL_SOURCE}>
-              Sainz on the Formula 3 comparison
-            </ExternalSource>
-            .
-          </p>
-          <p className="gpp-reading-copy mt-3 text-text-muted">
-            Speaking in Madrid on Wednesday 9 September, Sainz said simulator
-            laps and Formula 3 footage suggested an intense circuit, with
-            &ldquo;turn after turn, wall after wall&rdquo;. He compared it with
-            Baku and Jeddah, two tracks he enjoys racing on.{' '}
-            <ExternalSource href={SAINZ_WEDNESDAY_SOURCE}>
-              Sainz on the Madrid lap
-            </ExternalSource>
-            .
-          </p>
-          <p className="gpp-reading-copy mt-3 text-text-muted">
-            After driving the circuit in the simulator, Verstappen compared it
-            with Jeddah and warned that mistakes could lead to heavy crashes. He
-            also said it was difficult to put a clean lap together.{' '}
-            <ExternalSource href={VERSTAPPEN_SIM_SOURCE}>
-              Verstappen&rsquo;s first impressions
-            </ExternalSource>
-            .
-          </p>
-        </div>
-        {/* The one picture on this page whose subject is the thing the section
-            is about: the car that has actually run here is a Formula 3 car. */}
-        <div className="self-start">
-          <WriteUpNewsPhoto {...FORMULA_THREE_WRITEUP_IMAGE} />
-        </div>
-      </div>
-      <CircuitStatStrip
-        stats={[
-          ['19', 'Red flags'],
-          ['11', 'Into the barriers'],
-          ['24–25', 'August, two days'],
-          [
-            '1:49.034',
-            <>
-              <Flag code="US" size="xs" />
-              Fastest: Ugochukwu
-            </>,
-          ],
-        ]}
-      />
-    </section>
+    <RaceWriteupSection
+      id="f3-test"
+      heading="What Formula 3 testing showed"
+      aside={<WriteUpNewsPhoto {...FORMULA_THREE_WRITEUP_IMAGE} />}
+      extra={
+        <CircuitStatStrip
+          stats={[
+            ['19', 'Red flags'],
+            ['11', 'Into the barriers'],
+            ['24–25', 'August, two days'],
+            [
+              '1:49.034',
+              <>
+                <Flag code="US" size="xs" />
+                Fastest: Ugochukwu
+              </>,
+            ],
+          ]}
+        />
+      }
+    >
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Formula 3 tested at the Madring on 24 and 25 August. The two days
+        produced 19 red flags, including 11 crashes into the barriers.{' '}
+        <ExternalSource href={RED_FLAG_SOURCE}>
+          PlanetF1&rsquo;s test report
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Most of the crashes happened around Turns 5 to 7 and at Turn 17. Drivers
+        also hit the barriers at the exit of Turn 3 and at Turn 14.{' '}
+        <ExternalSource href={RED_FLAG_SOURCE}>
+          Where the test was interrupted
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Williams counted three broken chassis and six damaged suspensions in the
+        test data. Team principal James Vowles said the circuit could be
+        particularly hard on the cars.{' '}
+        <ExternalSource href={VOWLES_SOURCE}>
+          Vowles on the test damage
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Sainz was more cautious when asked about the crashes at Monza. He said
+        it was too early to judge how Formula 1 cars would handle the circuit
+        from the Formula 3 test alone.{' '}
+        <ExternalSource href={SAINZ_LABEL_SOURCE}>
+          Sainz on the Formula 3 comparison
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Speaking in Madrid on Wednesday 9 September, Sainz said simulator laps
+        and Formula 3 footage suggested an intense circuit, with &ldquo;turn
+        after turn, wall after wall&rdquo;. He compared it with Baku and Jeddah,
+        two tracks he enjoys racing on.{' '}
+        <ExternalSource href={SAINZ_WEDNESDAY_SOURCE}>
+          Sainz on the Madrid lap
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        After driving the circuit in the simulator, Verstappen compared it with
+        Jeddah and warned that mistakes could lead to heavy crashes. He also
+        said it was difficult to put a clean lap together.{' '}
+        <ExternalSource href={VERSTAPPEN_SIM_SOURCE}>
+          Verstappen&rsquo;s first impressions
+        </ExternalSource>
+        .
+      </p>
+    </RaceWriteupSection>
   );
 }
 
 /** Construction status and surface preparation. */
 function TrackReadiness() {
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="track-readiness">
-      <div className="max-w-3xl">
-        <h2
-          id="track-readiness"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          Circuit preparations
-        </h2>
-        <p className="gpp-reading-copy mt-5 text-text-muted">
-          Around 300 metres of cable was stolen on Sunday 30 August from
-          generators serving a tunnel section of the circuit. Spanish police are
-          investigating. The race schedule is unchanged.{' '}
-          <ExternalSource href={THEFT_SOURCE}>
-            Report on the cable theft
-          </ExternalSource>
-          .
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          The final layer of asphalt was laid on 31 May, and the FIA approved
-          the circuit for Formula 1 on 23 June. Work since then has focused on
-          grandstands, hospitality and temporary facilities.{' '}
-          <ExternalSource href={BUILD_SOURCE}>
-            Circuit construction timeline
-          </ExternalSource>
-          .
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          With little running on the new surface, grip should improve as Formula
-          1, Formula 2 and Formula 3 lay down rubber over the weekend. That will
-          make it harder to compare lap times from different sessions.
-        </p>
-      </div>
-    </section>
+    <RaceWriteupSection id="track-readiness" heading="Circuit preparations">
+      <p className="gpp-reading-copy mt-5 text-text-muted">
+        Around 300 metres of cable was stolen on Sunday 30 August from
+        generators serving a tunnel section of the circuit. Spanish police are
+        investigating. The race schedule is unchanged.{' '}
+        <ExternalSource href={THEFT_SOURCE}>
+          Report on the cable theft
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        The final layer of asphalt was laid on 31 May, and the FIA approved the
+        circuit for Formula 1 on 23 June. Work since then has focused on
+        grandstands, hospitality and temporary facilities.{' '}
+        <ExternalSource href={BUILD_SOURCE}>
+          Circuit construction timeline
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        With little running on the new surface, grip should improve as Formula
+        1, Formula 2 and Formula 3 lay down rubber over the weekend. That will
+        make it harder to compare lap times from different sessions.
+      </p>
+    </RaceWriteupSection>
   );
 }
 
@@ -669,84 +530,74 @@ const CORNERS = [
  */
 function TrackMap() {
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="track-map">
-      <div className="max-w-3xl">
-        <h2
-          id="track-map"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          What the lap looks like
-        </h2>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Sector 1 is the long run from Turn 1 to Turn 5. Sector 2 carries the
-          banking at Turn 12. Sector 3 is the tight section through the
-          exhibition halls.
-        </p>
-      </div>
-
-      {/* Full width rather than beside a column of copy. The other write-up
-          runs a photograph next to its map; the only picture this page has is
-          Jarama, and it belongs with 1981. */}
-      <div className="mt-7">
-        <RaceWriteupTrackMap
-          src="/media/madrid-track-map-1600.webp"
-          srcSet="/media/madrid-track-map-800.webp 800w, /media/madrid-track-map-1600.webp 1600w"
-          sizes="(min-width: 1024px) 60rem, 100vw"
-          width={1600}
-          height={893}
-          circuitName="Madring"
-          corners={CORNERS}
-          controlCorner="bottom-right"
-          alt="Madring lap map. Turns are numbered 1 to 22, with the three sectors, the start/finish line between Turn 22 and Turn 1, the two straight mode zones, the speed trap in sector 1, and the Overtake detection and activation points at the end of the lap."
-        />
-      </div>
-    </section>
+    <RaceWriteupSection
+      id="track-map"
+      heading="What the lap looks like"
+      extra={
+        // Full width rather than beside a column of copy. The other write-up
+        // runs a photograph next to its map; the only picture this page has is
+        // Jarama, and it belongs with 1981.
+        <div className="mt-7">
+          <RaceWriteupTrackMap
+            src="/media/madrid-track-map-1600.webp"
+            srcSet="/media/madrid-track-map-800.webp 800w, /media/madrid-track-map-1600.webp 1600w"
+            sizes="(min-width: 1024px) 60rem, 100vw"
+            width={1600}
+            height={893}
+            circuitName="Madring"
+            corners={CORNERS}
+            controlCorner="bottom-right"
+            alt="Madring lap map. Turns are numbered 1 to 22, with the three sectors, the start/finish line between Turn 22 and Turn 1, the two straight mode zones, the speed trap in sector 1, and the Overtake detection and activation points at the end of the lap."
+          />
+        </div>
+      }
+    >
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Sector 1 is the long run from Turn 1 to Turn 5. Sector 2 carries the
+        banking at Turn 12. Sector 3 is the tight section through the exhibition
+        halls.
+      </p>
+    </RaceWriteupSection>
   );
 }
 
 /** Banking is expressed as both a percentage gradient and an angle. */
 function LaMonumental() {
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="la-monumental">
-      <div className="max-w-3xl">
-        <h2
-          id="la-monumental"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          La Monumental: Madrid&rsquo;s banked Turn 12
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          La Monumental is a 550-metre right-hander with 24% banking, equivalent
-          to an angle of about 13.5 degrees. The circuit&rsquo;s chief
-          operations officer compares it with Zandvoort&rsquo;s banking,
-          stretched over a longer corner.{' '}
-          <ExternalSource href={CORNER_SOURCE}>
-            The Race&rsquo;s guide to La Monumental
-          </ExternalSource>
-          .
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          James Vowles said the Formula 3 test showed cars staying under load
-          through the banking for roughly four and a half seconds. That puts
-          sustained stress on the car as well as the tyres.{' '}
-          <ExternalSource href={VOWLES_SOURCE}>
-            Vowles on the banking
-          </ExternalSource>
-          .
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Teams will need enough ground clearance to keep the floor from
-          scraping through the banking. Raising the ride height can help, but
-          may reduce aerodynamic performance elsewhere on the lap. If the plank
-          underneath the car wears beyond the permitted limit, the car can be
-          disqualified.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Practice will show how well each team manages that compromise,
-          particularly on longer runs with more fuel on board.
-        </p>
-      </div>
-    </section>
+    <RaceWriteupSection
+      id="la-monumental"
+      heading="La Monumental: Madrid&rsquo;s banked Turn 12"
+    >
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        La Monumental is a 550-metre right-hander with 24% banking, equivalent
+        to an angle of about 13.5 degrees. The circuit&rsquo;s chief operations
+        officer compares it with Zandvoort&rsquo;s banking, stretched over a
+        longer corner.{' '}
+        <ExternalSource href={CORNER_SOURCE}>
+          The Race&rsquo;s guide to La Monumental
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        James Vowles said the Formula 3 test showed cars staying under load
+        through the banking for roughly four and a half seconds. That puts
+        sustained stress on the car as well as the tyres.{' '}
+        <ExternalSource href={VOWLES_SOURCE}>
+          Vowles on the banking
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Teams will need enough ground clearance to keep the floor from scraping
+        through the banking. Raising the ride height can help, but may reduce
+        aerodynamic performance elsewhere on the lap. If the plank underneath
+        the car wears beyond the permitted limit, the car can be disqualified.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Practice will show how well each team manages that compromise,
+        particularly on longer runs with more fuel on board.
+      </p>
+    </RaceWriteupSection>
   );
 }
 
@@ -823,38 +674,33 @@ function TyreChoice() {
 /** The previous round’s result, with a link to its full write-up. */
 function MonzaRecap() {
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="monza-recap">
-      <div className="max-w-3xl">
-        <h2
-          id="monza-recap"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
+    <RaceWriteupSection
+      id="monza-recap"
+      heading="Antonelli won Monza from 19th"
+    >
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Antonelli recovered from 19th on the grid to win at Monza after a power
+        unit penalty. Leclerc&rsquo;s crash at Parabolica brought out a red flag
+        on lap 2. Russell finished second ahead of Verstappen, Norris, Piastri
+        and Hamilton. Gasly had taken pole for Alpine.{' '}
+        <ExternalSource href={MONZA_RESULT_SOURCE}>
+          The Monza race report
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Monza rewards straight-line speed. Madrid&rsquo;s 22 corners will ask
+        different things of the cars, so the order could change again this
+        weekend.{' '}
+        <Link
+          to="/f1-2026-italian-grand-prix-predictions"
+          className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
         >
-          Antonelli won Monza from 19th
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Antonelli recovered from 19th on the grid to win at Monza after a
-          power unit penalty. Leclerc&rsquo;s crash at Parabolica brought out a
-          red flag on lap 2. Russell finished second ahead of Verstappen,
-          Norris, Piastri and Hamilton. Gasly had taken pole for Alpine.{' '}
-          <ExternalSource href={MONZA_RESULT_SOURCE}>
-            The Monza race report
-          </ExternalSource>
-          .
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Monza rewards straight-line speed. Madrid&rsquo;s 22 corners will ask
-          different things of the cars, so the order could change again this
-          weekend.{' '}
-          <Link
-            to="/f1-2026-italian-grand-prix-predictions"
-            className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-          >
-            Monza results and predictions
-          </Link>
-          .
-        </p>
-      </div>
-    </section>
+          Monza results and predictions
+        </Link>
+        .
+      </p>
+    </RaceWriteupSection>
   );
 }
 
@@ -865,124 +711,115 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
   }
 
   return (
-    <section
-      className="grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
-      aria-labelledby="spanish-drivers"
-    >
-      <div>
-        <h2
-          id="spanish-drivers"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          Villeneuve won the last Grand Prix held in Madrid
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Gilles Villeneuve won at Jarama in June 1981 by holding off four
-          faster cars. His Ferrari&rsquo;s straight-line speed helped him defend
-          the lead despite its poor handling through the corners. He finished
-          0.22 seconds ahead of Jacques Laffite, with the top five separated by
-          just 1.24 seconds.{' '}
-          <ExternalSource href={JARAMA_SOURCE}>
-            Motor Sport&rsquo;s account of the 1981 race
-          </ExternalSource>
-          .
-        </p>
-        <h3 className="font-title mt-6 text-xl font-medium text-text">
-          Williams brings back its 1981 colours
-        </h3>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Williams revealed a special white, green and navy livery on Tuesday 8
-          September. It is based on the FW07C driven by Alan Jones and Carlos
-          Reutemann at Jarama in 1981, the year Williams won the
-          constructors&rsquo; championship. Sainz unveiled the car at
-          Madrid&rsquo;s Plaza del Callao.{' '}
-          <ExternalSource href={WILLIAMS_LIVERY_SOURCE}>
-            See the Williams livery
-          </ExternalSource>
-          .
-        </p>
-        <h3 className="font-title mt-6 text-xl font-medium text-text">
-          A home race for Sainz and Alonso
-        </h3>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Formula 1 has not been back to Madrid in the 45 years since. Barcelona
-          held the Spanish Grand Prix from 1991 until last season and now runs
-          as the{' '}
-          <Link
-            to="/races/$raceSlug"
-            params={{ raceSlug: 'spain-2026' }}
-            className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-          >
-            Barcelona-Catalunya Grand Prix
-          </Link>
-          , so Spain has two rounds in 2026.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Organisers announced on 9 September that the debut is sold out. They
-          expect a total attendance of nearly 350,000 across the three days,
-          with more than 60% of the audience coming from Spain.{' '}
-          <ExternalSource href={MADRID_ATTENDANCE_SOURCE}>
-            Madring&rsquo;s attendance announcement
-          </ExternalSource>
-          .
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Madrid-born Carlos Sainz has been the circuit&rsquo;s ambassador since
-          April 2025 and joined the organisers for the start of construction. He
-          and Fernando Alonso are the two Spanish drivers on the grid.{' '}
-          <ExternalSource href={SAINZ_SOURCE}>
-            Sainz&rsquo;s role at the Madring
-          </ExternalSource>
-          .
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Sainz expects a difficult weekend for Williams. He said on Wednesday
-          that the team&rsquo;s next upgrade is due at Baku and that scoring
-          points in Madrid would be a challenge.{' '}
-          <ExternalSource href={WILLIAMS_UPGRADE_SOURCE}>
-            Sainz on Williams&rsquo; prospects
-          </ExternalSource>
-          .
-        </p>
-      </div>
-      {/* The card is two rows against three paragraphs of copy, so the column
-          ends well short of the section. The photo takes the rest of it, the
-          way the Monza track map carries one beneath its aside. */}
-      <div className="self-start">
-        <div className="border border-border bg-surface">
-          <div className="border-b border-border px-4 py-3">
-            <h3 className="font-title flex items-center gap-2 font-medium text-text">
-              <Flag code="ES" size="sm" />
-              Spanish drivers
-            </h3>
+    <RaceWriteupSection
+      id="spanish-drivers"
+      heading="Villeneuve won the last Grand Prix held in Madrid"
+      aside={
+        <>
+          <div className="border border-border bg-surface">
+            <div className="border-b border-border px-4 py-3">
+              <h3 className="font-title flex items-center gap-2 font-medium text-text">
+                <Flag code="ES" size="sm" />
+                Spanish drivers
+              </h3>
+            </div>
+            <ul aria-label="Spanish drivers on the 2026 grid">
+              {drivers.map((driver) => (
+                <li
+                  key={driver.driverId}
+                  className="flex items-center gap-2 border-b border-border/60 px-4 py-3 last:border-b-0"
+                >
+                  <DriverBadge
+                    code={driver.code}
+                    team={driver.team}
+                    displayName={driver.displayName}
+                    number={driver.number}
+                    nationality={driver.nationality}
+                    size="sm"
+                    prerenderTooltip={false}
+                  />
+                  <span className="min-w-0 flex-1 truncate text-sm text-text">
+                    {driver.displayName}
+                  </span>
+                  <span className="gpp-mono text-xs text-text-muted">
+                    P{driver.position}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul aria-label="Spanish drivers on the 2026 grid">
-            {drivers.map((driver) => (
-              <li
-                key={driver.driverId}
-                className="flex items-center gap-2 border-b border-border/60 px-4 py-3 last:border-b-0"
-              >
-                <DriverBadge
-                  code={driver.code}
-                  team={driver.team}
-                  displayName={driver.displayName}
-                  number={driver.number}
-                  nationality={driver.nationality}
-                  size="sm"
-                  prerenderTooltip={false}
-                />
-                <span className="min-w-0 flex-1 truncate text-sm text-text">
-                  {driver.displayName}
-                </span>
-                <span className="gpp-mono text-xs text-text-muted">
-                  P{driver.position}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <WriteUpNewsPhoto {...JARAMA_WRITEUP_IMAGE} />
-      </div>
-    </section>
+          <WriteUpNewsPhoto {...JARAMA_WRITEUP_IMAGE} />
+        </>
+      }
+    >
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Gilles Villeneuve won at Jarama in June 1981 by holding off four faster
+        cars. His Ferrari&rsquo;s straight-line speed helped him defend the lead
+        despite its poor handling through the corners. He finished 0.22 seconds
+        ahead of Jacques Laffite, with the top five separated by just 1.24
+        seconds.{' '}
+        <ExternalSource href={JARAMA_SOURCE}>
+          Motor Sport&rsquo;s account of the 1981 race
+        </ExternalSource>
+        .
+      </p>
+      <h3 className="font-title mt-6 text-xl font-medium text-text">
+        Williams brings back its 1981 colours
+      </h3>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Williams revealed a special white, green and navy livery on Tuesday 8
+        September. It is based on the FW07C driven by Alan Jones and Carlos
+        Reutemann at Jarama in 1981, the year Williams won the
+        constructors&rsquo; championship. Sainz unveiled the car at
+        Madrid&rsquo;s Plaza del Callao.{' '}
+        <ExternalSource href={WILLIAMS_LIVERY_SOURCE}>
+          See the Williams livery
+        </ExternalSource>
+        .
+      </p>
+      <h3 className="font-title mt-6 text-xl font-medium text-text">
+        A home race for Sainz and Alonso
+      </h3>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Formula 1 has not been back to Madrid in the 45 years since. Barcelona
+        held the Spanish Grand Prix from 1991 until last season and now runs as
+        the{' '}
+        <Link
+          to="/races/$raceSlug"
+          params={{ raceSlug: 'spain-2026' }}
+          className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+        >
+          Barcelona-Catalunya Grand Prix
+        </Link>
+        , so Spain has two rounds in 2026.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Organisers announced on 9 September that the debut is sold out. They
+        expect a total attendance of nearly 350,000 across the three days, with
+        more than 60% of the audience coming from Spain.{' '}
+        <ExternalSource href={MADRID_ATTENDANCE_SOURCE}>
+          Madring&rsquo;s attendance announcement
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Madrid-born Carlos Sainz has been the circuit&rsquo;s ambassador since
+        April 2025 and joined the organisers for the start of construction. He
+        and Fernando Alonso are the two Spanish drivers on the grid.{' '}
+        <ExternalSource href={SAINZ_SOURCE}>
+          Sainz&rsquo;s role at the Madring
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Sainz expects a difficult weekend for Williams. He said on Wednesday
+        that the team&rsquo;s next upgrade is due at Baku and that scoring
+        points in Madrid would be a challenge.{' '}
+        <ExternalSource href={WILLIAMS_UPGRADE_SOURCE}>
+          Sainz on Williams&rsquo; prospects
+        </ExternalSource>
+        .
+      </p>
+    </RaceWriteupSection>
   );
 }

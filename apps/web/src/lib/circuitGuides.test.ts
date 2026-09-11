@@ -75,6 +75,22 @@ describe('circuit guides', () => {
     );
   });
 
+  it('does not call Sepang abrasive', () => {
+    // Dromo laid the 2016 surface for wet grip and relaid Turns 7 to 12 in
+    // 2023. "Abrasive" was the write-up's fabrication of that fact, and it
+    // survived here after the write-up was corrected.
+    const guide = getCircuitGuideBySlug('sepang');
+    expect(guide).not.toBeNull();
+    const body = [
+      guide!.character,
+      guide!.layout,
+      guide!.racing,
+      guide!.predicting,
+    ].join(' ');
+    expect(body.toLowerCase()).not.toContain('abrasive');
+    expect(body).toContain('wet grip');
+  });
+
   it('keys every guide by a circuit that actually exists', () => {
     // Catches a typo'd key, which would otherwise fail silently as a missing
     // guide on whichever race page happens to point at it.

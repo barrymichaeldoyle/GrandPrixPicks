@@ -68,7 +68,7 @@ const RACE_WRITEUPS = {
   },
   'bahrain-2026': {
     to: '/f1-2026-bahrain-grand-prix-predictions',
-    reviewedAt: '2026-09-08',
+    reviewedAt: '2026-09-11',
     label: 'Sepang predictions',
     summary:
       'Why a Bahrain Grand Prix is running in Malaysia, what nine years without a Formula 1 race has done to the circuit, and the tyre choice that opens up strategy.',

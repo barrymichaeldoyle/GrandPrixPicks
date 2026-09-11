@@ -3,6 +3,10 @@ import { createFileRoute, notFound } from '@tanstack/react-router';
 import type { FunctionReturnType } from 'convex/server';
 
 import { Flag } from '@/components/Flag';
+import {
+  DeferredRaceWriteupPicks,
+  RACE_WRITEUP_PICKS_ANCHOR,
+} from '@/components/race-writeups/DeferredRaceWriteupPicks';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
 import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
@@ -11,8 +15,10 @@ import { RaceNameLink } from '@/components/race-writeups/RaceNameLink';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
+import { RaceWriteupNextRound } from '@/components/race-writeups/RaceWriteupNextRound';
 import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
 import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
+import { SessionConsensusSections } from '@/components/SessionConsensus';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
@@ -47,10 +53,11 @@ const PATH = '/f1-2026-bahrain-grand-prix-predictions';
 const RACE_SLUG = 'bahrain-2026';
 
 /**
- * The circuit section's heading, declared once because two places use it:
- * the section itself and the hero link that scrolls to it.
+ * The circuit section's heading. Declared once so the section cannot drift
+ * from the name the rest of the page uses for it.
  */
 const SIGNALS_HEADING = 'What matters at Sepang';
+const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
 const F1_EVENT_SOURCE =
   'https://www.formula1.com/en/latest/article/formula-1-and-fia-confirm-malaysia-will-join-2026-calendar-as-host-venue-for-bahrain-grand-prix.6lL7vjFEM2VVynRHvg1TCf';
 const RELOCATION_SOURCE =
@@ -95,6 +102,11 @@ const FAQS = [
     answer:
       'In 2017. Sepang held the Malaysian Grand Prix from 1999 to 2017, and this is the first Formula 1 race there since. The track has changed in that time: Dromo resurfaced it in 2016, the year before that last race, and relaid Turns 7 to 12 in 2023.',
   },
+  {
+    question: 'Is the 2026 Bahrain Grand Prix the Malaysian Grand Prix?',
+    answer:
+      'No. Formula 1 last held a Malaysian Grand Prix at Sepang in 2017. This round keeps the Bahrain Grand Prix name and is being held at Sepang after the Sakhir race was called off.',
+  },
 ] as const;
 
 export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
@@ -103,35 +115,55 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
     loader: async ({ context }) => {
       await setRaceDataCacheHeaders();
       const weatherNow = Date.now();
-      const [race, championship, weather, news, season, practice] =
-        await Promise.all([
-          context.queryClient.ensureQueryData(
-            routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
-          ),
-          // Live. This page is published well ahead of the weekend, so three
-          // rounds are still to be scored before it and a hand-typed table would
-          // be wrong long before anybody reads it in October.
-          context.queryClient.ensureQueryData(
-            routeQuery(api.f1Standings.getF1Championship, {}),
-          ),
-          context.queryClient.ensureQueryData(
-            routeQuery(api.weather.getByRaceSlug, {
-              raceSlug: RACE_SLUG,
-              now: weatherNow,
-            }),
-          ),
-          context.queryClient.ensureQueryData(
-            routeQuery(api.raceNews.list, { raceSlug: RACE_SLUG }),
-          ),
-          context.queryClient.ensureQueryData(
-            routeQuery(api.races.listCurrentSeason, {}),
-          ),
-          context.queryClient.ensureQueryData(
-            routeQuery(api.practiceResults.getPracticeResultsForRaceSlug, {
-              raceSlug: RACE_SLUG,
-            }),
-          ),
-        ]);
+      const [
+        race,
+        championship,
+        weather,
+        news,
+        season,
+        practice,
+        consensus,
+        nextRace,
+      ] = await Promise.all([
+        context.queryClient.ensureQueryData(
+          routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
+        ),
+        // Live. This page is published well ahead of the weekend, so three
+        // rounds are still to be scored before it and a hand-typed table would
+        // be wrong long before anybody reads it in October.
+        context.queryClient.ensureQueryData(
+          routeQuery(api.f1Standings.getF1Championship, {}),
+        ),
+        context.queryClient.ensureQueryData(
+          routeQuery(api.weather.getByRaceSlug, {
+            raceSlug: RACE_SLUG,
+            now: weatherNow,
+          }),
+        ),
+        context.queryClient.ensureQueryData(
+          routeQuery(api.raceNews.list, { raceSlug: RACE_SLUG }),
+        ),
+        context.queryClient.ensureQueryData(
+          routeQuery(api.races.listCurrentSeason, {}),
+        ),
+        context.queryClient.ensureQueryData(
+          routeQuery(api.practiceResults.getPracticeResultsForRaceSlug, {
+            raceSlug: RACE_SLUG,
+          }),
+        ),
+        // How the field picked each session that has locked: the one thing
+        // on this page no other publication can print. It has to be in the
+        // SSR HTML — a client subscription would hide it from the crawler
+        // this page exists for. The backend returns nothing before a lock.
+        context.queryClient.ensureQueryData(
+          routeQuery(api.consensus.getWeekendConsensusForRaceSlug, {
+            raceSlug: RACE_SLUG,
+          }),
+        ),
+        context.queryClient.ensureQueryData(
+          routeQuery(api.races.getNextRace, {}),
+        ),
+      ]);
       if (!race) {
         throw notFound();
       }
@@ -143,6 +175,8 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
         news,
         season,
         practice,
+        consensus,
+        nextRace,
       };
     },
     head: ({ loaderData }) => {
@@ -150,10 +184,10 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
       const title = '2026 Bahrain Grand Prix Predictions | Sepang';
       const description =
         race?.status === 'finished'
-          ? '2026 Bahrain Grand Prix predictions scored against the official Sepang classification. See who called the top 5 at a track the 2026 cars had never run.'
+          ? '2026 Bahrain Grand Prix predictions scored against the official Sepang classification. See who called the top 5 for qualifying and the race.'
           : race?.status === 'cancelled'
             ? 'The 2026 Bahrain Grand Prix was called off.'
-            : 'The 2026 Bahrain Grand Prix runs at Sepang in Malaysia on 4 October. Nobody has raced a 2026 car here. Pick a top 5 for qualifying and the race.';
+            : '2026 Bahrain Grand Prix predictions at Sepang in Malaysia. Pick a top 5 for qualifying and the race at a circuit the 2026 cars have never run.';
       const circuit = getCircuitForRace(RACE_SLUG);
       const meta = pageMeta({
         title,
@@ -186,15 +220,18 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
                   // circuits are keyed separately from races.
                   ...(race && circuit
                     ? {
-                        about: sportsEventSchema({
-                          name: '2026 Bahrain Grand Prix',
-                          startAt: race.raceStartAt,
-                          path: PATH,
-                          description,
-                          image: raceOgImageUrl(RACE_SLUG),
-                          location: circuit,
-                          cancelled: race.status === 'cancelled',
-                        }),
+                        about: {
+                          ...sportsEventSchema({
+                            name: '2026 Bahrain Grand Prix',
+                            startAt: race.raceStartAt,
+                            path: PATH,
+                            description,
+                            image: raceOgImageUrl(RACE_SLUG),
+                            location: circuit,
+                            cancelled: race.status === 'cancelled',
+                          }),
+                          alternateName: '2026 Sepang Grand Prix',
+                        },
                       }
                     : {}),
                 },
@@ -221,10 +258,23 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
 );
 
 function BahrainGrandPrixPredictionsPage() {
-  const { race, championship, weather, weatherNow, news, season, practice } =
-    Route.useLoaderData();
+  const {
+    race,
+    championship,
+    weather,
+    weatherNow,
+    news,
+    season,
+    practice,
+    consensus,
+    nextRace,
+  } = Route.useLoaderData();
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
+  const consensusSessions = (['quali', 'race'] as const).flatMap((session) => {
+    const sessionConsensus = consensus[session];
+    return sessionConsensus ? [{ session, consensus: sessionConsensus }] : [];
+  });
 
   return (
     <div className="min-h-full bg-page">
@@ -241,27 +291,32 @@ function BahrainGrandPrixPredictionsPage() {
                 <p className="gpp-mono text-sm text-text-muted">
                   02–04 Oct · Sepang · Round {race.round}
                 </p>
-                <span className="text-text-disabled" aria-hidden>
+                <span
+                  className="hidden text-text-disabled sm:inline"
+                  aria-hidden
+                >
                   ·
                 </span>
                 <RaceWriteupPhaseLabel phase={phase} />
               </div>
             </div>
             <h1 className="font-title mt-4 max-w-3xl text-4xl font-light tracking-tight text-text sm:text-5xl">
-              Bahrain Grand Prix 2026 predictions
+              2026 Bahrain Grand Prix predictions
             </h1>
             <p className="gpp-reading-copy-lg mt-5 max-w-2xl text-text-muted">
               {raceWriteupHeroSummary(
                 phase,
                 'The Bahrain Grand Prix',
-                'The Bahrain Grand Prix runs in Malaysia this year. Nobody has raced a 2026 car at Sepang, and heat and rain decide as much as pace.',
+                'Formula 1 last raced at Sepang in 2017. The 2026 cars have never run here, and this year\u2019s Bahrain Grand Prix is being held in Malaysia.',
               )}
             </p>
             <RaceWriteupActions
               phase={phase}
+              primaryActionTargetId={
+                isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined
+              }
               raceSlug={RACE_SLUG}
               venueName="Sepang"
-              signalsHeading={SIGNALS_HEADING}
             />
           </header>
 
@@ -275,31 +330,49 @@ function BahrainGrandPrixPredictionsPage() {
         </div>
 
         <WhyMalaysia />
+        {isLive ? (
+          <>
+            <WeekendNewsSection items={news.items} />
+            <WeekendPracticeSection results={practice} raceSlug={RACE_SLUG} />
+          </>
+        ) : null}
+        <SessionConsensusSections sessions={consensusSessions} />
         <NoCurrentForm />
         <WatchTable />
         <TyreChoice />
         <TripleHeader season={season} />
         {isLive ? (
-          <>
-            <WeekendNewsSection items={news.items} />
-            <WeekendPracticeSection results={practice} raceSlug={RACE_SLUG} />
-            <RaceWriteupChampionshipContext
-              championship={championship}
-              races={season.races}
-              thisRound={race.round}
-              venueName="Sepang"
-            />
-          </>
+          <RaceWriteupChampionshipContext
+            championship={championship}
+            races={season.races}
+            thisRound={race.round}
+            venueName="Sepang"
+            sourceUrl={F1_STANDINGS_SOURCE}
+          />
         ) : null}
 
         <RaceFaqSection faqs={FAQS} />
 
-        <RaceWriteupClosingPanel
-          phase={phase}
-          raceId={race._id}
-          raceSlug={RACE_SLUG}
-          venueName="Sepang"
-        />
+        {isLive ? (
+          <DeferredRaceWriteupPicks
+            phase={phase}
+            raceId={race._id}
+            round={race.round}
+            season={race.season}
+            raceSlug={RACE_SLUG}
+            venueName="Sepang"
+          />
+        ) : (
+          <>
+            <RaceWriteupClosingPanel
+              phase={phase}
+              raceId={race._id}
+              raceSlug={RACE_SLUG}
+              venueName="Sepang"
+            />
+            <RaceWriteupNextRound nextRace={nextRace} />
+          </>
+        )}
 
         <footer className="mt-10 pb-4 text-sm leading-6 text-text-muted">
           <p>
@@ -361,17 +434,17 @@ function WhyMalaysia() {
           Bahrain Grand Prix name, and Bahrain keeps the ticket pricing rights
           and the ticket revenue because it is paying the hosting fee.{' '}
           <ExternalSource href={COMMERCIAL_SOURCE}>
-            Read how the race is funded
+            Bernama on how the race is funded
           </ExternalSource>
           .{' '}
           <ExternalSource href={RELOCATION_SOURCE}>
-            Read the background
+            Sky Sports on the calendar change
           </ExternalSource>
           .
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          For your picks, only the venue matters. This is round 16 at Sepang, it
-          scores like any other round, and the circuit is nothing like Sakhir.
+          This is round 16 at Sepang. Scoring is the same as every other round.
+          The layout is two long straights and a fast middle sector.
         </p>
       </div>
       <dl className="self-start rounded-sm bg-surface-elevated px-4">
@@ -432,24 +505,22 @@ function NoCurrentForm() {
           director has said the 2017 tyre sizes are reasonably close to the
           current ones, which is the closest thing to a reference anyone has.{' '}
           <ExternalSource href={PIRELLI_DATA_SOURCE}>
-            Read how Pirelli prepared
+            How Pirelli is using 2017 data
           </ExternalSource>
           .
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          The road itself is not the one those 2017 laps were set on either,
-          quite. Dromo resurfaced the circuit in 2016 and relaid Turns 7 to 12
-          in 2023, so the middle sector is seven years newer than the rest of
-          the lap.{' '}
+          The asphalt has changed since those 2017 laps were set. Dromo
+          resurfaced the circuit in 2016 and relaid Turns 7 to 12 in 2023, so
+          the middle sector is seven years newer than the rest of the lap.{' '}
           <ExternalSource href={SURFACE_SOURCE}>
             Dromo on the work it did
           </ExternalSource>
           .
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          Practice is worth more here than at a circuit the teams visit every
-          year. Simulations built on old data are the starting point for
-          everyone, and Friday is where they get corrected.
+          Simulations built on old data are the starting point for every team.
+          Friday is the first chance to correct them.
         </p>
       </div>
     </section>
@@ -468,9 +539,9 @@ function WatchTable() {
       ]}
       signals={[
         [
-          'Aero load at speed',
+          'The middle sector',
           'Pace through the fast, constant-radius corners',
-          'Sepang is wide and quick in the middle sector. A car that carries load through long corners gains everywhere.',
+          'Sepang is wide and quick between the hairpins. A car that carries aerodynamic load through those long corners is quick across the rest of the lap.',
         ],
         [
           'Tyre management',
@@ -478,30 +549,22 @@ function WatchTable() {
           'The 2016 surface was laid for wet grip, and Turns 7 to 12 were relaid in 2023. A driver who is quick over one lap may not hold a stint together.',
         ],
         [
-          'Braking into the hairpins',
+          'The hairpins',
           'Stability at the end of both long straights',
-          'Both of the main passing places are heavy, wide stops. Cars that stop well can pass here rather than follow.',
+          'Both of the main passing places are heavy, wide stops. A car that brakes well can make a move there.',
         ],
         [
           'Heat and rain',
           'Cooling, and what happens if a tropical shower arrives',
-          'Afternoon rain is common. A wet or drying race spreads the field further than pace alone would.',
+          'Afternoon rain is common at Sepang. A wet or drying race spreads the field further than dry pace would.',
         ],
       ]}
     >
       <p className="gpp-reading-copy mt-3 text-text-muted">
         Two long straights joined by a hairpin, and a middle sector of fast,
         wide corners. Passing is easier here than at most circuits, so
-        qualifying decides less than it usually does.
-      </p>
-      {/* The one line worth keeping from the deleted "Before you lock your
-            Top 5" list: the rest of it restated this table, the form guide
-            above and the tyre section below. Afternoon rain at Sepang is a
-            durable fact about the place rather than this weekend's forecast,
-            so it belongs beside the signals and not in the live forecast. */}
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        Afternoon showers arrive quickly here, so wet-weather form this season
-        is worth weighing when you settle the back of a Top 5.
+        qualifying sets less of the Sunday order. Afternoon showers also arrive
+        quickly.
       </p>
     </RaceSignalsSection>
   );
@@ -528,13 +591,11 @@ function TyreChoice() {
         names, that Pirelli brought to the last race here.
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        Pirelli picked the middle of the range to narrow the gap between a
-        one-stop and a two-stop, which is a choice made to open up strategy
-        rather than settle it. Expect teams to disagree about the number of
-        stops, and expect that to matter more than usual on a circuit where
-        passing is possible.{' '}
+        Pirelli picked the middle of the range to keep a one-stop and a two-stop
+        close. Teams are likely to disagree about how many stops to make, and
+        that can decide a result on a circuit where passing is possible.{' '}
         <ExternalSource href={TYRE_SOURCE}>
-          Read Pirelli&rsquo;s selection
+          Pirelli&rsquo;s compound selection
         </ExternalSource>
         .
       </p>
@@ -578,8 +639,8 @@ function TripleHeader({
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Reliability and damage carry across a run like this. A car that breaks
           in Baku may take a penalty here, and a driver who struggles with the
-          heat here has Singapore a week later. Singapore is also a sprint
-          weekend, so it has four sessions to pick rather than two.
+          heat here has Singapore a week later. Singapore is a sprint weekend,
+          with four sessions instead of two.
         </p>
       </div>
 

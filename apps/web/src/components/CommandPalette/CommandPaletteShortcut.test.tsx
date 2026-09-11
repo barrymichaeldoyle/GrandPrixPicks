@@ -70,13 +70,13 @@ describe('command palette shortcut', () => {
    * loaded the runner is — a fixed count passed alone and failed inside the
    * full suite — so this waits on the condition instead.
    */
-  async function settleUntil(predicate: () => boolean, turns = 50) {
+  async function settleUntil(predicate: () => boolean, turns = 80) {
     for (let turn = 0; turn < turns; turn += 1) {
       if (predicate()) {
         return;
       }
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 16));
       });
     }
   }

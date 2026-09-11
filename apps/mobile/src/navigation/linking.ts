@@ -8,7 +8,6 @@ export const linking: LinkingOptions<RootStackParamList> = {
       SignIn: 'sign-in',
       Tabs: {
         screens: {
-          NotificationsTab: 'notifications',
           HomeTab: {
             path: 'feed',
             screens: {
@@ -23,6 +22,7 @@ export const linking: LinkingOptions<RootStackParamList> = {
               LeaderboardMain: '',
             },
           },
+          NotificationsTab: 'notifications',
           MoreTab: {
             path: 'more',
             screens: {

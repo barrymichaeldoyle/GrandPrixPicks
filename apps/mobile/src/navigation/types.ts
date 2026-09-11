@@ -21,8 +21,8 @@ export type MoreStackParamList = {
 
 export type RootTabParamList = {
   HomeTab: NavigatorScreenParams<HomeStackParamList> | undefined;
-  NotificationsTab: undefined;
   LeaderboardTab: NavigatorScreenParams<LeaderboardStackParamList> | undefined;
+  NotificationsTab: undefined;
   MoreTab: NavigatorScreenParams<MoreStackParamList> | undefined;
 };
 

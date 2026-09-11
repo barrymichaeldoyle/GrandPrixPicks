@@ -55,8 +55,8 @@ const TAB_ICONS: Record<
   React.ComponentProps<typeof Ionicons>['name']
 > = {
   HomeTab: 'home',
-  NotificationsTab: 'notifications',
   LeaderboardTab: 'trophy',
+  NotificationsTab: 'notifications',
   MoreTab: 'ellipsis-horizontal',
 };
 
@@ -174,6 +174,11 @@ function TabsNavigator() {
         options={{ title: 'Home' }}
       />
       <Tab.Screen
+        component={LeaderboardStackNavigator}
+        name="LeaderboardTab"
+        options={{ title: 'Leaderboard' }}
+      />
+      <Tab.Screen
         component={NotificationsTabScreen}
         name="NotificationsTab"
         options={{
@@ -184,11 +189,6 @@ function TabsNavigator() {
             color: colors.page,
           },
         }}
-      />
-      <Tab.Screen
-        component={LeaderboardStackNavigator}
-        name="LeaderboardTab"
-        options={{ title: 'Leaderboard' }}
       />
       <Tab.Screen
         component={MoreStackNavigator}

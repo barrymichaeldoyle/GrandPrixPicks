@@ -10,19 +10,19 @@ Scope: local backend, mobile and web implementation, installed Resend component,
 
 All seven email/push category preferences default to enabled when absent. Push still requires a registered device. Both clients expose separate category switches; there is no automatic channel selection, quiet-hours policy or overall frequency budget.
 
-| Event | Email | Push | In-app |
-| --- | --- | --- | --- |
-| No Top 5 predictions one hour after account creation | Yes, reminder preference | Yes, if registered and enabled | No corresponding reminder record |
-| 24h before first session lock, no Top 5 picks for weekend | Yes | Yes | No corresponding reminder record |
-| 24h before first lock, any Top 5 pick exists | No | Lock-approaching category | No corresponding reminder record |
-| 2h before first lock, no Top 5 picks | No | Yes | No corresponding reminder record |
-| 15 minutes after completing all Top 5 sessions, H2H incomplete | Yes | Yes | No corresponding reminder record |
-| Admin-triggered H2H reminder | Yes | No | No |
-| Session locks | No | Users with Top 5 picks in session | Yes |
-| Session scoring completes | Per-session email; includes some nonparticipants | Every enabled subscriber, regardless of participation | Participant score notifications |
-| Official results amended | No separate amendment email | No separate amendment push | Yes |
-| Reaction received | No | Per reaction | Yes, displayed in groups |
-| Announcement | No in reviewed broadcaster | No in reviewed broadcaster | Yes |
+| Event                                                          | Email                                            | Push                                                  | In-app                           |
+| -------------------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------- | -------------------------------- |
+| No Top 5 predictions one hour after account creation           | Yes, reminder preference                         | Yes, if registered and enabled                        | No corresponding reminder record |
+| 24h before first session lock, no Top 5 picks for weekend      | Yes                                              | Yes                                                   | No corresponding reminder record |
+| 24h before first lock, any Top 5 pick exists                   | No                                               | Lock-approaching category                             | No corresponding reminder record |
+| 2h before first lock, no Top 5 picks                           | No                                               | Yes                                                   | No corresponding reminder record |
+| 15 minutes after completing all Top 5 sessions, H2H incomplete | Yes                                              | Yes                                                   | No corresponding reminder record |
+| Admin-triggered H2H reminder                                   | Yes                                              | No                                                    | No                               |
+| Session locks                                                  | No                                               | Users with Top 5 picks in session                     | Yes                              |
+| Session scoring completes                                      | Per-session email; includes some nonparticipants | Every enabled subscriber, regardless of participation | Participant score notifications  |
+| Official results amended                                       | No separate amendment email                      | No separate amendment push                            | Yes                              |
+| Reaction received                                              | No                                               | Per reaction                                          | Yes, displayed in groups         |
+| Announcement                                                   | No in reviewed broadcaster                       | No in reviewed broadcaster                            | Yes                              |
 
 Sources: `apps/backend/convex/notifications.ts`, `push.ts`, `inAppNotifications.ts`, `results.ts`, `predictions.ts`, `lib/auth.ts`, `lib/notificationChannels.ts`.
 
@@ -120,17 +120,17 @@ Push roster fan-out is paginated, which is good. Email batches paginate users bu
 
 These are product recommendations, not platform requirements.
 
-| Event | Push | Email |
-| --- | --- | --- |
-| Missing picks, 24h before first relevant deadline | Preferred for users choosing mobile reminders | Alternative for email-preferring users; both only by choice |
-| Missing picks, close to lock | One actionable reminder for still-open sessions | No extra last-minute email by default |
-| All picks complete | No action reminder | None |
-| H2H incomplete | Combine with missing-picks reminder; inline prompt while active | Same reminder policy; avoid automatic double-channel 15-minute nudge |
-| Results | Short update to session participants | One useful weekend summary, separately selectable |
-| Session locked | Optional; inbox by default | None |
-| Reactions | Grouped, with cooldown; optionally silent | None |
-| Signup inactivity | One eligible channel, avoiding nearby weekend reminders | Only under the chosen reminder/engagement preference |
-| Material score correction | Notify affected participants when warranted | Include in summary; exceptional standalone email only when useful |
+| Event                                             | Push                                                            | Email                                                                |
+| ------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Missing picks, 24h before first relevant deadline | Preferred for users choosing mobile reminders                   | Alternative for email-preferring users; both only by choice          |
+| Missing picks, close to lock                      | One actionable reminder for still-open sessions                 | No extra last-minute email by default                                |
+| All picks complete                                | No action reminder                                              | None                                                                 |
+| H2H incomplete                                    | Combine with missing-picks reminder; inline prompt while active | Same reminder policy; avoid automatic double-channel 15-minute nudge |
+| Results                                           | Short update to session participants                            | One useful weekend summary, separately selectable                    |
+| Session locked                                    | Optional; inbox by default                                      | None                                                                 |
+| Reactions                                         | Grouped, with cooldown; optionally silent                       | None                                                                 |
+| Signup inactivity                                 | One eligible channel, avoiding nearby weekend reminders         | Only under the chosen reminder/engagement preference                 |
+| Material score correction                         | Notify affected participants when warranted                     | Include in summary; exceptional standalone email only when useful    |
 
 Model eligibility and delivery separately: event → relevant user → allowed channel(s) → unique delivery record → transport → receipts. Honor explicit preferences first. Track current registration health rather than treating a token's existence as permanent availability. Keep historical inbox content independently of push permission.
 

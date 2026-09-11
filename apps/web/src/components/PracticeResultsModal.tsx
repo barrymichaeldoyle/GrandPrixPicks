@@ -121,9 +121,7 @@ export function PracticeResultsModal({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby={
-          raceName ? `${raceLabelId} ${titleId}` : titleId
-        }
+        aria-labelledby={raceName ? `${raceLabelId} ${titleId}` : titleId}
         className="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-border bg-surface"
       >
         <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">

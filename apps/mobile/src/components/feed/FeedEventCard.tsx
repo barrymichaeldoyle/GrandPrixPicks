@@ -8,6 +8,7 @@ import { Avatar } from '../ui/Avatar';
 import { Card } from '../ui/Card';
 import { formatRelativeTime } from './helpers';
 import { NewsGroupCard } from './NewsGroupCard';
+import { PracticePublishedCard } from './practice-published-card';
 import { ReactionButton } from './ReactionButton';
 import type { FeedEvent } from './types';
 
@@ -251,6 +252,9 @@ export function FeedEventCard({
   onPress?: () => void;
 }) {
   const inner = (() => {
+    if (event.type === 'practice_published') {
+      return <PracticePublishedCard event={event} />;
+    }
     if (event.type === 'score_published' || event.type === 'results_amended') {
       return <ScorePublishedCard event={event} />;
     }
@@ -278,7 +282,12 @@ export function FeedEventCard({
     return null;
   })();
 
-  if (!inner || !onPress || event.type === 'race_news') {
+  if (
+    !inner ||
+    !onPress ||
+    event.type === 'race_news' ||
+    event.type === 'practice_published'
+  ) {
     return inner;
   }
   return (

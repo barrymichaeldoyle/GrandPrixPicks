@@ -554,16 +554,17 @@ type RawEvent = {
     | 'joined_league'
     | 'streak_milestone'
     | 'lineup_change'
-    | 'race_news';
+    | 'race_news'
+    | 'practice_published';
   /**
-   * Absent on `lineup_change` and `race_news`, which the site authors rather
-   * than a player.
+   * Absent on site-authored lineup changes, news and practice results.
    */
   userId?: Id<'users'>;
   username?: string;
   displayName?: string;
   avatarUrl?: string;
   raceId?: Id<'races'>;
+  practiceSessionType?: 'fp1' | 'fp2' | 'fp3';
   sessionType?: string;
   points?: number;
   previousPoints?: number;

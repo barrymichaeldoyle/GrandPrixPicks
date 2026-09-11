@@ -23,6 +23,7 @@ type H2HScore = {
 export type FeedEvent = {
   _id: ConvexId<'feedEvents'>;
   type:
+    | 'practice_published'
     | 'score_published'
     | 'results_amended'
     | 'session_locked'
@@ -30,13 +31,14 @@ export type FeedEvent = {
     | 'streak_milestone'
     | 'lineup_change'
     | 'race_news';
-  /** Absent on `lineup_change` and `race_news`: the site authors it, not a player. */
+  /** Absent on site-authored lineup changes, news and practice results. */
   userId?: ConvexId<'users'>;
   username?: string;
   displayName?: string;
   avatarUrl?: string;
   raceId?: ConvexId<'races'>;
   sessionType?: string;
+  practiceSessionType?: 'fp1' | 'fp2' | 'fp3';
   points?: number;
   raceName?: string;
   raceSlug?: string;

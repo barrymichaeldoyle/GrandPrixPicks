@@ -805,12 +805,10 @@ export default defineSchema({
       v.literal('streak_milestone'),
       v.literal('lineup_change'),
       v.literal('race_news'),
+      v.literal('practice_published'),
     ),
-    // Absent on `lineup_change` and `race_news`, which are the site talking
-    // rather than a player: a driver swap or a grid penalty happens to
-    // everyone's picks at once and belongs to no one's activity. Every other
-    // event type still has an author, and the feed's scoping treats an
-    // authorless event as visible to all.
+    // Site-authored lineup changes, news and practice results have no user.
+    // The feed shows authorless events in every player's scope.
     userId: v.optional(v.id('users')),
     // Denormalized user fields for display (avoids N+1 lookups)
     username: v.optional(v.string()),
@@ -818,6 +816,9 @@ export default defineSchema({
     avatarUrl: v.optional(v.string()),
     // score_published fields
     raceId: v.optional(v.id('races')),
+    practiceSessionType: v.optional(
+      v.union(v.literal('fp1'), v.literal('fp2'), v.literal('fp3')),
+    ),
     sessionType: v.optional(sessionType),
     points: v.optional(v.number()),
     raceName: v.optional(v.string()),

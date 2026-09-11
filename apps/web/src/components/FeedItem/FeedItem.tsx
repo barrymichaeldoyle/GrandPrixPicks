@@ -1,4 +1,5 @@
 import type { FeedEvent } from './types';
+import { PracticePublishedItem } from './PracticePublishedItem';
 import { LineupChangeItem } from './LineupChangeItem';
 import { RaceNewsItem } from './RaceNewsItem';
 import { JoinedLeagueItem, ScorePublishedItem } from './ScorePublishedItem';
@@ -50,7 +51,9 @@ export function FeedItem({
               : `border border-border/80 bg-surface p-2.5 ${radiusClass} ${borderClass}`
       }
     >
-      {event.type === 'lineup_change' ? (
+      {event.type === 'practice_published' ? (
+        <PracticePublishedItem event={event} />
+      ) : event.type === 'lineup_change' ? (
         <LineupChangeItem event={event} />
       ) : event.type === 'race_news' ? (
         <RaceNewsItem event={event} grouped={grouped} />

@@ -23,6 +23,7 @@ type H2HScore = {
 export type FeedEvent = {
   _id: Id<'feedEvents'>;
   type:
+    | 'practice_published'
     | 'score_published'
     | 'results_amended'
     | 'session_locked'
@@ -30,7 +31,7 @@ export type FeedEvent = {
     | 'streak_milestone'
     | 'race_news'
     | 'lineup_change';
-  /** Absent on `lineup_change`: the site authors it, not a player. */
+  /** Absent on site-authored lineup changes, news and practice results. */
   userId?: Id<'users'>;
   username?: string;
   displayName?: string;
@@ -38,6 +39,7 @@ export type FeedEvent = {
   // score_published
   raceId?: Id<'races'>;
   sessionType?: string;
+  practiceSessionType?: 'fp1' | 'fp2' | 'fp3';
   points?: number;
   raceName?: string;
   raceSlug?: string;

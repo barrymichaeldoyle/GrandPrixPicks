@@ -1,15 +1,20 @@
 import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { PracticeResults } from '@/lib/practiceSessions';
+
+import { useQuery } from '@/integrations/convex/query';
 
 import { WeekendPracticeSection } from './WeekendPracticeSection';
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
+
+vi.mock('@/integrations/convex/query', () => ({ useQuery: vi.fn() }));
+beforeEach(() => vi.mocked(useQuery).mockReturnValue(undefined));
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
@@ -78,9 +83,7 @@ describe('WeekendPracticeSection', () => {
     expect(view.textContent).toContain('FP2 · Driver 1 (fp2) fastest');
     expect(view.textContent).toContain('Driver 6 (fp2)');
 
-    const region = view.querySelector('[role="region"]');
-    expect(region?.getAttribute('aria-hidden')).toBe('true');
-    expect(region?.hasAttribute('inert')).toBe(true);
+    const region = view.querySelector('table[hidden]');
     expect(region?.textContent).toContain('Driver 20 (fp2)');
   });
 
@@ -144,5 +147,42 @@ describe('WeekendPracticeSection', () => {
       <WeekendPracticeSection raceSlug="italy-2026" results={[]} />,
     );
     expect(view.querySelector('[data-testid="weekend-practice"]')).toBeNull();
+  });
+  it('receives a newly published session without reloading the route', () => {
+    const view = render(
+      <WeekendPracticeSection raceSlug="madrid-2026" results={[]} />,
+    );
+    expect(view.textContent).toBe('');
+    vi.mocked(useQuery).mockReturnValue([session('fp1', 22)]);
+    act(() =>
+      root?.render(
+        <WeekendPracticeSection raceSlug="madrid-2026" results={[]} />,
+      ),
+    );
+    expect(view.textContent).toContain('FP1 · Driver 1 (fp1) fastest');
+  });
+
+  it('opens the full timing sheet and closes it with Escape', () => {
+    const view = render(
+      <WeekendPracticeSection
+        raceSlug="madrid-2026"
+        results={[session('fp1', 22)]}
+      />,
+    );
+    const trigger = view.querySelector<HTMLButtonElement>(
+      '[aria-haspopup="dialog"]',
+    )!;
+    trigger.focus();
+    act(() => trigger.click());
+    const dialog = document.querySelector('[role="dialog"]');
+    expect(dialog?.textContent).toContain('P22D22');
+    expect(dialog?.textContent).toContain('20 laps');
+    act(() =>
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+      ),
+    );
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.activeElement).toBe(trigger);
   });
 });

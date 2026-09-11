@@ -1,8 +1,8 @@
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
-import type { Id } from './_generated/dataModel';
-import type { ActionCtx, QueryCtx } from './_generated/server';
+import type { Doc, Id } from './_generated/dataModel';
+import type { ActionCtx, MutationCtx, QueryCtx } from './_generated/server';
 import {
   internalAction,
   internalMutation,
@@ -15,6 +15,7 @@ import {
   parseOpenF1Sessions,
 } from './openF1Results';
 import { getViewer } from './lib/auth';
+import { emptyReactionCounts } from './lib/reactions';
 
 const MINUTE = 60_000;
 const PRACTICE_DURATION = 60 * MINUTE;
@@ -384,6 +385,63 @@ export const getDuePracticeSessions = internalQuery({
   },
 });
 
+async function ensurePracticeFeedEvent(
+  ctx: MutationCtx,
+  raceId: Id<'races'>,
+  sessionType: PracticeSessionType,
+  publishedAt: number,
+) {
+  const race = await ctx.db.get('races', raceId);
+  if (!race) {
+    return;
+  }
+  const events = await ctx.db
+    .query('feedEvents')
+    .withIndex('by_type_season_round', (q) =>
+      q
+        .eq('type', 'practice_published')
+        .eq('season', race.season)
+        .eq('round', race.round),
+    )
+    .take(3);
+  if (events.some((event) => event.practiceSessionType === sessionType)) {
+    return;
+  }
+  await ctx.db.insert('feedEvents', {
+    type: 'practice_published',
+    raceId,
+    raceName: race.name,
+    raceSlug: race.slug,
+    season: race.season,
+    round: race.round,
+    practiceSessionType: sessionType,
+    createdAt: publishedAt,
+    revCount: 0,
+    reactionCounts: emptyReactionCounts(),
+  });
+}
+
+/** Restore missing feed announcements without re-fetching or changing results. */
+export const backfillPracticeFeedForRace = internalMutation({
+  args: { raceId: v.id('races') },
+  returns: v.null(),
+  handler: async (ctx, { raceId }) => {
+    const results: Doc<'practiceResults'>[] = await ctx.db
+      .query('practiceResults')
+      .withIndex('by_raceId_and_sessionType', (q) => q.eq('raceId', raceId))
+      .take(3);
+    for (const result of results) {
+      await ensurePracticeFeedEvent(
+        ctx,
+        raceId,
+        result.sessionType,
+        result.publishedAt,
+      );
+    }
+    return null;
+  },
+});
+
 export const upsertPracticeResult = internalMutation({
   args: {
     raceId: v.id('races'),
@@ -403,6 +461,7 @@ export const upsertPracticeResult = internalMutation({
     ),
     mode: v.union(v.literal('populate'), v.literal('reconcile')),
   },
+  returns: v.union(v.literal('created'), v.literal('updated')),
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query('practiceResults')
@@ -411,6 +470,12 @@ export const upsertPracticeResult = internalMutation({
       )
       .unique();
     const now = Date.now();
+    await ensurePracticeFeedEvent(
+      ctx,
+      args.raceId,
+      args.sessionType,
+      existing?.publishedAt ?? now,
+    );
     if (existing) {
       const recheckStage = existing.recheckStage ?? 0;
       const nextOffset = RECHECK_OFFSETS[recheckStage + 1];

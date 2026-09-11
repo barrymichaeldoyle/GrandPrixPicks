@@ -1,6 +1,6 @@
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useId, useState } from 'react';
 
+import { PracticeClassificationDialog } from '@/components/PracticeClassificationDialog';
 import { DriverBadge } from '@/components/DriverBadge';
 import { practiceGapOrLap } from '@/components/PracticeResultsCard';
 import { TabSwitch } from '@/components/TabSwitch';
@@ -50,21 +50,7 @@ function ClassificationRow({ entry }: { entry: PracticeEntry }) {
   );
 }
 
-/**
- * A weekend write-up's free practice section: one tab per published session,
- * closed on the top six, with the rest of that field disclosed in place.
- *
- * A write-up is read on Friday night as well as Saturday, and FP1 at a
- * low-drag circuit is not FP2 with different fuel and a rookie in four of the
- * cars, so every session gets a tab rather than only the newest.
- *
- * Remaining rows stay mounted while closed (height 0, `inert`, `aria-hidden`).
- * On a public write-up that is also what lets crawlers index a 22-car
- * classification rather than a six-car one.
- *
- * The dashboard's shorter block is {@link PracticeHighlights}: a scanning
- * surface wants each session's top six at once, not one field in full.
- */
+/** Published practice sessions, with a top-six preview and full timing sheet. */
 export function PracticeClassification({
   results,
   raceSlug,
@@ -78,8 +64,6 @@ export function PracticeClassification({
   const [pinnedSession, setPinnedSession] =
     useState<PracticeSessionType | null>(null);
   const headingId = useId();
-  const toggleId = useId();
-  const panelId = useId();
   const tablesId = useId();
   const tabsId = `${useId().replaceAll(':', '')}-practice-tabs`;
   const sessions = publishedPracticeSessions(results);
@@ -97,8 +81,6 @@ export function PracticeClassification({
   const sessionLabel = PRACTICE_SESSION_LABELS[selected.sessionType];
   const top = selected.entries.slice(0, PRACTICE_COLLAPSED_ROWS);
   const rest = selected.entries.slice(PRACTICE_COLLAPSED_ROWS);
-  const half = Math.ceil(rest.length / 2);
-  const restColumns = [rest.slice(0, half), rest.slice(half)];
 
   function selectSession(sessionType: PracticeSessionType) {
     setPinnedSession(sessionType);
@@ -132,78 +114,29 @@ export function PracticeClassification({
           ))}
         </tbody>
       </table>
-      {rest.length > 0 ? (
-        <>
-          <button
-            id={toggleId}
-            type="button"
-            onClick={toggleExpanded}
-            aria-expanded={expanded}
-            aria-controls={panelId}
-            className="gpp-touch-target flex w-full items-center justify-center gap-1.5 border-t border-border py-2 text-sm text-text-muted transition-colors hover:text-text pointer-coarse:min-h-11"
-          >
-            {expanded ? (
-              <>
-                <ChevronUp size={14} aria-hidden />
-                Hide full results
-              </>
-            ) : (
-              <>
-                <ChevronDown size={14} aria-hidden />
-                {`Show full results (P${PRACTICE_COLLAPSED_ROWS + 1}–P${selected.entries.length})`}
-              </>
-            )}
-          </button>
-          <div
-            id={panelId}
-            role="region"
-            aria-label={`Positions ${PRACTICE_COLLAPSED_ROWS + 1} to ${selected.entries.length}`}
-            aria-hidden={!expanded}
-            inert={!expanded}
-            className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out ${
-              expanded
-                ? 'grid-rows-[1fr] opacity-100'
-                : 'pointer-events-none grid-rows-[0fr] opacity-0'
-            }`}
-          >
-            <div className="min-h-0 overflow-hidden">
-              <div className="grid border-t border-border sm:grid-cols-2">
-                {restColumns.map((column, index) => (
-                  <table
-                    key={index}
-                    className={`w-full table-fixed ${
-                      index === 1
-                        ? 'border-t border-border sm:border-t-0 sm:border-l'
-                        : ''
-                    }`}
-                  >
-                    <caption className="sr-only">
-                      {sessionLabel} classification, remaining finishers (part{' '}
-                      {index + 1} of {restColumns.length}).
-                    </caption>
-                    <tbody>
-                      {column.map((entry) => (
-                        <ClassificationRow
-                          key={entry.driverNumber}
-                          entry={entry}
-                        />
-                      ))}
-                    </tbody>
-                  </table>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={toggleExpanded}
-                className="gpp-touch-target flex w-full items-center justify-center gap-1.5 border-t border-border py-2 text-sm text-text-muted transition-colors hover:text-text pointer-coarse:min-h-11"
-              >
-                <ChevronUp size={14} aria-hidden />
-                Hide full results
-              </button>
-            </div>
-          </div>
-        </>
-      ) : null}
+      <button
+        type="button"
+        onClick={toggleExpanded}
+        aria-haspopup="dialog"
+        className="gpp-touch-target flex min-h-11 w-full items-center justify-center border-t border-border py-2 text-sm text-text-muted hover:text-text"
+      >
+        View full results
+      </button>
+      {/* Keep the complete classification in the server-rendered article. */}
+      <table hidden>
+        <caption>{sessionLabel} classification, remaining drivers</caption>
+        <tbody>
+          {rest.map((entry) => (
+            <ClassificationRow key={entry.driverNumber} entry={entry} />
+          ))}
+        </tbody>
+      </table>
+      <PracticeClassificationDialog
+        open={expanded}
+        onClose={() => setExpanded(false)}
+        results={sessions}
+        initialSession={selected.sessionType}
+      />
     </>
   );
 

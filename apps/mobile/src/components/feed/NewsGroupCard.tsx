@@ -105,9 +105,9 @@ function RaceNewsCard({
   const teamColour = team ? getTeamColor(team) : colors.accent;
 
   return (
-    <View className="overflow-hidden px-3">
+    <View className="overflow-hidden">
       <SlantedStripe color={teamColour} reverse={reverse} />
-      <View className="min-w-0 flex-1 gap-2 py-2.5 pr-3 pl-3">
+      <View className="min-w-0 flex-1 gap-2 py-2.5 pr-3 pl-4">
         {grouped ? null : (
           <Text className="text-[10px] font-semibold tracking-wide text-accent uppercase">
             Weekend news

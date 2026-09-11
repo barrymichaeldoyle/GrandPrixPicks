@@ -21,6 +21,7 @@ import {
 } from 'react-native-gesture-handler';
 
 import { RaceRecapCard } from '../components/home/RaceRecapCard';
+import { WeekendPicksCard } from '../components/home/WeekendPicksCard';
 import { SignedOutPicksNotice } from '../components/picks/SignedOutPicksNotice';
 import { DraggableTop5 } from '../components/predict/DraggableTop5';
 import { H2HMatchupGrid } from '../components/predict/H2HMatchupGrid';
@@ -101,15 +102,15 @@ export function PicksConnectedScreen({
   );
 
   if (!convexEnabled) {
-    return <NotAvailableState />;
+    return embedded ? null : <NotAvailableState />;
   }
 
   if (weekend === undefined) {
-    return <LoadingScreen />;
+    return embedded ? null : <LoadingScreen />;
   }
 
   if (weekend === null) {
-    return <NoUpcomingRaceState />;
+    return embedded ? null : <NoUpcomingRaceState />;
   }
 
   return (
@@ -157,6 +158,13 @@ function PredictForRace({
   const [resultsSheetVisible, setResultsSheetVisible] = useState(false);
   const [viewedFormGuide, setViewedFormGuide] = useState(false);
   const [listScrollEnabled, setListScrollEnabled] = useState(true);
+  const [embeddedPicker, setEmbeddedPicker] = useState<'top5' | 'h2h' | null>(
+    null,
+  );
+  const [embeddedH2HMatchupId, setEmbeddedH2HMatchupId] = useState<
+    string | undefined
+  >();
+  const [embeddedDragging, setEmbeddedDragging] = useState(false);
 
   const submitPrediction = useMutation(api.predictions.submitPrediction);
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
@@ -252,7 +260,7 @@ function PredictForRace({
     weekendPredictions === undefined ||
     h2hPredictions === undefined
   ) {
-    return <LoadingScreen />;
+    return embedded ? null : <LoadingScreen />;
   }
 
   const drivers = driversQuery;
@@ -272,6 +280,173 @@ function PredictForRace({
   const selectedSessionIsLocked = Boolean(
     sessionLockState.find((s) => s.session === selectedSession)?.isLocked,
   );
+
+  async function saveTop5(
+    picks: string[],
+    sessionType: SessionType | undefined,
+  ) {
+    if (!isSignedIn) {
+      requireAccountToSave();
+      return;
+    }
+    const isFirstSave = !hasAnyTop5;
+    const scope = sessionType === undefined ? 'cascade' : 'session';
+    try {
+      await submitPrediction({
+        raceId: race._id,
+        picks: picks as DriverId[],
+        sessionType,
+      });
+    } catch (err) {
+      captureAnalyticsEvent(analyticsEvents.predictionSaveFailed, {
+        prediction_type: 'top5',
+        scope,
+        reason: analyticsFailureReason(err),
+      });
+      throw err;
+    }
+    celebratePicks();
+    captureAnalyticsEvent(analyticsEvents.predictionSaved, {
+      prediction_type: 'top5',
+      scope,
+      viewed_form_guide: viewedFormGuide,
+      open_sessions: sessionLockState.filter((s) => !s.isLocked).length,
+      locked_sessions: sessionLockState.filter((s) => s.isLocked).length,
+    });
+    if (isFirstSave) {
+      void maybeOfferPush();
+    }
+  }
+
+  async function saveH2H(
+    picks: Record<string, string>,
+    sessionType: SessionType | undefined,
+  ) {
+    if (!isSignedIn) {
+      requireAccountToSave();
+      return;
+    }
+    const scope = sessionType === undefined ? 'cascade' : 'session';
+    try {
+      await submitH2H({
+        raceId: race._id,
+        picks: matchups.map((m) => ({
+          matchupId: m._id,
+          predictedWinnerId: picks[m._id] as DriverId,
+        })),
+        sessionType,
+      });
+    } catch (err) {
+      captureAnalyticsEvent(analyticsEvents.predictionSaveFailed, {
+        prediction_type: 'h2h',
+        scope,
+        reason: analyticsFailureReason(err),
+      });
+      throw err;
+    }
+    celebratePicks();
+    captureAnalyticsEvent(analyticsEvents.predictionSaved, {
+      prediction_type: 'h2h',
+      scope,
+      viewed_form_guide: viewedFormGuide,
+      open_sessions: sessionLockState.filter((s) => !s.isLocked).length,
+      locked_sessions: sessionLockState.filter((s) => s.isLocked).length,
+    });
+  }
+
+  function closeEmbeddedPicker() {
+    setEmbeddedPicker(null);
+    setEmbeddedH2HMatchupId(undefined);
+  }
+
+  if (embedded) {
+    const sessionH2H = h2hPredictions?.[selectedSession] ?? {};
+    const h2hComplete =
+      matchups.length > 0 &&
+      matchups.every((matchup) => sessionH2H[matchup._id]);
+
+    return (
+      <View>
+        <WeekendPicksCard
+          drivers={drivers}
+          h2h={sessionH2H}
+          hasAnyTop5={hasAnyTop5}
+          matchups={matchups}
+          now={now}
+          onEditTop5={() => setEmbeddedPicker('top5')}
+          onFinishH2H={() => {
+            setEmbeddedH2HMatchupId(undefined);
+            setEmbeddedPicker('h2h');
+          }}
+          onMakePicks={() => setEmbeddedPicker('top5')}
+          onSelectH2H={(index) => {
+            setEmbeddedH2HMatchupId(
+              h2hComplete ? matchups[index]?._id : undefined,
+            );
+            setEmbeddedPicker('h2h');
+          }}
+          onSelectSession={(session) => {
+            void Haptics.selectionAsync();
+            setSelectedSession(session);
+          }}
+          race={race}
+          selectedSession={selectedSession}
+          sessions={capabilities.map((session) => {
+            const lock = sessionLockState.find(
+              (entry) => entry.session === session.sessionType,
+            );
+            return {
+              sessionType: session.sessionType,
+              lockAt: session.lockAt,
+              isLocked: lock?.isLocked ?? session.isLocked,
+              hasResult: session.hasResult,
+              canCreate: session.canCreate,
+              canEdit: session.canEdit,
+            };
+          })}
+          top5={predictionsBySession[selectedSession] ?? []}
+        />
+        {embeddedPicker === 'top5' ? (
+          <PickEditorModal
+            scrollEnabled={!embeddedDragging}
+            title="Your Top 5"
+            onClose={closeEmbeddedPicker}
+          >
+            <Top5Editor
+              cascadeMode={!hasAnyTop5}
+              drivers={drivers}
+              existingPicks={predictionsBySession[selectedSession] ?? []}
+              onCancel={closeEmbeddedPicker}
+              onDraggingChange={setEmbeddedDragging}
+              onSubmit={saveTop5}
+              race={race}
+              selectedLockAt={selectedLockAt}
+              selectedSession={selectedSession}
+              sessionIsLocked={selectedSessionIsLocked}
+            />
+          </PickEditorModal>
+        ) : null}
+        {embeddedPicker === 'h2h' ? (
+          <PickEditorModal
+            title="Team-mate picks"
+            onClose={closeEmbeddedPicker}
+          >
+            <H2HEditor
+              cascadeMode={!hasAnyH2H}
+              existingPicks={sessionH2H}
+              matchups={matchups}
+              onCancel={closeEmbeddedPicker}
+              onSubmit={saveH2H}
+              race={race}
+              selectedSession={selectedSession}
+              sessionIsLocked={selectedSessionIsLocked}
+              visibleMatchupId={embeddedH2HMatchupId}
+            />
+          </PickEditorModal>
+        ) : null}
+      </View>
+    );
+  }
 
   const Container = embedded ? View : ScrollView;
   return (
@@ -379,41 +554,7 @@ function PredictForRace({
               existingPicks={predictionsBySession[selectedSession] ?? []}
               onDraggingChange={(dragging) => setListScrollEnabled(!dragging)}
               sessionIsLocked={selectedSessionIsLocked}
-              onSubmit={async (picks, sessionType) => {
-                if (!isSignedIn) {
-                  requireAccountToSave();
-                  return;
-                }
-                const isFirstSave = !hasAnyTop5;
-                const scope = sessionType === undefined ? 'cascade' : 'session';
-                try {
-                  await submitPrediction({
-                    raceId: race._id,
-                    picks: picks as DriverId[],
-                    sessionType,
-                  });
-                } catch (err) {
-                  captureAnalyticsEvent(analyticsEvents.predictionSaveFailed, {
-                    prediction_type: 'top5',
-                    scope,
-                    reason: analyticsFailureReason(err),
-                  });
-                  throw err;
-                }
-                celebratePicks();
-                captureAnalyticsEvent(analyticsEvents.predictionSaved, {
-                  prediction_type: 'top5',
-                  scope,
-                  viewed_form_guide: viewedFormGuide,
-                  open_sessions: sessionLockState.filter((s) => !s.isLocked)
-                    .length,
-                  locked_sessions: sessionLockState.filter((s) => s.isLocked)
-                    .length,
-                });
-                if (isFirstSave) {
-                  void maybeOfferPush();
-                }
-              }}
+              onSubmit={saveTop5}
             />
 
             {hasAnyTop5 || matchups.length === 0 ? (
@@ -425,49 +566,7 @@ function PredictForRace({
                   race={race}
                   selectedSession={selectedSession}
                   sessionIsLocked={selectedSessionIsLocked}
-                  onSubmit={async (picks, sessionType) => {
-                    // The same guard Top 5 has. Without it the auto-save that
-                    // fires on the last matchup called the mutation for a
-                    // signed-out reader, which throws, so completing the grid
-                    // answered with a red "Save failed" toast.
-                    if (!isSignedIn) {
-                      requireAccountToSave();
-                      return;
-                    }
-                    const scope =
-                      sessionType === undefined ? 'cascade' : 'session';
-                    try {
-                      await submitH2H({
-                        raceId: race._id,
-                        picks: matchups.map((m) => ({
-                          matchupId: m._id,
-                          predictedWinnerId: picks[m._id] as DriverId,
-                        })),
-                        sessionType,
-                      });
-                    } catch (err) {
-                      captureAnalyticsEvent(
-                        analyticsEvents.predictionSaveFailed,
-                        {
-                          prediction_type: 'h2h',
-                          scope,
-                          reason: analyticsFailureReason(err),
-                        },
-                      );
-                      throw err;
-                    }
-                    celebratePicks();
-                    captureAnalyticsEvent(analyticsEvents.predictionSaved, {
-                      prediction_type: 'h2h',
-                      scope,
-                      viewed_form_guide: viewedFormGuide,
-                      open_sessions: sessionLockState.filter((s) => !s.isLocked)
-                        .length,
-                      locked_sessions: sessionLockState.filter(
-                        (s) => s.isLocked,
-                      ).length,
-                    });
-                  }}
+                  onSubmit={saveH2H}
                 />
               )
             ) : (

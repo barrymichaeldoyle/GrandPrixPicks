@@ -15,6 +15,7 @@ import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SegmentedTabs } from '../components/ui/SegmentedTabs';
+import { SlantedStripe } from '../components/ui/SlantedStripe';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { captureAnalyticsEvent } from '../lib/analytics';
@@ -606,24 +607,16 @@ function PodiumRow({
   return (
     <Pressable
       accessibilityRole="button"
-      className={`mb-2 flex-row items-center gap-2.5 overflow-hidden border border-border px-3 py-3 ${
+      className={`mb-2 flex-row items-center gap-2.5 overflow-hidden border border-border py-3 pr-3 pl-4 ${
         entry.isViewer ? 'bg-accent/10' : ''
       }`}
       disabled={!onPress}
       onPress={onPress}
     >
-      {/* A rail, not a wash. The old backdrop laid an amber-to-orange
-          diagonal gradient across the whole row, off-palette and in a
-          direction that has no gradients. Colour earns 3px here, as it does
-          for teams elsewhere. */}
-      <View
-        className="absolute inset-y-0 left-0 w-[3px]"
-        style={{
-          backgroundColor: placeColor,
-          transform: [{ skewX: '-15deg' }],
-          left: 5,
-        }}
-      />
+      {/* Podium colour in the house stripe, not a skewed 3px rule. A skew
+          leans both edges and in proportion to height; web's motif keeps the
+          outer edge flush and cants the inner edge by a fixed 5px. */}
+      <SlantedStripe color={placeColor} />
       <View className="w-[74px] flex-row items-center gap-2">
         <View
           className="h-9 w-9 items-center justify-center rounded-full"

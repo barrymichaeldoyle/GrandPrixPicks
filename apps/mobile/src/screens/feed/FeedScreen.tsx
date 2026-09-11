@@ -192,9 +192,9 @@ export function FeedScreen() {
   const groups = groupFeedEvents(allEvents);
 
   return (
-    <View className="flex-1 bg-page px-4 pt-3">
+    <View className="flex-1 bg-page">
       <FlatList
-        contentContainerClassName="gap-3 pb-6"
+        contentContainerClassName="pb-6"
         data={groups}
         keyExtractor={(group) =>
           group.kind === 'standalone'
@@ -212,23 +212,27 @@ export function FeedScreen() {
           ) : null
         }
         ListHeaderComponent={
-          <View className="gap-2">
-            {/* Above the hero for the eight hours after a race starts. The
-                hero's whole job is the next event, and a player who has just
-                watched a Grand Prix came here for the one that finished. */}
-            <RaceRecapCard className="mb-3" />
-            <HomeHero />
-            <PicksConnectedScreen embedded />
+          <View>
+            <RaceRecapCard className="mx-4 mt-3 mb-3" />
+            {isSignedIn ? (
+              <PicksConnectedScreen embedded />
+            ) : (
+              <View className="px-4 pt-3">
+                <HomeHero />
+              </View>
+            )}
             {/* No "Activity" heading over the list. The tab is Home, the rows
                 below are plainly the activity, and the web feed dropped the
                 same label. */}
             {groups.length > 0 ? null : isSignedIn ? (
-              <View className="gap-5">
+              <View className="gap-5 px-4 pt-4">
                 <HomeExplore />
                 <TopPlayersToFollow />
               </View>
             ) : (
-              <SignedOutHomePanel />
+              <View className="px-4 pt-2">
+                <SignedOutHomePanel />
+              </View>
             )}
           </View>
         }
@@ -243,31 +247,29 @@ export function FeedScreen() {
           />
         }
         renderItem={({ item }) => {
-          if (item.kind === 'standalone') {
-            return (
+          const card =
+            item.kind === 'standalone' ? (
               <FeedEventCard
                 event={item.event}
                 onPress={() => openEvent(item.event)}
               />
-            );
-          }
-          if (item.kind === 'news') {
-            return <NewsGroupCard events={item.events} />;
-          }
-          return (
-            <SessionGroupCard
-              events={item.events}
-              onPressEvent={openEvent}
-              session={
-                allSessions[item.key] ?? {
-                  raceName: item.events[0]?.raceName ?? 'Race',
-                  sessionType: item.events[0]?.sessionType ?? 'race',
-                  top5: [],
+            ) : item.kind === 'news' ? (
+              <NewsGroupCard events={item.events} />
+            ) : (
+              <SessionGroupCard
+                events={item.events}
+                onPressEvent={openEvent}
+                session={
+                  allSessions[item.key] ?? {
+                    raceName: item.events[0]?.raceName ?? 'Race',
+                    sessionType: item.events[0]?.sessionType ?? 'race',
+                    top5: [],
+                  }
                 }
-              }
-              viewerId={me?._id as ConvexId<'users'> | undefined}
-            />
-          );
+                viewerId={me?._id as ConvexId<'users'> | undefined}
+              />
+            );
+          return <View className="px-4 pt-3">{card}</View>;
         }}
         showsVerticalScrollIndicator={false}
       />

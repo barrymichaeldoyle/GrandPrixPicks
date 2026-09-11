@@ -51,7 +51,7 @@ function setPreferViewerTime(value: boolean) {
  * the viewer is already in the track's zone, where it is dropped because both
  * columns would read the same.
  */
-export function useViewerTimeZone(trackTimeZone: string): {
+function useViewerTimeZone(trackTimeZone: string): {
   resolved: boolean;
   zone: string | null;
 } {

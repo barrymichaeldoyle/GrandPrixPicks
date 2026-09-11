@@ -1,4 +1,7 @@
-import { CompactPracticeRow } from '@/components/PracticeResultsCard';
+import {
+  CompactColumns,
+  CompactPracticeRow,
+} from '@/components/PracticeResultsCard';
 import {
   latestPracticeResult,
   PRACTICE_SESSION_LABELS,
@@ -12,9 +15,7 @@ import {
 const HIGHLIGHT_ROWS = 6;
 
 function HighlightRow({ entry }: { entry: PracticeResult['entries'][number] }) {
-  return (
-    <CompactPracticeRow entry={entry} size="md" showNumber fill="sunken" />
-  );
+  return <CompactPracticeRow entry={entry} size="md" fill="sunken" />;
 }
 
 function SessionColumn({
@@ -38,7 +39,6 @@ function SessionColumn({
     span ? 'sm:col-span-2' : '',
   ].join(' ');
   const top = result.entries.slice(0, HIGHLIGHT_ROWS);
-  const split = Math.ceil(top.length / 2);
   const rows = labelled ? (
     <div className="divide-y divide-border">
       {top.map((entry) => (
@@ -48,18 +48,11 @@ function SessionColumn({
   ) : (
     // One session, full width: the compact row is a badge and a time, which
     // is a two-column list, not a six-row empty middle.
-    <div className="grid grid-cols-2">
-      <div className="divide-y divide-border">
-        {top.slice(0, split).map((entry) => (
-          <HighlightRow key={entry.driverNumber} entry={entry} />
-        ))}
-      </div>
-      <div className="divide-y divide-border border-l border-border">
-        {top.slice(split).map((entry) => (
-          <HighlightRow key={entry.driverNumber} entry={entry} />
-        ))}
-      </div>
-    </div>
+    <CompactColumns
+      entries={top}
+      getKey={(entry) => entry.driverNumber}
+      renderRow={(entry) => <HighlightRow entry={entry} />}
+    />
   );
   return (
     <div className={dividers}>

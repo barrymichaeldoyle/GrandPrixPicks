@@ -333,7 +333,11 @@ function BahrainGrandPrixPredictionsPage() {
         {isLive ? (
           <>
             <WeekendNewsSection items={news.items} />
-            <WeekendPracticeSection results={practice} raceSlug={RACE_SLUG} />
+            <WeekendPracticeSection
+              results={practice}
+              raceSlug={RACE_SLUG}
+              schedule={race}
+            />
           </>
         ) : null}
         <SessionConsensusSections sessions={consensusSessions} />

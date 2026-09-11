@@ -67,7 +67,18 @@ type Story = StoryObj;
 export const Writeup: Story = {
   render: () => (
     <div className="mx-auto max-w-3xl">
-      <PracticeClassification results={results} raceSlug="madrid-2026" />
+      <PracticeClassification
+        results={results}
+        raceSlug="madrid-2026"
+        schedule={{
+          raceStartAt: Date.parse('2026-09-13T13:00:00Z'),
+          fp1StartAt: Date.parse('2026-09-11T11:30:00Z'),
+          fp2StartAt: Date.parse('2026-09-11T15:00:00Z'),
+          fp3StartAt: Date.parse('2026-09-12T10:30:00Z'),
+          qualiStartAt: Date.parse('2026-09-12T14:00:00Z'),
+          name: 'Spanish Grand Prix',
+        }}
+      />
     </div>
   ),
 };

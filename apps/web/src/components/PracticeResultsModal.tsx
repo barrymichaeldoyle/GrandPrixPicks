@@ -2,13 +2,18 @@ import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { useQuery } from '@/integrations/convex/query';
 import { BarChart3, X } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Button } from '@/components/Button/Button';
-import { PracticeResultsPanel } from '@/components/PracticeResultsCard';
+import { Flag } from '@/components/Flag';
+import {
+  PracticeResultsPanel,
+  resultsSheetHeading,
+} from '@/components/PracticeResultsCard';
 import { useModalDialog } from '@/hooks/useModalDialog';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
 import type { SessionType } from '@/lib/sessions';
 
 type CompetitiveSessionType = 'sprint_quali' | 'sprint' | 'quali';
@@ -37,6 +42,7 @@ export function PracticeResultsModal({
   onClose,
   raceId,
   raceSlug,
+  raceName,
   predictionSession,
   hasSprint,
 }: {
@@ -44,9 +50,12 @@ export function PracticeResultsModal({
   onClose: () => void;
   raceId: Id<'races'>;
   raceSlug: string;
+  raceName?: string;
   predictionSession: SessionType;
   hasSprint: boolean;
 }) {
+  const titleId = useId();
+  const raceLabelId = `${titleId}-race`;
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useModalDialog<HTMLDivElement>({
     open,
@@ -92,6 +101,9 @@ export function PracticeResultsModal({
     });
   }, [hasSprint, open, predictionSession, raceId, raceSlug]);
 
+  const [heading, setHeading] = useState('Session results');
+  const countryCode = getCountryCodeForRace({ slug: raceSlug });
+
   if (!open) {
     return null;
   }
@@ -109,16 +121,26 @@ export function PracticeResultsModal({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="practice-results-title"
-        className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-border bg-surface"
+        aria-labelledby={
+          raceName ? `${raceLabelId} ${titleId}` : titleId
+        }
+        className="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-border bg-surface"
       >
         <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
-          <div>
+          <div className="min-w-0">
+            {raceName ? (
+              <p id={raceLabelId} className="flex items-center gap-1.5">
+                {countryCode ? <Flag code={countryCode} size="xs" /> : null}
+                <span className="gpp-mono text-[11px] text-text-muted">
+                  {raceName}
+                </span>
+              </p>
+            ) : null}
             <h2
-              id="practice-results-title"
-              className="text-lg font-semibold text-text"
+              id={titleId}
+              className={`font-title text-lg font-medium text-text ${raceName ? 'mt-0.5' : ''}`}
             >
-              Session Results
+              {heading}
             </h2>
           </div>
           <button
@@ -142,6 +164,10 @@ export function PracticeResultsModal({
           ) : (
             <PracticeResultsPanel
               results={results}
+              layout="compact"
+              onSessionChange={(session) =>
+                setHeading(resultsSheetHeading(session))
+              }
               competitiveResults={{
                 sprint_quali: sprintQualifyingResult ?? undefined,
                 sprint: sprintResult ?? undefined,

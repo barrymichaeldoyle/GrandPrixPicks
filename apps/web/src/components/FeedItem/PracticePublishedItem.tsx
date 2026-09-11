@@ -26,12 +26,7 @@ export function PracticePublishedItem({ event }: { event: FeedEvent }) {
           <ol className="divide-y divide-border">
             {result.entries.slice(0, 6).map((entry) => (
               <li key={entry.driverNumber}>
-                <CompactPracticeRow
-                  entry={entry}
-                  size="md"
-                  showNumber
-                  fill="sunken"
-                />
+                <CompactPracticeRow entry={entry} size="md" fill="sunken" />
               </li>
             ))}
           </ol>
@@ -48,6 +43,8 @@ export function PracticePublishedItem({ event }: { event: FeedEvent }) {
             onClose={() => setOpen(false)}
             results={results ?? []}
             initialSession={result.sessionType}
+            raceName={event.raceName}
+            raceSlug={event.raceSlug}
           />
         </>
       ) : (

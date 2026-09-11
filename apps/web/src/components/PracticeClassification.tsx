@@ -1,19 +1,29 @@
+import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import { useId, useState } from 'react';
 
 import { PracticeClassificationDialog } from '@/components/PracticeClassificationDialog';
 import { DriverBadge } from '@/components/DriverBadge';
-import { practiceGapOrLap } from '@/components/PracticeResultsCard';
+import {
+  CompactColumns,
+  CompactPracticeRow,
+  practiceGapOrLap,
+} from '@/components/PracticeResultsCard';
 import { TabSwitch } from '@/components/TabSwitch';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { formatSessionClockTime, useMinuteCountdown } from '@/lib/date';
 import {
   latestPracticeResult,
+  nextTrackSession,
   PRACTICE_SESSION_LABELS,
   practiceSessionFact,
   publishedPracticeSessions,
   type PracticeResult,
   type PracticeResults,
   type PracticeSessionType,
+  type TrackSessionSchedule,
 } from '@/lib/practiceSessions';
+import { useSessionTimeView } from '@/lib/sessionTimeView';
+import { useNow } from '@/lib/testing/now';
 
 type PracticeEntry = PracticeResult['entries'][number];
 
@@ -50,13 +60,63 @@ function ClassificationRow({ entry }: { entry: PracticeEntry }) {
   );
 }
 
+function NextSessionNote({
+  schedule,
+  published,
+  raceSlug,
+}: {
+  schedule: TrackSessionSchedule | undefined;
+  published: readonly PracticeSessionType[];
+  raceSlug: string;
+}) {
+  const now = useNow();
+  const next = nextTrackSession(schedule, published, now);
+  const trackTimeZone = getCircuitForRace(raceSlug)?.timeZone;
+  const { activeTimeZone } = useSessionTimeView(trackTimeZone ?? 'UTC');
+  const countdown = useMinuteCountdown(next?.startAt ?? 0);
+  if (!next?.practiceSession) {
+    return null;
+  }
+  const clock = trackTimeZone
+    ? formatSessionClockTime(next.startAt, activeTimeZone)
+    : null;
+  const live = next.status === 'live' || countdown === 'Started';
+  const spoken = live
+    ? `${next.label} is underway`
+    : clock
+      ? `${next.label} ${clock} in ${countdown}`
+      : `${next.label} in ${countdown}`;
+  return (
+    <div
+      aria-label={spoken}
+      className="gpp-stripe mt-3 overflow-hidden rounded-sm border border-border bg-surface px-4 py-3"
+    >
+      <p className="flex items-baseline justify-between gap-3">
+        <span className="flex min-w-0 items-baseline gap-2">
+          <span className="font-title text-base font-medium text-text">
+            {next.label}
+          </span>
+          {clock ? (
+            <span className="gpp-mono text-xs text-text-muted">{clock}</span>
+          ) : null}
+        </span>
+        <span className="gpp-mono shrink-0 text-sm font-semibold text-text">
+          {live ? 'Underway' : countdown}
+        </span>
+      </p>
+    </div>
+  );
+}
+
 /** Published practice sessions, with a top-six preview and full timing sheet. */
 export function PracticeClassification({
   results,
   raceSlug,
+  schedule,
 }: {
   results: PracticeResults | undefined;
   raceSlug: string;
+  schedule?: TrackSessionSchedule;
 }) {
   const [expanded, setExpanded] = useState(false);
   // `null` follows the newest session, so a page left open on the default tab
@@ -80,7 +140,6 @@ export function PracticeClassification({
 
   const sessionLabel = PRACTICE_SESSION_LABELS[selected.sessionType];
   const top = selected.entries.slice(0, PRACTICE_COLLAPSED_ROWS);
-  const rest = selected.entries.slice(PRACTICE_COLLAPSED_ROWS);
 
   function selectSession(sessionType: PracticeSessionType) {
     setPinnedSession(sessionType);
@@ -104,16 +163,13 @@ export function PracticeClassification({
 
   const tables = (
     <>
-      <table className="w-full table-fixed">
-        <caption className="sr-only">
-          {sessionLabel} classification, positions 1 to {top.length}.
-        </caption>
-        <tbody>
-          {top.map((entry) => (
-            <ClassificationRow key={entry.driverNumber} entry={entry} />
-          ))}
-        </tbody>
-      </table>
+      <CompactColumns
+        entries={top}
+        getKey={(entry) => entry.driverNumber}
+        renderRow={(entry) => (
+          <CompactPracticeRow entry={entry} size="md" fill="sunken" />
+        )}
+      />
       <button
         type="button"
         onClick={toggleExpanded}
@@ -124,9 +180,9 @@ export function PracticeClassification({
       </button>
       {/* Keep the complete classification in the server-rendered article. */}
       <table hidden>
-        <caption>{sessionLabel} classification, remaining drivers</caption>
+        <caption>{sessionLabel} classification</caption>
         <tbody>
-          {rest.map((entry) => (
+          {selected.entries.map((entry) => (
             <ClassificationRow key={entry.driverNumber} entry={entry} />
           ))}
         </tbody>
@@ -136,6 +192,8 @@ export function PracticeClassification({
         onClose={() => setExpanded(false)}
         results={sessions}
         initialSession={selected.sessionType}
+        raceName={schedule?.name}
+        raceSlug={raceSlug}
       />
     </>
   );
@@ -155,33 +213,40 @@ export function PracticeClassification({
       <p className="mt-2 text-sm font-semibold text-text">
         {practiceSessionFact(selected)}
       </p>
-      <div className="mt-7 overflow-hidden rounded-sm border border-border bg-surface">
-        {showTabs ? (
-          <div className="border-b border-border p-2">
-            <TabSwitch
-              value={selected.sessionType}
-              onChange={selectSession}
-              options={sessions.map((session) => ({
-                value: session.sessionType,
-                label: PRACTICE_SESSION_LABELS[session.sessionType],
-              }))}
-              className="flex gap-1"
-              buttonClassName="flex-1"
-              ariaLabel="Free practice session"
-              id={tabsId}
-              panelId={tablesId}
-            />
+      <div className="mt-7">
+        <div className="overflow-hidden rounded-sm border border-border bg-surface">
+          {showTabs ? (
+            <div className="border-b border-border p-2">
+              <TabSwitch
+                value={selected.sessionType}
+                onChange={selectSession}
+                options={sessions.map((session) => ({
+                  value: session.sessionType,
+                  label: PRACTICE_SESSION_LABELS[session.sessionType],
+                }))}
+                className="flex gap-1"
+                buttonClassName="flex-1"
+                ariaLabel="Free practice session"
+                id={tabsId}
+                panelId={tablesId}
+              />
+            </div>
+          ) : null}
+          <div
+            id={tablesId}
+            role={showTabs ? 'tabpanel' : undefined}
+            aria-labelledby={
+              showTabs ? `${tabsId}-${selected.sessionType}` : undefined
+            }
+          >
+            {tables}
           </div>
-        ) : null}
-        <div
-          id={tablesId}
-          role={showTabs ? 'tabpanel' : undefined}
-          aria-labelledby={
-            showTabs ? `${tabsId}-${selected.sessionType}` : undefined
-          }
-        >
-          {tables}
         </div>
+        <NextSessionNote
+          schedule={schedule}
+          published={sessions.map((session) => session.sessionType)}
+          raceSlug={raceSlug}
+        />
       </div>
     </section>
   );

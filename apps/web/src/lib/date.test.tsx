@@ -10,8 +10,10 @@ import {
   formatDateTime,
   formatInTimeZone,
   formatMonthDay,
+  formatSessionClockTime,
   formatTime,
   useCountdown,
+  useMinuteCountdown,
 } from './date';
 
 (
@@ -92,6 +94,61 @@ describe('useCountdown', () => {
       expect(getLatest()).toBe('05h 06m 07s');
       unmount();
     });
+  });
+});
+
+function renderUseMinuteCountdown(timestamp: number) {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const root: Root = createRoot(container);
+  let latest: string | null = null;
+
+  function TestHarness() {
+    const value = useMinuteCountdown(timestamp);
+    useEffect(() => {
+      latest = value;
+    }, [value]);
+    return null;
+  }
+
+  act(() => {
+    root.render(<TestHarness />);
+  });
+
+  return {
+    getLatest: () => latest,
+    unmount: () => {
+      act(() => {
+        root.unmount();
+      });
+      container.remove();
+    },
+  };
+}
+
+describe('useMinuteCountdown', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('omits seconds under a day', () => {
+    withMockedNow(10_000, () => {
+      const target = 10_000 + (5 * 60 * 60 + 6 * 60 + 7) * 1_000;
+      const { getLatest, unmount } = renderUseMinuteCountdown(target);
+      expect(getLatest()).toBe('05h 06m');
+      unmount();
+    });
+  });
+});
+
+describe('formatSessionClockTime', () => {
+  it('prints weekday and clock in the named zone', () => {
+    expect(
+      formatSessionClockTime(
+        Date.parse('2026-09-11T15:00:00Z'),
+        'Europe/Madrid',
+      ),
+    ).toBe('Fri 17:00');
   });
 });
 

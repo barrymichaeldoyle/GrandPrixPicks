@@ -2,7 +2,10 @@ import { api } from '@convex-generated/api';
 import { useQuery } from '@/integrations/convex/query';
 
 import { PracticeClassification } from '@/components/PracticeClassification';
-import type { PracticeResults } from '@/lib/practiceSessions';
+import type {
+  PracticeResults,
+  TrackSessionSchedule,
+} from '@/lib/practiceSessions';
 
 /**
  * The weekend write-up's practice classification, named for where it sits.
@@ -14,9 +17,11 @@ import type { PracticeResults } from '@/lib/practiceSessions';
 export function WeekendPracticeSection({
   results,
   raceSlug,
+  schedule,
 }: {
   results: PracticeResults;
   raceSlug: string;
+  schedule?: TrackSessionSchedule;
 }) {
   const liveResults = useQuery(
     api.practiceResults.getPracticeResultsForRaceSlug,
@@ -26,6 +31,7 @@ export function WeekendPracticeSection({
     <PracticeClassification
       results={liveResults ?? results}
       raceSlug={raceSlug}
+      schedule={schedule}
     />
   );
 }

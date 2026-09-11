@@ -654,6 +654,7 @@ export function RaceEventPage({
         onClose={() => setShowPracticeResults(false)}
         raceId={race._id}
         raceSlug={race.slug}
+        raceName={race.name}
         predictionSession={top5OverlaySession ?? selectedSession}
         hasSprint={Boolean(race.hasSprint)}
       />

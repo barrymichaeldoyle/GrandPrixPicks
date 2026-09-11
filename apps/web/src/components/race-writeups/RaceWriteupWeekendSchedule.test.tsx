@@ -4,6 +4,8 @@ import { createRoot } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { resetSessionTimeView } from '@/lib/sessionTimeView';
+
 import { RaceWriteupWeekendSchedule } from './RaceWriteupWeekendSchedule';
 
 (
@@ -89,6 +91,7 @@ describe('RaceWriteupWeekendSchedule', () => {
       container?.remove();
       container = null;
       root = null;
+      resetSessionTimeView();
     });
 
     function render(timeZone: string) {

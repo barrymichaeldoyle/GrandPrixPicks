@@ -411,7 +411,11 @@ function MadridGrandPrixPredictionsPage() {
         {isLive ? (
           <>
             <WeekendNewsSection items={news.items} />
-            <WeekendPracticeSection results={practice} raceSlug={RACE_SLUG} />
+            <WeekendPracticeSection
+              results={practice}
+              raceSlug={RACE_SLUG}
+              schedule={race}
+            />
           </>
         ) : null}
         {/* Not gated on the phase. It appears session by session as each one

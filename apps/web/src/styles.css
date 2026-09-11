@@ -470,6 +470,56 @@
     pointer-events: none;
   }
 
+  /*
+   * The same motif as a gutter between two equal columns.
+   *
+   * A hairline down the middle of a 22-car sheet does not split anything: two
+   * 11-row stacks just look like one list that wrapped. This is the house
+   * stripe relocated to the thing that matters here — the cut between P1–P11
+   * and P12–P22 — not a second stripe on a container that already has one.
+   *
+   * One 13px wedge down the full height was a slab, not a stripe. So the bar
+   * is the usual 3px-plus-lean, and the cant flips at the midpoint the way
+   * `.gpp-lean-run` flips stacked cards: thick at the top, thin at the join,
+   * thick again at the bottom. The lean is still the fixed `--stripe-lean`,
+   * so a tall classification does not shear the bar across the times.
+   */
+  .gpp-column-split {
+    position: relative;
+    width: calc(var(--stripe-width) + var(--stripe-lean));
+    pointer-events: none;
+  }
+
+  .gpp-column-split::before,
+  .gpp-column-split::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: var(--accent);
+  }
+
+  .gpp-column-split::before {
+    top: 0;
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      calc(100% - var(--stripe-lean)) 100%,
+      0 100%
+    );
+  }
+
+  .gpp-column-split::after {
+    bottom: 0;
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--stripe-lean)) 0,
+      100% 100%,
+      0 100%
+    );
+  }
+
   /* Team colour appears in exactly two forms: this 3px full-height edge bar on a
      driver row or chip, and a 5px dot before a team name. Never a background,
      never text colour, never a card border. Ten teams in one list stays calm

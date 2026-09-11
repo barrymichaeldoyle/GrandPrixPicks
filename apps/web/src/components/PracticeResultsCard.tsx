@@ -4,7 +4,9 @@ import type { FunctionReturnType } from 'convex/server';
 import { useQuery } from '@/integrations/convex/query';
 import { ChevronDown } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+import { practiceResultsHeading } from '@/lib/practiceSessions';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { TabSwitch } from '@/components/TabSwitch';
@@ -32,6 +34,13 @@ const RESULTS_TAB_LABELS: Record<ResultsTab, string> = {
   sprint: 'Sprint',
   quali: 'Quali',
 };
+
+export function resultsSheetHeading(session: ResultsTab): string {
+  if (session === 'fp1' || session === 'fp2' || session === 'fp3') {
+    return practiceResultsHeading(session);
+  }
+  return `${RESULTS_TAB_LABELS[session]} results`;
+}
 
 function formatLap(seconds?: number) {
   if (seconds === undefined) {
@@ -69,16 +78,14 @@ function splitIntoColumns<T>(entries: T[]): [T[], T[]] {
 export function CompactPracticeRow({
   entry,
   size = 'sm',
-  showNumber = false,
   fill = 'elevated',
 }: {
   entry: PracticeResult['entries'][number];
   size?: 'sm' | 'md';
-  showNumber?: boolean;
   fill?: 'elevated' | 'sunken';
 }) {
   return (
-    <div className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 px-3 py-1.5">
+    <div className="grid grid-cols-[1.75rem_auto_minmax(4.5rem,1fr)] items-center gap-1.5 px-2 py-1.5 sm:gap-2 sm:px-3">
       <span className="gpp-mono text-xs font-semibold text-text-muted">
         P{entry.position}
       </span>
@@ -91,12 +98,11 @@ export function CompactPracticeRow({
           team={entry.team ?? undefined}
           number={entry.driverNumber}
           size={size}
-          showNumber={showNumber}
           fill={fill}
           prerenderTooltip={false}
         />
       </span>
-      <span className="gpp-mono text-right text-xs font-semibold text-text">
+      <span className="gpp-mono min-w-0 text-right text-xs font-semibold whitespace-nowrap text-text">
         {practiceGapOrLap(entry)}
       </span>
     </div>
@@ -132,11 +138,13 @@ function CompactCompetitiveRow({
 }
 
 /**
- * Two columns from `sm` up, one below it. The divider between them is a border
- * on the second column rather than a `divide-x` on the wrapper, so it does not
- * appear when the columns stack.
+ * Two columns, top-to-bottom in order (P1..P11 | P12..P22). Always two
+ * columns: a 22-row sheet that stacked on a phone was the scroll this exists
+ * to avoid, and a compact row already fits in half of a 390px card. The cut
+ * between them is the house stripe, not a hairline — a 1px rule did not split
+ * two 11-row stacks.
  */
-function CompactColumns<T>({
+export function CompactColumns<T>({
   entries,
   getKey,
   renderRow,
@@ -146,18 +154,30 @@ function CompactColumns<T>({
   renderRow: (entry: T) => ReactNode;
 }) {
   const [left, right] = splitIntoColumns(entries);
+  const split = right.length > 0;
   return (
-    <div className="grid sm:grid-cols-2">
-      <div className="divide-y divide-border">
+    <div
+      className={
+        split ? 'grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]' : undefined
+      }
+    >
+      <div
+        className={
+          split ? 'divide-y divide-border pr-2' : 'divide-y divide-border'
+        }
+      >
         {left.map((entry) => (
           <div key={getKey(entry)}>{renderRow(entry)}</div>
         ))}
       </div>
-      <div className="divide-y divide-border border-t border-border sm:border-t-0 sm:border-l">
-        {right.map((entry) => (
-          <div key={getKey(entry)}>{renderRow(entry)}</div>
-        ))}
-      </div>
+      {split ? <div className="gpp-column-split" aria-hidden /> : null}
+      {split ? (
+        <div className="divide-y divide-border pl-2">
+          {right.map((entry) => (
+            <div key={getKey(entry)}>{renderRow(entry)}</div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -209,6 +229,7 @@ export function PracticeResultsPanel({
   initialSession,
   competitiveResults,
   layout = 'full',
+  onSessionChange,
 }: {
   results: PracticeResult[];
   initialSession?: ResultsTab;
@@ -222,6 +243,7 @@ export function PracticeResultsPanel({
    * the sheet sits below the picks as reference rather than as the headline.
    */
   layout?: 'full' | 'compact';
+  onSessionChange?: (session: ResultsTab) => void;
 }) {
   const practiceSessions = (['fp1', 'fp2', 'fp3'] as const).filter(
     (sessionType) =>
@@ -240,6 +262,10 @@ export function PracticeResultsPanel({
   const selectedSession = availableSessions.includes(selectedSessionState)
     ? selectedSessionState
     : (availableSessions[0] ?? 'fp1');
+
+  useEffect(() => {
+    onSessionChange?.(selectedSession);
+  }, [onSessionChange, selectedSession]);
 
   const selectedPractice = results.find(
     (result) => result.sessionType === selectedSession,
@@ -319,7 +345,9 @@ export function PracticeResultsPanel({
           <CompactColumns
             entries={selectedPractice.entries}
             getKey={(entry) => entry.driverNumber}
-            renderRow={(entry) => <CompactPracticeRow entry={entry} />}
+            renderRow={(entry) => (
+              <CompactPracticeRow entry={entry} size="md" fill="sunken" />
+            )}
           />
         ) : (
           <PracticeResultsTable result={selectedPractice} />

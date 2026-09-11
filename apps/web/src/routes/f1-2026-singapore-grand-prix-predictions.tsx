@@ -255,7 +255,11 @@ function SingaporeGrandPrixPredictionsPage() {
         {isLive ? (
           <>
             <WeekendNewsSection items={news.items} />
-            <WeekendPracticeSection results={practice} raceSlug={RACE_SLUG} />
+            <WeekendPracticeSection
+              results={practice}
+              raceSlug={RACE_SLUG}
+              schedule={race}
+            />
             <RaceWriteupChampionshipContext
               championship={championship}
               races={season.races}

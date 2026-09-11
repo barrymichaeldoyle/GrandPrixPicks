@@ -160,6 +160,20 @@ export function formatTimeZoneAbbreviation(
   }
 }
 
+/** "Fri 17:00" — weekday and clock. The card around it names the zone. */
+export function formatSessionClockTime(
+  timestamp: number,
+  timeZone: string,
+): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone,
+  }).format(timestamp);
+}
+
 /** Zero-padded countdown, omitting seconds while at least one day remains. */
 function getTimeUntil(timestamp: number): string {
   const parts = getCountdownParts(timestamp - Date.now());
@@ -194,4 +208,40 @@ export function useCountdown(timestamp: number): string {
   }, [timestamp]);
 
   return label;
+}
+
+/**
+ * Minute precision, on a 30s tick.
+ *
+ * Seconds on an editorial page are the only motion in the block, and they pull
+ * the eye off the classification the countdown is sitting under.
+ */
+export function useMinuteCountdown(timestamp: number): string {
+  const [label, setLabel] = useState(() => formatMinutesUntil(timestamp));
+
+  useEffect(() => {
+    function tick() {
+      setLabel(formatMinutesUntil(timestamp));
+    }
+    tick();
+    const id = setInterval(tick, 30_000);
+    return () => clearInterval(id);
+  }, [timestamp]);
+
+  return label;
+}
+
+function formatMinutesUntil(timestamp: number): string {
+  const remaining = timestamp - Date.now();
+  if (remaining <= 0) {
+    return 'Started';
+  }
+  const totalMinutes = Math.floor(remaining / 60_000);
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+  const pad = (value: number) => value.toString().padStart(2, '0');
+  return days > 0
+    ? `${pad(days)}d ${pad(hours)}h ${pad(minutes)}m`
+    : `${pad(hours)}h ${pad(minutes)}m`;
 }

@@ -531,7 +531,11 @@ function ItalianGrandPrixPredictionsPage() {
           <>
             <WeekendNewsSection items={news.items} />
             <MonzaSeats byCode={driversByCode} />
-            <WeekendPracticeSection results={practice} raceSlug={RACE_SLUG} />
+            <WeekendPracticeSection
+              results={practice}
+              raceSlug={RACE_SLUG}
+              schedule={race}
+            />
           </>
         ) : null}
         <WatchTable />

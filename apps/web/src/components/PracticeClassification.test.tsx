@@ -7,6 +7,8 @@ import type { PracticeResults } from '@/lib/practiceSessions';
 
 import { useQuery } from '@/integrations/convex/query';
 
+import { resetSessionTimeView } from '@/lib/sessionTimeView';
+
 import { WeekendPracticeSection } from './WeekendPracticeSection';
 
 (
@@ -65,6 +67,7 @@ afterEach(() => {
   container?.remove();
   container = null;
   root = null;
+  resetSessionTimeView();
 });
 
 describe('WeekendPracticeSection', () => {
@@ -81,7 +84,7 @@ describe('WeekendPracticeSection', () => {
     ).not.toBeNull();
     expect(view.querySelector('h2')?.textContent).toBe('Free practice');
     expect(view.textContent).toContain('FP2 · Driver 1 (fp2) fastest');
-    expect(view.textContent).toContain('Driver 6 (fp2)');
+    expect(view.textContent).toContain('D06');
 
     const region = view.querySelector('table[hidden]');
     expect(region?.textContent).toContain('Driver 20 (fp2)');
@@ -148,6 +151,53 @@ describe('WeekendPracticeSection', () => {
     );
     expect(view.querySelector('[data-testid="weekend-practice"]')).toBeNull();
   });
+
+  it('counts down to the next session', () => {
+    const hour = 60 * 60 * 1000;
+    const now = Date.now();
+    const view = render(
+      <WeekendPracticeSection
+        raceSlug="madrid-2026"
+        results={[session('fp1', 20)]}
+        schedule={{
+          raceStartAt: now + 48 * hour,
+          fp1StartAt: now - 4 * hour,
+          fp2StartAt: now + 2 * hour,
+          qualiStartAt: now + 24 * hour,
+        }}
+      />,
+    );
+    expect(view.textContent).toContain('FP2');
+    const body = view.textContent ?? '';
+    expect(body.indexOf('View full results')).toBeGreaterThan(-1);
+    expect(body.indexOf('View full results')).toBeLessThan(body.indexOf('FP2'));
+    expect(body).toMatch(/FP2[\s\S]*\d{2}h \d{2}m/);
+    expect(body).toMatch(/\d{2}:\d{2}/);
+    expect(body).not.toMatch(/\d{2}h \d{2}m \d{2}s/);
+  });
+
+  it('says the next session is underway once it has started', () => {
+    const hour = 60 * 60 * 1000;
+    const now = Date.now();
+    const view = render(
+      <WeekendPracticeSection
+        raceSlug="madrid-2026"
+        results={[session('fp1', 20)]}
+        schedule={{
+          raceStartAt: now + 48 * hour,
+          fp1StartAt: now - 4 * hour,
+          fp2StartAt: now - 10 * 60 * 1000,
+          qualiStartAt: now + 24 * hour,
+        }}
+      />,
+    );
+    expect(view.textContent).toContain('Underway');
+    const body = view.textContent ?? '';
+    expect(body.indexOf('View full results')).toBeLessThan(
+      body.indexOf('Underway'),
+    );
+    expect(body).toMatch(/\d{2}:\d{2}/);
+  });
   it('receives a newly published session without reloading the route', () => {
     const view = render(
       <WeekendPracticeSection raceSlug="madrid-2026" results={[]} />,
@@ -167,6 +217,7 @@ describe('WeekendPracticeSection', () => {
       <WeekendPracticeSection
         raceSlug="madrid-2026"
         results={[session('fp1', 22)]}
+        schedule={{ name: 'Spanish Grand Prix', raceStartAt: 1 }}
       />,
     );
     const trigger = view.querySelector<HTMLButtonElement>(
@@ -175,8 +226,13 @@ describe('WeekendPracticeSection', () => {
     trigger.focus();
     act(() => trigger.click());
     const dialog = document.querySelector('[role="dialog"]');
-    expect(dialog?.textContent).toContain('P22D22');
-    expect(dialog?.textContent).toContain('20 laps');
+    expect(dialog?.textContent).toContain('Spanish Grand Prix');
+    expect(dialog?.textContent).toContain('Free Practice 1 results');
+    expect(dialog?.querySelector('img.gpp-flag')?.getAttribute('src')).toBe(
+      '/flags/es.svg',
+    );
+    expect(dialog?.textContent).toContain('P22');
+    expect(dialog?.textContent).toContain('D22');
     act(() =>
       document.dispatchEvent(
         new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),

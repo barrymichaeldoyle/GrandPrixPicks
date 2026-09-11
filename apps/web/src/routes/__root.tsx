@@ -38,6 +38,7 @@ import {
 import {
   fetchInitialAuth,
   InitialAuthProvider,
+  type InitialAuth,
 } from '@/integrations/clerk/initial-auth';
 import { isClerkFreeRoute } from '@/integrations/clerk/clerk-free-routes';
 import { preloadClerkRuntime } from '@/integrations/clerk/preload';
@@ -106,6 +107,25 @@ interface MyRouterContext {
   queryClient: QueryClient;
 }
 
+type RootLoaderData = {
+  initialAuth: InitialAuth;
+  weekendRace: { slug: string } | null;
+};
+
+async function loadWeekendRace(
+  queryClient: QueryClient,
+): Promise<RootLoaderData['weekendRace']> {
+  try {
+    const race = await queryClient.ensureQueryData(
+      routeQuery(api.races.getQuickPickRace, {}),
+    );
+    return race ? { slug: race.slug } : null;
+  } catch {
+    // A Convex blip must not 500 every page on the site.
+    return null;
+  }
+}
+
 /**
  * How long after a Clerk redirect the session cookie may still show up and
  * count as this arrival's. Long enough for the SDK to finish booting on a
@@ -161,7 +181,7 @@ function clerkOriginHints(isSignedIn: boolean) {
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   // `loaderData` is undefined while the root loader is still in flight, which
   // is the signed-out shape anyway: the cheaper hint is the safe default.
-  head: ({ loaderData }) => ({
+  head: ({ loaderData }: { loaderData?: RootLoaderData }) => ({
     meta: [
       { charSet: 'utf-8' },
       {
@@ -258,12 +278,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   // (and `check:orphans`) looking at a page whose loudest chrome link never
   // made it into the document. Failure is swallowed so a Convex blip cannot
   // 500 every route on the site.
-  loader: async ({ context }) => {
-    const initialAuth = await fetchInitialAuth();
-    const weekendRace = await context.queryClient
-      .ensureQueryData(routeQuery(api.races.getQuickPickRace, {}))
-      .then((race) => (race ? { slug: race.slug } : null))
-      .catch(() => null);
+  loader: async ({ context }): Promise<RootLoaderData> => {
+    const [initialAuth, weekendRace] = await Promise.all([
+      fetchInitialAuth(),
+      loadWeekendRace(context.queryClient),
+    ]);
     return { initialAuth, weekendRace };
   },
 

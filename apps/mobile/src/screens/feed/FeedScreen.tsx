@@ -11,7 +11,6 @@ import { FeedEventCard } from '../../components/feed/FeedEventCard';
 import { NewsGroupCard } from '../../components/feed/NewsGroupCard';
 import type { SessionHeader } from '../../components/feed/SessionGroupCard';
 import { SessionGroupCard } from '../../components/feed/SessionGroupCard';
-import { HomeExplore } from '../../components/home/HomeExplore';
 import { PicksConnectedScreen } from '../PicksConnectedScreen';
 import { HomeHero } from '../../components/home/HomeHero';
 import { SignedOutHomePanel } from '../../components/home/SignedOutHomePanel';
@@ -19,15 +18,19 @@ import { RaceRecapCard } from '../../components/home/RaceRecapCard';
 import { Avatar } from '../../components/ui/Avatar';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
-import { PageHeader } from '../../components/ui/PageHeader';
+import { CollapsingChrome, TabChrome } from '../../components/ui/TabChrome';
+import { useHideOnScroll } from '../../hooks/useHideOnScroll';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
 import { captureAnalyticsEvent } from '../../lib/analytics';
+import { getFeatured } from '../../lib/featuredWeekend';
 import { homePaintIsPending } from '../../lib/homePaint';
 import { useIsSignedIn } from '../../lib/useIsSignedIn';
 import { useHomePaintGate } from '../../lib/useHomePaintGate';
+import { useNow } from '../../lib/useNow';
 import { useRaceWeekends } from '../../lib/useRaceWeekends';
 import { useRefreshSpinner } from '../../lib/useRefreshSpinner';
+import { bucketWeatherNow } from '../../lib/weatherNow';
 import type { HomeStackParamList } from '../../navigation/types';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { useToast } from '../../providers/ToastProvider';
@@ -53,7 +56,8 @@ export function FeedScreen() {
   const { refreshing, onRefresh } = useRefreshSpinner();
   const { isLoaded: authLoaded } = useAuth();
   const isSignedIn = useIsSignedIn();
-  const { isLoading: racesLoading } = useRaceWeekends();
+  const now = useNow(30_000);
+  const { isLoading: racesLoading, races } = useRaceWeekends();
 
   const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
     Array(MAX_EXTRA_PAGES).fill(null),
@@ -97,6 +101,21 @@ export function FeedScreen() {
   const topPlayers = useQuery(
     api.leaderboards.getCombinedSeasonLeaderboard,
     convexEnabled ? { limit: 6 } : 'skip',
+  );
+
+  const weatherNow = bucketWeatherNow(now);
+  const featured = getFeatured(races, now);
+  const weatherSlug = isSignedIn
+    ? weekend?.race.slug
+    : featured?.nextSession
+      ? featured.race.slug
+      : undefined;
+  const shouldLoadWeather = Boolean(convexEnabled && weatherSlug);
+  const weather = useQuery(
+    api.weather.getByRaceSlug,
+    shouldLoadWeather && weatherSlug
+      ? { raceSlug: weatherSlug, now: weatherNow }
+      : 'skip',
   );
 
   const feedLoadedRef = useRef(false);
@@ -149,6 +168,7 @@ export function FeedScreen() {
     page0 != null &&
     page0.events.length === 0 &&
     topPlayers === undefined;
+  const weatherPending = shouldLoadWeather && weather === undefined;
   const holdPaint = useHomePaintGate(
     homePaintIsPending({
       authLoaded,
@@ -160,27 +180,33 @@ export function FeedScreen() {
       racesLoading,
       recap,
       weekend,
+      weatherPending,
     }),
   );
+  const hide = useHideOnScroll();
 
   if (!convexEnabled) {
     return (
-      <View className="flex-1 bg-page px-4 pt-3">
-        <PageHeader
-          subtitle="Live updates from you and the people you follow."
-          title="Feed"
-        />
-        <EmptyState
-          body="Configure your Convex URL to see your feed."
-          icon="pulse-outline"
-          title="Not connected"
-        />
+      <View className="flex-1 bg-page">
+        <TabChrome brand />
+        <View className="px-4 pt-3">
+          <EmptyState
+            body="Configure your Convex URL to see your feed."
+            icon="pulse-outline"
+            title="Not connected"
+          />
+        </View>
       </View>
     );
   }
 
   if (holdPaint) {
-    return <LoadingScreen />;
+    return (
+      <View className="flex-1 bg-page">
+        <TabChrome brand />
+        <LoadingScreen />
+      </View>
+    );
   }
 
   const allEvents = loadedPages.flatMap((p) => p.events);
@@ -192,7 +218,10 @@ export function FeedScreen() {
   const groups = groupFeedEvents(allEvents);
 
   return (
-    <View className="flex-1 bg-page">
+    <CollapsingChrome
+      chrome={<TabChrome brand />}
+      headerStyle={hide.headerStyle}
+    >
       <FlatList
         contentContainerClassName="pb-6"
         data={groups}
@@ -226,7 +255,6 @@ export function FeedScreen() {
                 same label. */}
             {groups.length > 0 ? null : isSignedIn ? (
               <View className="gap-5 px-4 pt-4">
-                <HomeExplore />
                 <TopPlayersToFollow />
               </View>
             ) : (
@@ -238,6 +266,7 @@ export function FeedScreen() {
         }
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.4}
+        {...hide.scrollProps}
         refreshControl={
           <RefreshControl
             colors={[colors.accent]}
@@ -273,7 +302,7 @@ export function FeedScreen() {
         }}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </CollapsingChrome>
   );
 }
 

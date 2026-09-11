@@ -11,9 +11,10 @@ type PageHeaderProps = {
 };
 
 /**
- * The header for every top-level screen: flat on the screen background, with
- * an Archivo display title and optional supporting copy. Mirrors web's
- * `PageHeader`.
+ * The header for in-content titles on pushed screens (race missing, and
+ * similar). Tab roots use `TabChrome` instead: a compact 44pt bar that hides
+ * on scroll, so a 28px page title is not sitting on top of a tab that the
+ * tab bar already named.
  *
  * This replaced the old bordered `PageHero` panel and its teal glow. Keep it
  * flat — screens are rows and sections on the background, not cards stacked

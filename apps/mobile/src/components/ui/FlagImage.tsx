@@ -13,10 +13,11 @@ export function FlagImage({ raceSlug }: FlagImageProps) {
   }
 
   return (
-    <View className="overflow-hidden rounded border border-border-strong">
+    <View className="h-5 w-[30px] shrink-0 overflow-hidden rounded border border-border-strong">
       <Image
         source={{ uri: `https://flagcdn.com/w40/${countryCode}.png` }}
-        className="h-5 w-[30px]"
+        className="h-full w-full"
+        resizeMode="cover"
       />
     </View>
   );

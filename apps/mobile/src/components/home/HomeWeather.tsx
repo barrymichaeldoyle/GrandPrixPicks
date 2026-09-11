@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Linking } from 'react-native';
 import { api } from '../../integrations/convex/api';
 import { useQuery } from '../../integrations/convex/query';
+import { bucketWeatherNow, pickForecastHour } from '../../lib/weatherNow';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { colors } from '../../theme/tokens';
 import { Pressable, Text, View } from '../../tw';
@@ -18,12 +19,11 @@ export function HomeWeather({
   const { convexEnabled } = useMobileConfig();
   const weather = useQuery(
     api.weather.getByRaceSlug,
-    convexEnabled ? { raceSlug, now } : 'skip',
+    convexEnabled ? { raceSlug, now: bucketWeatherNow(now) } : 'skip',
   );
-  const hour = weather?.forecast.hours.find(
-    (h) =>
-      h.at <= startAt && startAt < h.at + h.forecastPeriodHours * 3_600_000,
-  );
+  const hour = weather
+    ? pickForecastHour(weather.forecast.hours, startAt)
+    : undefined;
   if (!weather || !hour) {
     return null;
   }

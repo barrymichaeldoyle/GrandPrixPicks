@@ -14,7 +14,7 @@ import { useMutation } from 'convex/react';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import { Modal, Share } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   GestureHandlerRootView,
   ScrollView,
@@ -1709,8 +1709,15 @@ function PickEditorModal({
       presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.page }}>
+      {/* RN Modal sits above the app's SafeAreaProvider, so insets are 0
+          unless this tree provides its own. Without that, the title and Close
+          draw under the status bar. */}
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaView
+            edges={['top', 'bottom']}
+            style={{ flex: 1, backgroundColor: colors.page }}
+          >
           <View className="flex-row items-center justify-between px-4 py-2">
             <Text className="text-foreground text-xl font-semibold">
               {title}
@@ -1730,8 +1737,9 @@ function PickEditorModal({
             {children}
           </ScrollView>
           <ModalToast />
-        </SafeAreaView>
-      </GestureHandlerRootView>
+          </SafeAreaView>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
     </Modal>
   );
 }

@@ -1,73 +1,17 @@
 import { useWindowDimensions } from 'react-native';
 
+import { getFeatured } from '../../lib/featuredWeekend';
 import { getCountryCodeForRaceSlug } from '../../lib/raceFlags';
 import { useRaceWeekends } from '../../lib/useRaceWeekends';
 import { useNow } from '../../lib/useNow';
 import { useTypography } from '../../theme/typography';
 import { Image, Text, View } from '../../tw';
-import type { RaceWeekend } from '../../types';
 import { HomeWeather } from './HomeWeather';
 import { SlantedStripe } from '../ui/SlantedStripe';
 import { BigCountdown } from '../ui/BigCountdown';
 import { Numeral } from '../ui/Numeral';
 
 const NARROW_WIDTH = 360;
-
-type NextSession = {
-  type: string;
-  label: string;
-  startAt: number;
-};
-
-const SESSION_LABEL: Record<string, string> = {
-  quali: 'Qualifying',
-  sprint_quali: 'Sprint Qualifying',
-  sprint: 'Sprint',
-  race: 'Race',
-};
-
-function getFeatured(
-  races: ReadonlyArray<RaceWeekend>,
-  now: number,
-): {
-  race: RaceWeekend;
-  round: number;
-  nextSession: NextSession | null;
-} | null {
-  const sorted = races
-    .slice()
-    .sort(
-      (a, b) =>
-        new Date(a.weekendStart).getTime() - new Date(b.weekendStart).getTime(),
-    );
-  const upcomingIndex = sorted.findIndex(
-    (r) =>
-      r.sessions.length === 0 ||
-      new Date(r.sessions[r.sessions.length - 1].startsAt).getTime() > now,
-  );
-  if (upcomingIndex === -1) {
-    return null;
-  }
-  const race = sorted[upcomingIndex];
-  // The round is the backend's, not this list's. Deriving it from the sorted
-  // index assumed the list was always a complete season numbered from one, so
-  // any gap, filter or extra entry shifted every round number on the hero: dev
-  // renders 25 races and showed the round 12 Dutch GP as "ROUND 14".
-  const round = race.round;
-  let nextSession: NextSession | null = null;
-  for (const session of race.sessions) {
-    const startAt = new Date(session.startsAt).getTime();
-    if (startAt > now) {
-      nextSession = {
-        type: session.type,
-        label: SESSION_LABEL[session.type] ?? session.type,
-        startAt,
-      };
-      break;
-    }
-  }
-  return { race, round, nextSession };
-}
 
 export function HomeHero() {
   const { titleFontFamily } = useTypography();

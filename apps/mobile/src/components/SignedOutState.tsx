@@ -5,8 +5,11 @@ import { colors } from '../theme/tokens';
 import { Pressable, ScrollView, Text, View } from '../tw';
 
 type SignedOutStateProps = {
-  /** Micro label above the title. Names the screen, not the gate. */
-  eyebrow: string;
+  /**
+   * Micro label above the title. Names the screen, not the gate. Omit when
+   * a `TabChrome` already titles the screen.
+   */
+  eyebrow?: string;
   title: string;
   /** One sentence on what this screen does once you are signed in. */
   description: string;
@@ -49,9 +52,11 @@ export function SignedOutState({
       contentContainerClassName="gap-5 p-4 pt-8"
     >
       <View className="gap-2">
-        <Text className="text-muted text-[10px] font-extrabold uppercase">
-          {eyebrow}
-        </Text>
+        {eyebrow ? (
+          <Text className="text-muted text-[10px] font-extrabold uppercase">
+            {eyebrow}
+          </Text>
+        ) : null}
         <Text className="text-foreground text-[26px] font-light">{title}</Text>
         <Text className="text-muted text-sm leading-5">{description}</Text>
       </View>

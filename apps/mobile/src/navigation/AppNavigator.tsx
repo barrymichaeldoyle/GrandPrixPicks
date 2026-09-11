@@ -279,7 +279,7 @@ function MoreTabScreen() {
 function NotificationsTabScreen() {
   return (
     <TabPage>
-      <NotificationsScreen />
+      <NotificationsScreen tabChrome />
     </TabPage>
   );
 }

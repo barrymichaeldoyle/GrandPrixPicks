@@ -10,6 +10,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { api } from '../../integrations/convex/api';
 import { useQuery } from '../../integrations/convex/query';
 import { getCountryCodeForRaceSlug } from '../../lib/raceFlags';
+import { bucketWeatherNow, pickForecastHour } from '../../lib/weatherNow';
 import { getRaceWriteup } from '../../lib/raceWriteups';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { colors } from '../../theme/tokens';
@@ -120,9 +121,9 @@ export function WeekendPicksCard({
         </View>
       </View>
 
-      <View className="flex-row items-center gap-3 border-b border-border pl-4">
+      <View className="flex-row items-center gap-3 pl-4">
         <ScrollView
-          className="-mb-px min-w-0 flex-1"
+          className="min-w-0 flex-1"
           contentContainerClassName="flex-row gap-x-4 pr-3"
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -171,7 +172,7 @@ export function WeekendPicksCard({
       {writeup ? (
         <Pressable
           accessibilityRole="link"
-          className="flex-row items-center gap-3 border-t border-border px-4 py-3 active:bg-surface-elevated"
+          className="flex-row items-center gap-3 px-4 py-3 active:bg-surface-elevated"
           onPress={() => {
             void WebBrowser.openBrowserAsync(`${SITE_URL}${writeup.to}`);
           }}
@@ -416,17 +417,13 @@ function ForecastRow({
   const { convexEnabled } = useMobileConfig();
   const weather = useQuery(
     api.weather.getByRaceSlug,
-    convexEnabled ? { raceSlug, now } : 'skip',
+    convexEnabled ? { raceSlug, now: bucketWeatherNow(now) } : 'skip',
   );
   if (!weather) {
     return null;
   }
   const target = startAt ?? now;
-  const hour = weather.forecast.hours.find(
-    (entry) =>
-      entry.at <= target &&
-      target < entry.at + entry.forecastPeriodHours * 3_600_000,
-  );
+  const hour = pickForecastHour(weather.forecast.hours, target);
   if (!hour) {
     return null;
   }
@@ -437,7 +434,7 @@ function ForecastRow({
     hour.conditionCode.includes('cloud') || hour.conditionCode.includes('fog');
 
   return (
-    <View className="flex-row items-center gap-3 border-t border-border px-4 py-2.5">
+    <View className="flex-row items-center gap-3 px-4 py-2.5">
       <Ionicons
         color={colors.textMuted}
         name={

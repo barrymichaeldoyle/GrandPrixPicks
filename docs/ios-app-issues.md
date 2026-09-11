@@ -26,4 +26,7 @@ We should use sharp edge (not rounded) for those top 3 and apply the same slante
 
 ## Layout
 
-When scrolling the feed on the home page. It feels like we waste a lot of useful space by showing the header. Kind of feels like a problem on all of the pages. Are there good practices we can follow regarding this?
+Tab roots carry a compact 44pt chrome (`TabChrome` in
+`CollapsingChrome`): brand mark + wordmark on Home, the screen name on the
+others. Scrolling down hides it and reclaims the space; scrolling up brings
+it back. Pushed screens keep the native stack header.

@@ -4,13 +4,15 @@ import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
 import { Alert } from 'react-native';
 
+import { CollapsingChrome, TabChrome } from '../components/ui/TabChrome';
+import { useHideOnScroll } from '../hooks/useHideOnScroll';
 import { useSignOutWithCleanup } from '../hooks/useSignOutWithCleanup';
 import { captureAnalyticsEvent } from '../lib/analytics';
+import { useIsSignedIn } from '../lib/useIsSignedIn';
+import { useSignInSheet } from '../lib/useSignInSheet';
 import type { MoreStackParamList } from '../navigation/types';
 import { colors } from '../theme/tokens';
 import { Pressable, ScrollView, Text, View } from '../tw';
-import { useIsSignedIn } from '../lib/useIsSignedIn';
-import { useSignInSheet } from '../lib/useSignInSheet';
 
 const SITE_URL = 'https://grandprixpicks.com';
 
@@ -20,6 +22,7 @@ export function MoreScreen() {
 
   const isSignedIn = useIsSignedIn();
   const openSignIn = useSignInSheet();
+  const hide = useHideOnScroll();
 
   function openOnWeb(path: string) {
     void WebBrowser.openBrowserAsync(`${SITE_URL}${path}`);
@@ -37,8 +40,15 @@ export function MoreScreen() {
   }
 
   return (
-    <View className="flex-1 bg-page">
-      <ScrollView className="flex-1" contentContainerClassName="gap-6 p-4 pb-8">
+    <CollapsingChrome
+      chrome={<TabChrome title="More" />}
+      headerStyle={hide.headerStyle}
+    >
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-6 p-4 pb-8"
+        {...hide.scrollProps}
+      >
         <View className="gap-2.5">
           <Text className="text-muted text-[10px] font-extrabold uppercase">
             Account
@@ -136,7 +146,7 @@ export function MoreScreen() {
           </Pressable>
         )}
       </ScrollView>
-    </View>
+    </CollapsingChrome>
   );
 }
 

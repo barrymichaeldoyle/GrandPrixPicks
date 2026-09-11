@@ -10,6 +10,8 @@ import { Avatar } from '../components/ui/Avatar';
 import { SignedOutState } from '../components/SignedOutState';
 import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { CollapsingChrome, TabChrome } from '../components/ui/TabChrome';
+import { useHideOnScroll } from '../hooks/useHideOnScroll';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { useRefreshSpinner } from '../lib/useRefreshSpinner';
@@ -74,10 +76,20 @@ function formatRelativeTime(timestamp: number): string {
   });
 }
 
-export function NotificationsScreen() {
+export function NotificationsScreen({
+  tabChrome = false,
+}: {
+  /**
+   * The notifications tab has no native stack header, so it carries compact
+   * chrome that hides on scroll. Pushed from Home or More, the stack already
+   * titles the screen — repeating it here read as a glitch.
+   */
+  tabChrome?: boolean;
+}) {
   const { convexEnabled } = useMobileConfig();
   const { refreshing, onRefresh } = useRefreshSpinner();
   const { showToast } = useToast();
+  const hide = useHideOnScroll();
   const { results, status, loadMore } = usePaginatedQuery(
     api.inAppNotifications.getMyNotifications,
     convexEnabled ? {} : 'skip',
@@ -105,19 +117,27 @@ export function NotificationsScreen() {
 
   if (!convexEnabled) {
     return (
-      <View className="flex-1 bg-page px-4 pt-3">
-        <Header subtitle="Notifications" />
-        <EmptyState
-          body="Configure Convex to receive notifications."
-          icon="notifications-off-outline"
-          title="Not connected"
-        />
+      <View className="flex-1 bg-page">
+        {tabChrome ? <TabChrome title="Notifications" /> : null}
+        <View className="px-4 pt-3">
+          {tabChrome ? null : <Header subtitle="Notifications" />}
+          <EmptyState
+            body="Configure Convex to receive notifications."
+            icon="notifications-off-outline"
+            title="Not connected"
+          />
+        </View>
       </View>
     );
   }
 
   if (status === 'LoadingFirstPage' || unread === undefined) {
-    return <LoadingScreen />;
+    return (
+      <View className="flex-1 bg-page">
+        {tabChrome ? <TabChrome title="Notifications" /> : null}
+        <LoadingScreen />
+      </View>
+    );
   }
 
   // `getMyUnreadCount` returns null for a reader with no identity, which is
@@ -125,7 +145,7 @@ export function NotificationsScreen() {
   // required" with no way to do so, which was a dead end even while the tabs
   // were gated and everyone arriving here had an account.
   if (unread === null) {
-    return (
+    const signedOut = (
       <SignedOutState
         behind={[
           'Results the moment a session is scored',
@@ -133,92 +153,117 @@ export function NotificationsScreen() {
           'Reactions and follows from other players',
         ]}
         description="Notifications tell you when your picks score and when the next session is about to lock."
-        eyebrow="Notifications"
+        eyebrow={tabChrome ? undefined : 'Notifications'}
         title="Keep up with your weekend"
       />
+    );
+    if (!tabChrome) {
+      return signedOut;
+    }
+    return (
+      <View className="flex-1 bg-page">
+        <TabChrome title="Notifications" />
+        {signedOut}
+      </View>
     );
   }
 
   const notifications = results as Notification[];
   const unreadCount = unread.count;
   const unreadLabel = unread.hasMore ? `${unreadCount}+` : `${unreadCount}`;
+  const markAll =
+    unreadCount > 0 ? (
+      <Pressable
+        accessibilityRole="button"
+        hitSlop={8}
+        onPress={() => void handleMarkAll()}
+      >
+        <Text className="text-xs font-bold text-accent">Mark all read</Text>
+      </Pressable>
+    ) : null;
+
+  const list = (
+    <FlatList
+      contentContainerClassName={
+        notifications.length === 0 ? 'flex-1' : 'px-4 pb-6'
+      }
+      data={notifications}
+      keyExtractor={(item) => String(item._id)}
+      ListEmptyComponent={
+        <EmptyState
+          body="Results, reactions, and lock reminders."
+          icon="notifications-outline"
+          title="No notifications yet"
+        />
+      }
+      ItemSeparatorComponent={() => (
+        <View className="ml-[52px] h-px bg-border" />
+      )}
+      // Paging on scroll rather than a button: a phone list has no obvious
+      // bottom edge to put one against.
+      onEndReached={() => {
+        if (status === 'CanLoadMore') {
+          loadMore(NOTIFICATION_PAGE_SIZE);
+        }
+      }}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={
+        status === 'LoadingMore' ? (
+          <Text className="text-muted py-4 text-center text-xs">
+            Loading older notifications
+          </Text>
+        ) : null
+      }
+      {...(tabChrome ? hide.scrollProps : {})}
+      refreshControl={
+        <RefreshControl
+          colors={[colors.accent]}
+          onRefresh={onRefresh}
+          refreshing={refreshing}
+          tintColor={colors.accent}
+        />
+      }
+      renderItem={({ item }) => (
+        <NotificationRow
+          notification={item}
+          onPress={() => {
+            if (!item.readAt) {
+              void Haptics.selectionAsync();
+              void markRead({ notificationId: item._id });
+            }
+          }}
+        />
+      )}
+      showsVerticalScrollIndicator={false}
+    />
+  );
+
+  if (tabChrome) {
+    return (
+      <CollapsingChrome
+        chrome={<TabChrome action={markAll} title="Notifications" />}
+        headerStyle={hide.headerStyle}
+      >
+        {list}
+      </CollapsingChrome>
+    );
+  }
 
   return (
-    <View className="flex-1 bg-page px-4 pt-3">
-      <Header
-        subtitle={
-          unreadCount > 0
-            ? `${unreadLabel} unread`
-            : notifications.length > 0
-              ? "You're all caught up"
-              : undefined
-        }
-        action={
-          unreadCount > 0 ? (
-            <Pressable
-              accessibilityRole="button"
-              hitSlop={8}
-              onPress={() => void handleMarkAll()}
-            >
-              <Text className="text-xs font-bold text-accent">
-                Mark all read
-              </Text>
-            </Pressable>
-          ) : null
-        }
-      />
-      <FlatList
-        contentContainerClassName={
-          notifications.length === 0 ? 'flex-1' : 'pb-6'
-        }
-        data={notifications}
-        keyExtractor={(item) => String(item._id)}
-        ListEmptyComponent={
-          <EmptyState
-            body="When you get reactions, results, or session locks, they'll appear here."
-            icon="notifications-outline"
-            title="No notifications yet"
-          />
-        }
-        ItemSeparatorComponent={() => (
-          <View className="ml-[52px] h-px bg-border" />
-        )}
-        // Paging on scroll rather than a button: a phone list has no obvious
-        // bottom edge to put one against.
-        onEndReached={() => {
-          if (status === 'CanLoadMore') {
-            loadMore(NOTIFICATION_PAGE_SIZE);
+    <View className="flex-1 bg-page pt-3">
+      <View className="px-4">
+        <Header
+          action={markAll}
+          subtitle={
+            unreadCount > 0
+              ? `${unreadLabel} unread`
+              : notifications.length > 0
+                ? "You're all caught up"
+                : undefined
           }
-        }}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          status === 'LoadingMore' ? (
-            <Text className="text-muted py-4 text-center text-xs">
-              Loading older notifications
-            </Text>
-          ) : null
-        }
-        refreshControl={
-          <RefreshControl
-            colors={[colors.accent]}
-            onRefresh={onRefresh}
-            refreshing={refreshing}
-            tintColor={colors.accent}
-          />
-        }
-        renderItem={({ item }) => (
-          <NotificationRow
-            notification={item}
-            onPress={() => {
-              if (!item.readAt) {
-                void Haptics.selectionAsync();
-                void markRead({ notificationId: item._id });
-              }
-            }}
-          />
-        )}
-        showsVerticalScrollIndicator={false}
-      />
+        />
+      </View>
+      {list}
     </View>
   );
 }

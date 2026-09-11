@@ -13,9 +13,10 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { FlagImage } from '../components/ui/FlagImage';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
-import { PageHeader } from '../components/ui/PageHeader';
+import { CollapsingChrome, TabChrome } from '../components/ui/TabChrome';
 import { SegmentedTabs } from '../components/ui/SegmentedTabs';
 import { SlantedStripe } from '../components/ui/SlantedStripe';
+import { useHideOnScroll } from '../hooks/useHideOnScroll';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { captureAnalyticsEvent } from '../lib/analytics';
@@ -125,6 +126,7 @@ export function LeaderboardScreen() {
   const roundPositions = useRef<Record<string, number>>({});
   const [scope, setScope] = useState<Scope>('global');
   const [chosenRaceId, setChosenRaceId] = useState<string | null>(null);
+  const hide = useHideOnScroll();
   useEffect(() => {
     if (!route.params) {
       return;
@@ -265,7 +267,7 @@ export function LeaderboardScreen() {
   if (!convexEnabled) {
     return (
       <View className="flex-1 bg-page">
-        <Header subtitle="2026 standings" />
+        <TabChrome title="Leaderboard" />
         <EmptyState
           body="Configure Convex to see standings."
           icon="trophy-outline"
@@ -282,7 +284,12 @@ export function LeaderboardScreen() {
     (defaultRace === undefined ||
       (defaultRace !== null && defaultWeekendProbe === undefined))
   ) {
-    return <LoadingScreen />;
+    return (
+      <View className="flex-1 bg-page">
+        <TabChrome title="Leaderboard" />
+        <LoadingScreen />
+      </View>
+    );
   }
 
   const selectableRaces = (allRaces ?? [])
@@ -330,7 +337,7 @@ export function LeaderboardScreen() {
       : activeSeason === undefined;
 
   const filters = (
-    <View className="mb-4 gap-2.5 rounded-xl border border-border bg-surface/60 p-2.5">
+    <View className="mb-4 gap-2.5">
       <SegmentedTabs
         onChange={(v) => {
           changeFilter('time', v);
@@ -406,7 +413,10 @@ export function LeaderboardScreen() {
   );
 
   return (
-    <View className="flex-1 bg-page">
+    <CollapsingChrome
+      chrome={<TabChrome title="Leaderboard" />}
+      headerStyle={hide.headerStyle}
+    >
       <FlatList
         contentContainerClassName="px-4 pb-8"
         data={rest}
@@ -436,12 +446,14 @@ export function LeaderboardScreen() {
         ListHeaderComponent={
           <View>
             <View className="flex-row items-center gap-2 py-3">
-              {timeScope === 'weekend' && selectedRace ? (
-                <FlagImage raceSlug={selectedRace.slug} />
-              ) : null}
-              <View className="flex-1">
-                <PageHeader title="Leaderboard" subtitle={subtitle} />
+              <View className="h-5 w-[30px] shrink-0">
+                {timeScope === 'weekend' && selectedRace ? (
+                  <FlagImage raceSlug={selectedRace.slug} />
+                ) : null}
               </View>
+              <Text className="text-muted flex-1 text-[13px] leading-[18px]">
+                {subtitle}
+              </Text>
             </View>
             {filters}
             {podium.length > 0 ? (
@@ -472,6 +484,7 @@ export function LeaderboardScreen() {
         }
         onEndReached={() => void loadMoreSeason()}
         onEndReachedThreshold={0.4}
+        {...hide.scrollProps}
         refreshControl={
           <RefreshControl
             colors={[colors.accent]}
@@ -489,15 +502,7 @@ export function LeaderboardScreen() {
         )}
         showsVerticalScrollIndicator={false}
       />
-    </View>
-  );
-}
-
-function Header({ subtitle }: { subtitle: string }) {
-  return (
-    <View className="px-4 pt-3 pb-3">
-      <PageHeader subtitle={subtitle} title="Leaderboard" />
-    </View>
+    </CollapsingChrome>
   );
 }
 

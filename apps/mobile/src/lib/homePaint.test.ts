@@ -12,6 +12,7 @@ const ready = {
   weekend: null,
   me: null,
   discoveryPending: false,
+  weatherPending: false,
 };
 
 describe('homePaintIsPending', () => {
@@ -37,6 +38,10 @@ describe('homePaintIsPending', () => {
 
   it('holds an empty signed-in feed until discovery rows are ready', () => {
     expect(homePaintIsPending({ ...ready, discoveryPending: true })).toBe(true);
+  });
+
+  it('holds until the home forecast has answered when one was requested', () => {
+    expect(homePaintIsPending({ ...ready, weatherPending: true })).toBe(true);
   });
 });
 

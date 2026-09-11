@@ -1,11 +1,14 @@
-import { useMutation } from 'convex/react';
+import * as Haptics from 'expo-haptics';
 import { useQuery } from '../integrations/convex/query';
 
 import { Avatar } from '../components/ui/Avatar';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
+import { useFollowMutations } from '../hooks/useFollowMutations';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
+import { captureAnalyticsEvent } from '../lib/analytics';
+import { useToast } from '../providers/ToastProvider';
 import { Pressable, ScrollView, Text, View } from '../tw';
 
 // Lightweight player view reachable from the Feed and Leaderboard stacks.
@@ -32,8 +35,8 @@ export function PublicProfileScreen({ route }: Props) {
     profile ? { userId: profile._id as ConvexId<'users'> } : 'skip',
   );
 
-  const follow = useMutation(api.follows.follow);
-  const unfollow = useMutation(api.follows.unfollow);
+  const { follow, unfollow } = useFollowMutations();
+  const { showToast } = useToast();
 
   if (profile === undefined) {
     return <LoadingScreen />;
@@ -53,10 +56,30 @@ export function PublicProfileScreen({ route }: Props) {
     if (!profile) {
       return;
     }
-    if (isFollowing) {
-      await unfollow({ followeeId: profile._id as ConvexId<'users'> });
-    } else {
-      await follow({ followeeId: profile._id as ConvexId<'users'> });
+    const followeeId = profile._id as ConvexId<'users'>;
+    const willFollow = !isFollowing;
+    void Haptics.selectionAsync();
+    try {
+      if (willFollow) {
+        await follow({ followeeId });
+        captureAnalyticsEvent('user_followed', {
+          followee_id: String(followeeId),
+          source: 'public_profile',
+        });
+      } else {
+        await unfollow({ followeeId });
+        captureAnalyticsEvent('user_unfollowed', {
+          followee_id: String(followeeId),
+          source: 'public_profile',
+        });
+      }
+    } catch {
+      showToast(
+        willFollow
+          ? 'Could not follow that player. Try again.'
+          : 'Could not unfollow that player. Try again.',
+        'error',
+      );
     }
   }
 

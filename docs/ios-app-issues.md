@@ -10,7 +10,7 @@ I think the Picks tab is unnecessary and we should rather incorporate picks into
 
 We should try match the web apps signed in home page for signed in users. Give a good hero section with the slanted line vibe. Add details like the weather, show my existing picks. If the user wants to update their picks (or add their picks) it should be it's own focused page/modal vibe (like we do on web). Same vibes for the H2H picks, if it's first picks, do the full screen flow. If it's just updating one existing H2H pick open just the single picker. Try show confetti like we do for web when making picks (in fact every time a pick saves we should throw confetti to make the user feel like their action worked). Also use the alternating slanted line vibes for the news items like we do on web.
 
-The race weekend results on the feed feel quite dull and need to be more colorful to match web too.
+Race-weekend results on the feed use the same timing-sheet slots as web: flag header, P1–P5 result cells, score-colour bands under each pick, H2H winners, and the split React control (`SessionGroupCard`). Scored session cards and weekend-news blocks go edge-to-edge.
 
 ## Leaderboard
 

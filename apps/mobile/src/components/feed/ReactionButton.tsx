@@ -23,6 +23,9 @@ type ReactionButtonProps = {
   reactionCounts: ReactionCounts;
   viewerReaction: ReactionType | null;
   context?: ReactionContext;
+  /** Split control matching web's feed leaderboard (React | count). */
+  variant?: 'pill' | 'split';
+  onCountPress?: () => void;
 };
 
 function updateCounts(
@@ -46,6 +49,8 @@ export function ReactionButton({
   reactionCounts,
   viewerReaction,
   context = 'pick',
+  variant = 'pill',
+  onCountPress,
 }: ReactionButtonProps) {
   const setReaction = useMutation(api.feed.setReaction);
   const removeReaction = useMutation(api.feed.removeReaction);
@@ -159,66 +164,123 @@ export function ReactionButton({
     .map((reaction) => reaction.emoji)
     .join('');
 
+  const triggerHint = selectedReaction
+    ? 'Tap to remove. Press and hold to change your reaction.'
+    : 'Tap to choose a reaction.';
+  const triggerLabel = selectedDefinition
+    ? `${selectedDefinition.label} reaction, ${count} total reactions`
+    : `React, ${count} total reactions`;
+
+  function onTriggerLongPress() {
+    longPressOpenedPicker.current = true;
+    setPickerVisible(true);
+    haptic(Haptics.ImpactFeedbackStyle.Light);
+  }
+
+  function onTriggerPress() {
+    if (longPressOpenedPicker.current) {
+      longPressOpenedPicker.current = false;
+      return;
+    }
+    if (selectedReaction) {
+      void removeSelectedReaction();
+    } else {
+      setPickerVisible(true);
+    }
+  }
+
+  const trigger = (
+    <>
+      <Text
+        className={`text-xs font-semibold ${
+          selectedReaction ? 'text-accent' : 'text-muted'
+        }`}
+      >
+        {selectedDefinition
+          ? `${selectedDefinition.emoji} ${selectedDefinition.label}`
+          : 'React'}
+      </Text>
+      {variant === 'pill' && count > 0 ? (
+        <Text
+          className={
+            selectedReaction
+              ? 'text-xs font-semibold text-accent'
+              : 'text-muted text-xs font-semibold'
+          }
+          style={{ fontVariant: ['tabular-nums'] }}
+        >
+          {topEmojis ? `${topEmojis} ` : ''}
+          {count}
+        </Text>
+      ) : null}
+    </>
+  );
+
   return (
     <>
-      <Pressable
-        accessibilityHint={
-          selectedReaction
-            ? 'Tap to remove. Press and hold to change your reaction.'
-            : 'Tap to choose a reaction.'
-        }
-        accessibilityLabel={
-          selectedDefinition
-            ? `${selectedDefinition.label} reaction, ${count} total reactions`
-            : `React, ${count} total reactions`
-        }
-        accessibilityRole="button"
-        className={`flex-row items-center gap-1.5 rounded-full border px-3 py-1.5 ${
-          selectedReaction
-            ? 'border-accent bg-accent-muted'
-            : 'border-border active:bg-surface-elevated'
-        }`}
-        delayLongPress={300}
-        onLongPress={() => {
-          longPressOpenedPicker.current = true;
-          setPickerVisible(true);
-          haptic(Haptics.ImpactFeedbackStyle.Light);
-        }}
-        onPress={() => {
-          if (longPressOpenedPicker.current) {
-            longPressOpenedPicker.current = false;
-            return;
-          }
-          if (selectedReaction) {
-            void removeSelectedReaction();
-          } else {
-            setPickerVisible(true);
-          }
-        }}
-      >
-        <Text
-          className={`text-xs font-semibold ${
-            selectedReaction ? 'text-accent' : 'text-muted'
+      {variant === 'split' ? (
+        <View
+          className={`h-8 flex-row items-center overflow-hidden rounded-sm border ${
+            selectedReaction
+              ? 'border-accent/40 bg-accent/10'
+              : 'border-border/70'
           }`}
         >
-          {selectedDefinition
-            ? `${selectedDefinition.emoji} ${selectedDefinition.label}`
-            : 'React'}
-        </Text>
-        {count > 0 ? (
-          <Text
-            className={
-              selectedReaction
-                ? 'text-xs font-semibold text-accent'
-                : 'text-muted text-xs font-semibold'
-            }
-            style={{ fontVariant: ['tabular-nums'] }}
+          <Pressable
+            accessibilityHint={triggerHint}
+            accessibilityLabel={triggerLabel}
+            accessibilityRole="button"
+            className="h-full flex-row items-center gap-1 px-2.5"
+            delayLongPress={300}
+            onLongPress={onTriggerLongPress}
+            onPress={onTriggerPress}
           >
-            {topEmojis ? `${topEmojis} ` : ''}
-            {count}
-          </Text>
-        ) : null}
-      </Pressable>
+            {trigger}
+          </Pressable>
+          <View
+            className={`h-4 w-px shrink-0 ${
+              selectedReaction ? 'bg-accent/30' : 'bg-border/70'
+            }`}
+          />
+          <Pressable
+            accessibilityLabel={`${count} reactions`}
+            accessibilityRole="button"
+            className="h-full shrink-0 flex-row items-center justify-center gap-0.5 px-2"
+            disabled={!onCountPress || count === 0}
+            onPress={onCountPress}
+          >
+            <Text
+              className={`text-xs font-semibold ${
+                selectedReaction
+                  ? 'text-accent'
+                  : count > 0
+                    ? 'text-muted'
+                    : 'text-muted/35'
+              }`}
+              style={{ fontVariant: ['tabular-nums'] }}
+            >
+              {topEmojis && count > 0 ? `${topEmojis} ` : ''}
+              {count}
+            </Text>
+          </Pressable>
+        </View>
+      ) : (
+        <Pressable
+          accessibilityHint={triggerHint}
+          accessibilityLabel={triggerLabel}
+          accessibilityRole="button"
+          className={`flex-row items-center gap-1.5 rounded-full border px-3 py-1.5 ${
+            selectedReaction
+              ? 'border-accent bg-accent-muted'
+              : 'border-border active:bg-surface-elevated'
+          }`}
+          delayLongPress={300}
+          onLongPress={onTriggerLongPress}
+          onPress={onTriggerPress}
+        >
+          {trigger}
+        </Pressable>
+      )}
 
       <Modal
         animationType="fade"

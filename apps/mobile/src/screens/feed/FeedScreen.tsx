@@ -2,7 +2,6 @@ import { groupFeedEvents } from '@grandprixpicks/shared/feedGroups';
 import { useAuth } from '@clerk/expo';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import { useMutation } from 'convex/react';
 import { useQuery } from '../../integrations/convex/query';
 import { useEffect, useRef, useState } from 'react';
 
@@ -19,6 +18,7 @@ import { Avatar } from '../../components/ui/Avatar';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { CollapsingChrome, TabChrome } from '../../components/ui/TabChrome';
+import { useFollowMutations } from '../../hooks/useFollowMutations';
 import { useHideOnScroll } from '../../hooks/useHideOnScroll';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
@@ -292,13 +292,18 @@ export function FeedScreen() {
                   allSessions[item.key] ?? {
                     raceName: item.events[0]?.raceName ?? 'Race',
                     sessionType: item.events[0]?.sessionType ?? 'race',
+                    raceSlug: item.events[0]?.raceSlug,
                     top5: [],
                   }
                 }
                 viewerId={me?._id as ConvexId<'users'> | undefined}
               />
             );
-          return <View className="px-4 pt-3">{card}</View>;
+          return (
+            <View className={item.kind === 'standalone' ? 'px-4 pt-3' : 'pt-3'}>
+              {card}
+            </View>
+          );
         }}
         showsVerticalScrollIndicator={false}
       />
@@ -310,9 +315,9 @@ export function FeedScreen() {
  * Empty-feed discovery: the season's top players with one-tap follow,
  * so a new account can fill its feed without leaving the tab.
  *
- * Signed-in only. `follows.follow` requires a viewer, so for a guest every
- * button here threw and rolled its own optimistic state back with nothing
- * shown — a Follow button that visibly un-pressed itself.
+ * Signed-in only. `follows.follow` requires a viewer, so a guest never
+ * reaches this block. Follow state comes from `getViewerFollowedIds`, written
+ * into the query cache on tap so the button does not wait on the round-trip.
  */
 function TopPlayersToFollow() {
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
@@ -320,8 +325,8 @@ function TopPlayersToFollow() {
   const topPlayers = useQuery(api.leaderboards.getCombinedSeasonLeaderboard, {
     limit: 6,
   });
-  const follow = useMutation(api.follows.follow);
-  const [followed, setFollowed] = useState<Set<string>>(new Set());
+  const followedIds = useQuery(api.follows.getViewerFollowedIds, {});
+  const { follow } = useFollowMutations();
 
   const entries = (topPlayers?.entries ?? [])
     .filter((p) => !p.isViewer)
@@ -331,16 +336,16 @@ function TopPlayersToFollow() {
     return null;
   }
 
+  const followed = new Set(followedIds ?? []);
+
   async function handleFollow(userId: ConvexId<'users'>) {
-    setFollowed((prev) => new Set(prev).add(String(userId)));
     try {
       await follow({ followeeId: userId });
-    } catch {
-      setFollowed((prev) => {
-        const next = new Set(prev);
-        next.delete(String(userId));
-        return next;
+      captureAnalyticsEvent('user_followed', {
+        followee_id: String(userId),
+        source: 'home_top_players',
       });
+    } catch {
       showToast('Could not follow that player. Try again.', 'error');
     }
   }

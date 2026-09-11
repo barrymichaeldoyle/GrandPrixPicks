@@ -14,6 +14,10 @@ import { CollapsingChrome, TabChrome } from '../components/ui/TabChrome';
 import { useHideOnScroll } from '../hooks/useHideOnScroll';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
+import {
+  applyMarkAllReadToStore,
+  applyMarkReadToStore,
+} from '../lib/optimisticNotifications';
 import { useRefreshSpinner } from '../lib/useRefreshSpinner';
 import { useMobileConfig } from '../providers/mobile-config';
 import { useToast } from '../providers/ToastProvider';
@@ -99,8 +103,16 @@ export function NotificationsScreen({
     api.inAppNotifications.getMyUnreadCount,
     convexEnabled ? {} : 'skip',
   );
-  const markRead = useMutation(api.inAppNotifications.markRead);
-  const markAllRead = useMutation(api.inAppNotifications.markAllRead);
+  const markRead = useMutation(
+    api.inAppNotifications.markRead,
+  ).withOptimisticUpdate((store, args) => {
+    applyMarkReadToStore(store, args.notificationId);
+  });
+  const markAllRead = useMutation(
+    api.inAppNotifications.markAllRead,
+  ).withOptimisticUpdate((store) => {
+    applyMarkAllReadToStore(store);
+  });
 
   async function handleMarkAll() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

@@ -8,6 +8,7 @@ import type { ConvexId } from '../../integrations/convex/api';
 type ScoredPick = {
   code: string;
   team?: string;
+  displayName?: string;
   predictedPosition: number;
   actualPosition?: number;
   points: number;

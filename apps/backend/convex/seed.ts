@@ -7027,6 +7027,101 @@ export const seedDashboardSocialFeed = internalMutation({
 });
 
 /**
+ * Put the real Monza weekend-news cards onto the signed-in feed so Home has
+ * news sitting next to scored session cards, not a wall of results.
+ *
+ * Replays the Italy publish migrations (idempotent upserts) and then pulls
+ * those feed events to the top as one consecutive group. Does not invent
+ * stories for other weekends: the copy is the same Monza items prod already
+ * ships.
+ *
+ * Run via:
+ *   npx convex run seed:seedDashboardNews
+ */
+export const seedDashboardNews = internalMutation({
+  args: {},
+  returns: v.object({
+    race: v.string(),
+    newsItems: v.number(),
+    feedEvents: v.number(),
+  }),
+  handler: async (
+    ctx,
+  ): Promise<{ race: string; newsItems: number; feedEvents: number }> => {
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'italy-2026'))
+      .unique();
+    if (!race) {
+      throw new Error(
+        'italy-2026 not found. Run seedRaces first: npx convex run seed:seedRaces',
+      );
+    }
+
+    await ctx.runMutation(
+      internal.raceNewsMigrations.updateItaly2026MonzaNewsCopy,
+      {},
+    );
+    await ctx.runMutation(
+      internal.raceNewsMigrations.publishItaly2026HadjarUpdate,
+      {},
+    );
+    await ctx.runMutation(
+      internal.raceNewsMigrations.publishItaly2026MonzaFp1Seats,
+      {},
+    );
+    await ctx.runMutation(
+      internal.raceNewsMigrations.publishItaly2026MercedesAndWilliamsNews,
+      {},
+    );
+    await ctx.runMutation(
+      internal.raceNewsMigrations.addItaly2026BrowningWriteUpPhoto,
+      {},
+    );
+    await ctx.runMutation(
+      internal.raceNewsMigrations.publishItaly2026MercedesEngineSpec,
+      {},
+    );
+
+    const items = await ctx.db
+      .query('raceNews')
+      .withIndex('by_race', (q) => q.eq('raceId', race._id))
+      .collect();
+    const active = items
+      .filter((item) => item.active)
+      .sort((a, b) => a.key.localeCompare(b.key));
+
+    // Consecutive timestamps so `groupFeedEvents` keeps them as one news
+    // block, parked at the top of Home rather than under last weekend's
+    // scores. `publish` leaves createdAt alone on a correction; this restamp
+    // is the dashboard-seed exception.
+    const now = Date.now();
+    let feedEvents = 0;
+    for (const [index, item] of active.entries()) {
+      const event = await ctx.db
+        .query('feedEvents')
+        .withIndex('by_race_news_key', (q) =>
+          q.eq('raceId', race._id).eq('newsKey', item.key),
+        )
+        .unique();
+      if (!event) {
+        continue;
+      }
+      await ctx.db.patch(event._id, {
+        createdAt: now - (active.length - 1 - index) * 30_000,
+      });
+      feedEvents++;
+    }
+
+    return {
+      race: race.slug,
+      newsItems: active.length,
+      feedEvents,
+    };
+  },
+});
+
+/**
  * Seed revs on existing feed events so the Rev button has real data to show.
  * Randomly assigns 1–4 revs per event using other users in the system.
  *

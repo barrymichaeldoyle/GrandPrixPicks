@@ -1718,25 +1718,25 @@ function PickEditorModal({
             edges={['top', 'bottom']}
             style={{ flex: 1, backgroundColor: colors.page }}
           >
-          <View className="flex-row items-center justify-between px-4 py-2">
-            <Text className="text-foreground text-xl font-semibold">
-              {title}
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              onPress={onClose}
-              className="min-h-11 justify-center px-3"
+            <View className="flex-row items-center justify-between px-4 py-2">
+              <Text className="text-foreground text-xl font-semibold">
+                {title}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={onClose}
+                className="min-h-11 justify-center px-3"
+              >
+                <Text className="text-accent">Close</Text>
+              </Pressable>
+            </View>
+            <ScrollView
+              scrollEnabled={scrollEnabled}
+              contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
             >
-              <Text className="text-accent">Close</Text>
-            </Pressable>
-          </View>
-          <ScrollView
-            scrollEnabled={scrollEnabled}
-            contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
-          >
-            {children}
-          </ScrollView>
-          <ModalToast />
+              {children}
+            </ScrollView>
+            <ModalToast />
           </SafeAreaView>
         </GestureHandlerRootView>
       </SafeAreaProvider>

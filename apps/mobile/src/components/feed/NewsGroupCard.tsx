@@ -166,6 +166,9 @@ function RaceNewsCard({
  * scoring note belong to the run and are said once; each card keeps the story
  * that actually differs. Grouping is by adjacency, not by race — see
  * `groupFeedEvents`.
+ *
+ * Edge to edge, same as web's `NewsGroup`: side borders and radius go, inner
+ * padding stays.
  */
 export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
   if (events.length === 0) {
@@ -179,7 +182,7 @@ export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
       accessibilityLabel={
         raceName ? `Weekend news, ${raceName}` : 'Weekend news'
       }
-      className="overflow-hidden rounded-xl border border-border bg-surface"
+      className="overflow-hidden border-y border-border bg-surface"
     >
       <View className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border px-3 py-2">
         <Text className="text-[10px] font-semibold tracking-wide text-accent uppercase">

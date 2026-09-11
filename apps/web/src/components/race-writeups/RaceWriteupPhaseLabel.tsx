@@ -5,7 +5,7 @@ import {
 
 export function RaceWriteupPhaseLabel({ phase }: { phase: RaceWriteupPhase }) {
   return (
-    <span className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+    <span className="text-xs font-medium text-text-muted">
       {raceWriteupPhaseLabel(phase)}
     </span>
   );

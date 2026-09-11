@@ -426,7 +426,7 @@ export function PracticeResultsCard({
         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-muted/40"
       >
         <span className="min-w-0">
-          <span className="block text-xs font-semibold tracking-label text-text-muted uppercase">
+          <span className="block text-xs font-medium text-text-muted">
             Session results
           </span>
           <span className="mt-0.5 block truncate text-sm font-semibold text-text">

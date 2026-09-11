@@ -159,7 +159,7 @@ export function ScorePublishedItem({
 
         {isAmended && (
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-sm border border-warning/30 bg-warning/5 px-2 py-1.5">
-            <span className="text-xs font-semibold tracking-label text-warning uppercase">
+            <span className="text-xs font-medium text-warning">
               Results amended
             </span>
             {event.previousPoints !== undefined &&
@@ -210,7 +210,7 @@ export function ScorePublishedItem({
           {!grouped && (
             <div className="flex shrink-0 items-center gap-2 text-xs text-text-muted">
               {isLocked ? (
-                <span className="text-xs font-semibold tracking-label text-accent uppercase">
+                <span className="text-xs font-medium text-accent">
                   Awaiting results
                 </span>
               ) : null}

@@ -23,7 +23,7 @@ export function FeedbackCard() {
       aria-labelledby="feedback-card-heading"
     >
       <div className="p-4">
-        <p id="feedback-card-heading" className="gpp-label">
+        <p id="feedback-card-heading" className="text-xs font-medium text-text-muted">
           Feedback
         </p>
         <p className="mt-2 text-sm text-text-muted">

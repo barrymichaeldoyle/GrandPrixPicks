@@ -11,10 +11,10 @@ import type { Id } from '@convex-generated/dataModel';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { AnimatePresence, m } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { RaceFlag } from '@/components/RaceFlag';
+import { RaceWeekendSelect } from '@/components/RaceWeekendSelect';
 import { TabSwitch } from '@/components/TabSwitch';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { SESSION_LABELS } from '@/lib/sessions';
@@ -341,22 +341,25 @@ function LeaderboardPage() {
       ? getCountryCodeForRace({ slug: selectedRace.slug })
       : null;
 
+  // Block flex, not inline-flex: a flag as the first item of an inline-flex
+  // takes the line's baseline (replaced-element bottom edge), so the text's
+  // line-height hangs below it and the subtitle grows when you switch from
+  // season. Same row pattern as the this-weekend hub. The flag sits in a
+  // reserved 18×24 box so a slow paint cannot shove the name sideways.
   const heroSubtitle =
     timeScope === 'weekend' && selectedRace ? (
-      <span className="inline-flex items-center gap-2">
+      <>
         {weekendCountryCode ? (
-          <RaceFlag
-            countryCode={weekendCountryCode}
-            size="sm"
-            className="shrink-0 overflow-hidden rounded-sm border border-border"
-          />
+          <span className="flex h-[18px] w-6 shrink-0 items-center justify-center">
+            <RaceFlag countryCode={weekendCountryCode} size="sm" />
+          </span>
         ) : null}
         <span>
           {selectedRace.season} {selectedRace.name}
           {scopedSessionType ? ` · ${SESSION_LABELS[scopedSessionType]}` : ''}
           {playerCountSuffix}
         </span>
-      </span>
+      </>
     ) : (
       `${season} Season Standings${playerCountSuffix}`
     );
@@ -400,8 +403,15 @@ function LeaderboardPage() {
           title="Leaderboard"
           subtitle={
             <>
-              <p>{heroSubtitle}</p>
-              <p className="mt-1">
+              {/* Season vs weekend, which race, and which session are already
+                  the filters under this header. Repeating them here is a
+                  second status line on a phone that has just stacked those
+                  controls. Wide screens keep the line as a read of the board
+                  next to the standing card. */}
+              <p className="hidden flex-wrap items-center gap-x-2 sm:flex">
+                {heroSubtitle}
+              </p>
+              <p className="sm:mt-1">
                 Looking for the real-world points?{' '}
                 <Link
                   to="/f1-standings"
@@ -446,16 +456,14 @@ function LeaderboardPage() {
           }
         />
 
-        {/* Filters */}
+        {/* Filters. Stacked on a phone. At lg the inner wrapper dissolves
+            (`contents`) so time, weekend, session and scope share one row:
+            which board, which race, which session, then whose. */}
         <div
-          className="reveal-up reveal-delay-1 mb-6 flex flex-col gap-2.5"
+          className="reveal-up reveal-delay-1 mb-4 flex flex-col gap-2.5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3"
           aria-label="Leaderboard filters"
         >
-          {/* Row 1: which board, and whose. Two different questions, but the
-              scope switch only ever needs ~14rem, so it rides on the end of the
-              time-scope row instead of spending a whole line to sit half-empty.
-              Stacked on mobile, where there is no width to share. */}
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4 lg:contents">
             <TabSwitch
               value={timeScope}
               onChange={(v) =>
@@ -465,8 +473,8 @@ function LeaderboardPage() {
                 })
               }
               options={[...TIME_SCOPE_OPTIONS]}
-              className="flex gap-1 rounded-lg bg-surface-muted/55 p-1 sm:flex-1"
-              buttonClassName="flex-1"
+              className="flex gap-1 rounded-lg bg-surface-muted/55 p-1 sm:flex-1 lg:w-auto lg:flex-none"
+              buttonClassName="flex-1 lg:flex-none lg:px-4"
               ariaLabel="Leaderboard time scope"
             />
 
@@ -480,35 +488,25 @@ function LeaderboardPage() {
                   })
                 }
                 options={[...SCOPE_OPTIONS]}
-                className="flex shrink-0 gap-1 rounded-lg bg-surface-muted/40 p-1 sm:w-56"
+                className="flex shrink-0 gap-1 rounded-lg bg-surface-muted/40 p-1 sm:w-56 lg:order-last lg:ml-auto"
                 buttonClassName="flex-1"
                 ariaLabel="Leaderboard scope"
               />
             )}
           </div>
 
-          {/* Race selector (weekend tab only) */}
           {timeScope === 'weekend' && selectableRaces.length > 1 && (
-            <div className="relative">
-              <select
-                value={selectedRaceId ?? ''}
-                onChange={(e) =>
-                  navigate({
-                    search: (prev) => ({ ...prev, raceId: e.target.value }),
-                    replace: true,
-                  })
-                }
-                className="w-full appearance-none rounded-lg border border-border bg-surface px-3 py-2 pr-10 text-sm font-medium text-text focus:ring-2 focus:ring-accent focus:outline-none"
-                aria-label="Select race weekend"
-              >
-                {selectableRaces.map((r) => (
-                  <option key={r._id} value={r._id}>
-                    {r.season} Round {r.round} · {r.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-text-muted" />
-            </div>
+            <RaceWeekendSelect
+              races={selectableRaces}
+              value={selectedRaceId ?? ''}
+              onChange={(raceId) =>
+                navigate({
+                  search: (prev) => ({ ...prev, raceId }),
+                  replace: true,
+                })
+              }
+              className="lg:max-w-md lg:min-w-64 lg:flex-1"
+            />
           )}
 
           {/* Session filter (weekend tab only, and only once the weekend has
@@ -526,7 +524,7 @@ function LeaderboardPage() {
                   })
                 }
                 options={sessionScopeOptions(sessionBreakdown!.sessions)}
-                className="flex gap-1 overflow-x-auto rounded-lg bg-surface-muted/40 p-1"
+                className="flex gap-1 overflow-x-auto rounded-lg bg-surface-muted/40 p-1 lg:min-w-0 lg:flex-1"
                 buttonClassName="flex-1 whitespace-nowrap"
                 ariaLabel="Leaderboard session"
               />
@@ -571,7 +569,7 @@ function LeaderboardPage() {
  */
 function LeaderboardExplainer() {
   return (
-    <section className="mt-12 border-t border-border pt-8">
+    <section className="pt-12">
       <h2 className="font-title text-2xl font-semibold text-text">
         How these standings are scored
       </h2>

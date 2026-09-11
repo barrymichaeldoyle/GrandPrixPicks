@@ -151,7 +151,7 @@ function LatestResultHeading() {
   return (
     <div className="flex items-center gap-2">
       <Flag className="h-4 w-4 text-accent" aria-hidden />
-      <h2 id="latest-result-heading" className="gpp-label text-text-muted">
+      <h2 id="latest-result-heading" className="text-xs font-medium text-text-muted">
         Latest result
       </h2>
     </div>

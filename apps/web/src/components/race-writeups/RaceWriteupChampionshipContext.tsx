@@ -116,7 +116,7 @@ export function RaceWriteupChampionshipContext({
         <div className="border border-border bg-surface">
           <div className="flex justify-between border-b border-border px-4 py-3">
             <h3 className="font-title font-medium text-text">Drivers</h3>
-            <span className="gpp-mono text-xs text-text-muted uppercase">
+            <span className="gpp-mono text-xs text-text-muted">
               After {championship.roundsScored} rounds
             </span>
           </div>
@@ -142,7 +142,7 @@ export function RaceWriteupChampionshipContext({
                   {driver.displayName}
                 </span>
                 <span className="gpp-mono text-sm text-text">
-                  {driver.points} PTS
+                  {driver.points} pts
                 </span>
               </li>
             ))}

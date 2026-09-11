@@ -298,7 +298,7 @@ describe('race write-up sections', () => {
 
       expect(el.textContent).toContain('The body.');
       expect(el.textContent).toContain('Race facts and schedule: Formula 1.');
-      expect(el.textContent).toContain('LAST REVIEWED 10 SEPT 2026');
+      expect(el.textContent).toContain('Last reviewed 10 Sept 2026');
     });
   });
 

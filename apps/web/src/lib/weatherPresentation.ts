@@ -486,6 +486,25 @@ export function summarizeSessionWindow(
 }
 
 /**
+ * The forecast for one named session on a race, or null if that session is
+ * missing from the schedule or has already left the forecast window.
+ */
+export function weatherForSession(
+  forecast: WeatherForecast,
+  race: RaceSchedule,
+  sessionKey: string,
+): { session: WeatherSession; summary: WeatherWindowSummary } | null {
+  const session = buildWeatherSessions(race).find(
+    (candidate) => candidate.key === sessionKey,
+  );
+  if (!session) {
+    return null;
+  }
+  const summary = summarizeSessionWindow(forecast, session);
+  return summary ? { session, summary } : null;
+}
+
+/**
  * One line of forecast: what it is, how warm, and how likely rain is.
  *
  * The chance is dropped below 20%, where it is not a fact anyone picks

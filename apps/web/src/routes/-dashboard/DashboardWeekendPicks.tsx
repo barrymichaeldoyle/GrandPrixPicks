@@ -432,12 +432,10 @@ function DashboardWeekendPicksReady({
       {/* No divider here: the tab row below carries it, so the selected tab can
           sit on the line the way a tab strip should. */}
       <div className="p-4 sm:p-5">
-        {/* Nothing in this corner any more. It held a "Full weekend" link to
-            the race page, and it was competing with the write-up row at the
-            foot of the card: two ways out, one of them a bare label in small
-            grey text, and the bare label was winning attention it could not
-            repay. The race page is still a tap away from the calendar and from
-            every session row; this card is for picking and for the read. */}
+        {/* The top-right used to hold a "Full weekend" link that competed with
+            the write-up row at the foot of the card. The race page is still a
+            tap away from the calendar; this corner now holds the forecast for
+            the session the card is on. */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             {countryCode ? (
@@ -448,7 +446,7 @@ function DashboardWeekendPicksReady({
               />
             ) : null}
             <div className="min-w-0">
-              <p className="gpp-label text-text-muted">
+              <p className="text-xs font-medium text-text-muted">
                 Round {weekend.race.round}
                 {weekend.race.hasSprint ? ' · Sprint weekend' : ''}
               </p>
@@ -467,9 +465,16 @@ function DashboardWeekendPicksReady({
               </h1>
             </div>
           </div>
-          {/* There used to be an "N open" pill next to this. The tab row below
-              already names every session and its state, so the count was the
-              same fact in a louder font. */}
+          {/* The forecast used to be a labelled row under the picks, which
+              read as another footer link next to the weekend preview. The
+              fact belongs up here with the race: what it will be like while
+              this session is open. */}
+          <WeatherSessionLine
+            race={weekend.race}
+            weather={weather}
+            sessionKey={clockSession?.sessionType}
+            className="mt-0.5 shrink-0"
+          />
         </div>
       </div>
 
@@ -567,16 +572,6 @@ function DashboardWeekendPicksReady({
         ) : null}
       </div>
 
-      {/* Under the picks and above the write-up link: a player reads down to
-          "have I picked?", and the forecast is the first thing that might send
-          them back into the card to change an answer. */}
-      <WeatherSessionLine
-        race={weekend.race}
-        weather={weather}
-        now={now}
-        sessionKey={clockSession?.sessionType}
-      />
-
       {writeup ? <WeekendPreviewLink writeup={writeup} /> : null}
 
       {/* Both steps live in here, and the card outside is only ever an
@@ -598,7 +593,7 @@ function DashboardWeekendPicksReady({
           {step === 'h2h' && topFiveComplete ? (
             <button
               type="button"
-              className="gpp-label mb-4 -ml-1 inline-flex items-center gap-0.5 text-accent transition-colors hover:text-accent-hover"
+              className="mb-4 -ml-1 inline-flex items-center gap-0.5 text-xs font-medium text-accent transition-colors hover:text-accent-hover"
               onClick={goBackToTop5}
             >
               <ChevronLeft className="size-3.5" aria-hidden />
@@ -810,7 +805,9 @@ function WeekendPreviewLink({ writeup }: { writeup: RaceWriteup }) {
         aria-hidden
       />
       <span className="min-w-0 flex-1">
-        <span className="gpp-label block text-text-muted">Weekend preview</span>
+        <span className="block text-xs font-medium text-text-muted">
+          Weekend preview
+        </span>
         <span className="mt-0.5 block truncate text-sm font-medium text-text">
           {writeup.cta}
         </span>
@@ -872,7 +869,7 @@ function SessionChip({
   // base with `border-accent` appended lost: they are the same specificity, so
   // the winner is whichever Tailwind emits last, and that was `transparent`.
   const base =
-    'inline-flex shrink-0 items-center gap-1 border-b-2 py-2.5 text-[11px] font-semibold tracking-label whitespace-nowrap uppercase transition-colors';
+    'inline-flex shrink-0 items-center gap-1 border-b-2 py-2.5 text-[11px] font-semibold whitespace-nowrap transition-colors';
 
   if (!onSelect) {
     return (
@@ -926,7 +923,9 @@ function PicksInvitation({
 
   return (
     <div data-testid="dashboard-picks-invitation">
-      <p className="gpp-label text-accent">Step {onH2H ? '2' : '1'} of 2</p>
+      <p className="text-xs font-medium text-accent">
+        Step {onH2H ? '2' : '1'} of 2
+      </p>
       {/* `h2`, not `h3`. The card's title is the page `h1`, and nothing sits
           between them, so an `h3` here skipped a level and axe failed the
           dashboard on `heading-order`. The rail cards are all `h2` too, so
@@ -943,7 +942,7 @@ function PicksInvitation({
 
       {hasTopFive ? (
         <div className="mt-4">
-          <p className="gpp-label text-text-muted">Your Top 5</p>
+          <p className="text-xs font-medium text-text-muted">Your Top 5</p>
           <TopFivePicksBar picks={topFivePicks} drivers={drivers} />
         </div>
       ) : null}
@@ -984,7 +983,7 @@ function TopFiveStrip({
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between gap-3">
-        <p className="gpp-label text-text-muted">Your Top 5</p>
+        <p className="text-xs font-medium text-text-muted">Your Top 5</p>
         {onEditTopFive ? (
           <Button
             variant="text"

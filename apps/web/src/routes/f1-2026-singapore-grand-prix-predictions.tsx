@@ -347,7 +347,7 @@ function SaturdayEvidence() {
       heading="The Sprint is the only race-pace evidence before qualifying"
       aside={
         <div className="self-start rounded-sm bg-surface-elevated p-5">
-          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+          <p className="text-xs font-medium text-text-muted">
             Pick order
           </p>
           <ol className="mt-4 space-y-3 text-sm text-text">

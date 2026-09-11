@@ -56,7 +56,7 @@ export function NewsGroup({ events }: { events: FeedEvent[] }) {
           stories themselves carry. `-mt-px` on the section collapses the
           stacked hairline where this block meets practice on a phone. */}
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-2.5 py-2">
-        <p className="text-xs font-semibold tracking-label text-accent uppercase">
+        <p className="text-xs font-medium text-accent">
           Weekend news
         </p>
         {raceName ? (

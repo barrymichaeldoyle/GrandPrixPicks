@@ -7,6 +7,7 @@ import {
   forecastAlert,
   sessionWeatherLine,
   summarizeSessionWindow,
+  weatherForSession,
   type WeatherForecast,
 } from './weatherPresentation';
 
@@ -220,8 +221,6 @@ describe('session weather line', () => {
   });
 
   it('has nothing to say about a session the forecast no longer covers', () => {
-    // The row falls back to the next session on this, so a null here is what
-    // keeps a locked tab from showing an empty forecast.
     expect(
       summarizeSessionWindow(forecast(), {
         key: 'fp1',
@@ -230,5 +229,14 @@ describe('session weather line', () => {
         endsAt: Date.UTC(2026, 8, 5, 14),
       }),
     ).toBeNull();
+  });
+
+  it('names a scheduled session and ignores one the race does not run', () => {
+    const race = {
+      raceStartAt: raceAt,
+      fp1StartAt: Date.UTC(2026, 8, 6, 10),
+    };
+    expect(weatherForSession(forecast(), race, 'fp1')?.session.key).toBe('fp1');
+    expect(weatherForSession(forecast(), race, 'fp2')).toBeNull();
   });
 });

@@ -3,19 +3,14 @@ import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import { useMutation } from 'convex/react';
 import { useQuery } from '@/integrations/convex/query';
-import {
-  CalendarDays,
-  ChevronDown,
-  Layers,
-  Swords,
-  Trophy,
-} from 'lucide-react';
+import { CalendarDays, Layers, Swords, Trophy } from 'lucide-react';
 import { useState } from 'react';
 
 import {
   LeagueMembersList,
   LeagueMembersListSkeleton,
 } from '@/components/LeagueMembersList';
+import { RaceWeekendSelect } from '@/components/RaceWeekendSelect';
 import { TabSwitch } from '@/components/TabSwitch';
 import { useStickyValue } from '@/hooks/useStickyValue';
 import { captureAnalyticsEvent } from '@/lib/analytics';
@@ -154,26 +149,16 @@ export function LeagueMembers({
         ariaLabel="Standings time scope"
       />
       {timeScope === 'weekend' && selectableRaces.length > 1 && (
-        <div className="relative">
-          <select
-            value={effectiveRaceId ?? ''}
-            onChange={(e) =>
-              navigate({
-                search: (prev) => ({ ...prev, raceId: e.target.value }),
-                replace: true,
-              })
-            }
-            className="w-full appearance-none rounded-lg border border-border bg-surface px-3 py-2 pr-10 text-sm font-medium text-text focus:ring-2 focus:ring-accent focus:outline-none"
-            aria-label="Select race weekend"
-          >
-            {selectableRaces.map((r) => (
-              <option key={r._id} value={r._id}>
-                {r.season} Round {r.round} · {r.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-text-muted" />
-        </div>
+        <RaceWeekendSelect
+          races={selectableRaces}
+          value={effectiveRaceId ?? ''}
+          onChange={(raceId) =>
+            navigate({
+              search: (prev) => ({ ...prev, raceId }),
+              replace: true,
+            })
+          }
+        />
       )}
       <TabSwitch
         value={gameMode}

@@ -20,6 +20,27 @@ export function abbreviateGrandPrix(name: string): string {
 }
 
 /**
+ * OpenF1 prints family names in capitals ("Kimi ANTONELLI"). Sentence-case
+ * chrome has to undo that, or the one name in a heading shouts.
+ */
+export function formatTimingSheetName(name: string): string {
+  return name.replace(/\S+/g, (word) => {
+    const letters = word.replace(/[^A-Za-zÀ-ÿ]/g, '');
+    if (letters.length < 2 || letters !== letters.toUpperCase()) {
+      return word;
+    }
+    return word
+      .split(/(['’-])/)
+      .map((part) =>
+        part.length === 0
+          ? part
+          : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase(),
+      )
+      .join('');
+  });
+}
+
+/**
  * Round span for a pairing that is not the team's only one this season.
  * Open-ended rows are "from this round onwards"; a single-round stint is rare
  * but still a span of one.

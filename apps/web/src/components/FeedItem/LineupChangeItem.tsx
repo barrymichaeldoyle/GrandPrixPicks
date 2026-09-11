@@ -29,7 +29,7 @@ export function LineupChangeItem({ event }: { event: FeedEvent }) {
   return (
     <>
       <div className="flex items-start justify-between gap-3">
-        <p className="flex min-w-0 items-center gap-1.5 text-xs font-semibold tracking-label text-accent uppercase">
+        <p className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-accent">
           Grid change
         </p>
         <ReactionButton

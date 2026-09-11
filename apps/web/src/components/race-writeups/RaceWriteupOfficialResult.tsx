@@ -32,13 +32,13 @@ function ResultTable({ session, classification }: OfficialResultSession) {
             <tr className="border-b border-border">
               <th
                 scope="col"
-                className="w-14 px-3 py-1.5 text-left text-xs font-semibold tracking-label text-text-muted uppercase"
+                className="w-14 px-3 py-1.5 text-left text-xs font-medium text-text-muted"
               >
                 Pos
               </th>
               <th
                 scope="col"
-                className="px-3 py-1.5 text-left text-xs font-semibold tracking-label text-text-muted uppercase"
+                className="px-3 py-1.5 text-left text-xs font-medium text-text-muted"
               >
                 Driver
               </th>

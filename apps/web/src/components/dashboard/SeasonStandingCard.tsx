@@ -85,7 +85,7 @@ function SeasonStandingHeading() {
   return (
     <div className="flex items-center gap-2">
       <Trophy className="h-4 w-4 text-accent" aria-hidden />
-      <h2 className="gpp-label text-text-muted">Season standing</h2>
+      <h2 className="text-xs font-medium text-text-muted">Season standing</h2>
     </div>
   );
 }

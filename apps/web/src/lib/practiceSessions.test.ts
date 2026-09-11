@@ -74,14 +74,22 @@ describe('latestPracticeResult', () => {
 describe('practiceSessionFact', () => {
   it('names the session and whoever topped it', () => {
     expect(practiceSessionFact(session('fp2', 20))).toBe(
-      'FP2 · Driver 1 (fp2) fastest',
+      'Free Practice 2 · Driver 1 (fp2) fastest',
+    );
+  });
+
+  it('drops the all-caps surname OpenF1 prints', () => {
+    const result = session('fp2', 1);
+    result.entries[0]!.displayName = 'Kimi ANTONELLI';
+    expect(practiceSessionFact(result)).toBe(
+      'Free Practice 2 · Kimi Antonelli fastest',
     );
   });
 
   it('falls back to the session when no leader is classified', () => {
     const withoutLeader = session('fp1', 3);
     withoutLeader.entries = withoutLeader.entries.slice(1);
-    expect(practiceSessionFact(withoutLeader)).toBe('FP1');
+    expect(practiceSessionFact(withoutLeader)).toBe('Free Practice 1');
   });
 });
 
@@ -98,7 +106,7 @@ describe('nextTrackSession', () => {
 
   it('counts down to the next unpublished practice session', () => {
     expect(nextTrackSession(race, ['fp1'], t0 + hour)).toEqual({
-      label: 'FP2',
+      label: 'Free Practice 2',
       startAt: race.fp2StartAt,
       status: 'upcoming',
       practiceSession: 'fp2',
@@ -109,7 +117,7 @@ describe('nextTrackSession', () => {
     expect(
       nextTrackSession(race, ['fp1'], race.fp2StartAt + 10 * 60 * 1000),
     ).toEqual({
-      label: 'FP2',
+      label: 'Free Practice 2',
       startAt: race.fp2StartAt,
       status: 'live',
       practiceSession: 'fp2',
@@ -120,7 +128,7 @@ describe('nextTrackSession', () => {
     expect(
       nextTrackSession(race, ['fp1'], race.fp2StartAt + 90 * 60 * 1000),
     ).toEqual({
-      label: 'FP3',
+      label: 'Free Practice 3',
       startAt: race.fp3StartAt,
       status: 'upcoming',
       practiceSession: 'fp3',

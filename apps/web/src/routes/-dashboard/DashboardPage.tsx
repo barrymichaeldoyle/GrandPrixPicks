@@ -212,6 +212,10 @@ export function DashboardPage({
     <DashboardPracticeCard
       key={currentWeekend.race._id}
       raceId={currentWeekend.race._id}
+      raceName={currentWeekend.race.name}
+      raceSlug={currentWeekend.race.slug}
+      race={currentWeekend.race}
+      weather={weather}
       initialResults={initialDashboard?.practice ?? undefined}
     />
   ) : null;

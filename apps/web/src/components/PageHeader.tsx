@@ -84,7 +84,7 @@ export function PageHeader({
     </div>
   );
 
-  const headerClass = `mb-10 ${className ?? ''}`;
+  const headerClass = `mb-6 ${className ?? ''}`;
 
   if (actions && actionsPlacement === 'trailing') {
     return (

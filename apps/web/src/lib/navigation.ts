@@ -27,6 +27,12 @@ export const publicNavLinks: SiteNavLink[] = [
   { to: '/guides', label: 'Guides' },
 ];
 
+/**
+ * Fallback when the current round has no write-up. The footer prefers the
+ * weekend preview (`footerWeekendPreview`) so the chrome names a real Grand
+ * Prix; this is the page that still takes a pick when that preview does not
+ * exist yet.
+ */
 export const footerPrimaryLink: SiteNavLink = {
   to: '/f1-predictions-this-weekend',
   label: 'Predictions this weekend',

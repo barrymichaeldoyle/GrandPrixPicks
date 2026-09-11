@@ -2,6 +2,57 @@ import type { Meta, StoryObj } from '@storybook/react';
 
 import { PracticeHighlights } from './PracticeHighlights';
 import type { PracticeResults } from '@/lib/practiceSessions';
+import type { RaceWeather, WeatherHour } from '@/lib/weatherPresentation';
+
+const fp1StartAt = Date.UTC(2026, 8, 4, 11, 30);
+const fp2StartAt = Date.UTC(2026, 8, 4, 15);
+const fp3StartAt = Date.UTC(2026, 8, 5, 10, 30);
+const raceStartAt = Date.UTC(2026, 8, 6, 13);
+
+function hour(at: number, temperatureC: number): WeatherHour {
+  return {
+    at,
+    localDate: new Date(at).toISOString().slice(0, 10),
+    localHour: new Date(at).getUTCHours(),
+    forecastPeriodHours: 1,
+    temperatureC,
+    conditionCode: 'clearsky_day',
+    precipitationAmountMm: 0,
+    precipitationProbability: 5,
+    thunderProbability: 0,
+    windSpeedMps: 3,
+    windGustMps: 6,
+  };
+}
+
+const weather: RaceWeather = {
+  isStale: false,
+  attribution: {
+    name: 'MET Norway',
+    url: 'https://www.met.no/en',
+    licenseName: 'CC BY 4.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+  },
+  forecast: {
+    raceSlug: 'italy-2026',
+    timeZone: 'Europe/Rome',
+    provider: 'met_no',
+    providerUpdatedAt: fp1StartAt,
+    fetchedAt: fp1StartAt,
+    checkedAt: fp1StartAt,
+    expiresAt: raceStartAt,
+    eventDates: ['2026-09-04', '2026-09-05'],
+    hours: [hour(fp1StartAt, 24), hour(fp2StartAt, 26), hour(fp3StartAt, 22)],
+    days: [],
+  },
+};
+
+const race = {
+  raceStartAt,
+  fp1StartAt,
+  fp2StartAt,
+  fp3StartAt,
+};
 
 type Entry = PracticeResults[number]['entries'][number];
 
@@ -69,7 +120,13 @@ const meta = {
       </div>
     ),
   ],
-  args: { results: MONZA },
+  args: {
+    results: MONZA,
+    raceName: 'Italian Grand Prix',
+    raceSlug: 'italy-2026',
+    race,
+    weather,
+  },
 } satisfies Meta<typeof PracticeHighlights>;
 
 export default meta;

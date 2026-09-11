@@ -3,7 +3,11 @@ import type { Id } from '@convex-generated/dataModel';
 import { useQuery } from '@/integrations/convex/query';
 
 import { PracticeHighlights } from '@/components/PracticeHighlights';
-import type { PracticeResults } from '@/lib/practiceSessions';
+import type {
+  PracticeResults,
+  TrackSessionSchedule,
+} from '@/lib/practiceSessions';
+import type { RaceWeather } from '@/lib/weatherPresentation';
 
 import { liveOrSsr } from './dashboardState';
 
@@ -22,14 +26,30 @@ export type { PracticeResults };
  */
 export function DashboardPracticeCard({
   raceId,
+  raceName,
+  raceSlug,
+  race,
+  weather,
   initialResults,
 }: {
   raceId: Id<'races'>;
+  raceName?: string;
+  raceSlug?: string;
+  race?: TrackSessionSchedule;
+  weather?: RaceWeather | null;
   initialResults?: PracticeResults;
 }) {
   const results = liveOrSsr(
     useQuery(api.practiceResults.getPracticeResultsForRace, { raceId }),
     initialResults,
   );
-  return <PracticeHighlights results={results} />;
+  return (
+    <PracticeHighlights
+      results={results}
+      raceName={raceName}
+      raceSlug={raceSlug}
+      race={race}
+      weather={weather}
+    />
+  );
 }

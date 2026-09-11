@@ -53,14 +53,10 @@ export function FeedContent({
    *
    * The dashboard's picks card during the results-first window. The card
    * belongs immediately under the race that just ran, and "under the race
-   * result" is a position in this stream, not a position on the page: dropping
-   * it below the whole feed put it after qualifying, after the week's activity
-   * and after the Load more button.
+   * result" is a position in this stream, not a position on the page.
    *
-   * Rendered exactly once whatever happens. If the named group is not in the
-   * loaded pages — the feed is still loading, the viewer follows nobody, the
-   * result has scrolled past the pages held — it falls to the bottom, which is
-   * where it used to live.
+   * Rendered exactly once. If the named group is not in the loaded pages, the
+   * card leads this stream rather than sitting under Load more.
    */
   interleaved?: {
     /** From `sessionGroupKey`, so the format is not spelled out twice. */
@@ -138,6 +134,10 @@ export function FeedContent({
    * Every return below goes through this, so the interleaved block reaches the
    * page on the empty and loading paths too — never twice, and never not at
    * all. The group branch passes `placed` once it has already rendered it.
+   *
+   * When the named group is missing, the card leads the stream rather than
+   * sitting under Load more: that button is "there is more of this list",
+   * not "the picker for the next round belongs down here".
    */
   function withInterleaved(body: ReactNode, placed = false) {
     if (!interleaved || placed) {
@@ -145,8 +145,8 @@ export function FeedContent({
     }
     return (
       <>
-        {body}
         {interleaved.node}
+        {body}
       </>
     );
   }
@@ -256,7 +256,7 @@ export function FeedContent({
         >
           {topToFollow.length > 0 && (
             <div className="space-y-2 text-left">
-              <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
+              <p className="text-xs font-medium text-text-muted">
                 Top players this season
               </p>
               {topToFollow.map((p) => (
@@ -321,8 +321,9 @@ export function FeedContent({
   );
   const groups = groupFeedEvents(allEvents);
 
-  // Only when the group is actually here. Otherwise the block keeps its old
-  // place at the bottom, which is a worse position but never a missing card.
+  // Only when the group is actually here. Otherwise the card leads this
+  // stream: under Load more was a position nobody opening the page for
+  // their next pick would look.
   const slotAfter =
     interleaved &&
     groups.some(
@@ -334,6 +335,7 @@ export function FeedContent({
 
   return withInterleaved(
     <div className="space-y-0 md:space-y-4">
+      {interleaved && slotAfter === null ? interleaved.node : null}
       {groups.map((group) => {
         if (group.kind === 'standalone') {
           return <FeedItem key={group.event._id} event={group.event} />;
@@ -364,6 +366,6 @@ export function FeedContent({
         </div>
       )}
     </div>,
-    slotAfter !== null,
+    true,
   );
 }

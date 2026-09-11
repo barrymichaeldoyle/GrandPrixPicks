@@ -53,7 +53,7 @@ export function WeekendScheduleList({ race }: { race: Doc<'races'> }) {
   return (
     <section aria-label="Weekend schedule">
       <div className="flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-xs font-semibold tracking-label text-text-muted uppercase">
+        <p className="flex items-center gap-1.5 text-xs font-medium text-text-muted">
           <Calendar size={13} aria-hidden />
           Weekend Schedule
         </p>

@@ -1,3 +1,5 @@
+import { getCountryCodeForRace } from '@/lib/raceCountries';
+
 /**
  * Editorial weekend write-ups, by race slug.
  *
@@ -13,11 +15,19 @@
  * points at, and the players it was written for never see it.
  *
  * Add a line here when a new write-up ships, and every surface that renders a
- * link picks it up.
+ * link picks it up. The site footer reads this same registry for the current
+ * weekend's preview, so a missing entry there is the same miss as on the race
+ * page: the write-up exists and nothing in the chrome points at it.
  */
 export type RaceWriteup = {
   /** Route path for the write-up. */
   to: string;
+  /**
+   * The name the footer and other chrome use for this weekend: "Madrid",
+   * "Sepang". Circuit locality is the wrong source — Bahrain 2026 is in Kuala
+   * Lumpur and still has to say Sepang.
+   */
+  venueName: string;
   /**
    * Date the hand-written page content was last substantively reviewed.
    *
@@ -61,6 +71,7 @@ const RACE_WRITEUPS = {
   'italy-2026': {
     to: '/f1-2026-italian-grand-prix-predictions',
     reviewedAt: '2026-09-08',
+    venueName: 'Monza',
     label: 'Monza results',
     summary:
       'How Monza finished, how the field picked it, and the circuit facts that decided the result.',
@@ -69,6 +80,7 @@ const RACE_WRITEUPS = {
   'bahrain-2026': {
     to: '/f1-2026-bahrain-grand-prix-predictions',
     reviewedAt: '2026-09-11',
+    venueName: 'Sepang',
     label: 'Sepang predictions',
     summary:
       'Why a Bahrain Grand Prix is running in Malaysia, what nine years without a Formula 1 race has done to the circuit, and the tyre choice that opens up strategy.',
@@ -77,6 +89,7 @@ const RACE_WRITEUPS = {
   'singapore-2026': {
     to: '/f1-2026-singapore-grand-prix-predictions',
     reviewedAt: '2026-09-08',
+    venueName: 'Singapore',
     label: 'Singapore predictions',
     summary:
       'Singapore’s first sprint weekend, the single practice session before competitive running, and what matters at Marina Bay.',
@@ -85,6 +98,7 @@ const RACE_WRITEUPS = {
   'azerbaijan-2026': {
     to: '/f1-2026-azerbaijan-grand-prix-predictions',
     reviewedAt: '2026-09-08',
+    venueName: 'Baku',
     label: 'Baku predictions',
     summary:
       'Why Baku races on Saturday in 2026, where the lap is won and lost, and the qualifying session that set a Formula 1 red-flag record.',
@@ -93,6 +107,7 @@ const RACE_WRITEUPS = {
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
     reviewedAt: '2026-09-10',
+    venueName: 'Madrid',
     label: 'Madrid GP predictions',
     summary:
       'F1 heads to a new circuit in Madrid. The Formula 3 test offers an early look at the circuit and what teams will need to get right.',
@@ -137,4 +152,28 @@ export function getRaceWriteup(
     return null;
   }
   return RACE_WRITEUPS[raceSlug as RaceWriteupSlug];
+}
+
+/**
+ * The site-footer preview for a weekend: flag, destination, and a name that
+ * stands on its own out of context.
+ *
+ * Null when that round has no write-up. The footer then falls back to the
+ * evergreen predictions hub rather than inventing a preview that does not
+ * exist.
+ */
+export function footerWeekendPreview(raceSlug: string | undefined): {
+  to: string;
+  label: string;
+  countryCode: string | null;
+} | null {
+  const writeup = getRaceWriteup(raceSlug);
+  if (!writeup || !raceSlug) {
+    return null;
+  }
+  return {
+    to: writeup.to,
+    label: `${writeup.venueName} Weekend News`,
+    countryCode: getCountryCodeForRace({ slug: raceSlug }),
+  };
 }

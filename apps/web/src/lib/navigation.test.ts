@@ -31,6 +31,8 @@ describe('site navigation', () => {
       label: 'Predictions this weekend',
       exact: true,
     });
+    // The weekend write-up is the footer's featured link when one exists;
+    // this hub is only the fallback, but it still has to stay reachable.
     expect(footerPlayLinks).toEqual([
       { to: '/how-to-play', label: 'How to Play' },
       { to: '/races', label: 'Race Calendar', exact: true },

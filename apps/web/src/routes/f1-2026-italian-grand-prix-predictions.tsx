@@ -688,7 +688,7 @@ function MonzaSeats({ byCode }: { byCode: Map<string, StandingsDriver> }) {
                   key={label}
                   className="bg-surface-elevated px-4 py-4 sm:px-5 sm:py-5"
                 >
-                  <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                  <dt className="text-xs font-medium text-text-muted">
                     {label}
                   </dt>
                   <dd className="mt-3 text-sm text-text">

@@ -1,6 +1,7 @@
 import { api } from '@convex-generated/api';
 import type { FunctionReturnType } from 'convex/server';
 
+import { formatTimingSheetName } from './display';
 import {
   getWeekendPracticeStarts,
   getWeekendSessionStarts,
@@ -14,19 +15,14 @@ export type PracticeResult = PracticeResults[number];
 export type PracticeSessionType = PracticeResult['sessionType'];
 
 export const PRACTICE_SESSION_LABELS = {
-  fp1: 'FP1',
-  fp2: 'FP2',
-  fp3: 'FP3',
+  fp1: 'Free Practice 1',
+  fp2: 'Free Practice 2',
+  fp3: 'Free Practice 3',
 } as const;
 
 /** Modal title: the session named in full, then what the sheet is. */
 export function practiceResultsHeading(session: PracticeSessionType): string {
-  const name = {
-    fp1: 'Free Practice 1',
-    fp2: 'Free Practice 2',
-    fp3: 'Free Practice 3',
-  }[session];
-  return `${name} results`;
+  return `${PRACTICE_SESSION_LABELS[session]} results`;
 }
 
 /** Friday morning to Saturday morning, the order the sessions ran in. */
@@ -68,7 +64,9 @@ export function latestPracticeResult(
 export function practiceSessionFact(result: PracticeResult): string {
   const label = PRACTICE_SESSION_LABELS[result.sessionType];
   const leader = result.entries.find((entry) => entry.position === 1);
-  return leader ? `${label} · ${leader.displayName} fastest` : label;
+  return leader
+    ? `${label} · ${formatTimingSheetName(leader.displayName)} fastest`
+    : label;
 }
 
 /**

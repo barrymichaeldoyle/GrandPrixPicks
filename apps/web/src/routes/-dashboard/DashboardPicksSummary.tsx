@@ -140,7 +140,7 @@ export function DashboardPicksSummary({
         <>
           <div>
             <div className={PICKS_LABEL_ROW}>
-              <p className="gpp-label text-text-muted">Your Top 5</p>
+              <p className="text-xs font-medium text-text-muted">Your Top 5</p>
               {editable ? (
                 <Button
                   variant="text"
@@ -170,7 +170,7 @@ export function DashboardPicksSummary({
                   the card does not render), so a tick here read as the two
                   halves being graded on different scales. Whether the duels are
                   finished is already the whole point of the hint opposite. */}
-              <p className="gpp-label text-text-muted">Team-mate picks</p>
+              <p className="text-xs font-medium text-text-muted">Team-mate picks</p>
               {/* A hint, not a heading: quiet, and on the row it belongs to. */}
               {editable && h2hTotal > 0 ? (
                 <p className="text-xs text-text-muted">

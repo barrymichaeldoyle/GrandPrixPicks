@@ -413,6 +413,15 @@ export const RESULTS_FIRST_WINDOW_MS = 8 * 60 * 60 * 1000;
  */
 const RECAP_LOOKBACK_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * Leftover Playwright / seed fixtures. Their start times sit on `Date.now()`,
+ * so they steal this window from the real calendar and send the picks card
+ * hunting for a race-result group that is not in the feed.
+ */
+function isSyntheticRaceSlug(slug: string): boolean {
+  return slug.startsWith('scenario-race-') || slug.startsWith('social-race-');
+}
+
 /** Rows in the recap's followed-players table, viewer included. */
 const RECAP_FRIEND_ROWS = 5;
 
@@ -565,16 +574,20 @@ export async function loadRaceRecap(ctx: QueryCtx) {
   const now = Date.now();
   const viewer = await getViewer(ctx);
 
-  // `take(3)` rather than `first()`: a cancelled round still has a start time,
-  // and the recap must skip it rather than lead with a race nobody ran.
+  // A cancelled round, or a leftover e2e fixture whose start time hovers
+  // around "now", can win the index scan and must still be passed over.
+  // Eight is well past how many races fit in a 24-hour lookback.
   const recent = await ctx.db
     .query('races')
     .withIndex('by_raceStartAt', (q) =>
       q.gt('raceStartAt', now - RECAP_LOOKBACK_MS).lte('raceStartAt', now),
     )
     .order('desc')
-    .take(3);
-  const race = recent.find((candidate) => candidate.status !== 'cancelled');
+    .take(8);
+  const race = recent.find(
+    (candidate) =>
+      candidate.status !== 'cancelled' && !isSyntheticRaceSlug(candidate.slug),
+  );
 
   if (!race) {
     return null;

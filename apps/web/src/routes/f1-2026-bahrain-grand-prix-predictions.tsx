@@ -503,7 +503,7 @@ function TripleHeader({
           <ol className="mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-3">
             {neighbours.map((race) => (
               <li key={race.slug} className="bg-surface p-4 sm:p-5">
-                <p className="gpp-mono text-xs text-text-muted uppercase">
+                <p className="gpp-mono text-xs text-text-muted">
                   Round {race.round}
                 </p>
                 <p className="font-title mt-2 font-medium text-text">

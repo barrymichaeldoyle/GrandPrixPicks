@@ -56,17 +56,14 @@ const meta = {
   decorators: [
     (Story) => (
       <main className="mx-auto max-w-3xl bg-page p-4">
-        <div className="rounded-sm border border-border bg-surface">
-          <p className="px-4 py-3 text-sm text-text-muted sm:px-5">
-            Picks card above
-          </p>
+        <div className="flex items-start justify-between gap-3 rounded-sm border border-border bg-surface p-4 sm:p-5">
+          <p className="text-xl font-semibold text-text">Italian Grand Prix</p>
           <Story />
         </div>
       </main>
     ),
   ],
   args: {
-    now,
     weather,
     race: { slug: 'italy-2026', qualiStartAt, raceStartAt },
   },
@@ -81,10 +78,4 @@ export const Qualifying: Story = {
 
 export const WetRace: Story = {
   args: { sessionKey: 'race' },
-};
-
-/** A session that has already run has no forecast left, so the row falls back
- *  to the next one still ahead rather than emptying. */
-export const PastSessionFallsBack: Story = {
-  args: { sessionKey: 'fp1' },
 };

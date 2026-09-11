@@ -6,7 +6,7 @@ import { reviewedStamp } from '@/lib/lastReviewed';
  * The chrome every race write-up sits in: reading measure, source list, stamp.
  *
  * The prose stays in the page. This is only the frame, so a change to the
- * footer's measure or the `LAST REVIEWED` line lands once instead of five
+ * footer's measure or the last-reviewed line lands once instead of five
  * times.
  */
 export function RaceWriteupPage({
@@ -27,7 +27,7 @@ export function RaceWriteupPage({
         <footer className="mt-10 pb-4 text-sm leading-6 text-text-muted">
           <p>{sources}</p>
           <p className="gpp-mono mt-2 text-xs">
-            LAST REVIEWED {reviewedStamp(reviewedAt)}
+            Last reviewed {reviewedStamp(reviewedAt)}
           </p>
         </footer>
       </div>

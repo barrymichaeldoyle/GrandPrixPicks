@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { displayTeamName, pairingRoundSpanLabel } from './display';
+import {
+  displayTeamName,
+  formatTimingSheetName,
+  pairingRoundSpanLabel,
+} from './display';
 
 describe('displayTeamName', () => {
   it('applies known short names', () => {
@@ -15,6 +19,18 @@ describe('displayTeamName', () => {
     expect(displayTeamName('')).toBe('');
     expect(displayTeamName(null)).toBe('');
     expect(displayTeamName(undefined)).toBe('');
+  });
+});
+
+describe('formatTimingSheetName', () => {
+  it('drops the all-caps surname OpenF1 prints', () => {
+    expect(formatTimingSheetName('Kimi ANTONELLI')).toBe('Kimi Antonelli');
+    expect(formatTimingSheetName('George RUSSELL')).toBe('George Russell');
+  });
+
+  it('leaves mixed-case names and particles alone', () => {
+    expect(formatTimingSheetName('Nyck de VRIES')).toBe('Nyck de Vries');
+    expect(formatTimingSheetName('Driver 1 (fp2)')).toBe('Driver 1 (fp2)');
   });
 });
 

@@ -80,12 +80,71 @@ describe('DashboardPracticeCard', () => {
       />,
     );
 
-    // The heading leads on the newest session; both columns are on the card.
-    expect(view.textContent).toContain('FP2 \u00b7 Driver 1 (fp2) fastest');
+    expect(view.querySelector('h2')?.textContent).toBe('Practice');
+    expect(view.textContent).not.toContain('fastest');
     const columns = [
       ...view.querySelectorAll('[data-testid="dashboard-practice"] p'),
     ];
-    expect(columns.map((column) => column.textContent)).toEqual(['FP1', 'FP2']);
+    expect(columns.map((column) => column.textContent)).toEqual([
+      'Free Practice 1',
+      'Free Practice 2',
+    ]);
+    expect(view.querySelector('.gpp-column-split')).not.toBeNull();
+  });
+
+  it("shows each session's weather beside the label", () => {
+    const fp1StartAt = Date.UTC(2026, 8, 11, 11, 30);
+    const fp2StartAt = Date.UTC(2026, 8, 11, 15);
+    const hour = (at: number, temperatureC: number) => ({
+      at,
+      localDate: '2026-09-11',
+      localHour: new Date(at).getUTCHours(),
+      forecastPeriodHours: 1,
+      temperatureC,
+      conditionCode: 'clearsky_day',
+      precipitationAmountMm: 0,
+      precipitationProbability: 5,
+      thunderProbability: 0,
+      windSpeedMps: 3,
+      windGustMps: 6,
+    });
+    const view = render(
+      <DashboardPracticeCard
+        raceId={RACE_ID}
+        raceSlug="madrid-2026"
+        race={{
+          raceStartAt: Date.UTC(2026, 8, 13, 13),
+          fp1StartAt,
+          fp2StartAt,
+        }}
+        weather={{
+          isStale: false,
+          attribution: {
+            name: 'MET Norway',
+            url: 'https://www.met.no/en',
+            licenseName: 'CC BY 4.0',
+            licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+          },
+          forecast: {
+            raceSlug: 'madrid-2026',
+            timeZone: 'Europe/Madrid',
+            provider: 'met_no',
+            providerUpdatedAt: fp1StartAt,
+            fetchedAt: fp1StartAt,
+            checkedAt: fp1StartAt,
+            expiresAt: fp2StartAt,
+            eventDates: ['2026-09-11'],
+            hours: [hour(fp1StartAt, 28), hour(fp2StartAt, 31)],
+            days: [],
+          },
+        }}
+        initialResults={[session('fp2', 20), session('fp1', 20)]}
+      />,
+    );
+
+    expect(view.textContent).toContain('Clear · 28°C');
+    expect(view.textContent).toContain('Clear · 31°C');
+    expect(view.textContent).not.toContain('Forecast');
   });
 
   it('stops at the top six, so the card never carries the whole field', () => {
@@ -105,9 +164,7 @@ describe('DashboardPracticeCard', () => {
         (column) => column.textContent,
       ),
     ).toEqual([]);
-    // No "Full lap times and gaps" link any more: it pointed at the practice
-    // page, which is a 301 to the race page now.
-    expect(view.textContent).not.toContain('Full lap times');
+    expect(view.textContent).toContain('Full results');
   });
 
   it('renders nothing while no practice session is published', () => {
@@ -116,5 +173,32 @@ describe('DashboardPracticeCard', () => {
     );
 
     expect(view.querySelector('[data-testid="dashboard-practice"]')).toBeNull();
+  });
+
+  it('opens the full classification from one control on the card', () => {
+    const view = render(
+      <DashboardPracticeCard
+        raceId={RACE_ID}
+        raceName="Spanish Grand Prix"
+        raceSlug="madrid-2026"
+        initialResults={[session('fp2', 20), session('fp1', 20)]}
+      />,
+    );
+
+    const openers = [
+      ...view.querySelectorAll<HTMLButtonElement>(
+        '[data-testid="dashboard-practice"] button',
+      ),
+    ];
+    expect(openers.map((button) => button.textContent)).toEqual([
+      'Full results',
+    ]);
+
+    act(() => openers[0]!.click());
+    const dialog = document.querySelector('[role="dialog"]');
+    expect(dialog?.textContent).toContain('Spanish Grand Prix');
+    expect(dialog?.textContent).toContain('Free Practice 2 results');
+    expect(dialog?.textContent).toContain('P20');
+    expect(dialog?.textContent).toContain('D20');
   });
 });

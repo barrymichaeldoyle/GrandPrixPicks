@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router';
 
-import { primaryButtonStyles } from '@/components/Button/Button';
 import {
   footerF1Links,
   footerLegalLinks,
@@ -8,9 +7,11 @@ import {
   footerPrimaryLink,
   footerSupportLinks,
 } from '@/lib/navigation';
+import { footerWeekendPreview } from '@/lib/raceWriteups';
 import { siteConfig } from '@/lib/site';
 import { PrivacyChoicesButton } from './PrivacyChoicesButton';
 import { BrandMark } from './BrandMark.tsx';
+import { RaceFlag } from './RaceFlag';
 import { XLogoIcon } from './ShareOnXButton';
 
 function LinkedInIcon({ className }: { className?: string }) {
@@ -128,11 +129,17 @@ function MadeByCredit({
   );
 }
 
-export function Footer() {
+export function Footer({
+  weekendRace = null,
+}: {
+  weekendRace?: { slug: string } | null;
+}) {
   const year = new Date().getFullYear();
   const footerLinkClass =
     'inline-flex min-h-6 items-center rounded-sm text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none pointer-coarse:min-h-11';
   const footerLinkActiveClass = `${footerLinkClass} text-text underline decoration-border-strong underline-offset-4`;
+  const preview = footerWeekendPreview(weekendRace?.slug);
+  const weekendLink = preview ?? footerPrimaryLink;
 
   return (
     <footer className="relative mt-auto border-t border-border bg-surface pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+max(1rem,env(safe-area-inset-bottom,0px)))] sm:pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+1rem)]">
@@ -156,11 +163,16 @@ export function Footer() {
               A free-to-play F1 prediction game for every race weekend.
             </p>
             <Link
-              to={footerPrimaryLink.to}
-              className={`${primaryButtonStyles('sm')} mt-1`}
-              activeOptions={{ exact: footerPrimaryLink.exact }}
+              to={weekendLink.to}
+              className={`${footerLinkClass} mt-1 gap-2 font-medium text-text`}
+              activeOptions={{ exact: true }}
             >
-              {footerPrimaryLink.label}
+              {preview?.countryCode ? (
+                <span className="flex h-[18px] w-6 shrink-0 items-center justify-center">
+                  <RaceFlag countryCode={preview.countryCode} size="sm" />
+                </span>
+              ) : null}
+              {weekendLink.label}
             </Link>
             <div className="space-y-2 pt-1 text-xs">
               <div className="flex flex-wrap items-center gap-x-4 pointer-coarse:gap-x-5">

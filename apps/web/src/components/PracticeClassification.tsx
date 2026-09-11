@@ -11,11 +11,11 @@ import {
 import { TabSwitch } from '@/components/TabSwitch';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { formatSessionClockTime, useMinuteCountdown } from '@/lib/date';
+import { formatTimingSheetName } from '@/lib/display';
 import {
   latestPracticeResult,
   nextTrackSession,
   PRACTICE_SESSION_LABELS,
-  practiceSessionFact,
   publishedPracticeSessions,
   type PracticeResult,
   type PracticeResults,
@@ -49,7 +49,7 @@ function ClassificationRow({ entry }: { entry: PracticeEntry }) {
             prerenderTooltip={false}
           />
           <span className="min-w-0 truncate text-sm text-text">
-            {entry.displayName}
+            {formatTimingSheetName(entry.displayName)}
           </span>
         </div>
       </td>
@@ -170,14 +170,6 @@ export function PracticeClassification({
           <CompactPracticeRow entry={entry} size="md" fill="sunken" />
         )}
       />
-      <button
-        type="button"
-        onClick={toggleExpanded}
-        aria-haspopup="dialog"
-        className="gpp-touch-target flex min-h-11 w-full items-center justify-center border-t border-border py-2 text-sm text-text-muted hover:text-text"
-      >
-        View full results
-      </button>
       {/* Keep the complete classification in the server-rendered article. */}
       <table hidden>
         <caption>{sessionLabel} classification</caption>
@@ -198,25 +190,36 @@ export function PracticeClassification({
     </>
   );
 
+  const fullResults = (
+    <button
+      type="button"
+      onClick={toggleExpanded}
+      aria-haspopup="dialog"
+      className="gpp-touch-target shrink-0 text-sm text-text-muted hover:text-text"
+    >
+      Full results
+    </button>
+  );
+
   return (
     <section
       aria-labelledby={headingId}
       data-testid="weekend-practice"
       className="py-8 sm:py-16"
     >
-      <h2
-        id={headingId}
-        className="font-title text-2xl font-medium text-text sm:text-3xl"
-      >
-        Free practice
-      </h2>
-      <p className="mt-2 text-sm font-semibold text-text">
-        {practiceSessionFact(selected)}
-      </p>
+      <div className="flex items-baseline justify-between gap-3">
+        <h2
+          id={headingId}
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
+        >
+          Free practice
+        </h2>
+        {showTabs ? null : fullResults}
+      </div>
       <div className="mt-7">
         <div className="overflow-hidden rounded-sm border border-border bg-surface">
           {showTabs ? (
-            <div className="border-b border-border p-2">
+            <div className="flex items-center gap-2 border-b border-border p-2">
               <TabSwitch
                 value={selected.sessionType}
                 onChange={selectSession}
@@ -224,12 +227,13 @@ export function PracticeClassification({
                   value: session.sessionType,
                   label: PRACTICE_SESSION_LABELS[session.sessionType],
                 }))}
-                className="flex gap-1"
+                className="flex min-w-0 flex-1 gap-1"
                 buttonClassName="flex-1"
                 ariaLabel="Free practice session"
                 id={tabsId}
                 panelId={tablesId}
               />
+              {fullResults}
             </div>
           ) : null}
           <div

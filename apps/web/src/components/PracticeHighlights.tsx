@@ -1,15 +1,22 @@
+import { useState, type ReactNode } from 'react';
+
+import { PracticeClassificationDialog } from '@/components/PracticeClassificationDialog';
 import {
   CompactColumns,
   CompactPracticeRow,
 } from '@/components/PracticeResultsCard';
+import { SessionWeatherFact } from '@/components/weather/WeatherSessionLine';
+import { captureAnalyticsEvent } from '@/lib/analytics';
 import {
   latestPracticeResult,
   PRACTICE_SESSION_LABELS,
-  practiceSessionFact,
   publishedPracticeSessions,
   type PracticeResult,
   type PracticeResults,
+  type PracticeSessionType,
+  type TrackSessionSchedule,
 } from '@/lib/practiceSessions';
+import { weatherForSession, type RaceWeather } from '@/lib/weatherPresentation';
 
 /** The scoring-relevant top of a classification, and all a highlight shows. */
 const HIGHLIGHT_ROWS = 6;
@@ -18,26 +25,46 @@ function HighlightRow({ entry }: { entry: PracticeResult['entries'][number] }) {
   return <CompactPracticeRow entry={entry} size="md" fill="sunken" />;
 }
 
+function practiceWeatherFact(
+  weather: RaceWeather | null | undefined,
+  schedule: TrackSessionSchedule | undefined,
+  raceSlug: string | undefined,
+  sessionType: PracticeSessionType,
+) {
+  if (!weather || !schedule || !raceSlug) {
+    return null;
+  }
+  if (weather.forecast.raceSlug !== raceSlug) {
+    return null;
+  }
+  const resolved = weatherForSession(weather.forecast, schedule, sessionType);
+  if (!resolved) {
+    return null;
+  }
+  return (
+    <SessionWeatherFact
+      summary={resolved.summary}
+      isStale={weather.isStale}
+      label={PRACTICE_SESSION_LABELS[sessionType]}
+    />
+  );
+}
+
 function SessionColumn({
   result,
-  index,
-  span,
   labelled,
+  weatherFact,
+  splitPad,
 }: {
   result: PracticeResult;
-  /** Position in the grid: the first cell of a row takes no left border. */
-  index: number;
-  /** A lone trailing session takes the whole row rather than half of one. */
-  span: boolean;
   /** False when the card header already names the only session. */
   labelled: boolean;
+  weatherFact?: ReactNode;
+  /** Room for the accent split so the times do not sit on the bar. */
+  splitPad?: 'start' | 'end';
 }) {
-  const dividers = [
-    index === 0 ? '' : 'border-t border-border',
-    // Right-hand cells swap the stacked divider for one down their left edge.
-    index % 2 === 1 ? 'sm:border-t-0 sm:border-l' : '',
-    span ? 'sm:col-span-2' : '',
-  ].join(' ');
+  const pad =
+    splitPad === 'end' ? 'sm:pr-2' : splitPad === 'start' ? 'sm:pl-2' : '';
   const top = result.entries.slice(0, HIGHLIGHT_ROWS);
   const rows = labelled ? (
     <div className="divide-y divide-border">
@@ -55,11 +82,14 @@ function SessionColumn({
     />
   );
   return (
-    <div className={dividers}>
+    <div className={pad}>
       {labelled ? (
-        <p className="gpp-label px-4 py-1.5 text-text-muted">
-          {PRACTICE_SESSION_LABELS[result.sessionType]}
-        </p>
+        <div className="flex items-center justify-between gap-2 px-4 py-1.5">
+          <p className="text-xs font-medium text-text">
+            {PRACTICE_SESSION_LABELS[result.sessionType]}
+          </p>
+          {weatherFact}
+        </div>
       ) : null}
       {rows}
     </div>
@@ -67,19 +97,31 @@ function SessionColumn({
 }
 
 /**
+ * Pair sessions so a two-up row can take the house stripe down the middle.
+ *
+ * A hairline between FP1 and FP2 did not split them: two six-row stacks just
+ * looked like one list that wrapped. `.gpp-column-split` is the same cut the
+ * compact classification already uses between P1–P11 and P12–P22.
+ */
+function pairSessions(sessions: PracticeResult[]): PracticeResult[][] {
+  const pairs: PracticeResult[][] = [];
+  for (let index = 0; index < sessions.length; index += 2) {
+    pairs.push(sessions.slice(index, index + 2));
+  }
+  return pairs;
+}
+
+/**
  * Every published practice session's top six, side by side, on the dashboard.
  *
  * This block sits between the picks card and the feed, where a player is
  * scanning rather than studying, so it answers one question per session: who
- * was quick. The full 22-car classification, lap counts and times are one link
- * away on the practice page, which is the page that owns them.
+ * was quick. The full classification is one dialog off the card, not a
+ * second page: the old practice URL 301s to the race page now, and the sheet
+ * already tabs between sessions.
  *
- * It used to show the newest session only, disclosing the rest of that field
- * in place. That was two problems: FP1 was invisible on Friday evening even
- * though it had been published for hours, and the disclosed half of the field
- * ran as two columns inside an already-narrow card, which truncated driver
- * names to "Arvi…". A highlight per session fixes both by not trying to be the
- * timing sheet.
+ * Columns follow the weekend: FP1, then FP2. P1 in each column is who was
+ * quick; the header does not say it again.
  *
  * On a phone it bleeds like the picks card and the news block, and sits
  * flush against them: a nested frame here was a card sitting in the gutter
@@ -88,19 +130,41 @@ function SessionColumn({
  */
 export function PracticeHighlights({
   results,
+  raceName,
+  raceSlug,
+  race,
+  weather,
 }: {
   results: PracticeResults | undefined;
+  raceName?: string;
+  raceSlug?: string;
+  race?: TrackSessionSchedule;
+  weather?: RaceWeather | null;
 }) {
+  const [dialogOpen, setDialogOpen] = useState(false);
   const sessions = publishedPracticeSessions(results);
   const latest = latestPracticeResult(results);
   if (!latest) {
     return null;
   }
 
-  // Two sessions to a row, never three: a third of a dashboard column is not
-  // a timing row.
   const multi = sessions.length > 1;
-  const columns = multi ? 'sm:grid-cols-2' : '';
+  const latestSessionType = latest.sessionType;
+
+  function openFullResults() {
+    setDialogOpen(true);
+    if (raceSlug) {
+      captureAnalyticsEvent('session_results_expanded', {
+        race_slug: raceSlug,
+        surface: 'dashboard',
+        session_type: latestSessionType,
+      });
+    }
+  }
+
+  const loneWeather = multi
+    ? null
+    : practiceWeatherFact(weather, race, raceSlug, latestSessionType);
 
   return (
     <section
@@ -111,27 +175,78 @@ export function PracticeHighlights({
       {/* No rule under the heading: the classification already divides on
           every row, and a second line between the title and P1 was one HR
           more than the block needed. */}
-      <div className="px-4 py-2.5">
-        <h2 id="dashboard-practice-heading" className="min-w-0">
-          <span className="gpp-label block text-accent">Practice</span>
-          {/* Wraps rather than truncates: "FP2 · George RUSS…" was the header
-              cutting off the one fact it exists to state. */}
-          <span className="mt-0.5 block text-sm font-semibold text-text">
-            {practiceSessionFact(latest)}
-          </span>
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+        <h2
+          id="dashboard-practice-heading"
+          className="text-xs font-medium text-accent"
+        >
+          Practice
         </h2>
+        <div className="flex items-center gap-3">
+          {loneWeather}
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            onClick={openFullResults}
+            className="gpp-touch-target shrink-0 text-sm text-text-muted hover:text-text"
+          >
+            Full results
+          </button>
+        </div>
       </div>
-      <div className={`grid ${columns}`}>
-        {sessions.map((result, index) => (
-          <SessionColumn
-            key={result.sessionType}
-            result={result}
-            index={index}
-            span={index === sessions.length - 1 && index % 2 === 0}
-            labelled={multi}
-          />
-        ))}
+      <div className="flex flex-col gap-y-4 sm:gap-y-0">
+        {pairSessions(sessions).map((pair) => {
+          const split = pair.length === 2;
+          return (
+            <div
+              key={pair[0]!.sessionType}
+              className={
+                split
+                  ? 'grid grid-cols-1 gap-y-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-y-0'
+                  : undefined
+              }
+            >
+              <SessionColumn
+                result={pair[0]!}
+                labelled={multi}
+                splitPad={split ? 'end' : undefined}
+                weatherFact={practiceWeatherFact(
+                  weather,
+                  race,
+                  raceSlug,
+                  pair[0]!.sessionType,
+                )}
+              />
+              {split ? (
+                <div className="gpp-column-split hidden sm:block" aria-hidden />
+              ) : null}
+              {pair[1] ? (
+                <SessionColumn
+                  result={pair[1]}
+                  labelled={multi}
+                  splitPad="start"
+                  weatherFact={practiceWeatherFact(
+                    weather,
+                    race,
+                    raceSlug,
+                    pair[1].sessionType,
+                  )}
+                />
+              ) : null}
+            </div>
+          );
+        })}
       </div>
+      {dialogOpen ? (
+        <PracticeClassificationDialog
+          open
+          onClose={() => setDialogOpen(false)}
+          results={sessions}
+          initialSession={latestSessionType}
+          raceName={raceName}
+          raceSlug={raceSlug}
+        />
+      ) : null}
     </section>
   );
 }

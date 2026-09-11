@@ -187,6 +187,30 @@ describe('home.getRaceRecap', () => {
     expect(recap?.race.name).toBe('Bahrain Grand Prix');
   });
 
+  it('skips leftover e2e fixtures whose start times sit on now', async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async (ctx) => {
+      await addRace(ctx, {
+        round: 16,
+        name: 'Bahrain Grand Prix',
+        slug: 'bahrain-2026',
+        raceStartAt: Date.now() - 3 * HOUR,
+        status: 'finished',
+      });
+      await addRace(ctx, {
+        round: 99,
+        name: 'Upcoming Signed In Complete H2h',
+        slug: 'scenario-race-upcoming-signed-in-complete-h2h-edit-race',
+        raceStartAt: Date.now() - HOUR,
+        status: 'upcoming',
+      });
+    });
+
+    const recap = await t.query(api.home.getRaceRecap, {});
+
+    expect(recap?.race.name).toBe('Bahrain Grand Prix');
+  });
+
   it('gives the viewer their result, their season move and the players they follow', async () => {
     const t = convexTest(schema, modules);
     await t.run(async (ctx) => {

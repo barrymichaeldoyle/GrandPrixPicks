@@ -42,8 +42,7 @@ function copyForPhase(phase: RaceWriteupPhase, venueName: string) {
  *
  * Both surfaces render the identical picker; they are distinguished only so
  * the conversion funnel can separate a reader who came for the write-up from
- * one who landed on the predictions hub, which is the page the footer's
- * primary button points at.
+ * one who landed on the predictions hub.
  */
 type RaceWriteupPicksSurface = 'writeup' | 'predictions_hub';
 

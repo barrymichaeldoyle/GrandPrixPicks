@@ -36,6 +36,6 @@ describe('formatting', () => {
   it('renders the footer stamp in UTC, not the reader’s zone', () => {
     // Formatted locally, a late-evening UTC timestamp reads as the next day
     // for some readers and disagrees with the ISO date in the schema.
-    expect(reviewedStamp(Date.UTC(2026, 7, 28, 23, 30))).toBe('28 AUG 2026');
+    expect(reviewedStamp(Date.UTC(2026, 7, 28, 23, 30))).toBe('28 Aug 2026');
   });
 });

@@ -71,7 +71,7 @@ export function RaceNewsItem({
       }
     >
       {grouped ? null : (
-        <p className="flex items-center gap-1.5 text-xs font-semibold tracking-label text-accent uppercase">
+        <p className="flex items-center gap-1.5 text-xs font-medium text-accent">
           Weekend news
         </p>
       )}

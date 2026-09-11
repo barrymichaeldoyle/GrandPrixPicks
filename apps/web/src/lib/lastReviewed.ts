@@ -1,7 +1,7 @@
 /**
  * When a race write-up was last genuinely current.
  *
- * This replaces two hand-typed dates per page: a `LAST REVIEWED` line in the
+ * This replaces two hand-typed dates per page: a last-reviewed line in the
  * footer and a `dateModified` in the page's schema, each maintained separately.
  * They could drift from the page and, worse, from each other, and they did:
  * both Monza dates still read 24 August after the page was edited on the 28th.
@@ -31,14 +31,12 @@ export function reviewedIsoDate(at: number): string {
   return new Date(at).toISOString().slice(0, 10);
 }
 
-/** `28 AUG 2026`, for the footer line. */
+/** `28 Aug 2026`, for the footer line. */
 export function reviewedStamp(at: number): string {
   return new Intl.DateTimeFormat('en-GB', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
     timeZone: 'UTC',
-  })
-    .format(new Date(at))
-    .toUpperCase();
+  }).format(new Date(at));
 }

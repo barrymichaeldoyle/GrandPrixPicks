@@ -1,5 +1,6 @@
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import type { QueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   createRootRouteWithContext,
   HeadContent,
@@ -18,6 +19,8 @@ import {
   useRef,
   useState,
 } from 'react';
+
+import { api } from '@convex-generated/api';
 
 import { AppMotionProvider } from '@/components/AppMotionProvider';
 import { NotFoundPage } from '@/components/error/NotFoundPage';
@@ -64,6 +67,7 @@ import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
 import { isBareRoute } from '@/lib/bareRoutes';
 import { showsGlobalFooter } from '@/lib/globalFooter';
 import { isNotificationArrival } from '@/lib/notificationArrival';
+import { routeQuery } from '@/lib/routeQuery';
 import { CURRENT_SEASON, siteConfig } from '@/lib/site';
 import appCss from '@/styles.css?url';
 
@@ -248,9 +252,19 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
   // Resolve the viewer's signed-in/out state on the server (edge-safe Clerk
   // backend) so the header renders the correct nav on the first paint.
-  loader: async () => {
+  //
+  // The current weekend goes in the same payload because the footer preview
+  // has to be in the SSR HTML: a client-only Convex read would leave crawlers
+  // (and `check:orphans`) looking at a page whose loudest chrome link never
+  // made it into the document. Failure is swallowed so a Convex blip cannot
+  // 500 every route on the site.
+  loader: async ({ context }) => {
     const initialAuth = await fetchInitialAuth();
-    return { initialAuth };
+    const weekendRace = await context.queryClient
+      .ensureQueryData(routeQuery(api.races.getQuickPickRace, {}))
+      .then((race) => (race ? { slug: race.slug } : null))
+      .catch(() => null);
+    return { initialAuth, weekendRace };
   },
 
   notFoundComponent: NotFoundPage,
@@ -459,10 +473,17 @@ function AppShell({ children }: PropsWithChildren) {
 function ShellFooter() {
   const pathname = useLocation({ select: (location) => location.pathname });
   const { isSignedIn } = useViewerSession();
-  if (!showsGlobalFooter(pathname, isSignedIn)) {
+  const show = showsGlobalFooter(pathname, isSignedIn);
+  const { weekendRace: initialWeekendRace } = Route.useLoaderData();
+  const { data: liveWeekendRace } = useQuery({
+    ...routeQuery(api.races.getQuickPickRace, {}),
+    enabled: show,
+  });
+  if (!show) {
     return null;
   }
-  return <Footer />;
+  const race = liveWeekendRace ?? initialWeekendRace;
+  return <Footer weekendRace={race ? { slug: race.slug } : null} />;
 }
 
 function AppRuntimeBoundary({

@@ -48,10 +48,11 @@ const PATH = '/f1-predictions-this-weekend';
  *
  * It began as a hub that only handed off: it described the weekend and pointed
  * at `/races/$raceSlug` for the picks. That made it a corridor, and it was the
- * corridor the footer's primary button on every page opened onto, so the site's
- * loudest call to action led to a page that could not take a prediction. It now
- * finishes the job in place, the way the editorial write-ups do: the round's
- * Top 5 picker is on the page, and the header's button is a same-page anchor.
+ * corridor the site-wide footer opened onto, so the loudest chrome link led to
+ * a page that could not take a prediction. It now finishes the job in place,
+ * the way the editorial write-ups do: the round's Top 5 picker is on the page,
+ * and the header's button is a same-page anchor. The footer itself now prefers
+ * the current write-up when one exists, and only falls back here.
  *
  * It is still not a second race page. Results and duels stay on
  * `/races/$raceSlug`, which is linked from beside the picker.

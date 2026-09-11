@@ -26,7 +26,7 @@ export function MyLeaguesCard({
       <div className="rounded-lg border border-border bg-surface p-4">
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-accent" aria-hidden />
-          <h2 className="gpp-label text-text-muted">Your leagues</h2>
+          <h2 className="text-xs font-medium text-text-muted">Your leagues</h2>
         </div>
         <InlineLoader
           label="Loading your leagues"
@@ -47,7 +47,7 @@ export function MyLeaguesCard({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-accent" aria-hidden />
-            <h2 className="gpp-label text-text-muted">Your leagues</h2>
+            <h2 className="text-xs font-medium text-text-muted">Your leagues</h2>
           </div>
           {/* Only once there are leagues to see all of. In the empty state the
               foot of the card already points at the same page, and two links

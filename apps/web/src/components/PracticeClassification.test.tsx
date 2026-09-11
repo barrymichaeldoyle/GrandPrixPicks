@@ -83,7 +83,7 @@ describe('WeekendPracticeSection', () => {
       view.querySelector('[data-testid="weekend-practice"]'),
     ).not.toBeNull();
     expect(view.querySelector('h2')?.textContent).toBe('Free practice');
-    expect(view.textContent).toContain('FP2 · Driver 1 (fp2) fastest');
+    expect(view.textContent).not.toContain('fastest');
     expect(view.textContent).toContain('D06');
 
     const region = view.querySelector('table[hidden]');
@@ -99,18 +99,21 @@ describe('WeekendPracticeSection', () => {
     );
 
     const tabs = [...view.querySelectorAll('[role="tab"]')];
-    expect(tabs.map((tab) => tab.textContent)).toEqual(['FP1', 'FP2']);
+    expect(tabs.map((tab) => tab.textContent)).toEqual([
+      'Free Practice 1',
+      'Free Practice 2',
+    ]);
     expect(tabs.map((tab) => tab.getAttribute('aria-selected'))).toEqual([
       'false',
       'true',
     ]);
-    expect(view.textContent).toContain('FP2 · Driver 1 (fp2) fastest');
+    expect(view.textContent).toContain('Driver 6 (fp2)');
+    expect(view.textContent).not.toContain('Driver 6 (fp1)');
 
     act(() => {
       (tabs[0] as HTMLButtonElement).click();
     });
 
-    expect(view.textContent).toContain('FP1 · Driver 1 (fp1) fastest');
     expect(view.textContent).toContain('Driver 6 (fp1)');
     expect(view.textContent).not.toContain('Driver 6 (fp2)');
   });
@@ -142,7 +145,12 @@ describe('WeekendPracticeSection', () => {
       );
     });
 
-    expect(view.textContent).toContain('FP2 · Driver 1 (fp2) fastest');
+    expect(
+      [...view.querySelectorAll('[role="tab"]')].map((tab) =>
+        tab.getAttribute('aria-selected'),
+      ),
+    ).toEqual(['false', 'true']);
+    expect(view.textContent).toContain('Driver 6 (fp2)');
   });
 
   it('renders nothing while no practice session is published', () => {
@@ -167,11 +175,13 @@ describe('WeekendPracticeSection', () => {
         }}
       />,
     );
-    expect(view.textContent).toContain('FP2');
+    expect(view.textContent).toContain('Free Practice 2');
     const body = view.textContent ?? '';
-    expect(body.indexOf('View full results')).toBeGreaterThan(-1);
-    expect(body.indexOf('View full results')).toBeLessThan(body.indexOf('FP2'));
-    expect(body).toMatch(/FP2[\s\S]*\d{2}h \d{2}m/);
+    expect(body.indexOf('Full results')).toBeGreaterThan(-1);
+    expect(body.indexOf('Full results')).toBeLessThan(
+      body.indexOf('Free Practice 2'),
+    );
+    expect(body).toMatch(/Free Practice 2[\s\S]*\d{2}h \d{2}m/);
     expect(body).toMatch(/\d{2}:\d{2}/);
     expect(body).not.toMatch(/\d{2}h \d{2}m \d{2}s/);
   });
@@ -193,7 +203,7 @@ describe('WeekendPracticeSection', () => {
     );
     expect(view.textContent).toContain('Underway');
     const body = view.textContent ?? '';
-    expect(body.indexOf('View full results')).toBeLessThan(
+    expect(body.indexOf('Full results')).toBeLessThan(
       body.indexOf('Underway'),
     );
     expect(body).toMatch(/\d{2}:\d{2}/);
@@ -209,7 +219,8 @@ describe('WeekendPracticeSection', () => {
         <WeekendPracticeSection raceSlug="madrid-2026" results={[]} />,
       ),
     );
-    expect(view.textContent).toContain('FP1 · Driver 1 (fp1) fastest');
+    expect(view.textContent).toContain('Driver 1 (fp1)');
+    expect(view.textContent).toContain('D06');
   });
 
   it('opens the full timing sheet and closes it with Escape', () => {

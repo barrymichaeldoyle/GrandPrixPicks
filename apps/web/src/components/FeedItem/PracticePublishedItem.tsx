@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useQuery } from '@/integrations/convex/query';
 import { PracticeClassificationDialog } from '@/components/PracticeClassificationDialog';
 import { CompactPracticeRow } from '@/components/PracticeResultsCard';
+import { PRACTICE_SESSION_LABELS } from '@/lib/practiceSessions';
 import type { FeedEvent } from './types';
 
 export function PracticePublishedItem({ event }: { event: FeedEvent }) {
@@ -16,10 +17,14 @@ export function PracticePublishedItem({ event }: { event: FeedEvent }) {
   );
   return (
     <section
-      aria-label={`${event.raceName} ${event.practiceSessionType?.toUpperCase()} results`}
+      aria-label={`${event.raceName} ${event.practiceSessionType ? PRACTICE_SESSION_LABELS[event.practiceSessionType] : 'Practice'} results`}
     >
       <h3 className="px-1 pb-3 text-sm font-semibold text-text">
-        {event.raceName} · {event.practiceSessionType?.toUpperCase()} results
+        {event.raceName} ·{' '}
+        {event.practiceSessionType
+          ? PRACTICE_SESSION_LABELS[event.practiceSessionType]
+          : 'Practice'}{' '}
+        results
       </h3>
       {result ? (
         <>

@@ -76,7 +76,7 @@ export function RaceWriteupFactList({
     <dl className="self-start rounded-sm bg-surface-elevated px-4">
       {facts.map(([label, value]) => (
         <div key={label} className="border-b border-border py-4 last:border-0">
-          <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
+          <dt className="text-xs font-medium text-text-muted">
             {label}
           </dt>
           <dd className="mt-2 text-sm text-text">{value}</dd>

@@ -58,7 +58,7 @@ const SLOT_GRID = 'grid w-full max-w-[26rem] grid-cols-5 gap-1';
 /** Every band in the group reads the same: quiet eyebrow, then the row. */
 function BandLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="flex items-center gap-1.5 text-[10px] font-semibold tracking-label text-text-muted/80 uppercase">
+    <span className="flex items-center gap-1.5 text-[10px] font-medium text-text-muted/80">
       {children}
     </span>
   );
@@ -503,11 +503,11 @@ function SessionSeparator({
               </span>
             )}
             {live ? (
-              <span className="block text-[9px] font-semibold tracking-label text-accent uppercase">
+              <span className="block text-[9px] font-medium text-accent">
                 Live
               </span>
             ) : pending ? (
-              <span className="block text-[9px] font-semibold tracking-label text-accent uppercase">
+              <span className="block text-[9px] font-medium text-accent">
                 Awaiting results
               </span>
             ) : null}

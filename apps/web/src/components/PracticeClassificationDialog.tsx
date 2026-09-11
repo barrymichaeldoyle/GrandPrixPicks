@@ -47,7 +47,7 @@ export function PracticeClassificationDialog({
   }
   return createPortal(
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-3"
+      className="fixed inset-0 z-[70] flex items-stretch justify-center bg-surface md:items-center md:bg-black/60 md:p-3"
       onClick={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
@@ -59,9 +59,9 @@ export function PracticeClassificationDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={raceName ? `${raceLabelId} ${titleId}` : titleId}
-        className="flex max-h-[88dvh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-border bg-surface"
+        className="flex h-dvh w-full flex-col overflow-hidden bg-surface md:h-auto md:max-h-[88dvh] md:max-w-3xl md:rounded-lg md:border md:border-border"
       >
-        <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
+        <div className="flex items-start justify-between gap-3 border-b border-border px-4 pt-[max(0.75rem,env(safe-area-inset-top,0px))] pb-3 md:pt-3">
           <div className="min-w-0">
             {raceName ? (
               <p id={raceLabelId} className="flex items-center gap-1.5">
@@ -88,7 +88,7 @@ export function PracticeClassificationDialog({
             <X size={20} aria-hidden />
           </button>
         </div>
-        <div className="min-h-0 overflow-y-auto">
+        <div className="min-h-0 overflow-y-auto pb-[env(safe-area-inset-bottom,0px)] md:pb-0">
           <PracticeResultsPanel
             key={initialSession}
             results={results}

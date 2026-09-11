@@ -50,7 +50,7 @@ export type RaceWeekendOption = {
  * Strips accents so "sao paulo" finds "São Paulo". Same folding the driver
  * combobox uses; venue names pick up the same diacritics.
  */
-export function foldRaceWeekendQuery(text: string): string {
+function foldRaceWeekendQuery(text: string): string {
   return text
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
@@ -75,7 +75,7 @@ export function matchesRaceWeekend(
   );
 }
 
-export function raceWeekendLabel(race: {
+function raceWeekendLabel(race: {
   round: number;
   name: string;
 }): string {

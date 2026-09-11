@@ -240,7 +240,9 @@ function formatMinutesUntil(timestamp: number): string {
   const days = Math.floor(totalMinutes / 1440);
   const hours = Math.floor((totalMinutes % 1440) / 60);
   const minutes = totalMinutes % 60;
-  const pad = (value: number) => value.toString().padStart(2, '0');
+  function pad(value: number): string {
+    return value.toString().padStart(2, '0');
+  }
   return days > 0
     ? `${pad(days)}d ${pad(hours)}h ${pad(minutes)}m`
     : `${pad(hours)}h ${pad(minutes)}m`;

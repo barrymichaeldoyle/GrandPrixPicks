@@ -1,4 +1,4 @@
-import { useCallback, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 
 /**
  * Track time vs the viewer's zone, shared by the write-up schedule and the
@@ -26,6 +26,16 @@ function readPreferViewerTime() {
 
 function readTrackTime() {
   return false;
+}
+
+function setPreferViewerTime(value: boolean) {
+  if (preferViewerTime === value) {
+    return;
+  }
+  preferViewerTime = value;
+  for (const listener of listeners) {
+    listener();
+  }
 }
 
 /**
@@ -87,20 +97,11 @@ export function useSessionTimeView(trackTimeZone: string): {
     readPreferViewerTime,
     readTrackTime,
   );
-  const setInViewerTime = useCallback((value: boolean) => {
-    if (preferViewerTime === value) {
-      return;
-    }
-    preferViewerTime = value;
-    for (const listener of listeners) {
-      listener();
-    }
-  }, []);
   const showViewerTime = inViewerTime && viewer.zone !== null;
   return {
     activeTimeZone: showViewerTime ? viewer.zone! : trackTimeZone,
     showViewerTime,
-    setInViewerTime,
+    setInViewerTime: setPreferViewerTime,
     showToggle: !viewer.resolved || viewer.zone !== null,
     viewerZone: viewer.zone,
   };
@@ -108,11 +109,5 @@ export function useSessionTimeView(trackTimeZone: string): {
 
 /** Test isolation: the preference is process-global. */
 export function resetSessionTimeView() {
-  if (!preferViewerTime) {
-    return;
-  }
-  preferViewerTime = false;
-  for (const listener of listeners) {
-    listener();
-  }
+  setPreferViewerTime(false);
 }

@@ -96,6 +96,12 @@ const HAMILTON_SOURCE =
 const MONZA_RESULT_SOURCE =
   'https://www.formula1.com/en/latest/article/antonelli-beats-russell-to-italian-grand-prix-win-with-stunning-comeback-drive.15WtFEBT5JEe4drdeO88t2';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
+const FP1_SOURCE =
+  'https://www.motorsport.com/f1/news/f1-spanish-gp-fp1-report/10854498/';
+const FP2_SOURCE =
+  'https://www.pitdebrief.com/post/f1-2026-spanish-gp-fp2-report/';
+const OVERTAKING_SOURCE =
+  'https://as.com/motor/formula_1/es-imposible-adelantar-f202609-n/';
 
 type Championship = FunctionReturnType<
   typeof api.f1Standings.getF1Championship
@@ -308,6 +314,8 @@ function MadridGrandPrixPredictionsPage() {
           <ExternalSource href={HAMILTON_SOURCE}>
             Motorsport Week
           </ExternalSource>
+          . Friday overtaking assessment:{' '}
+          <ExternalSource href={OVERTAKING_SOURCE}>AS</ExternalSource>
           .
         </>
       }
@@ -353,6 +361,7 @@ function MadridGrandPrixPredictionsPage() {
             raceSlug={RACE_SLUG}
             schedule={race}
           />
+          <FridayPractice />
         </>
       ) : null}
       {/* Not gated on the phase. It appears session by session as each one
@@ -395,6 +404,40 @@ function MadridGrandPrixPredictionsPage() {
         nextRace={nextRace}
       />
     </RaceWriteupPage>
+  );
+}
+
+/** The story behind Friday's classifications. */
+function FridayPractice() {
+  return (
+    <RaceWriteupSection
+      id="friday-practice"
+      heading="What Friday practice showed"
+    >
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Russell led the first Formula 1 session at the Madring in 1:34.077,
+        with Antonelli 0.286 seconds behind and Leclerc third. Hamilton and
+        Verstappen completed the top five. Heavy traffic disrupted several
+        laps, but the session ran without a red flag. Tsunoda stopped early
+        with a power-steering problem.{' '}
+        <ExternalSource href={FP1_SOURCE}>
+          Motorsport.com&rsquo;s FP1 report
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Lindblad crashed at Turn 13 in FP2 and brought out Friday&rsquo;s only
+        Formula 1 red flag. He was unhurt, and the session resumed after the
+        TecPro barrier was repaired. Norris completed two laps before McLaren
+        found a gearbox problem that required a change, so he set no time.
+        Alonso joined the session late while Aston Martin repaired a clutch
+        problem carried over from practice starts in FP1.{' '}
+        <ExternalSource href={FP2_SOURCE}>
+          Pit Debrief&rsquo;s FP2 report
+        </ExternalSource>
+        .
+      </p>
+    </RaceWriteupSection>
   );
 }
 
@@ -625,8 +668,8 @@ function WatchTable() {
         ],
         [
           'Overtaking',
-          'The approaches to the Turn 5/6 chicane and Turn 12 are worth watching',
-          'Both could offer passing opportunities, but we still need to see how closely the cars can follow. Hamilton described the layout as a qualifying-lap circuit with no real straights.',
+          'Qualifying position looks especially important',
+          'Drivers found it difficult to follow and pass during their long runs in FP2. Russell said overtaking was very tough, while Leclerc found it difficult even with a large pace advantage.',
         ],
       ]}
     />

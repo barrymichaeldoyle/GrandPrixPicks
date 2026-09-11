@@ -106,11 +106,11 @@ const RACE_WRITEUPS = {
   },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
-    reviewedAt: '2026-09-10',
+    reviewedAt: '2026-09-11',
     venueName: 'Madrid',
     label: 'Madrid GP predictions',
     summary:
-      'F1 heads to a new circuit in Madrid. The Formula 3 test offers an early look at the circuit and what teams will need to get right.',
+      'What Friday practice showed at the new Madring, where overtaking looks difficult, and what teams need to get right before qualifying.',
     cta: 'Read the Madrid preview',
   },
 } as const satisfies Record<string, RaceWriteup>;

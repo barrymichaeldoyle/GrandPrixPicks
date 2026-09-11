@@ -113,8 +113,38 @@ export function SettingsScreen() {
     clerkEnabled && convexEnabled ? {} : 'skip',
   );
   const updateProfile = useMutation(api.users.updateProfile);
-  const updateNotifications = useMutation(api.users.updateNotificationSettings);
-  const updateRegional = useMutation(api.users.updateRegionalSettings);
+  // Every control on this screen is drawn from `users.me`, so without an
+  // optimistic write a tapped Switch animates across, snaps back to the stale
+  // server value on the next render, then flips again when the mutation lands.
+  // Writing the change into the local `me` first keeps the control where the
+  // finger left it; Convex rolls it back on its own if the mutation throws.
+  const updateNotifications = useMutation(
+    api.users.updateNotificationSettings,
+  ).withOptimisticUpdate((store, args) => {
+    const current = store.getQuery(api.users.me, {});
+    if (current) {
+      store.setQuery(api.users.me, {}, { ...current, ...args });
+    }
+  });
+  const updateRegional = useMutation(
+    api.users.updateRegionalSettings,
+  ).withOptimisticUpdate((store, args) => {
+    const current = store.getQuery(api.users.me, {});
+    if (!current) {
+      return;
+    }
+    store.setQuery(
+      api.users.me,
+      {},
+      {
+        ...current,
+        ...(args.timezone !== undefined && {
+          timezone: args.timezone ?? undefined,
+        }),
+        ...(args.locale !== undefined && { locale: args.locale ?? undefined }),
+      },
+    );
+  });
   const saveExpoPushToken = useMutation(api.push.saveExpoPushToken);
   const pushPermission = usePushPermission();
   const pushGranted = pushPermission.status === 'granted';

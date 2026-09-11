@@ -175,23 +175,24 @@ export function H2HPredictionForm({
 
   // First-time picks save themselves as the last matchup is tapped — users
   // kept completing the grid and forgetting the Save button. Edits stay manual.
-  const { markInteraction } = useAutoSaveOnFirstComplete({
-    enabled:
-      isFirstEntry &&
-      // Signed-out players explicitly choose when to save and create an
-      // account; completing the grid must never open auth by surprise.
-      isAuthenticated &&
-      hasHydratedDraft &&
-      !autoSubmitFiredRef.current &&
-      !hasPendingSubmit(draftKey) &&
-      totalMatchups > 0 &&
-      !isSubmitting &&
-      submitStatus !== 'error',
-    complete: allSelected,
-    picksSignature: selectionsSignature,
-    delayMs: AUTO_SAVE_DELAY_MS,
-    save: () => void handleSubmit({ autoSaved: true }),
-  });
+  const { markInteraction, pending: autoSavePending } =
+    useAutoSaveOnFirstComplete({
+      enabled:
+        isFirstEntry &&
+        // Signed-out players explicitly choose when to save and create an
+        // account; completing the grid must never open auth by surprise.
+        isAuthenticated &&
+        hasHydratedDraft &&
+        !autoSubmitFiredRef.current &&
+        !hasPendingSubmit(draftKey) &&
+        totalMatchups > 0 &&
+        !isSubmitting &&
+        submitStatus !== 'error',
+      complete: allSelected,
+      picksSignature: selectionsSignature,
+      delayMs: AUTO_SAVE_DELAY_MS,
+      save: () => void handleSubmit({ autoSaved: true }),
+    });
 
   function toggleSelection(
     matchupId: Id<'h2hMatchups'>,
@@ -367,17 +368,18 @@ export function H2HPredictionForm({
           session_type: sessionType ?? 'cascade',
         });
       }
-      if (!isSilentBackup) {
-        setSubmitStatus('error');
-        setErrorMessage(
-          error instanceof Error
-            ? toUserFacingMessage(
-                error,
-                'Your Head-to-Head picks weren’t saved. Try again.',
-              )
-            : 'Your Head-to-Head picks weren’t saved. Try again.',
-        );
-      }
+      // Auto-save hides the submit bar; an error has to put it back so the
+      // player can retry instead of staring at a finished card that never
+      // landed.
+      setSubmitStatus('error');
+      setErrorMessage(
+        error instanceof Error
+          ? toUserFacingMessage(
+              error,
+              'Your Head-to-Head picks weren’t saved. Try again.',
+            )
+          : 'Your Head-to-Head picks weren’t saved. Try again.',
+      );
     } finally {
       if (!isSilentBackup) {
         setIsSubmitting(false);
@@ -595,10 +597,20 @@ export function H2HPredictionForm({
 
       {showCustomSaveWall ? renderSaveWall?.({ lockIn: requestSubmit }) : null}
 
-      {/* The sequential picker owns progress during first entry. Its save row
-          appears only after the final duel; overview edits retain the sticky
-          mobile progress/save bar used by the longer matchup grid. */}
-      {!showCustomSaveWall && (!useDuelSequence || allSelected) ? (
+      {/* First-entry auto-save is the save. Mounting a sticky "Save H2H
+          Predictions" button the moment the last duel is tapped sat it on
+          top of the picker chrome while the write was already in flight.
+          Keep the bar for signed-out players (they still have to ask), for
+          edits, and as the fallback if that silent write fails. */}
+      {!showCustomSaveWall &&
+      (!useDuelSequence || allSelected) &&
+      !(
+        useDuelSequence &&
+        isFirstEntry &&
+        isAuthenticated &&
+        submitStatus !== 'error' &&
+        autoSavePending
+      ) ? (
         <div className="sticky bottom-0 z-10 -mx-3 border-t border-border bg-page px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] sm:static sm:z-auto sm:mx-0 sm:border-t-0 sm:bg-transparent sm:p-0 sm:pb-0">
           <div className="flex flex-col items-stretch gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-3">
             <span className="min-h-5 text-center text-sm text-text-muted sm:w-auto">

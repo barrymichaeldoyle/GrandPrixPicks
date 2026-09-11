@@ -249,3 +249,76 @@ describe('H2HPredictionForm picker layout', () => {
     );
   });
 });
+
+describe('H2HPredictionForm first-entry auto-save', () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    convexAuth.isAuthenticated = true;
+    submitSpy.mockReset();
+    submitSpy.mockResolvedValue(null);
+    window.localStorage.clear();
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+    window.localStorage.clear();
+    vi.useRealTimers();
+  });
+
+  function renderForm() {
+    act(() => {
+      root.render(<H2HPredictionForm raceId={RACE_ID} matchups={matchups} />);
+    });
+  }
+
+  it('does not mount a save button while the completed set writes itself', async () => {
+    submitSpy.mockImplementation(() => new Promise(() => {}));
+    renderForm();
+
+    act(() => {
+      container
+        .querySelector<HTMLButtonElement>('[data-testid="select-h2h-driver"]')
+        ?.click();
+    });
+
+    expect(container.querySelector('[data-testid="h2h-submit-button"]')).toBe(
+      null,
+    );
+    expect(
+      container.querySelector('[data-testid="h2h-submit-button-desktop"]'),
+    ).toBe(null);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(submitSpy).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('[data-testid="h2h-submit-button"]')).toBe(
+      null,
+    );
+  });
+
+  it('puts the save button back if that write fails', async () => {
+    submitSpy.mockRejectedValue(new Error('nope'));
+    renderForm();
+
+    act(() => {
+      container
+        .querySelector<HTMLButtonElement>('[data-testid="select-h2h-driver"]')
+        ?.click();
+    });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(
+      container.querySelector('[data-testid="h2h-submit-button"]'),
+    ).not.toBe(null);
+    expect(container.textContent).toMatch(/not saved|try again|nope/i);
+  });
+});

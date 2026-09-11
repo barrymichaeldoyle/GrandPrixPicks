@@ -335,6 +335,35 @@ describe('H2HDuelPicker', () => {
     expect(container.textContent).toContain('Team-mate pick 2 of 2');
   });
 
+  it('keeps the question and VS still while the driver panels bounce', () => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    act(() =>
+      root?.render(
+        <H2HDuelPicker
+          matchups={matchups}
+          selections={{}}
+          onSelect={() => undefined}
+        />,
+      ),
+    );
+
+    const heading = container.querySelector('[data-testid="h2h-duel-heading"]');
+    expect(heading?.textContent).toContain('Who finishes ahead?');
+    expect(heading?.textContent).toContain('McLaren');
+    expect(heading?.closest('[data-testid="h2h-duel-panel"]')).toBe(null);
+
+    const vs = [...(container.querySelectorAll('span') ?? [])].find(
+      (node) => node.textContent?.trim() === 'VS',
+    );
+    expect(vs?.closest('[data-testid="h2h-duel-panel"]')).toBe(null);
+    expect(
+      container.querySelectorAll('[data-testid="h2h-duel-panel"]'),
+    ).toHaveLength(2);
+  });
+
   it('focuses the next duel after auto-advance', () => {
     vi.useFakeTimers();
     const requestAnimationFrame = vi

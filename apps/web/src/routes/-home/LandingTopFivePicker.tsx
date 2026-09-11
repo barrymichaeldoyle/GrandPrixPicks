@@ -1,7 +1,8 @@
 import type { Doc, Id } from '@convex-generated/dataModel';
 
 import { Button } from '@/components/Button/Button';
-import { PredictionForm } from '@/components/PredictionForm';
+import { PicksFormActionRow } from '@/components/PicksSaveStatus';
+import { PredictionForm, type SaveState } from '@/components/PredictionForm';
 
 export function LandingTopFivePicker({
   raceId,
@@ -60,9 +61,10 @@ export function LandingTopFivePicker({
       enableNavigationBlocker={false}
       onStartOver={onStartOver}
       draftNoticeTarget={draftNoticeTarget}
-      renderActionArea={({ complete, submit }) => (
+      renderActionArea={({ complete, submit, saveState }) => (
         <TopFiveHandoff
           complete={complete}
+          saveState={saveState}
           onContinue={onContinue}
           label={continueLabel}
           showSave={showSave}
@@ -91,61 +93,66 @@ export function LandingTopFivePicker({
  */
 function TopFiveHandoff({
   complete,
+  saveState,
   onContinue,
   label,
   showSave,
   onSave,
 }: {
   complete: boolean;
+  saveState: SaveState;
   onContinue: () => void;
   label: string;
   showSave: boolean;
   onSave: () => void;
 }) {
-  if (!complete) {
-    return null;
-  }
-
   if (!showSave) {
     return (
-      <div className="mt-3" data-testid="top5-handoff">
-        <Button
-          variant="primary"
-          size="md"
-          className="w-full sm:w-auto"
-          onClick={onContinue}
-        >
-          {label}
-        </Button>
-      </div>
+      <PicksFormActionRow
+        complete={complete}
+        saveState={saveState}
+        primaryLabel={label}
+        onPrimary={onContinue}
+      />
     );
   }
 
   return (
-    <div className="mt-3" data-testid="top5-handoff">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Button
-          variant="primary"
-          size="md"
-          className="w-full sm:w-auto"
-          onClick={onSave}
-          data-testid="top5-save"
-        >
-          Sign in to submit
-        </Button>
-        <Button
-          variant="secondary"
-          size="md"
-          className="w-full sm:w-auto"
-          onClick={onContinue}
-        >
-          {label}
-        </Button>
-      </div>
-      <p className="mt-3 text-sm text-text-muted">
+    <>
+      <PicksFormActionRow
+        complete={complete}
+        saveState={saveState}
+        showSaveStatus={false}
+      >
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+          <Button
+            variant="primary"
+            size="md"
+            className="w-full sm:w-auto"
+            disabled={!complete}
+            onClick={onSave}
+            data-testid="top5-save"
+          >
+            Sign in to submit
+          </Button>
+          <Button
+            variant="secondary"
+            size="md"
+            className="w-full sm:w-auto"
+            disabled={!complete}
+            onClick={onContinue}
+          >
+            {label}
+          </Button>
+        </div>
+      </PicksFormActionRow>
+      <p
+        className={`mt-3 text-sm text-text-muted ${complete ? '' : 'invisible'}`}
+        aria-hidden={!complete}
+      >
         Free to play. Your picks are kept when you sign in. Team-mate picks are
         optional and score separately.
       </p>
-    </div>
+    </>
   );
 }

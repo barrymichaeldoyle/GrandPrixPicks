@@ -8,7 +8,7 @@ import { H2HDuelFocusModal } from '@/components/H2HDuelFocusModal';
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { H2HPicksBar } from '@/components/H2HPicksBar';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
-import { PicksSaveStatus } from '@/components/PicksSaveStatus';
+import { PicksFormActionRow } from '@/components/PicksSaveStatus';
 import { PredictionForm } from '@/components/PredictionForm';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
 import { SESSION_LABELS } from '@/lib/sessions';
@@ -234,28 +234,21 @@ export function DashboardPicksSummary({
             // a disabled "Saved" button: the picks were safe, but the only way
             // out was the X in the corner, so the state that means "you're
             // finished" looked like the state that means "this is broken".
-            renderActionArea={({ complete, saveState, saveNow }) =>
-              complete ? (
-                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <Button
-                    variant="primary"
-                    size="md"
-                    className="w-full sm:w-auto"
-                    // Flush first: an edit made in the last second is still
-                    // sitting behind the debounce, and closing unmounts the
-                    // form that owns the timer.
-                    onClick={async () => {
-                      await saveNow();
-                      setTop5OverlayOpen(false);
-                    }}
-                    data-testid="summary-top5-done"
-                  >
-                    Done
-                  </Button>
-                  <PicksSaveStatus state={saveState} />
-                </div>
-              ) : null
-            }
+            renderActionArea={({ complete, saveState, saveNow }) => (
+              <PicksFormActionRow
+                complete={complete}
+                saveState={saveState}
+                primaryLabel="Done"
+                primaryTestId="summary-top5-done"
+                onPrimary={async () => {
+                  // Flush first: an edit made in the last second is still
+                  // sitting behind the debounce, and closing unmounts the
+                  // form that owns the timer.
+                  await saveNow();
+                  setTop5OverlayOpen(false);
+                }}
+              />
+            )}
           />
         </div>
       </PicksFocusOverlay>

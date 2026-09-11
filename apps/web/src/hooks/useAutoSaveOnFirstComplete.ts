@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useRef } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 
 /**
  * Keeps a completed picks form saved, without making the user hunt for a
@@ -47,11 +47,13 @@ export function useAutoSaveOnFirstComplete({
   save: () => void;
 }) {
   const firedRef = useRef(false);
-  const interactedRef = useRef(false);
+  const [interacted, setInteracted] = useState(false);
   const saveLatest = useEffectEvent(save);
 
+  const pending = enabled && complete && dirty && interacted;
+
   useEffect(() => {
-    if (!enabled || !complete || !dirty || !interactedRef.current) {
+    if (!pending) {
       return;
     }
 
@@ -64,12 +66,12 @@ export function useAutoSaveOnFirstComplete({
       saveLatest();
     }, wait);
     return () => clearTimeout(timer);
-  }, [enabled, complete, dirty, delayMs, subsequentDelayMs, picksSignature]);
+  }, [pending, delayMs, subsequentDelayMs, picksSignature]);
 
   /** Call from user pick handlers so a restored draft alone never auto-saves. */
   function markInteraction() {
-    interactedRef.current = true;
+    setInteracted(true);
   }
 
-  return { markInteraction };
+  return { markInteraction, pending };
 }

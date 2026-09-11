@@ -793,26 +793,27 @@ export function PredictionForm({
   // started, or simply re-opening the card never writes at all.
   const savedSignature = JSON.stringify(existingPicks ?? []);
   const picksSignature = JSON.stringify(picks);
-  const { markInteraction } = useAutoSaveOnFirstComplete({
-    enabled:
-      // Signed-out users drive the save explicitly (which opens sign-in); we
-      // never want the auto-save timer to pop a modal on its own.
-      isAuthenticated &&
-      hasHydratedDraft &&
-      !autoSubmitFiredRef.current &&
-      !hasPendingSubmit(draftKey) &&
-      !isSubmitting &&
-      !isSubmissionBlocked &&
-      // A failed save falls back to the manual button rather than retrying on
-      // a loop the player cannot see or stop.
-      submitStatus !== 'error',
-    complete: picks.length === 5,
-    dirty: picksSignature !== savedSignature,
-    picksSignature,
-    delayMs: FIRST_SAVE_DELAY_MS,
-    subsequentDelayMs: EDIT_SAVE_DEBOUNCE_MS,
-    save: () => void handleSubmit({ autoSaved: true }),
-  });
+  const { markInteraction, pending: autoSavePending } =
+    useAutoSaveOnFirstComplete({
+      enabled:
+        // Signed-out users drive the save explicitly (which opens sign-in); we
+        // never want the auto-save timer to pop a modal on its own.
+        isAuthenticated &&
+        hasHydratedDraft &&
+        !autoSubmitFiredRef.current &&
+        !hasPendingSubmit(draftKey) &&
+        !isSubmitting &&
+        !isSubmissionBlocked &&
+        // A failed save falls back to the manual button rather than retrying on
+        // a loop the player cannot see or stop.
+        submitStatus !== 'error',
+      complete: picks.length === 5,
+      dirty: picksSignature !== savedSignature,
+      picksSignature,
+      delayMs: FIRST_SAVE_DELAY_MS,
+      subsequentDelayMs: EDIT_SAVE_DEBOUNCE_MS,
+      save: () => void handleSubmit({ autoSaved: true }),
+    });
 
   const availableDrivers = drivers ?? [];
   // Every saved pick resolves, including a driver who has since lost their
@@ -1094,6 +1095,19 @@ export function PredictionForm({
         ? 'unsaved'
         : 'saved';
 
+  // Completing the set writes itself. Lighting up the big save button for
+  // that beat is what used to flash under the player's thumb while the
+  // request was already in flight — keep the control quiet and let the
+  // receipt (or a parent action row) do the talking. A failed write puts
+  // the button back so they can retry.
+  const isFirstEntry = !existingPicks || existingPicks.length === 0;
+  const suppressManualSave =
+    isAuthenticated &&
+    isFirstEntry &&
+    picks.length === 5 &&
+    submitStatus !== 'error' &&
+    (autoSavePending || isSubmitting);
+
   /**
    * Write whatever is on screen, right now, and resolve when it has landed.
    *
@@ -1262,18 +1276,19 @@ export function PredictionForm({
             ) : showSaveWall && renderSaveWall ? (
               renderSaveWall({ lockIn: () => requestSubmit() })
             ) : (
-              <div className="mt-3 flex flex-wrap items-center justify-center gap-3 sm:mt-4 sm:gap-4">
+              <div className="mt-3 flex min-h-11 flex-wrap items-center justify-center gap-3 sm:mt-4 sm:gap-4">
                 <Button
                   variant="primary"
                   size="md"
                   className="w-100 max-w-full"
-                  loading={isSubmitting}
+                  loading={isSubmitting && !suppressManualSave}
                   saved={isUnchangedFromSaved}
                   disabled={
                     picks.length !== 5 ||
                     isSubmitting ||
                     isUnchangedFromSaved ||
-                    isSubmissionBlocked
+                    isSubmissionBlocked ||
+                    suppressManualSave
                   }
                   onClick={() => requestSubmit()}
                   data-testid="submit-prediction"
@@ -1283,7 +1298,7 @@ export function PredictionForm({
                       <Check size={20} className="shrink-0" />
                       Saved
                     </>
-                  ) : isSubmitting ? (
+                  ) : isSubmitting && !suppressManualSave ? (
                     'Saving...'
                   ) : !isAuthenticated ? (
                     'Sign in to save your picks'
@@ -1294,7 +1309,7 @@ export function PredictionForm({
                   )}
                 </Button>
 
-                {submitStatus === 'success' && (
+                {submitStatus === 'success' && !suppressManualSave && (
                   <span className="text-sm text-success" aria-live="polite">
                     Predictions saved. You can edit them until this session
                     starts.

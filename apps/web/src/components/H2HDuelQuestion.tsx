@@ -70,7 +70,10 @@ export function H2HDuelQuestion({
 
   return (
     <div className={isTakeover ? 'flex min-h-0 flex-1 flex-col' : ''}>
-      <div className="mb-4 shrink-0 text-center">
+      {/* The question stays put between battles. Bouncing this heading (or the
+          whole card) made "Who finishes ahead?" and "VS" jump on every pick,
+          which is the part of the sequence that is supposed to feel still. */}
+      <div className="mb-4 shrink-0 text-center" data-testid="h2h-duel-heading">
         {showTeam ? (
           <p className="gpp-label flex items-center justify-center gap-2 text-text-muted">
             <span
@@ -99,18 +102,23 @@ export function H2HDuelQuestion({
             : 'grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] sm:gap-3'
         }
       >
-        <DuelDriverButton
-          driver={matchup.driver1}
-          selected={selectedDriverId === matchup.driver1._id}
-          topFivePosition={topFivePositions?.[matchup.driver1._id]}
-          onClick={() => onPick(matchup.driver1._id)}
-          size={isTakeover ? 'lg' : 'md'}
+        <BouncingDuelPanel
+          key={matchup.driver1._id}
           className={
             isTakeover
               ? 'max-h-72 min-h-0 flex-1 sm:max-h-none sm:flex-none'
-              : ''
+              : undefined
           }
-        />
+        >
+          <DuelDriverButton
+            driver={matchup.driver1}
+            selected={selectedDriverId === matchup.driver1._id}
+            topFivePosition={topFivePositions?.[matchup.driver1._id]}
+            onClick={() => onPick(matchup.driver1._id)}
+            size={isTakeover ? 'lg' : 'md'}
+            className={isTakeover ? 'h-full' : ''}
+          />
+        </BouncingDuelPanel>
         {/* Hairlines only where the two panels sit above each other, and "VS"
             alone in the gap would read as a stray label. */}
         <span
@@ -125,18 +133,23 @@ export function H2HDuelQuestion({
             <span className="h-px flex-1 bg-border sm:hidden" />
           ) : null}
         </span>
-        <DuelDriverButton
-          driver={matchup.driver2}
-          selected={selectedDriverId === matchup.driver2._id}
-          topFivePosition={topFivePositions?.[matchup.driver2._id]}
-          onClick={() => onPick(matchup.driver2._id)}
-          size={isTakeover ? 'lg' : 'md'}
+        <BouncingDuelPanel
+          key={matchup.driver2._id}
           className={
             isTakeover
               ? 'max-h-72 min-h-0 flex-1 sm:max-h-none sm:flex-none'
-              : ''
+              : undefined
           }
-        />
+        >
+          <DuelDriverButton
+            driver={matchup.driver2}
+            selected={selectedDriverId === matchup.driver2._id}
+            topFivePosition={topFivePositions?.[matchup.driver2._id]}
+            onClick={() => onPick(matchup.driver2._id)}
+            size={isTakeover ? 'lg' : 'md'}
+            className={isTakeover ? 'h-full' : ''}
+          />
+        </BouncingDuelPanel>
       </div>
 
       {status !== undefined ? (
@@ -153,6 +166,41 @@ export function H2HDuelQuestion({
         </p>
       ) : null}
     </div>
+  );
+}
+
+const DUEL_PANEL_SPRING = {
+  type: 'spring' as const,
+  stiffness: 520,
+  damping: 32,
+  mass: 0.8,
+};
+
+/**
+ * The two driver cards are what change between battles, so they are what
+ * bounce. Wrapping the whole question used to take "Who finishes ahead?" and
+ * "VS" with them.
+ */
+function BouncingDuelPanel({
+  className,
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}) {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <m.div
+      data-testid="h2h-duel-panel"
+      className={className}
+      initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 6 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={reduceMotion ? { duration: 0 } : DUEL_PANEL_SPRING}
+      style={{ transformOrigin: '50% 40%' }}
+    >
+      {children}
+    </m.div>
   );
 }
 

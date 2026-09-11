@@ -1,4 +1,4 @@
-import { m, useReducedMotion } from 'framer-motion';
+import { useReducedMotion } from 'framer-motion';
 import { ArrowLeft, Check, Swords } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -244,18 +244,11 @@ export function H2HDuelPicker({
   const showFinishedCard = collapsed || modalEdit;
 
   const duelCard = (
-    <m.div
-      key={matchup._id}
-      initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 6 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={
-        reduceMotion
-          ? { duration: 0 }
-          : { type: 'spring', stiffness: 520, damping: 32, mass: 0.8 }
-      }
-      style={{ transformOrigin: '50% 40%' }}
+    <div
       // In the takeover the card *is* the screen, so it stretches and the
       // question lays itself out for that; inline it stays a card in a page.
+      // The bounce lives on the driver panels inside the question, not here:
+      // wrapping this frame used to take the heading and "VS" with every pick.
       className={modalEdit ? 'flex min-h-0 flex-1 flex-col pb-4 sm:block' : ''}
     >
       <H2HDuelQuestion
@@ -282,7 +275,7 @@ export function H2HDuelPicker({
           ) : undefined
         }
       />
-    </m.div>
+    </div>
   );
 
   return (
@@ -326,12 +319,10 @@ export function H2HDuelPicker({
 
       {showFinishedCard ? null : (
         <>
-          {/* Stable chrome, animated contents. Sliding the whole card made each
-          pick feel like a carousel page; the frame stays put and the next
-          duel pops in. No exit animation — `AnimatePresence mode="wait"`
-          used to hold the outgoing duel until its exit finished, so the
-          header counter and the card on screen disagreed for the length of
-          the transition. */}
+          {/* Stable chrome, animated contents. The frame, heading and "VS"
+          stay put; only the two driver panels bounce in. Sliding or scaling
+          the whole card made each pick feel like a carousel page, and took
+          the static question with it. */}
           <div
             ref={duelCardRef}
             className="rounded-xl border border-border bg-surface p-3 sm:p-5"

@@ -95,19 +95,21 @@ describe('DashboardPracticeCard', () => {
   it("shows each session's weather beside the label", () => {
     const fp1StartAt = Date.UTC(2026, 8, 11, 11, 30);
     const fp2StartAt = Date.UTC(2026, 8, 11, 15);
-    const hour = (at: number, temperatureC: number) => ({
-      at,
-      localDate: '2026-09-11',
-      localHour: new Date(at).getUTCHours(),
-      forecastPeriodHours: 1,
-      temperatureC,
-      conditionCode: 'clearsky_day',
-      precipitationAmountMm: 0,
-      precipitationProbability: 5,
-      thunderProbability: 0,
-      windSpeedMps: 3,
-      windGustMps: 6,
-    });
+    function hour(at: number, temperatureC: number) {
+      return {
+        at,
+        localDate: '2026-09-11',
+        localHour: new Date(at).getUTCHours(),
+        forecastPeriodHours: 1,
+        temperatureC,
+        conditionCode: 'clearsky_day',
+        precipitationAmountMm: 0,
+        precipitationProbability: 5,
+        thunderProbability: 0,
+        windSpeedMps: 3,
+        windGustMps: 6,
+      };
+    }
     const view = render(
       <DashboardPracticeCard
         raceId={RACE_ID}

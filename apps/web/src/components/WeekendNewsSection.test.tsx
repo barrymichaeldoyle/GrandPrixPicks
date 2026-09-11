@@ -6,7 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // The section closes with a router `<Link>`, which needs a router context this
 // test has no reason to build: the subject is the attribution row.
 vi.mock('@/components/ScoringPolicyNote', () => ({
-  ScoringPolicyNote: () => null,
+  ScoringPolicyNote: () => (
+    <p>Grid penalties don’t change qualifying results.</p>
+  ),
 }));
 
 const { WeekendNewsSection } = await import('./WeekendNewsSection');
@@ -79,6 +81,8 @@ describe('WeekendNewsSection grid links', () => {
     expect(link?.getAttribute('aria-label')).toBe(
       'Why Oscar Piastri starts P2: Piastri drops to sixth on the Monza grid',
     );
+    expect(container.textContent).toContain('GAS');
+    expect(container.textContent).toContain('PIA');
   });
 
   it('anchors the card the row points at', () => {
@@ -96,6 +100,13 @@ describe('WeekendNewsSection grid links', () => {
     render([gridItem]);
     expect(container.querySelector('a[href^="#news-"]')).toBeNull();
     expect(container.textContent).toContain('3-place penalty');
+  });
+
+  it('reminds the reader that a penalty does not rewrite qualifying', () => {
+    render([gridItem, penaltyItem]);
+    expect(container.textContent).toContain(
+      'Grid penalties don’t change qualifying results.',
+    );
   });
 });
 
@@ -131,5 +142,12 @@ describe('WeekendNewsSection source date', () => {
     expect(container.querySelector('time')).toBeNull();
     // The attribution itself still renders.
     expect(container.textContent).toContain('Formula 1');
+  });
+
+  it('keeps the scoring reminder off a story that is not a penalty', () => {
+    render([item]);
+    expect(container.textContent).not.toContain(
+      'Grid penalties don’t change qualifying results.',
+    );
   });
 });

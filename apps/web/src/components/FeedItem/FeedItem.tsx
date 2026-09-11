@@ -26,13 +26,13 @@ export function FeedItem({
       : position === 'middle'
         ? 'rounded-none'
         : position === 'last'
-          ? 'rounded-b-sm rounded-t-none'
-          : 'rounded-sm';
+          ? 'rounded-b-sm rounded-t-none max-md:rounded-none'
+          : 'rounded-sm max-md:rounded-none';
 
   const borderClass =
     position === 'first' || position === 'middle' || position === 'last'
-      ? 'border-t-0'
-      : '';
+      ? 'border-t-0 max-md:border-x-0'
+      : 'max-md:-mx-4 max-md:-mt-px max-md:border-x-0';
 
   return (
     <div

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { CSSProperties } from 'react';
 
 import { StartingGridTable } from '@/components/StartingGridTable';
+import { newsMentionsGridPenalty } from '@/lib/newsGridPenalty';
 import { TEAM_COLORS } from '@/lib/teamColors';
 
 import { ReactionButton } from '../ReactionButton';
@@ -128,9 +129,10 @@ export function RaceNewsItem({
           {/* The one thing the chips carried that was worth keeping: what these
             picks are scored against, which is the half readers get wrong about
             a grid penalty. It moves a start, it does not rewrite a
-            classification. Grouped, `NewsGroup` says it once for the whole run
-            instead. */}
-          {grouped ? null : (
+            classification. Only when this card is itself a penalty: a livery
+            or a pit-lane start has no scoring question to answer. Grouped,
+            `NewsGroup` says it once for the whole run instead. */}
+          {grouped || !newsMentionsGridPenalty(event) ? null : (
             <Link
               to="/results-policy"
               hash="sessions-heading"

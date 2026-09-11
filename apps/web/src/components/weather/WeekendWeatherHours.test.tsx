@@ -145,6 +145,26 @@ describe('WeekendWeatherHours', () => {
     expect(html).toContain('Hour-by-hour forecast');
     expect(html).not.toContain('Already run');
   });
+
+  it('stacks the forecast under the start time so the session name can centre against both', () => {
+    const now = Date.UTC(2026, 8, 4, 13, 22);
+    const html = renderToStaticMarkup(
+      <RaceWriteupWeekendSchedule
+        race={race}
+        timeZone="Europe/Rome"
+        timeZoneLabel="MONZA TIME"
+        weather={weatherWith(
+          [...hoursForDay(0, 15), ...hoursForDay(1), ...hoursForDay(2)],
+          now,
+        )}
+        now={now}
+      />,
+    );
+
+    expect(html).toContain('row-span-2 sm:row-span-1');
+    expect(html).toContain('col-start-2');
+    expect(html).not.toContain('col-span-2');
+  });
 });
 
 it('keeps the modal and hero time controls in sync in both directions', async () => {

@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import type { CSSProperties } from 'react';
 
-import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
+import { DriverBadge } from '@/components/DriverBadge';
 
 export type StartingGridEntry = {
   position: number;
@@ -33,10 +32,10 @@ export type GridNewsLink = (
  * second implementation is how one of them ends up a row short after a
  * correction.
  *
- * A row is a slot number, the team's colour, and a name. The colour is the
+ * A row is a slot number, a driver badge, and a name. The badge is the
  * point of the table: a grid read as twenty-two names is a list, and read as
- * blocks of colour it shows you at a glance that Ferrari has locked out the
- * second row and that both Mercedes are split across the field.
+ * codes with team bars it shows you at a glance that Ferrari has locked out
+ * the second row and that both Mercedes are split across the field.
  */
 export function StartingGridTable({
   entries,
@@ -108,22 +107,19 @@ function GridRow({
   entry: StartingGridEntry;
   newsLink?: GridNewsLink;
 }) {
-  const colour =
-    (entry.team ? TEAM_COLORS[entry.team] : null) ?? FALLBACK_TEAM_COLOR;
   const link = entry.newsKey ? newsLink?.(entry.newsKey) : undefined;
 
   return (
-    <li
-      className="flex items-center gap-3 border-b border-border py-1.5 last:border-0"
-      style={{ '--team-colour': colour } as CSSProperties}
-    >
+    <li className="flex items-center gap-2.5 border-b border-border py-1.5 last:border-0">
       <span className="gpp-mono w-7 shrink-0 text-xs font-semibold text-text-muted">
         P{entry.position}
       </span>
-      <span
-        aria-hidden
-        className="h-4 w-[3px] shrink-0"
-        style={{ backgroundColor: colour }}
+      <DriverBadge
+        code={entry.code}
+        team={entry.team}
+        displayName={entry.displayName}
+        size="sm"
+        prerenderTooltip={false}
       />
       <span className="min-w-0 flex-1 truncate text-sm text-text">
         {entry.displayName}

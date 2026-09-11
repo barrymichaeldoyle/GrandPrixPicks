@@ -196,14 +196,14 @@ export function RaceWriteupWeekendSchedule({
               // sat low against the session name and start time. With one line
               // of similar text in each cell, centring aligns all three and
               // does not depend on what the third one happens to contain.
-              className={`grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-1 border-b border-border/60 px-4 py-2 last:border-b-0 sm:py-2.5 ${
+              className={`grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-0.5 border-b border-border/60 px-4 py-2 last:border-b-0 sm:py-2.5 ${
                 forecast
                   ? 'sm:grid-cols-[minmax(0,1fr)_auto_auto]'
                   : 'sm:grid-cols-[6.5rem_1fr]'
               } ${isNext ? 'gpp-stripe bg-surface-elevated' : ''}`}
             >
               <dt
-                className={`text-sm ${isNext ? 'font-medium text-text' : 'text-text-muted'}`}
+                className={`text-sm ${summary ? 'row-span-2 sm:row-span-1' : ''} ${isNext ? 'font-medium text-text' : 'text-text-muted'}`}
               >
                 {/* The row that matters carries the stripe, a surface step and
                     the heavier weight. It used to be an accent fill with accent
@@ -222,13 +222,18 @@ export function RaceWriteupWeekendSchedule({
                   : formatTrackTime(timestamp, activeTimeZone)}
               </dd>
               {forecast && (
-                // Third cell on its own line below `sm`, where the two above
-                // it already use the full width of a phone. A session with no
-                // forecast keeps the dash that gives the column its shape on a
-                // wide card, and drops the whole cell on a phone rather than
-                // spending a second line of a row on an em dash.
+                // Time and forecast share the right column below `sm`, so the
+                // session name centres against both lines. Forecast used to
+                // span the full width as a second row: the name sat on the
+                // first line only, and the wrap drew a break under it that
+                // was not the row rule.
+                //
+                // A session with no forecast keeps the dash that gives the
+                // column its shape on a wide card, and drops the whole cell
+                // on a phone rather than spending a second line of a row
+                // on an em dash.
                 <dd
-                  className={`col-span-2 items-center justify-end gap-1.5 text-right sm:col-span-1 sm:flex ${
+                  className={`col-start-2 items-center justify-end gap-1.5 text-right sm:col-start-auto sm:flex ${
                     summary ? 'flex' : 'hidden'
                   }`}
                 >

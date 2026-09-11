@@ -1,5 +1,6 @@
 import { Flag } from '@/components/Flag';
 import { ScoringPolicyNote } from '@/components/ScoringPolicyNote';
+import { newsListMentionsGridPenalty } from '@/lib/newsGridPenalty';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 
 import { FeedItem } from './FeedItem';
@@ -13,9 +14,10 @@ import type { FeedEvent } from './types';
  * and become texture: the eye reads a wall rather than two distinct stories.
  *
  * So the things that belong to the run are hoisted here and said once, and the
- * cards keep only what actually differs between them. The scoring line sits at
- * the bottom rather than the top because it explains the chips above it, and
- * because a policy link is not what should greet a reader arriving at news.
+ * cards keep only what actually differs between them. The scoring line, when
+ * the run actually includes a grid penalty, sits at the bottom rather than the
+ * top: it explains the caption above it, and a policy link is not what should
+ * greet a reader arriving at news.
  *
  * Grouping is by adjacency, not by race. Session groups can key on race and
  * session because every score for a session belongs together wherever it lands,
@@ -46,10 +48,14 @@ export function NewsGroup({ events }: { events: FeedEvent[] }) {
          the frame's `px-4` was taking, which on a phone is most of a word per
          line of body copy. Inner padding is untouched: the block bleeds, the
          copy never does. */
-      className="overflow-hidden border-y border-border/80 bg-surface max-md:-mx-4 md:rounded-sm md:border"
+      className="overflow-hidden border-y border-border/80 bg-surface max-md:-mx-4 max-md:-mt-px md:rounded-sm md:border"
       aria-label={raceName ? `Weekend news, ${raceName}` : 'Weekend news'}
     >
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border/80 px-2.5 py-2">
+      {/* The eyebrow and the race name already mark this as the news block;
+          a rule under them doubled the classification-style dividers the
+          stories themselves carry. `-mt-px` on the section collapses the
+          stacked hairline where this block meets practice on a phone. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-2.5 py-2">
         <p className="text-xs font-semibold tracking-label text-accent uppercase">
           Weekend news
         </p>
@@ -75,7 +81,9 @@ export function NewsGroup({ events }: { events: FeedEvent[] }) {
         ))}
       </div>
 
-      <ScoringPolicyNote className="border-t border-border/80 px-2.5 py-2 text-xs text-text-muted" />
+      {newsListMentionsGridPenalty(events) ? (
+        <ScoringPolicyNote className="border-t border-border/80 px-2.5 py-2 text-xs text-text-muted" />
+      ) : null}
     </section>
   );
 }

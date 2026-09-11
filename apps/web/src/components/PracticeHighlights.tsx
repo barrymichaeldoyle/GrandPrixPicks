@@ -57,7 +57,7 @@ function SessionColumn({
   return (
     <div className={dividers}>
       {labelled ? (
-        <p className="gpp-label border-b border-border px-4 py-1.5 text-text-muted">
+        <p className="gpp-label px-4 py-1.5 text-text-muted">
           {PRACTICE_SESSION_LABELS[result.sessionType]}
         </p>
       ) : null}
@@ -81,8 +81,10 @@ function SessionColumn({
  * names to "Arvi…". A highlight per session fixes both by not trying to be the
  * timing sheet.
  *
- * On a phone it bleeds like the picks card and the news block: a nested frame
- * here was a card sitting in the gutter between two full-bleed neighbours.
+ * On a phone it bleeds like the picks card and the news block, and sits
+ * flush against them: a nested frame here was a card sitting in the gutter
+ * between two full-bleed neighbours. `-mt-px` collapses the two hairlines
+ * that would otherwise stack where this block meets the one above it.
  */
 export function PracticeHighlights({
   results,
@@ -104,9 +106,12 @@ export function PracticeHighlights({
     <section
       aria-labelledby="dashboard-practice-heading"
       data-testid="dashboard-practice"
-      className="overflow-hidden border-y border-border/80 bg-surface max-md:-mx-4 md:rounded-sm md:border"
+      className="overflow-hidden border-y border-border/80 bg-surface max-md:-mx-4 max-md:-mt-px md:rounded-sm md:border"
     >
-      <div className="border-b border-border/80 px-4 py-2.5">
+      {/* No rule under the heading: the classification already divides on
+          every row, and a second line between the title and P1 was one HR
+          more than the block needed. */}
+      <div className="px-4 py-2.5">
         <h2 id="dashboard-practice-heading" className="min-w-0">
           <span className="gpp-label block text-accent">Practice</span>
           {/* Wraps rather than truncates: "FP2 · George RUSS…" was the header

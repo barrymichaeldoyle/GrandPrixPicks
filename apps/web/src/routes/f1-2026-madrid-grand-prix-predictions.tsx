@@ -343,7 +343,11 @@ function MadridGrandPrixPredictionsPage() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-5xl px-3 py-5 sm:px-4 sm:py-8">
-        <div className="grid gap-8 border-b border-border pb-8 sm:pb-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
+        {/* No rule under the stacked hero: the schedule card already draws a
+            full frame, and a second line below it was a divider with nothing
+            left to divide. Side by side at `lg`, the rule spans both columns
+            and is the break before the body. */}
+        <div className="grid gap-8 pb-8 sm:pb-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:border-b lg:border-border">
           <header>
             <div className="flex items-center gap-3">
               <Flag code="ES" size="xl" />

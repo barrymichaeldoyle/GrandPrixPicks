@@ -2,6 +2,7 @@ import { ExternalLink } from 'lucide-react';
 import type { CSSProperties } from 'react';
 
 import { ScoringPolicyNote } from '@/components/ScoringPolicyNote';
+import { newsListMentionsGridPenalty } from '@/lib/newsGridPenalty';
 import {
   StartingGridTable,
   type StartingGridEntry,
@@ -229,7 +230,9 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
         })}
       </div>
 
-      <ScoringPolicyNote className="mt-5 text-sm text-text-muted" />
+      {newsListMentionsGridPenalty(items) ? (
+        <ScoringPolicyNote className="mt-5 text-sm text-text-muted" />
+      ) : null}
     </section>
   );
 }

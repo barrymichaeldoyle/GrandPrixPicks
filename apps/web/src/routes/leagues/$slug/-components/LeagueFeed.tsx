@@ -117,7 +117,7 @@ export function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-0 md:space-y-3">
       {groups.map((group) => {
         if (group.kind === 'standalone') {
           return <FeedItem key={group.event._id} event={group.event} />;

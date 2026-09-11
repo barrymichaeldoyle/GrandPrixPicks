@@ -35,6 +35,18 @@ import {
   formatRelativeTime,
 } from './helpers';
 
+/**
+ * Edge to edge on a phone, the same bleed the picks card, practice and news
+ * already take. A nested frame here was a card sitting in the gutter between
+ * full-bleed neighbours. `-mt-px` collapses the stacked hairline where this
+ * block meets the one above it.
+ *
+ * No `overflow-hidden` on this wrapper: the session header is sticky, and a
+ * clipping ancestor would pin it inside the card instead of under the nav.
+ * The header and the last row keep their own radii, so the corners still clip.
+ */
+const SESSION_GROUP_SHELL = 'bg-surface max-md:-mx-4 max-md:-mt-px';
+
 /*
  * The five slots are one grid, shared by the result row in the header and by
  * every player row below it. Same columns, same padding, so a pick sits
@@ -150,8 +162,8 @@ function SessionLeaderboardRow({
     <>
       <div
         data-flip-key={event._id}
-        className={`space-y-1.5 border border-t-0 border-border px-2.5 py-2 ${
-          isLast ? 'rounded-b-sm' : ''
+        className={`space-y-1.5 border border-t-0 border-border px-2.5 py-2 max-md:border-x-0 ${
+          isLast ? 'rounded-b-sm max-md:rounded-none' : ''
         } ${isViewer ? 'bg-accent/8 ring-1 ring-accent/40 ring-inset' : 'bg-surface'}`}
       >
         {/* Identity line. No "You" chip (the highlighted row says it) and no
@@ -315,7 +327,7 @@ export function SessionGroup({
 
     if (live) {
       return (
-        <div>
+        <div className={SESSION_GROUP_SHELL}>
           <SessionSeparator
             session={{
               ...sessionWithTime,
@@ -333,20 +345,22 @@ export function SessionGroup({
             live
           />
           <div ref={liveRowsRef}>
-            {live.events.map((event, i) => (
+            {live.events.map((event) => (
               <SessionLeaderboardRow
                 key={event._id}
                 event={event}
                 live={live.playerFor(event)}
                 isViewer={!!viewerId && event.userId === viewerId}
-                isLast={i === live.events.length - 1}
+                isLast={false}
               />
             ))}
           </div>
-          {/* The same sentence the race page's live board carries, for the
-              same reason: every number above this line moves, and a position
-              read as a result is the one misreading to rule out. */}
-          <p className="mt-1.5 text-[11px] text-text-muted">
+          {/* Inside the shell, not under it: a margin here was a stripe of
+              page between two full-bleed cards. The same sentence the race
+              page's live board carries, for the same reason: every number
+              above this line moves, and a position read as a result is the
+              one misreading to rule out. */}
+          <p className="rounded-b-sm border border-t-0 border-border px-2.5 py-2 text-[11px] text-text-muted max-md:rounded-none max-md:border-x-0">
             Running order is live and can change, including after the flag.
           </p>
         </div>
@@ -354,7 +368,7 @@ export function SessionGroup({
     }
 
     return (
-      <div>
+      <div className={SESSION_GROUP_SHELL}>
         <SessionSeparator session={sessionWithTime} grouped pending />
         {events.map((event, i) => (
           <FeedItem
@@ -377,7 +391,7 @@ export function SessionGroup({
   );
 
   return (
-    <div>
+    <div className={SESSION_GROUP_SHELL}>
       <SessionSeparator session={sessionWithTime} grouped />
       {ranked.map((event, i) => (
         <SessionLeaderboardRow
@@ -439,8 +453,8 @@ function SessionSeparator({
   const roundedClass = grouped
     ? isStuck
       ? 'rounded-none'
-      : 'rounded-t-sm'
-    : 'rounded-sm';
+      : 'max-md:rounded-none md:rounded-t-sm'
+    : 'max-md:rounded-none md:rounded-sm';
 
   const content = (
     <div className="overflow-hidden">
@@ -518,13 +532,17 @@ function SessionSeparator({
 
   return (
     <>
-      {grouped && <div ref={sentinelRef} className="h-px" aria-hidden="true" />}
+      {grouped && (
+        <div ref={sentinelRef} className="-mb-px h-px" aria-hidden="true" />
+      )}
       <div
         className={[
-          'overflow-hidden border border-border bg-surface',
+          'overflow-hidden bg-surface',
           // Pinned below the site nav: at top-0 the flag/race row slid under
           // the (z-50) header and only the result band stayed visible.
-          grouped ? 'sticky top-(--nav-height) z-10' : '',
+          grouped
+            ? 'sticky top-(--nav-height) z-10 border border-border max-md:border-x-0'
+            : 'border border-border',
           roundedClass,
         ].join(' ')}
       >

@@ -648,19 +648,17 @@ export const GroupedSessionLive: Story = {
           ],
         })}
       >
-        <div className="w-[min(100%,40rem)]">
-          <SessionGroup
-            session={{
-              raceName: 'Italian Grand Prix',
-              sessionType: 'race',
-              raceSlug: 'italy-2026',
-              createdAt: NOW - 70 * MINUTE,
-              top5: [],
-            }}
-            events={events}
-            viewerId={viewer._id}
-          />
-        </div>
+        <SessionGroup
+          session={{
+            raceName: 'Italian Grand Prix',
+            sessionType: 'race',
+            raceSlug: 'italy-2026',
+            createdAt: NOW - 70 * MINUTE,
+            top5: [],
+          }}
+          events={events}
+          viewerId={viewer._id}
+        />
       </StorybookMockProviders>
     );
   },

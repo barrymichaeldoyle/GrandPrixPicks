@@ -15,6 +15,18 @@ import { ReactionButton } from './ReactionButton';
 const SITE_URL = 'https://grandprixpicks.com';
 const GRID_COLLAPSED_ROWS = 10;
 
+function newsMentionsGridPenalty(event: FeedEvent): boolean {
+  if ((event.newsKey ?? '').includes('grid-penalty')) {
+    return true;
+  }
+  if (/grid penalty/i.test(event.newsHeadline ?? '')) {
+    return true;
+  }
+  return (event.newsStartingGrid ?? []).some((entry) =>
+    /penalty/i.test(entry.note ?? ''),
+  );
+}
+
 function openScoringPolicy() {
   void WebBrowser.openBrowserAsync(
     `${SITE_URL}/results-policy#sessions-heading`,
@@ -60,10 +72,15 @@ function StartingGrid({
           <Numeral tone="muted" variant="small">
             {`P${entry.position}`}
           </Numeral>
-          <View
-            className="h-4 w-[3px] shrink-0"
-            style={{ backgroundColor: getTeamColor(entry.team) }}
-          />
+          <View className="relative h-6 min-w-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-surface-elevated pr-1.5 pl-2">
+            <View
+              className="absolute top-0 bottom-0 left-0 w-[3px]"
+              style={{ backgroundColor: getTeamColor(entry.team) }}
+            />
+            <Text className="text-foreground text-xs leading-none font-medium uppercase">
+              {entry.code}
+            </Text>
+          </View>
           <Text
             className="text-foreground min-w-0 flex-1 text-sm"
             numberOfLines={1}
@@ -146,7 +163,9 @@ function RaceNewsCard({
                 />
               </Pressable>
             ) : null}
-            {grouped ? null : <ScoringPolicyNote />}
+            {grouped || !newsMentionsGridPenalty(event) ? null : (
+              <ScoringPolicyNote />
+            )}
           </View>
           <ReactionButton
             context="news"
@@ -203,9 +222,11 @@ export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
           reverse={index % 2 === 0}
         />
       ))}
-      <View className="border-t border-border px-3 py-2">
-        <ScoringPolicyNote />
-      </View>
+      {events.some(newsMentionsGridPenalty) ? (
+        <View className="border-t border-border px-3 py-2">
+          <ScoringPolicyNote />
+        </View>
+      ) : null}
     </View>
   );
 }

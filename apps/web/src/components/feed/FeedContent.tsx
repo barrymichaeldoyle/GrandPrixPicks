@@ -333,7 +333,7 @@ export function FeedContent({
       : null;
 
   return withInterleaved(
-    <div className="space-y-4">
+    <div className="space-y-0 md:space-y-4">
       {groups.map((group) => {
         if (group.kind === 'standalone') {
           return <FeedItem key={group.event._id} event={group.event} />;

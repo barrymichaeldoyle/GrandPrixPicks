@@ -25,7 +25,7 @@
     "eas-build-pre-install": "node scripts/check-release-env.mjs"
   },
   "dependencies": {
-    "@clerk/expo": "4.3.0",
+    "@clerk/expo": "4.6.6",
     "@expo-google-fonts/archivo": "^0.4.2",
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
     "@expo/vector-icons": "15.1.1",
@@ -33,7 +33,7 @@
     "@react-navigation/bottom-tabs": "7.18.18",
     "@react-navigation/native": "7.3.18",
     "@react-navigation/native-stack": "7.18.10",
-    "@sentry/react-native": "~8.23.0",
+    "@sentry/react-native": "~8.26.0",
     "@tailwindcss/postcss": "^4.3.3",
     "babel-preset-expo": "~57.0.11",
     "clsx": "^2.1.1",
@@ -58,7 +58,7 @@
     "expo-system-ui": "~57.0.3",
     "expo-web-browser": "~57.0.0",
     "nativewind": "5.0.0-preview.2",
-    "posthog-react-native": "^4.63.0",
+    "posthog-react-native": "^4.68.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-native": "0.86.3",

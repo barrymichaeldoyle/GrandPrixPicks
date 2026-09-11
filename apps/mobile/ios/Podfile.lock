@@ -2364,7 +2364,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNSentry (8.23.0):
+  - RNSentry (8.26.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2619,7 +2619,7 @@ DEPENDENCIES:
   - "RNGestureHandler (from `../../../node_modules/.pnpm/react-native-gesture-handler@3.2.1_react-native@0.86.3_@babel+core@7.29.6_supports-colo_3bfe3f940ebe7a18c9132043bcd337b0/node_modules/react-native-gesture-handler`)"
   - "RNReanimated (from `../../../node_modules/.pnpm/react-native-reanimated@4.5.1_react-native-worklets@0.10.1_@babel+core@7.29.6_supports-_57b30362134f39f96aa154be84908287/node_modules/react-native-reanimated`)"
   - "RNScreens (from `../../../node_modules/.pnpm/react-native-screens@4.26.2_react-native@0.86.3_@babel+core@7.29.6_supports-color@10.2._14b1134c2d7d3b9a0a807adad933d1e8/node_modules/react-native-screens`)"
-  - "RNSentry (from `../../../node_modules/.pnpm/@sentry+react-native@8.23.0_@expo+env@2.4.3_supports-color@10.2.2__dotenv@17.4.2_expo@5_c89b1f7444deadbae7973af2fb1ac03e/node_modules/@sentry/react-native`)"
+  - "RNSentry (from `../../../node_modules/.pnpm/@sentry+react-native@8.26.0_@expo+env@2.4.3_supports-color@10.2.2__dotenv@17.4.2_expo@5_6796cdaf846ab97006cc4d471f0f8db0/node_modules/@sentry/react-native`)"
   - "RNSVG (from `../../../node_modules/.pnpm/react-native-svg@15.15.4_react-native@0.86.3_@babel+core@7.29.6_supports-color@10.2.2___37c494b5fac1129684fe34fc2425993d/node_modules/react-native-svg`)"
   - "RNWorklets (from `../../../node_modules/.pnpm/react-native-worklets@0.10.1_@babel+core@7.29.6_supports-color@10.2.2__@react-native+me_9972b5c32d9b40d64b243dd53cdf98b0/node_modules/react-native-worklets`)"
   - "Yoga (from `../../../node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.6_supports-color@10.2.2__@react-native+metro-confi_e57752fa894a9d8430f0d1bf1b885207/node_modules/react-native/ReactCommon/yoga`)"
@@ -2855,7 +2855,7 @@ EXTERNAL SOURCES:
   RNScreens:
     :path: "../../../node_modules/.pnpm/react-native-screens@4.26.2_react-native@0.86.3_@babel+core@7.29.6_supports-color@10.2._14b1134c2d7d3b9a0a807adad933d1e8/node_modules/react-native-screens"
   RNSentry:
-    :path: "../../../node_modules/.pnpm/@sentry+react-native@8.23.0_@expo+env@2.4.3_supports-color@10.2.2__dotenv@17.4.2_expo@5_c89b1f7444deadbae7973af2fb1ac03e/node_modules/@sentry/react-native"
+    :path: "../../../node_modules/.pnpm/@sentry+react-native@8.26.0_@expo+env@2.4.3_supports-color@10.2.2__dotenv@17.4.2_expo@5_6796cdaf846ab97006cc4d471f0f8db0/node_modules/@sentry/react-native"
   RNSVG:
     :path: "../../../node_modules/.pnpm/react-native-svg@15.15.4_react-native@0.86.3_@babel+core@7.29.6_supports-color@10.2.2___37c494b5fac1129684fe34fc2425993d/node_modules/react-native-svg"
   RNWorklets:
@@ -2977,7 +2977,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: af5f7e95d350ef38c0997b5627970769c2a7f354
   RNReanimated: 2e0417cb8090407baefe0b6d95c0937fa9ce2c83
   RNScreens: 7118cd7715c226856125b5bece3c4d9abec90356
-  RNSentry: 67a738ecdc2ddb58371f8ecfa3d6c87a5b87f5db
+  RNSentry: 36d476bdfa4b27b2e05e75969ef37ad9fd3a81ae
   RNSVG: 3fe8590403ac9f107b4d14591bc6e54da4894e5c
   RNWorklets: 920beb6972a35725c19e27171f88132a307af6af
   Yoga: 18b74b3ade30bebc1904004dfaceae1dd02a330a

@@ -156,6 +156,8 @@ minimumReleaseAgeExclude:
   - expo-store-review@57.0.2
   - expo@57.0.13
   - knip@6.34.0
+  - '@sentry/expo-upload-sourcemaps@8.26.0'
+  - '@sentry/react-native@8.26.0'
 
 onlyBuiltDependencies:
   - '@clerk/shared'

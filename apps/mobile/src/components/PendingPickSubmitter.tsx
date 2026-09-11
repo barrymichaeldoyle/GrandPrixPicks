@@ -28,7 +28,7 @@ export function PendingPickSubmitter() {
   const { isAuthenticated } = useConvexAuth();
   const submitTopFive = useMutation(api.predictions.submitPrediction);
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
-  const { showToast } = useToast();
+  const { showToast, celebratePicks } = useToast();
   // Drafts are keyed by race slug; the mutations take an id, so each one is
   // resolved here rather than storing an id that could outlive its race.
   const convex = useConvex();
@@ -86,6 +86,7 @@ export function PendingPickSubmitter() {
       }
 
       if (saved > 0) {
+        celebratePicks();
         showToast(
           saved === 1
             ? '🏁 Your picks are in'
@@ -102,7 +103,14 @@ export function PendingPickSubmitter() {
     }
 
     void drain();
-  }, [convex, isAuthenticated, showToast, submitH2H, submitTopFive]);
+  }, [
+    celebratePicks,
+    convex,
+    isAuthenticated,
+    showToast,
+    submitH2H,
+    submitTopFive,
+  ]);
 
   return null;
 }

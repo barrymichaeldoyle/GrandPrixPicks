@@ -6,6 +6,7 @@ import { getTeamColor } from '../../lib/teamColors';
 import { colors } from '../../theme/tokens';
 import { Pressable, Text, View } from '../../tw';
 import { FlagImage } from '../ui/FlagImage';
+import { SlantedStripe } from '../ui/SlantedStripe';
 import { Numeral } from '../ui/Numeral';
 import type { FeedEvent } from './types';
 import { formatRelativeTime } from './helpers';
@@ -94,19 +95,18 @@ function StartingGrid({
 function RaceNewsCard({
   event,
   grouped = false,
+  reverse = false,
 }: {
   event: FeedEvent;
   grouped?: boolean;
+  reverse?: boolean;
 }) {
   const team = event.newsDrivers?.[0]?.team ?? null;
   const teamColour = team ? getTeamColor(team) : colors.accent;
 
   return (
-    <View className="flex-row items-stretch">
-      <View
-        className="w-[3px] self-stretch"
-        style={{ backgroundColor: teamColour }}
-      />
+    <View className="overflow-hidden px-3">
+      <SlantedStripe color={teamColour} reverse={reverse} />
       <View className="min-w-0 flex-1 gap-2 py-2.5 pr-3 pl-3">
         {grouped ? null : (
           <Text className="text-[10px] font-semibold tracking-wide text-accent uppercase">
@@ -197,7 +197,7 @@ export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
           className={index === 0 ? undefined : 'border-t border-border'}
           key={event._id}
         >
-          <RaceNewsCard event={event} grouped />
+          <RaceNewsCard event={event} grouped reverse={index % 2 === 0} />
         </View>
       ))}
       <View className="border-t border-border px-3 py-2">

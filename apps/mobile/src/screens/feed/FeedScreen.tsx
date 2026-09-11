@@ -12,6 +12,7 @@ import { NewsGroupCard } from '../../components/feed/NewsGroupCard';
 import type { SessionHeader } from '../../components/feed/SessionGroupCard';
 import { SessionGroupCard } from '../../components/feed/SessionGroupCard';
 import { HomeExplore } from '../../components/home/HomeExplore';
+import { PicksConnectedScreen } from '../PicksConnectedScreen';
 import { HomeHero } from '../../components/home/HomeHero';
 import { SignedOutHomePanel } from '../../components/home/SignedOutHomePanel';
 import { RaceRecapCard } from '../../components/home/RaceRecapCard';
@@ -217,6 +218,7 @@ export function FeedScreen() {
                 watched a Grand Prix came here for the one that finished. */}
             <RaceRecapCard className="mb-3" />
             <HomeHero />
+            <PicksConnectedScreen embedded />
             {/* No "Activity" heading over the list. The tab is Home, the rows
                 below are plainly the activity, and the web feed dropped the
                 same label. */}

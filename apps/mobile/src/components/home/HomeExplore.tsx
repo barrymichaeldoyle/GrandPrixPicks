@@ -15,15 +15,9 @@ type ExploreItem = {
 
 const ITEMS: ReadonlyArray<ExploreItem> = [
   {
-    icon: 'trophy-outline',
-    title: 'Make your picks',
-    body: 'Top 5 drivers for the next session. Every point counts.',
-    tab: 'PicksTab',
-  },
-  {
     icon: 'podium-outline',
     title: 'Check the standings',
-    body: 'Season and weekend leaderboards, Top 5 and H2H.',
+    body: 'Season and weekend leaderboards.',
     tab: 'LeaderboardTab',
   },
 ];

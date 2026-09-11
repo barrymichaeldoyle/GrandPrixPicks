@@ -3,6 +3,8 @@ import type { SessionType } from '@grandprixpicks/shared/sessions';
 
 import type { ConvexId } from '../../integrations/convex/api';
 import { Pressable, Text, View } from '../../tw';
+import { getTeamColor } from '../../lib/teamColors';
+import { colors } from '../../theme/tokens';
 import { Avatar } from '../ui/Avatar';
 import { Numeral } from '../ui/Numeral';
 import type { FeedEvent } from './FeedEventCard';
@@ -86,12 +88,23 @@ export function SessionGroupCard({
       </Text>
       <View className="flex-row flex-wrap gap-2.5 px-0.5">
         {session.top5.map((driver, i) => (
-          <Text className="text-foreground text-xs font-bold" key={driver.code}>
-            <Text className="text-muted text-[10px] font-extrabold">
-              {i + 1}
-            </Text>{' '}
-            {driver.code}
-          </Text>
+          <View
+            key={driver.code}
+            className="gap-1 bg-surface px-3 py-2"
+            style={{
+              borderBottomWidth: 3,
+              borderBottomColor: driver.team
+                ? getTeamColor(driver.team)
+                : colors.accent,
+            }}
+          >
+            <Text className="text-foreground text-xs font-bold">
+              <Text className="text-muted text-[10px] font-extrabold">
+                {i + 1}
+              </Text>{' '}
+              {driver.code}
+            </Text>
+          </View>
         ))}
       </View>
       <View className="overflow-hidden rounded-lg border border-border">

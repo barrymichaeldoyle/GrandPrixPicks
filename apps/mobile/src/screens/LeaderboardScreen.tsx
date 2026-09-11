@@ -5,8 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useConvex } from 'convex/react';
 import { useQuery } from '../integrations/convex/query';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useState } from 'react';
-import { RefreshControl } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ScrollView as NativeScrollView, RefreshControl } from 'react-native';
 
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -23,7 +23,7 @@ import { useNow } from '../lib/useNow';
 import type { LeaderboardStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors } from '../theme/tokens';
-import { FlatList, Pressable, ScrollView, Text, View } from '../tw';
+import { FlatList, Pressable, Text, View } from '../tw';
 
 type TimeScope = 'weekend' | 'season';
 type GameMode = 'combined' | 'top5' | 'h2h';
@@ -74,11 +74,6 @@ const TIME_OPTIONS = [
   { value: 'weekend', label: 'Race Weekend' },
   { value: 'season', label: 'Season' },
 ] as const;
-const MODE_OPTIONS = [
-  { value: 'combined', label: 'Combined' },
-  { value: 'top5', label: 'Top 5' },
-  { value: 'h2h', label: 'H2H' },
-] as const;
 const SCOPE_OPTIONS = [
   { value: 'global', label: 'Global' },
   { value: 'following', label: 'Following' },
@@ -124,7 +119,9 @@ export function LeaderboardScreen() {
   const route =
     useRoute<RouteProp<LeaderboardStackParamList, 'LeaderboardMain'>>();
   const [timeChoice, setTimeChoice] = useState<TimeScope | null>(null);
-  const [mode, setMode] = useState<GameMode>('combined');
+  const mode: GameMode = 'combined';
+  const roundScroll = useRef<NativeScrollView>(null);
+  const roundPositions = useRef<Record<string, number>>({});
   const [scope, setScope] = useState<Scope>('global');
   const [chosenRaceId, setChosenRaceId] = useState<string | null>(null);
   useEffect(() => {
@@ -149,6 +146,17 @@ export function LeaderboardScreen() {
   const selectedRace =
     allRaces?.find((r) => r._id === chosenRaceId) ?? defaultRace ?? null;
   const selectedRaceId = selectedRace?._id;
+  useEffect(() => {
+    const x = selectedRaceId
+      ? roundPositions.current[selectedRaceId]
+      : undefined;
+    if (x !== undefined) {
+      roundScroll.current?.scrollTo({
+        x: Math.max(0, x - 120),
+        animated: false,
+      });
+    }
+  }, [selectedRaceId]);
 
   // Probes the default race's combined board. Bare visits default to the
   // weekend tab only when that board has something to show — mid-weekend
@@ -173,25 +181,10 @@ export function LeaderboardScreen() {
     api.leaderboards.getCombinedSeasonLeaderboard,
     isActive('season', 'combined', 'global') ? { limit: PAGE_SIZE } : 'skip',
   ) as SeasonResult | undefined;
-  const seasonTop5Global = useQuery(
-    api.leaderboards.getSeasonLeaderboard,
-    isActive('season', 'top5', 'global') ? { limit: PAGE_SIZE } : 'skip',
-  ) as SeasonResult | undefined;
-  const seasonH2HGlobal = useQuery(
-    api.h2h.getH2HSeasonLeaderboard,
-    isActive('season', 'h2h', 'global') ? { limit: PAGE_SIZE } : 'skip',
-  ) as SeasonResult | undefined;
+
   const seasonCombinedFollowing = useQuery(
     api.leaderboards.getFriendsCombinedLeaderboard,
     isActive('season', 'combined', 'following') ? { limit: PAGE_SIZE } : 'skip',
-  ) as SeasonResult | undefined;
-  const seasonTop5Following = useQuery(
-    api.leaderboards.getFriendsLeaderboard,
-    isActive('season', 'top5', 'following') ? { limit: PAGE_SIZE } : 'skip',
-  ) as SeasonResult | undefined;
-  const seasonH2HFollowing = useQuery(
-    api.leaderboards.getFriendsH2HLeaderboard,
-    isActive('season', 'h2h', 'following') ? { limit: PAGE_SIZE } : 'skip',
   ) as SeasonResult | undefined;
 
   // Weekend boards — `friendsOnly` narrows to followed players
@@ -205,18 +198,6 @@ export function LeaderboardScreen() {
   const weekendCombined = useQuery(
     api.leaderboards.getCombinedRaceLeaderboard,
     timeScope === 'weekend' && mode === 'combined' && weekendArgs
-      ? weekendArgs
-      : 'skip',
-  ) as WeekendResult | undefined;
-  const weekendTop5 = useQuery(
-    api.leaderboards.getRaceLeaderboard,
-    timeScope === 'weekend' && mode === 'top5' && weekendArgs
-      ? weekendArgs
-      : 'skip',
-  ) as WeekendResult | undefined;
-  const weekendH2H = useQuery(
-    api.leaderboards.getH2HRaceLeaderboard,
-    timeScope === 'weekend' && mode === 'h2h' && weekendArgs
       ? weekendArgs
       : 'skip',
   ) as WeekendResult | undefined;
@@ -238,36 +219,11 @@ export function LeaderboardScreen() {
 
   const seasonQueryForView =
     scope === 'global'
-      ? mode === 'combined'
-        ? api.leaderboards.getCombinedSeasonLeaderboard
-        : mode === 'top5'
-          ? api.leaderboards.getSeasonLeaderboard
-          : api.h2h.getH2HSeasonLeaderboard
-      : mode === 'combined'
-        ? api.leaderboards.getFriendsCombinedLeaderboard
-        : mode === 'top5'
-          ? api.leaderboards.getFriendsLeaderboard
-          : api.leaderboards.getFriendsH2HLeaderboard;
-
-  const activeSeason: SeasonResult | undefined =
-    scope === 'global'
-      ? mode === 'combined'
-        ? seasonCombinedGlobal
-        : mode === 'top5'
-          ? seasonTop5Global
-          : seasonH2HGlobal
-      : mode === 'combined'
-        ? seasonCombinedFollowing
-        : mode === 'top5'
-          ? seasonTop5Following
-          : seasonH2HFollowing;
-
-  const activeWeekend: WeekendResult | undefined =
-    mode === 'combined'
-      ? weekendCombined
-      : mode === 'top5'
-        ? weekendTop5
-        : weekendH2H;
+      ? api.leaderboards.getCombinedSeasonLeaderboard
+      : api.leaderboards.getFriendsCombinedLeaderboard;
+  const activeSeason =
+    scope === 'global' ? seasonCombinedGlobal : seasonCombinedFollowing;
+  const activeWeekend = weekendCombined;
 
   async function loadMoreSeason() {
     if (
@@ -356,14 +312,12 @@ export function LeaderboardScreen() {
     viewerEntry && !entries.some((e) => e.isViewer),
   );
 
-  const modeLabel =
-    mode === 'combined' ? 'Combined' : mode === 'top5' ? 'Top 5' : 'H2H';
   const totalCount =
     timeScope === 'season' ? (activeSeason?.totalCount ?? 0) : 0;
   const subtitle =
     timeScope === 'weekend' && selectedRace
-      ? `${selectedRace.name} · ${modeLabel}`
-      : `2026 Season · ${modeLabel}${
+      ? selectedRace.name
+      : `2026 Season${
           totalCount > 0
             ? ` · ${totalCount.toLocaleString()} ${totalCount === 1 ? 'player' : 'players'}`
             : ''
@@ -385,8 +339,18 @@ export function LeaderboardScreen() {
         value={timeScope}
       />
       {timeScope === 'weekend' && selectableRaces.length > 1 ? (
-        <ScrollView
-          contentContainerClassName="gap-2"
+        <NativeScrollView
+          contentContainerStyle={{ gap: 8 }}
+          ref={roundScroll}
+          onContentSizeChange={() =>
+            roundScroll.current?.scrollTo({
+              x: Math.max(
+                0,
+                (roundPositions.current[selectedRaceId ?? ''] ?? 0) - 120,
+              ),
+              animated: false,
+            })
+          }
           horizontal
           showsHorizontalScrollIndicator={false}
         >
@@ -395,6 +359,16 @@ export function LeaderboardScreen() {
             return (
               <Pressable
                 accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
+                onLayout={({ nativeEvent }) => {
+                  roundPositions.current[race._id] = nativeEvent.layout.x;
+                  if (isSelected) {
+                    roundScroll.current?.scrollTo({
+                      x: Math.max(0, nativeEvent.layout.x - 120),
+                      animated: false,
+                    });
+                  }
+                }}
                 className={`flex-row items-center gap-1.5 rounded-full border px-2.5 py-1.5 ${
                   isSelected
                     ? 'border-button-accent bg-button-accent'
@@ -417,7 +391,7 @@ export function LeaderboardScreen() {
               </Pressable>
             );
           })}
-        </ScrollView>
+        </NativeScrollView>
       ) : null}
       <SegmentedTabs
         onChange={(v) => {
@@ -427,20 +401,11 @@ export function LeaderboardScreen() {
         options={SCOPE_OPTIONS}
         value={scope}
       />
-      <SegmentedTabs
-        onChange={(v) => {
-          changeFilter('mode', v);
-          setMode(v);
-        }}
-        options={MODE_OPTIONS}
-        value={mode}
-      />
     </View>
   );
 
   return (
     <View className="flex-1 bg-page">
-      <Header subtitle={subtitle} />
       <FlatList
         contentContainerClassName="px-4 pb-8"
         data={rest}
@@ -469,6 +434,14 @@ export function LeaderboardScreen() {
         }
         ListHeaderComponent={
           <View>
+            <View className="flex-row items-center gap-2 py-3">
+              {timeScope === 'weekend' && selectedRace ? (
+                <FlagImage raceSlug={selectedRace.slug} />
+              ) : null}
+              <View className="flex-1">
+                <PageHeader title="Leaderboard" subtitle={subtitle} />
+              </View>
+            </View>
             {filters}
             {podium.length > 0 ? (
               <View className="mb-1">
@@ -480,11 +453,6 @@ export function LeaderboardScreen() {
                     onPress={() => handleRowPress(entry.username)}
                   />
                 ))}
-                {rest.length > 0 ? (
-                  <Text className="text-muted mt-2.5 mb-1.5 text-[10px] font-extrabold uppercase">
-                    The chasing pack
-                  </Text>
-                ) : null}
                 {viewerOutsideTop && viewerEntry ? (
                   <View className="mt-2.5 rounded-lg border border-accent px-2">
                     <Text className="mt-2 text-[10px] font-extrabold text-accent uppercase">
@@ -562,7 +530,7 @@ function BoardEmptyState({
     if (weekend?.status === 'locked') {
       return (
         <EmptyState
-          body="Weekend standings unlock once you've submitted picks for this race. Head to the Picks tab to get yours in."
+          body="Weekend standings unlock once you've submitted picks for this race. Make your picks on Home."
           icon="lock-closed-outline"
           title="Make picks to see this board"
         />
@@ -638,7 +606,7 @@ function PodiumRow({
   return (
     <Pressable
       accessibilityRole="button"
-      className={`mb-2 flex-row items-center gap-2.5 overflow-hidden rounded-xl border border-border px-3 py-3 ${
+      className={`mb-2 flex-row items-center gap-2.5 overflow-hidden border border-border px-3 py-3 ${
         entry.isViewer ? 'bg-accent/10' : ''
       }`}
       disabled={!onPress}
@@ -650,7 +618,11 @@ function PodiumRow({
           for teams elsewhere. */}
       <View
         className="absolute inset-y-0 left-0 w-[3px]"
-        style={{ backgroundColor: placeColor }}
+        style={{
+          backgroundColor: placeColor,
+          transform: [{ skewX: '-15deg' }],
+          left: 5,
+        }}
       />
       <View className="w-[74px] flex-row items-center gap-2">
         <View

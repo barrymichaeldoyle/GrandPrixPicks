@@ -13,8 +13,12 @@ import { buildScoreShareText } from '@grandprixpicks/shared/share';
 import { useMutation } from 'convex/react';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
-import { Share } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { Modal, Share } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  GestureHandlerRootView,
+  ScrollView,
+} from 'react-native-gesture-handler';
 
 import { RaceRecapCard } from '../components/home/RaceRecapCard';
 import { SignedOutPicksNotice } from '../components/picks/SignedOutPicksNotice';
@@ -42,7 +46,7 @@ import { useIsSignedIn } from '../lib/useIsSignedIn';
 import { useNow } from '../lib/useNow';
 import { useSignInSheet } from '../lib/useSignInSheet';
 import { useMobileConfig } from '../providers/mobile-config';
-import { useToast } from '../providers/ToastProvider';
+import { ModalToast, useToast } from '../providers/ToastProvider';
 import { colors } from '../theme/tokens';
 import { useTypography } from '../theme/typography';
 import { Pressable, Text, View } from '../tw';
@@ -85,7 +89,11 @@ function getSessionLockAt(
   }[session];
 }
 
-export function PicksConnectedScreen() {
+export function PicksConnectedScreen({
+  embedded = false,
+}: {
+  embedded?: boolean;
+}) {
   const { convexEnabled } = useMobileConfig();
   const weekend = useQuery(
     api.races.getCurrentWeekend,
@@ -106,6 +114,7 @@ export function PicksConnectedScreen() {
 
   return (
     <PredictForRace
+      embedded={embedded}
       capabilities={weekend.sessions as SessionCapability[]}
       race={weekend.race}
     />
@@ -113,9 +122,11 @@ export function PicksConnectedScreen() {
 }
 
 function PredictForRace({
+  embedded,
   race,
   capabilities,
 }: {
+  embedded: boolean;
   race: RaceDoc;
   capabilities: SessionCapability[];
 }) {
@@ -151,7 +162,7 @@ function PredictForRace({
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
   const isSignedIn = useIsSignedIn();
   const openSignIn = useSignInSheet();
-  const { showToast } = useToast();
+  const { showToast, celebratePicks } = useToast();
   const { formatDateTime } = useUserDateFormat();
 
   /**
@@ -262,26 +273,29 @@ function PredictForRace({
     sessionLockState.find((s) => s.session === selectedSession)?.isLocked,
   );
 
+  const Container = embedded ? View : ScrollView;
   return (
-    <View className="flex-1 bg-page">
-      <ScrollView
+    <View className={embedded ? 'mb-6 bg-page' : 'flex-1 bg-page'}>
+      <Container
         contentContainerStyle={{
           gap: 18,
           paddingBottom: 40,
-          paddingHorizontal: 16,
+          paddingHorizontal: embedded ? 0 : 16,
           paddingTop: 12,
         }}
         scrollEnabled={listScrollEnabled}
         showsVerticalScrollIndicator={false}
-        style={{ flex: 1 }}
+        style={embedded ? { gap: 18 } : { flex: 1 }}
       >
         {/* Above the picker, for the eight hours after a race starts. This
             screen advances to the next round the moment results publish, which
             is the moment a player most wants the one that just finished. It
             renders nothing outside that window. */}
-        <RaceRecapCard />
+        {embedded ? null : <RaceRecapCard />}
 
-        <PageHeader race={race} selectedSession={selectedSession} now={now} />
+        {embedded ? null : (
+          <PageHeader race={race} selectedSession={selectedSession} now={now} />
+        )}
 
         {(practiceResults?.length ?? 0) > 0 ? (
           <Pressable
@@ -386,6 +400,7 @@ function PredictForRace({
                   });
                   throw err;
                 }
+                celebratePicks();
                 captureAnalyticsEvent(analyticsEvents.predictionSaved, {
                   prediction_type: 'top5',
                   scope,
@@ -441,6 +456,7 @@ function PredictForRace({
                       );
                       throw err;
                     }
+                    celebratePicks();
                     captureAnalyticsEvent(analyticsEvents.predictionSaved, {
                       prediction_type: 'h2h',
                       scope,
@@ -461,7 +477,7 @@ function PredictForRace({
             )}
           </>
         )}
-      </ScrollView>
+      </Container>
       <PracticeResultsSheet
         competitive={actualTop5BySession ?? {}}
         hasSprint={Boolean(race.hasSprint)}
@@ -786,9 +802,11 @@ function SectionHeader({
 }
 
 function EditToggle({
+  label = 'Edit',
   editing,
   onToggle,
 }: {
+  label?: string;
   editing: boolean;
   onToggle: () => void;
 }) {
@@ -805,7 +823,7 @@ function EditToggle({
         size={12}
       />
       <Text className="text-xs font-bold text-accent">
-        {editing ? 'Cancel' : 'Edit'}
+        {editing ? 'Cancel' : label}
       </Text>
     </Pressable>
   );
@@ -839,15 +857,16 @@ function Top5Section({
     sessionType: SessionType | undefined,
   ) => Promise<void>;
 }) {
-  const [editing, setEditing] = useState(cascadeMode);
+  const [dragging, setDragging] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     // Session/cascade identity defines a fresh local editing state.
     // oxlint-disable-next-line react/set-state-in-effect
-    setEditing(cascadeMode);
+    setEditing(false);
   }, [cascadeMode, selectedSession]);
 
-  const showEditToggle = !cascadeMode && !sessionIsLocked;
+  const showEditToggle = !sessionIsLocked;
 
   return (
     <View className="gap-2">
@@ -856,32 +875,41 @@ function Top5Section({
         action={
           showEditToggle ? (
             <EditToggle
+              label={cascadeMode ? 'Make picks' : 'Edit'}
               editing={editing}
               onToggle={() => setEditing((v) => !v)}
             />
           ) : null
         }
       />
+      <Top5Readonly
+        drivers={drivers}
+        picks={existingPicks}
+        sessionLocked={sessionIsLocked}
+      />
       {editing ? (
-        <Top5Editor
-          race={race}
-          drivers={drivers}
-          selectedSession={selectedSession}
-          selectedLockAt={selectedLockAt}
-          cascadeMode={cascadeMode}
-          existingPicks={existingPicks}
-          sessionIsLocked={sessionIsLocked}
-          onCancel={() => setEditing(false)}
-          onDraggingChange={onDraggingChange}
-          onSubmit={onSubmit}
-        />
-      ) : (
-        <Top5Readonly
-          drivers={drivers}
-          picks={existingPicks}
-          sessionLocked={sessionIsLocked}
-        />
-      )}
+        <PickEditorModal
+          scrollEnabled={!dragging}
+          title="Top 5"
+          onClose={() => setEditing(false)}
+        >
+          <Top5Editor
+            race={race}
+            drivers={drivers}
+            selectedSession={selectedSession}
+            selectedLockAt={selectedLockAt}
+            cascadeMode={cascadeMode}
+            existingPicks={existingPicks}
+            sessionIsLocked={sessionIsLocked}
+            onCancel={() => setEditing(false)}
+            onDraggingChange={(value) => {
+              setDragging(value);
+              onDraggingChange?.(value);
+            }}
+            onSubmit={onSubmit}
+          />
+        </PickEditorModal>
+      ) : null}
     </View>
   );
 }
@@ -913,6 +941,7 @@ function Top5Editor({
   ) => Promise<void>;
 }) {
   const { showToast } = useToast();
+  const isSignedIn = useIsSignedIn();
   const { formatDateTime } = useUserDateFormat();
   const draftSession = cascadeMode ? CASCADE_DRAFT_SESSION : selectedSession;
   const [picks, setPicks] = useState<string[]>([...existingPicks]);
@@ -984,6 +1013,12 @@ function Top5Editor({
     }
     setIsSubmitting(true);
     try {
+      if (!isSignedIn) {
+        await patchConnectedDraft(race.slug, draftSession, { top5: picks });
+        await onSubmit(picks, cascadeMode ? undefined : selectedSession);
+        onCancel();
+        return;
+      }
       await onSubmit(picks, cascadeMode ? undefined : selectedSession);
       // Only clear the Top 5 portion of the draft — preserve any in-progress H2H.
       await patchConnectedDraft(race.slug, draftSession, { top5: [] });
@@ -996,9 +1031,7 @@ function Top5Editor({
           : `Saved ${SESSION_LABELS[selectedSession]} picks`,
         'success',
       );
-      if (!cascadeMode) {
-        onCancel();
-      }
+      onCancel();
     } catch (error) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast(
@@ -1208,15 +1241,16 @@ function H2HSection({
     sessionType: SessionType | undefined,
   ) => Promise<void>;
 }) {
-  const [editing, setEditing] = useState(cascadeMode);
+  const [editingMatchup, setEditingMatchup] = useState<string | undefined>();
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     // Session/cascade identity defines a fresh local editing state.
     // oxlint-disable-next-line react/set-state-in-effect
-    setEditing(cascadeMode);
+    setEditing(false);
   }, [cascadeMode, selectedSession]);
 
-  const showEditToggle = !cascadeMode && !sessionIsLocked;
+  const showEditToggle = !sessionIsLocked;
 
   return (
     <View className="gap-2">
@@ -1225,31 +1259,49 @@ function H2HSection({
         action={
           showEditToggle ? (
             <EditToggle
+              label={cascadeMode ? 'Make picks' : 'Edit'}
               editing={editing}
-              onToggle={() => setEditing((v) => !v)}
+              onToggle={() => {
+                setEditingMatchup(undefined);
+                setEditing((v) => !v);
+              }}
             />
           ) : null
         }
       />
+      <H2HReadonly
+        matchups={matchups}
+        selections={existingPicks}
+        onEdit={
+          !cascadeMode && !sessionIsLocked
+            ? (id) => {
+                setEditingMatchup(id);
+                setEditing(true);
+              }
+            : undefined
+        }
+      />
       {editing ? (
-        <H2HEditor
-          cascadeMode={cascadeMode}
-          existingPicks={existingPicks}
-          matchups={matchups}
-          onCancel={() => setEditing(false)}
-          onSubmit={onSubmit}
-          race={race}
-          selectedSession={selectedSession}
-          sessionIsLocked={sessionIsLocked}
-        />
-      ) : (
-        <H2HReadonly matchups={matchups} selections={existingPicks} />
-      )}
+        <PickEditorModal title="Head to Head" onClose={() => setEditing(false)}>
+          <H2HEditor
+            visibleMatchupId={editingMatchup}
+            cascadeMode={cascadeMode}
+            existingPicks={existingPicks}
+            matchups={matchups}
+            onCancel={() => setEditing(false)}
+            onSubmit={onSubmit}
+            race={race}
+            selectedSession={selectedSession}
+            sessionIsLocked={sessionIsLocked}
+          />
+        </PickEditorModal>
+      ) : null}
     </View>
   );
 }
 
 function H2HEditor({
+  visibleMatchupId,
   race,
   matchups,
   selectedSession,
@@ -1259,6 +1311,7 @@ function H2HEditor({
   onCancel,
   onSubmit,
 }: {
+  visibleMatchupId?: string;
   race: RaceDoc;
   matchups: ReadonlyArray<Matchup>;
   selectedSession: SessionType;
@@ -1355,6 +1408,14 @@ function H2HEditor({
     }
     setIsSubmitting(true);
     try {
+      if (!isSignedIn) {
+        await patchConnectedDraft(race.slug, draftSession, {
+          h2hByMatchup: selections,
+        });
+        await onSubmit(selections, cascadeMode ? undefined : selectedSession);
+        onCancel();
+        return;
+      }
       await onSubmit(selections, cascadeMode ? undefined : selectedSession);
       // Only clear the H2H portion of the draft — preserve any in-progress Top 5.
       await patchConnectedDraft(race.slug, draftSession, { h2hByMatchup: {} });
@@ -1367,9 +1428,7 @@ function H2HEditor({
           : `Saved ${SESSION_LABELS[selectedSession]} H2H`,
         'success',
       );
-      if (!cascadeMode) {
-        onCancel();
-      }
+      onCancel();
     } catch (error) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast(
@@ -1408,7 +1467,11 @@ function H2HEditor({
       ) : null}
 
       <H2HMatchupGrid
-        matchups={matchups as Array<Matchup>}
+        matchups={
+          matchups.filter(
+            (m) => !visibleMatchupId || m._id === visibleMatchupId,
+          ) as Array<Matchup>
+        }
         mode={sessionIsLocked ? 'readonly' : 'interactive'}
         onSelect={(matchupId, driverId) => {
           markInteraction();
@@ -1453,15 +1516,16 @@ function H2HEditor({
 function H2HReadonly({
   matchups,
   selections,
+  onEdit,
 }: {
   matchups: ReadonlyArray<Matchup>;
   selections: Record<string, string>;
+  onEdit?: (id: string) => void;
 }) {
   if (matchups.length === 0) {
     return null;
   }
-  const hasAny = Object.keys(selections).length > 0;
-  if (!hasAny) {
+  if (Object.keys(selections).length === 0) {
     return (
       <Text className="text-muted py-2 text-xs">
         No H2H picks saved for this session.
@@ -1469,11 +1533,34 @@ function H2HReadonly({
     );
   }
   return (
-    <H2HMatchupGrid
-      matchups={[...matchups]}
-      mode="readonly"
-      selections={selections}
-    />
+    <View className="flex-row flex-wrap gap-2">
+      {matchups.map((matchup) => {
+        const winner = [matchup.driver1, matchup.driver2].find(
+          (driver) => driver._id === selections[matchup._id],
+        );
+        return (
+          <Pressable
+            key={matchup._id}
+            accessibilityRole={onEdit ? 'button' : undefined}
+            accessibilityLabel={`${displayTeamName(matchup.team)}: ${winner?.code ?? 'No pick'}${onEdit ? ', edit pick' : ''}`}
+            disabled={!onEdit}
+            onPress={() => onEdit?.(matchup._id)}
+            className="min-h-12 flex-row items-center justify-between gap-2 bg-surface px-3 py-2"
+            style={{
+              flexBasis: '47%',
+              flexGrow: 1,
+              borderBottomWidth: 2,
+              borderBottomColor: getTeamColor(matchup.team),
+            }}
+          >
+            <Text className="text-muted flex-1 text-xs" numberOfLines={1}>
+              {displayTeamName(matchup.team)}
+            </Text>
+            <Numeral variant="small">{winner?.code ?? '—'}</Numeral>
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
@@ -1502,5 +1589,50 @@ function NotAvailableState() {
         title="Predictions unavailable"
       />
     </View>
+  );
+}
+
+function PickEditorModal({
+  title,
+  onClose,
+  children,
+  scrollEnabled = true,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+  scrollEnabled?: boolean;
+}) {
+  return (
+    <Modal
+      visible
+      animationType="slide"
+      presentationStyle="fullScreen"
+      onRequestClose={onClose}
+    >
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.page }}>
+          <View className="flex-row items-center justify-between px-4 py-2">
+            <Text className="text-foreground text-xl font-semibold">
+              {title}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={onClose}
+              className="min-h-11 justify-center px-3"
+            >
+              <Text className="text-accent">Close</Text>
+            </Pressable>
+          </View>
+          <ScrollView
+            scrollEnabled={scrollEnabled}
+            contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+          >
+            {children}
+          </ScrollView>
+          <ModalToast />
+        </SafeAreaView>
+      </GestureHandlerRootView>
+    </Modal>
   );
 }

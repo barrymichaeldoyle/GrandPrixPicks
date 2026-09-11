@@ -6,13 +6,14 @@ import { analyticsEvents } from '@grandprixpicks/shared/analytics';
 import { useRef } from 'react';
 
 import { HeaderBackground } from '../components/ui/HeaderBackground';
-import { NotificationBell } from '../components/ui/NotificationBell';
-import { BrandMark } from '../components/ui/BrandMark';
+import { useQuery } from '../integrations/convex/query';
+import { api } from '../integrations/convex/api';
+import { useMobileConfig } from '../providers/mobile-config';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FeedEventDetailScreen } from '../screens/FeedEventDetailScreen';
 import { LeaderboardScreen } from '../screens/LeaderboardScreen';
 import { MoreScreen } from '../screens/MoreScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
-import { PicksConnectedScreen } from '../screens/PicksConnectedScreen';
 import { PublicProfileScreen } from '../screens/PublicProfileScreen';
 import { RaceDetailScreen } from '../screens/RaceDetailScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
@@ -22,8 +23,6 @@ import { flushPendingPushRoute } from '../lib/pushRouting';
 import { captureAnalyticsEvent } from '../lib/analytics';
 import { useIsSignedIn } from '../lib/useIsSignedIn';
 import { colors } from '../theme/tokens';
-import { useTypography } from '../theme/typography';
-import { Text, View } from '../tw';
 import { PendingPickSubmitter } from '../components/PendingPickSubmitter';
 import { linking } from './linking';
 import { navigationRef } from './navigationRef';
@@ -31,14 +30,12 @@ import type {
   HomeStackParamList,
   LeaderboardStackParamList,
   MoreStackParamList,
-  PicksStackParamList,
   RootStackParamList,
   RootTabParamList,
 } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const RootStack = createNativeStackNavigator<RootStackParamList>();
-const PicksStack = createNativeStackNavigator<PicksStackParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const LeaderboardStack =
   createNativeStackNavigator<LeaderboardStackParamList>();
@@ -58,80 +55,18 @@ const TAB_ICONS: Record<
   React.ComponentProps<typeof Ionicons>['name']
 > = {
   HomeTab: 'home',
-  PicksTab: 'flag',
+  NotificationsTab: 'notifications',
   LeaderboardTab: 'trophy',
   MoreTab: 'ellipsis-horizontal',
 };
 
-function BrandHeaderTitle() {
-  const { titleFontFamily } = useTypography();
-  return (
-    <View className="flex-row items-center gap-2">
-      {/* The mark, not a generic flag glyph in a tinted chip. That chip was
-          the old identity's motif and survived the reskin by being recoloured
-          rather than replaced. */}
-      <BrandMark size={24} />
-      <Text
-        className="text-foreground text-[17px] font-bold"
-        style={titleFontFamily ? { fontFamily: titleFontFamily } : undefined}
-      >
-        Grand Prix Picks
-      </Text>
-    </View>
-  );
-}
-
-function PicksStackNavigator() {
-  const isSignedIn = useIsSignedIn();
-
-  return (
-    <PicksStack.Navigator screenOptions={SCREEN_OPTIONS}>
-      <PicksStack.Screen
-        component={PicksConnectedScreen}
-        name="PicksMain"
-        options={({ navigation }) => ({
-          headerTitle: () => <BrandHeaderTitle />,
-          headerRight: isSignedIn
-            ? () => (
-                <NotificationBell
-                  onPress={() => navigation.navigate('Notifications')}
-                />
-              )
-            : undefined,
-        })}
-      />
-      <PicksStack.Screen
-        component={RaceDetailScreen}
-        name="RaceDetail"
-        options={{ title: 'Race Details' }}
-      />
-      <PicksStack.Screen
-        component={NotificationsScreen}
-        name="Notifications"
-        options={{ title: 'Notifications' }}
-      />
-    </PicksStack.Navigator>
-  );
-}
-
 function HomeStackNavigator() {
-  const isSignedIn = useIsSignedIn();
-
   return (
     <HomeStack.Navigator screenOptions={SCREEN_OPTIONS}>
       <HomeStack.Screen
-        component={FeedScreen}
+        component={HomeTabScreen}
         name="HomeMain"
-        options={({ navigation }) => ({
-          headerTitle: () => <BrandHeaderTitle />,
-          headerRight: isSignedIn
-            ? () => (
-                <NotificationBell
-                  onPress={() => navigation.navigate('Notifications')}
-                />
-              )
-            : undefined,
-        })}
+        options={{ headerShown: false }}
       />
       <HomeStack.Screen
         component={FeedEventDetailScreen}
@@ -161,9 +96,9 @@ function LeaderboardStackNavigator() {
   return (
     <LeaderboardStack.Navigator screenOptions={SCREEN_OPTIONS}>
       <LeaderboardStack.Screen
-        component={LeaderboardScreen}
+        component={LeaderboardTabScreen}
         name="LeaderboardMain"
-        options={{ headerTitle: () => <BrandHeaderTitle /> }}
+        options={{ headerShown: false }}
       />
       <LeaderboardStack.Screen
         component={PublicProfileScreen}
@@ -178,9 +113,9 @@ function MoreStackNavigator() {
   return (
     <MoreStack.Navigator screenOptions={SCREEN_OPTIONS}>
       <MoreStack.Screen
-        component={MoreScreen}
+        component={MoreTabScreen}
         name="MoreMain"
-        options={{ headerTitle: () => <BrandHeaderTitle /> }}
+        options={{ headerShown: false }}
       />
       <MoreStack.Screen
         component={NotificationsScreen}
@@ -197,6 +132,12 @@ function MoreStackNavigator() {
 }
 
 function TabsNavigator() {
+  const { convexEnabled } = useMobileConfig();
+  const isSignedIn = useIsSignedIn();
+  const unread = useQuery(
+    api.inAppNotifications.getMyUnreadCount,
+    convexEnabled && isSignedIn ? {} : 'skip',
+  );
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -233,9 +174,16 @@ function TabsNavigator() {
         options={{ title: 'Home' }}
       />
       <Tab.Screen
-        component={PicksStackNavigator}
-        name="PicksTab"
-        options={{ title: 'Picks' }}
+        component={NotificationsTabScreen}
+        name="NotificationsTab"
+        options={{
+          title: 'Notifications',
+          tabBarBadge: unread?.count ? unread.count : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: colors.accent,
+            color: colors.page,
+          },
+        }}
       />
       <Tab.Screen
         component={LeaderboardStackNavigator}
@@ -294,5 +242,44 @@ export function AppNavigator() {
         )}
       </RootStack.Navigator>
     </NavigationContainer>
+  );
+}
+
+function TabPage({ children }: { children: React.ReactNode }) {
+  return (
+    <SafeAreaView
+      edges={['top']}
+      style={{ flex: 1, backgroundColor: colors.page }}
+    >
+      {children}
+    </SafeAreaView>
+  );
+}
+function HomeTabScreen() {
+  return (
+    <TabPage>
+      <FeedScreen />
+    </TabPage>
+  );
+}
+function LeaderboardTabScreen() {
+  return (
+    <TabPage>
+      <LeaderboardScreen />
+    </TabPage>
+  );
+}
+function MoreTabScreen() {
+  return (
+    <TabPage>
+      <MoreScreen />
+    </TabPage>
+  );
+}
+function NotificationsTabScreen() {
+  return (
+    <TabPage>
+      <NotificationsScreen />
+    </TabPage>
   );
 }

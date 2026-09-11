@@ -31,7 +31,7 @@ function navigateTo(url: string): boolean {
   const raceMatch = /^\/races\/([^/]+)$/.exec(path);
   if (raceMatch) {
     navigationRef.navigate('Tabs', {
-      screen: 'PicksTab',
+      screen: 'HomeTab',
       params: {
         screen: 'RaceDetail',
         params: { raceSlug: raceMatch[1] },
@@ -78,8 +78,8 @@ function navigateTo(url: string): boolean {
 
   if (path === '/races' || path === '/predict') {
     navigationRef.navigate('Tabs', {
-      screen: 'PicksTab',
-      params: { screen: 'PicksMain' },
+      screen: 'HomeTab',
+      params: { screen: 'HomeMain' },
     });
     return true;
   }

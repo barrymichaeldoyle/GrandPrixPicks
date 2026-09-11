@@ -17,18 +17,12 @@ import { useUserDateFormat } from '../lib/dates';
 import { getLockStatusViewModel } from '../lib/lockTime';
 import { useNow } from '../lib/useNow';
 import { useRaceWeekends } from '../lib/useRaceWeekends';
-import type {
-  HomeStackParamList,
-  PicksStackParamList,
-  RootTabParamList,
-} from '../navigation/types';
+import type { HomeStackParamList, RootTabParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors } from '../theme/tokens';
 import { Pressable, ScrollView, Text, View } from '../tw';
 
-type PicksProps = NativeStackScreenProps<PicksStackParamList, 'RaceDetail'>;
-type FeedProps = NativeStackScreenProps<HomeStackParamList, 'RaceDetail'>;
-type Props = PicksProps | FeedProps;
+type Props = NativeStackScreenProps<HomeStackParamList, 'RaceDetail'>;
 
 const SESSION_ORDER: SessionType[] = [
   'sprint_quali',
@@ -228,7 +222,7 @@ export function RaceDetailScreen({ route }: Props) {
         <Pressable
           accessibilityRole="button"
           className="flex-row items-center justify-center gap-2 rounded-lg bg-button-accent py-3.5 active:bg-button-accent-hover"
-          onPress={() => rootNav.navigate('PicksTab')}
+          onPress={() => rootNav.navigate('HomeTab')}
         >
           <Ionicons color={colors.text} name="trophy-outline" size={16} />
           <Text className="text-[15px] font-bold text-text-on-accent">

@@ -1,5 +1,3 @@
-import type { NavigationProp } from '@react-navigation/native';
-import { useNavigation } from '@react-navigation/native';
 import { useWindowDimensions } from 'react-native';
 
 import { getCountryCodeForRaceSlug } from '../../lib/raceFlags';
@@ -8,13 +6,10 @@ import { useNow } from '../../lib/useNow';
 import { useTypography } from '../../theme/typography';
 import { Image, Text, View } from '../../tw';
 import type { RaceWeekend } from '../../types';
-import type {
-  HomeStackParamList,
-  RootTabParamList,
-} from '../../navigation/types';
+import { HomeWeather } from './HomeWeather';
+import { SlantedStripe } from '../ui/SlantedStripe';
 import { BigCountdown } from '../ui/BigCountdown';
 import { Numeral } from '../ui/Numeral';
-import { PrimaryButton } from '../ui/PrimaryButton';
 
 const NARROW_WIDTH = 360;
 
@@ -77,7 +72,6 @@ function getFeatured(
 export function HomeHero() {
   const { titleFontFamily } = useTypography();
   const { isLoading, races } = useRaceWeekends();
-  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const { width } = useWindowDimensions();
   const now = useNow(30_000);
   const isNarrow = width < NARROW_WIDTH;
@@ -92,8 +86,9 @@ export function HomeHero() {
 
   return (
     <View
-      className={`items-center ${isNarrow ? 'mb-5 gap-3' : 'mb-6 gap-3.5'}`}
+      className={`items-center overflow-hidden bg-surface px-6 py-5 ${isNarrow ? 'mb-5 gap-3' : 'mb-6 gap-3.5'}`}
     >
+      <SlantedStripe />
       <View className="w-full flex-col items-center justify-center gap-2.5">
         {countryCode ? (
           <View className="h-[30px] w-11 overflow-hidden rounded-md border border-white/20">
@@ -139,6 +134,11 @@ export function HomeHero() {
 
       {nextSession ? (
         <>
+          <HomeWeather
+            raceSlug={race.slug}
+            startAt={nextSession.startAt}
+            now={now}
+          />
           <View className="mt-0.5 self-stretch">
             <BigCountdown targetAt={nextSession.startAt} />
           </View>
@@ -154,17 +154,6 @@ export function HomeHero() {
           Weekend complete
         </Text>
       )}
-
-      <View className="mt-1.5 self-stretch">
-        <PrimaryButton
-          label="Make predictions"
-          onPress={() =>
-            navigation
-              .getParent<NavigationProp<RootTabParamList>>()
-              ?.navigate('PicksTab')
-          }
-        />
-      </View>
     </View>
   );
 }

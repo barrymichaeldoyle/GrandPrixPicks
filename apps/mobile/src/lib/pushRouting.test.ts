@@ -33,7 +33,7 @@ describe('routePushUrl', () => {
   it('opens the race for a reminder push', () => {
     routePushUrl('/races/spain-2026?utm_source=push');
     expect(navigate).toHaveBeenCalledWith('Tabs', {
-      screen: 'PicksTab',
+      screen: 'HomeTab',
       params: {
         screen: 'RaceDetail',
         params: { raceSlug: 'spain-2026' },

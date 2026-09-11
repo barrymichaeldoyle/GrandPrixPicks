@@ -8,17 +8,11 @@ export const linking: LinkingOptions<RootStackParamList> = {
       SignIn: 'sign-in',
       Tabs: {
         screens: {
-          PicksTab: {
-            path: 'predict',
-            screens: {
-              PicksMain: '',
-              RaceDetail: 'races/:raceSlug',
-            },
-          },
+          NotificationsTab: 'notifications',
           HomeTab: {
             path: 'feed',
             screens: {
-              HomeMain: '',
+              HomeMain: { path: '', alias: [{ path: 'predict', exact: true }] },
               FeedEventDetail: ':feedEventId',
               PublicProfile: 'p/:username',
             },

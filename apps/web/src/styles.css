@@ -526,8 +526,8 @@
    * A run of leaning cards, each the inverse of the one directly above it.
    *
    * Two cards in a column leaning the same way put a thin end against a thick
-   * one across the divider, which reads as a mistake. Inverted, they meet thick
-   * to thick and the two bars carry through the rule as one shape.
+   * one, which reads as a mistake. Inverted, they meet thick to thick and the
+   * two bars read as one shape.
    *
    * "Directly above" is a layout fact, not an index one, which is why this is
    * nth-child and not a prop: a component cannot see how many columns the grid

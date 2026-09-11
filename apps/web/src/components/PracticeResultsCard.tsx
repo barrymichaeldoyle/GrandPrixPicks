@@ -65,24 +65,37 @@ function splitIntoColumns<T>(entries: T[]): [T[], T[]] {
   return [entries.slice(0, half), entries.slice(half)];
 }
 
-/** Position, driver, and the one number that matters: the gap, or the time at the front. */
-function CompactPracticeRow({
+/** Position, badge, time. The badge is the driver; the name is on the tooltip. */
+export function CompactPracticeRow({
   entry,
+  size = 'sm',
+  showNumber = false,
+  fill = 'elevated',
 }: {
   entry: PracticeResult['entries'][number];
+  size?: 'sm' | 'md';
+  showNumber?: boolean;
+  fill?: 'elevated' | 'sunken';
 }) {
   return (
     <div className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 px-3 py-1.5">
       <span className="gpp-mono text-xs font-semibold text-text-muted">
         P{entry.position}
       </span>
-      <DriverBadge
-        code={entry.code}
-        displayName={entry.displayName}
-        team={entry.team ?? undefined}
-        size="sm"
-        prerenderTooltip={false}
-      />
+      {/* Grid items stretch by default, which turned the chip into a wide
+          wash of elevated-on-surface. Pin it so the badge stays a badge. */}
+      <span className="justify-self-start">
+        <DriverBadge
+          code={entry.code}
+          displayName={entry.displayName}
+          team={entry.team ?? undefined}
+          number={entry.driverNumber}
+          size={size}
+          showNumber={showNumber}
+          fill={fill}
+          prerenderTooltip={false}
+        />
+      </span>
       <span className="gpp-mono text-right text-xs font-semibold text-text">
         {practiceGapOrLap(entry)}
       </span>
@@ -106,12 +119,14 @@ function CompactCompetitiveRow({
       <span className="gpp-mono text-xs font-semibold text-text-muted">
         P{position}
       </span>
-      <DriverBadge
-        code={code}
-        displayName={displayName}
-        team={team}
-        size="sm"
-      />
+      <span className="justify-self-start">
+        <DriverBadge
+          code={code}
+          displayName={displayName}
+          team={team}
+          size="sm"
+        />
+      </span>
     </div>
   );
 }

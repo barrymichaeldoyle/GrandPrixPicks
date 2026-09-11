@@ -31,6 +31,13 @@ interface DriverBadgeProps {
   /** Show driver number before code */
   showNumber?: boolean;
   /**
+   * Chip fill. Elevated + hairline is the default (a pick). Sunken is a
+   * published result: the same language as the feed's result cells, and
+   * enough contrast on a `surface` card that elevated-on-surface does not
+   * give.
+   */
+  fill?: 'elevated' | 'sunken';
+  /**
    * Mount the tooltip immediately so its flag image is preloaded. Defaults to
    * on whenever a nationality is given, which is right for the handful of
    * badges on a picks or results card. Long lists (a full championship table)
@@ -58,6 +65,7 @@ export function DriverBadge({
   nationality,
   size = 'md',
   showNumber = false,
+  fill = 'elevated',
   prerenderTooltip,
   tooltipFocusable,
 }: DriverBadgeProps) {
@@ -119,7 +127,10 @@ export function DriverBadge({
    * ratio instead of white-on-whatever-the-team-is.
    */
   const classes = [
-    'gpp-team-bar inline-grid place-items-center rounded-sm border border-border bg-surface-elevated font-medium tracking-data text-text uppercase',
+    'gpp-team-bar inline-grid place-items-center rounded-sm font-medium tracking-data text-text uppercase',
+    fill === 'sunken'
+      ? 'bg-surface-sunken'
+      : 'border border-border bg-surface-elevated',
     BADGE_SIZES[size],
     hasTooltip ? 'cursor-help' : '',
   ]
@@ -133,9 +144,7 @@ export function DriverBadge({
     >
       <span className="gpp-mono inline-flex items-center justify-center gap-1 leading-none">
         {showNumber && number != null && (
-          <span className="leading-none font-normal text-text-muted">
-            {number}
-          </span>
+          <span className="leading-none font-normal text-text">{number}</span>
         )}
         <span className="leading-none">{code}</span>
       </span>

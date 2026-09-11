@@ -196,12 +196,12 @@ export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
         ) : null}
       </View>
       {events.map((event, index) => (
-        <View
-          className={index === 0 ? undefined : 'border-t border-border'}
+        <RaceNewsCard
+          event={event}
+          grouped
           key={event._id}
-        >
-          <RaceNewsCard event={event} grouped reverse={index % 2 === 0} />
-        </View>
+          reverse={index % 2 === 0}
+        />
       ))}
       <View className="border-t border-border px-3 py-2">
         <ScoringPolicyNote />

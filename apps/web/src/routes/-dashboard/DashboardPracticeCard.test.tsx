@@ -98,6 +98,13 @@ describe('DashboardPracticeCard', () => {
 
     expect(view.textContent).toContain('D06');
     expect(view.textContent).not.toContain('D07');
+    // The card header already says FP1; a second labelled column is a nested
+    // table around a list that is the whole card.
+    expect(
+      [...view.querySelectorAll('[data-testid="dashboard-practice"] p')].map(
+        (column) => column.textContent,
+      ),
+    ).toEqual([]);
     // No "Full lap times and gaps" link any more: it pointed at the practice
     // page, which is a 301 to the race page now.
     expect(view.textContent).not.toContain('Full lap times');

@@ -162,14 +162,14 @@ export function FeedContent({
 
   // Keep the merged feed chronological even while reactive pages refresh, and
   // avoid briefly rendering the boundary event twice across adjacent pages.
-  const allEvents = Array.from(
+  const mergedEvents = Array.from(
     new Map(
       loadedPages.flatMap((p) => p.events).map((event) => [event._id, event]),
     ).values(),
   ).sort((a, b) => b.createdAt - a.createdAt);
   const allSessions = Object.assign({}, ...loadedPages.map((p) => p.sessions));
 
-  if (allEvents.length === 0) {
+  if (mergedEvents.length === 0) {
     if (
       followedIds === undefined ||
       myLeagues === undefined ||
@@ -312,6 +312,13 @@ export function FeedContent({
     );
   }
 
+  // Practice already has a home: PracticeHighlights, above this stream.
+  // The feed card is a different component (race-named heading, a padded
+  // list, "View full results") and stacking it under the highlights card
+  // was the same FP1 classification twice, in two vibes.
+  const allEvents = mergedEvents.filter(
+    (event) => event.type !== 'practice_published',
+  );
   const groups = groupFeedEvents(allEvents);
 
   // Only when the group is actually here. Otherwise the block keeps its old

@@ -1,9 +1,8 @@
 import { api } from '@convex-generated/api';
 import { useState } from 'react';
 import { useQuery } from '@/integrations/convex/query';
-import { DriverBadge } from '@/components/DriverBadge';
 import { PracticeClassificationDialog } from '@/components/PracticeClassificationDialog';
-import { practiceGapOrLap } from '@/components/PracticeResultsCard';
+import { CompactPracticeRow } from '@/components/PracticeResultsCard';
 import type { FeedEvent } from './types';
 
 export function PracticePublishedItem({ event }: { event: FeedEvent }) {
@@ -26,27 +25,13 @@ export function PracticePublishedItem({ event }: { event: FeedEvent }) {
         <>
           <ol className="divide-y divide-border">
             {result.entries.slice(0, 6).map((entry) => (
-              <li
-                key={entry.driverNumber}
-                className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 py-2"
-              >
-                <span className="gpp-mono text-xs text-text-muted">
-                  P{entry.position}
-                </span>
-                <div className="flex min-w-0 items-center gap-2">
-                  <DriverBadge
-                    code={entry.code}
-                    displayName={entry.displayName}
-                    team={entry.team ?? undefined}
-                    size="sm"
-                  />
-                  <span className="truncate text-sm text-text">
-                    {entry.displayName}
-                  </span>
-                </div>
-                <span className="gpp-mono text-xs text-text">
-                  {practiceGapOrLap(entry)}
-                </span>
+              <li key={entry.driverNumber}>
+                <CompactPracticeRow
+                  entry={entry}
+                  size="md"
+                  showNumber
+                  fill="sunken"
+                />
               </li>
             ))}
           </ol>

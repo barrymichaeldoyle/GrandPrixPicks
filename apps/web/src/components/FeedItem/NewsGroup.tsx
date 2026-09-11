@@ -64,18 +64,14 @@ export function NewsGroup({ events }: { events: FeedEvent[] }) {
       </div>
 
       {/* `gpp-lean-run` flips each card's team bar against the one above it, so
-          the wedges meet thick to thick across the divider and read as one
-          shape carried down the block. No padding on these rows: the bar is
-          drawn on the card inside, and it only lines up with its neighbours if
-          it runs the full height of the row. The card supplies the padding. */}
+          the wedges meet thick to thick and read as one shape carried down the
+          block. The bar is the divider: a hairline between stories was a second
+          mark doing the same job. No padding on these rows: the bar is drawn on
+          the card inside, and it only lines up with its neighbours if it runs
+          the full height of the row. The card supplies the padding. */}
       <div className="gpp-lean-run">
-        {events.map((event, index) => (
-          <div
-            key={event._id}
-            className={index === 0 ? undefined : 'border-t border-border/60'}
-          >
-            <FeedItem event={event} grouped />
-          </div>
+        {events.map((event) => (
+          <FeedItem key={event._id} event={event} grouped />
         ))}
       </div>
 

@@ -24,7 +24,7 @@ const COPY: Record<SaveState, string> = {
  * are one state, "in flight", and the distinction between a debounce timer and
  * an open request is ours, not theirs.
  */
-export function PicksSaveStatus({ state }: { state: SaveState }) {
+function PicksSaveStatus({ state }: { state: SaveState }) {
   const settled = state === 'saved';
   const failed = state === 'error';
 

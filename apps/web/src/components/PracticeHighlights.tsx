@@ -140,7 +140,7 @@ function groupSessions(sessions: PracticeResult[]): PracticeResult[][] {
  *
  * On a phone it bleeds like the picks card and the news block: a nested frame
  * here was a card sitting in the gutter between two full-bleed neighbours.
- * They are separated by a seam rather than butted together — `mt-2` of page
+ * They are separated by a seam rather than butted together — `pt-2` of page
  * background above the block's own hairline, which is what tells a reader the
  * practice times and the picks above them are two different things.
  */
@@ -186,7 +186,7 @@ export function PracticeHighlights({
     <section
       aria-labelledby="dashboard-practice-heading"
       data-testid="dashboard-practice"
-      className="overflow-hidden border-y border-border/80 bg-surface max-md:-mx-4 max-md:mt-2 md:rounded-sm md:border"
+      className="overflow-hidden border-y border-border/80 bg-surface max-md:-mx-4 max-md:pt-2 md:rounded-sm md:border"
     >
       {/* No rule under the heading: the classification already divides on
           every row, and a second line between the title and P1 was one HR

@@ -60,6 +60,25 @@ type Campaign = {
 
 const campaigns: readonly Campaign[] = [
   {
+    dir: 'madrid-community-picks-2026',
+    cards: [
+      {
+        slug: 'qualifying',
+        flag: 'es',
+        titleLead: 'Madrid 2026 Qualifying',
+        titleRest: 'P1 Predictions vs Reality',
+        badge: 'Pole',
+        picks: [
+          { code: 'ANT', team: 'Mercedes', count: 9 },
+          { code: 'LEC', team: 'Ferrari', count: 1 },
+          { code: 'RUS', team: 'Mercedes', count: 1 },
+          { code: 'VER', team: 'Red Bull Racing', count: 1 },
+          { code: 'NOR', team: 'McLaren', count: 0, winner: true },
+        ],
+      },
+    ],
+  },
+  {
     dir: 'monza-community-picks-2026',
     cards: [
       {

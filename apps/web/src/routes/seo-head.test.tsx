@@ -95,8 +95,6 @@ function asTeammateHeadRoute(route: unknown): TeammateHeadRoute {
 }
 
 describe('SEO head metadata', () => {
-  describe.configure({ timeout: 15_000 });
-
   beforeEach(() => {
     vi.resetModules();
   });
@@ -142,7 +140,7 @@ describe('SEO head metadata', () => {
       name: 'Grand Prix Picks',
       offers: { price: '0' },
     });
-  });
+  }, 15_000);
 
   // Scrapers cache an OG image by URL. If the home card lived at a stable
   // /og/next, WhatsApp and X would keep serving the previous Grand Prix for

@@ -308,8 +308,6 @@ function typedNodes(value: unknown): Record<string, unknown>[] {
 }
 
 describe('SEO invariants across every indexable route', () => {
-  describe.configure({ timeout: 15_000 });
-
   beforeEach(() => {
     vi.resetModules();
   });
@@ -340,7 +338,7 @@ describe('SEO invariants across every indexable route', () => {
           if (status !== 'cancelled') {
             expect(description!.length).toBeGreaterThanOrEqual(MIN_DESCRIPTION);
           }
-        });
+        }, 15_000);
       }
 
       it('is indexable and canonicalises to itself', async () => {

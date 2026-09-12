@@ -250,7 +250,6 @@ export function FeedScreen() {
         }
         ListHeaderComponent={
           <View>
-            <LiveClassificationCard />
             <RaceRecapCard className="mx-4 mt-3 mb-3" />
             {isSignedIn ? (
               <PicksConnectedScreen embedded />
@@ -259,6 +258,10 @@ export function FeedScreen() {
                 <HomeHero />
               </View>
             )}
+            {/* Under the weekend, not above it. Leading the tab with lap times
+                from a session in progress put them ahead of the picks the tab
+                exists to take. */}
+            <LiveClassificationCard />
             {/* No "Activity" heading over the list. The tab is Home, the rows
                 below are plainly the activity, and the web feed dropped the
                 same label. */}

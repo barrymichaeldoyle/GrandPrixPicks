@@ -128,6 +128,28 @@ function SuggestionRow({
   );
 }
 
+type InterleavedBlock = {
+  /**
+   * The group to sit under, from `sessionGroupKey` so the format is not
+   * spelled out twice.
+   *
+   * A list means "the first of these that is actually in the stream", which is
+   * how the practice block finds the weekend's most recent session without
+   * consulting a clock: the feed is newest first, so the caller passes the
+   * weekend's sessions in reverse order and the latest one with any activity
+   * wins.
+   */
+  afterSessionKey: string | readonly string[];
+  node: ReactNode;
+};
+
+/** Stable identity for a block, whichever slot it ends up in. */
+function blockKey(block: InterleavedBlock): string {
+  return typeof block.afterSessionKey === 'string'
+    ? block.afterSessionKey
+    : (block.afterSessionKey[0] ?? '');
+}
+
 export function FeedContent({
   initialPage,
   interleaved = null,
@@ -140,21 +162,21 @@ export function FeedContent({
    */
   initialPage?: FeedPage | null;
   /**
-   * A block to render inside the stream rather than after it, directly under
-   * one session's group.
+   * Blocks to render inside the stream rather than after it, each directly
+   * under one session's group.
    *
-   * The dashboard's picks card during the results-first window. The card
-   * belongs immediately under the race that just ran, and "under the race
-   * result" is a position in this stream, not a position on the page.
+   * Two of them today, and both are cases where a page position is really a
+   * position in this stream: the picks card under the race that just ran
+   * during the results-first window, and the practice block under the session
+   * that has since locked, where lap times from before the grid was set
+   * belong beside the picks made against it.
    *
-   * Rendered exactly once. If the named group is not in the loaded pages, the
-   * card leads this stream rather than sitting under Load more.
+   * Each is rendered exactly once. A block whose group is not in the loaded
+   * pages leads the stream rather than sitting under Load more: that button
+   * means "there is more of this list", not "the thing you came for is down
+   * here".
    */
-  interleaved?: {
-    /** From `sessionGroupKey`, so the format is not spelled out twice. */
-    afterSessionKey: string;
-    node: ReactNode;
-  } | null;
+  interleaved?: InterleavedBlock[] | null;
 } = {}) {
   const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
     Array(MAX_EXTRA_PAGES).fill(null),
@@ -223,19 +245,19 @@ export function FeedContent({
   }
 
   /**
-   * Every return below goes through this, so the interleaved block reaches the
+   * Every return below goes through this, so the interleaved blocks reach the
    * page on the empty and loading paths too — never twice, and never not at
-   * all. The group branch passes `placed` once it has already rendered it.
-   *
-   * When the named group is missing, the card leads the stream rather than
-   * sitting under Load more: that button is "there is more of this list",
-   * not "the picker for the next round belongs down here".
+   * all. The group branch passes the keys it has already rendered.
    */
-  function withInterleaved(body: ReactNode, placed = false) {
+  function withInterleaved(body: ReactNode, placed: Set<string> = new Set()) {
     return (
       <>
         <LiveClassificationCard />
-        {interleaved && !placed ? interleaved.node : null}
+        {(interleaved ?? [])
+          .filter((block) => !placed.has(blockKey(block)))
+          .map((block) => (
+            <Fragment key={blockKey(block)}>{block.node}</Fragment>
+          ))}
         {body}
       </>
     );
@@ -376,23 +398,34 @@ export function FeedContent({
   );
   const groups = groupFeedEvents(allEvents);
 
-  // Only when the group is actually here. Otherwise the card leads this
-  // stream: under Load more was a position nobody opening the page for
-  // their next pick would look.
-  const slotAfter =
-    interleaved &&
-    groups.some(
-      (group) =>
-        group.kind === 'session' && group.key === interleaved.afterSessionKey,
-    )
-      ? interleaved.afterSessionKey
-      : null;
+  // Only the blocks whose group is actually here. The rest lead the stream:
+  // under Load more was a position nobody opening the page for their next
+  // pick would look.
+  const loadedKeys = new Set(
+    groups.flatMap((group) => (group.kind === 'session' ? [group.key] : [])),
+  );
+  const slotted = new Map<string, ReactNode>();
+  const placed = new Set<string>();
+  for (const block of interleaved ?? []) {
+    const candidates =
+      typeof block.afterSessionKey === 'string'
+        ? [block.afterSessionKey]
+        : block.afterSessionKey;
+    // Not into a slot another block already holds: two cards under one group
+    // is a stack the caller did not ask for.
+    const key = candidates.find(
+      (candidate) => loadedKeys.has(candidate) && !slotted.has(candidate),
+    );
+    if (key !== undefined) {
+      slotted.set(key, block.node);
+      placed.add(blockKey(block));
+    }
+  }
 
   const startsWeekend = weekendStarts(groups);
 
   return withInterleaved(
     <div className="space-y-0 md:space-y-4">
-      {interleaved && slotAfter === null ? interleaved.node : null}
       {groups.map((group, index) => {
         const split = startsWeekend[index] ? <WeekendSplit /> : null;
 
@@ -421,7 +454,7 @@ export function FeedContent({
               events={group.events}
               viewerId={me?._id}
             />
-            {group.key === slotAfter ? interleaved?.node : null}
+            {slotted.get(group.key) ?? null}
           </Fragment>
         );
       })}
@@ -436,6 +469,6 @@ export function FeedContent({
         </div>
       )}
     </div>,
-    true,
+    placed,
   );
 }

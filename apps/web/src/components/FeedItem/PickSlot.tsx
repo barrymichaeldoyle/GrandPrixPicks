@@ -43,8 +43,8 @@ const SCORE_BAND: Record<number, string> = {
 const CELL_BASE = 'gpp-team-bar flex w-full items-center justify-center';
 const PICK_CELL = `${CELL_BASE} h-7 border border-border bg-surface-elevated`;
 const RESULT_CELL = `${CELL_BASE} h-8 bg-surface-sunken`;
-const CODE_BASE = 'gpp-mono pl-1 leading-none tracking-data uppercase';
-const PICK_CODE = `${CODE_BASE} text-sm text-text`;
+const CODE_BASE = 'gpp-mono pl-1 leading-none tracking-normal uppercase';
+const PICK_CODE = `${CODE_BASE} text-sm font-medium text-text`;
 const RESULT_CODE = `${CODE_BASE} text-sm font-semibold text-text`;
 /*
  * Sector-band weight, set off from the cell by a hairline of page behind it.

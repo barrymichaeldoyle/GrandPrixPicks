@@ -433,7 +433,7 @@ function LeaderboardPage() {
               </p>
             </>
           }
-          actionsPlacement="trailing"
+          actionsPlacement="below"
           actions={
             isSignedIn && headerViewerEntry ? (
               <div className="min-h-14">
@@ -444,7 +444,7 @@ function LeaderboardPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.96 }}
                     transition={{ duration: 0.2 }}
-                    className="flex shrink-0 items-center gap-3 rounded-lg bg-accent-muted px-3 py-2"
+                    className="inline-flex items-center gap-3 rounded-lg bg-accent-muted px-3 py-2"
                   >
                     <span className="gpp-mono flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-semibold text-text-on-accent">
                       {headerViewerEntry.rank}
@@ -510,7 +510,7 @@ function LeaderboardPage() {
                     })
                   }
                   options={[...SCOPE_OPTIONS]}
-                  className="flex shrink-0 gap-1 rounded-lg bg-surface-muted/40 p-1 @sm:w-56 @lg:ml-auto @4xl:order-2"
+                  className="flex shrink-0 gap-1 rounded-lg bg-surface-muted/40 p-1 @sm:w-56 @4xl:order-2"
                   buttonClassName="flex-1"
                   ariaLabel="Leaderboard scope"
                 />

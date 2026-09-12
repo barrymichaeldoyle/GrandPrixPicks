@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
+import type { QueryCtx } from './_generated/server';
 import {
   internalAction,
   internalMutation,
@@ -208,6 +209,44 @@ export const refresh = internalAction({
   },
 });
 
+/**
+ * Whether the session's own results are out.
+ *
+ * Practice publishes to `practiceResults` and the competitive sessions to
+ * `results`, which is why this asks two different tables rather than one.
+ */
+async function isPublished(
+  ctx: QueryCtx,
+  raceId: Id<'races'>,
+  /* Both live shapes at once: the OpenF1 rows cover practice and the two
+     qualifying sessions, the in-race snapshots cover sprint and race. */
+  sessionType:
+    | 'fp1'
+    | 'fp2'
+    | 'fp3'
+    | 'quali'
+    | 'sprint_quali'
+    | 'sprint'
+    | 'race',
+): Promise<boolean> {
+  if (sessionType === 'fp1' || sessionType === 'fp2' || sessionType === 'fp3') {
+    const practice = await ctx.db
+      .query('practiceResults')
+      .withIndex('by_raceId_and_sessionType', (q) =>
+        q.eq('raceId', raceId).eq('sessionType', sessionType),
+      )
+      .unique();
+    return practice !== null;
+  }
+  const result = await ctx.db
+    .query('results')
+    .withIndex('by_race_session', (q) =>
+      q.eq('raceId', raceId).eq('sessionType', sessionType),
+    )
+    .unique();
+  return result !== null;
+}
+
 export const current = query({
   args: {},
   returns: v.any(),
@@ -227,20 +266,20 @@ export const current = query({
     if (!candidate || Date.now() - candidate.updatedAt >= 3 * 60_000) {
       return null;
     }
+    // A published result ends the live board, whichever shape the candidate
+    // is. The snapshot branch below has always checked; this one did not, so
+    // an admin publishing qualifying left the running order sitting above the
+    // feed — the same session twice, one of them provisional, and the wrong
+    // one on top. `activeTask` stops *collecting* at the same moment, but the
+    // last row it wrote is still inside the three-minute window.
+    if (await isPublished(ctx, candidate.raceId, candidate.sessionType)) {
+      return null;
+    }
     if ('entries' in candidate) {
       return candidate;
     }
     const race = await ctx.db.get(candidate.raceId);
     if (!race) {
-      return null;
-    }
-    const result = await ctx.db
-      .query('results')
-      .withIndex('by_race_session', (q) =>
-        q.eq('raceId', race._id).eq('sessionType', candidate.sessionType),
-      )
-      .unique();
-    if (result) {
       return null;
     }
     const entries = await Promise.all(

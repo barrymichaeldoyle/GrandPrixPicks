@@ -167,6 +167,25 @@ export function DashboardPage({
   const beforeFirstLock = useIsBefore(firstLockAt, currentWeekend?.serverNow);
   const practiceLeadsFeed = firstLockAt === null || beforeFirstLock;
 
+  /*
+   * Where practice goes once the weekend's first session has locked: under the
+   * most recent session of this weekend that the feed is actually carrying.
+   *
+   * In reverse weekend order, and the feed takes the first one it has, so this
+   * finds "the session that just happened" without asking what time it is —
+   * which matters here for the same reason the order above is read from the
+   * clock rather than the payload. A weekend with no session in the stream
+   * yet leaves the block leading the feed, which is where it was anyway.
+   */
+  const practiceSlotKeys = currentWeekend
+    ? ([...currentWeekend.sessions]
+        .map((session) => session.sessionType)
+        .reverse()
+        .map((sessionType) =>
+          sessionGroupKey(currentWeekend.race._id, sessionType),
+        ) as readonly string[])
+    : null;
+
   // Ready once there is a weekend to show, whoever produced it. Waiting on
   // `history` here would have held every server-rendered card behind the one
   // query this page no longer needs before first paint.
@@ -336,27 +355,33 @@ export function DashboardPage({
                 /feed page rendered the same component and has been removed. */}
             <FeedContent
               initialPage={initialDashboard?.feedPreview}
-              /* Inside the stream for the length of the results-first window,
-                 not after it: the picker for the next round belongs directly
-                 under the result of the race just run, and everything else in
-                 the feed — qualifying, the week's activity, Load more — sits
-                 below both. See `pickerFollowsFeed`. */
-              interleaved={
-                pickerFollowsFeed && promotedRecap
-                  ? {
-                      afterSessionKey: sessionGroupKey(
-                        promotedRecap.race.id,
-                        'race',
-                      ),
-                      node: picksCard,
-                    }
-                  : null
-              }
+              /* Both of these are page positions that are really positions in
+                 this stream. The picks card sits under the result of the race
+                 just run for the length of the results-first window, with
+                 everything else — qualifying, the week's activity, Load more —
+                 below both (see `pickerFollowsFeed`). Practice sits under the
+                 session that has locked since, where lap times from before the
+                 grid was set read as context for the picks beside them rather
+                 than as a block stranded under the whole feed. */
+              interleaved={[
+                ...(pickerFollowsFeed && promotedRecap
+                  ? [
+                      {
+                        afterSessionKey: sessionGroupKey(
+                          promotedRecap.race.id,
+                          'race',
+                        ),
+                        node: picksCard,
+                      },
+                    ]
+                  : []),
+                ...(practiceLeadsFeed || !practiceSlotKeys || !practiceCard
+                  ? []
+                  : [
+                      { afterSessionKey: practiceSlotKeys, node: practiceCard },
+                    ]),
+              ]}
             />
-
-            {/* After the lock, below the feed rather than above it. See
-                `practiceLeadsFeed`. */}
-            {practiceLeadsFeed ? null : practiceCard}
           </>
         ) : null}
       </div>

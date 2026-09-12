@@ -56,7 +56,7 @@ const SLOT_GRID = 'grid w-full max-w-[26rem] grid-cols-5 gap-1';
 /** Every band in the group reads the same: quiet eyebrow, then the row. */
 function BandLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="flex items-center gap-1.5 text-xs font-medium text-text-muted/80">
+    <span className="flex items-center gap-1.5 text-sm font-medium text-text-muted">
       {children}
     </span>
   );
@@ -77,7 +77,7 @@ function ResultRow({ top5 }: { top5: SessionHeader['top5'] }) {
         {top5.map((_, i) => (
           <span
             key={i}
-            className="gpp-mono text-center text-xs leading-none text-text-muted/80"
+            className="text-center text-sm leading-none font-medium text-text-muted"
           >
             P{i + 1}
           </span>
@@ -121,7 +121,7 @@ function H2HWinnersRow({ h2h }: { h2h: NonNullable<SessionHeader['h2h']> }) {
               className="gpp-team-bar flex h-5 items-center pr-1 pl-1.5"
               style={{ '--team-colour': color } as CSSProperties}
             >
-              <span className="gpp-mono text-sm leading-none tracking-data text-text-muted uppercase">
+              <span className="gpp-mono text-sm leading-none font-medium tracking-normal text-text-muted uppercase">
                 {duel.winner.code}
               </span>
             </span>

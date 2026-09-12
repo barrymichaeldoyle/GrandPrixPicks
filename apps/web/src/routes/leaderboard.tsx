@@ -319,13 +319,14 @@ function LeaderboardPage() {
   // who has not scored this weekend got "Not ranked this weekend" next to a
   // dash, which reads as a status report on a player who has done nothing
   // wrong; the board below already tells them they are not on it.
-  // Username, not display name, and on every tab. This card labels the
-  // viewer's own row in a table that now names everyone by username; resolving
-  // a display name here would print their real name above a board of handles,
-  // and reading a different name on the league tab than on the season tab
-  // makes the card look like it is describing someone else.
+  // Match the name shown in the board. Authenticated leaderboard responses
+  // include display names; public responses keep usernames only.
   const standingName =
-    headerViewerEntry?.username ?? viewer?.username ?? 'Your standing';
+    headerViewerEntry?.displayName ??
+    viewer?.displayName ??
+    headerViewerEntry?.username ??
+    viewer?.username ??
+    'Your standing';
 
   // What the rank is a rank of. Season, whole weekend and a single session are
   // three different numbers, and the card was printing all three the same way.

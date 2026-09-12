@@ -49,8 +49,28 @@ describe('LeaderboardBoard', () => {
     expect(html).toContain('Player');
     expect(html).toContain('Points');
     expect(html).toContain('317');
+    expect(html).toContain('Pole Sitter');
+    expect(html).toContain('Late Braker');
+    expect(html).not.toContain('pole-sitter');
     expect(html).not.toContain('Top 5');
     expect(html).not.toContain('H2H');
     expect(html).not.toContain('Accuracy');
+  });
+
+  it('falls back to username when the entry has no display name', () => {
+    const html = renderToStaticMarkup(
+      <LeaderboardBoard
+        entries={[
+          {
+            rank: 1,
+            userId: 'user-1',
+            username: 'pole-sitter',
+            points: 317,
+          },
+        ]}
+      />,
+    );
+
+    expect(html).toContain('pole-sitter');
   });
 });

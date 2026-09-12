@@ -20,7 +20,11 @@ import {
   getSessionsForWeekend,
   type SessionType,
 } from '@grandprixpicks/shared/sessions';
-import { toPublicEntry, toUserIdentity } from './lib/userIdentity';
+import {
+  toBoardEntry,
+  toPublicEntry,
+  toUserIdentity,
+} from './lib/userIdentity';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -193,22 +197,23 @@ export const getSeasonLeaderboard = query({
     const enrichedRows = mapRowsToLeaderboardEntries(
       ranked.pageRows,
       viewer?._id,
-    ).map(toPublicEntry);
+    ).map((entry) => toBoardEntry(entry, viewer));
 
-    // The viewer's own row is stripped alongside everyone else's. Showing them
-    // their real name in a table of usernames would read as a leak, not a
-    // courtesy — and it is the row they screenshot.
     const viewerEntry =
       viewer && ranked.viewerRank !== null && ranked.viewerRow
-        ? {
-            rank: ranked.viewerRank,
-            userId: viewer._id,
-            username: viewer.username ?? ANONYMOUS_NAME,
-            avatarUrl: viewer.avatarUrl,
-            points: ranked.viewerRow.totalPoints,
-            raceCount: ranked.viewerRow.raceCount,
-            isViewer: true,
-          }
+        ? toBoardEntry(
+            {
+              rank: ranked.viewerRank,
+              userId: viewer._id,
+              username: viewer.username ?? ANONYMOUS_NAME,
+              displayName: viewer.displayName,
+              avatarUrl: viewer.avatarUrl,
+              points: ranked.viewerRow.totalPoints,
+              raceCount: ranked.viewerRow.raceCount,
+              isViewer: true,
+            },
+            viewer,
+          )
         : null;
 
     return {
@@ -431,23 +436,28 @@ export async function loadCombinedSeasonLeaderboard(
     );
 
     const allRows = await loadCombinedSeasonRows(ctx, { season });
-    const viewerRow = buildCombinedViewerEntry(allRows, viewer);
-    const viewerEntry = viewerRow ? toPublicEntry(viewerRow) : null;
+    const viewerEntry = buildCombinedViewerEntry(allRows, viewer);
 
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
 
-    const entries = paginatedRows.map((row) => ({
-      rank: row.rank,
-      userId: row.userId,
-      username: row.username ?? ANONYMOUS_NAME,
-      avatarUrl: row.avatarUrl,
-      points: row.top5Points + row.h2hPoints,
-      top5Points: row.top5Points,
-      h2hPoints: row.h2hPoints,
-      raceCount: row.raceCount,
-      isViewer: viewer ? row.userId === viewer._id : false,
-    }));
+    const entries = paginatedRows.map((row) =>
+      toBoardEntry(
+        {
+          rank: row.rank,
+          userId: row.userId,
+          username: row.username ?? ANONYMOUS_NAME,
+          displayName: row.displayName,
+          avatarUrl: row.avatarUrl,
+          points: row.top5Points + row.h2hPoints,
+          top5Points: row.top5Points,
+          h2hPoints: row.h2hPoints,
+          raceCount: row.raceCount,
+          isViewer: viewer ? row.userId === viewer._id : false,
+        },
+        viewer,
+      ),
+    );
 
     return { entries, totalCount: allRows.length, hasMore, viewerEntry };
   }
@@ -637,16 +647,22 @@ export const getCombinedRaceLeaderboard = query({
       (row) => row.top5Points + row.h2hPoints,
     );
 
-    const entries = ranked.map((row) => ({
-      rank: row.rank,
-      userId: row.userId,
-      username: row.username ?? ANONYMOUS_NAME,
-      avatarUrl: row.avatarUrl,
-      points: row.top5Points + row.h2hPoints,
-      top5Points: row.top5Points,
-      h2hPoints: row.h2hPoints,
-      isViewer: viewer ? row.userId === viewer._id : false,
-    }));
+    const entries = ranked.map((row) =>
+      toBoardEntry(
+        {
+          rank: row.rank,
+          userId: row.userId,
+          username: row.username ?? ANONYMOUS_NAME,
+          displayName: row.displayName,
+          avatarUrl: row.avatarUrl,
+          points: row.top5Points + row.h2hPoints,
+          top5Points: row.top5Points,
+          h2hPoints: row.h2hPoints,
+          isViewer: viewer ? row.userId === viewer._id : false,
+        },
+        viewer,
+      ),
+    );
 
     return { status: 'visible' as const, reason: null, entries };
   },

@@ -39,7 +39,6 @@ type NotificationKey =
   | 'pushPredictionLockReminders'
   | 'pushResults'
   | 'pushSessionLocked'
-  | 'pushRevReceived'
   | 'pushNews'
   | 'notificationQuietHours'
   | 'preferPushReminders'
@@ -55,7 +54,7 @@ const PUSH_TOGGLES: { key: NotificationKey; label: string; help: string }[] = [
   {
     key: 'notificationQuietHours',
     label: 'Quiet hours',
-    help: 'Hold news and reactions from 22:00 to 08:00 in your timezone.',
+    help: 'Hold news from 22:00 to 08:00 in your timezone.',
   },
   {
     key: 'pushPredictionReminders',
@@ -76,11 +75,6 @@ const PUSH_TOGGLES: { key: NotificationKey; label: string; help: string }[] = [
     key: 'pushSessionLocked',
     label: 'Session locked',
     help: 'When a session you predicted locks.',
-  },
-  {
-    key: 'pushRevReceived',
-    label: 'Reactions to your posts',
-    help: 'When someone reacts to one of your picks.',
   },
 ];
 

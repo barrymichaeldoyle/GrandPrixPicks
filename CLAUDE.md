@@ -112,9 +112,8 @@ because it reads like a specification.
   it produced a confident report of a defect that did not exist.
 - **A doc describing UI names the component it describes**, so a change to that
   component knows what to update.
-- Product vocabulary is the other recurring drift. Check the code before
-  writing player-facing copy: reactions were called "revs" in this file long
-  after the rename.
+- Product vocabulary is another recurring source of drift. Check the code
+  before writing player-facing copy.
 
 ## Guardrails
 
@@ -229,7 +228,7 @@ leaderboards.ts        # Season + weekend leaderboards with pagination
 h2h.ts                 # Head-to-head matchups, predictions, scoring
 leagues.ts             # Private leagues + membership
 follows.ts             # Follower / following graph
-feed.ts                # Activity feed events + reactions
+feed.ts                # Activity feed events
 notifications.ts       # Notification scheduling/batching (nudges, milestones)
 push.ts, pushNotifications.ts  # Expo + web push delivery / tokens
 inAppNotifications.ts  # In-app notification bell feed
@@ -302,15 +301,13 @@ is one `scoreTopFive()` and no per-session branching in the point math.
 
 ### Database Tables (Convex)
 
-Grouped by area (25 tables):
+Grouped by area (24 tables):
 
 - **Core game**: `users`, `drivers`, `races`, `predictions`, `results`, `scores`,
   `seasonStandings`, `driverTeamStints`
 - **Head-to-head**: `h2hMatchups`, `h2hPredictions`, `h2hResults`, `h2hScores`,
   `h2hSeasonStandings`
-- **Social**: `follows`, `feedEvents`, `revs`, `leagues`, `leagueMembers`
-  (`revs` is the legacy table name for reactions; the feature is called
-  **reactions** everywhere user-facing, and in `packages/shared/src/reactions.ts`)
+- **Social**: `follows`, `feedEvents`, `leagues`, `leagueMembers`
 - **Notifications**: `inAppNotifications`, `pushSubscriptions`, `expoPushTokens`
 - **Billing / ops**: `userSeasonPasses`, `processedPaddleWebhookEvents`,
   `announcements`, `supportRequests`

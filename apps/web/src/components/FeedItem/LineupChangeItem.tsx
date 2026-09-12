@@ -1,12 +1,9 @@
 import { ArrowRight } from 'lucide-react';
-import { useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 
-import { ReactionButton } from '../ReactionButton';
 import { formatRelativeTime } from './helpers';
-import { ReactionsModal } from './ReactionsModal';
 import type { FeedEvent } from './types';
 
 /**
@@ -23,7 +20,6 @@ import type { FeedEvent } from './types';
  * card says which seat so the reader can find their own picks in it.
  */
 export function LineupChangeItem({ event }: { event: FeedEvent }) {
-  const [reactionsOpen, setReactionsOpen] = useState(false);
   const moves = event.seatMoves ?? [];
 
   return (
@@ -32,13 +28,6 @@ export function LineupChangeItem({ event }: { event: FeedEvent }) {
         <p className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-accent">
           Grid change
         </p>
-        <ReactionButton
-          feedEventId={event._id}
-          reactionCount={event.reactionCount}
-          reactionCounts={event.reactionCounts}
-          viewerReaction={event.viewerReaction}
-          onCountClick={() => setReactionsOpen(true)}
-        />
       </div>
 
       {/* Below the row, not inside it: sharing the eyebrow's column meant
@@ -102,13 +91,6 @@ export function LineupChangeItem({ event }: { event: FeedEvent }) {
           {event.lineupNote}
         </p>
       ) : null}
-
-      {reactionsOpen && (
-        <ReactionsModal
-          feedEventId={event._id}
-          onClose={() => setReactionsOpen(false)}
-        />
-      )}
     </>
   );
 }

@@ -77,7 +77,7 @@ const STATIC_COMMANDS: readonly PaletteCommand[] = [
     label: 'Activity feed',
     group: 'Go to',
     href: '/feed',
-    keywords: ['reactions', 'following'],
+    keywords: ['following'],
   },
   {
     id: 'notifications',

@@ -1,15 +1,12 @@
 import { Link } from '@tanstack/react-router';
 import { ExternalLink } from 'lucide-react';
-import { useState } from 'react';
 import type { CSSProperties } from 'react';
 
 import { StartingGridTable } from '@/components/StartingGridTable';
 import { newsMentionsGridPenalty } from '@/lib/newsGridPenalty';
 import { TEAM_COLORS } from '@/lib/teamColors';
 
-import { ReactionButton } from '../ReactionButton';
 import { formatRelativeTime } from './helpers';
-import { ReactionsModal } from './ReactionsModal';
 import type { FeedEvent } from './types';
 
 /**
@@ -48,7 +45,6 @@ export function RaceNewsItem({
    */
   grouped?: boolean;
 }) {
-  const [reactionsOpen, setReactionsOpen] = useState(false);
   // The item's own colour, from the driver it is about. Same colour the badges
   // and `LineupChangeItem` use, so a run of news reads as a Williams story
   // then a Mercedes one rather than two grey blocks. With the badges gone it is
@@ -76,16 +72,7 @@ export function RaceNewsItem({
         </p>
       )}
 
-      {/*
-        Full width, with nothing beside it.
-        The reaction button used to share this row, which laid the headline out
-        91px narrower than the card — on a 336px feed card that took it from
-        324px to 233px and wrapped it two or three words early, under a button
-        sitting on the row above with nothing beside it. The body copy never had
-        the problem, which is why the two read as different widths. The button
-        now sits in the footer beside the source, where a fixed-width control
-        belongs next to a short line rather than across from a wrapping one.
-      */}
+      {/* Full-width headline so it wraps consistently with the body copy. */}
       <p className="text-sm font-semibold text-text not-first:mt-1.5">
         {event.newsHeadline}
         <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-text-muted">
@@ -142,24 +129,7 @@ export function RaceNewsItem({
             </Link>
           )}
         </div>
-
-        <ReactionButton
-          feedEventId={event._id}
-          reactionCount={event.reactionCount}
-          reactionCounts={event.reactionCounts}
-          viewerReaction={event.viewerReaction}
-          onCountClick={() => setReactionsOpen(true)}
-          context="news"
-        />
       </div>
-
-      {reactionsOpen && (
-        <ReactionsModal
-          feedEventId={event._id}
-          onClose={() => setReactionsOpen(false)}
-          context="news"
-        />
-      )}
     </div>
   );
 }

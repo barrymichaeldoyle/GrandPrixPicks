@@ -4,7 +4,6 @@ import { Link } from '@tanstack/react-router';
 import { useQuery } from '@/integrations/convex/query';
 import { Avatar } from '../Avatar';
 import { RaceFlag } from '../RaceFlag';
-import { ReactionButton } from '../ReactionButton';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import {
   type CSSProperties,
@@ -21,7 +20,6 @@ import type { FeedEvent, SessionHeader } from './types';
 import { useReorderFlip } from '../feed/useReorderFlip';
 import { FeedItem } from './FeedItem';
 import { H2HPicksDialog } from './H2HPicksDialog';
-import { ReactionsModal } from './ReactionsModal';
 import { UserLink } from './UserLink';
 import {
   type LiveBoard,
@@ -147,7 +145,6 @@ function SessionLeaderboardRow({
   live?: LivePlayer;
 }) {
   const [h2hOpen, setH2hOpen] = useState(false);
-  const [reactionsOpen, setReactionsOpen] = useState(false);
   // Subscribed here rather than inside the dialog: the order has to be in hand
   // before the dialog opens, or its placeholder rows sort by last season and
   // reshuffle when the picks land.
@@ -214,13 +211,8 @@ function SessionLeaderboardRow({
           </span>
         </div>
 
-        {/* Picks, one per finishing slot, banded with their score colour. One
-            wrap flow rather than a breakpoint: the reaction sits beside the
-            slots whenever the row is genuinely wide enough for both, which a
-            viewport query cannot know inside a 300px rail. */}
+        {/* Picks, one per finishing slot, banded with their score colour. */}
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-          {/* The floor is what makes the wrap happen: without it the slots
-              squeeze to keep the reaction on the line and the codes collide. */}
           <div className={`${SLOT_GRID} min-w-[15rem] flex-1`}>
             {Array.from({ length: 5 }, (_, i) => {
               const pick = picks[i];
@@ -238,16 +230,6 @@ function SessionLeaderboardRow({
               );
             })}
           </div>
-
-          <div className="ml-auto shrink-0">
-            <ReactionButton
-              feedEventId={event._id}
-              reactionCount={event.reactionCount}
-              reactionCounts={event.reactionCounts}
-              viewerReaction={event.viewerReaction}
-              onCountClick={() => setReactionsOpen(true)}
-            />
-          </div>
         </div>
       </div>
 
@@ -261,12 +243,6 @@ function SessionLeaderboardRow({
           displayName={event.displayName ?? event.username ?? 'User'}
           teamOrder={teamOrder}
           onClose={() => setH2hOpen(false)}
-        />
-      )}
-      {reactionsOpen && (
-        <ReactionsModal
-          feedEventId={event._id}
-          onClose={() => setReactionsOpen(false)}
         />
       )}
     </>

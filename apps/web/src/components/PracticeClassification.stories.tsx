@@ -1,7 +1,6 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import type { Meta, StoryObj } from '@storybook/react';
-import { emptyReactionCounts } from '@grandprixpicks/shared/reactions';
 import { PracticeClassification } from './PracticeClassification';
 import { PracticePublishedItem } from './FeedItem/PracticePublishedItem';
 import {
@@ -99,9 +98,6 @@ export const Feed: Story = {
             raceSlug: 'madrid-2026',
             practiceSessionType: 'fp1',
             createdAt: 1789131395126,
-            reactionCount: 0,
-            reactionCounts: emptyReactionCounts(),
-            viewerReaction: null,
           }}
         />
       </div>

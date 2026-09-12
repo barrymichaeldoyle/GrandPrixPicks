@@ -85,7 +85,7 @@ export async function prepareNotificationChannels(): Promise<void> {
       importance: Notifications.AndroidImportance.DEFAULT,
     }),
     Notifications.setNotificationChannelAsync('social', {
-      name: 'News and reactions',
+      name: 'News',
       importance: Notifications.AndroidImportance.LOW,
     }),
   ]);

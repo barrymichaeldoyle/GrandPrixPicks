@@ -13,11 +13,10 @@ The backend selects recipients and creates durable delivery records. Mobile and 
 | Session results                             | Session participants, including H2H-only players              | No per-session email                                                  |
 | Weekend summary                             | Covered by session results                                    | One participant summary after race scoring, with Top 5 and H2H totals |
 | Session locked                              | Separately selectable; off by default                         | None                                                                  |
-| Reactions                                   | Grouped for five minutes, with a per-user 15-minute cooldown  | None                                                                  |
 | Selected news                               | Explicit opt-in, one selected story per user per 24h          | None                                                                  |
 | Official score amendments                   | Existing in-app notice                                        | Included in the totals if the summary has not sent yet                |
 
-News and reactions respect quiet hours (22:00–08:00 in the user's saved timezone, UTC if unavailable). Users can turn quiet hours off. Deadline reminders and results are not delayed by this setting. Mobile foreground pushes do not play sounds or show banners; the notification list remains available.
+Selected news respects quiet hours (22:00–08:00 in the user's saved timezone, UTC if unavailable). Users can turn quiet hours off. Deadline reminders and results are not delayed by this setting. Mobile foreground pushes do not play sounds or show banners; the notification list remains available.
 
 `preferPushReminders` exposes automatic channel selection. With no explicit email preference, it defaults on. Explicit legacy/current email choices default it off, preserving deliberate “both” settings. Email and push opt-outs always apply. Email suppression from a complaint/bounce is independent of these preferences. A native token refreshed within 30 days or a registered browser subscription counts as an available push channel; this is availability evidence, not delivery proof. There is no automatic email fallback merely because a push was unopened.
 

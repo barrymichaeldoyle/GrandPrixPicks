@@ -17,7 +17,7 @@ export function NotificationSettingsCard() {
       </div>
       <p className="text-xs leading-relaxed text-text-muted">
         Choose what reaches you by push and email: session locks, published
-        results, and reactions to your picks.
+        results and session locks.
       </p>
       <Link
         to="/settings"

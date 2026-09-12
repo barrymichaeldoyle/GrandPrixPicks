@@ -1,13 +1,11 @@
 import { Link } from '@tanstack/react-router';
 import { Avatar } from '../Avatar';
-import { ReactionButton } from '../ReactionButton';
 import { useState } from 'react';
 
 import { useConstructorOrder } from '@/hooks/useConstructorOrder';
 import { DriverBadge, ScoredDriverBadge } from '../DriverBadge';
 import type { FeedEvent } from './types';
 import { H2HPicksDialog } from './H2HPicksDialog';
-import { ReactionsModal } from './ReactionsModal';
 import { UserLink } from './UserLink';
 import { SESSION_LABELS, formatRelativeTime, getScoreComment } from './helpers';
 
@@ -19,7 +17,6 @@ export function ScorePublishedItem({
   grouped?: boolean;
 }) {
   const [h2hOpen, setH2hOpen] = useState(false);
-  const [reactionsOpen, setReactionsOpen] = useState(false);
   // Subscribed here rather than inside the dialog: the order has to be in hand
   // before the dialog opens, or its placeholder rows sort by last season and
   // reshuffle when the picks land.
@@ -200,13 +197,6 @@ export function ScorePublishedItem({
           })()}
 
         <div className="-mx-2.5 -mb-2.5 flex items-center justify-between gap-2 px-2.5 py-2">
-          <ReactionButton
-            feedEventId={event._id}
-            reactionCount={event.reactionCount}
-            reactionCounts={event.reactionCounts}
-            viewerReaction={event.viewerReaction}
-            onCountClick={() => setReactionsOpen(true)}
-          />
           {!grouped && (
             <div className="flex shrink-0 items-center gap-2 text-xs text-text-muted">
               {isLocked ? (
@@ -234,18 +224,11 @@ export function ScorePublishedItem({
           onClose={() => setH2hOpen(false)}
         />
       )}
-      {reactionsOpen && (
-        <ReactionsModal
-          feedEventId={event._id}
-          onClose={() => setReactionsOpen(false)}
-        />
-      )}
     </>
   );
 }
 
 export function JoinedLeagueItem({ event }: { event: FeedEvent }) {
-  const [reactionsOpen, setReactionsOpen] = useState(false);
   return (
     <>
       <div className="flex items-center gap-3">
@@ -272,20 +255,7 @@ export function JoinedLeagueItem({ event }: { event: FeedEvent }) {
             · {formatRelativeTime(event.createdAt)}
           </span>
         </p>
-        <ReactionButton
-          feedEventId={event._id}
-          reactionCount={event.reactionCount}
-          reactionCounts={event.reactionCounts}
-          viewerReaction={event.viewerReaction}
-          onCountClick={() => setReactionsOpen(true)}
-        />
       </div>
-      {reactionsOpen && (
-        <ReactionsModal
-          feedEventId={event._id}
-          onClose={() => setReactionsOpen(false)}
-        />
-      )}
     </>
   );
 }

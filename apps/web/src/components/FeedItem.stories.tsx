@@ -1,5 +1,4 @@
 import { api } from '@convex-generated/api';
-import type { Id } from '@convex-generated/dataModel';
 import type { Meta, StoryObj } from '@storybook/react';
 import type { ComponentProps, PropsWithChildren } from 'react';
 
@@ -151,65 +150,18 @@ function makeFeedEvent(overrides: Partial<FeedEvent> = {}): FeedEvent {
       totalPicks: 2,
       points: 1,
     },
-    reactionCount: 4,
-    reactionCounts: {
-      fire: 2,
-      nice: 1,
-      wow: 1,
-      funny: 0,
-      oof: 0,
-    },
     createdAt: NOW - 42 * MINUTE,
-    viewerReaction: null,
     ...overrides,
   };
 }
 
-const revUsersByEventId = new Map([
-  [
-    fakeId<'feedEvents'>('feed-score-published'),
-    [
-      {
-        userId: viewer._id,
-        username: viewer.username,
-        displayName: 'Barry',
-        avatarUrl: viewer.avatarUrl,
-        reactionType: 'fire' as const,
-      },
-      ...otherRevUsers.map((user, index) => ({
-        ...user,
-        reactionType: index === 0 ? ('nice' as const) : ('wow' as const),
-      })),
-    ],
-  ],
-  [
-    fakeId<'feedEvents'>('feed-locked'),
-    [
-      {
-        userId: otherRevUsers[0].userId,
-        username: otherRevUsers[0].username,
-        displayName: otherRevUsers[0].displayName,
-        avatarUrl: otherRevUsers[0].avatarUrl,
-        reactionType: 'nice' as const,
-      },
-    ],
-  ],
-]);
-
 const convexMocks = buildStorybookConvexMocks({
   queries: [
     [api.users.me, viewer],
-    [
-      api.feed.getReactionUsers,
-      ({ feedEventId }: { feedEventId: Id<'feedEvents'> }) =>
-        revUsersByEventId.get(feedEventId) ?? [],
-    ],
     [api.follows.getViewerFollowedIds, [otherRevUsers[0].userId]],
     [api.h2h.getH2HPicksForFeedItem, h2hPicks],
   ],
   mutations: [
-    [api.feed.setReaction, async () => null],
-    [api.feed.removeReaction, async () => null],
     [api.follows.follow, async () => null],
     [api.follows.unfollow, async () => null],
   ],
@@ -276,14 +228,6 @@ export const JoinedLeague: Story = {
       leagueId: fakeId<'leagues'>('legends-league'),
       leagueName: 'Legends League',
       leagueSlug: 'legends-league',
-      reactionCount: 2,
-      reactionCounts: {
-        fire: 1,
-        nice: 1,
-        wow: 0,
-        funny: 0,
-        oof: 0,
-      },
       createdAt: NOW - 3 * HOUR,
     }),
   },
@@ -328,8 +272,6 @@ export const LineupChange: Story = {
       ],
       lineupNote:
         'Isack Hadjar injured his wrist during boxing training and missed the Dutch Grand Prix. Liam Lawson stepped up to Red Bull alongside Max Verstappen, and Yuki Tsunoda took the vacated Racing Bulls seat next to Arvid Lindblad. Hadjar will also miss Monza while he continues his recovery.',
-      reactionCount: 6,
-      reactionCounts: { fire: 2, nice: 1, wow: 3, funny: 0, oof: 0 },
       createdAt: NOW - 20 * MINUTE,
     }),
   },
@@ -362,8 +304,6 @@ export const LineupChangeNewEntry: Story = {
         },
       ],
       lineupNote: undefined,
-      reactionCount: 0,
-      reactionCounts: { fire: 0, nice: 0, wow: 0, funny: 0, oof: 0 },
       createdAt: NOW - 2 * HOUR,
     }),
   },
@@ -482,16 +422,7 @@ export const GroupedSession: Story = {
           totalPicks: 2,
           points: 2,
         },
-        reactionCount: 3,
-        reactionCounts: {
-          fire: 1,
-          nice: 1,
-          wow: 1,
-          funny: 0,
-          oof: 0,
-        },
         createdAt: NOW - 39 * MINUTE,
-        viewerReaction: 'fire',
       }),
       makeFeedEvent({
         _id: fakeId<'feedEvents'>('feed-group-viewer'),
@@ -505,14 +436,6 @@ export const GroupedSession: Story = {
           totalPicks: 2,
           points: 1,
         },
-        reactionCount: 0,
-        reactionCounts: {
-          fire: 0,
-          nice: 0,
-          wow: 0,
-          funny: 0,
-          oof: 0,
-        },
         createdAt: NOW - 39 * MINUTE,
       }),
       makeFeedEvent({
@@ -523,14 +446,6 @@ export const GroupedSession: Story = {
         avatarUrl: 'https://i.pravatar.cc/80?img=20',
         points: 9,
         h2hScore: null,
-        reactionCount: 0,
-        reactionCounts: {
-          fire: 0,
-          nice: 0,
-          wow: 0,
-          funny: 0,
-          oof: 0,
-        },
         createdAt: NOW - 38 * MINUTE,
       }),
     ];

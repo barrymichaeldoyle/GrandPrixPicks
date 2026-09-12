@@ -9,7 +9,6 @@ import { Card } from '../ui/Card';
 import { formatRelativeTime } from './helpers';
 import { NewsGroupCard } from './NewsGroupCard';
 import { PracticePublishedCard } from './practice-published-card';
-import { ReactionButton } from './ReactionButton';
 import type { FeedEvent } from './types';
 
 export type { FeedEvent } from './types';
@@ -137,15 +136,6 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
           ))}
         </View>
       ) : null}
-
-      <View className="flex-row items-center pt-0.5">
-        <ReactionButton
-          feedEventId={event._id}
-          reactionCount={event.reactionCount}
-          reactionCounts={event.reactionCounts}
-          viewerReaction={event.viewerReaction}
-        />
-      </View>
     </Card>
   );
 }
@@ -161,14 +151,6 @@ function SimpleEventCard({
     <Card>
       <EventHeader event={event} />
       <Text className="text-muted text-sm leading-5">{description}</Text>
-      <View className="flex-row items-center pt-0.5">
-        <ReactionButton
-          feedEventId={event._id}
-          reactionCount={event.reactionCount}
-          reactionCounts={event.reactionCounts}
-          viewerReaction={event.viewerReaction}
-        />
-      </View>
     </Card>
   );
 }
@@ -231,15 +213,6 @@ function LineupChangeCard({ event }: { event: FeedEvent }) {
       {event.lineupNote ? (
         <Text className="text-muted text-sm leading-5">{event.lineupNote}</Text>
       ) : null}
-
-      <View className="flex-row items-center pt-0.5">
-        <ReactionButton
-          feedEventId={event._id}
-          reactionCount={event.reactionCount}
-          reactionCounts={event.reactionCounts}
-          viewerReaction={event.viewerReaction}
-        />
-      </View>
     </Card>
   );
 }

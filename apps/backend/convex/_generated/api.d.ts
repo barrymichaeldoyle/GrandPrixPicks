@@ -52,7 +52,6 @@ import type * as lib_notificationEligibility from "../lib/notificationEligibilit
 import type * as lib_raceNewsStartingGrid from "../lib/raceNewsStartingGrid.js";
 import type * as lib_raceNewsWriteUpImage from "../lib/raceNewsWriteUpImage.js";
 import type * as lib_raceTimezones from "../lib/raceTimezones.js";
-import type * as lib_reactions from "../lib/reactions.js";
 import type * as lib_recheckSchedule from "../lib/recheckSchedule.js";
 import type * as lib_scoring from "../lib/scoring.js";
 import type * as lib_season from "../lib/season.js";
@@ -78,7 +77,6 @@ import type * as raceNews from "../raceNews.js";
 import type * as raceNewsMigrations from "../raceNewsMigrations.js";
 import type * as raceScheduleMigrations from "../raceScheduleMigrations.js";
 import type * as races from "../races.js";
-import type * as reactionMigrations from "../reactionMigrations.js";
 import type * as results from "../results.js";
 import type * as resultsRecheck from "../resultsRecheck.js";
 import type * as seed from "../seed.js";
@@ -139,7 +137,6 @@ declare const fullApi: ApiFromModules<{
   "lib/raceNewsStartingGrid": typeof lib_raceNewsStartingGrid;
   "lib/raceNewsWriteUpImage": typeof lib_raceNewsWriteUpImage;
   "lib/raceTimezones": typeof lib_raceTimezones;
-  "lib/reactions": typeof lib_reactions;
   "lib/recheckSchedule": typeof lib_recheckSchedule;
   "lib/scoring": typeof lib_scoring;
   "lib/season": typeof lib_season;
@@ -165,7 +162,6 @@ declare const fullApi: ApiFromModules<{
   raceNewsMigrations: typeof raceNewsMigrations;
   raceScheduleMigrations: typeof raceScheduleMigrations;
   races: typeof races;
-  reactionMigrations: typeof reactionMigrations;
   results: typeof results;
   resultsRecheck: typeof resultsRecheck;
   seed: typeof seed;

@@ -1,8 +1,3 @@
-import type {
-  ReactionCounts,
-  ReactionType,
-} from '@grandprixpicks/shared/reactions';
-
 import type { ConvexId } from '../../integrations/convex/api';
 
 type ScoredPick = {
@@ -78,8 +73,5 @@ export type FeedEvent = {
     team: string | null;
     note?: string;
   }>;
-  reactionCount: number;
-  reactionCounts: ReactionCounts;
   createdAt: number;
-  viewerReaction: ReactionType | null;
 };

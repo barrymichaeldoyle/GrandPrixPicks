@@ -10,7 +10,6 @@ import { SlantedStripe } from '../ui/SlantedStripe';
 import { Numeral } from '../ui/Numeral';
 import type { FeedEvent } from './types';
 import { formatRelativeTime } from './helpers';
-import { ReactionButton } from './ReactionButton';
 
 const SITE_URL = 'https://grandprixpicks.com';
 const GRID_COLLAPSED_ROWS = 10;
@@ -167,13 +166,6 @@ function RaceNewsCard({
               <ScoringPolicyNote />
             )}
           </View>
-          <ReactionButton
-            context="news"
-            feedEventId={event._id}
-            reactionCount={event.reactionCount}
-            reactionCounts={event.reactionCounts}
-            viewerReaction={event.viewerReaction}
-          />
         </View>
       </View>
     </View>

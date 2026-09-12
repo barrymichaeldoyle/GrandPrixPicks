@@ -1,7 +1,3 @@
-import type {
-  ReactionCounts,
-  ReactionType,
-} from '@grandprixpicks/shared/reactions';
 import type { Id } from '@convex-generated/dataModel';
 
 export type ScoredPick = {
@@ -87,16 +83,7 @@ export type FeedEvent = {
     team: string | null;
     note?: string;
   }[];
-  reactionCount: number;
-  reactionCounts: ReactionCounts;
-  recentReactionUsers?: {
-    userId: Id<'users'>;
-    username?: string;
-    avatarUrl?: string;
-    reactionType: ReactionType;
-  }[];
   createdAt: number;
-  viewerReaction: ReactionType | null;
 };
 
 // Feed events carry sessionType as a plain string, so widen the shared map.

@@ -9,14 +9,13 @@ import type { NotificationSettings } from './settingsTypes';
 const IN_APP_NOTIFICATIONS = [
   'Results & scores',
   'Session locked (when you have picks)',
-  'Reactions to your posts (grouped)',
 ];
 
 const PUSH_NOTIFICATION_ROWS = [
   { key: 'pushNews', label: 'Selected news (at most once a day)' },
   {
     key: 'notificationQuietHours',
-    label: 'Quiet hours for news and reactions (22:00–08:00)',
+    label: 'Quiet hours for news (22:00–08:00)',
   },
   {
     key: 'pushPredictionReminders',
@@ -33,10 +32,6 @@ const PUSH_NOTIFICATION_ROWS = [
   {
     key: 'pushSessionLocked',
     label: 'Session locked',
-  },
-  {
-    key: 'pushRevReceived',
-    label: 'Reactions to your posts',
   },
 ] as const;
 

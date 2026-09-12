@@ -58,7 +58,7 @@ export function MoreScreen() {
               icon="notifications-outline"
               label="Notifications"
               onPress={() => navigation.navigate('Notifications')}
-              subtitle="Results, locks, and reactions"
+              subtitle="Results and session locks"
             />
             <View className="ml-[30px] h-px bg-border" />
             <LinkRow

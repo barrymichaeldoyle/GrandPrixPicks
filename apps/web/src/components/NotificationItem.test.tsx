@@ -117,27 +117,6 @@ describe('NotificationItem', () => {
     view.unmount();
   });
 
-  it('keeps the session in the meta line of a reaction, which has no title for it', () => {
-    const view = renderItem({
-      _id: 'notification_rev' as never,
-      type: 'rev_received',
-      createdAt: Date.now(),
-      raceId: 'race_1' as never,
-      raceName: 'Canadian Grand Prix',
-      raceSlug: 'canadian-grand-prix-2026',
-      sessionType: 'quali',
-      actorDisplayName: 'Cait Davies',
-      reactionType: 'fire',
-    });
-
-    const text = view.container.textContent ?? '';
-    expect(text).toContain('Cait Davies');
-    expect(text).toContain('reacted to your pick');
-    expect(text).toContain('Canadian GP');
-    expect(text).toContain('Qualifying');
-    view.unmount();
-  });
-
   it('falls back to a date once a notification is months old', () => {
     const view = renderItem({
       _id: 'notification_old' as never,
@@ -185,7 +164,7 @@ describe('NotificationItem', () => {
     act(() => {
       markRead?.click();
     });
-    expect(view.onMarkRead).toHaveBeenCalledWith('notification_3', undefined);
+    expect(view.onMarkRead).toHaveBeenCalledWith('notification_3');
     view.unmount();
   });
 

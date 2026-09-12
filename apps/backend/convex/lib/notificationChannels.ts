@@ -52,9 +52,6 @@ export function wantsPushResults(user: User): boolean {
 export function wantsPushSessionLocked(user: User): boolean {
   return user.pushSessionLocked ?? false;
 }
-export function wantsPushRevReceived(user: User): boolean {
-  return user.pushRevReceived ?? user.pushReminders ?? true;
-}
 export function wantsPushNews(user: User): boolean {
   return user.pushNews ?? false;
 }
@@ -78,7 +75,6 @@ export function resolvedNotificationSettings(user: User) {
     pushPredictionLockReminders: wantsPushPredictionLockReminders(user),
     pushResults: wantsPushResults(user),
     pushSessionLocked: wantsPushSessionLocked(user),
-    pushRevReceived: wantsPushRevReceived(user),
     pushNews: wantsPushNews(user),
     notificationQuietHours: user.notificationQuietHours ?? true,
     preferPushReminders:

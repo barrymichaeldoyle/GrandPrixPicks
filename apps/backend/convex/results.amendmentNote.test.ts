@@ -69,7 +69,6 @@ async function seedAmendedRace(
       amendmentNote: ORIGINAL_NOTE,
       raceName: 'Monaco Grand Prix',
       raceSlug: 'monaco-2026',
-      revCount: 0,
       createdAt: AMENDED_AT,
     });
 
@@ -83,7 +82,6 @@ async function seedAmendedRace(
       points: 9,
       raceName: 'Monaco Grand Prix',
       raceSlug: 'monaco-2026',
-      revCount: 0,
       createdAt: PUBLISHED_AT,
     });
 

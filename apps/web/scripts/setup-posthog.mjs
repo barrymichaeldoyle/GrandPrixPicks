@@ -90,23 +90,6 @@ const funnels = [
       { event: 'league_joined', name: 'League joined' },
     ],
   },
-  {
-    name: 'Social engagement: follow to reaction',
-    legacyNames: ['Social engagement: follow to rev'],
-    description: 'Tracks whether social discovery leads to feed engagement.',
-    steps: [
-      {
-        event: '$pageview',
-        name: 'Social surface viewed',
-        pathRegex: '^/(feed|leagues/)',
-      },
-      { event: 'user_followed', name: 'User followed' },
-      {
-        event: 'feed_event_reaction_added',
-        name: 'Feed reaction added',
-      },
-    ],
-  },
 ];
 
 const trends = [

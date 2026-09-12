@@ -19,7 +19,6 @@ export const NOTIFICATION_PAGE_SIZE = 20;
  */
 export const NOTIFICATION_FILTER_VALUES = [
   'all',
-  'reactions',
   'results',
   'locked',
   'announcements',
@@ -34,7 +33,6 @@ export type NotificationFilter = (typeof NOTIFICATION_FILTER_VALUES)[number];
  * someone remembers to add it here.
  */
 export const NOTIFICATION_TYPES_BY_FILTER = {
-  reactions: ['rev_received'],
   results: ['results_published', 'results_amended'],
   locked: ['session_locked'],
   announcements: ['announcement'],

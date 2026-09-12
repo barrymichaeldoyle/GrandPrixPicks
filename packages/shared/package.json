@@ -29,7 +29,6 @@
     "./raceCountries": "./src/raceCountries.ts",
     "./raceRecap": "./src/raceRecap.ts",
     "./raceTimezones": "./src/raceTimezones.ts",
-    "./reactions": "./src/reactions.ts",
     "./scoring": "./src/scoring.ts",
     "./sessions": "./src/sessions.ts",
     "./share": "./src/share.ts",

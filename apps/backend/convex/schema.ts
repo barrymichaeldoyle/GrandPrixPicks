@@ -6,10 +6,6 @@ import {
   resolvedStartingGridValidator,
 } from './lib/raceNewsStartingGrid';
 import { raceNewsWriteUpImageValidator } from './lib/raceNewsWriteUpImage';
-import {
-  reactionCountsValidator,
-  reactionTypeValidator,
-} from './lib/reactions';
 import { weatherDayValidator, weatherHourValidator } from './lib/weather';
 
 const sessionType = v.union(
@@ -58,7 +54,6 @@ export default defineSchema({
     pushPredictionLockReminders: v.optional(v.boolean()),
     pushResults: v.optional(v.boolean()),
     pushSessionLocked: v.optional(v.boolean()),
-    pushRevReceived: v.optional(v.boolean()),
     // Legacy fields — kept so existing documents remain valid, no longer written
     emailReminders: v.optional(v.boolean()),
     pushReminders: v.optional(v.boolean()),
@@ -686,7 +681,6 @@ export default defineSchema({
       v.literal('lock_reminder'),
       v.literal('results'),
       v.literal('session_locked'),
-      v.literal('reaction'),
       v.literal('news'),
     ),
     status: v.union(
@@ -887,11 +881,6 @@ export default defineSchema({
      * was that weekend is the historically correct one to show.
      */
     newsStartingGrid: v.optional(resolvedStartingGridValidator),
-    // Engagement
-    revCount: v.number(),
-    // New reaction model. Optional during the rev -> reaction rollout; when
-    // absent, all legacy revs are interpreted as `fire`.
-    reactionCounts: v.optional(reactionCountsValidator),
     createdAt: v.number(),
   })
     .index('by_created', ['createdAt'])
@@ -907,17 +896,6 @@ export default defineSchema({
     // what makes a correction an edit instead of a second post.
     .index('by_race_news_key', ['raceId', 'newsKey'])
     .index('by_user_streak', ['userId', 'streakCount']),
-
-  revs: defineTable({
-    feedEventId: v.id('feedEvents'),
-    userId: v.id('users'),
-    // Optional so existing rev rows remain deployable. Readers treat an
-    // absent value as the default `fire` reaction.
-    reactionType: v.optional(reactionTypeValidator),
-    createdAt: v.number(),
-  })
-    .index('by_event', ['feedEventId'])
-    .index('by_user_event', ['userId', 'feedEventId']),
 
   // ============ SITE ANNOUNCEMENTS ============
 
@@ -1045,7 +1023,6 @@ export default defineSchema({
   inAppNotifications: defineTable({
     userId: v.id('users'), // recipient
     type: v.union(
-      v.literal('rev_received'),
       v.literal('results_published'),
       v.literal('results_amended'),
       v.literal('session_locked'),
@@ -1066,13 +1043,6 @@ export default defineSchema({
     title: v.optional(v.string()),
     body: v.optional(v.string()),
     linkPath: v.optional(v.string()),
-    // rev_received
-    actorUserId: v.optional(v.id('users')),
-    actorUsername: v.optional(v.string()),
-    actorDisplayName: v.optional(v.string()),
-    actorAvatarUrl: v.optional(v.string()),
-    feedEventId: v.optional(v.id('feedEvents')),
-    reactionType: v.optional(reactionTypeValidator),
   })
     .index('by_user_created', ['userId', 'createdAt'])
     .index('by_user_unread', ['userId', 'readAt'])
@@ -1082,7 +1052,6 @@ export default defineSchema({
     // would sort by when the result was first published rather than when it
     // was amended, which is the one thing that view is about.
     .index('by_user_unread_created', ['userId', 'readAt', 'createdAt'])
-    .index('by_user_type_and_feedEventId', ['userId', 'type', 'feedEventId'])
     .index('by_user_type_raceId_and_sessionType', [
       'userId',
       'type',

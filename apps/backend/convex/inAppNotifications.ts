@@ -9,15 +9,10 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
-import type { MutationCtx, QueryCtx } from './_generated/server';
+import type { MutationCtx } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
 import { scheduleLiveScoring } from './liveScoring';
-import {
-  DEFAULT_REACTION_TYPE,
-  type ReactionType,
-  reactionTypeValidator,
-} from './lib/reactions';
 
 /**
  * Ceiling on the unread badge. Past this the UI says "99+" rather than paying
@@ -50,145 +45,14 @@ const notificationFilterValidator = v.union(
   ...NOTIFICATION_FILTER_VALUES.map((value) => v.literal(value)),
 );
 
-async function loadFollowedActorIds(
-  ctx: Pick<QueryCtx, 'db'>,
-  viewerId: Id<'users'>,
-  actorIds: Iterable<Id<'users'>>,
-) {
-  const followedIds = new Set<Id<'users'>>();
-
-  await Promise.all(
-    [...actorIds].map(async (actorId) => {
-      const existing = await ctx.db
-        .query('follows')
-        .withIndex('by_follower_followee', (q) =>
-          q.eq('followerId', viewerId).eq('followeeId', actorId),
-        )
-        .unique();
-      if (existing) {
-        followedIds.add(actorId);
-      }
-    }),
-  );
-
-  return followedIds;
-}
-
-type GroupedNotification = Doc<'inAppNotifications'> & {
-  actors?: Array<{
-    userId?: Id<'users'>;
-    username?: string;
-    displayName?: string;
-    avatarUrl?: string;
-    isFollowed: boolean;
-    reactionType: ReactionType;
-  }>;
-  totalReactionCount?: number;
-  totalRevCount?: number;
-};
-
-/**
- * Collapses reaction notifications onto one row per feed event and leaves every
- * other type alone. The persisted type stays `rev_received` during the
- * compatibility window for released clients.
- *
- * Grouping is scoped to the rows handed in, so a paginated caller can end up
- * with two rows for one feed event when its reactions straddle a page boundary.
- * The clients merge on `feedEventId` for that reason.
- */
-async function groupNotifications(
-  ctx: Pick<QueryCtx, 'db'>,
-  viewerId: Id<'users'>,
-  notifications: Doc<'inAppNotifications'>[],
-): Promise<GroupedNotification[]> {
-  const actorIds = new Set<Id<'users'>>();
-  for (const notification of notifications) {
-    if (notification.actorUserId) {
-      actorIds.add(notification.actorUserId);
-    }
-  }
-  const followedIds = await loadFollowedActorIds(ctx, viewerId, actorIds);
-
-  const revsByEventId = new Map<
-    Id<'feedEvents'>,
-    Doc<'inAppNotifications'>[]
-  >();
-  const result: GroupedNotification[] = [];
-
-  for (const n of notifications) {
-    if (n.type === 'rev_received' && n.feedEventId) {
-      const key = n.feedEventId;
-      if (!revsByEventId.has(key)) {
-        revsByEventId.set(key, []);
-      }
-      revsByEventId.get(key)!.push(n);
-    } else {
-      result.push(n);
-    }
-  }
-
-  for (const revNotifs of revsByEventId.values()) {
-    // Followed actors first, then most recent
-    revNotifs.sort((a, b) => {
-      const aF = a.actorUserId && followedIds.has(a.actorUserId) ? 0 : 1;
-      const bF = b.actorUserId && followedIds.has(b.actorUserId) ? 0 : 1;
-      if (aF !== bF) {
-        return aF - bF;
-      }
-      return b.createdAt - a.createdAt;
-    });
-
-    const representative = revNotifs[0];
-    const groupUnread = revNotifs.some((n) => !n.readAt);
-
-    result.push({
-      ...representative,
-      readAt: groupUnread ? undefined : representative.readAt,
-      actors: revNotifs.map((n) => ({
-        userId: n.actorUserId,
-        username: n.actorUsername,
-        displayName: n.actorDisplayName,
-        avatarUrl: n.actorAvatarUrl,
-        isFollowed: n.actorUserId ? followedIds.has(n.actorUserId) : false,
-        reactionType: n.reactionType ?? DEFAULT_REACTION_TYPE,
-      })),
-      totalReactionCount: revNotifs.length,
-      totalRevCount: revNotifs.length,
-    });
-  }
-
-  result.sort((a, b) => b.createdAt - a.createdAt);
-  return result;
-}
-
-/** Counts reaction rows the way the list renders them: one per feed event. */
-function countGrouped(notifications: Doc<'inAppNotifications'>[]): number {
-  const seenEventIds = new Set<Id<'feedEvents'>>();
-  let count = 0;
-  for (const n of notifications) {
-    if (n.type === 'rev_received' && n.feedEventId) {
-      if (seenEventIds.has(n.feedEventId)) {
-        continue;
-      }
-      seenEventIds.add(n.feedEventId);
-    }
-    count += 1;
-  }
-  return count;
-}
-
 // ============ Public queries ============
 
 /**
  * Paginated notification history, newest first, narrowed by the reader's
  * filters.
  *
- * The filters belong here rather than on the client. When the page filtered
- * what it had already loaded, "Reactions" over a history whose reactions were
- * forty rows back showed an empty inbox next to a button asking the reader to
- * page through their own history looking for them. Filtering in the query
- * means an empty result means empty, and `isDone` means there is genuinely no
- * more of *this* category.
+ * The filters belong here rather than on the client so an empty result means
+ * empty, and `isDone` means there is genuinely no more of this category.
  */
 export const getMyNotifications = query({
   args: {
@@ -224,7 +88,7 @@ export const getMyNotifications = query({
     // category plus a second copy for the unread variant, and Results would
     // still have to merge two paginated streams by hand. The scan this costs
     // is bounded to the one signed-in user's own notifications — around a
-    // hundred a season plus reactions — and only runs when they pick a
+    // hundred a season — and only runs when they pick a
     // category. Revisit if per-user history ever reaches the thousands.
     const scoped = types
       ? ordered.filter((q) =>
@@ -236,7 +100,7 @@ export const getMyNotifications = query({
 
     return {
       ...result,
-      page: await groupNotifications(ctx, viewer._id, result.page),
+      page: result.page,
     };
   },
 });
@@ -254,10 +118,8 @@ function notificationTypesForFilter(
 /**
  * Per-category totals for the filter rail and the mobile chip row.
  *
- * Counted here for the same reason the list is filtered here: counting the
- * loaded page told the reader they had no reactions when they had eleven,
- * which is worse than showing no number at all. Reaction rows are collapsed
- * per feed event so a badge matches the rows the list will actually render.
+ * Counted here for the same reason the list is filtered here: a badge should
+ * describe the whole available history rather than the currently loaded page.
  */
 export const getMyNotificationCounts = query({
   args: {},
@@ -279,26 +141,12 @@ export const getMyNotificationCounts = query({
       { total: number; unread: number }
     > = {
       all: { total: 0, unread: 0 },
-      reactions: { total: 0, unread: 0 },
       results: { total: 0, unread: 0 },
       locked: { total: 0, unread: 0 },
       announcements: { total: 0, unread: 0 },
     };
 
-    // One reaction thread is one row in the list, so it is one here too. Its
-    // unread-ness is the thread's: unread if any row in it is.
-    const reactionThreads = new Map<string, { unread: boolean }>();
-
     for (const row of rows) {
-      if (row.type === 'rev_received' && row.feedEventId) {
-        const thread = reactionThreads.get(row.feedEventId);
-        if (thread) {
-          thread.unread ||= !row.readAt;
-          continue;
-        }
-        reactionThreads.set(row.feedEventId, { unread: !row.readAt });
-        continue;
-      }
       for (const filter of NOTIFICATION_FILTER_VALUES) {
         const types = notificationTypesForFilter(filter);
         if (types && !types.includes(row.type)) {
@@ -306,15 +154,6 @@ export const getMyNotificationCounts = query({
         }
         counts[filter].total += 1;
         if (!row.readAt) {
-          counts[filter].unread += 1;
-        }
-      }
-    }
-
-    for (const thread of reactionThreads.values()) {
-      for (const filter of ['all', 'reactions'] as const) {
-        counts[filter].total += 1;
-        if (thread.unread) {
           counts[filter].unread += 1;
         }
       }
@@ -345,7 +184,7 @@ export const getMyUnreadCount = query({
       .take(UNREAD_COUNT_LIMIT + 1);
 
     return {
-      count: countGrouped(unread.slice(0, UNREAD_COUNT_LIMIT)),
+      count: unread.slice(0, UNREAD_COUNT_LIMIT).length,
       // The badge renders "99+" rather than claiming a precise number it did
       // not count.
       hasMore: unread.length > UNREAD_COUNT_LIMIT,
@@ -379,28 +218,10 @@ export const markAllRead = mutation({
 export const markRead = mutation({
   args: {
     notificationId: v.id('inAppNotifications'),
-    feedEventId: v.optional(v.id('feedEvents')),
   },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getViewer(ctx));
     const now = Date.now();
-
-    // For grouped revs, mark all notifications for the feed event as read
-    if (args.feedEventId) {
-      for await (const notification of ctx.db
-        .query('inAppNotifications')
-        .withIndex('by_user_type_and_feedEventId', (q) =>
-          q
-            .eq('userId', viewer._id)
-            .eq('type', 'rev_received')
-            .eq('feedEventId', args.feedEventId),
-        )) {
-        if (!notification.readAt) {
-          await ctx.db.patch(notification._id, { readAt: now });
-        }
-      }
-      return;
-    }
 
     const notification = await ctx.db.get(args.notificationId);
     if (!notification || notification.userId !== viewer._id) {
@@ -413,54 +234,6 @@ export const markRead = mutation({
 });
 
 // ============ Internal mutations (triggered by other Convex functions) ============
-
-/** Called after a user adds their first reaction to a feed event. */
-export const createRevNotification = internalMutation({
-  args: {
-    recipientUserId: v.id('users'),
-    actorUserId: v.id('users'),
-    feedEventId: v.id('feedEvents'),
-    reactionType: v.optional(reactionTypeValidator),
-    raceId: v.optional(v.id('races')),
-    sessionType: v.optional(sessionTypeValidator),
-    raceName: v.optional(v.string()),
-    raceSlug: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    // Don't notify when someone reacts to their own post.
-    if (args.recipientUserId === args.actorUserId) {
-      return;
-    }
-
-    const actor = await ctx.db.get(args.actorUserId);
-    if (!actor) {
-      return;
-    }
-
-    await ctx.db.insert('inAppNotifications', {
-      userId: args.recipientUserId,
-      type: 'rev_received',
-      actorUserId: args.actorUserId,
-      actorUsername: actor.username,
-      actorDisplayName: actor.displayName,
-      actorAvatarUrl: actor.avatarUrl,
-      feedEventId: args.feedEventId,
-      reactionType: args.reactionType ?? DEFAULT_REACTION_TYPE,
-      raceId: args.raceId,
-      sessionType: args.sessionType,
-      raceName: args.raceName,
-      raceSlug: args.raceSlug,
-      createdAt: Date.now(),
-    });
-
-    await ctx.scheduler.runAfter(0, internal.push.sendPushForRevReceived, {
-      recipientUserId: args.recipientUserId,
-      actorDisplayName: actor.displayName,
-      feedEventId: args.feedEventId,
-      reactionType: args.reactionType ?? DEFAULT_REACTION_TYPE,
-    });
-  },
-});
 
 /** Called from feed.writeFeedEventsForSession after scores are published. */
 export const createResultsNotification = internalMutation({

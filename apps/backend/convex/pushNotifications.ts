@@ -83,10 +83,7 @@ export const deliver = internalAction({
           {
             TTL: ttl,
             timeout: 10000,
-            urgency:
-              row.category === 'news' || row.category === 'reaction'
-                ? 'low'
-                : 'normal',
+            urgency: row.category === 'news' ? 'low' : 'normal',
           },
         );
         await record({ status: 'handed_off' });
@@ -102,14 +99,12 @@ export const deliver = internalAction({
               body: row.body,
               ttl,
               channelId:
-                row.category === 'news' || row.category === 'reaction'
+                row.category === 'news'
                   ? 'social'
                   : row.category === 'results'
                     ? 'results'
                     : 'reminders',
-              ...(row.category !== 'news' && row.category !== 'reaction'
-                ? { sound: 'default' }
-                : {}),
+              ...(row.category !== 'news' ? { sound: 'default' } : {}),
               data: {
                 url: row.url,
                 deliveryId: row._id,

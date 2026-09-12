@@ -10,8 +10,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
  * devices where we cannot recall them. Anyone tapping one lands on the
  * dashboard, which is where the feed they were promised now lives.
  *
- * `/feed/$feedEventId` is untouched — reaction pushes and notification-bell
- * items still deep-link to individual events.
+ * `/feed/$feedEventId` remains available for existing notification links.
  *
  * 301, not the default 307: the page is retired, not moved for the afternoon.
  * A temporary redirect asks Google to keep `/feed` in the index as its own URL

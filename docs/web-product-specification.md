@@ -109,7 +109,6 @@ An authenticated player has all anonymous capabilities and can:
 - maintain a public profile;
 - follow and unfollow players;
 - view personalized and league feeds;
-- add, change, or remove a reaction on feed items;
 - create, join, leave, and share leagues within plan limits;
 - configure profile, regional, email, and device push settings;
 - receive in-app notifications;
@@ -473,7 +472,7 @@ History distinguishes:
 - Authentication identity, email, and avatar originate from Clerk; the in-app
   profile stores the product-facing identity and preferences.
 
-## 11. Social graph, feed, and reactions
+## 11. Social graph and feed
 
 ### 11.1 Following
 
@@ -498,7 +497,7 @@ players and shared leagues. Feed events include implemented event types such as:
 - a player joining an eligible league.
 
 Feed items can include race/session context, picks, score breakdowns, player
-identity, league context, and reactions as appropriate. The feed supports
+identity and league context as appropriate. The feed supports
 pagination and empty/loading states.
 
 Private league activity must not become visible outside its authorized
@@ -508,24 +507,6 @@ membership context.
 
 League members can view a feed scoped to their league. Non-members cannot query
 the private member feed.
-
-### 11.4 Reactions
-
-Reactions are lightweight responses to a feed event. The supported set is:
-
-- 🔥 Great pick;
-- 👏 Nice one;
-- 🤯 Wow;
-- 😂 Funny;
-- 🫣 Oof.
-
-- Authenticated users can add one reaction, change it, or remove it.
-- Feed items show an aggregate count and the most-used reaction emoji.
-- The event detail page groups participants by reaction.
-- Receiving reactions can generate grouped in-app notifications and, when
-  enabled, push notifications.
-- Feed events that no longer exist or are no longer available show a safe
-  unavailable state.
 
 ## 12. Leagues
 
@@ -614,7 +595,6 @@ authenticated players and include:
 - results and scores published;
 - results/scores amended;
 - session locked when the player has picks;
-- reactions received, grouped where applicable.
 
 Players can mark individual notifications or all notifications as read.
 Notification links lead to the relevant race, session, or feed event.
@@ -628,7 +608,6 @@ and independently configure:
 - picks-lock-soon reminders;
 - results and scores;
 - session locked;
-- reactions to posts.
 
 Disabling push access removes the subscription for the current device only.
 Browser-denied permission must be explained without repeatedly prompting.
@@ -817,7 +796,6 @@ such as:
 - draft discard;
 - league creation, joining, and invitation sharing;
 - following and feed interaction;
-- reaction added, changed, and removed;
 - notification opening/read state;
 - checkout start, redirect, success, cancellation, and failure.
 
@@ -909,7 +887,6 @@ keyboard-accessible interaction.
 - Long feeds and season leaderboards paginate instead of loading unbounded
   histories.
 - Duplicate score publication, billing webhook, follow, membership, and
-  reaction actions should be idempotent or safely rejected.
 - Derived scores, standings, feeds, and notifications must remain reconcilable
   after result amendment or rollback.
 - The service worker and offline UI must not present stale data as a confirmed
@@ -935,7 +912,7 @@ keyboard-accessible interaction.
 | `/races/:raceSlug`        | Public/player | Picks, H2H, results, scores, recap, sharing           |
 | `/leaderboard`            | Public/player | Weekend/season, Combined/Top 5/H2H rankings           |
 | `/feed`                   | Player        | Personalized friends-and-leagues activity             |
-| `/feed/:feedEventId`      | Player        | Feed item detail and reaction participants            |
+| `/feed/:feedEventId`      | Player        | Feed item detail                                      |
 | `/leagues`                | Public/player | My leagues, usage, public discovery                   |
 | `/leagues/create`         | Player        | Create private/public league within entitlement       |
 | `/leagues/:slug`          | Public/player | League summary, join flow, member experience          |

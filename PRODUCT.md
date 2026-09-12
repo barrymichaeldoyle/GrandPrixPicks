@@ -111,10 +111,9 @@ public created, 5 public joined. Pass: 50 private created, unlimited private
 joined, 5 public created, unlimited public joined. Promotional prices are
 operational configuration and must be revalidated before any copy reuses them.
 
-**Social.** Follows, an activity feed of system-generated events (score
-published, session locked, joined league, streak milestone), and emoji
-reactions on those events. There are no user-authored posts and no direct
-messaging.
+**Social.** Follows and an activity feed of system-generated events (score
+published, session locked, joined league, and streak milestone). There are no
+user-authored posts and no direct messaging.
 
 **Privacy rule with design consequences.** Another player's picks and
 participation for an open session must never be exposed before that session

@@ -131,7 +131,7 @@ and `store.config.json` carries `"contests": "INFREQUENT_OR_MILD"`.
 
 Two other questionnaire answers are not in `store.config.json` because the
 schema has no field for them: **Social Media = No** (the feed carries
-app-generated events and reactions, with no user-authored text) and **Social
+app-generated events, with no user-authored text) and **Social
 Media Disabled for Users Under 13 = No** (nothing to disable, and the app does
 not call the Declared Age Range API). The Afghanistan and Morocco sales
 restriction is unrelated to these answers: it shows on every combination.
@@ -220,7 +220,7 @@ Suggested order, because the first two are what people actually see in search:
 2. **The weekend.** Session tabs with a countdown to the next lock.
 3. **Team-mate picks.** The H2H grid, part answered.
 4. **Leaderboard.** Season standings with a few real names.
-5. **The feed.** Reactions on somebody's picks, to show it is social.
+5. **The feed.** Activity from the players you follow.
 
 Leagues are deliberately absent from this list: they are managed on the web,
 and the More tab links out rather than rendering them. There is no league

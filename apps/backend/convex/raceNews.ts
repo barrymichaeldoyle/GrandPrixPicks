@@ -915,7 +915,6 @@ async function syncFeedEvent(
     raceId: race._id,
     newsKey: args.key,
     ...shared,
-    revCount: 0,
     createdAt: now,
   });
 }

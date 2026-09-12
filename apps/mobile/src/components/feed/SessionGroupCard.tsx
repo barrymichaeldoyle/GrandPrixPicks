@@ -20,7 +20,6 @@ import { FeedEventCard } from './FeedEventCard';
 import { H2HPicksDialog } from './H2HPicksDialog';
 import { eventTotalPoints, formatRelativeTime } from './helpers';
 import { EmptySlot, PickSlot, ResultSlot } from './PickSlot';
-import { ReactionButton } from './ReactionButton';
 
 export type SessionHeader = {
   raceName: string;
@@ -224,12 +223,10 @@ function SessionLeaderboardRow({
   event,
   isViewer,
   teamOrder,
-  onPressEvent,
 }: {
   event: FeedEvent;
   isViewer: boolean;
   teamOrder?: readonly string[];
-  onPressEvent: (event: FeedEvent) => void;
 }) {
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const { numeralFontFamily } = useTypography();
@@ -330,16 +327,6 @@ function SessionLeaderboardRow({
               );
             })}
           </View>
-          <View className="ml-auto shrink-0">
-            <ReactionButton
-              feedEventId={event._id}
-              onCountPress={() => onPressEvent(event)}
-              reactionCount={event.reactionCount}
-              reactionCounts={event.reactionCounts}
-              variant="split"
-              viewerReaction={event.viewerReaction}
-            />
-          </View>
         </View>
       </View>
 
@@ -419,7 +406,6 @@ export function SessionGroupCard({
           event={event}
           isViewer={Boolean(viewerId && event.userId === viewerId)}
           key={event._id}
-          onPressEvent={onPressEvent}
           teamOrder={teamOrder}
         />
       ))}

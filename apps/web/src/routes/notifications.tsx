@@ -101,7 +101,7 @@ export const Route = createFileRoute('/notifications')({
   head: () =>
     pageMeta({
       title: 'Notifications | Grand Prix Picks',
-      description: 'Session locks, results, reactions, and announcements.',
+      description: 'Session locks, results, and announcements.',
       path: '/notifications',
       noIndex: true,
     }),
@@ -135,9 +135,7 @@ function NotificationsPage() {
     api.inAppNotifications.getMyUnreadCount,
     isSignedIn ? {} : 'skip',
   );
-  // Counted server-side over the whole history for the same reason the list is
-  // filtered server-side: a badge derived from the loaded page said "no
-  // reactions" to someone who had eleven.
+  // Counted server-side over the whole history so filter badges stay accurate.
   const countsResult = useQuery(
     api.inAppNotifications.getMyNotificationCounts,
     isSignedIn ? {} : 'skip',
@@ -152,8 +150,6 @@ function NotificationsPage() {
   const unreadLabel =
     unread?.hasMore && unreadCount > 0 ? `${unreadCount}+` : `${unreadCount}`;
 
-  // A reaction thread whose rows straddle a page boundary comes back as two
-  // groups; merging on the feed event puts it back together.
   const notifications = mergeNotificationPages(results as Notification[]);
   const counts = countsResult?.counts ?? EMPTY_NOTIFICATION_FILTER_COUNTS;
   const countsTruncated = countsResult?.truncated ?? false;
@@ -213,17 +209,12 @@ function NotificationsPage() {
     loadMore(NOTIFICATION_PAGE_SIZE);
   }
 
-  function handleMarkRead(
-    id: Id<'inAppNotifications'>,
-    feedEventId?: Id<'feedEvents'>,
-  ) {
+  function handleMarkRead(id: Id<'inAppNotifications'>) {
     captureAnalyticsEvent('notification_marked_read', {
       notification_id: id,
-      has_feed_event: Boolean(feedEventId),
     });
     markReadMutation({
       notificationId: id,
-      feedEventId,
     });
   }
 
@@ -235,12 +226,11 @@ function NotificationsPage() {
       <SignInPrompt
         eyebrow="Notifications"
         title="Everything that happened while you were away"
-        description="One inbox for the sessions you have picks in: what locked, what scored, and who reacted."
+        description="One inbox for session locks, results, and announcements."
         actionLabel="Sign in to see your notifications"
         behind={[
           'Session lock reminders before you miss a pick',
           'Your score, the moment results publish',
-          'Reactions to your picks and posts',
           'League invites and member activity',
         ]}
       />

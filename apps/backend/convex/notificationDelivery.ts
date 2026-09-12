@@ -12,7 +12,6 @@ import {
   wantsPushPredictionReminders,
   wantsPushPredictionLockReminders,
   wantsPushResults,
-  wantsPushRevReceived,
   wantsPushSessionLocked,
 } from './lib/notificationChannels';
 
@@ -21,7 +20,6 @@ export const categoryValidator = v.union(
   v.literal('lock_reminder'),
   v.literal('results'),
   v.literal('session_locked'),
-  v.literal('reaction'),
   v.literal('news'),
 );
 export const messageFields = {
@@ -56,12 +54,8 @@ export type Message = {
 };
 const limiter = new RateLimiter(components.rateLimiter, {
   push: { kind: 'token bucket', rate: 400, period: 1000, capacity: 400 },
-  reaction: { kind: 'token bucket', rate: 1, period: 15 * 60000, capacity: 1 },
 });
 function inferCategory(url: string): Category {
-  if (url.includes('reaction_received')) {
-    return 'reaction';
-  }
   if (url.includes('session_locked')) {
     return 'session_locked';
   }
@@ -82,7 +76,6 @@ export function allowed(user: Doc<'users'>, category: Category) {
     lock_reminder: wantsPushPredictionLockReminders,
     results: wantsPushResults,
     session_locked: wantsPushSessionLocked,
-    reaction: wantsPushRevReceived,
     news: wantsPushNews,
   }[category](user);
 }
@@ -126,22 +119,7 @@ async function enqueue(
   }
   const now = Date.now();
   const eventKey =
-    message.eventKey ??
-    `${category}:${message.url}:${message.title}${category === 'reaction' ? `:${Math.floor(now / 900000)}` : ''}`;
-  if (category === 'reaction') {
-    const siblings = await ctx.db
-      .query('notificationDeliveries')
-      .withIndex('by_event', (q) => q.eq('eventKey', eventKey))
-      .take(100);
-    if (!siblings.some((r) => r.userId === userId)) {
-      const quota = await limiter.limit(ctx, 'reaction', {
-        key: String(userId),
-      });
-      if (!quota.ok) {
-        return;
-      }
-    }
-  }
+    message.eventKey ?? `${category}:${message.url}:${message.title}`;
   const key = `${eventKey}:${channel}:${target}`;
   if (
     await ctx.db
@@ -167,8 +145,7 @@ async function enqueue(
     campaign = await ctx.db.get(id);
   }
   const dueAt =
-    (category === 'news' || category === 'reaction') &&
-    user.notificationQuietHours !== false
+    category === 'news' && user.notificationQuietHours !== false
       ? quietUntil(now, user.timezone)
       : now;
   await ctx.db.insert('notificationDeliveries', {
@@ -183,9 +160,8 @@ async function enqueue(
     category,
     status: 'queued',
     attempts: 0,
-    dueAt: Math.max(dueAt, category === 'reaction' ? now + 5 * 60000 : now),
-    expiresAt:
-      message.expiresAt ?? now + (category === 'reaction' ? 12 : 24) * 3600000,
+    dueAt,
+    expiresAt: message.expiresAt ?? now + 24 * 3600000,
     raceId: message.raceId,
     sessionType: message.sessionType,
     expectedLockAt: message.expectedLockAt,
@@ -306,10 +282,7 @@ export const dispatchDue = internalMutation({
         continue;
       }
       const user = await ctx.db.get(row.userId);
-      if (
-        (row.category === 'news' || row.category === 'reaction') &&
-        user?.notificationQuietHours !== false
-      ) {
+      if (row.category === 'news' && user?.notificationQuietHours !== false) {
         const due = quietUntil(now, user?.timezone);
         if (due > now) {
           await ctx.db.patch(row._id, { dueAt: due });
@@ -416,35 +389,6 @@ export const prepare = internalMutation({
         await ctx.db.patch(row._id, { status: 'cancelled' });
         return null;
       }
-    }
-    if (row.category === 'reaction') {
-      const feedId = ctx.db.normalizeId(
-        'feedEvents',
-        row.url.split('/feed/')[1]?.split('?')[0] ?? '',
-      );
-      if (!feedId) {
-        return null;
-      }
-      const reactions = await ctx.db
-        .query('inAppNotifications')
-        .withIndex('by_user_type_and_feedEventId', (q) =>
-          q
-            .eq('userId', row.userId)
-            .eq('type', 'rev_received')
-            .eq('feedEventId', feedId),
-        )
-        .take(100);
-      const unread = reactions.filter(
-        (r) => !r.readAt && r.createdAt >= row.createdAt - 15 * 60000,
-      );
-      if (!unread.length) {
-        await ctx.db.patch(row._id, { status: 'cancelled' });
-        return null;
-      }
-      row.body =
-        unread.length === 1
-          ? 'Someone reacted to your picks.'
-          : `${unread.length} reactions to your picks.`;
     }
     const sub =
       row.channel === 'web'
@@ -563,27 +507,6 @@ export const markOpened = mutation({
         for (const notification of notifications) {
           if (!notification.readAt) {
             await ctx.db.patch(notification._id, { readAt: Date.now() });
-          }
-        }
-      } else if (row.category === 'reaction') {
-        const feedId = ctx.db.normalizeId(
-          'feedEvents',
-          row.url.split('/feed/')[1]?.split('?')[0] ?? '',
-        );
-        if (feedId) {
-          const notifications = await ctx.db
-            .query('inAppNotifications')
-            .withIndex('by_user_type_and_feedEventId', (q) =>
-              q
-                .eq('userId', viewer._id)
-                .eq('type', 'rev_received')
-                .eq('feedEventId', feedId),
-            )
-            .take(100);
-          for (const notification of notifications) {
-            if (!notification.readAt) {
-              await ctx.db.patch(notification._id, { readAt: Date.now() });
-            }
           }
         }
       }

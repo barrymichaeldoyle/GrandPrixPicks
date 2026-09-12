@@ -282,8 +282,6 @@ function resolveNotificationSettings(
       optimistic?.notificationQuietHours ??
       user?.notificationQuietHours ??
       true,
-    pushRevReceived:
-      optimistic?.pushRevReceived ?? user?.pushRevReceived ?? true,
   };
 }
 

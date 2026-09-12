@@ -1,4 +1,3 @@
-import { REACTION_TYPES } from '@grandprixpicks/shared/reactions';
 import {
   coversRound,
   driverStintsForSeason,
@@ -15,12 +14,6 @@ import { computeFollowCountsForUser } from './lib/followCounts';
 import { HADJAR_DUTCH_GP_LINEUP_NOTE } from './lib/italy2026MonzaNewsCopy';
 import { successorPick } from './lib/lineups';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
-import {
-  changeReactionCount,
-  DEFAULT_REACTION_TYPE,
-  emptyReactionCounts,
-  normalizeReactionCounts,
-} from './lib/reactions';
 import { scoreTopFive } from './lib/scoring';
 import { scheduleReminder } from './notifications';
 
@@ -2930,15 +2923,6 @@ export const _clearDevDataBatch = internalMutation({
       deleted++;
     }
     if (h2hStandings.length === BATCH) {
-      return { deleted, done: false };
-    }
-
-    const revs = await ctx.db.query('revs').take(BATCH);
-    for (const doc of revs) {
-      await ctx.db.delete(doc._id);
-      deleted++;
-    }
-    if (revs.length === BATCH) {
       return { deleted, done: false };
     }
 
@@ -6508,109 +6492,10 @@ export const reseedDevForFeed = internalAction({
 });
 
 /**
- * Seed one rev notification for a target user using an existing feed event.
- *
- * Run via:
- *   npx convex run seed:seedRevNotificationForUser '{"username": "barrymichaeldoyle"}'
- *   npx convex run seed:seedRevNotificationForUser '{"clerkUserId": "user_xxx"}'
- */
-export const seedRevNotificationForUser = internalMutation({
-  args: {
-    username: v.optional(v.string()),
-    clerkUserId: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const targetUser = args.clerkUserId
-      ? await ctx.db
-          .query('users')
-          .withIndex('by_clerkUserId', (q) =>
-            q.eq('clerkUserId', args.clerkUserId!),
-          )
-          .unique()
-      : args.username
-        ? await ctx.db
-            .query('users')
-            .withIndex('by_username', (q) => q.eq('username', args.username))
-            .unique()
-        : await ctx.db.query('users').first();
-
-    if (!targetUser) {
-      throw new Error(
-        'Target user not found. Sign in first or provide clerkUserId/username.',
-      );
-    }
-
-    const feedEvent = await ctx.db
-      .query('feedEvents')
-      .withIndex('by_user_created', (q) => q.eq('userId', targetUser._id))
-      .order('desc')
-      .first();
-
-    if (!feedEvent) {
-      throw new Error(
-        'No feed event found for target user. Run seed:reseedDevForFeed first.',
-      );
-    }
-
-    const candidateUsers = await ctx.db.query('users').take(50);
-    const actor =
-      candidateUsers.find((user) => user._id !== targetUser._id) ?? null;
-
-    if (!actor) {
-      throw new Error('No actor user available to create a rev notification.');
-    }
-
-    const existingRev = await ctx.db
-      .query('revs')
-      .withIndex('by_user_event', (q) =>
-        q.eq('userId', actor._id).eq('feedEventId', feedEvent._id),
-      )
-      .first();
-
-    if (!existingRev) {
-      await ctx.db.insert('revs', {
-        feedEventId: feedEvent._id,
-        userId: actor._id,
-        reactionType: DEFAULT_REACTION_TYPE,
-        createdAt: Date.now(),
-      });
-
-      await ctx.db.patch(feedEvent._id, {
-        revCount: feedEvent.revCount + 1,
-        reactionCounts: changeReactionCount(
-          feedEvent.reactionCounts,
-          feedEvent.revCount,
-          DEFAULT_REACTION_TYPE,
-          1,
-        ),
-      });
-    }
-
-    await ctx.runMutation(internal.inAppNotifications.createRevNotification, {
-      recipientUserId: targetUser._id,
-      actorUserId: actor._id,
-      feedEventId: feedEvent._id,
-      reactionType: DEFAULT_REACTION_TYPE,
-      raceId: feedEvent.raceId,
-      sessionType: feedEvent.sessionType,
-      raceName: feedEvent.raceName,
-      raceSlug: feedEvent.raceSlug,
-    });
-
-    return {
-      recipientUsername: targetUser.username,
-      actorUsername: actor.username,
-      feedEventId: feedEvent._id,
-      raceSlug: feedEvent.raceSlug,
-    };
-  },
-});
-
-/**
  * Seed a showcase set of in-app notifications for a target user.
  *
  * This clears the user's current in-app notifications and replaces them with
- * a small set of rev/results/locked rows for layout testing.
+ * a small set of results and locked rows for layout testing.
  *
  * Run via:
  *   npx convex run seed:seedNotificationShowcaseForUser '{"username": "barrymichaeldoyle"}'
@@ -6681,56 +6566,8 @@ export const seedNotificationShowcaseForUser = internalMutation({
       .map((slug) => races.find((race) => race.slug === slug))
       .filter((race): race is NonNullable<typeof race> => race !== undefined);
 
-    const actorProfiles = [
-      { actorDisplayName: 'Barry Business', actorUsername: 'barrybiz' },
-      { actorDisplayName: 'Caitlyn Davies', actorUsername: 'caitdavies' },
-      { actorDisplayName: 'Alexandra van der Merwe', actorUsername: 'alexvdm' },
-      { actorDisplayName: 'M. J. Thompson-Singh', actorUsername: 'mjts' },
-      { actorDisplayName: 'Sam Okonkwo', actorUsername: 'samokon' },
-    ] as const;
-
-    // Each entry defines how many actors revved that session's feed event.
-    // This lets us showcase single, double, triple and "N others" grouping.
-    const revShowcase: Array<{ sessionType: SessionType; actorCount: number }> =
-      [
-        { sessionType: 'race', actorCount: 5 }, // "Barry, Caitlyn and 3 others"
-        { sessionType: 'quali', actorCount: 3 }, // "Barry, Caitlyn and Alexandra"
-        { sessionType: 'sprint', actorCount: 2 }, // "Barry and Caitlyn"
-        { sessionType: 'sprint_quali', actorCount: 1 }, // "Barry Business"
-      ];
-
     let created = 0;
     const now = Date.now();
-
-    for (const [
-      groupIndex,
-      { sessionType, actorCount },
-    ] of revShowcase.entries()) {
-      const event = feedEventBySession.get(sessionType);
-      if (!event) {
-        continue;
-      }
-
-      for (let i = 0; i < actorCount; i++) {
-        const actor = actorProfiles[i % actorProfiles.length];
-        await ctx.db.insert('inAppNotifications', {
-          userId: targetUser._id,
-          type: 'rev_received',
-          actorDisplayName: actor.actorDisplayName,
-          actorUsername: actor.actorUsername,
-          feedEventId: event._id,
-          reactionType:
-            REACTION_TYPES[i % REACTION_TYPES.length] ?? DEFAULT_REACTION_TYPE,
-          raceId: event.raceId,
-          sessionType,
-          raceName: event.raceName,
-          raceSlug: event.raceSlug,
-          // Actors within the same group have slightly staggered times
-          createdAt: now - groupIndex * 10 * 60_000 - i * 60_000,
-        });
-        created++;
-      }
-    }
 
     const resultsShowcase = [
       {
@@ -6796,7 +6633,6 @@ export const seedNotificationShowcaseForUser = internalMutation({
     return {
       username: targetUser.username,
       created,
-      revSessionsSeeded: [...feedEventBySession.keys()],
       showcaseRaceSlugs: showcaseRaces.map((race) => race.slug),
     };
   },
@@ -6852,8 +6688,6 @@ export const seedFeedEvents = internalMutation({
         raceName: race.name,
         raceSlug: race.slug,
         season: race.season,
-        revCount: 0,
-        reactionCounts: emptyReactionCounts(),
         // A score becomes feed activity when its result is published. Falling
         // back to the score timestamp keeps older fixtures deterministic.
         createdAt: result?.publishedAt ?? score.createdAt ?? now,
@@ -6898,8 +6732,6 @@ export const seedFeedEvents = internalMutation({
         leagueId: membership.leagueId,
         leagueName: league.name,
         leagueSlug: league.slug,
-        revCount: 0,
-        reactionCounts: emptyReactionCounts(),
         createdAt: membership.joinedAt,
       });
       created++;
@@ -6912,7 +6744,7 @@ export const seedFeedEvents = internalMutation({
 /**
  * Enrich an existing leaderboard/dev seed so the signed-in dashboard feed looks
  * closer to production: follow people who have scores, backfill score feed
- * events, strip private-league join noise, and add a few revs.
+ * events, and strip private-league join noise.
  *
  * Does **not** reset races or wipe picks — safe to run on top of
  * seedLeaderboardScenario while testing the Dutch (or current) open weekend.
@@ -7005,23 +6837,20 @@ export const seedDashboardSocialFeed = internalMutation({
 
     // Private demo leagues should not dominate the feed the way they do after
     // a naive seedFeedEvents backfill.
-    const purgeResult: { deletedEvents: number; deletedRevs: number } =
-      await ctx.runMutation(internal.feed.purgePrivateLeagueJoinEvents, {});
+    const purgeResult: { deletedEvents: number } = await ctx.runMutation(
+      internal.feed.purgePrivateLeagueJoinEvents,
+      {},
+    );
 
     const feedResult: { created: number } = await ctx.runMutation(
       internal.seed.seedFeedEvents,
     );
-    const revsResult: { created: number } = await ctx.runMutation(
-      internal.seed.seedRevs,
-    );
-
     return {
       username: target.username,
       followsCreated,
       following: Math.min(candidates.length, followLimit),
       privateJoinsRemoved: purgeResult.deletedEvents,
       feedEventsCreated: feedResult.created,
-      revsCreated: revsResult.created,
     };
   },
 });
@@ -7118,71 +6947,6 @@ export const seedDashboardNews = internalMutation({
       newsItems: active.length,
       feedEvents,
     };
-  },
-});
-
-/**
- * Seed revs on existing feed events so the Rev button has real data to show.
- * Randomly assigns 1–4 revs per event using other users in the system.
- *
- * npx convex run seed:seedRevs
- */
-export const seedRevs = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    const events = await ctx.db.query('feedEvents').take(200);
-    const users = await ctx.db.query('users').take(100);
-    if (users.length < 2) {
-      return { created: 0 };
-    }
-
-    let created = 0;
-
-    for (const event of events) {
-      // Pick a random subset of users (1–4) to react, excluding the event owner.
-      const others = users.filter((u) => u._id !== event.userId);
-      const shuffled = others.sort(() => Math.random() - 0.5);
-      const revCount = Math.floor(Math.random() * 4) + 1;
-      const reactors = shuffled.slice(0, Math.min(revCount, shuffled.length));
-
-      for (const [index, user] of reactors.entries()) {
-        // Skip if already reacted.
-        const existing = await ctx.db
-          .query('revs')
-          .withIndex('by_user_event', (q) =>
-            q.eq('userId', user._id).eq('feedEventId', event._id),
-          )
-          .first();
-        if (existing) {
-          continue;
-        }
-        await ctx.db.insert('revs', {
-          feedEventId: event._id,
-          userId: user._id,
-          reactionType:
-            REACTION_TYPES[index % REACTION_TYPES.length] ??
-            DEFAULT_REACTION_TYPE,
-          createdAt: Date.now(),
-        });
-        created++;
-      }
-
-      // Update aggregate and per-reaction counts to match.
-      const reactions = await ctx.db
-        .query('revs')
-        .withIndex('by_event', (q) => q.eq('feedEventId', event._id))
-        .take(100);
-      const reactionCounts = emptyReactionCounts();
-      for (const reaction of reactions) {
-        reactionCounts[reaction.reactionType ?? DEFAULT_REACTION_TYPE] += 1;
-      }
-      await ctx.db.patch(event._id, {
-        revCount: reactions.length,
-        reactionCounts: normalizeReactionCounts(reactionCounts),
-      });
-    }
-
-    return { created };
   },
 });
 

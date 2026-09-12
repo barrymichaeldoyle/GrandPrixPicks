@@ -1021,7 +1021,6 @@ export const updateNotificationSettings = mutation({
     pushPredictionLockReminders: v.optional(v.boolean()),
     pushResults: v.optional(v.boolean()),
     pushSessionLocked: v.optional(v.boolean()),
-    pushRevReceived: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));

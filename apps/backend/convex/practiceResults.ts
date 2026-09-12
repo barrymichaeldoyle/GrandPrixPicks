@@ -15,7 +15,6 @@ import {
   parseOpenF1Sessions,
 } from './openF1Results';
 import { getViewer } from './lib/auth';
-import { emptyReactionCounts } from './lib/reactions';
 
 const MINUTE = 60_000;
 const PRACTICE_DURATION = 60 * MINUTE;
@@ -416,8 +415,6 @@ async function ensurePracticeFeedEvent(
     round: race.round,
     practiceSessionType: sessionType,
     createdAt: publishedAt,
-    revCount: 0,
-    reactionCounts: emptyReactionCounts(),
   });
 }
 

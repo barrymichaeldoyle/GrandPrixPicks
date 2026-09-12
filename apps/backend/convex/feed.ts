@@ -3,21 +3,9 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
-import type {
-  DatabaseReader,
-  MutationCtx,
-  QueryCtx,
-} from './_generated/server';
-import { internalMutation, mutation, query } from './_generated/server';
+import type { DatabaseReader, MutationCtx } from './_generated/server';
+import { internalMutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
-import {
-  changeReactionCount,
-  DEFAULT_REACTION_TYPE,
-  emptyReactionCounts,
-  normalizeReactionCounts,
-  type ReactionType,
-  reactionTypeValidator,
-} from './lib/reactions';
 import { loadConstructorPoints } from './f1Standings';
 import { sortByConstructorStanding } from './lib/teammateBattles';
 import { toUserIdentity } from './lib/userIdentity';
@@ -36,10 +24,6 @@ const FEED_BACKFILL_RACES_PER_BATCH = 1;
 type SessionType = Doc<'results'>['sessionType'];
 
 type DbCtx = { db: DatabaseReader };
-
-function newReactionCounts() {
-  return emptyReactionCounts();
-}
 
 export function getSessionLockAt(
   race: Pick<
@@ -146,8 +130,6 @@ async function backfillScorePublishedFeedEventsForRace(
           raceName: race.name,
           raceSlug: race.slug,
           season: race.season,
-          revCount: 0,
-          reactionCounts: newReactionCounts(),
           createdAt: result.publishedAt,
         });
         created++;
@@ -212,8 +194,6 @@ export const writeFeedEventsForSessionLock = internalMutation({
         raceName: race.name,
         raceSlug: race.slug,
         season: race.season,
-        revCount: 0,
-        reactionCounts: newReactionCounts(),
         createdAt: now,
       });
     }
@@ -289,8 +269,6 @@ export const writeFeedEventsForSession = internalMutation({
           raceName: race.name,
           raceSlug: race.slug,
           season: race.season,
-          revCount: 0,
-          reactionCounts: newReactionCounts(),
           createdAt: now,
         });
       }
@@ -352,8 +330,6 @@ export const writeJoinedLeagueFeedEvent = internalMutation({
       leagueId: args.leagueId,
       leagueName: league.name,
       leagueSlug: league.slug,
-      revCount: 0,
-      reactionCounts: newReactionCounts(),
       createdAt: Date.now(),
     });
   },
@@ -441,8 +417,6 @@ export const writeLineupChangeFeedEvent = internalMutation({
       lineupNote: args.note,
       raceName: race?.name,
       raceSlug: race?.slug,
-      revCount: 0,
-      reactionCounts: newReactionCounts(),
       createdAt: Date.now(),
     });
 
@@ -531,8 +505,6 @@ export const writeStreakEventsForRaceSession = internalMutation({
         ...toUserIdentity(user),
         streakCount: streak,
         season: args.season,
-        revCount: 0,
-        reactionCounts: newReactionCounts(),
         createdAt: now,
       });
     }
@@ -605,7 +577,6 @@ type RawEvent = {
     team: string | null;
     note?: string;
   }>;
-  revCount: number;
   createdAt: number;
 };
 
@@ -1103,75 +1074,6 @@ async function enrichScoreEvent(
   };
 }
 
-/** Return the most recent reactions for avatar/emoji previews. */
-async function getRecentReactionUsers(
-  ctx: DbCtx,
-  feedEventId: Id<'feedEvents'>,
-  limit = 5,
-): Promise<
-  Array<{
-    userId: Id<'users'>;
-    username?: string;
-    avatarUrl?: string;
-    reactionType: ReactionType;
-  }>
-> {
-  const reactions = await ctx.db
-    .query('revs')
-    .withIndex('by_event', (q) => q.eq('feedEventId', feedEventId))
-    .order('desc')
-    .take(limit);
-  const users = await Promise.all(
-    reactions.map(async (reaction) => {
-      const user = await ctx.db.get(reaction.userId);
-      return user
-        ? {
-            userId: user._id,
-            username: user.username,
-            avatarUrl: user.avatarUrl,
-            reactionType: reaction.reactionType ?? DEFAULT_REACTION_TYPE,
-          }
-        : null;
-    }),
-  );
-  return users.filter((u): u is NonNullable<typeof u> => u !== null);
-}
-
-async function getReactionState(
-  ctx: DbCtx,
-  event: Pick<Doc<'feedEvents'>, '_id' | 'revCount' | 'reactionCounts'>,
-  viewerId?: Id<'users'>,
-) {
-  const [viewerReaction, recentReactionUsers] = await Promise.all([
-    viewerId
-      ? ctx.db
-          .query('revs')
-          .withIndex('by_user_event', (q) =>
-            q.eq('userId', viewerId).eq('feedEventId', event._id),
-          )
-          .unique()
-      : Promise.resolve(null),
-    getRecentReactionUsers(ctx, event._id),
-  ]);
-  const reactionCounts = normalizeReactionCounts(
-    event.reactionCounts,
-    event.revCount,
-  );
-  const selectedReaction = viewerReaction
-    ? (viewerReaction.reactionType ?? DEFAULT_REACTION_TYPE)
-    : null;
-
-  return {
-    reactionCount: event.revCount,
-    reactionCounts,
-    viewerReaction: selectedReaction,
-    recentReactionUsers,
-    // Legacy response fields keep released clients working during rollout.
-    viewerHasReved: viewerReaction !== null,
-    recentRevUsers: recentReactionUsers,
-  };
-}
-
 /**
  * Profile feed: score_published events for a specific user, most recent first.
  * Used on the profile page to show a user's result history in feed style.
@@ -1179,8 +1081,6 @@ async function getReactionState(
 export const getUserFeed = query({
   args: { userId: v.id('users') },
   handler: async (ctx, args) => {
-    const viewer = await getViewer(ctx);
-
     const rawEvents = await ctx.db
       .query('feedEvents')
       .withIndex('by_user_created', (q) => q.eq('userId', args.userId))
@@ -1196,13 +1096,9 @@ export const getUserFeed = query({
     const [enrichedEvents, sessions] = await Promise.all([
       Promise.all(
         events.map(async (event) => {
-          const [reactionState, scoreEnrichment] = await Promise.all([
-            getReactionState(ctx, event, viewer?._id),
-            enrichScoreEvent(ctx, event),
-          ]);
+          const scoreEnrichment = await enrichScoreEvent(ctx, event);
           return {
             ...event,
-            ...reactionState,
             ...scoreEnrichment,
           };
         }),
@@ -1229,13 +1125,9 @@ export async function getPersonalizedFeedPageData(
   const [enrichedEvents, sessions] = await Promise.all([
     Promise.all(
       page.map(async (event) => {
-        const [reactionState, scoreEnrichment] = await Promise.all([
-          getReactionState(ctx, event, viewer._id),
-          enrichScoreEvent(ctx, event),
-        ]);
+        const scoreEnrichment = await enrichScoreEvent(ctx, event);
         return {
           ...event,
-          ...reactionState,
           ...scoreEnrichment,
         };
       }),
@@ -1297,13 +1189,9 @@ export const getLeagueFeed = query({
     const [enrichedEvents, sessions] = await Promise.all([
       Promise.all(
         page.map(async (event) => {
-          const [reactionState, scoreEnrichment] = await Promise.all([
-            getReactionState(ctx, event, viewer._id),
-            enrichScoreEvent(ctx, event),
-          ]);
+          const scoreEnrichment = await enrichScoreEvent(ctx, event);
           return {
             ...event,
-            ...reactionState,
             ...scoreEnrichment,
           };
         }),
@@ -1328,8 +1216,7 @@ export const getFeedEvent = query({
       return null;
     }
 
-    const [reactionState, scoreEnrichment, sessions] = await Promise.all([
-      getReactionState(ctx, event, viewer._id),
+    const [scoreEnrichment, sessions] = await Promise.all([
       enrichScoreEvent(ctx, event),
       buildSessionHeaders(ctx, [event]),
     ]);
@@ -1342,228 +1229,10 @@ export const getFeedEvent = query({
     return {
       event: {
         ...event,
-        ...reactionState,
         ...scoreEnrichment,
       },
       session: sessionKey ? (sessions[sessionKey] ?? null) : null,
     };
-  },
-});
-
-// ============ Reactions ============
-
-async function setReactionForViewer(
-  ctx: MutationCtx,
-  viewer: Doc<'users'>,
-  feedEventId: Id<'feedEvents'>,
-  reactionType: ReactionType,
-) {
-  const [event, existing] = await Promise.all([
-    ctx.db.get(feedEventId),
-    ctx.db
-      .query('revs')
-      .withIndex('by_user_event', (q) =>
-        q.eq('userId', viewer._id).eq('feedEventId', feedEventId),
-      )
-      .unique(),
-  ]);
-
-  if (!event) {
-    return { status: 'not_found' as const };
-  }
-
-  if (existing) {
-    const previousType = existing.reactionType ?? DEFAULT_REACTION_TYPE;
-    if (previousType === reactionType) {
-      // Opportunistically type legacy rows without changing their count.
-      if (existing.reactionType === undefined) {
-        await ctx.db.patch(existing._id, { reactionType });
-      }
-      return { status: 'unchanged' as const };
-    }
-
-    const decremented = changeReactionCount(
-      event.reactionCounts,
-      event.revCount,
-      previousType,
-      -1,
-    );
-    const reactionCounts = changeReactionCount(
-      decremented,
-      event.revCount,
-      reactionType,
-      1,
-    );
-    await Promise.all([
-      ctx.db.patch(existing._id, {
-        reactionType,
-        createdAt: Date.now(),
-      }),
-      ctx.db.patch(event._id, { reactionCounts }),
-    ]);
-    return { status: 'changed' as const };
-  }
-
-  await ctx.db.insert('revs', {
-    feedEventId,
-    userId: viewer._id,
-    reactionType,
-    createdAt: Date.now(),
-  });
-
-  await ctx.db.patch(event._id, {
-    revCount: event.revCount + 1,
-    reactionCounts: changeReactionCount(
-      event.reactionCounts,
-      event.revCount,
-      reactionType,
-      1,
-    ),
-  });
-
-  // Nobody to tell when the site authored the event: a reaction to a lineup
-  // change has no author waiting to hear about it. The reaction itself is
-  // still recorded above, so the count and the viewer's own state are intact.
-  if (event.userId === undefined) {
-    return { status: 'added' as const };
-  }
-
-  await ctx.scheduler.runAfter(
-    0,
-    internal.inAppNotifications.createRevNotification,
-    {
-      recipientUserId: event.userId,
-      actorUserId: viewer._id,
-      feedEventId,
-      reactionType,
-      raceId: event.raceId,
-      sessionType: event.sessionType,
-      raceName: event.raceName,
-      raceSlug: event.raceSlug,
-    },
-  );
-
-  return { status: 'added' as const };
-}
-
-async function removeReactionForViewer(
-  ctx: MutationCtx,
-  viewer: Doc<'users'>,
-  feedEventId: Id<'feedEvents'>,
-) {
-  const existing = await ctx.db
-    .query('revs')
-    .withIndex('by_user_event', (q) =>
-      q.eq('userId', viewer._id).eq('feedEventId', feedEventId),
-    )
-    .unique();
-
-  if (!existing) {
-    return { status: 'unchanged' as const };
-  }
-
-  await ctx.db.delete(existing._id);
-
-  const event = await ctx.db.get(feedEventId);
-  if (event) {
-    const reactionType = existing.reactionType ?? DEFAULT_REACTION_TYPE;
-    await ctx.db.patch(event._id, {
-      revCount: Math.max(0, event.revCount - 1),
-      reactionCounts: changeReactionCount(
-        event.reactionCounts,
-        event.revCount,
-        reactionType,
-        -1,
-      ),
-    });
-  }
-
-  return { status: 'removed' as const };
-}
-
-export const setReaction = mutation({
-  args: {
-    feedEventId: v.id('feedEvents'),
-    reactionType: reactionTypeValidator,
-  },
-  handler: async (ctx, args) => {
-    const viewer = requireViewer(await getViewer(ctx));
-    return await setReactionForViewer(
-      ctx,
-      viewer,
-      args.feedEventId,
-      args.reactionType,
-    );
-  },
-});
-
-export const removeReaction = mutation({
-  args: { feedEventId: v.id('feedEvents') },
-  handler: async (ctx, args) => {
-    const viewer = requireViewer(await getViewer(ctx));
-    return await removeReactionForViewer(ctx, viewer, args.feedEventId);
-  },
-});
-
-async function listReactionUsers(ctx: QueryCtx, feedEventId: Id<'feedEvents'>) {
-  const reactions = await ctx.db
-    .query('revs')
-    .withIndex('by_event', (q) => q.eq('feedEventId', feedEventId))
-    .order('desc')
-    .take(100);
-
-  const users = await Promise.all(
-    reactions.map(async (reaction) => {
-      const user = await ctx.db.get(reaction.userId);
-      return user
-        ? {
-            userId: user._id,
-            reactionType: reaction.reactionType ?? DEFAULT_REACTION_TYPE,
-            ...toUserIdentity(user),
-          }
-        : null;
-    }),
-  );
-
-  return users.filter((user): user is NonNullable<typeof user> =>
-    Boolean(user),
-  );
-}
-
-export const getReactionUsers = query({
-  args: { feedEventId: v.id('feedEvents') },
-  handler: async (ctx, args) => {
-    return await listReactionUsers(ctx, args.feedEventId);
-  },
-});
-
-// Legacy public API for released clients. A rev maps to the default 🔥
-// reaction, while removing a rev removes whichever reaction the user has.
-export const giveRev = mutation({
-  args: { feedEventId: v.id('feedEvents') },
-  handler: async (ctx, args) => {
-    const viewer = requireViewer(await getViewer(ctx));
-    return await setReactionForViewer(
-      ctx,
-      viewer,
-      args.feedEventId,
-      DEFAULT_REACTION_TYPE,
-    );
-  },
-});
-
-export const removeRev = mutation({
-  args: { feedEventId: v.id('feedEvents') },
-  handler: async (ctx, args) => {
-    const viewer = requireViewer(await getViewer(ctx));
-    return await removeReactionForViewer(ctx, viewer, args.feedEventId);
-  },
-});
-
-export const getRevUsers = query({
-  args: { feedEventId: v.id('feedEvents') },
-  handler: async (ctx, args) => {
-    return await listReactionUsers(ctx, args.feedEventId);
   },
 });
 
@@ -1631,8 +1300,6 @@ export const backfillSessionLockFeedEvents = internalMutation({
         raceName: race.name,
         raceSlug: race.slug,
         season: race.season,
-        revCount: 0,
-        reactionCounts: newReactionCounts(),
         createdAt: now,
       });
       created++;
@@ -1715,19 +1382,13 @@ export const deleteFeedEventsForSession = internalMutation({
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
       )) {
-      // Delete associated revs
-      for await (const rev of ctx.db
-        .query('revs')
-        .withIndex('by_event', (q) => q.eq('feedEventId', event._id))) {
-        await ctx.db.delete(rev._id);
-      }
       await ctx.db.delete(event._id);
     }
   },
 });
 
 /**
- * One-off cleanup: remove joined_league feed events (and their revs) that were
+ * One-off cleanup: remove joined_league feed events that were
  * written for private / password-protected leagues before those joins stopped
  * being broadcast. Run once via `convex run feed:purgePrivateLeagueJoinEvents`.
  */
@@ -1735,7 +1396,6 @@ export const purgePrivateLeagueJoinEvents = internalMutation({
   args: {},
   handler: async (ctx) => {
     let deletedEvents = 0;
-    let deletedRevs = 0;
 
     for await (const league of ctx.db.query('leagues')) {
       if (shouldBroadcastLeagueJoin(league)) {
@@ -1749,17 +1409,11 @@ export const purgePrivateLeagueJoinEvents = internalMutation({
           continue;
         }
 
-        for await (const rev of ctx.db
-          .query('revs')
-          .withIndex('by_event', (q) => q.eq('feedEventId', event._id))) {
-          await ctx.db.delete(rev._id);
-          deletedRevs += 1;
-        }
         await ctx.db.delete(event._id);
         deletedEvents += 1;
       }
     }
 
-    return { deletedEvents, deletedRevs };
+    return { deletedEvents };
   },
 });

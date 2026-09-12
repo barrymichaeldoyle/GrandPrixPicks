@@ -1,30 +1,17 @@
 import { sanitizeInternalPath } from '@grandprixpicks/shared/internalPath';
-import type { ReactionType } from '@grandprixpicks/shared/reactions';
-import { REACTION_BY_TYPE } from '@grandprixpicks/shared/reactions';
 import type { Id } from '@convex-generated/dataModel';
 import { SESSION_LABELS } from '@/lib/sessions';
 import { Link } from '@tanstack/react-router';
 import { Check, Gavel, Lock, Megaphone, Trophy } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import { Avatar } from './Avatar';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { RaceFlag } from './RaceFlag';
 
-type ReactionActor = {
-  userId?: Id<'users'>;
-  username?: string;
-  displayName?: string;
-  avatarUrl?: string;
-  isFollowed: boolean;
-  reactionType: ReactionType;
-};
-
 export type Notification = {
   _id: Id<'inAppNotifications'>;
   type:
-    | 'rev_received'
     | 'results_published'
     | 'results_amended'
     | 'session_locked'
@@ -41,16 +28,6 @@ export type Notification = {
   title?: string;
   body?: string;
   linkPath?: string;
-  actorUserId?: Id<'users'>;
-  actorUsername?: string;
-  actorDisplayName?: string;
-  actorAvatarUrl?: string;
-  reactionType?: ReactionType;
-  feedEventId?: Id<'feedEvents'>;
-  // Grouped reaction fields.
-  actors?: ReactionActor[];
-  totalReactionCount?: number;
-  totalRevCount?: number;
 };
 
 /**
@@ -182,60 +159,6 @@ function NotificationMeta({
   );
 }
 
-function firstName(actor: ReactionActor): string {
-  const name = actor.displayName ?? actor.username ?? 'Someone';
-  return name.split(' ')[0];
-}
-
-function NotificationActorName({ children }: { children: ReactNode }) {
-  return (
-    <span className="font-semibold text-accent transition-colors group-hover:text-accent-hover">
-      {children}
-    </span>
-  );
-}
-
-function ReactionActorNames({ actors }: { actors: ReactionActor[] }) {
-  if (actors.length === 0) {
-    return <span className="font-semibold text-text">Someone</span>;
-  }
-
-  if (actors.length === 1) {
-    const a = actors[0];
-    const label = a.displayName ?? a.username ?? 'Someone';
-    return <NotificationActorName>{label}</NotificationActorName>;
-  }
-  if (actors.length === 2) {
-    return (
-      <>
-        <NotificationActorName>{firstName(actors[0])}</NotificationActorName>
-        <span className="font-semibold text-text"> and </span>
-        <NotificationActorName>{firstName(actors[1])}</NotificationActorName>
-      </>
-    );
-  }
-  if (actors.length === 3) {
-    return (
-      <>
-        <NotificationActorName>{firstName(actors[0])}</NotificationActorName>
-        <span className="font-semibold text-text">, </span>
-        <NotificationActorName>{firstName(actors[1])}</NotificationActorName>
-        <span className="font-semibold text-text"> and </span>
-        <NotificationActorName>{firstName(actors[2])}</NotificationActorName>
-      </>
-    );
-  }
-  const others = actors.length - 2;
-  return (
-    <>
-      <NotificationActorName>{firstName(actors[0])}</NotificationActorName>
-      <span className="font-semibold text-text">, </span>
-      <NotificationActorName>{firstName(actors[1])}</NotificationActorName>
-      <span className="font-semibold text-text"> and {others} others</span>
-    </>
-  );
-}
-
 function NotificationRowBody({
   leading,
   title,
@@ -288,15 +211,12 @@ export function NotificationItem({
 }: {
   notification: Notification;
   onClose?: () => void;
-  onMarkRead: (
-    id: Id<'inAppNotifications'>,
-    feedEventId?: Id<'feedEvents'>,
-  ) => void;
+  onMarkRead: (id: Id<'inAppNotifications'>) => void;
 }) {
   const isUnread = !notification.readAt;
 
   function markRead() {
-    onMarkRead(notification._id, notification.feedEventId);
+    onMarkRead(notification._id);
   }
 
   function handleClick() {
@@ -353,86 +273,6 @@ export function NotificationItem({
   const unreadLabel = isUnread ? (
     <span className="sr-only">Unread notification. </span>
   ) : null;
-
-  if (notification.type === 'rev_received') {
-    const actors = notification.actors ?? [
-      {
-        userId: notification.actorUserId,
-        username: notification.actorUsername,
-        displayName: notification.actorDisplayName,
-        avatarUrl: notification.actorAvatarUrl,
-        isFollowed: false,
-        reactionType: notification.reactionType ?? 'fire',
-      },
-    ];
-    const primary = actors[0];
-    const reactionEmojis = [
-      ...new Set(
-        actors.map(
-          (actor) => REACTION_BY_TYPE[actor.reactionType ?? 'fire'].emoji,
-        ),
-      ),
-    ]
-      .slice(0, 3)
-      .join('');
-
-    return (
-      <NotificationRow unreadControl={unreadControl}>
-        <Link
-          to={
-            notification.feedEventId
-              ? '/feed/$feedEventId'
-              : notification.raceSlug
-                ? '/races/$raceSlug'
-                : '/'
-          }
-          params={
-            notification.feedEventId
-              ? { feedEventId: notification.feedEventId }
-              : notification.raceSlug
-                ? { raceSlug: notification.raceSlug }
-                : undefined
-          }
-          onClick={handleClick}
-          className={itemClass}
-        >
-          <NotificationRowBody
-            unreadLabel={unreadLabel}
-            leading={
-              <div className="relative">
-                <Avatar
-                  avatarUrl={primary.avatarUrl}
-                  username={primary.username}
-                  size="sm"
-                />
-                <span className="absolute -right-1.5 -bottom-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-surface px-0.5 text-[10px] ring-1 ring-border">
-                  {REACTION_BY_TYPE[primary.reactionType ?? 'fire'].emoji}
-                </span>
-              </div>
-            }
-            title={
-              <>
-                <ReactionActorNames actors={actors} />{' '}
-                <span className="inline-flex items-center gap-1">
-                  <span className="text-text-muted">reacted to your pick</span>
-                  <span aria-label="Reactions">{reactionEmojis}</span>
-                </span>
-              </>
-            }
-            meta={
-              <NotificationMeta
-                createdAt={notification.createdAt}
-                raceName={notification.raceName}
-                // The only row whose title does not name the session, so this
-                // is the one place the meta line has to.
-                sessionLabel={sessionLabel || undefined}
-              />
-            }
-          />
-        </Link>
-      </NotificationRow>
-    );
-  }
 
   if (notification.type === 'results_published') {
     const hasPoints = notification.points !== undefined;

@@ -5,7 +5,6 @@ export type NotificationSettings = {
   pushPredictionLockReminders: boolean;
   pushResults: boolean;
   pushSessionLocked: boolean;
-  pushRevReceived: boolean;
   pushNews: boolean;
   notificationQuietHours: boolean;
   preferPushReminders: boolean;

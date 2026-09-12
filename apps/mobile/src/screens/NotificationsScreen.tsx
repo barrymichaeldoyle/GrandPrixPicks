@@ -1,12 +1,9 @@
-import type { ReactionType } from '@grandprixpicks/shared/reactions';
-import { REACTION_BY_TYPE } from '@grandprixpicks/shared/reactions';
 import { Ionicons } from '@expo/vector-icons';
 import { NOTIFICATION_PAGE_SIZE } from '@grandprixpicks/shared/notifications';
 import { useMutation } from 'convex/react';
 import { usePaginatedQuery, useQuery } from '../integrations/convex/query';
 import * as Haptics from 'expo-haptics';
 
-import { Avatar } from '../components/ui/Avatar';
 import { SignedOutState } from '../components/SignedOutState';
 import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -27,7 +24,6 @@ import { FlatList, Pressable, RefreshControl, Text, View } from '../tw';
 type Notification = {
   _id: ConvexId<'inAppNotifications'>;
   type:
-    | 'rev_received'
     | 'results_published'
     | 'results_amended'
     | 'session_locked'
@@ -42,19 +38,6 @@ type Notification = {
   title?: string;
   body?: string;
   linkPath?: string;
-  actorUsername?: string;
-  actorDisplayName?: string;
-  actorAvatarUrl?: string;
-  reactionType?: ReactionType;
-  actors?: Array<{
-    username?: string;
-    displayName?: string;
-    avatarUrl?: string;
-    isFollowed: boolean;
-    reactionType: ReactionType;
-  }>;
-  totalReactionCount?: number;
-  totalRevCount?: number;
 };
 
 function formatRelativeTime(timestamp: number): string {
@@ -162,7 +145,7 @@ export function NotificationsScreen({
         behind={[
           'Results the moment a session is scored',
           'A reminder before picks lock, so a weekend cannot pass you by',
-          'Reactions and follows from other players',
+          'Updates from other players',
         ]}
         description="Notifications tell you when your picks score and when the next session is about to lock."
         eyebrow={tabChrome ? undefined : 'Notifications'}
@@ -203,7 +186,7 @@ export function NotificationsScreen({
       keyExtractor={(item) => String(item._id)}
       ListEmptyComponent={
         <EmptyState
-          body="Results, reactions, and lock reminders."
+          body="Results and lock reminders."
           icon="notifications-outline"
           title="No notifications yet"
         />
@@ -333,16 +316,6 @@ function NotificationRow({
 }
 
 function NotificationIcon({ notification }: { notification: Notification }) {
-  if (notification.type === 'rev_received') {
-    const actor = notification.actors?.[0];
-    const displayName =
-      actor?.displayName ??
-      actor?.username ??
-      notification.actorDisplayName ??
-      notification.actorUsername;
-    const imageUrl = actor?.avatarUrl ?? notification.actorAvatarUrl;
-    return <Avatar imageUrl={imageUrl} name={displayName ?? null} size="md" />;
-  }
   if (notification.type === 'results_published') {
     return (
       <View className="h-9 w-9 items-center justify-center rounded-full bg-accent-muted">
@@ -372,23 +345,6 @@ function NotificationIcon({ notification }: { notification: Notification }) {
 }
 
 function getNotificationTitle(notification: Notification): string {
-  if (notification.type === 'rev_received') {
-    const count =
-      notification.totalReactionCount ?? notification.totalRevCount ?? 1;
-    const actor = notification.actors?.[0];
-    const name =
-      actor?.displayName ??
-      actor?.username ??
-      notification.actorDisplayName ??
-      notification.actorUsername ??
-      'Someone';
-    if (count > 1) {
-      return `${name} and ${count - 1} other${count - 1 === 1 ? '' : 's'} reacted to your pick`;
-    }
-    const reactionType =
-      actor?.reactionType ?? notification.reactionType ?? 'fire';
-    return `${name} reacted ${REACTION_BY_TYPE[reactionType].emoji} to your pick`;
-  }
   if (notification.type === 'results_published') {
     const points = notification.points ?? 0;
     return `Results published: ${points} pt${points === 1 ? '' : 's'}`;
@@ -411,12 +367,6 @@ function getNotificationSubtitle(notification: Notification): string {
         .replace(/_/g, ' ')
         .replace(/^./, (c) => c.toUpperCase())
     : null;
-  if (notification.type === 'rev_received') {
-    if (notification.raceName) {
-      return notification.raceName;
-    }
-    return 'Tap to view in feed';
-  }
   if (notification.type === 'results_amended' && notification.amendmentNote) {
     return notification.amendmentNote;
   }

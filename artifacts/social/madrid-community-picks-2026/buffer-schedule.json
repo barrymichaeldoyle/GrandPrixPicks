@@ -1,0 +1,42 @@
+{
+  "generatedAt": "2026-09-12T20:24:00Z",
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "timezone": "Africa/Johannesburg",
+  "assetBaseUrl": "https://grandprixpicks.com/social/madrid-community-picks-2026",
+  "posts": [
+    {
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "channelName": "GrandPrixPicks",
+      "service": "twitter",
+      "bufferPostId": "6aa5b4db7da3ee968d03d151",
+      "dueAt": "2026-09-13T07:00:00.000Z",
+      "localDueAt": "2026-09-13T09:00:00+02:00",
+      "status": "scheduled",
+      "assetCount": 1,
+      "automaticPublishing": true,
+      "aiImageDisclosure": false,
+      "verified": true,
+      "assetUrl": "https://grandprixpicks.com/social/madrid-community-picks-2026/madrid-community-picks-qualifying-x.png"
+    },
+    {
+      "channelId": "6a7050c899afb44349f18cbd",
+      "channelName": "grandprixpicks",
+      "service": "instagram",
+      "bufferPostId": "6aa5b4e1f7b1958d5cd55e0a",
+      "dueAt": "2026-09-13T07:00:00.000Z",
+      "localDueAt": "2026-09-13T09:00:00+02:00",
+      "status": "scheduled",
+      "assetCount": 1,
+      "automaticPublishing": true,
+      "aiImageDisclosure": false,
+      "verified": true,
+      "assetUrl": "https://grandprixpicks.com/social/madrid-community-picks-2026/madrid-community-picks-qualifying-instagram.png"
+    }
+  ],
+  "notes": [
+    "verified means each post was read back from Buffer after creation, and its asset resolved to the expected dimensions (1600x900 and 1080x1350) with the intended alt text.",
+    "Both remote PNGs were SHA-256 hash-verified against the local renders before scheduling.",
+    "Scheduled for 09:00 SAST on race day, six hours before Madrid's race-prediction lock (lights out, 2026-09-13T13:00:00Z / 15:00 SAST), so the CTA is genuinely actionable when it posts.",
+    "aiImageDisclosure is false. The card is a bar chart of our own prediction data, rendered by the scripts in this repo."
+  ]
+}

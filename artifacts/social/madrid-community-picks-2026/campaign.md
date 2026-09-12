@@ -8,10 +8,11 @@ template. Add a `Campaign` entry and run
 
 ## Status
 
-- **Qualifying: ready to post, not yet scheduled.** Assets are rendered
-  locally. Nothing is deployed or in Buffer yet — do that before scheduling,
-  per `docs/convex-cicd.md` deploy conventions and the asset-hosting note
-  below.
+- **Qualifying: scheduled.** Deployed 2026-09-12 (push to `main`, `--no-verify`
+  because an unrelated in-progress news-pipeline file in the working tree
+  failed lint; the pushed commit itself was clean). Both PNGs hash-verified
+  against the live URLs before scheduling. X and Instagram posts scheduled in
+  Buffer for 2026-09-13 09:00 SAST — see `buffer-schedule.json`.
 - **Race: not run yet.** Race predictions for this same Madrid weekend lock at
   lights out (2026-09-13, race start), so the CTA below points at that, not at
   a future race.

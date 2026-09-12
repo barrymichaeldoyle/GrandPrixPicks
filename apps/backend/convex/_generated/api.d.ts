@@ -39,6 +39,7 @@ import type * as indexNow from "../indexNow.js";
 import type * as leaderboards from "../leaderboards.js";
 import type * as leagues from "../leagues.js";
 import type * as lib_auth from "../lib/auth.js";
+import type * as lib_calendarRaces from "../lib/calendarRaces.js";
 import type * as lib_classificationDiff from "../lib/classificationDiff.js";
 import type * as lib_email from "../lib/email.js";
 import type * as lib_entitlements from "../lib/entitlements.js";
@@ -124,6 +125,7 @@ declare const fullApi: ApiFromModules<{
   leaderboards: typeof leaderboards;
   leagues: typeof leagues;
   "lib/auth": typeof lib_auth;
+  "lib/calendarRaces": typeof lib_calendarRaces;
   "lib/classificationDiff": typeof lib_classificationDiff;
   "lib/email": typeof lib_email;
   "lib/entitlements": typeof lib_entitlements;

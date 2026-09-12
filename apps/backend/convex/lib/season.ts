@@ -1,4 +1,5 @@
 import type { QueryCtx } from '../_generated/server';
+import { loadLatestCalendarRace, loadNextUpcomingRace } from './calendarRaces';
 
 /**
  * Only reachable with no races in the database at all, which in practice means
@@ -23,22 +24,12 @@ const FALLBACK_SEASON = 2026;
 export async function getCurrentSeason(
   ctx: Pick<QueryCtx, 'db'>,
 ): Promise<number> {
-  const now = Date.now();
-  const nextUpcomingRace = await ctx.db
-    .query('races')
-    .withIndex('by_status_and_predictionLockAt', (q) =>
-      q.eq('status', 'upcoming').gt('predictionLockAt', now),
-    )
-    .first();
+  const nextUpcomingRace = await loadNextUpcomingRace(ctx, Date.now());
   if (nextUpcomingRace) {
     return nextUpcomingRace.season;
   }
 
-  const latestRace = await ctx.db
-    .query('races')
-    .withIndex('by_raceStartAt')
-    .order('desc')
-    .first();
+  const latestRace = await loadLatestCalendarRace(ctx);
   return latestRace?.season ?? FALLBACK_SEASON;
 }
 
@@ -54,13 +45,7 @@ export async function getCurrentSeason(
 export async function getCurrentSeasonAndRound(
   ctx: Pick<QueryCtx, 'db'>,
 ): Promise<{ season: number; round: number }> {
-  const now = Date.now();
-  const nextUpcomingRace = await ctx.db
-    .query('races')
-    .withIndex('by_status_and_predictionLockAt', (q) =>
-      q.eq('status', 'upcoming').gt('predictionLockAt', now),
-    )
-    .first();
+  const nextUpcomingRace = await loadNextUpcomingRace(ctx, Date.now());
   if (nextUpcomingRace) {
     return {
       season: nextUpcomingRace.season,
@@ -68,11 +53,7 @@ export async function getCurrentSeasonAndRound(
     };
   }
 
-  const latestRace = await ctx.db
-    .query('races')
-    .withIndex('by_raceStartAt')
-    .order('desc')
-    .first();
+  const latestRace = await loadLatestCalendarRace(ctx);
   return {
     season: latestRace?.season ?? FALLBACK_SEASON,
     round: latestRace?.round ?? 1,

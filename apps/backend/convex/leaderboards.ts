@@ -5,6 +5,10 @@ import type { QueryCtx } from './_generated/server';
 import { query } from './_generated/server';
 import { getViewer } from './lib/auth';
 import {
+  loadLatestCalendarRace,
+  loadNextUpcomingRace,
+} from './lib/calendarRaces';
+import {
   assignCompetitionRanks,
   clampLeaderboardPagination,
   mapRaceScoresToLeaderboardEntries,
@@ -100,22 +104,12 @@ export async function getFollowedUserIds(
 }
 
 export async function getDefaultLeaderboardSeason(ctx: QueryCtx) {
-  const now = Date.now();
-  const nextUpcomingRace = await ctx.db
-    .query('races')
-    .withIndex('by_status_and_predictionLockAt', (q) =>
-      q.eq('status', 'upcoming').gt('predictionLockAt', now),
-    )
-    .first();
+  const nextUpcomingRace = await loadNextUpcomingRace(ctx, Date.now());
   if (nextUpcomingRace) {
     return nextUpcomingRace.season;
   }
 
-  const latestRace = await ctx.db
-    .query('races')
-    .withIndex('by_raceStartAt')
-    .order('desc')
-    .first();
+  const latestRace = await loadLatestCalendarRace(ctx);
   return latestRace?.season ?? 2026;
 }
 

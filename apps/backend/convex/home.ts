@@ -8,6 +8,11 @@ import { query } from './_generated/server';
 import { getPersonalizedFeedPageData } from './feed';
 import { loadMatchupsForSeason, loadMyH2HPredictionsForRace } from './h2h';
 import { getViewer } from './lib/auth';
+import {
+  calendarRaces,
+  isSyntheticRaceSlug,
+  loadNextUpcomingRace,
+} from './lib/calendarRaces';
 import { loadMyLeagues } from './leagues';
 import {
   loadMyWeekendPredictions,
@@ -146,18 +151,13 @@ export const getHomePageData = query({
   args: { now: v.number() },
   handler: async (ctx, { now }) => {
     const [nextRace, races] = await Promise.all([
-      ctx.db
-        .query('races')
-        .withIndex('by_status_and_predictionLockAt', (q) =>
-          q.eq('status', 'upcoming').gt('predictionLockAt', now),
-        )
-        .first(),
+      loadNextUpcomingRace(ctx, now),
       ctx.db
         .query('races')
         .withIndex('by_season_round')
         .take(100)
         .then((all) =>
-          all.sort((a, b) =>
+          calendarRaces(all).sort((a, b) =>
             a.season !== b.season ? a.season - b.season : a.round - b.round,
           ),
         ),
@@ -412,15 +412,6 @@ export const RESULTS_FIRST_WINDOW_MS = 8 * 60 * 60 * 1000;
  * `RaceRecapCard`, which is the one surface that still draws this.
  */
 const RECAP_LOOKBACK_MS = 24 * 60 * 60 * 1000;
-
-/**
- * Leftover Playwright / seed fixtures. Their start times sit on `Date.now()`,
- * so they steal this window from the real calendar and send the picks card
- * hunting for a race-result group that is not in the feed.
- */
-function isSyntheticRaceSlug(slug: string): boolean {
-  return slug.startsWith('scenario-race-') || slug.startsWith('social-race-');
-}
 
 /** Rows in the recap's followed-players table, viewer included. */
 const RECAP_FRIEND_ROWS = 5;

@@ -21,6 +21,10 @@ import {
   weatherDayValidator,
   weatherHourValidator,
 } from './lib/weather';
+import {
+  loadCurrentLockedRace,
+  loadNextUpcomingRace,
+} from './lib/calendarRaces';
 
 const HOUR = 60 * 60 * 1_000;
 const DAY = 24 * HOUR;
@@ -115,21 +119,9 @@ export const getUpcoming = query({
   args: { now: v.number() },
   returns: publicWeatherValidator,
   handler: async (ctx, args) => {
-    const lockedRace = await ctx.db
-      .query('races')
-      .withIndex('by_status_and_predictionLockAt', (q) =>
-        q.eq('status', 'locked').gt('predictionLockAt', args.now - 3 * DAY),
-      )
-      .order('desc')
-      .first();
     const race =
-      lockedRace ??
-      (await ctx.db
-        .query('races')
-        .withIndex('by_status_and_predictionLockAt', (q) =>
-          q.eq('status', 'upcoming').gt('predictionLockAt', args.now),
-        )
-        .first());
+      (await loadCurrentLockedRace(ctx, args.now, 3 * DAY)) ??
+      (await loadNextUpcomingRace(ctx, args.now));
     if (!race) {
       return null;
     }

@@ -213,6 +213,13 @@ export const clearScenario = internalMutation({
   },
 });
 
+export const clearAllScenarios = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    return await clearAllScenarioData(ctx);
+  },
+});
+
 export const clearScenarioAdmin = mutation({
   args: {
     namespace: v.string(),

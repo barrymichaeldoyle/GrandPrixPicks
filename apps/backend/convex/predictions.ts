@@ -4,6 +4,10 @@ import type { Id } from './_generated/dataModel';
 import type { QueryCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
+import {
+  isRaceAcceptingPredictions,
+  loadNextUpcomingRace,
+} from './lib/calendarRaces';
 import { getRaceLeaderboardForViewer } from './leaderboards';
 
 const sessionTypeValidator = v.union(
@@ -423,16 +427,9 @@ export const submitPrediction = mutation({
     }
 
     const now = Date.now();
-    // Only allow predictions for the next upcoming race
-    const nextRace = await ctx.db
-      .query('races')
-      .withIndex('by_status_and_predictionLockAt', (q) =>
-        q.eq('status', 'upcoming').gt('predictionLockAt', now),
-      )
-      .first();
+    const nextRace = await loadNextUpcomingRace(ctx, now);
 
-    // Runtime guard: type doesn't reflect that upcomingRaces can be empty or not match
-    if (!nextRace || nextRace._id !== args.raceId) {
+    if (!isRaceAcceptingPredictions(race, nextRace, now)) {
       throw new Error('Predictions are only open for the next upcoming race');
     }
 
@@ -532,16 +529,9 @@ export const randomizePredictions = mutation({
     }
 
     const now = Date.now();
+    const nextRace = await loadNextUpcomingRace(ctx, now);
 
-    // Only allow predictions for the next upcoming race
-    const nextRace = await ctx.db
-      .query('races')
-      .withIndex('by_status_and_predictionLockAt', (q) =>
-        q.eq('status', 'upcoming').gt('predictionLockAt', now),
-      )
-      .first();
-
-    if (!nextRace || nextRace._id !== args.raceId) {
+    if (!isRaceAcceptingPredictions(race, nextRace, now)) {
       throw new Error('Predictions are only open for the next upcoming race');
     }
 

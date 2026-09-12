@@ -61,6 +61,9 @@ Use this as the supported QA matrix for the current system.
 - The namespace should be stable when you want repeatability.
 - Visual-only state coverage should stay out of e2e.
 - New scenarios should be added to the catalog first, then implemented as builders.
+- Product queries skip `scenario-race-*` and `social-race-*` slugs. Leftover
+  fixtures must not steal the next GP, the season, or reminder fanout from the
+  real calendar. Clear them when you are done (`pnpm scenario -- clear`).
 
 ## Namespace Model
 
@@ -89,6 +92,7 @@ The starter API is internal-only and currently exposes:
 - `testingScenarios:applyScenario`
 - `testingScenarios:getScenarioSummary`
 - `testingScenarios:clearScenario`
+- `testingScenarios:clearAllScenarios`
 
 The web admin scenario panel is intentionally hidden by default. To use it in a
 local dev build, set `VITE_ENABLE_ADMIN_TESTING_SCENARIOS=true` for the web app

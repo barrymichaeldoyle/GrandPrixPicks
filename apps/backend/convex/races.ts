@@ -17,6 +17,11 @@ import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
 import type { SessionCapability } from './lib/weekendCapabilities';
 import { deriveSessionCapability } from './lib/weekendCapabilities';
+import {
+  calendarRaces,
+  loadCurrentLockedRace,
+  loadNextUpcomingRace,
+} from './lib/calendarRaces';
 import { getCurrentSeason } from './lib/season';
 
 const raceStatusValidator = v.union(
@@ -111,10 +116,12 @@ export const listRaces = query({
   args: { season: v.optional(v.number()) },
   handler: async (ctx, args) => {
     if (args.season !== undefined) {
-      return await ctx.db
-        .query('races')
-        .withIndex('by_season_round', (q) => q.eq('season', args.season!))
-        .take(40);
+      return calendarRaces(
+        await ctx.db
+          .query('races')
+          .withIndex('by_season_round', (q) => q.eq('season', args.season!))
+          .take(40),
+      );
     }
 
     const races = await ctx.db
@@ -122,7 +129,7 @@ export const listRaces = query({
       .withIndex('by_season_round')
       .take(100);
 
-    return races.sort((a, b) => {
+    return calendarRaces(races).sort((a, b) => {
       if (a.season !== b.season) {
         return a.season - b.season;
       }
@@ -152,10 +159,12 @@ export const listCurrentSeason = query({
   args: {},
   handler: async (ctx) => {
     const season = await getCurrentSeason(ctx);
-    const races = await ctx.db
-      .query('races')
-      .withIndex('by_season_round', (q) => q.eq('season', season))
-      .take(40);
+    const races = calendarRaces(
+      await ctx.db
+        .query('races')
+        .withIndex('by_season_round', (q) => q.eq('season', season))
+        .take(40),
+    );
     return { season, races };
   },
 });
@@ -163,13 +172,7 @@ export const listCurrentSeason = query({
 export const getNextRace = query({
   args: {},
   handler: async (ctx): Promise<Doc<'races'> | null> => {
-    const now = Date.now();
-    return await ctx.db
-      .query('races')
-      .withIndex('by_status_and_predictionLockAt', (q) =>
-        q.eq('status', 'upcoming').gt('predictionLockAt', now),
-      )
-      .first();
+    return await loadNextUpcomingRace(ctx, Date.now());
   },
 });
 
@@ -177,26 +180,10 @@ export const getQuickPickRace = query({
   args: {},
   handler: async (ctx): Promise<Doc<'races'> | null> => {
     const now = Date.now();
-    const lockedRace = await ctx.db
-      .query('races')
-      .withIndex('by_status_and_predictionLockAt', (q) =>
-        q
-          .eq('status', 'locked')
-          .gt('predictionLockAt', now - LOCKED_WEEKEND_GRACE_MS),
-      )
-      .order('desc')
-      .first();
-
-    if (lockedRace) {
-      return lockedRace;
-    }
-
-    return await ctx.db
-      .query('races')
-      .withIndex('by_status_and_predictionLockAt', (q) =>
-        q.eq('status', 'upcoming').gt('predictionLockAt', now),
-      )
-      .first();
+    return (
+      (await loadCurrentLockedRace(ctx, now, LOCKED_WEEKEND_GRACE_MS)) ??
+      (await loadNextUpcomingRace(ctx, now))
+    );
   },
 });
 
@@ -231,23 +218,9 @@ export async function loadCurrentWeekend(
     const now = Date.now();
     const viewer = await getViewer(ctx);
 
-    const lockedRace = await ctx.db
-      .query('races')
-      .withIndex('by_status_and_predictionLockAt', (q) =>
-        q
-          .eq('status', 'locked')
-          .gt('predictionLockAt', now - LOCKED_WEEKEND_GRACE_MS),
-      )
-      .order('desc')
-      .first();
     const race =
-      lockedRace ??
-      (await ctx.db
-        .query('races')
-        .withIndex('by_status_and_predictionLockAt', (q) =>
-          q.eq('status', 'upcoming').gt('predictionLockAt', now),
-        )
-        .first());
+      (await loadCurrentLockedRace(ctx, now, LOCKED_WEEKEND_GRACE_MS)) ??
+      (await loadNextUpcomingRace(ctx, now));
 
     if (!race) {
       return null;

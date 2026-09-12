@@ -5,6 +5,7 @@ import type { MutationCtx } from './_generated/server';
 import { internalMutation, internalQuery, mutation } from './_generated/server';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { getViewer, requireAdmin } from './lib/auth';
+import { calendarRaces, loadNextUpcomingRace } from './lib/calendarRaces';
 import {
   sessionLocks,
   healthyReminderPush,
@@ -183,12 +184,7 @@ export const sendSignupPredictionNudgeForUser = internalMutation({
       return null;
     }
     const now = Date.now();
-    const race = await ctx.db
-      .query('races')
-      .withIndex('by_status_and_predictionLockAt', (q) =>
-        q.eq('status', 'upcoming').gt('predictionLockAt', now),
-      )
-      .first();
+    const race = await loadNextUpcomingRace(ctx, now);
     if (!race) {
       return null;
     }
@@ -257,12 +253,7 @@ export const triggerRemindersForNextRace = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const race = await ctx.db
-      .query('races')
-      .withIndex('by_status_and_predictionLockAt', (q) =>
-        q.eq('status', 'upcoming').gt('predictionLockAt', Date.now()),
-      )
-      .first();
+    const race = await loadNextUpcomingRace(ctx, Date.now());
     if (race) {
       await ctx.runMutation(internal.notificationEmails.fanout, {
         raceId: race._id,
@@ -345,12 +336,14 @@ export const rescheduleUpcomingRaceReminders = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const races = await ctx.db
-      .query('races')
-      .withIndex('by_status_and_predictionLockAt', (q) =>
-        q.eq('status', 'upcoming').gt('predictionLockAt', Date.now()),
-      )
-      .take(50);
+    const races = calendarRaces(
+      await ctx.db
+        .query('races')
+        .withIndex('by_status_and_predictionLockAt', (q) =>
+          q.eq('status', 'upcoming').gt('predictionLockAt', Date.now()),
+        )
+        .take(50),
+    );
     for (const race of races) {
       await scheduleReminder(ctx, race);
       await scheduleSessionLockNotifications(ctx, race);

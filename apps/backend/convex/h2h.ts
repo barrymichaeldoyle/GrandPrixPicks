@@ -6,6 +6,10 @@ import type { Doc, Id } from './_generated/dataModel';
 import type { QueryCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
+import {
+  isRaceAcceptingPredictions,
+  loadNextUpcomingRace,
+} from './lib/calendarRaces';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
 import { loadConstructorPoints } from './f1Standings';
 import type { TeammateSessionOutcome } from './lib/teammateBattles';
@@ -909,16 +913,9 @@ export const submitH2HPredictions = mutation({
     }
 
     const now = Date.now();
+    const nextRace = await loadNextUpcomingRace(ctx, now);
 
-    // Only allow predictions for the next upcoming race
-    const nextRace = await ctx.db
-      .query('races')
-      .withIndex('by_status_and_predictionLockAt', (q) =>
-        q.eq('status', 'upcoming').gt('predictionLockAt', now),
-      )
-      .first();
-
-    if (!nextRace || nextRace._id !== args.raceId) {
+    if (!isRaceAcceptingPredictions(race, nextRace, now)) {
       throw new Error(
         'H2H predictions are only open for the next upcoming race',
       );

@@ -75,10 +75,7 @@ export function matchesRaceWeekend(
   );
 }
 
-function raceWeekendLabel(race: {
-  round: number;
-  name: string;
-}): string {
+function raceWeekendLabel(race: { round: number; name: string }): string {
   return `Round ${race.round} · ${race.name}`;
 }
 

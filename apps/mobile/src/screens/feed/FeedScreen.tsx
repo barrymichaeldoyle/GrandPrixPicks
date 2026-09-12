@@ -352,7 +352,7 @@ function TopPlayersToFollow() {
 
   return (
     <View className="mt-1">
-      <Text className="text-muted mb-2 px-1 text-[11px] font-bold uppercase">
+      <Text className="text-muted mb-2 px-1 text-[11px] font-medium">
         Top players this season
       </Text>
       <View>

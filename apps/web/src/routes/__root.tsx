@@ -53,6 +53,7 @@ import {
   hasClerkSessionCookie,
 } from '@/integrations/clerk/session-cookie';
 import { useSsrViewerDataMissing } from '@/integrations/clerk/ssr-viewer-data';
+import { useLoadingPhrase } from '@/lib/loadingPhrases';
 import {
   ClerkRuntimeControlProvider,
   useClerkRuntimeControl,
@@ -702,6 +703,9 @@ function AppRuntimeBoundary({
     setSignInPending(false);
   }
 
+  // Above the `!clerkRequired` return below, so the hook runs on every path.
+  const loadingPhrase = useLoadingPhrase();
+
   const runtimeControl = {
     active: clerkRequired,
     openSignInOnMount: signInOpen,
@@ -783,10 +787,13 @@ function AppRuntimeBoundary({
         <AuthenticatedAppRuntime assumeSignedIn={authHandoff}>
           <AuthCurtainHost
             handoff={authHandoff}
+            /* "Signing you in" stays a report of what is actually happening to
+               your account; the plain wait gets a pit-lane line instead. See
+               {@link PIT_LANE_LOADING_PHRASES}. */
             label={
               signedInViaModal || sessionMissedByServer
                 ? 'Signing you in'
-                : 'Loading your dashboard'
+                : loadingPhrase
             }
           >
             {/* Inside the curtain host rather than beside the runtime's other
@@ -812,6 +819,8 @@ function AppRuntimeBoundary({
  * z-151, which showed through as a second loader when this sat in normal flow.
  */
 function RuntimeBootCurtain() {
+  const phrase = useLoadingPhrase();
+
   return (
     <div
       className="fixed inset-0 z-[152] flex flex-col items-center justify-center gap-4 bg-page"
@@ -822,8 +831,14 @@ function RuntimeBootCurtain() {
         className="h-8 w-8 animate-spin text-accent motion-reduce:animate-none"
         aria-hidden
       />
-      <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
-        Loading your dashboard
+      {/* Server and client pick independently, so a hydrated load can disagree
+          on which line is up. Both are valid, so keep the server's rather than
+          warning about it. */}
+      <p
+        className="text-xs font-medium text-text-muted"
+        suppressHydrationWarning
+      >
+        {phrase}
       </p>
     </div>
   );

@@ -13,14 +13,16 @@ import { APP_NAV_TABS, NavTab } from './NavTab.tsx';
 import { NotificationBell } from './NotificationBell.tsx';
 
 /**
- * Nav items are one of the two places uppercase is allowed (the other is a
- * micro label). Active state is the signature stripe rather than a filled
- * chip — one stripe per container, pinned to the thing that matters.
+ * Nav items are sentence case, like every other destination and heading in the
+ * app. Uppercase is reserved for the micro label that heads a column or opens a
+ * card (`.gpp-label`), and a nav item is neither. Active state is the signature
+ * stripe rather than a filled chip — one stripe per container, pinned to the
+ * thing that matters.
  */
 export const NAV_LINK_CLASS =
-  'rounded-sm border border-transparent px-3 py-1.5 text-xs font-medium tracking-label uppercase whitespace-nowrap text-text-muted transition-colors duration-150 ease-out hover:bg-surface hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring';
+  'rounded-sm border border-transparent px-3 py-1.5 text-xs font-medium whitespace-nowrap text-text-muted transition-colors duration-150 ease-out hover:bg-surface hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring';
 export const NAV_LINK_ACTIVE_CLASS =
-  'gpp-stripe rounded-sm border border-transparent px-3 py-1.5 text-xs font-medium tracking-label uppercase whitespace-nowrap text-text transition-colors';
+  'gpp-stripe rounded-sm border border-transparent px-3 py-1.5 text-xs font-medium whitespace-nowrap text-text transition-colors';
 
 function DesktopNavLink({
   to,

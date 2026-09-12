@@ -55,7 +55,7 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
 
       {event.type === 'results_amended' ? (
         <View className="gap-0.5 rounded-md border border-warning/40 bg-warning/10 px-2.5 py-2">
-          <Text className="text-[10px] font-bold text-warning uppercase">
+          <Text className="text-[11px] font-medium text-warning">
             Results amended
             {event.previousPoints !== undefined && event.points !== undefined
               ? ` · ${event.previousPoints} → ${event.points} pts`
@@ -169,9 +169,7 @@ function LineupChangeCard({ event }: { event: FeedEvent }) {
   return (
     <Card>
       <View className="gap-0.5">
-        <Text className="text-[10px] font-extrabold text-accent uppercase">
-          Grid change
-        </Text>
+        <Text className="text-[11px] font-medium text-accent">Grid change</Text>
         <Text className="text-foreground text-sm font-bold">
           {event.raceName
             ? `New line-up from the ${event.raceName}`

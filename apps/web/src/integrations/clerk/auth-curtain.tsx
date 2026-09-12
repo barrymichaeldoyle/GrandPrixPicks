@@ -258,7 +258,13 @@ function SigningInCurtain({ label }: { label: string }) {
         className="h-8 w-8 animate-spin text-accent motion-reduce:animate-none"
         aria-hidden
       />
-      <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
+      {/* The label can be a randomly picked pit-lane line, which the server and
+          the client choose independently. Keep whichever one is already on
+          screen. */}
+      <p
+        className="text-xs font-medium text-text-muted"
+        suppressHydrationWarning
+      >
         {label}
       </p>
     </div>

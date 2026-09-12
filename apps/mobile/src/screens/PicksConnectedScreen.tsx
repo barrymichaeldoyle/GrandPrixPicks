@@ -635,7 +635,7 @@ function WeekendPointsStrip({
   return (
     <View className="flex-row items-center gap-1.5">
       <View className="flex-1 flex-row items-baseline gap-1.5">
-        <Text className="text-muted text-[10px] font-semibold uppercase">
+        <Text className="text-muted text-[11px] font-medium">
           Weekend so far
         </Text>
         <Text className="text-sm font-semibold text-accent-hover">
@@ -752,7 +752,7 @@ function PageHeader({
 
   return (
     <View className="gap-1">
-      <Text className="text-[10px] font-semibold text-accent uppercase">
+      <Text className="text-[11px] font-medium text-accent">
         Round {race.round} · {race.season}
       </Text>
       <View className="flex-row items-center gap-2.5">
@@ -880,7 +880,7 @@ function SessionTabs({
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Section eyebrow row (caps title + optional action)
+// Section eyebrow row (title + optional action)
 // ─────────────────────────────────────────────────────────────────────────
 
 function SectionHeader({
@@ -892,9 +892,7 @@ function SectionHeader({
 }) {
   return (
     <View className="flex-row items-center justify-between pb-0.5">
-      <Text className="text-muted text-[10px] font-semibold uppercase">
-        {title}
-      </Text>
+      <Text className="text-muted text-[11px] font-medium">{title}</Text>
       {action ?? null}
     </View>
   );

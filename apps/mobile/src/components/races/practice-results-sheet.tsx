@@ -129,7 +129,7 @@ export function PracticeResultsSheet({
       <View className="flex-1 bg-page">
         <View className="flex-row items-center justify-between border-b border-border px-4 py-4">
           <View>
-            <Text className="text-muted text-[10px] font-extrabold uppercase">
+            <Text className="text-muted text-[11px] font-medium">
               Form guide
             </Text>
             <Text className="text-foreground text-xl font-bold">

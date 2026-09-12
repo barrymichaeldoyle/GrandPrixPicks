@@ -53,6 +53,12 @@ clearest way to express a real distinction.
   destination has a useful name.
 - Commentary about the experience instead of information needed to use it.
 - Friendly filler in errors, confirmations, empty states, and loading states.
+  The sign-in curtains are the one sanctioned exception: they cover a wait
+  nobody asked for, so they name a pit-lane job in progress ("Changing tyres",
+  "Warming the brakes") picked at random per load. The list and the rules for
+  adding to it are in `apps/web/src/lib/loadingPhrases.ts`. A curtain that
+  reports a real system state still says so plainly: the auth handoff is
+  "Signing you in", not a joke.
 
 ## Examples
 

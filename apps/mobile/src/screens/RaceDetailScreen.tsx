@@ -92,7 +92,7 @@ export function RaceDetailScreen({ route }: Props) {
 
       {(practiceResults?.length ?? 0) > 0 ? (
         <View className="gap-2">
-          <Text className="text-muted pb-0.5 text-[10px] font-extrabold uppercase">
+          <Text className="text-muted pb-0.5 text-[11px] font-medium">
             Free Practice
           </Text>
           <View className="overflow-hidden rounded-lg border border-border">
@@ -146,7 +146,7 @@ export function RaceDetailScreen({ route }: Props) {
 
       {publishedSessions.length > 0 ? (
         <View className="gap-2">
-          <Text className="text-muted pb-0.5 text-[10px] font-extrabold uppercase">
+          <Text className="text-muted pb-0.5 text-[11px] font-medium">
             Results
           </Text>
           <View className="gap-1">
@@ -170,7 +170,7 @@ export function RaceDetailScreen({ route }: Props) {
       ) : null}
 
       <View className="gap-2">
-        <Text className="text-muted pb-0.5 text-[10px] font-extrabold uppercase">
+        <Text className="text-muted pb-0.5 text-[11px] font-medium">
           Sessions
         </Text>
         <View>

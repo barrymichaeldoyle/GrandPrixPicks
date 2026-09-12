@@ -80,7 +80,7 @@ export function RaceRecapCard({
             {live ? (
               <View className="h-1.5 w-1.5 rounded-full bg-accent" />
             ) : null}
-            <Text className="text-muted text-[10px] font-bold uppercase">
+            <Text className="text-muted text-[11px] font-medium">
               {`Round ${promoted.race.round} · ${
                 live
                   ? `${SESSION_LABELS[live.sessionType]} in progress`
@@ -140,7 +140,7 @@ export function RaceRecapCard({
 
       {promoted.friends.length > 1 ? (
         <View className="gap-1 border-t border-border pt-3">
-          <Text className="text-muted mb-1 text-[10px] font-bold uppercase">
+          <Text className="text-muted mb-1 text-[11px] font-medium">
             Players you follow
           </Text>
           {promoted.friends.map((player) => (
@@ -183,9 +183,7 @@ export function RaceRecapCard({
  */
 function SeasonMove({ delta }: { delta: number | null }) {
   if (delta === null) {
-    return (
-      <Text className="text-muted text-[10px] font-bold uppercase">New</Text>
-    );
+    return <Text className="text-muted text-[11px] font-medium">New</Text>;
   }
   if (delta === 0) {
     return <Text className="text-muted text-[11px]">—</Text>;

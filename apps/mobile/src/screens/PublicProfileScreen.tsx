@@ -109,7 +109,7 @@ export function PublicProfileScreen({ route }: Props) {
           <Numeral variant="large">
             {followCounts?.followerCount ?? '—'}
           </Numeral>
-          <Text className="text-muted mt-0.5 text-[11px] font-semibold uppercase">
+          <Text className="text-muted mt-0.5 text-[11px] font-medium">
             Followers
           </Text>
         </View>
@@ -118,7 +118,7 @@ export function PublicProfileScreen({ route }: Props) {
           <Numeral variant="large">
             {followCounts?.followingCount ?? '—'}
           </Numeral>
-          <Text className="text-muted mt-0.5 text-[11px] font-semibold uppercase">
+          <Text className="text-muted mt-0.5 text-[11px] font-medium">
             Following
           </Text>
         </View>
@@ -146,7 +146,7 @@ export function PublicProfileScreen({ route }: Props) {
 
       {stats ? (
         <View className="gap-2.5">
-          <Text className="text-muted text-[10px] font-extrabold uppercase">
+          <Text className="text-muted text-[11px] font-medium">
             Season stats
           </Text>
           <View className="flex-row items-center">
@@ -174,7 +174,7 @@ function StatCell({ label, value }: { label: string; value: string | number }) {
   return (
     <View className="flex-1 items-center gap-0.5 py-1">
       <Numeral variant="large">{value}</Numeral>
-      <Text className="text-muted text-center text-[10px] font-bold uppercase">
+      <Text className="text-muted text-center text-[11px] font-medium">
         {label}
       </Text>
     </View>

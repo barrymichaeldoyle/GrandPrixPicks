@@ -203,9 +203,7 @@ describe('WeekendPracticeSection', () => {
     );
     expect(view.textContent).toContain('Underway');
     const body = view.textContent ?? '';
-    expect(body.indexOf('Full results')).toBeLessThan(
-      body.indexOf('Underway'),
-    );
+    expect(body.indexOf('Full results')).toBeLessThan(body.indexOf('Underway'));
     expect(body).toMatch(/\d{2}:\d{2}/);
   });
   it('receives a newly published session without reloading the route', () => {

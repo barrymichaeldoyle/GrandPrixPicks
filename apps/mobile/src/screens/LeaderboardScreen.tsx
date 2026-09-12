@@ -468,7 +468,7 @@ export function LeaderboardScreen() {
                 ))}
                 {viewerOutsideTop && viewerEntry ? (
                   <View className="mt-2.5 rounded-lg border border-accent px-2">
-                    <Text className="mt-2 text-[10px] font-extrabold text-accent uppercase">
+                    <Text className="mt-2 text-[11px] font-medium text-accent">
                       Your rank
                     </Text>
                     <BoardRow
@@ -661,9 +661,7 @@ function PodiumRow({
       </View>
       <View className="min-w-11 items-end">
         <Numeral variant="large">{entry.points}</Numeral>
-        <Text className="text-muted text-[10px] font-semibold uppercase">
-          pts
-        </Text>
+        <Text className="text-muted text-[10px] font-medium">pts</Text>
       </View>
     </Pressable>
   );
@@ -720,9 +718,7 @@ function BoardRow({
       </View>
       <View className="min-w-11 items-end">
         <Numeral variant="small">{entry.points}</Numeral>
-        <Text className="text-muted text-[10px] font-semibold uppercase">
-          pts
-        </Text>
+        <Text className="text-muted text-[10px] font-medium">pts</Text>
       </View>
     </Pressable>
   );

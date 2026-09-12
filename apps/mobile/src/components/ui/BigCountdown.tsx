@@ -83,9 +83,7 @@ function TimeUnit({
           {padded}
         </Text>
       </View>
-      <Text className="text-muted text-[10px] font-bold uppercase">
-        {label}
-      </Text>
+      <Text className="text-muted text-[10px] font-medium">{label}</Text>
     </View>
   );
 }

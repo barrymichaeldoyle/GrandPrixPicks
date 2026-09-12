@@ -356,8 +356,10 @@
   }
 
   /* The micro label that opens a card or heads a column. Uppercase and tracked
-     is the ONLY place uppercase is allowed — headings and buttons are sentence
-     case.
+     is the ONLY place uppercase is allowed — headings, buttons, nav items and
+     loading states are sentence case. Driver codes and session codes are the
+     one exception, and they are uppercase because that is how the abbreviation
+     is written, not as a style.
 
      In `base`, not unlayered with the rest of this section: these are DEFAULTS
      a call site is expected to override, and unlayered they beat every Tailwind
@@ -411,11 +413,9 @@
    */
   .gpp-header-me-tab::after {
     content: 'Me \25bc';
-    font-size: 10px;
+    font-size: 11px;
     font-weight: var(--fw-medium);
     line-height: 1;
-    text-transform: uppercase;
-    letter-spacing: var(--tracking-label);
     white-space: nowrap;
   }
 

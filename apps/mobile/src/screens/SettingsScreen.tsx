@@ -348,16 +348,14 @@ export function SettingsScreen() {
       contentContainerClassName="gap-[26px] px-4 pb-8 pt-3"
     >
       <View className="mb-1 gap-1">
-        <Text className="text-[10px] font-extrabold text-accent uppercase">
-          Settings
-        </Text>
+        <Text className="text-[11px] font-medium text-accent">Settings</Text>
         <Text className="text-foreground text-2xl font-extrabold">Account</Text>
       </View>
 
       {/* Profile */}
       <SettingsSection title="Profile">
         <View className="gap-1.5">
-          <Text className="text-muted text-[11px] font-bold uppercase">
+          <Text className="text-muted text-[11px] font-medium">
             Display name
           </Text>
           {isEditingName ? (
@@ -427,9 +425,7 @@ export function SettingsScreen() {
 
         {me?.username ? (
           <View className="gap-1.5">
-            <Text className="text-muted text-[11px] font-bold uppercase">
-              Username
-            </Text>
+            <Text className="text-muted text-[11px] font-medium">Username</Text>
             <Text className="text-foreground flex-1 text-[15px] font-semibold">
               @{me.username}
             </Text>
@@ -448,9 +444,7 @@ export function SettingsScreen() {
           onPress={() => setTzPickerOpen(true)}
         >
           <View className="flex-1 gap-1">
-            <Text className="text-muted text-[11px] font-bold uppercase">
-              Timezone
-            </Text>
+            <Text className="text-muted text-[11px] font-medium">Timezone</Text>
             <Text className="text-foreground flex-1 text-[15px] font-semibold">
               {(me?.timezone ?? deviceTz).replace(/_/g, ' ')}
             </Text>
@@ -464,7 +458,7 @@ export function SettingsScreen() {
         </Pressable>
 
         <View className="gap-1.5">
-          <Text className="text-muted text-[11px] font-bold uppercase">
+          <Text className="text-muted text-[11px] font-medium">
             Time format
           </Text>
           <View className="flex-row rounded-md border border-border bg-surface-elevated p-[3px]">
@@ -652,9 +646,7 @@ function SettingsSection({
   });
   return (
     <View className="gap-2.5">
-      <Text className="text-muted pb-0.5 text-[10px] font-extrabold uppercase">
-        {title}
-      </Text>
+      <Text className="text-muted pb-0.5 text-[11px] font-medium">{title}</Text>
       <View>{withDividers}</View>
     </View>
   );

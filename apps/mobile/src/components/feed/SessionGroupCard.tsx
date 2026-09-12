@@ -72,9 +72,7 @@ function FlagStrip({ raceSlug }: { raceSlug: string }) {
 
 function BandLabel({ children }: { children: string }) {
   return (
-    <Text className="text-muted/80 text-[10px] font-semibold tracking-wide uppercase">
-      {children}
-    </Text>
+    <Text className="text-muted/80 text-[11px] font-medium">{children}</Text>
   );
 }
 
@@ -374,7 +372,7 @@ export function SessionGroupCard({
       session.sessionType;
     return (
       <View className="gap-2 px-4">
-        <Text className="text-muted px-0.5 text-[10px] font-extrabold uppercase">
+        <Text className="text-muted px-0.5 text-[11px] font-medium">
           {session.raceName} · {sessionLabel}
         </Text>
         <View className="gap-3">

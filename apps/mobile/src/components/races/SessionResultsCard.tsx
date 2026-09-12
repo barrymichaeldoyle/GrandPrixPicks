@@ -73,11 +73,11 @@ export function SessionResultsCard({
       </View>
 
       <View className="flex-row gap-3 pt-1">
-        <Text className="text-muted flex-1 text-[10px] font-extrabold uppercase">
+        <Text className="text-muted flex-1 text-[11px] font-medium">
           Actual top 5
         </Text>
         {breakdownByPredicted ? (
-          <Text className="text-muted flex-1 text-[10px] font-extrabold uppercase">
+          <Text className="text-muted flex-1 text-[11px] font-medium">
             Your picks
           </Text>
         ) : null}

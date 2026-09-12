@@ -315,8 +315,7 @@ function MadridGrandPrixPredictionsPage() {
             Motorsport Week
           </ExternalSource>
           . Friday overtaking assessment:{' '}
-          <ExternalSource href={OVERTAKING_SOURCE}>AS</ExternalSource>
-          .
+          <ExternalSource href={OVERTAKING_SOURCE}>AS</ExternalSource>.
         </>
       }
     >
@@ -415,11 +414,11 @@ function FridayPractice() {
       heading="What Friday practice showed"
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
-        Russell led the first Formula 1 session at the Madring in 1:34.077,
-        with Antonelli 0.286 seconds behind and Leclerc third. Hamilton and
-        Verstappen completed the top five. Heavy traffic disrupted several
-        laps, but the session ran without a red flag. Tsunoda stopped early
-        with a power-steering problem.{' '}
+        Russell led the first Formula 1 session at the Madring in 1:34.077, with
+        Antonelli 0.286 seconds behind and Leclerc third. Hamilton and
+        Verstappen completed the top five. Heavy traffic disrupted several laps,
+        but the session ran without a red flag. Tsunoda stopped early with a
+        power-steering problem.{' '}
         <ExternalSource href={FP1_SOURCE}>
           Motorsport.com&rsquo;s FP1 report
         </ExternalSource>

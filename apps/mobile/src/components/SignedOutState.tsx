@@ -53,9 +53,7 @@ export function SignedOutState({
     >
       <View className="gap-2">
         {eyebrow ? (
-          <Text className="text-muted text-[10px] font-extrabold uppercase">
-            {eyebrow}
-          </Text>
+          <Text className="text-muted text-[11px] font-medium">{eyebrow}</Text>
         ) : null}
         <Text className="text-foreground text-[26px] font-light">{title}</Text>
         <Text className="text-muted text-sm leading-5">{description}</Text>

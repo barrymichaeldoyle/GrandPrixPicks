@@ -63,14 +63,14 @@ const BAR_TAB_CLASS = `${BAR_TAB_BASE} border-transparent text-text-muted durati
 const BAR_TAB_ACTIVE_CLASS = `${BAR_TAB_BASE} border-accent text-accent`;
 
 /**
- * Four tabs split the viewport, which leaves ~90px a tab on a 390px phone. The
- * header's 0.12em label tracking adds ~13px to a word like "Notifications" and
- * pushes it over that on its own, so the bar tracks tighter, and steps down
- * again below 360px where a quarter of the screen is only 72px. `truncate` is
- * the floor under both, not the plan.
+ * Four tabs split the viewport, which leaves ~90px a tab on a 390px phone.
+ * Sentence case is what buys the room a word like "Notifications" needs there —
+ * the uppercase version had to give up its tracking to fit and still stepped
+ * down a size below 360px, where a quarter of the screen is only 72px.
+ * `truncate` is the floor under both, not the plan.
  */
 const BAR_TAB_LABEL_CLASS =
-  'max-w-full truncate text-center text-[9px] font-medium tracking-normal uppercase min-[360px]:text-[10px] min-[360px]:tracking-[0.04em]';
+  'max-w-full truncate text-center text-[10px] font-medium min-[360px]:text-[11px]';
 
 export type NavTabVariant = 'header' | 'bar';
 

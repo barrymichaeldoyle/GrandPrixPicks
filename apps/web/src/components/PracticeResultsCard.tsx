@@ -308,53 +308,60 @@ export function PracticeResultsPanel({
           />
         </div>
       ) : null}
-      {selectedCompetitive ? (
-        layout === 'compact' ? (
-          <CompactColumns
-            entries={selectedCompetitive.enrichedClassification}
-            getKey={(entry) => entry.driverId}
-            renderRow={(entry) => (
-              <CompactCompetitiveRow
-                position={entry.position}
-                code={entry.code}
-                displayName={entry.displayName}
-                team={entry.team ?? undefined}
-              />
-            )}
-          />
-        ) : (
-          <div className="divide-y divide-border">
-            {selectedCompetitive.enrichedClassification.map((entry) => (
-              <div
-                key={entry.driverId}
-                className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-2 px-4 py-2.5"
-              >
-                <span className="text-sm font-semibold text-text-muted">
-                  P{entry.position}
-                </span>
-                <DriverBadge
+      {/* Keyed on the session so a tab change remounts this block and replays
+          the system's one reveal: twenty-two rows swapping in a single frame
+          read as a flash, and the fade is what says the sheet was replaced
+          rather than corrected. `gpp-row-in` is 200ms and already stands down
+          under `prefers-reduced-motion`. */}
+      <div key={selectedSession} className="gpp-row-in">
+        {selectedCompetitive ? (
+          layout === 'compact' ? (
+            <CompactColumns
+              entries={selectedCompetitive.enrichedClassification}
+              getKey={(entry) => entry.driverId}
+              renderRow={(entry) => (
+                <CompactCompetitiveRow
+                  position={entry.position}
                   code={entry.code}
                   displayName={entry.displayName}
                   team={entry.team ?? undefined}
-                  size="sm"
                 />
-              </div>
-            ))}
-          </div>
-        )
-      ) : selectedPractice ? (
-        layout === 'compact' ? (
-          <CompactColumns
-            entries={selectedPractice.entries}
-            getKey={(entry) => entry.driverNumber}
-            renderRow={(entry) => (
-              <CompactPracticeRow entry={entry} size="md" fill="sunken" />
-            )}
-          />
-        ) : (
-          <PracticeResultsTable result={selectedPractice} />
-        )
-      ) : null}
+              )}
+            />
+          ) : (
+            <div className="divide-y divide-border">
+              {selectedCompetitive.enrichedClassification.map((entry) => (
+                <div
+                  key={entry.driverId}
+                  className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-2 px-4 py-2.5"
+                >
+                  <span className="text-sm font-semibold text-text-muted">
+                    P{entry.position}
+                  </span>
+                  <DriverBadge
+                    code={entry.code}
+                    displayName={entry.displayName}
+                    team={entry.team ?? undefined}
+                    size="sm"
+                  />
+                </div>
+              ))}
+            </div>
+          )
+        ) : selectedPractice ? (
+          layout === 'compact' ? (
+            <CompactColumns
+              entries={selectedPractice.entries}
+              getKey={(entry) => entry.driverNumber}
+              renderRow={(entry) => (
+                <CompactPracticeRow entry={entry} size="md" fill="sunken" />
+              )}
+            />
+          ) : (
+            <PracticeResultsTable result={selectedPractice} />
+          )
+        ) : null}
+      </div>
     </>
   );
 }

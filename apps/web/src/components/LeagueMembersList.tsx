@@ -176,8 +176,8 @@ export function LeagueMembersList({
                 children: member.displayName,
               })}
               {member.isViewer && (
-                <span className="rounded-full border border-accent/20 bg-accent/10 px-1.5 py-0.5 text-xs font-semibold tracking-[0.04em] text-accent">
-                  YOU
+                <span className="rounded-full border border-accent/20 bg-accent/10 px-1.5 py-0.5 text-xs font-semibold text-accent">
+                  You
                 </span>
               )}
               {member.role === 'admin' && (

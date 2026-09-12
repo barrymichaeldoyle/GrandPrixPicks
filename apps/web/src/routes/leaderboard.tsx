@@ -17,7 +17,7 @@ import { RaceFlag } from '@/components/RaceFlag';
 import { RaceWeekendSelect } from '@/components/RaceWeekendSelect';
 import { TabSwitch } from '@/components/TabSwitch';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
-import { SESSION_LABELS } from '@/lib/sessions';
+import { SESSION_LABELS, SESSION_LABELS_FULL } from '@/lib/sessions';
 import { isRaceSelectableForLeaderboard } from '@/lib/raceSessions';
 import {
   breadcrumbSchema,
@@ -327,6 +327,17 @@ function LeaderboardPage() {
   const standingName =
     headerViewerEntry?.username ?? viewer?.username ?? 'Your standing';
 
+  // What the rank is a rank of. Season, whole weekend and a single session are
+  // three different numbers, and the card was printing all three the same way.
+  // The race itself is named in the header line beside this card, so the label
+  // carries only the part that changes the number.
+  const standingScopeLabel =
+    timeScope === 'season'
+      ? `Your ${season} season standing`
+      : scopedSessionType
+        ? `Your ${SESSION_LABELS_FULL[scopedSessionType].toLowerCase()} standing`
+        : 'Your race weekend standing';
+
   const playerCountSuffix =
     activeTotalCount && activeTotalCount > 0
       ? ` · ${playerCountFormatter.format(activeTotalCount)} ${activeTotalCount === 1 ? 'player' : 'players'}`
@@ -428,7 +439,7 @@ function LeaderboardPage() {
               <div className="min-h-14">
                 <AnimatePresence mode="wait">
                   <m.div
-                    key={timeScope}
+                    key={activeViewKey}
                     initial={{ opacity: 0, scale: 0.96 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.96 }}
@@ -439,8 +450,8 @@ function LeaderboardPage() {
                       {headerViewerEntry.rank}
                     </span>
                     <div className="min-w-0">
-                      <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                        Your standing
+                      <div className="text-xs font-medium text-text-muted">
+                        {standingScopeLabel}
                       </div>
                       <div className="truncate text-sm font-semibold text-text">
                         {standingName}
@@ -456,79 +467,93 @@ function LeaderboardPage() {
           }
         />
 
-        {/* Filters. Stacked on a phone. At lg the inner wrapper dissolves
-            (`contents`) so time, weekend, session and scope share one row:
-            which board, which race, which session, then whose. */}
-        <div
-          className="reveal-up reveal-delay-1 mb-4 flex flex-col gap-2.5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3"
-          aria-label="Leaderboard filters"
-        >
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4 lg:contents">
-            <TabSwitch
-              value={timeScope}
-              onChange={(v) =>
-                navigate({
-                  search: (prev) => ({ ...prev, time: v }),
-                  replace: true,
-                })
-              }
-              options={[...TIME_SCOPE_OPTIONS]}
-              className="flex gap-1 rounded-lg bg-surface-muted/55 p-1 sm:flex-1 lg:w-auto lg:flex-none"
-              buttonClassName="flex-1 lg:flex-none lg:px-4"
-              ariaLabel="Leaderboard time scope"
-            />
+        {/* Filters. Container queries, not viewport ones: on a signed-in
+            desktop the rails leave this column around 640px, so a `lg:` row
+            that measures the window put four controls in a space that fits
+            two, and the session tabs lost their labels to a 100px scroller.
 
-            {isSignedIn && (
+            Stacked on a phone. From @lg the inner wrapper dissolves
+            (`contents`): which board and whose share the first row, which race
+            takes the second, which session the third. From @4xl the race
+            selector joins the first row.
+
+            The container is the outer wrapper, not the row itself: an
+            element's own `@` variants resolve against its nearest ancestor
+            container, never against itself. */}
+        <div className="@container mb-4">
+          <div
+            className="reveal-up reveal-delay-1 flex flex-col gap-2.5 @lg:flex-row @lg:flex-wrap @lg:items-center @lg:gap-3"
+            aria-label="Leaderboard filters"
+          >
+            <div className="flex flex-col gap-2.5 @sm:flex-row @sm:items-center @sm:gap-4 @lg:contents">
               <TabSwitch
-                value={scope}
+                value={timeScope}
                 onChange={(v) =>
                   navigate({
-                    search: (prev) => ({ ...prev, scope: v }),
+                    search: (prev) => ({ ...prev, time: v }),
                     replace: true,
                   })
                 }
-                options={[...SCOPE_OPTIONS]}
-                className="flex shrink-0 gap-1 rounded-lg bg-surface-muted/40 p-1 sm:w-56 lg:order-last lg:ml-auto"
-                buttonClassName="flex-1"
-                ariaLabel="Leaderboard scope"
+                options={[...TIME_SCOPE_OPTIONS]}
+                className="flex gap-1 rounded-lg bg-surface-muted/55 p-1 @sm:flex-1 @lg:w-auto @lg:grow-0 @lg:basis-auto"
+                buttonClassName="flex-1 @lg:flex-none @lg:px-4"
+                ariaLabel="Leaderboard time scope"
+              />
+
+              {isSignedIn && (
+                <TabSwitch
+                  value={scope}
+                  onChange={(v) =>
+                    navigate({
+                      search: (prev) => ({ ...prev, scope: v }),
+                      replace: true,
+                    })
+                  }
+                  options={[...SCOPE_OPTIONS]}
+                  className="flex shrink-0 gap-1 rounded-lg bg-surface-muted/40 p-1 @sm:w-56 @lg:ml-auto @4xl:order-2"
+                  buttonClassName="flex-1"
+                  ariaLabel="Leaderboard scope"
+                />
+              )}
+            </div>
+
+            {timeScope === 'weekend' && selectableRaces.length > 1 && (
+              <RaceWeekendSelect
+                races={selectableRaces}
+                value={selectedRaceId ?? ''}
+                onChange={(raceId) =>
+                  navigate({
+                    search: (prev) => ({ ...prev, raceId }),
+                    replace: true,
+                  })
+                }
+                className="@lg:w-full @lg:max-w-md @4xl:w-auto @4xl:min-w-64 @4xl:grow"
               />
             )}
-          </div>
 
-          {timeScope === 'weekend' && selectableRaces.length > 1 && (
-            <RaceWeekendSelect
-              races={selectableRaces}
-              value={selectedRaceId ?? ''}
-              onChange={(raceId) =>
-                navigate({
-                  search: (prev) => ({ ...prev, raceId }),
-                  replace: true,
-                })
-              }
-              className="lg:max-w-md lg:min-w-64 lg:flex-1"
-            />
-          )}
-
-          {/* Session filter (weekend tab only, and only once the weekend has
+            {/* Session filter (weekend tab only, and only once the weekend has
               more than one scored session — with a single session the combined
               board and that session's board are the same list, and a switch
               between two identical boards is noise). */}
-          {timeScope === 'weekend' &&
-            (sessionBreakdown?.sessions.length ?? 0) > 1 && (
-              <TabSwitch
-                value={sessionScope}
-                onChange={(v) =>
-                  navigate({
-                    search: (prev) => ({ ...prev, session: v }),
-                    replace: true,
-                  })
-                }
-                options={sessionScopeOptions(sessionBreakdown!.sessions)}
-                className="flex gap-1 overflow-x-auto rounded-lg bg-surface-muted/40 p-1 lg:min-w-0 lg:flex-1"
-                buttonClassName="flex-1 whitespace-nowrap"
-                ariaLabel="Leaderboard session"
-              />
-            )}
+            {timeScope === 'weekend' &&
+              (sessionBreakdown?.sessions.length ?? 0) > 1 && (
+                <div className="@lg:order-3 @lg:basis-full">
+                  <TabSwitch
+                    value={sessionScope}
+                    onChange={(v) =>
+                      navigate({
+                        search: (prev) => ({ ...prev, session: v }),
+                        replace: true,
+                      })
+                    }
+                    options={sessionScopeOptions(sessionBreakdown!.sessions)}
+                    className="flex gap-1 overflow-x-auto rounded-lg bg-surface-muted/40 p-1 @lg:inline-flex @lg:overflow-visible"
+                    buttonClassName="flex-1 whitespace-nowrap @lg:flex-none @lg:px-4"
+                    ariaLabel="Leaderboard session"
+                  />
+                </div>
+              )}
+          </div>
         </div>
 
         {/* Content */}

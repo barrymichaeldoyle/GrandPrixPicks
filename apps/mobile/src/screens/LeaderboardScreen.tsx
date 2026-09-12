@@ -651,7 +651,7 @@ function PodiumRow({
           </Text>
           {entry.isViewer ? (
             <Text className="overflow-hidden rounded-full bg-accent px-1.5 py-px text-xs font-extrabold text-text-on-accent">
-              YOU
+              You
             </Text>
           ) : null}
         </View>
@@ -708,7 +708,7 @@ function BoardRow({
           </Text>
           {entry.isViewer ? (
             <Text className="overflow-hidden rounded-full bg-accent px-1.5 py-px text-xs font-extrabold text-text-on-accent">
-              YOU
+              You
             </Text>
           ) : null}
         </View>

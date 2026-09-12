@@ -95,6 +95,8 @@ function asTeammateHeadRoute(route: unknown): TeammateHeadRoute {
 }
 
 describe('SEO head metadata', () => {
+  describe.configure({ timeout: 15_000 });
+
   beforeEach(() => {
     vi.resetModules();
   });

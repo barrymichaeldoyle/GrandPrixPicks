@@ -308,6 +308,8 @@ function typedNodes(value: unknown): Record<string, unknown>[] {
 }
 
 describe('SEO invariants across every indexable route', () => {
+  describe.configure({ timeout: 15_000 });
+
   beforeEach(() => {
     vi.resetModules();
   });

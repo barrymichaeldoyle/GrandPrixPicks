@@ -106,12 +106,12 @@ const RACE_WRITEUPS = {
   },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
-    reviewedAt: '2026-09-11',
+    reviewedAt: '2026-09-12',
     venueName: 'Madrid',
     label: 'Madrid GP predictions',
     summary:
-      'What Friday practice showed at the new Madring, where overtaking looks difficult, and what teams need to get right before qualifying.',
-    cta: 'Read the Madrid preview',
+      'Norris on pole for the first race at the Madring, Stroll starting from the back, and what practice showed in Madrid.',
+    cta: 'Read the Madrid predictions',
   },
 } as const satisfies Record<string, RaceWriteup>;
 

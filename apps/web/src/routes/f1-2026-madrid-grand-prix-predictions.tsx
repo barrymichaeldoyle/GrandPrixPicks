@@ -102,6 +102,12 @@ const FP2_SOURCE =
   'https://www.pitdebrief.com/post/f1-2026-spanish-gp-fp2-report/';
 const OVERTAKING_SOURCE =
   'https://as.com/motor/formula_1/es-imposible-adelantar-f202609-n/';
+const QUALIFYING_SOURCE =
+  'https://www.skysports.com/f1/news/12040/13584719/spanish-gp-lando-norris-beats-kimi-antonelli-to-first-pole-position-at-madring-after-thrilling-qualifying-finale';
+const NORRIS_FINE_SOURCE =
+  'https://www.fia.com/system/files/decision-document/2026_spanish_grand_prix_-_infringement_-_car_1_-_pit_lane_speeding.pdf';
+const STROLL_PENALTY_SOURCE =
+  'https://www.formula1.com/en/latest/article/stroll-set-for-grid-penalty-at-spanish-grand-prix.2OrPCm6GyFhTJRocmnNzWP';
 
 type Championship = FunctionReturnType<
   typeof api.f1Standings.getF1Championship
@@ -316,6 +322,15 @@ function MadridGrandPrixPredictionsPage() {
           </ExternalSource>
           . Friday overtaking assessment:{' '}
           <ExternalSource href={OVERTAKING_SOURCE}>AS</ExternalSource>.
+          Qualifying:{' '}
+          <ExternalSource href={QUALIFYING_SOURCE}>Sky Sports</ExternalSource>.
+          Pit-lane fine:{' '}
+          <ExternalSource href={NORRIS_FINE_SOURCE}>FIA</ExternalSource>.
+          Stroll&rsquo;s grid penalty:{' '}
+          <ExternalSource href={STROLL_PENALTY_SOURCE}>
+            Formula 1
+          </ExternalSource>
+          .
         </>
       }
     >
@@ -330,7 +345,7 @@ function MadridGrandPrixPredictionsPage() {
         summary={raceWriteupHeroSummary(
           phase,
           'The Spanish Grand Prix',
-          'Formula 1 returns to Madrid for the first time since 1981. The new Madring circuit has 22 corners, long stretches lined with barriers and a banked Turn 12 that will test the cars and tyres.',
+          'Norris is on pole for the first Spanish Grand Prix at the Madring, 0.011 seconds ahead of Antonelli. The race is on Sunday.',
         )}
         phase={phase}
         raceSlug={RACE_SLUG}
@@ -355,6 +370,7 @@ function MadridGrandPrixPredictionsPage() {
       {isLive ? (
         <>
           <WeekendNewsSection items={news.items} />
+          <SaturdayAtMadring />
           <WeekendPracticeSection
             results={practice}
             raceSlug={RACE_SLUG}
@@ -403,6 +419,46 @@ function MadridGrandPrixPredictionsPage() {
         nextRace={nextRace}
       />
     </RaceWriteupPage>
+  );
+}
+
+/** Qualifying classification and the grid changes that follow it. */
+function SaturdayAtMadring() {
+  return (
+    <RaceWriteupSection
+      id="saturday-update"
+      heading="Norris takes pole in Madrid"
+    >
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Norris took the first Formula 1 pole at the Madring in 1:31.824, beating
+        Antonelli by 0.011 seconds. Verstappen qualified third, ahead of
+        Hamilton, who had crashed in final practice. Leclerc was fifth and
+        Russell sixth. Sainz and Alonso were both eliminated in Q1, in 17th and
+        18th. Bearman and Stroll set no time.{' '}
+        <ExternalSource href={QUALIFYING_SOURCE}>
+          Sky Sports&rsquo; qualifying timesheet
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        The stewards recorded Norris at 88.5 km/h in the 80 km/h pit lane during
+        qualifying and fined McLaren €900. The decision lists no grid drop, so
+        he keeps pole.{' '}
+        <ExternalSource href={NORRIS_FINE_SOURCE}>
+          FIA stewards&rsquo; decision
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Stroll takes a 40-place grid penalty after Aston Martin fitted new power
+        unit parts, which puts him at the back of the field. He also set no time
+        in qualifying after a water pressure issue.{' '}
+        <ExternalSource href={STROLL_PENALTY_SOURCE}>
+          Formula 1&rsquo;s report on the penalty
+        </ExternalSource>
+        .
+      </p>
+    </RaceWriteupSection>
   );
 }
 

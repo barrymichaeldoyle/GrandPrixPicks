@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { groupFeedEvents } from './feedGroups';
+import { groupFeedEvents, weekendStarts } from './feedGroups';
 
 function news(id: string) {
   return { _id: id, type: 'race_news' };
@@ -51,5 +51,40 @@ describe('groupFeedEvents', () => {
   it('keeps anything else standalone', () => {
     const groups = groupFeedEvents([{ _id: 'l', type: 'lineup_change' }]);
     expect(groups[0]).toMatchObject({ kind: 'standalone' });
+  });
+});
+
+describe('weekendStarts', () => {
+  it('marks the block where the race changes', () => {
+    const groups = groupFeedEvents([
+      score('a', 'monza'),
+      score('b', 'monza', 'quali'),
+      score('c', 'spa'),
+    ]);
+
+    expect(weekendStarts(groups)).toEqual([false, false, true]);
+  });
+
+  it('never marks the first block', () => {
+    // Nothing above it to separate it from; a separator there reads as a
+    // heading on the stream.
+    expect(weekendStarts(groupFeedEvents([score('a', 'monza')]))).toEqual([
+      false,
+    ]);
+  });
+
+  it('does not let a raceless block close a weekend', () => {
+    // A streak milestone between two Monza sessions would otherwise draw a
+    // separator on both sides of itself.
+    const groups = groupFeedEvents([
+      score('a', 'monza'),
+      { _id: 'm', type: 'streak_milestone' },
+      score('b', 'monza', 'quali'),
+      score('c', 'spa'),
+    ]);
+
+    // Four blocks: Monza's race, the milestone, Monza's quali, Spa. Only Spa
+    // opens a weekend.
+    expect(weekendStarts(groups)).toEqual([false, false, false, true]);
   });
 });

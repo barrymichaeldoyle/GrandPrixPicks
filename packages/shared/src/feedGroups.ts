@@ -72,3 +72,31 @@ export function groupFeedEvents<T extends Groupable>(
 
   return groups;
 }
+
+/**
+ * Which blocks in a grouped stream open a new race weekend, in render order.
+ *
+ * A block belongs to the race its events name. Blocks that name none — joining
+ * a league, a streak milestone — belong to whichever weekend they arrived in
+ * and never close it: a milestone landing between two Monza sessions would
+ * otherwise put a separator on both sides of itself and cut one weekend into
+ * three.
+ *
+ * The first block never opens a weekend. There is nothing above it to separate
+ * it from, and a separator at the top of the stream reads as a heading.
+ */
+export function weekendStarts<T extends Groupable>(
+  groups: FeedGroup<T>[],
+): boolean[] {
+  let open: string | null = null;
+  return groups.map((group) => {
+    const events = group.kind === 'standalone' ? [group.event] : group.events;
+    const raceId = events.find((event) => event.raceId)?.raceId ?? null;
+    if (raceId === null) {
+      return false;
+    }
+    const starts = open !== null && raceId !== open;
+    open = raceId;
+    return starts;
+  });
+}

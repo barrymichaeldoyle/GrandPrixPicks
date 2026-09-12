@@ -10,7 +10,8 @@ import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button/Button';
 import { FeedItem } from '@/components/FeedItem/FeedItem';
 import { NewsGroup } from '@/components/FeedItem/NewsGroup';
-import { groupFeedEvents } from './groupFeedEvents';
+import { groupFeedEvents, weekendStarts } from './groupFeedEvents';
+import { WeekendSplit } from './WeekendSplit';
 import { SessionGroup } from '@/components/FeedItem/SessionGroup';
 import { FeedEmptyState } from '@/components/FeedItem/states';
 import { InlineLoader } from '@/components/InlineLoader';
@@ -388,19 +389,34 @@ export function FeedContent({
       ? interleaved.afterSessionKey
       : null;
 
+  const startsWeekend = weekendStarts(groups);
+
   return withInterleaved(
     <div className="space-y-0 md:space-y-4">
       {interleaved && slotAfter === null ? interleaved.node : null}
-      {groups.map((group) => {
+      {groups.map((group, index) => {
+        const split = startsWeekend[index] ? <WeekendSplit /> : null;
+
         if (group.kind === 'standalone') {
-          return <FeedItem key={group.event._id} event={group.event} />;
+          return (
+            <Fragment key={group.event._id}>
+              {split}
+              <FeedItem event={group.event} />
+            </Fragment>
+          );
         }
         if (group.kind === 'news') {
-          return <NewsGroup key={group.events[0]!._id} events={group.events} />;
+          return (
+            <Fragment key={group.events[0]!._id}>
+              {split}
+              <NewsGroup events={group.events} />
+            </Fragment>
+          );
         }
         const session = allSessions[group.key];
         return (
           <Fragment key={group.key}>
+            {split}
             <SessionGroup
               session={session}
               events={group.events}

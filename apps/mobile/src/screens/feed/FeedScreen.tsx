@@ -1,4 +1,7 @@
-import { groupFeedEvents } from '@grandprixpicks/shared/feedGroups';
+import {
+  groupFeedEvents,
+  weekendStarts,
+} from '@grandprixpicks/shared/feedGroups';
 import { useAuth } from '@clerk/expo';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
@@ -8,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { FeedEvent } from '../../components/feed/FeedEventCard';
 import { FeedEventCard } from '../../components/feed/FeedEventCard';
 import { NewsGroupCard } from '../../components/feed/NewsGroupCard';
+import { WeekendSplit } from '../../components/feed/WeekendSplit';
 import type { SessionHeader } from '../../components/feed/SessionGroupCard';
 import { SessionGroupCard } from '../../components/feed/SessionGroupCard';
 import { PicksConnectedScreen } from '../PicksConnectedScreen';
@@ -216,6 +220,9 @@ export function FeedScreen() {
   );
 
   const groups = groupFeedEvents(allEvents);
+  // Which cards open a weekend, so the chequer can go above them. Same rule as
+  // web, from the same function.
+  const startsWeekend = weekendStarts(groups);
 
   return (
     <CollapsingChrome
@@ -275,7 +282,7 @@ export function FeedScreen() {
             tintColor={colors.accent}
           />
         }
-        renderItem={({ item }) => {
+        renderItem={({ index, item }) => {
           const card =
             item.kind === 'standalone' ? (
               <FeedEventCard
@@ -299,9 +306,16 @@ export function FeedScreen() {
                 viewerId={me?._id as ConvexId<'users'> | undefined}
               />
             );
+          // The wrapper's own `pt-3` is the gap above the chequer, and `mb-3`
+          // is the one below it, so a weekend break sits evenly between the two
+          // cards it separates. Full bleed either way: the split runs wall to
+          // wall even where the card it precedes is inset.
           return (
-            <View className={item.kind === 'standalone' ? 'px-4 pt-3' : 'pt-3'}>
-              {card}
+            <View className="pt-3">
+              {startsWeekend[index] ? <WeekendSplit className="mb-3" /> : null}
+              <View className={item.kind === 'standalone' ? 'px-4' : undefined}>
+                {card}
+              </View>
             </View>
           );
         }}

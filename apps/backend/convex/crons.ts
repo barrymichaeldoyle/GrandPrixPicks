@@ -18,6 +18,13 @@ crons.interval(
   {},
 );
 
+crons.interval(
+  'refresh live timed classification',
+  { minutes: 1 },
+  internal.liveClassification.refresh,
+  {},
+);
+
 // Reconcile published results against the official classification so
 // post-session stewards' decisions flow through to scores automatically.
 crons.interval(

@@ -6273,10 +6273,8 @@ export const _seedFeedScenario = internalMutation({
 });
 
 /**
- * Internal: Set up aux dev scenario users (in_leagues / solo / stale) AFTER the
- * main feed scenario + feed-event backfill have run. Aux state is intentionally
- * added late so e.g. league joins for these users don't produce joined_league
- * feed events (which would defeat the empty-state scenarios).
+ * Internal: Set up aux dev scenario users (in_leagues / solo / stale) after
+ * the main feed scenario and feed-event backfill have run.
  */
 export const _seedAuxFeedScenarios = internalMutation({
   args: {
@@ -6497,8 +6495,7 @@ export const reseedDevForFeed = internalAction({
       internal.seed.seedFeedEvents,
     );
 
-    // Phase 7: Set up aux dev scenario users (after feed events so their joins
-    // don't generate joined_league events that defeat the empty-state scenarios).
+    // Phase 7: Set up aux dev scenario users.
     let auxResult: { created: Array<{ kind: string; username: string }> } = {
       created: [],
     };
@@ -6725,48 +6722,6 @@ export const seedFeedEvents = internalMutation({
       created++;
     }
 
-    // joined_league — only public, passwordless leagues (matches production
-    // writeJoinedLeagueFeedEvent). Private demo leagues were flooding the
-    // personalized feed with "X joined Y" and crowding out score activity.
-    const memberships = await ctx.db.query('leagueMembers').take(200);
-    for (const membership of memberships) {
-      const user = await ctx.db.get(membership.userId);
-      const league = await ctx.db.get(membership.leagueId);
-      if (!user || !league) {
-        continue;
-      }
-      if (league.visibility !== 'public' || league.password) {
-        continue;
-      }
-      const existingJoin = await ctx.db
-        .query('feedEvents')
-        .withIndex('by_league_created', (q) =>
-          q.eq('leagueId', membership.leagueId),
-        )
-        .take(50);
-      if (
-        existingJoin.some(
-          (event) =>
-            event.type === 'joined_league' &&
-            event.userId === membership.userId,
-        )
-      ) {
-        continue;
-      }
-      await ctx.db.insert('feedEvents', {
-        type: 'joined_league',
-        userId: membership.userId,
-        username: user.username,
-        displayName: user.displayName,
-        avatarUrl: user.avatarUrl,
-        leagueId: membership.leagueId,
-        leagueName: league.name,
-        leagueSlug: league.slug,
-        createdAt: membership.joinedAt,
-      });
-      created++;
-    }
-
     return { created };
   },
 });
@@ -6865,13 +6820,6 @@ export const seedDashboardSocialFeed = internalMutation({
       await ctx.db.patch(userId, { ...counts, updatedAt: now });
     }
 
-    // Private demo leagues should not dominate the feed the way they do after
-    // a naive seedFeedEvents backfill.
-    const purgeResult: { deletedEvents: number } = await ctx.runMutation(
-      internal.feed.purgePrivateLeagueJoinEvents,
-      {},
-    );
-
     const feedResult: { created: number } = await ctx.runMutation(
       internal.seed.seedFeedEvents,
     );
@@ -6879,7 +6827,6 @@ export const seedDashboardSocialFeed = internalMutation({
       username: target.username,
       followsCreated,
       following: Math.min(candidates.length, followLimit),
-      privateJoinsRemoved: purgeResult.deletedEvents,
       feedEventsCreated: feedResult.created,
     };
   },

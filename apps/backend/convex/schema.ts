@@ -388,6 +388,32 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index('by_raceId_and_sessionType', ['raceId', 'sessionType']),
 
+  liveClassifications: defineTable({
+    raceId: v.id('races'),
+    raceName: v.string(),
+    raceSlug: v.string(),
+    sessionType: v.union(
+      v.literal('fp1'),
+      v.literal('fp2'),
+      v.literal('fp3'),
+      v.literal('quali'),
+      v.literal('sprint_quali'),
+    ),
+    entries: v.array(
+      v.object({
+        position: v.number(),
+        driverNumber: v.number(),
+        code: v.string(),
+        displayName: v.string(),
+        team: v.union(v.string(), v.null()),
+        bestLapSeconds: v.number(),
+      }),
+    ),
+    updatedAt: v.number(),
+  })
+    .index('by_raceId_and_sessionType', ['raceId', 'sessionType'])
+    .index('by_updatedAt', ['updatedAt']),
+
   // Admin opt-in for warning players that a session's results will rely on
   // the delayed OpenF1 fallback instead of immediate manual publication.
   unattendedResultSessions: defineTable({
@@ -822,7 +848,7 @@ export default defineSchema({
     // stewards' decision changes the classification and the user's points move.
     previousPoints: v.optional(v.number()),
     amendmentNote: v.optional(v.string()),
-    // joined_league fields
+    // Legacy joined_league fields. Retained until stored rows are migrated.
     leagueId: v.optional(v.id('leagues')),
     leagueName: v.optional(v.string()),
     leagueSlug: v.optional(v.string()),

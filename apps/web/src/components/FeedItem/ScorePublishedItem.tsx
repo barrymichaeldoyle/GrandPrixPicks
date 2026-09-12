@@ -96,6 +96,7 @@ export function ScorePublishedItem({
                       code={pick.code}
                       team={pick.team}
                       displayName={pick.displayName}
+                      number={pick.number}
                       nationality={pick.nationality}
                       size="sm"
                     />
@@ -127,30 +128,31 @@ export function ScorePublishedItem({
                 </div>
               ))}
             </div>
-            {!isLocked &&
-              event.h2hScore &&
-              event.raceId &&
-              event.sessionType && (
-                <button
-                  type="button"
-                  onClick={() => setH2hOpen(true)}
-                  className="gpp-touch-target mb-0.5 inline-flex items-center gap-1 rounded-sm border border-accent/30 bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
+            {event.raceId && event.sessionType && event.userId && (
+              <button
+                type="button"
+                onClick={() => setH2hOpen(true)}
+                className="gpp-touch-target mb-0.5 inline-flex items-center gap-1 rounded-sm border border-accent/30 bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
+              >
+                {isLocked
+                  ? 'H2H picks'
+                  : event.h2hScore
+                    ? `H2H ${event.h2hScore.correctPicks}/${event.h2hScore.totalPicks}`
+                    : 'H2H picks'}
+                <svg
+                  className="h-2.5 w-2.5 opacity-70"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
                 >
-                  H2H {event.h2hScore.correctPicks}/{event.h2hScore.totalPicks}
-                  <svg
-                    className="h-2.5 w-2.5 opacity-70"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 4l4 4-4 4" />
-                  </svg>
-                </button>
-              )}
+                  <path d="M6 4l4 4-4 4" />
+                </svg>
+              </button>
+            )}
           </div>
         )}
 
@@ -224,38 +226,6 @@ export function ScorePublishedItem({
           onClose={() => setH2hOpen(false)}
         />
       )}
-    </>
-  );
-}
-
-export function JoinedLeagueItem({ event }: { event: FeedEvent }) {
-  return (
-    <>
-      <div className="flex items-center gap-3">
-        <Avatar
-          avatarUrl={event.avatarUrl}
-          username={event.username}
-          size="sm"
-        />
-        <p className="min-w-0 flex-1 text-sm text-text-muted">
-          <UserLink username={event.username} displayName={event.displayName} />{' '}
-          joined{' '}
-          {event.leagueSlug ? (
-            <Link
-              to="/leagues/$slug"
-              params={{ slug: event.leagueSlug }}
-              className="font-medium text-text hover:text-accent"
-            >
-              {event.leagueName}
-            </Link>
-          ) : (
-            <span className="font-medium text-text">{event.leagueName}</span>
-          )}
-          <span className="ml-1.5 text-xs whitespace-nowrap text-text-muted">
-            · {formatRelativeTime(event.createdAt)}
-          </span>
-        </p>
-      </div>
     </>
   );
 }

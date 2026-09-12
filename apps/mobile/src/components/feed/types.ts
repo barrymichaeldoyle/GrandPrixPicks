@@ -4,6 +4,9 @@ type ScoredPick = {
   code: string;
   team?: string;
   displayName?: string;
+  /** Identity, for the card a tapped chip opens. */
+  number?: number;
+  nationality?: string;
   predictedPosition: number;
   actualPosition?: number;
   points: number;
@@ -22,7 +25,6 @@ export type FeedEvent = {
     | 'score_published'
     | 'results_amended'
     | 'session_locked'
-    | 'joined_league'
     | 'streak_milestone'
     | 'lineup_change'
     | 'race_news';
@@ -41,8 +43,6 @@ export type FeedEvent = {
   amendmentNote?: string;
   picks?: ScoredPick[];
   h2hScore?: H2HScore | null;
-  leagueName?: string;
-  leagueSlug?: string;
   streakCount?: number;
   round?: number;
   seatMoves?: {

@@ -96,7 +96,9 @@ export function resolveStartingGrid(
   entries: StartingGridEntry[],
   lookup: (
     code: string,
-  ) => { displayName: string; team: string | null } | undefined,
+  ) =>
+    | { displayName: string; team: string | null; number?: number | null }
+    | undefined,
 ): ResolvedStartingGridEntry[] {
   return sortStartingGrid(entries).map((entry) => {
     const driver = lookup(entry.code);
@@ -105,6 +107,7 @@ export function resolveStartingGrid(
       code: entry.code,
       displayName: driver?.displayName ?? entry.code,
       team: driver?.team ?? null,
+      number: driver?.number ?? null,
       ...(entry.note !== undefined ? { note: entry.note } : {}),
       ...(entry.newsKey !== undefined ? { newsKey: entry.newsKey } : {}),
     };

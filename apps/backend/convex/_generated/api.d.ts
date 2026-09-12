@@ -62,6 +62,7 @@ import type * as lib_testing_scenarioDefinitions from "../lib/testing/scenarioDe
 import type * as lib_userIdentity from "../lib/userIdentity.js";
 import type * as lib_weather from "../lib/weather.js";
 import type * as lib_weekendCapabilities from "../lib/weekendCapabilities.js";
+import type * as liveClassification from "../liveClassification.js";
 import type * as liveScoring from "../liveScoring.js";
 import type * as newsNotifications from "../newsNotifications.js";
 import type * as notificationDelivery from "../notificationDelivery.js";
@@ -148,6 +149,7 @@ declare const fullApi: ApiFromModules<{
   "lib/userIdentity": typeof lib_userIdentity;
   "lib/weather": typeof lib_weather;
   "lib/weekendCapabilities": typeof lib_weekendCapabilities;
+  liveClassification: typeof liveClassification;
   liveScoring: typeof liveScoring;
   newsNotifications: typeof newsNotifications;
   notificationDelivery: typeof notificationDelivery;

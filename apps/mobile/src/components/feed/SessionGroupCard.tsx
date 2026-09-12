@@ -11,6 +11,7 @@ import { useQuery } from '../../integrations/convex/query';
 import { getCountryCodeForRaceSlug } from '../../lib/raceFlags';
 import { getTeamColor } from '../../lib/teamColors';
 import type { HomeStackParamList } from '../../navigation/types';
+import { useDriverCard } from '../../providers/DriverCardProvider';
 import { colors } from '../../theme/tokens';
 import { useTypography } from '../../theme/typography';
 import { Image, Pressable, Text, View } from '../../tw';
@@ -21,20 +22,25 @@ import { H2HPicksDialog } from './H2HPicksDialog';
 import { eventTotalPoints, formatRelativeTime } from './helpers';
 import { EmptySlot, PickSlot, ResultSlot } from './PickSlot';
 
+type SessionHeaderDriver = {
+  code: string;
+  displayName: string;
+  team?: string;
+  /** Identity, for the card a tapped chip opens. */
+  number?: number;
+  nationality?: string;
+};
+
 export type SessionHeader = {
   raceName: string;
   sessionType: string;
   raceSlug?: string;
   createdAt?: number;
-  top5: Array<{
-    code: string;
-    displayName: string;
-    team?: string;
-  }>;
+  top5: Array<SessionHeaderDriver>;
   h2h?: Array<{
     team: string;
-    winner: { code: string; displayName: string; team?: string };
-    loser: { code: string; displayName: string; team?: string };
+    winner: SessionHeaderDriver;
+    loser: SessionHeaderDriver;
   }>;
 };
 
@@ -97,6 +103,8 @@ function ResultRow({ top5 }: { top5: SessionHeader['top5'] }) {
             code={driver.code}
             displayName={driver.displayName}
             key={driver.code}
+            nationality={driver.nationality}
+            number={driver.number}
             position={i + 1}
             team={driver.team}
           />
@@ -108,15 +116,23 @@ function ResultRow({ top5 }: { top5: SessionHeader['top5'] }) {
 
 function H2HWinnersRow({ h2h }: { h2h: NonNullable<SessionHeader['h2h']> }) {
   const { numeralFontFamily } = useTypography();
+  const { showDriver } = useDriverCard();
   return (
     <View className="gap-1">
       <BandLabel>H2H won</BandLabel>
       <View className="flex-row flex-wrap items-center gap-x-1.5 gap-y-1">
         {h2h.map((duel) => (
-          <View
+          // The chip names the winner, so that is whose card a tap opens.
+          <Pressable
+            accessibilityHint="Shows the driver's number, name and team"
             accessibilityLabel={`${duel.winner.displayName} beat ${duel.loser.displayName} (${duel.team})`}
+            accessibilityRole="button"
             className="relative h-4 flex-row items-center pr-1 pl-1.5"
+            /* The chip is 16px tall inside a card that navigates when pressed,
+               so without the slop a near miss opens the race page instead. */
+            hitSlop={{ bottom: 8, left: 4, right: 4, top: 8 }}
             key={`${duel.team}-${duel.winner.code}-${duel.loser.code}`}
+            onPress={() => showDriver(duel.winner)}
           >
             <View
               className="absolute top-0 bottom-0 left-0 w-[3px]"
@@ -132,7 +148,7 @@ function H2HWinnersRow({ h2h }: { h2h: NonNullable<SessionHeader['h2h']> }) {
             >
               {duel.winner.code}
             </Text>
-          </View>
+          </Pressable>
         ))}
       </View>
     </View>
@@ -314,6 +330,8 @@ function SessionLeaderboardRow({
                   code={pick.code}
                   displayName={pick.displayName}
                   key={pick.predictedPosition}
+                  nationality={pick.nationality}
+                  number={pick.number}
                   points={pick.points}
                   predictedPosition={pick.predictedPosition}
                   team={pick.team}

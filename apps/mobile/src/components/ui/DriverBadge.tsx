@@ -1,8 +1,10 @@
 import type { StyleProp, ViewStyle } from 'react-native';
 
 import { getTeamColor } from '../../lib/teamColors';
+import { useDriverCard } from '../../providers/DriverCardProvider';
 import { useTypography } from '../../theme/typography';
-import { Text, View } from '../../tw';
+import { Pressable, Text, View } from '../../tw';
+import { hasDriverDetail } from './DriverCard';
 
 /**
  * The team-coloured driver chip, matching web's `DriverBadge`.
@@ -26,6 +28,8 @@ export function DriverBadge({
   code,
   team,
   number,
+  displayName,
+  nationality,
   showNumber = false,
   size = 'sm',
   fill = 'elevated',
@@ -34,24 +38,28 @@ export function DriverBadge({
   code: string;
   team?: string | null;
   number?: number | null;
+  /** Identity, for the card a tap opens. Without any of it the chip is inert. */
+  displayName?: string | null;
+  nationality?: string | null;
   showNumber?: boolean;
   size?: 'sm' | 'md';
   fill?: 'elevated' | 'sunken';
   style?: StyleProp<ViewStyle>;
 }) {
   const { numeralFontFamily } = useTypography();
+  const { showDriver } = useDriverCard();
+  const driver = { code, team, number, displayName, nationality };
 
-  return (
-    <View
-      className={`relative flex-row items-center justify-center overflow-hidden rounded-sm ${
-        size === 'md' ? 'h-8 min-w-11 pr-2.5 pl-3' : 'h-6 min-w-9 pr-1.5 pl-2'
-      } ${
-        fill === 'sunken'
-          ? 'bg-surface-sunken'
-          : 'border border-border bg-surface-elevated'
-      }`}
-      style={style}
-    >
+  const className = `relative flex-row items-center justify-center overflow-hidden rounded-sm ${
+    size === 'md' ? 'h-8 min-w-11 pr-2.5 pl-3' : 'h-6 min-w-9 pr-1.5 pl-2'
+  } ${
+    fill === 'sunken'
+      ? 'bg-surface-sunken'
+      : 'border border-border bg-surface-elevated'
+  }`;
+
+  const chip = (
+    <>
       <View
         className="absolute top-0 bottom-0 left-0 w-[3px]"
         style={{ backgroundColor: getTeamColor(team) }}
@@ -70,6 +78,29 @@ export function DriverBadge({
       >
         {code}
       </Text>
-    </View>
+    </>
+  );
+
+  // Web opens the same card on hover. A chip that knows nothing but its code
+  // stays a plain chip rather than lifting a finger and showing nothing.
+  if (!hasDriverDetail(driver)) {
+    return (
+      <View className={className} style={style}>
+        {chip}
+      </View>
+    );
+  }
+
+  return (
+    <Pressable
+      accessibilityHint="Shows the driver's number, name and team"
+      accessibilityLabel={displayName ?? code}
+      accessibilityRole="button"
+      className={className}
+      onPress={() => showDriver(driver)}
+      style={style}
+    >
+      {chip}
+    </Pressable>
   );
 }

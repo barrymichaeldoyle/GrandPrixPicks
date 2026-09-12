@@ -1,7 +1,10 @@
+import type { DriverIdentity } from '../ui/DriverCard';
+import { hasDriverDetail } from '../ui/DriverCard';
 import { pickScoreBandClass } from '../../lib/pickScoreBand';
 import { getTeamColor } from '../../lib/teamColors';
+import { useDriverCard } from '../../providers/DriverCardProvider';
 import { useTypography } from '../../theme/typography';
-import { Text, View } from '../../tw';
+import { Pressable, Text, View } from '../../tw';
 
 const TEAM_BAR_INSET = 4;
 
@@ -31,17 +34,61 @@ function DriverCode({ code, size }: { code: string; size: 'pick' | 'result' }) {
   );
 }
 
+/**
+ * Opens the driver card when the chip has something to say beyond its code.
+ *
+ * A plain `View` when it does not: a cell that lifts a finger and shows nothing
+ * teaches people the taps do not work, which costs more than the one chip.
+ */
+function DriverPress({
+  driver,
+  accessibilityLabel,
+  className,
+  children,
+}: {
+  driver: DriverIdentity;
+  accessibilityLabel: string;
+  className: string;
+  children: React.ReactNode;
+}) {
+  const { showDriver } = useDriverCard();
+
+  if (!hasDriverDetail(driver)) {
+    return (
+      <View accessibilityLabel={accessibilityLabel} className={className}>
+        {children}
+      </View>
+    );
+  }
+
+  return (
+    <Pressable
+      accessibilityHint="Shows the driver's number, name and team"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
+      className={className}
+      onPress={() => showDriver(driver)}
+    >
+      {children}
+    </Pressable>
+  );
+}
+
 /** A player's pick in one of the five slots, banded with its score colour. */
 export function PickSlot({
   code,
   team,
   displayName,
+  number,
+  nationality,
   points,
   predictedPosition,
 }: {
   code: string;
   team?: string | null;
   displayName?: string | null;
+  number?: number | null;
+  nationality?: string | null;
   points?: number;
   predictedPosition: number;
 }) {
@@ -52,9 +99,10 @@ export function PickSlot({
       : `P${predictedPosition}: ${label} — ${points} ${points === 1 ? 'point' : 'points'}`;
 
   return (
-    <View
+    <DriverPress
       accessibilityLabel={pointsLabel}
       className="w-full min-w-0 flex-1 gap-[3px]"
+      driver={{ code, team, displayName, number, nationality }}
     >
       <View className="relative h-7 w-full items-center justify-center overflow-hidden border border-border bg-surface-elevated">
         <TeamBar team={team} />
@@ -66,7 +114,7 @@ export function PickSlot({
         importantForAccessibility="no"
         style={{ marginLeft: TEAM_BAR_INSET }}
       />
-    </View>
+    </DriverPress>
   );
 }
 
@@ -79,21 +127,26 @@ export function ResultSlot({
   code,
   team,
   displayName,
+  number,
+  nationality,
   position,
 }: {
   code: string;
   team?: string | null;
   displayName?: string | null;
+  number?: number | null;
+  nationality?: string | null;
   position: number;
 }) {
   return (
-    <View
+    <DriverPress
       accessibilityLabel={`P${position}: ${displayName ?? code}`}
       className="relative h-8 w-full min-w-0 flex-1 items-center justify-center overflow-hidden bg-surface-sunken"
+      driver={{ code, team, displayName, number, nationality }}
     >
       <TeamBar team={team} />
       <DriverCode code={code} size="result" />
-    </View>
+    </DriverPress>
   );
 }
 

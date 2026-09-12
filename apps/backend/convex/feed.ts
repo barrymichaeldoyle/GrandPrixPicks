@@ -295,47 +295,6 @@ export const writeFeedEventsForSession = internalMutation({
 });
 
 /**
- * A joined_league feed event exposes the league name + joinable slug to the
- * joining user's followers. Only broadcast membership of fully public leagues —
- * private or password-protected leagues would be deanonymized otherwise.
- */
-export function shouldBroadcastLeagueJoin(league: {
-  visibility: 'private' | 'public';
-  password?: string;
-}): boolean {
-  return league.visibility === 'public' && !league.password;
-}
-
-/** Write a joined_league feed event. Called from leagues.ts after a successful join. */
-export const writeJoinedLeagueFeedEvent = internalMutation({
-  args: {
-    userId: v.id('users'),
-    leagueId: v.id('leagues'),
-  },
-  handler: async (ctx, args) => {
-    const user = await ctx.db.get(args.userId);
-    const league = await ctx.db.get(args.leagueId);
-    if (!user || !league) {
-      return;
-    }
-
-    if (!shouldBroadcastLeagueJoin(league)) {
-      return;
-    }
-
-    await ctx.db.insert('feedEvents', {
-      type: 'joined_league',
-      userId: args.userId,
-      ...toUserIdentity(user),
-      leagueId: args.leagueId,
-      leagueName: league.name,
-      leagueSlug: league.slug,
-      createdAt: Date.now(),
-    });
-  },
-});
-
-/**
  * Announce a lineup change to everyone.
  *
  * Written by `seed:applyLineup`, so the announcement is a consequence of
@@ -575,6 +534,8 @@ type RawEvent = {
     code: string;
     displayName: string;
     team: string | null;
+    /** Absent on grids frozen into the feed before numbers were resolved. */
+    number?: number | null;
     note?: string;
   }>;
   createdAt: number;
@@ -634,9 +595,9 @@ export async function buildFilteredFeedPage(
 
     lastScannedEvent = event;
 
-    // Streaks remain available as internal engagement data, but are not feed
-    // content. Skip them during the scan so they do not consume page capacity.
-    if (event.type === 'streak_milestone') {
+    // These legacy events can remain stored, but are not feed content. Skip
+    // them during the scan so they do not consume page capacity.
+    if (event.type === 'streak_milestone' || event.type === 'joined_league') {
       continue;
     }
 
@@ -723,6 +684,7 @@ type SessionHeaderDriver = {
   code: string;
   displayName: string;
   team?: string;
+  number?: number;
   nationality?: string;
 };
 
@@ -875,6 +837,7 @@ async function buildSessionHeaders(
         code: driver.code,
         displayName: driver.displayName,
         team: driver.team,
+        number: driver.number,
         nationality: driver.nationality,
       });
     }
@@ -904,6 +867,8 @@ type PickEnrichment = {
   code: string;
   team?: string;
   displayName?: string;
+  /** The car number, for the badge tooltip. */
+  number?: number;
   nationality?: string;
   predictedPosition: number;
   actualPosition?: number;
@@ -967,6 +932,7 @@ async function enrichScoreEvent(
         code: string;
         team?: string;
         displayName?: string;
+        number?: number;
         nationality?: string;
       }
     >();
@@ -979,6 +945,7 @@ async function enrichScoreEvent(
           code: driver.code,
           team: driver.team,
           displayName: driver.displayName,
+          number: driver.number,
           nationality: driver.nationality,
         });
       }
@@ -990,6 +957,7 @@ async function enrichScoreEvent(
         code: d?.code ?? '???',
         team: d?.team,
         displayName: d?.displayName,
+        number: d?.number,
         nationality: d?.nationality,
         predictedPosition: index + 1,
         points: 0,
@@ -1029,6 +997,7 @@ async function enrichScoreEvent(
         code: string;
         team?: string;
         displayName?: string;
+        number?: number;
         nationality?: string;
       }
     >();
@@ -1044,6 +1013,7 @@ async function enrichScoreEvent(
           code: driver.code,
           team: driver.team,
           displayName: driver.displayName,
+          number: driver.number,
           nationality: driver.nationality,
         });
       }
@@ -1054,6 +1024,7 @@ async function enrichScoreEvent(
         code: d?.code ?? '???',
         team: d?.team,
         displayName: d?.displayName,
+        number: d?.number,
         nationality: d?.nationality,
         predictedPosition: pick.predictedPosition,
         actualPosition: pick.actualPosition,
@@ -1384,36 +1355,5 @@ export const deleteFeedEventsForSession = internalMutation({
       )) {
       await ctx.db.delete(event._id);
     }
-  },
-});
-
-/**
- * One-off cleanup: remove joined_league feed events that were
- * written for private / password-protected leagues before those joins stopped
- * being broadcast. Run once via `convex run feed:purgePrivateLeagueJoinEvents`.
- */
-export const purgePrivateLeagueJoinEvents = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    let deletedEvents = 0;
-
-    for await (const league of ctx.db.query('leagues')) {
-      if (shouldBroadcastLeagueJoin(league)) {
-        continue;
-      }
-
-      for await (const event of ctx.db
-        .query('feedEvents')
-        .withIndex('by_league_created', (q) => q.eq('leagueId', league._id))) {
-        if (event.type !== 'joined_league') {
-          continue;
-        }
-
-        await ctx.db.delete(event._id);
-        deletedEvents += 1;
-      }
-    }
-
-    return { deletedEvents };
   },
 });

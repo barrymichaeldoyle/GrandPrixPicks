@@ -116,11 +116,13 @@ function CompactCompetitiveRow({
   code,
   displayName,
   team,
+  number,
 }: {
   position: number;
   code: string;
   displayName: string;
   team?: string;
+  number?: number | null;
 }) {
   return (
     <div className="grid grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 px-3 py-1.5">
@@ -132,6 +134,7 @@ function CompactCompetitiveRow({
           code={code}
           displayName={displayName}
           team={team}
+          number={number}
           size="sm"
         />
       </span>
@@ -199,6 +202,7 @@ function PracticeResultsTable({ result }: { result: PracticeResult }) {
             code={entry.code}
             displayName={entry.displayName}
             team={entry.team ?? undefined}
+            number={entry.driverNumber}
             size="sm"
           />
           <span className="min-w-0 text-xs text-text-muted">
@@ -325,6 +329,7 @@ export function PracticeResultsPanel({
                   code={entry.code}
                   displayName={entry.displayName}
                   team={entry.team ?? undefined}
+                  number={entry.number}
                 />
               )}
             />
@@ -342,6 +347,7 @@ export function PracticeResultsPanel({
                     code={entry.code}
                     displayName={entry.displayName}
                     team={entry.team ?? undefined}
+                    number={entry.number}
                     size="sm"
                   />
                 </div>

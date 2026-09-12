@@ -2,7 +2,7 @@ import type { FeedEvent } from './types';
 import { PracticePublishedItem } from './PracticePublishedItem';
 import { LineupChangeItem } from './LineupChangeItem';
 import { RaceNewsItem } from './RaceNewsItem';
-import { JoinedLeagueItem, ScorePublishedItem } from './ScorePublishedItem';
+import { ScorePublishedItem } from './ScorePublishedItem';
 
 export function FeedItem({
   event,
@@ -13,13 +13,12 @@ export function FeedItem({
   grouped?: boolean;
   position?: 'first' | 'middle' | 'last';
 }) {
-  // Defensive fallback for stale cached responses from before streak events
-  // were removed at the query boundary.
-  if (event.type === 'streak_milestone') {
+  // Defensive fallback for legacy rows and stale cached responses. Neither
+  // event is feed content at the query boundary anymore.
+  if (event.type === 'streak_milestone' || event.type === 'joined_league') {
     return null;
   }
 
-  const isSocialActivity = event.type === 'joined_league';
   const radiusClass =
     position === 'first'
       ? 'rounded-t-none'
@@ -37,18 +36,16 @@ export function FeedItem({
   return (
     <div
       className={
-        isSocialActivity
-          ? 'px-1 py-2.5'
-          : // A grouped news card sits inside NewsGroup's own bordered block,
-            // so it must not draw a second border inside it.
-            grouped && event.type === 'race_news'
-            ? ''
-            : event.type === 'race_news'
-              ? // No padding either way: the news card draws a team bar down
-                // its own left edge, and padding out here would inset the bar
-                // from the card's edge and stop it running the full height.
-                `border border-border/80 bg-surface ${radiusClass} ${borderClass}`
-              : `border border-border/80 bg-surface p-2.5 ${radiusClass} ${borderClass}`
+        // A grouped news card sits inside NewsGroup's own bordered block,
+        // so it must not draw a second border inside it.
+        grouped && event.type === 'race_news'
+          ? ''
+          : event.type === 'race_news'
+            ? // No padding either way: the news card draws a team bar down
+              // its own left edge, and padding out here would inset the bar
+              // from the card's edge and stop it running the full height.
+              `border border-border/80 bg-surface ${radiusClass} ${borderClass}`
+            : `border border-border/80 bg-surface p-2.5 ${radiusClass} ${borderClass}`
       }
     >
       {event.type === 'practice_published' ? (
@@ -61,9 +58,7 @@ export function FeedItem({
         event.type === 'results_amended' ||
         event.type === 'session_locked' ? (
         <ScorePublishedItem event={event} grouped={grouped} />
-      ) : (
-        <JoinedLeagueItem event={event} />
-      )}
+      ) : null}
     </div>
   );
 }

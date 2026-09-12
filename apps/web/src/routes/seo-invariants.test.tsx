@@ -321,24 +321,30 @@ describe('SEO invariants across every indexable route', () => {
           ? `keeps its ${status} title and description inside SERP limits`
           : 'keeps its title and description inside SERP limits';
 
-        it(label, async () => {
-          const head = await headFor(entry, status);
-          const title = titleOf(head);
-          const description = contentOf(head, 'description');
+        it(
+          label,
+          async () => {
+            const head = await headFor(entry, status);
+            const title = titleOf(head);
+            const description = contentOf(head, 'description');
 
-          expect(title, 'missing <title>').toBeTruthy();
-          expect(title!.length).toBeLessThanOrEqual(MAX_TITLE);
-          expect(description, 'missing meta description').toBeTruthy();
-          expect(description!.length).toBeLessThanOrEqual(MAX_DESCRIPTION);
+            expect(title, 'missing <title>').toBeTruthy();
+            expect(title!.length).toBeLessThanOrEqual(MAX_TITLE);
+            expect(description, 'missing meta description').toBeTruthy();
+            expect(description!.length).toBeLessThanOrEqual(MAX_DESCRIPTION);
 
-          // A cancelled race is held to the ceiling but not the floor. "The
-          // 2026 Bahrain Grand Prix was called off." is the whole story, and
-          // padding it to clear a minimum would be inventing copy to satisfy
-          // a test, which `docs/product-voice.md` rules out.
-          if (status !== 'cancelled') {
-            expect(description!.length).toBeGreaterThanOrEqual(MIN_DESCRIPTION);
-          }
-        }, 15_000);
+            // A cancelled race is held to the ceiling but not the floor. "The
+            // 2026 Bahrain Grand Prix was called off." is the whole story, and
+            // padding it to clear a minimum would be inventing copy to satisfy
+            // a test, which `docs/product-voice.md` rules out.
+            if (status !== 'cancelled') {
+              expect(description!.length).toBeGreaterThanOrEqual(
+                MIN_DESCRIPTION,
+              );
+            }
+          },
+          15_000,
+        );
       }
 
       it('is indexable and canonicalises to itself', async () => {

@@ -50,6 +50,7 @@ export function CompactPracticeRow({
       </Text>
       <DriverBadge
         code={entry.code}
+        displayName={entry.displayName}
         fill={fill}
         number={entry.driverNumber}
         size={size}

@@ -161,8 +161,8 @@ describe('validatePublishInput', () => {
 
 describe('resolveStartingGrid', () => {
   const roster = new Map([
-    ['GAS', { displayName: 'Pierre Gasly', team: 'Alpine' }],
-    ['RUS', { displayName: 'George Russell', team: 'Mercedes' }],
+    ['GAS', { displayName: 'Pierre Gasly', team: 'Alpine', number: 10 }],
+    ['RUS', { displayName: 'George Russell', team: 'Mercedes', number: 63 }],
   ]);
 
   it('puts names and teams on the stored rows, in starting order', () => {
@@ -175,12 +175,19 @@ describe('resolveStartingGrid', () => {
         (code) => roster.get(code),
       ),
     ).toEqual([
-      { position: 1, code: 'GAS', displayName: 'Pierre Gasly', team: 'Alpine' },
+      {
+        position: 1,
+        code: 'GAS',
+        displayName: 'Pierre Gasly',
+        team: 'Alpine',
+        number: 10,
+      },
       {
         position: 2,
         code: 'RUS',
         displayName: 'George Russell',
         team: 'Mercedes',
+        number: 63,
       },
     ]);
   });
@@ -198,6 +205,8 @@ describe('resolveStartingGrid', () => {
       code: 'XXX',
       displayName: 'XXX',
       team: null,
+      // Nothing to resolve a number from either; the row still renders.
+      number: null,
     });
   });
 

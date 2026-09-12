@@ -53,6 +53,14 @@ export const resolvedStartingGridEntryValidator = v.object({
   code: v.string(),
   displayName: v.string(),
   team: v.union(v.string(), v.null()),
+  /**
+   * The car number, for the driver badge's tooltip.
+   *
+   * Optional because the grids frozen into feed events before it was resolved
+   * do not carry one, and those events are never rewritten. A row without it
+   * still renders; it just shows the code alone in the tooltip's number block.
+   */
+  number: v.optional(v.union(v.number(), v.null())),
   note: v.optional(v.string()),
   newsKey: v.optional(v.string()),
 });

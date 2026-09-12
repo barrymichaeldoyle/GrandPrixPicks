@@ -6,7 +6,6 @@ import {
   getPersonalizedFeedPageData,
   getSessionLockAt,
   isSessionLockedAt,
-  shouldBroadcastLeagueJoin,
 } from './feed';
 
 const MAX_FEED_SIZE = 40;
@@ -15,7 +14,7 @@ const MAX_FEED_SCAN_BATCHES = 5;
 
 type FeedEvent = {
   _id: Id<'feedEvents'>;
-  type: 'joined_league' | 'streak_milestone';
+  type: 'score_published' | 'joined_league' | 'streak_milestone';
   userId: Id<'users'>;
   streakCount?: number;
   createdAt: number;
@@ -33,7 +32,7 @@ function makeEvent(
   id: string,
   owner: string,
   createdAt: number,
-  type: FeedEvent['type'] = 'joined_league',
+  type: FeedEvent['type'] = 'score_published',
 ): FeedEvent {
   return {
     _id: feedEventId(id),
@@ -236,13 +235,14 @@ describe('buildFilteredFeedPage', () => {
     expect(take).toHaveBeenCalledTimes(1);
   });
 
-  it('excludes streak milestones without letting them consume page capacity', async () => {
+  it('excludes legacy events without letting them consume page capacity', async () => {
     const visibleEvents = Array.from({ length: MAX_FEED_SIZE }, (_, index) =>
       makeEvent(`visible-${index}`, 'u1', 10_000 - index),
     );
     const pagesByCreatedAt = {
       __start__: [
         makeEvent('streak', 'u1', 20_000, 'streak_milestone'),
+        makeEvent('league-join', 'u1', 19_000, 'joined_league'),
         ...visibleEvents,
       ],
     };
@@ -257,6 +257,9 @@ describe('buildFilteredFeedPage', () => {
     expect(result.page).toHaveLength(MAX_FEED_SIZE);
     expect(result.page.map((event) => event._id)).not.toContain(
       feedEventId('streak'),
+    );
+    expect(result.page.map((event) => event._id)).not.toContain(
+      feedEventId('league-join'),
     );
   });
 
@@ -338,25 +341,6 @@ describe('getPersonalizedFeedPageData', () => {
     expect(result.hasMore).toBe(false);
     expect(result.nextCursor).toBeNull();
     expect(result.sessions).toEqual({});
-  });
-});
-
-describe('shouldBroadcastLeagueJoin', () => {
-  it('broadcasts joins for public leagues without a password', () => {
-    expect(shouldBroadcastLeagueJoin({ visibility: 'public' })).toBe(true);
-  });
-
-  it('never broadcasts joins for private leagues', () => {
-    expect(shouldBroadcastLeagueJoin({ visibility: 'private' })).toBe(false);
-    expect(
-      shouldBroadcastLeagueJoin({ visibility: 'private', password: 'hash' }),
-    ).toBe(false);
-  });
-
-  it('never broadcasts joins for password-protected leagues', () => {
-    expect(
-      shouldBroadcastLeagueJoin({ visibility: 'public', password: 'hash' }),
-    ).toBe(false);
   });
 });
 

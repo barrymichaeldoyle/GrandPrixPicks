@@ -178,6 +178,8 @@ async function sessionConsensus(
         driverId,
         code: driver?.code ?? '???',
         displayName: driver?.displayName ?? 'Unknown',
+        number: driver?.number ?? null,
+        nationality: driver?.nationality ?? null,
         team:
           teamForRound(stints, driverId, race.round) ?? driver?.team ?? null,
         slots,

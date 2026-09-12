@@ -7,6 +7,8 @@ export type StartingGridEntry = {
   code: string;
   displayName: string;
   team: string | null;
+  /** Absent on grids frozen into a feed event before numbers were resolved. */
+  number?: number | null;
   note?: string;
   /** The news item that explains `note`, by key. Never rendered on its own. */
   newsKey?: string;
@@ -118,6 +120,7 @@ function GridRow({
         code={entry.code}
         team={entry.team}
         displayName={entry.displayName}
+        number={entry.number}
         size="sm"
         prerenderTooltip={false}
       />

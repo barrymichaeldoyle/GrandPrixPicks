@@ -1,5 +1,12 @@
-import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
+import {
+  SESSION_LABELS,
+  type SessionType,
+} from '@grandprixpicks/shared/sessions';
+import { useState } from 'react';
 
+import type { ConvexId } from '../../integrations/convex/api';
+import { api } from '../../integrations/convex/api';
+import { useQuery } from '../../integrations/convex/query';
 import { getTeamColor } from '../../lib/teamColors';
 import { colors } from '../../theme/tokens';
 import { Pressable, Text, View } from '../../tw';
@@ -9,6 +16,8 @@ import { Card } from '../ui/Card';
 import { formatRelativeTime } from './helpers';
 import { NewsGroupCard } from './NewsGroupCard';
 import { PracticePublishedCard } from './practice-published-card';
+import { H2HPicksDialog } from './H2HPicksDialog';
+import { EmptySlot, PickSlot } from './PickSlot';
 import type { FeedEvent } from './types';
 
 export type { FeedEvent } from './types';
@@ -138,6 +147,66 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
   );
 }
 
+function SessionLockedCard({ event }: { event: FeedEvent }) {
+  const [h2hOpen, setH2hOpen] = useState(false);
+  const sessionType = event.sessionType as SessionType | undefined;
+  const canOpenH2h = Boolean(event.userId && event.raceId && sessionType);
+  const teamOrder = useQuery(
+    api.f1Standings.getConstructorOrder,
+    canOpenH2h ? {} : 'skip',
+  );
+  const picks = [...(event.picks ?? [])].sort(
+    (a, b) => a.predictedPosition - b.predictedPosition,
+  );
+
+  return (
+    <Card>
+      <EventHeader event={event} />
+      <View className="flex-row gap-1">
+        {Array.from({ length: 5 }, (_, index) => {
+          const pick = picks[index];
+          return pick ? (
+            <PickSlot
+              code={pick.code}
+              displayName={pick.displayName}
+              key={pick.predictedPosition}
+              predictedPosition={pick.predictedPosition}
+              team={pick.team}
+            />
+          ) : (
+            <EmptySlot key={`empty-${index}`} />
+          );
+        })}
+      </View>
+      <View className="flex-row items-center justify-between gap-2">
+        <Text className="text-xs font-medium text-accent">
+          Awaiting results
+        </Text>
+        {canOpenH2h ? (
+          <Pressable
+            accessibilityLabel="View H2H picks"
+            accessibilityRole="button"
+            className="rounded-sm border border-accent/30 bg-accent/10 px-2 py-1 active:border-accent/60"
+            onPress={() => setH2hOpen(true)}
+          >
+            <Text className="text-xs font-semibold text-accent">H2H picks</Text>
+          </Pressable>
+        ) : null}
+      </View>
+      {h2hOpen && event.userId && event.raceId && sessionType ? (
+        <H2HPicksDialog
+          displayName={event.displayName ?? event.username ?? 'User'}
+          onClose={() => setH2hOpen(false)}
+          raceId={event.raceId as ConvexId<'races'>}
+          sessionType={sessionType}
+          teamOrder={teamOrder}
+          userId={event.userId as ConvexId<'users'>}
+        />
+      ) : null}
+    </Card>
+  );
+}
+
 function SimpleEventCard({
   event,
   description,
@@ -228,15 +297,7 @@ export function FeedEventCard({
       return <ScorePublishedCard event={event} />;
     }
     if (event.type === 'session_locked') {
-      const sessionLabel = event.sessionType
-        ? SESSION_LABELS[event.sessionType as keyof typeof SESSION_LABELS]
-        : 'session';
-      const description = `Locked their picks for ${sessionLabel}${event.raceName ? ` · ${event.raceName}` : ''}`;
-      return <SimpleEventCard event={event} description={description} />;
-    }
-    if (event.type === 'joined_league') {
-      const description = `Joined ${event.leagueName ?? 'a league'}`;
-      return <SimpleEventCard event={event} description={description} />;
+      return <SessionLockedCard event={event} />;
     }
     if (event.type === 'lineup_change') {
       return <LineupChangeCard event={event} />;
@@ -255,7 +316,8 @@ export function FeedEventCard({
     !inner ||
     !onPress ||
     event.type === 'race_news' ||
-    event.type === 'practice_published'
+    event.type === 'practice_published' ||
+    event.type === 'session_locked'
   ) {
     return inner;
   }

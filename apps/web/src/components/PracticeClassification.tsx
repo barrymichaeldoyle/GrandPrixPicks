@@ -45,6 +45,7 @@ function ClassificationRow({ entry }: { entry: PracticeEntry }) {
             code={entry.code}
             displayName={entry.displayName}
             team={entry.team ?? undefined}
+            number={entry.driverNumber}
             size="sm"
             prerenderTooltip={false}
           />

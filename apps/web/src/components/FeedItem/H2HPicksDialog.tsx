@@ -209,6 +209,7 @@ export function H2HPicksDialog({
                       code={pick.driver1.code}
                       team={pick.driver1.team}
                       displayName={pick.driver1.displayName}
+                      number={pick.driver1.number}
                       nationality={pick.driver1.nationality}
                       size="sm"
                     />
@@ -223,6 +224,7 @@ export function H2HPicksDialog({
                       code={pick.driver2.code}
                       team={pick.driver2.team}
                       displayName={pick.driver2.displayName}
+                      number={pick.driver2.number}
                       nationality={pick.driver2.nationality}
                       size="sm"
                     />

@@ -7,6 +7,7 @@ import { DevTicketSignIn } from '../lib/devTicketSignIn';
 import { MobileConvexProvider } from '../integrations/convex/provider';
 import { TypographyProvider } from '../theme/typography';
 import { AnalyticsProvider } from './AnalyticsProvider';
+import { DriverCardProvider } from './DriverCardProvider';
 import { MobileConfigProvider } from './mobile-config';
 import { NotificationsProvider } from './NotificationsProvider';
 import { ToastProvider } from './ToastProvider';
@@ -22,7 +23,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
                 {__DEV__ ? <DevTicketSignIn /> : null}
                 <AnalyticsProvider />
                 <NotificationsProvider />
-                <ToastProvider>{children}</ToastProvider>
+                <ToastProvider>
+                  <DriverCardProvider>{children}</DriverCardProvider>
+                </ToastProvider>
               </MobileConvexProvider>
             </MobileClerkProvider>
           </TypographyProvider>

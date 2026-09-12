@@ -864,6 +864,7 @@ export const getH2HPicksForFeedItem = query({
             code: driver1?.code ?? '???',
             displayName: driver1?.displayName ?? 'Unknown',
             team: driver1?.team ?? null,
+            number: driver1?.number ?? null,
             nationality: driver1?.nationality ?? null,
           },
           driver2: {
@@ -871,6 +872,7 @@ export const getH2HPicksForFeedItem = query({
             code: driver2?.code ?? '???',
             displayName: driver2?.displayName ?? 'Unknown',
             team: driver2?.team ?? null,
+            number: driver2?.number ?? null,
             nationality: driver2?.nationality ?? null,
           },
           predictedWinnerId: String(pred.predictedWinnerId),

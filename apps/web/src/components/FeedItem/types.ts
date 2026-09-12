@@ -4,6 +4,8 @@ export type ScoredPick = {
   code: string;
   team?: string;
   displayName?: string;
+  /** Car number, for the badge tooltip. */
+  number?: number;
   nationality?: string;
   predictedPosition: number;
   actualPosition?: number;
@@ -46,7 +48,7 @@ export type FeedEvent = {
   // enriched picks + H2H
   picks?: ScoredPick[];
   h2hScore?: H2HScore | null;
-  // joined_league
+  // Legacy joined_league fields retained while stored rows remain valid.
   leagueId?: Id<'leagues'>;
   leagueName?: string;
   leagueSlug?: string;

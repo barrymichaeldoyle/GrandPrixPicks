@@ -213,26 +213,6 @@ export const SessionLocked: Story = {
   },
 };
 
-export const JoinedLeague: Story = {
-  args: {
-    event: makeFeedEvent({
-      _id: fakeId<'feedEvents'>('feed-joined-league'),
-      type: 'joined_league',
-      raceId: undefined,
-      sessionType: undefined,
-      points: undefined,
-      raceName: undefined,
-      raceSlug: undefined,
-      picks: undefined,
-      h2hScore: null,
-      leagueId: fakeId<'leagues'>('legends-league'),
-      leagueName: 'Legends League',
-      leagueSlug: 'legends-league',
-      createdAt: NOW - 3 * HOUR,
-    }),
-  },
-};
-
 export const LineupChange: Story = {
   args: {
     event: makeFeedEvent({

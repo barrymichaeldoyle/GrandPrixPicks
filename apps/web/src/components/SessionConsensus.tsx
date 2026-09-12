@@ -14,6 +14,8 @@ export type SessionConsensusData = {
     code: string;
     displayName: string;
     team: string | null;
+    number: number | null;
+    nationality: string | null;
     slots: number[];
     picks: number;
     pickRate: number;
@@ -34,6 +36,8 @@ type ConsensusSession = {
     code: string;
     displayName: string;
     team: string | null;
+    number?: number | null;
+    nationality?: string | null;
   }[];
 };
 
@@ -46,6 +50,8 @@ type ConsensusRow = {
   code: string;
   displayName: string;
   team: string | null;
+  number: number | null;
+  nationality: string | null;
   position: number | null;
   pickRate: number;
   tookP1: boolean;
@@ -77,6 +83,8 @@ function buildRows({
       code: driver.code,
       displayName: driver.displayName,
       team: driver.team,
+      number: driver.number,
+      nationality: driver.nationality,
       position: driver.consensusPosition,
       pickRate: driver.pickRate,
       tookP1: driver.driverId === winner?.driverId,
@@ -92,6 +100,8 @@ function buildRows({
     code: picked?.code ?? winner.code,
     displayName: picked?.displayName ?? winner.displayName,
     team: picked?.team ?? winner.team,
+    number: picked?.number ?? winner.number ?? null,
+    nationality: picked?.nationality ?? winner.nationality ?? null,
     position: picked?.consensusPosition ?? null,
     pickRate: picked?.pickRate ?? 0,
     tookP1: true,
@@ -182,6 +192,8 @@ function ConsensusTable({
                       code={driver.code}
                       displayName={driver.displayName}
                       team={driver.team ?? undefined}
+                      number={driver.number}
+                      nationality={driver.nationality}
                       size="sm"
                       prerenderTooltip={false}
                     />

@@ -12,6 +12,7 @@ import type { FeedEvent } from '../../components/feed/FeedEventCard';
 import { FeedEventCard } from '../../components/feed/FeedEventCard';
 import { NewsGroupCard } from '../../components/feed/NewsGroupCard';
 import { WeekendSplit } from '../../components/feed/WeekendSplit';
+import { LiveClassificationCard } from '../../components/feed/live-classification-card';
 import type { SessionHeader } from '../../components/feed/SessionGroupCard';
 import { SessionGroupCard } from '../../components/feed/SessionGroupCard';
 import { PicksConnectedScreen } from '../PicksConnectedScreen';
@@ -249,6 +250,7 @@ export function FeedScreen() {
         }
         ListHeaderComponent={
           <View>
+            <LiveClassificationCard />
             <RaceRecapCard className="mx-4 mt-3 mb-3" />
             {isSignedIn ? (
               <PicksConnectedScreen embedded />

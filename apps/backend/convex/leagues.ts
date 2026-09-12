@@ -1,6 +1,5 @@
 import { v } from 'convex/values';
 
-import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
 import type { QueryCtx } from './_generated/server';
@@ -704,11 +703,6 @@ export const joinLeague = mutation({
     await ctx.db.patch(league._id, {
       memberCount: counts.memberCount + 1,
       updatedAt: Date.now(),
-    });
-
-    await ctx.scheduler.runAfter(0, internal.feed.writeJoinedLeagueFeedEvent, {
-      userId: viewer._id,
-      leagueId: league._id,
     });
 
     return { leagueId: league._id, slug: league.slug, alreadyMember: false };

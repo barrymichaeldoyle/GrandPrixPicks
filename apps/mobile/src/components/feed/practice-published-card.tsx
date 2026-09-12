@@ -1,22 +1,17 @@
+import { PRACTICE_SESSION_LABELS } from '@grandprixpicks/shared/practice';
 import { useState } from 'react';
 
 import { api } from '../../integrations/convex/api';
 import { useQuery } from '../../integrations/convex/query';
 import { Pressable, Text, View } from '../../tw';
+import { CompactPracticeRow } from '../races/CompactPracticeRow';
 import { PracticeResultsSheet } from '../races/practice-results-sheet';
 import { Card } from '../ui/Card';
 import { formatRelativeTime } from './helpers';
 import type { FeedEvent } from './types';
 
-function timing(seconds: number | undefined, position: number) {
-  if (seconds === undefined) {
-    return '—';
-  }
-  if (position !== 1) {
-    return `+${seconds.toFixed(3)}`;
-  }
-  return `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(3).padStart(6, '0')}`;
-}
+/** Web shows the classification's scoring-relevant top; the sheet has the rest. */
+const COLLAPSED_ROWS = 6;
 
 export function PracticePublishedCard({ event }: { event: FeedEvent }) {
   const [open, setOpen] = useState(false);
@@ -27,62 +22,52 @@ export function PracticePublishedCard({ event }: { event: FeedEvent }) {
   const result = results?.find(
     (item) => item.sessionType === event.practiceSessionType,
   );
+  const sessionLabel = event.practiceSessionType
+    ? PRACTICE_SESSION_LABELS[event.practiceSessionType]
+    : 'Practice';
+
   return (
     <Card>
+      {/*
+        The session named in full, as web names it. This used to be
+        `sessionType.toUpperCase()`, so the feed said "FP1" while every other
+        surface in the product said "Free Practice 1".
+      */}
       <Text className="text-foreground text-base font-semibold">
-        {event.raceName} · {event.practiceSessionType?.toUpperCase()} results
+        {event.raceName} · {sessionLabel} results
       </Text>
       <Text className="text-muted text-xs">
         {formatRelativeTime(event.createdAt)}
       </Text>
       {result ? (
         <>
-          {result.entries.slice(0, 6).map((entry) => (
-            <View
-              key={entry.driverNumber}
-              className="flex-row items-center gap-3 py-1"
-            >
-              <Text selectable className="text-muted w-7 text-sm">
-                P{entry.position}
-              </Text>
-              <Text
-                selectable
-                className="text-foreground flex-1 text-sm"
-                numberOfLines={1}
-              >
-                {entry.displayName}
-              </Text>
-              <Text
-                selectable
-                className="text-foreground text-sm"
-                style={{ fontVariant: ['tabular-nums'] }}
-              >
-                {timing(
-                  entry.position === 1
-                    ? entry.bestLapSeconds
-                    : entry.gapToLeaderSeconds,
-                  entry.position,
-                )}
-              </Text>
-            </View>
-          ))}
+          <View>
+            {result.entries.slice(0, COLLAPSED_ROWS).map((entry, index) => (
+              <View key={entry.driverNumber}>
+                {/* Web separates these rows with `divide-y`; a hairline between
+                    siblings is the same rule written out. */}
+                {index > 0 ? <View className="h-px bg-border" /> : null}
+                <CompactPracticeRow entry={entry} />
+              </View>
+            ))}
+          </View>
           <Pressable
             accessibilityRole="button"
-            onPress={() => setOpen(true)}
             className="min-h-11 items-center justify-center border-t border-border py-2"
+            onPress={() => setOpen(true)}
           >
-            <Text className="text-foreground text-sm font-semibold">
-              View full results
-            </Text>
+            {/* Muted, like web's: it is a way to see more, not the point of
+                the card. */}
+            <Text className="text-muted text-sm">View full results</Text>
           </Pressable>
           <PracticeResultsSheet
-            visible={open}
+            competitive={{}}
+            hasSprint={false}
             onClose={() => setOpen(false)}
             practice={[result]}
-            competitive={{}}
             predictionSession="quali"
-            hasSprint={false}
             raceSlug={event.raceSlug ?? ''}
+            visible={open}
           />
         </>
       ) : (

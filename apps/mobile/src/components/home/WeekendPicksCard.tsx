@@ -24,7 +24,7 @@ import { Numeral } from '../ui/Numeral';
 
 const SITE_URL = 'https://grandprixpicks.com';
 
-const LABEL = 'text-[11px] font-medium text-muted';
+const LABEL = 'text-xs font-medium text-muted';
 
 export type WeekendSession = {
   sessionType: SessionType;
@@ -211,7 +211,7 @@ function PicksInvitation({
 
   return (
     <View>
-      <Text className="text-[11px] font-medium text-accent">Step 1 of 2</Text>
+      <Text className="text-xs font-medium text-accent">Step 1 of 2</Text>
       <Text className="text-foreground mt-1 text-lg font-semibold">
         Choose your Top 5
       </Text>
@@ -332,7 +332,7 @@ function SessionChip({
   const label = (
     <>
       <Ionicons color={tone} name={icon} size={12} />
-      <Text className="text-[11px] font-medium" style={{ color: tone }}>
+      <Text className="text-xs font-medium" style={{ color: tone }}>
         {SESSION_LABELS_SHORT[session.sessionType]}
       </Text>
     </>

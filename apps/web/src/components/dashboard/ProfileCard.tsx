@@ -44,7 +44,7 @@ export function ProfileCard({ me }: { me: Me | undefined }) {
           <p className="line-clamp-2 text-sm leading-snug font-semibold break-words text-text">
             {displayName}
           </p>
-          <p className="mt-0.5 truncate text-[11px] text-text-muted">
+          <p className="mt-0.5 truncate text-xs text-text-muted">
             @{me.username}
           </p>
         </div>

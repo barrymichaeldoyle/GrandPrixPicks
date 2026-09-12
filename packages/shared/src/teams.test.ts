@@ -95,11 +95,23 @@ describe('round-scoped pairings', () => {
     )?.team ?? null;
 
   it('gives every team exactly one pairing in any round', () => {
-    for (const round of [1, 11, 12, 23]) {
+    // Every round, not a sample of four. Two pairings overlapping on a single
+    // round is the authoring mistake this guards: a change that opens the
+    // replacement without closing the record it replaces. Downstream that
+    // reads as a team fielding four cars — it put two results per team per
+    // session into the feed, where a team-keyed list then dropped rows.
+    //
+    // Runs past the end of the calendar on purpose: open-ended pairings have
+    // to stay unique after the last round too, since a sentinel round resolves
+    // to the current grid.
+    for (let round = 1; round <= 30; round++) {
       const pairings = pairingsForRound(round);
       const teams = pairings.map((pairing) => pairing.team);
-      expect(new Set(teams).size).toBe(teams.length);
-      expect(teams).toHaveLength(11);
+      expect(
+        new Set(teams).size,
+        `round ${round} has more than one pairing for a team`,
+      ).toBe(teams.length);
+      expect(teams, `round ${round} is not a full grid`).toHaveLength(11);
     }
   });
 

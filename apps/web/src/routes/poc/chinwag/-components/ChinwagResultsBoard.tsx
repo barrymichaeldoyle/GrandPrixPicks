@@ -64,7 +64,7 @@ export function ChinwagResultsBoard({
             ? 'Race Report · Bangers & Clangers'
             : (data?.showName ?? 'Pre Race Chinwag')}
           {sample ? (
-            <span className="rounded-sm border border-[var(--chinwag-border)] bg-[var(--chinwag-card)] px-2 py-0.5 text-[11px] tracking-[0.1em] normal-case">
+            <span className="rounded-sm border border-[var(--chinwag-border)] bg-[var(--chinwag-card)] px-2 py-0.5 text-xs tracking-[0.1em] normal-case">
               Example data
             </span>
           ) : null}

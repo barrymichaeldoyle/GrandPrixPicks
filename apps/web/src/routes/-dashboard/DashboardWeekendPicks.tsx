@@ -606,6 +606,8 @@ function DashboardWeekendPicksReady({
               key={`picker-${pickerGeneration}`}
               raceId={weekend.race._id}
               initialDrivers={drivers}
+              hidePicksHeading
+              inlineSaveStatus
               // Server truth only. Seeding this from the live `topFivePicks`
               // tells the form its current picks are already saved, so `dirty`
               // goes false on the fifth tap and the auto-save never fires —
@@ -620,6 +622,7 @@ function DashboardWeekendPicksReady({
                   complete={complete}
                   saveState={saveState}
                   primaryLabel="Continue to team-mate picks"
+                  showSaveStatus={false}
                   onPrimary={async () => {
                     // Step 2 unmounts this form, which cancels any debounced
                     // edit save with it. The first save is immediate and has
@@ -869,7 +872,7 @@ function SessionChip({
   // base with `border-accent` appended lost: they are the same specificity, so
   // the winner is whichever Tailwind emits last, and that was `transparent`.
   const base =
-    'inline-flex shrink-0 items-center gap-1 border-b-2 py-2.5 text-[11px] font-semibold whitespace-nowrap transition-colors';
+    'inline-flex shrink-0 items-center gap-1 border-b-2 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors';
 
   if (!onSelect) {
     return (

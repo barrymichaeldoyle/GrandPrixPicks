@@ -413,7 +413,9 @@
    */
   .gpp-header-me-tab::after {
     content: 'Me \25bc';
-    font-size: 11px;
+    /* Matches HEADER_NAV_TAB_LABEL_CLASS (`text-xs`); the tab sits in the same
+       row as the other labels, so the two have to move together. */
+    font-size: var(--text-xs);
     font-weight: var(--fw-medium);
     line-height: 1;
     white-space: nowrap;

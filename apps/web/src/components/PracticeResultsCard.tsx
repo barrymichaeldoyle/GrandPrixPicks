@@ -1,6 +1,10 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import type { FunctionReturnType } from 'convex/server';
+import {
+  formatPracticeLap,
+  practiceGapOrLap,
+} from '@grandprixpicks/shared/practice';
 import { useQuery } from '@/integrations/convex/query';
 import { ChevronDown } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -42,27 +46,14 @@ export function resultsSheetHeading(session: ResultsTab): string {
   return `${RESULTS_TAB_LABELS[session]} results`;
 }
 
-function formatLap(seconds?: number) {
-  if (seconds === undefined) {
-    return '—';
-  }
-  const minutes = Math.floor(seconds / 60);
-  return `${minutes}:${(seconds % 60).toFixed(3).padStart(6, '0')}`;
-}
+/**
+ * Re-exported for the call sites already importing it from this module; the
+ * rule itself is shared with mobile's feed card.
+ */
+export { practiceGapOrLap };
 
-/** Leader's lap, or the gap behind them. The one number a compact row shows. */
-export function practiceGapOrLap(entry: {
-  position: number;
-  bestLapSeconds?: number;
-  gapToLeaderSeconds?: number;
-}): string {
-  if (entry.position === 1) {
-    return formatLap(entry.bestLapSeconds);
-  }
-  return entry.gapToLeaderSeconds === undefined
-    ? '\u2014'
-    : `+${entry.gapToLeaderSeconds.toFixed(3)}`;
-}
+/** Local alias: the full-classification table prints the lap on every row. */
+const formatLap = formatPracticeLap;
 
 /**
  * Splits a classification down the middle so two columns read top-to-bottom in
@@ -79,13 +70,24 @@ export function CompactPracticeRow({
   entry,
   size = 'sm',
   fill = 'elevated',
+  gutter = 'tight',
 }: {
   entry: PracticeResult['entries'][number];
   size?: 'sm' | 'md';
   fill?: 'elevated' | 'sunken';
+  /**
+   * `card` when the row is the full width of a card rather than one of two
+   * columns inside one: the position and the time then line up with the
+   * heading above them instead of sitting a few pixels off the edge of the
+   * screen, which on a phone read as text with nowhere to go.
+   */
+  gutter?: 'tight' | 'card';
 }) {
+  const pad = gutter === 'card' ? 'px-4' : 'px-2 sm:px-3';
   return (
-    <div className="grid grid-cols-[1.75rem_auto_minmax(4.5rem,1fr)] items-center gap-1.5 px-2 py-1.5 sm:gap-2 sm:px-3">
+    <div
+      className={`grid grid-cols-[1.75rem_auto_minmax(4.5rem,1fr)] items-center gap-1.5 py-1.5 sm:gap-2 ${pad}`}
+    >
       <span className="gpp-mono text-xs font-semibold text-text-muted">
         P{entry.position}
       </span>

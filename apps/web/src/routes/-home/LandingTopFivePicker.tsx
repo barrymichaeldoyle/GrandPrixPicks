@@ -18,6 +18,7 @@ export function LandingTopFivePicker({
   continueLabel = 'Add team-mate picks',
   onSaveIntent,
   showSave = false,
+  hidePicksHeading = false,
 }: {
   raceId: Id<'races'>;
   initialDrivers: Doc<'drivers'>[];
@@ -46,6 +47,8 @@ export function LandingTopFivePicker({
    * optional action. Off in the edit overlay, which is not a funnel step.
    */
   showSave?: boolean;
+  /** The focus overlay already supplies the Top 5 heading. */
+  hidePicksHeading?: boolean;
 }) {
   return (
     <PredictionForm
@@ -55,6 +58,8 @@ export function LandingTopFivePicker({
       suppressDraftRestoredNotice={suppressDraftRestoredNotice}
       analyticsSource="landing"
       mobileActionFirst
+      hidePicksHeading={hidePicksHeading}
+      inlineSaveStatus={hidePicksHeading}
       onComplete={onComplete}
       onCompletionStateChange={onCompletionStateChange}
       onPicksChange={onPicksChange}
@@ -68,6 +73,7 @@ export function LandingTopFivePicker({
           onContinue={onContinue}
           label={continueLabel}
           showSave={showSave}
+          showSaveStatus={!hidePicksHeading}
           onSave={() => {
             onSaveIntent?.();
             submit();
@@ -97,6 +103,7 @@ function TopFiveHandoff({
   onContinue,
   label,
   showSave,
+  showSaveStatus,
   onSave,
 }: {
   complete: boolean;
@@ -104,6 +111,7 @@ function TopFiveHandoff({
   onContinue: () => void;
   label: string;
   showSave: boolean;
+  showSaveStatus: boolean;
   onSave: () => void;
 }) {
   if (!showSave) {
@@ -113,6 +121,7 @@ function TopFiveHandoff({
         saveState={saveState}
         primaryLabel={label}
         onPrimary={onContinue}
+        showSaveStatus={showSaveStatus}
       />
     );
   }

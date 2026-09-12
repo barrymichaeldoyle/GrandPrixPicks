@@ -14,6 +14,7 @@ import { SuggestedFollowsCard } from '@/components/dashboard/SuggestedFollowsCar
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { AdSlot } from '@/components/AdSlot';
 import { FeedContent } from '@/components/feed/FeedContent';
+import { useFeedOffersFollows } from '@/components/feed/followSuggestions';
 import { sessionGroupKey } from '@/components/feed/groupFeedEvents';
 import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { AD_SLOTS } from '@/lib/adsense';
@@ -196,6 +197,22 @@ export function DashboardPage({
     currentWeekend?.race._id,
   );
 
+  /*
+   * Whether the centre column may render at all.
+   *
+   * The picks card is the page, and everything under it — practice, the
+   * activity stream — is context for it. Those two have SSR seeds of their
+   * own, so on a load where the server could not read as the viewer they
+   * painted immediately while the card above them was still a skeleton: a
+   * player scrolling a finished-looking page with a spinner at the top of it.
+   * They wait for the card instead, behind its one loader.
+   */
+  const centerReady = weekendPicksReady(currentWeekend);
+
+  // The rail's "Players to follow" card and the stream's empty state are the
+  // same query; only one of them shows it.
+  const feedOffersFollows = useFeedOffersFollows(initialDashboard?.feedPreview);
+
   const picksCard = (
     <DashboardWeekendPicks
       leading={!pickerFollowsFeed}
@@ -261,9 +278,13 @@ export function DashboardPage({
           <RailItem order={2}>
             <MyLeaguesCard leagues={leagues} />
           </RailItem>
-          <RailItem order={4}>
-            <SuggestedFollowsCard />
-          </RailItem>
+          {/* Stands down while the stream below is offering the same three
+              people: see `useFeedOffersFollows`. */}
+          {feedOffersFollows ? null : (
+            <RailItem order={4}>
+              <SuggestedFollowsCard />
+            </RailItem>
+          )}
           {/* Carries the weekend total and position for the race that just
               ran. It used to be suppressed while the recap card led the
               centre column with the same two numbers; the recap card is gone,
@@ -296,47 +317,48 @@ export function DashboardPage({
           are inset cards again and take the column's ordinary rhythm. The ad
           stays outside so it keeps its gap. */}
       <div className="flex flex-col gap-0 md:gap-6">
-        {pickerFollowsFeed ? null : picksCard}
+        {/* While the weekend is still loading this is the skeleton, and it is
+            the only thing on the centre column: everything below waits with
+            it. Practice and the feed both have their own seeds and used to
+            arrive under a spinning picks card, which read as a page that had
+            finished loading around a hole. One loader, then the whole
+            column. */}
+        {pickerFollowsFeed && centerReady ? null : picksCard}
 
-        {/* Under the picks: practice informs the pick above it but scores
-            nothing, so it must not lead. Keyed by race so the disclosure state
-            cannot carry over when the weekend advances. Like the feed, it does
-            not hold the auth curtain — the SSR seed means it is normally in the
-            server HTML anyway, taking its space before the feed renders below
-            it. */}
-        {practiceLeadsFeed ? practiceCard : null}
+        {centerReady ? (
+          <>
+            {/* Under the picks: practice informs the pick above it but scores
+                nothing, so it must not lead. Keyed by race so the disclosure
+                state cannot carry over when the weekend advances. */}
+            {practiceLeadsFeed ? practiceCard : null}
 
-        {/* No "See all" any more: this *is* all of it. The standalone /feed page
-            rendered the same component and has been removed. */}
-        <FeedContent
-          initialPage={initialDashboard?.feedPreview}
-          /* The picks card above is spinning on exactly the loads where this
-             section has no seed either, so let it do the waiting for both. One
-             spinner on the page, not two. Unless the picks card has moved into
-             this one, in which case there is nothing above to wait on its
-             behalf. */
-          showLoader={pickerFollowsFeed || weekendPicksReady(currentWeekend)}
-          /* Inside the stream for the length of the results-first window, not
-             after it: the picker for the next round belongs directly under the
-             result of the race just run, and everything else in the feed —
-             qualifying, the week's activity, Load more — sits below both. See
-             `pickerFollowsFeed`. */
-          interleaved={
-            pickerFollowsFeed && promotedRecap
-              ? {
-                  afterSessionKey: sessionGroupKey(
-                    promotedRecap.race.id,
-                    'race',
-                  ),
-                  node: picksCard,
-                }
-              : null
-          }
-        />
+            {/* No "See all" any more: this *is* all of it. The standalone
+                /feed page rendered the same component and has been removed. */}
+            <FeedContent
+              initialPage={initialDashboard?.feedPreview}
+              /* Inside the stream for the length of the results-first window,
+                 not after it: the picker for the next round belongs directly
+                 under the result of the race just run, and everything else in
+                 the feed — qualifying, the week's activity, Load more — sits
+                 below both. See `pickerFollowsFeed`. */
+              interleaved={
+                pickerFollowsFeed && promotedRecap
+                  ? {
+                      afterSessionKey: sessionGroupKey(
+                        promotedRecap.race.id,
+                        'race',
+                      ),
+                      node: picksCard,
+                    }
+                  : null
+              }
+            />
 
-        {/* After the lock, below the feed rather than above it. See
-            `practiceLeadsFeed`. */}
-        {practiceLeadsFeed ? null : practiceCard}
+            {/* After the lock, below the feed rather than above it. See
+                `practiceLeadsFeed`. */}
+            {practiceLeadsFeed ? null : practiceCard}
+          </>
+        ) : null}
       </div>
 
       {/* Below the feed, which is the one place on this page an ad can go

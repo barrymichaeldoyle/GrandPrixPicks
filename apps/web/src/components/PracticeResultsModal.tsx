@@ -129,7 +129,7 @@ export function PracticeResultsModal({
             {raceName ? (
               <p id={raceLabelId} className="flex items-center gap-1.5">
                 {countryCode ? <Flag code={countryCode} size="xs" /> : null}
-                <span className="gpp-mono text-[11px] text-text-muted">
+                <span className="gpp-mono text-xs text-text-muted">
                   {raceName}
                 </span>
               </p>

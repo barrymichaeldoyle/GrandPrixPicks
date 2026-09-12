@@ -48,21 +48,20 @@ export function NewsGroup({ events }: { events: FeedEvent[] }) {
          the frame's `px-4` was taking, which on a phone is most of a word per
          line of body copy. Inner padding is untouched: the block bleeds, the
          copy never does. */
-      className="overflow-hidden border-y border-border/80 bg-surface max-md:-mx-4 max-md:-mt-px md:rounded-sm md:border"
+      className="overflow-hidden border-y border-border/80 bg-surface max-md:-mx-4 max-md:mt-2 md:rounded-sm md:border"
       aria-label={raceName ? `Weekend news, ${raceName}` : 'Weekend news'}
     >
       {/* The eyebrow and the race name already mark this as the news block;
           a rule under them doubled the classification-style dividers the
-          stories themselves carry. `-mt-px` on the section collapses the
-          stacked hairline where this block meets practice on a phone. */}
+          stories themselves carry. `mt-2` on the section is the seam between
+          this block and whatever it follows on a phone: the same one practice
+          takes, so the two never read as one long list. */}
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-2.5 py-2">
         <p className="text-xs font-medium text-accent">Weekend news</p>
         {raceName ? (
           <p className="flex items-center gap-1.5">
             {countryCode ? <Flag code={countryCode} size="xs" /> : null}
-            <span className="gpp-mono text-[11px] text-text-muted">
-              {raceName}
-            </span>
+            <span className="gpp-mono text-xs text-text-muted">{raceName}</span>
           </p>
         ) : null}
       </div>

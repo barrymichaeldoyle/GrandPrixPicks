@@ -125,9 +125,7 @@ function RaceNewsCard({
       <SlantedStripe color={teamColour} reverse={reverse} />
       <View className="min-w-0 flex-1 gap-2 py-2.5 pr-3 pl-4">
         {grouped ? null : (
-          <Text className="text-[10px] font-medium text-accent">
-            Weekend news
-          </Text>
+          <Text className="text-xs font-medium text-accent">Weekend news</Text>
         )}
         <Text className="text-foreground text-sm font-semibold">
           {event.newsHeadline}
@@ -196,13 +194,11 @@ export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
       className="overflow-hidden border-y border-border bg-surface"
     >
       <View className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border px-3 py-2">
-        <Text className="text-[10px] font-medium text-accent">
-          Weekend news
-        </Text>
+        <Text className="text-xs font-medium text-accent">Weekend news</Text>
         {raceName ? (
           <View className="flex-row items-center gap-1.5">
             {raceSlug ? <FlagImage raceSlug={raceSlug} /> : null}
-            <Text className="text-muted text-[11px]">{raceName}</Text>
+            <Text className="text-muted text-xs">{raceName}</Text>
           </View>
         ) : null}
       </View>

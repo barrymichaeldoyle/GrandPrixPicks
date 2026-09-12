@@ -129,9 +129,7 @@ export function PracticeResultsSheet({
       <View className="flex-1 bg-page">
         <View className="flex-row items-center justify-between border-b border-border px-4 py-4">
           <View>
-            <Text className="text-muted text-[11px] font-medium">
-              Form guide
-            </Text>
+            <Text className="text-muted text-xs font-medium">Form guide</Text>
             <Text className="text-foreground text-xl font-bold">
               Session Results
             </Text>
@@ -195,12 +193,12 @@ export function PracticeResultsSheet({
                       {entry.code}
                     </Text>
                     {entry.isReserve ? (
-                      <Text className="text-[9px] font-bold text-accent">
+                      <Text className="text-xs font-bold text-accent">
                         RESERVE
                       </Text>
                     ) : null}
                   </View>
-                  <Text className="text-muted text-[11px]">
+                  <Text className="text-muted text-xs">
                     {entry.displayName}
                   </Text>
                 </View>
@@ -209,7 +207,7 @@ export function PracticeResultsSheet({
                     <Text className="text-foreground text-xs font-bold">
                       {lap(entry.bestLapSeconds)}
                     </Text>
-                    <Text className="text-muted text-[10px]">
+                    <Text className="text-muted text-xs">
                       {entry.lapCount === undefined
                         ? '—'
                         : `${entry.lapCount} laps`}

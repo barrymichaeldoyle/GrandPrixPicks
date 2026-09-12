@@ -65,12 +65,18 @@ const BAR_TAB_ACTIVE_CLASS = `${BAR_TAB_BASE} border-accent text-accent`;
 /**
  * Four tabs split the viewport, which leaves ~90px a tab on a 390px phone.
  * Sentence case is what buys the room a word like "Notifications" needs there —
- * the uppercase version had to give up its tracking to fit and still stepped
- * down a size below 360px, where a quarter of the screen is only 72px.
- * `truncate` is the floor under both, not the plan.
+ * the uppercase version had to give up its tracking to fit.
+ * `truncate` is the floor under this, not the plan.
+ *
+ * Set at `text-xs`, and in rem rather than the 10/11px this used to step
+ * between. Primary navigation should not be the smallest type on the screen,
+ * which is what it was: at 10px it was a step below the densest data in the
+ * app. The old px values also sat outside the type scale, so they were the one
+ * thing on the page that ignored a raised browser font size — the labels stayed
+ * at 10px while everything around them grew.
  */
 const BAR_TAB_LABEL_CLASS =
-  'max-w-full truncate text-center text-[10px] font-medium min-[360px]:text-[11px]';
+  'max-w-full truncate text-center text-xs font-medium';
 
 export type NavTabVariant = 'header' | 'bar';
 

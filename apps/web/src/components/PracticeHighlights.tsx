@@ -22,7 +22,12 @@ import { weatherForSession, type RaceWeather } from '@/lib/weatherPresentation';
 const HIGHLIGHT_ROWS = 6;
 
 function HighlightRow({ entry }: { entry: PracticeResult['entries'][number] }) {
-  return <CompactPracticeRow entry={entry} size="md" fill="sunken" />;
+  // `card`: these rows run the width of the block on a phone, where it bleeds
+  // to the glass, so the tighter gutter left the position and the time on the
+  // edge of the screen and out of line with the headings above them.
+  return (
+    <CompactPracticeRow entry={entry} size="md" fill="sunken" gutter="card" />
+  );
 }
 
 function practiceWeatherFact(
@@ -97,16 +102,25 @@ function SessionColumn({
 }
 
 /**
- * Pair sessions so a two-up row can take the house stripe down the middle.
+ * Group sessions newest-first so stacked screens lead with the latest result.
  *
  * A hairline between FP1 and FP2 did not split them: two six-row stacks just
  * looked like one list that wrapped. `.gpp-column-split` is the same cut the
  * compact classification already uses between P1–P11 and P12–P22.
+ *
+ * Once FP3 is published it gets the full first row. The two Friday sessions
+ * share the row below on wider screens, while remaining FP2 then FP1 in the
+ * mobile reading order.
  */
-function pairSessions(sessions: PracticeResult[]): PracticeResult[][] {
+function groupSessions(sessions: PracticeResult[]): PracticeResult[][] {
+  const newestFirst = [...sessions].reverse();
+  if (newestFirst.length === 3) {
+    return [[newestFirst[0]!], newestFirst.slice(1)];
+  }
+
   const pairs: PracticeResult[][] = [];
-  for (let index = 0; index < sessions.length; index += 2) {
-    pairs.push(sessions.slice(index, index + 2));
+  for (let index = 0; index < newestFirst.length; index += 2) {
+    pairs.push(newestFirst.slice(index, index + 2));
   }
   return pairs;
 }
@@ -120,13 +134,15 @@ function pairSessions(sessions: PracticeResult[]): PracticeResult[][] {
  * second page: the old practice URL 301s to the race page now, and the sheet
  * already tabs between sessions.
  *
- * Columns follow the weekend: FP1, then FP2. P1 in each column is who was
- * quick; the header does not say it again.
+ * Stacked sessions run newest-first. On wider screens FP1 and FP2 retain their
+ * chronological left-to-right order, with FP3 spanning the row above them.
+ * P1 in each column is who was quick; the header does not say it again.
  *
- * On a phone it bleeds like the picks card and the news block, and sits
- * flush against them: a nested frame here was a card sitting in the gutter
- * between two full-bleed neighbours. `-mt-px` collapses the two hairlines
- * that would otherwise stack where this block meets the one above it.
+ * On a phone it bleeds like the picks card and the news block: a nested frame
+ * here was a card sitting in the gutter between two full-bleed neighbours.
+ * They are separated by a seam rather than butted together — `mt-2` of page
+ * background above the block's own hairline, which is what tells a reader the
+ * practice times and the picks above them are two different things.
  */
 export function PracticeHighlights({
   results,
@@ -170,7 +186,7 @@ export function PracticeHighlights({
     <section
       aria-labelledby="dashboard-practice-heading"
       data-testid="dashboard-practice"
-      className="overflow-hidden border-y border-border/80 bg-surface max-md:-mx-4 max-md:-mt-px md:rounded-sm md:border"
+      className="overflow-hidden border-y border-border/80 bg-surface max-md:-mx-4 max-md:mt-2 md:rounded-sm md:border"
     >
       {/* No rule under the heading: the classification already divides on
           every row, and a second line between the title and P1 was one HR
@@ -195,7 +211,7 @@ export function PracticeHighlights({
         </div>
       </div>
       <div className="flex flex-col gap-y-4 sm:gap-y-0">
-        {pairSessions(sessions).map((pair) => {
+        {groupSessions(sessions).map((pair) => {
           const split = pair.length === 2;
           return (
             <div
@@ -206,32 +222,41 @@ export function PracticeHighlights({
                   : undefined
               }
             >
-              <SessionColumn
-                result={pair[0]!}
-                labelled={multi}
-                splitPad={split ? 'end' : undefined}
-                weatherFact={practiceWeatherFact(
-                  weather,
-                  race,
-                  raceSlug,
-                  pair[0]!.sessionType,
-                )}
-              />
-              {split ? (
-                <div className="gpp-column-split hidden sm:block" aria-hidden />
-              ) : null}
-              {pair[1] ? (
+              <div
+                className={split ? 'sm:col-start-3 sm:row-start-1' : undefined}
+              >
                 <SessionColumn
-                  result={pair[1]}
+                  result={pair[0]!}
                   labelled={multi}
-                  splitPad="start"
+                  splitPad={split ? 'start' : undefined}
                   weatherFact={practiceWeatherFact(
                     weather,
                     race,
                     raceSlug,
-                    pair[1].sessionType,
+                    pair[0]!.sessionType,
                   )}
                 />
+              </div>
+              {split ? (
+                <div
+                  className="gpp-column-split hidden sm:col-start-2 sm:row-start-1 sm:block"
+                  aria-hidden
+                />
+              ) : null}
+              {pair[1] ? (
+                <div className="sm:col-start-1 sm:row-start-1">
+                  <SessionColumn
+                    result={pair[1]}
+                    labelled={multi}
+                    splitPad="end"
+                    weatherFact={practiceWeatherFact(
+                      weather,
+                      race,
+                      raceSlug,
+                      pair[1].sessionType,
+                    )}
+                  />
+                </div>
               ) : null}
             </div>
           );

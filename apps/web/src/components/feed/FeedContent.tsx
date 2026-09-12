@@ -1,4 +1,5 @@
 import { api } from '@convex-generated/api';
+import type { Id } from '@convex-generated/dataModel';
 import type { FunctionReturnType } from 'convex/server';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@/integrations/convex/query';
@@ -27,9 +28,106 @@ type FeedPage = NonNullable<
 // Pre-allocate up to 5 pages of feed (5 x 40 = 200 events max)
 const MAX_EXTRA_PAGES = 4;
 
+/**
+ * The stream's own rows bleed to the glass on a phone and sit flush under the
+ * block above them. Its empty and loading states are inset cards instead, and
+ * flush against a full-bleed neighbour they read as a frame dropped into the
+ * gutter rather than as the next thing on the page. From `md` the centre
+ * column's own gap already does this.
+ */
+function InsetBlock({ children }: { children: ReactNode }) {
+  return <div className="max-md:mt-4">{children}</div>;
+}
+
+/**
+ * The empty state that has something to do in it: a heading, and a list of
+ * people to follow.
+ *
+ * The list is flush to the card's edges and divided by hairlines, rather than
+ * a stack of bordered pills inside a padded box — that was a card of cards,
+ * and the rows had three borders between a name and the edge of the screen.
+ */
+function FollowSuggestions({
+  title,
+  message,
+  listLabel,
+  children,
+  footer,
+}: {
+  title: string;
+  message: string;
+  /** Names the list when it is not the same thing as the heading. */
+  listLabel?: string;
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
+  return (
+    <InsetBlock>
+      <section className="overflow-hidden rounded-sm border border-border bg-surface">
+        <div className="px-4 py-4 sm:px-5">
+          <h2 className="text-base font-semibold text-text">{title}</h2>
+          <p className="mt-1 text-sm text-text-muted">{message}</p>
+        </div>
+        {listLabel ? (
+          <p className="border-t border-border px-4 pt-3 text-xs font-medium text-text-muted sm:px-5">
+            {listLabel}
+          </p>
+        ) : null}
+        <ul
+          className={`divide-y divide-border ${listLabel ? 'mt-1' : 'border-t border-border'}`}
+        >
+          {children}
+        </ul>
+        {footer ? (
+          <div className="border-t border-border px-4 py-3 sm:px-5">
+            {footer}
+          </div>
+        ) : null}
+      </section>
+    </InsetBlock>
+  );
+}
+
+/** One person to follow: who they are, why they are here, and the button. */
+function SuggestionRow({
+  userId,
+  username,
+  name,
+  avatarUrl,
+  meta,
+}: {
+  userId: Id<'users'>;
+  username: string;
+  name: string;
+  avatarUrl?: string | null;
+  meta: string;
+}) {
+  const profile = {
+    to: '/p/$username',
+    params: { username },
+    search: { from: undefined, fromLabel: undefined },
+  } as const;
+  return (
+    <li className="flex items-center gap-3 px-4 py-2.5 sm:px-5">
+      <Link {...profile} className="shrink-0">
+        <Avatar avatarUrl={avatarUrl} username={username} size="sm" />
+      </Link>
+      <div className="min-w-0 flex-1">
+        <Link
+          {...profile}
+          className="block truncate text-sm font-semibold text-text hover:text-accent"
+        >
+          {name}
+        </Link>
+        <p className="truncate text-xs text-text-muted">{meta}</p>
+      </div>
+      <FollowButton followeeId={userId} />
+    </li>
+  );
+}
+
 export function FeedContent({
   initialPage,
-  showLoader = true,
   interleaved = null,
 }: {
   /**
@@ -39,14 +137,6 @@ export function FeedContent({
    * answers. Absent whenever the server could not read as the viewer.
    */
   initialPage?: FeedPage | null;
-  /**
-   * False while something above this section is already showing a spinner, on
-   * a page that hosts both. The stream then waits silently instead of adding a
-   * second one: it is below the fold, it has no seed in exactly the loads where
-   * the block above has none either, and both answers come off the same socket,
-   * so by the time the spinner above lifts the rows are normally already here.
-   */
-  showLoader?: boolean;
   /**
    * A block to render inside the stream rather than after it, directly under
    * one session's group.
@@ -156,7 +246,9 @@ export function FeedContent({
     // height and content, so the skeletons never stood in for anything in
     // particular: they just made the section flicker on every reload.
     return withInterleaved(
-      showLoader ? <InlineLoader label="Loading activity" /> : null,
+      <InsetBlock>
+        <InlineLoader label="Loading activity" />
+      </InsetBlock>,
     );
   }
 
@@ -176,11 +268,13 @@ export function FeedContent({
       suggestedLeagueMembers === undefined
     ) {
       return withInterleaved(
-        <FeedEmptyState
-          icon={Gauge}
-          title="Setting up your feed"
-          message="Finding players and leagues to show here."
-        />,
+        <InsetBlock>
+          <FeedEmptyState
+            icon={Gauge}
+            title="Setting up your feed"
+            message="Finding players and leagues to show here."
+          />
+        </InsetBlock>,
       );
     }
 
@@ -188,51 +282,30 @@ export function FeedContent({
     const hasSuggestions = (suggestedLeagueMembers?.length ?? 0) > 0;
     const followsNobody = (followedIds?.length ?? 0) === 0;
 
+    // The rail's "Players to follow" card is this same query, so it stands
+    // down whenever this branch renders. Both sides read `useFeedOffersFollows`
+    // rather than this component reporting upwards; keep them in step.
     if (hasSuggestions && suggestedLeagueMembers) {
       return withInterleaved(
-        <FeedEmptyState
-          icon={Gauge}
+        <FollowSuggestions
           title="Start with people in your leagues"
           message="Follow a few league-mates to see their scores and activity here."
         >
-          <div className="space-y-2 text-left">
-            {suggestedLeagueMembers.map((user) => (
-              <div
-                key={user._id}
-                className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted/35 px-3 py-2"
-              >
-                <Link
-                  to="/p/$username"
-                  params={{ username: user.username }}
-                  search={{ from: undefined, fromLabel: undefined }}
-                  className="shrink-0"
-                >
-                  <Avatar
-                    avatarUrl={user.avatarUrl}
-                    username={user.username}
-                    size="sm"
-                  />
-                </Link>
-                <div className="min-w-0 flex-1">
-                  <Link
-                    to="/p/$username"
-                    params={{ username: user.username }}
-                    search={{ from: undefined, fromLabel: undefined }}
-                    className="truncate text-sm font-semibold text-text hover:text-accent"
-                  >
-                    {user.displayName}
-                  </Link>
-                  <p className="truncate text-xs text-text-muted">
-                    {user.sharedLeagueNames.length > 0
-                      ? `In ${user.sharedLeagueNames.join(' and ')}`
-                      : `${user.sharedLeagueCount} shared leagues`}
-                  </p>
-                </div>
-                <FollowButton followeeId={user._id} />
-              </div>
-            ))}
-          </div>
-        </FeedEmptyState>,
+          {suggestedLeagueMembers.map((user) => (
+            <SuggestionRow
+              key={user._id}
+              userId={user._id}
+              username={user.username}
+              name={user.displayName}
+              avatarUrl={user.avatarUrl}
+              meta={
+                user.sharedLeagueNames.length > 0
+                  ? `In ${user.sharedLeagueNames.join(' and ')}`
+                  : `${user.sharedLeagueCount} shared leagues`
+              }
+            />
+          ))}
+        </FollowSuggestions>,
       );
     }
 
@@ -240,75 +313,57 @@ export function FeedContent({
       const topToFollow = (topPlayersForFollow?.entries ?? [])
         .filter((p) => !p.isViewer)
         .slice(0, 5);
+      const title = hasLeagues
+        ? 'You are not following anyone yet'
+        : 'Find players to follow';
+      const message = hasLeagues
+        ? 'Follow players to see their scores and activity here.'
+        : 'Follow players to see their picks and results here.';
+      const leaderboardLink = (
+        <Button asChild variant="secondary" size="md" leftIcon={Trophy}>
+          <Link to="/leaderboard">See full leaderboard</Link>
+        </Button>
+      );
+
+      if (topToFollow.length === 0) {
+        return withInterleaved(
+          <InsetBlock>
+            <FeedEmptyState icon={Gauge} title={title} message={message}>
+              <div className="flex justify-center">{leaderboardLink}</div>
+            </FeedEmptyState>
+          </InsetBlock>,
+        );
+      }
+
       return withInterleaved(
-        <FeedEmptyState
-          icon={Gauge}
-          title={
-            hasLeagues
-              ? 'You are not following anyone yet'
-              : 'Find players to follow'
-          }
-          message={
-            hasLeagues
-              ? 'Follow players to see their scores and activity here.'
-              : 'Follow players to see their picks and results here.'
-          }
+        <FollowSuggestions
+          title={title}
+          message={message}
+          listLabel="Top players this season"
+          footer={leaderboardLink}
         >
-          {topToFollow.length > 0 && (
-            <div className="space-y-2 text-left">
-              <p className="text-xs font-medium text-text-muted">
-                Top players this season
-              </p>
-              {topToFollow.map((p) => (
-                <div
-                  key={p.userId}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted/35 px-3 py-2"
-                >
-                  <Link
-                    to="/p/$username"
-                    params={{ username: p.username }}
-                    search={{ from: undefined, fromLabel: undefined }}
-                    className="shrink-0"
-                  >
-                    <Avatar
-                      avatarUrl={p.avatarUrl}
-                      username={p.username}
-                      size="sm"
-                    />
-                  </Link>
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      to="/p/$username"
-                      params={{ username: p.username }}
-                      search={{ from: undefined, fromLabel: undefined }}
-                      className="truncate text-sm font-semibold text-text hover:text-accent"
-                    >
-                      {p.username}
-                    </Link>
-                    <p className="truncate text-xs text-text-muted">
-                      Rank #{p.rank} · {p.points.toLocaleString()} pts
-                    </p>
-                  </div>
-                  <FollowButton followeeId={p.userId} />
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="mt-3 flex justify-center">
-            <Button asChild variant="secondary" size="md" leftIcon={Trophy}>
-              <Link to="/leaderboard">See full leaderboard</Link>
-            </Button>
-          </div>
-        </FeedEmptyState>,
+          {topToFollow.map((p) => (
+            <SuggestionRow
+              key={p.userId}
+              userId={p.userId}
+              username={p.username}
+              name={p.username}
+              avatarUrl={p.avatarUrl}
+              meta={`Rank #${p.rank} · ${p.points.toLocaleString()} pts`}
+            />
+          ))}
+        </FollowSuggestions>,
       );
     }
 
     return withInterleaved(
-      <FeedEmptyState
-        icon={Gauge}
-        title="No recent activity yet"
-        message="The players and leagues in your feed have not posted any new scores yet."
-      />,
+      <InsetBlock>
+        <FeedEmptyState
+          icon={Gauge}
+          title="No recent activity yet"
+          message="The players and leagues in your feed have not posted any new scores yet."
+        />
+      </InsetBlock>,
     );
   }
 

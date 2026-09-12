@@ -61,6 +61,7 @@ type PredictionFormSlotProps = {
   sessionType?: SessionType;
   onSuccess?: (save: { autoSaved: boolean; wasFirstSave: boolean }) => void;
   onDirtyChange?: (dirty: boolean) => void;
+  hidePicksHeading?: boolean;
 };
 
 type H2HSectionSlotProps = {
@@ -637,6 +638,7 @@ export function RaceEventPage({
           </div>
           <PredictionFormComponent
             raceId={race._id}
+            hidePicksHeading
             sessionType={top5OverlaySession ?? undefined}
             existingPicks={
               top5EditingSession

@@ -80,7 +80,7 @@ export function RaceRecapCard({
             {live ? (
               <View className="h-1.5 w-1.5 rounded-full bg-accent" />
             ) : null}
-            <Text className="text-muted text-[11px] font-medium">
+            <Text className="text-muted text-xs font-medium">
               {`Round ${promoted.race.round} · ${
                 live
                   ? `${SESSION_LABELS[live.sessionType]} in progress`
@@ -108,7 +108,7 @@ export function RaceRecapCard({
             <Numeral tone="accent" variant="large">
               {viewer.points}
             </Numeral>
-            <Text className="text-muted text-[11px] font-bold">pts</Text>
+            <Text className="text-muted text-xs font-bold">pts</Text>
           </View>
           <View className="items-end gap-0.5">
             <Numeral variant="body">
@@ -116,7 +116,7 @@ export function RaceRecapCard({
             </Numeral>
             {viewer.seasonRank == null ? null : (
               <View className="flex-row items-center gap-1.5">
-                <Text className="text-muted text-[11px]">
+                <Text className="text-muted text-xs">
                   {`Season P${viewer.seasonRank}`}
                 </Text>
                 <SeasonMove delta={viewer.seasonRankDelta} />
@@ -133,14 +133,14 @@ export function RaceRecapCard({
       {/* Said once, under the numbers it qualifies, in the same words the web
           card and the race page's live board use. */}
       {live ? (
-        <Text className="text-muted text-[11px]">
+        <Text className="text-muted text-xs">
           The running order is live and can change, including after the flag.
         </Text>
       ) : null}
 
       {promoted.friends.length > 1 ? (
         <View className="gap-1 border-t border-border pt-3">
-          <Text className="text-muted mb-1 text-[11px] font-medium">
+          <Text className="text-muted mb-1 text-xs font-medium">
             Players you follow
           </Text>
           {promoted.friends.map((player) => (
@@ -183,10 +183,10 @@ export function RaceRecapCard({
  */
 function SeasonMove({ delta }: { delta: number | null }) {
   if (delta === null) {
-    return <Text className="text-muted text-[11px] font-medium">New</Text>;
+    return <Text className="text-muted text-xs font-medium">New</Text>;
   }
   if (delta === 0) {
-    return <Text className="text-muted text-[11px]">—</Text>;
+    return <Text className="text-muted text-xs">—</Text>;
   }
 
   const up = delta > 0;

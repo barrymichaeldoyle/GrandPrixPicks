@@ -92,7 +92,7 @@ export function RaceDetailScreen({ route }: Props) {
 
       {(practiceResults?.length ?? 0) > 0 ? (
         <View className="gap-2">
-          <Text className="text-muted pb-0.5 text-[11px] font-medium">
+          <Text className="text-muted pb-0.5 text-xs font-medium">
             Free Practice
           </Text>
           <View className="overflow-hidden rounded-lg border border-border">
@@ -112,10 +112,7 @@ export function RaceDetailScreen({ route }: Props) {
                         <Text className="text-foreground text-xs font-extrabold">
                           {entry.code}
                         </Text>
-                        <Text
-                          className="text-muted text-[10px]"
-                          numberOfLines={1}
-                        >
+                        <Text className="text-muted text-xs" numberOfLines={1}>
                           {entry.displayName}
                         </Text>
                       </View>
@@ -128,7 +125,7 @@ export function RaceDetailScreen({ route }: Props) {
                               .toFixed(3)
                               .padStart(6, '0')}`}
                       </Text>
-                      <Text className="text-muted w-14 text-right text-[10px]">
+                      <Text className="text-muted w-14 text-right text-xs">
                         {entry.position === 1
                           ? 'Leader'
                           : entry.gapToLeaderSeconds === undefined
@@ -146,9 +143,7 @@ export function RaceDetailScreen({ route }: Props) {
 
       {publishedSessions.length > 0 ? (
         <View className="gap-2">
-          <Text className="text-muted pb-0.5 text-[11px] font-medium">
-            Results
-          </Text>
+          <Text className="text-muted pb-0.5 text-xs font-medium">Results</Text>
           <View className="gap-1">
             {publishedSessions.map((sessionType, i) => {
               const actual = actualTop5BySession?.[sessionType] ?? [];
@@ -170,9 +165,7 @@ export function RaceDetailScreen({ route }: Props) {
       ) : null}
 
       <View className="gap-2">
-        <Text className="text-muted pb-0.5 text-[11px] font-medium">
-          Sessions
-        </Text>
+        <Text className="text-muted pb-0.5 text-xs font-medium">Sessions</Text>
         <View>
           {race.sessions.map((session, i) => {
             const msRemaining = new Date(session.startsAt).getTime() - now;
@@ -193,13 +186,13 @@ export function RaceDetailScreen({ route }: Props) {
                     <Text className="text-muted text-xs">
                       {formatted.local}
                     </Text>
-                    <Text className="text-muted text-[11px]">
+                    <Text className="text-muted text-xs">
                       {formatted.track} ({formatted.trackTimeZone})
                     </Text>
                   </View>
                   <View className="items-end gap-1">
                     {isPublished ? (
-                      <Text className="text-[10px] font-extrabold text-accent">
+                      <Text className="text-xs font-extrabold text-accent">
                         PUBLISHED
                       </Text>
                     ) : (

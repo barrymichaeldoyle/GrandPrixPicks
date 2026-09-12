@@ -225,6 +225,8 @@ export function DashboardPicksSummary({
             sessionType={session.sessionType}
             initialDrivers={drivers}
             existingPicks={picks.top5 ?? undefined}
+            hidePicksHeading
+            inlineSaveStatus
             enableNavigationBlocker={false}
             // No `onSuccess` close. This card is already saved, so every write
             // in here is a background auto-save of an edit, and letting one
@@ -242,6 +244,7 @@ export function DashboardPicksSummary({
                 saveState={saveState}
                 primaryLabel="Done"
                 primaryTestId="summary-top5-done"
+                showSaveStatus={false}
                 onPrimary={async () => {
                   // Flush first: an edit made in the last second is still
                   // sitting behind the debounce, and closing unmounts the

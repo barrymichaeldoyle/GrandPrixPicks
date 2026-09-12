@@ -635,9 +635,7 @@ function WeekendPointsStrip({
   return (
     <View className="flex-row items-center gap-1.5">
       <View className="flex-1 flex-row items-baseline gap-1.5">
-        <Text className="text-muted text-[11px] font-medium">
-          Weekend so far
-        </Text>
+        <Text className="text-muted text-xs font-medium">Weekend so far</Text>
         <Text className="text-sm font-semibold text-accent-hover">
           {totalPoints} pts
         </Text>
@@ -649,7 +647,7 @@ function WeekendPointsStrip({
         onPress={() => void handleShare()}
       >
         <Ionicons color={colors.accent} name="share-outline" size={13} />
-        <Text className="text-[11px] font-bold text-accent">Share</Text>
+        <Text className="text-xs font-bold text-accent">Share</Text>
       </Pressable>
     </View>
   );
@@ -752,7 +750,7 @@ function PageHeader({
 
   return (
     <View className="gap-1">
-      <Text className="text-[11px] font-medium text-accent">
+      <Text className="text-xs font-medium text-accent">
         Round {race.round} · {race.season}
       </Text>
       <View className="flex-row items-center gap-2.5">
@@ -779,7 +777,7 @@ function PageHeader({
             {countdownLabel}
           </Text>
           {lockDisplay ? (
-            <Text className="text-muted text-[11px]">{lockDisplay.local}</Text>
+            <Text className="text-muted text-xs">{lockDisplay.local}</Text>
           ) : null}
         </View>
       ) : null}
@@ -892,7 +890,7 @@ function SectionHeader({
 }) {
   return (
     <View className="flex-row items-center justify-between pb-0.5">
-      <Text className="text-muted text-[11px] font-medium">{title}</Text>
+      <Text className="text-muted text-xs font-medium">{title}</Text>
       {action ?? null}
     </View>
   );
@@ -1276,7 +1274,7 @@ function Top5Readonly({
                     {driver?.displayName ?? 'Unknown driver'}
                   </Text>
                   {driver?.team ? (
-                    <Text className="text-muted text-[11px]" numberOfLines={1}>
+                    <Text className="text-muted text-xs" numberOfLines={1}>
                       {displayTeamName(driver.team)}
                     </Text>
                   ) : null}

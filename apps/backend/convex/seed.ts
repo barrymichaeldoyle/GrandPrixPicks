@@ -1359,6 +1359,11 @@ export const seedH2HDevData = internalMutation({
         let totalPicks = 0;
 
         for (const matchup of matchups) {
+          // The pairing that raced this round. `matchups` is every pairing in
+          // the season, so a team whose line-up changed mid-season has two.
+          if (!coversRound(matchup, race.round)) {
+            continue;
+          }
           const pos1 = positionMap.get(matchup.driver1Id);
           const pos2 = positionMap.get(matchup.driver2Id);
 
@@ -1905,6 +1910,13 @@ export const seedLockedPicksVisibilityScenario = internalMutation({
     });
 
     for (const matchup of matchups) {
+      // Picks belong to a seat, not a driver: seeding one against a pairing
+      // that no longer exists creates exactly the orphan row that
+      // `migrateOrphanedH2HPicks` has to go and clean up. Round 998 is above
+      // every real round, so this resolves to the current grid.
+      if (!coversRound(matchup, 998)) {
+        continue;
+      }
       await ctx.db.insert('h2hPredictions', {
         userId: viewer._id,
         raceId,
@@ -4327,6 +4339,14 @@ export const _seedH2HLeaderboardData = internalMutation({
 
         const winners = new Map<Id<'h2hMatchups'>, Id<'drivers'>>();
         for (const matchup of matchups) {
+          // Only the pairing that actually raced this round. Without this the
+          // seed writes a result for every matchup in the season, so a team
+          // that changed line-up mid-season gets two results for every race:
+          // the pairing that ran, plus the one that replaced it, scored
+          // retroactively against races it was never part of.
+          if (!coversRound(matchup, race.round)) {
+            continue;
+          }
           const pos1 = positionMap.get(matchup.driver1Id);
           const pos2 = positionMap.get(matchup.driver2Id);
           if (pos1 === undefined || pos2 === undefined) {
@@ -4648,6 +4668,10 @@ export const _seedCurrentWeekendData = internalMutation({
     }
     const h2hWinners = new Map<Id<'h2hMatchups'>, Id<'drivers'>>();
     for (const matchup of matchups) {
+      // The pairing racing this round, not every pairing in the season.
+      if (!coversRound(matchup, currentRace.round)) {
+        continue;
+      }
       const pos1 = positionMap.get(matchup.driver1Id);
       const pos2 = positionMap.get(matchup.driver2Id);
       if (pos1 === undefined || pos2 === undefined) {
@@ -6009,8 +6033,11 @@ export const _seedFeedScenario = internalMutation({
             positionMap.set(String(dId), i + 1);
           });
 
-          // H2H results
+          // H2H results, for the pairing that raced this round only.
           for (const matchup of matchups) {
+            if (!coversRound(matchup, config.race.round)) {
+              continue;
+            }
             const p1 = positionMap.get(String(matchup.driver1Id)) ?? 99;
             const p2 = positionMap.get(String(matchup.driver2Id)) ?? 99;
             const winnerId = p1 < p2 ? matchup.driver1Id : matchup.driver2Id;
@@ -6151,6 +6178,9 @@ export const _seedFeedScenario = internalMutation({
         });
 
         for (const matchup of matchups) {
+          if (!coversRound(matchup, japanRace.round)) {
+            continue;
+          }
           const p1 = posMap.get(String(matchup.driver1Id)) ?? 99;
           const p2 = posMap.get(String(matchup.driver2Id)) ?? 99;
           await ctx.db.insert('h2hResults', {

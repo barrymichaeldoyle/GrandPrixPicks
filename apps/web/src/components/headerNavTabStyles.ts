@@ -28,10 +28,13 @@ export const HEADER_NAV_TAB_ICON_CLASS =
   'flex h-6 shrink-0 items-center justify-center';
 
 /**
- * Sentence case, so a tab reads as the destination it is. Set at 11px rather
- * than the 10px the uppercase version used: dropping the caps and the 0.12em
- * tracking takes width out of the label, and the tab's `min-w-16` floor holds
- * the bar's rhythm either way.
+ * Sentence case, so a tab reads as the destination it is. Dropping the caps and
+ * the 0.12em tracking takes width out of the label, and the tab's `min-w-16`
+ * floor holds the bar's rhythm either way.
+ *
+ * `text-xs` rather than the 11px this used to hardcode: navigation should not
+ * be the smallest type on the page, and a bare px value is the one kind of size
+ * that ignores a raised browser font setting.
  */
 export const HEADER_NAV_TAB_LABEL_CLASS =
-  'text-center text-[11px] font-medium whitespace-nowrap';
+  'text-center text-xs font-medium whitespace-nowrap';

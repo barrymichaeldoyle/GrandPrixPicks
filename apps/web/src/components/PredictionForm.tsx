@@ -59,6 +59,7 @@ import { DraftRestoredNotice } from './DraftRestoredNotice';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
 import { Flag } from './Flag';
 import { InlineLoader } from './InlineLoader';
+import { PicksSaveStatus } from './PicksSaveStatus';
 import { Tooltip } from './Tooltip';
 
 const DRIVER_SLOT_TOOLTIP = {
@@ -363,7 +364,7 @@ function DraggableDriverCard({
       {/* Corner badge, not in the text flow — stacked surnames used to collide
           with an inline trailing P#. */}
       {picked ? (
-        <span className="gpp-mono absolute top-1 right-1.5 text-[10px] leading-none font-semibold text-accent">
+        <span className="gpp-mono absolute top-1 right-1.5 text-xs leading-none font-semibold text-accent">
           P{pickedPosition}
         </span>
       ) : null}
@@ -387,7 +388,7 @@ function DraggableDriverCard({
         {/* `shrink-0` so the marker never eats the surname's width: the name is
             the thing being picked, and it is the one that truncates well. */}
         {'entryUnconfirmed' in driver && driver.entryUnconfirmed ? (
-          <span className="shrink-0 text-[10px] leading-none tracking-label text-text-muted uppercase">
+          <span className="shrink-0 text-xs leading-none tracking-label text-text-muted uppercase">
             Unconfirmed
           </span>
         ) : null}
@@ -482,6 +483,10 @@ interface PredictionFormProps {
   analyticsSource?: 'landing' | 'writeup' | 'predictions_hub';
   /** On narrow screens, put the actionable driver pool before the review list. */
   mobileActionFirst?: boolean;
+  /** Parent chrome already names the Top 5, so omit the repeated list heading. */
+  hidePicksHeading?: boolean;
+  /** Show the auto-save receipt above the picks instead of in the action row. */
+  inlineSaveStatus?: boolean;
   /** Called once when this mounted form first reaches five picks. */
   onComplete?: () => void;
   /** Keeps a parent funnel aware of restored and subsequently edited drafts. */
@@ -532,6 +537,8 @@ export function PredictionForm({
   draftNoticeTarget,
   analyticsSource,
   mobileActionFirst = false,
+  hidePicksHeading = false,
+  inlineSaveStatus = false,
   onComplete,
   onCompletionStateChange,
   onPicksChange,
@@ -1145,10 +1152,9 @@ export function PredictionForm({
   // One node, rendered either beside the driver-pool label or portalled into
   // the parent's step heading. No parentheses: wherever it lands it is a line
   // of its own, and bracketed text there reads as a fragment.
-  // order-last keeps it beside "Your Picks" while the row fits on one line,
-  // and makes it the first thing pushed off when the row runs out of space:
-  // it is commentary, so it yields to the heading and the how-to hints.
-  const pickStatusClassName = 'order-last text-sm font-normal text-text-muted';
+  // This status leads the compact instruction row when parent chrome already
+  // names the Top 5, and supports the local heading on standalone forms.
+  const pickStatusClassName = 'text-sm font-normal text-text-muted';
   const pickStatus =
     picks.length >= 5 ? (
       <span className={pickStatusClassName}>Remove a pick to change</span>
@@ -1181,34 +1187,77 @@ export function PredictionForm({
             data-testid="your-picks"
             className={`${mobileActionFirst ? 'order-2 scroll-mt-28 @min-[875px]:order-1' : ''} @min-[875px]:w-[min(100%,380px)] @min-[875px]:min-w-0 @min-[875px]:shrink-0`}
           >
-            <div className="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 sm:mb-3">
-              <h3 className="text-lg font-semibold text-text">Your Picks</h3>
-              {/* The status belongs to this list: it counts these slots and
-                  the change it asks for happens here. Wraps to its own line
-                  on narrow screens rather than squeezing the heading. */}
-              {pickStatus}
-              {picks.length < 5 ? (
-                <p className="text-sm text-text-muted sm:hidden">
-                  Tap drivers to fill your Top 5.
-                </p>
-              ) : null}
-              {picks.length >= 2 ? (
-                <p className="ml-auto flex shrink-0 items-center gap-1 text-xs text-text-muted sm:hidden">
-                  Reorder: drag or use
-                  <span
-                    className="inline-flex items-center"
-                    aria-label="up and down buttons"
-                  >
-                    <ChevronUp size={14} className="text-accent" aria-hidden />
-                    <ChevronDown
-                      size={14}
-                      className="-ml-0.5 text-accent"
-                      aria-hidden
-                    />
-                  </span>
-                </p>
-              ) : null}
-            </div>
+            {hidePicksHeading ? (
+              <div className="mb-2 space-y-1 sm:mb-3">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  {pickStatus}
+                  {inlineSaveStatus && picks.length === 5 ? (
+                    <div className="ml-auto shrink-0">
+                      <PicksSaveStatus state={saveState} />
+                    </div>
+                  ) : null}
+                </div>
+                <div className="flex min-h-4 items-center">
+                  {picks.length < 5 ? (
+                    <p className="text-sm text-text-muted sm:hidden">
+                      Tap drivers to fill your Top 5.
+                    </p>
+                  ) : null}
+                  {picks.length >= 2 ? (
+                    <p className="ml-auto flex shrink-0 items-center gap-1 text-xs text-text-muted sm:hidden">
+                      Reorder: drag or use
+                      <span
+                        className="inline-flex items-center"
+                        aria-label="up and down buttons"
+                      >
+                        <ChevronUp
+                          size={14}
+                          className="text-accent"
+                          aria-hidden
+                        />
+                        <ChevronDown
+                          size={14}
+                          className="-ml-0.5 text-accent"
+                          aria-hidden
+                        />
+                      </span>
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            ) : (
+              <div className="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 sm:mb-3">
+                <h3 className="text-lg font-semibold text-text">Your Picks</h3>
+                {/* The status belongs to this list: it counts these slots and
+                    the change it asks for happens here. */}
+                {pickStatus}
+                {picks.length < 5 ? (
+                  <p className="text-sm text-text-muted sm:hidden">
+                    Tap drivers to fill your Top 5.
+                  </p>
+                ) : null}
+                {picks.length >= 2 ? (
+                  <p className="ml-auto flex shrink-0 items-center gap-1 text-xs text-text-muted sm:hidden">
+                    Reorder: drag or use
+                    <span
+                      className="inline-flex items-center"
+                      aria-label="up and down buttons"
+                    >
+                      <ChevronUp
+                        size={14}
+                        className="text-accent"
+                        aria-hidden
+                      />
+                      <ChevronDown
+                        size={14}
+                        className="-ml-0.5 text-accent"
+                        aria-hidden
+                      />
+                    </span>
+                  </p>
+                ) : null}
+              </div>
+            )}
             <div
               className="flex overflow-hidden rounded-xl border border-border bg-surface"
               data-testid="picks-list"

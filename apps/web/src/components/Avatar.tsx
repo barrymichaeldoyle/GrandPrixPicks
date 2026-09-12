@@ -1,7 +1,15 @@
 import { sizedAvatarUrl } from '@/lib/avatar';
 
+/**
+ * Initials are sized as a fraction of their circle, not from the type scale:
+ * they have to fit inside a fixed round container, so they cannot simply take
+ * the reading floor the rest of the app now has. What they can do is scale.
+ * `h-5` is already rem-based, so authoring the type in rem too means the glyph
+ * and the circle grow together when the reader raises their font size — which
+ * the old bare `9px` did not do.
+ */
 const SIZES = {
-  xs: { className: 'h-5 w-5 text-[9px]', px: 20 },
+  xs: { className: 'h-5 w-5 text-[0.625rem]', px: 20 },
   sm: { className: 'h-8 w-8 text-sm', px: 32 },
   md: { className: 'h-12 w-12 text-lg', px: 48 },
   lg: {

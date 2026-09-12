@@ -62,19 +62,19 @@ export function HomeHero() {
         </View>
 
         <View className="flex-row flex-wrap items-center justify-center gap-1">
-          <Text className="text-muted text-[10px] font-bold">Round</Text>
+          <Text className="text-muted text-xs font-bold">Round</Text>
           <Numeral tone="muted" variant="small">
             {round}
           </Numeral>
           {totalRounds > 0 ? (
-            <Text className="text-muted text-[10px] font-bold">
+            <Text className="text-muted text-xs font-bold">
               {` / ${totalRounds}`}
             </Text>
           ) : null}
           {race.hasSprint ? (
             <>
-              <Text className="text-[10px] text-border-strong">·</Text>
-              <Text className="text-[10px] font-bold text-accent-hover">
+              <Text className="text-xs text-border-strong">·</Text>
+              <Text className="text-xs font-bold text-accent-hover">
                 Sprint weekend
               </Text>
             </>

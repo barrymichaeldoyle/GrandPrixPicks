@@ -87,7 +87,7 @@ export function H2HPicksBar({
         const cellContent = (
           <span
             key={picked ? picked.code : 'open'}
-            className={`gpp-row-in gpp-mono truncate text-xs leading-none sm:text-[10px] md:text-xs ${
+            className={`gpp-row-in gpp-mono truncate text-xs leading-none ${
               picked ? 'text-text' : 'text-text-muted'
             }`}
           >

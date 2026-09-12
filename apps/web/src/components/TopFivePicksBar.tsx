@@ -62,7 +62,7 @@ export function TopFivePicksBar({
 
         const content = (
           <>
-            <span className="gpp-mono text-[10px] leading-none text-accent">
+            <span className="gpp-mono text-xs leading-none text-accent">
               P{index + 1}
             </span>
             <span

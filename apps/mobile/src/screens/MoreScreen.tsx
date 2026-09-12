@@ -50,7 +50,7 @@ export function MoreScreen() {
         {...hide.scrollProps}
       >
         <View className="gap-2.5">
-          <Text className="text-muted text-[11px] font-medium">Account</Text>
+          <Text className="text-muted text-xs font-medium">Account</Text>
           <View>
             <LinkRow
               icon="notifications-outline"
@@ -69,7 +69,7 @@ export function MoreScreen() {
         </View>
 
         <View className="gap-2.5">
-          <Text className="text-muted text-[11px] font-medium">Leagues</Text>
+          <Text className="text-muted text-xs font-medium">Leagues</Text>
           <View>
             <LinkRow
               icon="people-outline"
@@ -84,7 +84,7 @@ export function MoreScreen() {
         </View>
 
         <View className="gap-2.5">
-          <Text className="text-muted text-[11px] font-medium">
+          <Text className="text-muted text-xs font-medium">
             Help &amp; legal
           </Text>
           <View>

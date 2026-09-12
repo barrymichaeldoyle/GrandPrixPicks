@@ -248,7 +248,7 @@ function GuidePage() {
                         : undefined
                     }
                   />
-                  <figcaption className="mt-1 text-[11px] leading-tight text-text-muted">
+                  <figcaption className="mt-1 text-xs leading-tight text-text-muted">
                     <a
                       href={section.image.sourceUrl}
                       className="underline underline-offset-2 hover:text-text"

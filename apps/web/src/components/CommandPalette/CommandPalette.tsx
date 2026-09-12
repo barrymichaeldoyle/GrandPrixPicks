@@ -183,7 +183,7 @@ export function CommandPalette({
               <div key={section.group} role="group" aria-label={section.group}>
                 <p
                   aria-hidden
-                  className="px-4 pt-3 pb-1 text-[10px] font-medium tracking-label text-text-muted uppercase"
+                  className="px-4 pt-3 pb-1 text-xs font-medium tracking-label text-text-muted uppercase"
                 >
                   {section.group}
                 </p>
@@ -230,7 +230,7 @@ export function CommandPalette({
 
         <p
           aria-hidden
-          className="shrink-0 border-t border-border px-4 py-2 text-[11px] text-text-muted"
+          className="shrink-0 border-t border-border px-4 py-2 text-xs text-text-muted"
         >
           <kbd className="font-sans">↑↓</kbd> move{' '}
           <kbd className="ml-2 font-sans">↵</kbd> open{' '}

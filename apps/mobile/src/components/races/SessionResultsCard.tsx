@@ -66,18 +66,16 @@ export function SessionResultsCard({
             </Text>
           </Text>
         ) : breakdownByPredicted ? null : (
-          <Text className="text-muted text-[11px] italic">
-            No picks submitted
-          </Text>
+          <Text className="text-muted text-xs italic">No picks submitted</Text>
         )}
       </View>
 
       <View className="flex-row gap-3 pt-1">
-        <Text className="text-muted flex-1 text-[11px] font-medium">
+        <Text className="text-muted flex-1 text-xs font-medium">
           Actual top 5
         </Text>
         {breakdownByPredicted ? (
-          <Text className="text-muted flex-1 text-[11px] font-medium">
+          <Text className="text-muted flex-1 text-xs font-medium">
             Your picks
           </Text>
         ) : null}
@@ -129,12 +127,12 @@ function DriverRow({
         className="w-[3px] self-stretch rounded-sm"
         style={{ backgroundColor: getTeamColor(team) }}
       />
-      <Text className="text-muted w-[22px] text-[11px] font-extrabold">
+      <Text className="text-muted w-[28px] text-sm font-extrabold">
         P{position}
       </Text>
       <View className="flex-1 gap-px">
-        <Text className="text-foreground text-xs font-extrabold">{code}</Text>
-        <Text className="text-muted text-[10px]" numberOfLines={1}>
+        <Text className="text-foreground text-sm font-extrabold">{code}</Text>
+        <Text className="text-muted text-sm" numberOfLines={1}>
           {name}
         </Text>
       </View>
@@ -146,14 +144,14 @@ function PickRow({ pick }: { pick: PickEntry }) {
   const fg = pointColor(pick.points);
   return (
     <View className="flex-row items-center gap-2 py-2">
-      <Text className="text-muted w-[22px] text-[11px] font-extrabold">
+      <Text className="text-muted w-[28px] text-sm font-extrabold">
         P{pick.predictedPosition}
       </Text>
       <View className="flex-1 gap-px">
-        <Text className="text-foreground text-xs font-extrabold">
+        <Text className="text-foreground text-sm font-extrabold">
           {pick.code}
         </Text>
-        <Text className="text-muted text-[10px]" numberOfLines={1}>
+        <Text className="text-muted text-sm" numberOfLines={1}>
           {pick.displayName}
         </Text>
       </View>
@@ -161,7 +159,7 @@ function PickRow({ pick }: { pick: PickEntry }) {
         className="rounded-full border px-1.5 py-px"
         style={{ borderColor: fg }}
       >
-        <Text className="text-[11px] font-extrabold" style={{ color: fg }}>
+        <Text className="text-xs font-extrabold" style={{ color: fg }}>
           +{pick.points}
         </Text>
       </View>

@@ -71,9 +71,7 @@ function FlagStrip({ raceSlug }: { raceSlug: string }) {
 }
 
 function BandLabel({ children }: { children: string }) {
-  return (
-    <Text className="text-muted/80 text-[11px] font-medium">{children}</Text>
-  );
+  return <Text className="text-muted/80 text-xs font-medium">{children}</Text>;
 }
 
 function ResultRow({ top5 }: { top5: SessionHeader['top5'] }) {
@@ -83,7 +81,7 @@ function ResultRow({ top5 }: { top5: SessionHeader['top5'] }) {
       <View className="flex-row gap-1">
         {top5.map((_, i) => (
           <Text
-            className="text-muted/80 min-w-0 flex-1 text-center text-[10px] leading-none"
+            className="text-muted/80 min-w-0 flex-1 text-center text-xs leading-none"
             key={i}
             style={
               numeralFontFamily ? { fontFamily: numeralFontFamily } : undefined
@@ -125,7 +123,7 @@ function H2HWinnersRow({ h2h }: { h2h: NonNullable<SessionHeader['h2h']> }) {
               style={{ backgroundColor: getTeamColor(duel.winner.team) }}
             />
             <Text
-              className="text-muted text-[10px] leading-none tracking-wide uppercase"
+              className="text-muted text-sm leading-none tracking-wide uppercase"
               style={
                 numeralFontFamily
                   ? { fontFamily: numeralFontFamily }
@@ -286,7 +284,7 @@ function SessionLeaderboardRow({
               onPress={() => setH2hOpen(true)}
             >
               <Text
-                className="text-muted text-[10px] font-semibold tracking-wide uppercase"
+                className="text-muted text-xs font-semibold tracking-wide uppercase"
                 style={
                   numeralFontFamily
                     ? { fontFamily: numeralFontFamily }
@@ -372,7 +370,7 @@ export function SessionGroupCard({
       session.sessionType;
     return (
       <View className="gap-2 px-4">
-        <Text className="text-muted px-0.5 text-[11px] font-medium">
+        <Text className="text-muted px-0.5 text-xs font-medium">
           {session.raceName} · {sessionLabel}
         </Text>
         <View className="gap-3">

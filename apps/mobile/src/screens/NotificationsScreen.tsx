@@ -306,7 +306,7 @@ function NotificationRow({
         <Text className="text-muted text-xs">
           {getNotificationSubtitle(notification)}
         </Text>
-        <Text className="text-muted mt-0.5 text-[10px]">
+        <Text className="text-muted mt-0.5 text-xs">
           {formatRelativeTime(notification.createdAt)}
         </Text>
       </View>

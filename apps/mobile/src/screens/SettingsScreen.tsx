@@ -348,16 +348,14 @@ export function SettingsScreen() {
       contentContainerClassName="gap-[26px] px-4 pb-8 pt-3"
     >
       <View className="mb-1 gap-1">
-        <Text className="text-[11px] font-medium text-accent">Settings</Text>
+        <Text className="text-xs font-medium text-accent">Settings</Text>
         <Text className="text-foreground text-2xl font-extrabold">Account</Text>
       </View>
 
       {/* Profile */}
       <SettingsSection title="Profile">
         <View className="gap-1.5">
-          <Text className="text-muted text-[11px] font-medium">
-            Display name
-          </Text>
+          <Text className="text-muted text-xs font-medium">Display name</Text>
           {isEditingName ? (
             <View className="flex-row items-center gap-2">
               <TextInput
@@ -425,11 +423,11 @@ export function SettingsScreen() {
 
         {me?.username ? (
           <View className="gap-1.5">
-            <Text className="text-muted text-[11px] font-medium">Username</Text>
+            <Text className="text-muted text-xs font-medium">Username</Text>
             <Text className="text-foreground flex-1 text-[15px] font-semibold">
               @{me.username}
             </Text>
-            <Text className="text-muted text-[11px]">
+            <Text className="text-muted text-xs">
               Username changes require web.
             </Text>
           </View>
@@ -444,23 +442,19 @@ export function SettingsScreen() {
           onPress={() => setTzPickerOpen(true)}
         >
           <View className="flex-1 gap-1">
-            <Text className="text-muted text-[11px] font-medium">Timezone</Text>
+            <Text className="text-muted text-xs font-medium">Timezone</Text>
             <Text className="text-foreground flex-1 text-[15px] font-semibold">
               {(me?.timezone ?? deviceTz).replace(/_/g, ' ')}
             </Text>
             {!me?.timezone ? (
-              <Text className="text-muted text-[11px]">
-                Using device default
-              </Text>
+              <Text className="text-muted text-xs">Using device default</Text>
             ) : null}
           </View>
           <Ionicons color={colors.textMuted} name="chevron-forward" size={16} />
         </Pressable>
 
         <View className="gap-1.5">
-          <Text className="text-muted text-[11px] font-medium">
-            Time format
-          </Text>
+          <Text className="text-muted text-xs font-medium">Time format</Text>
           <View className="flex-row rounded-md border border-border bg-surface-elevated p-[3px]">
             <Pressable
               accessibilityRole="button"
@@ -590,7 +584,7 @@ export function SettingsScreen() {
               {isDeletingAccount ? 'Deleting account…' : 'Delete account'}
             </Text>
           </Pressable>
-          <Text className="text-muted text-[11px] leading-[15px]">
+          <Text className="text-muted text-xs leading-[15px]">
             Permanently removes your account and all picks, scores, and
             followers. This cannot be undone.
           </Text>
@@ -617,7 +611,7 @@ function VersionFooter() {
     channel ? `· ${channel}` : null,
   ].filter(Boolean);
   return (
-    <Text className="text-muted pt-2 text-center text-[11px]">
+    <Text className="text-muted pt-2 text-center text-xs">
       Grand Prix Picks {parts.join(' ')}
     </Text>
   );
@@ -646,7 +640,7 @@ function SettingsSection({
   });
   return (
     <View className="gap-2.5">
-      <Text className="text-muted pb-0.5 text-[11px] font-medium">{title}</Text>
+      <Text className="text-muted pb-0.5 text-xs font-medium">{title}</Text>
       <View>{withDividers}</View>
     </View>
   );
@@ -671,7 +665,7 @@ function NotificationToggleRow({
     >
       <View className="flex-1 gap-0.5">
         <Text className="text-foreground text-sm font-semibold">{label}</Text>
-        <Text className="text-muted text-[11px] leading-[15px]">{help}</Text>
+        <Text className="text-muted text-xs leading-[15px]">{help}</Text>
       </View>
       <Switch
         disabled={disabled}
@@ -703,7 +697,7 @@ function PushPermissionRow({
           <Text className="text-foreground text-sm font-semibold">
             System permission
           </Text>
-          <Text className="text-muted text-[11px] leading-[15px]">
+          <Text className="text-muted text-xs leading-[15px]">
             {status === 'loading' ? 'Checking…' : 'Granted'}
           </Text>
         </View>
@@ -714,7 +708,7 @@ function PushPermissionRow({
               name="checkmark-circle"
               size={14}
             />
-            <Text className="text-[11px] font-extrabold text-success">On</Text>
+            <Text className="text-xs font-extrabold text-success">On</Text>
           </View>
         ) : null}
       </View>
@@ -728,7 +722,7 @@ function PushPermissionRow({
         <Text className="text-foreground text-sm font-semibold">
           System permission
         </Text>
-        <Text className="text-muted text-[11px] leading-[15px]">
+        <Text className="text-muted text-xs leading-[15px]">
           {isDenied
             ? 'Push notifications are disabled in iOS settings.'
             : 'Allow Grand Prix Picks to send push notifications.'}

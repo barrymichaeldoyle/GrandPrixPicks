@@ -281,7 +281,7 @@ function HowToPlayPage() {
                     </p>
 
                     <div className="mt-auto pt-6">
-                      <p className="gpp-mono text-[0.65rem] font-semibold tracking-label text-text-muted uppercase">
+                      <p className="gpp-mono text-xs font-semibold tracking-label text-text-muted uppercase">
                         Example
                       </p>
                       <div className="mt-2 border border-border bg-page">
@@ -303,7 +303,7 @@ function HowToPlayPage() {
                         </div>
                         <div className="grid grid-cols-[1fr_auto_1fr] items-center border-t border-border px-3 py-3">
                           <div>
-                            <span className="block text-[0.65rem] font-semibold tracking-label text-text-muted uppercase">
+                            <span className="block text-xs font-semibold tracking-label text-text-muted uppercase">
                               Your pick
                             </span>
                             <span
@@ -317,7 +317,7 @@ function HowToPlayPage() {
                             aria-hidden
                           />
                           <div className="text-right">
-                            <span className="block text-[0.65rem] font-semibold tracking-label text-text-muted uppercase">
+                            <span className="block text-xs font-semibold tracking-label text-text-muted uppercase">
                               Actual result
                             </span>
                             <span

@@ -17,7 +17,7 @@ export function UserLink({
       to="/p/$username"
       params={{ username }}
       search={{ from: undefined, fromLabel: undefined }}
-      className="font-semibold text-accent hover:text-accent-hover"
+      className="gpp-touch-target font-semibold text-accent hover:text-accent-hover"
     >
       {name}
     </Link>

@@ -121,7 +121,7 @@ export function TimezonePickerModal({
             <Text className="text-foreground text-[15px] font-semibold">
               Use device timezone
             </Text>
-            <Text className="text-muted text-[11px] font-semibold">
+            <Text className="text-muted text-xs font-semibold">
               {Intl.DateTimeFormat().resolvedOptions().timeZone}
             </Text>
           </View>
@@ -150,7 +150,7 @@ export function TimezonePickerModal({
                   <Text className="text-foreground text-[15px] font-semibold">
                     {item.replace(/_/g, ' ')}
                   </Text>
-                  <Text className="text-muted text-[11px] font-semibold">
+                  <Text className="text-muted text-xs font-semibold">
                     {getOffset(item)}
                   </Text>
                 </View>

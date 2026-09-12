@@ -134,7 +134,7 @@ export function NotificationToolbar({
               <Icon className="h-3.5 w-3.5" aria-hidden />
               {shortLabel}
               {unread > 0 && !selected ? (
-                <span className="gpp-mono text-[10px] text-accent">
+                <span className="gpp-mono text-xs text-accent">
                   {formatNotificationCount(unread, countsTruncated)}
                   <span className="sr-only"> unread</span>
                 </span>

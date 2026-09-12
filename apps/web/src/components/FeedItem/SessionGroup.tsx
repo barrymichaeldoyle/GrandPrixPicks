@@ -56,7 +56,7 @@ const SLOT_GRID = 'grid w-full max-w-[26rem] grid-cols-5 gap-1';
 /** Every band in the group reads the same: quiet eyebrow, then the row. */
 function BandLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="flex items-center gap-1.5 text-[10px] font-medium text-text-muted/80">
+    <span className="flex items-center gap-1.5 text-xs font-medium text-text-muted/80">
       {children}
     </span>
   );
@@ -77,7 +77,7 @@ function ResultRow({ top5 }: { top5: SessionHeader['top5'] }) {
         {top5.map((_, i) => (
           <span
             key={i}
-            className="gpp-mono text-center text-[10px] leading-none text-text-muted/80"
+            className="gpp-mono text-center text-xs leading-none text-text-muted/80"
           >
             P{i + 1}
           </span>
@@ -111,12 +111,17 @@ function H2HWinnersRow({ h2h }: { h2h: NonNullable<SessionHeader['h2h']> }) {
             FALLBACK_TEAM_COLOR;
           return (
             <span
-              key={duel.team}
+              // Not `duel.team`: lineups are round-scoped, so one team can hold
+              // more than one pairing, and a team name is not unique among
+              // siblings. React silently reuses and drops nodes on a duplicate
+              // key, which showed up here as the wrong driver in a duel chip.
+              // Mobile's SessionGroupCard already keys on the pairing.
+              key={`${duel.team}-${duel.winner.code}-${duel.loser.code}`}
               title={`${duel.winner.displayName} beat ${duel.loser.displayName} (${duel.team})`}
-              className="gpp-team-bar flex h-4 items-center pr-1 pl-1.5"
+              className="gpp-team-bar flex h-5 items-center pr-1 pl-1.5"
               style={{ '--team-colour': color } as CSSProperties}
             >
-              <span className="gpp-mono text-[10px] leading-none tracking-data text-text-muted uppercase">
+              <span className="gpp-mono text-sm leading-none tracking-data text-text-muted uppercase">
                 {duel.winner.code}
               </span>
             </span>
@@ -196,7 +201,7 @@ function SessionLeaderboardRow({
             <button
               type="button"
               onClick={() => setH2hOpen(true)}
-              className="gpp-mono inline-flex shrink-0 items-center gap-1 rounded-sm border border-border px-1.5 py-0.5 text-[10px] font-semibold tracking-data text-text-muted uppercase transition-colors hover:border-accent/60 hover:text-accent"
+              className="gpp-touch-target gpp-mono inline-flex shrink-0 items-center gap-1 rounded-sm border border-border px-1.5 py-0.5 text-xs font-semibold tracking-data text-text-muted uppercase transition-colors hover:border-accent/60 hover:text-accent"
             >
               {/* Live has no denominator: duels are only settled as the cars
                   cross the line, so "3/11" would read as eight lost duels when
@@ -336,7 +341,7 @@ export function SessionGroup({
               page's live board carries, for the same reason: every number
               above this line moves, and a position read as a result is the
               one misreading to rule out. */}
-          <p className="rounded-b-sm border border-t-0 border-border px-2.5 py-2 text-[11px] text-text-muted max-md:rounded-none max-md:border-x-0">
+          <p className="rounded-b-sm border border-t-0 border-border px-2.5 py-2 text-xs text-text-muted max-md:rounded-none max-md:border-x-0">
             Running order is live and can change, including after the flag.
           </p>
         </div>
@@ -479,11 +484,11 @@ function SessionSeparator({
               </span>
             )}
             {live ? (
-              <span className="block text-[9px] font-medium text-accent">
+              <span className="block text-xs font-medium text-accent">
                 Live
               </span>
             ) : pending ? (
-              <span className="block text-[9px] font-medium text-accent">
+              <span className="block text-xs font-medium text-accent">
                 Awaiting results
               </span>
             ) : null}

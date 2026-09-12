@@ -32,7 +32,7 @@ export function RaceDetailHero({ race, round }: RaceDetailHeroProps) {
       ) : null}
       <View className="absolute inset-0 bg-page/80" />
       <View className="gap-1 px-[18px] py-[18px]">
-        <Text className="text-[10px] font-extrabold text-accent-hover">
+        <Text className="text-xs font-extrabold text-accent-hover">
           {round != null ? `Round ${round}` : race.country}
           {race.hasSprint ? '  ·  Sprint' : ''}
         </Text>

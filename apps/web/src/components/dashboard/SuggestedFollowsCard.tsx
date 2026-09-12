@@ -111,8 +111,8 @@ export function SuggestedFollowsCard() {
 
   return (
     <div className="rounded-lg border border-border bg-surface p-4">
-      <div className="mb-3 flex items-center gap-1.5">
-        <UserPlus className="h-3.5 w-3.5 text-text-muted" aria-hidden />
+      <div className="mb-3 flex items-center gap-2">
+        <UserPlus className="h-4 w-4 text-accent" aria-hidden />
         <h2 className="text-xs font-medium text-text-muted">
           Players to follow
         </h2>

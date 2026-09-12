@@ -58,12 +58,12 @@ export function NotificationFilterNav({
                 />
                 <span className="min-w-0 flex-1 truncate">{label}</span>
                 {unread > 0 ? (
-                  <span className="gpp-mono shrink-0 rounded-full bg-accent px-1.5 py-0.5 text-[10px] leading-none font-semibold text-text-on-accent">
+                  <span className="gpp-mono shrink-0 rounded-full bg-accent px-1.5 py-0.5 text-xs leading-none font-semibold text-text-on-accent">
                     {formatNotificationCount(unread, countsTruncated)}
                     <span className="sr-only"> unread</span>
                   </span>
                 ) : total > 0 ? (
-                  <span className="gpp-mono shrink-0 text-[11px] text-text-muted">
+                  <span className="gpp-mono shrink-0 text-xs text-text-muted">
                     {formatNotificationCount(total, countsTruncated)}
                     <span className="sr-only"> notifications, all read</span>
                   </span>

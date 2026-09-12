@@ -6,6 +6,8 @@ import {
   getWeekendPracticeStarts,
   getWeekendSessionStarts,
 } from './raceSessions';
+import { PRACTICE_SESSION_LABELS } from '@grandprixpicks/shared/practice';
+
 import { SESSION_LABELS_FULL } from './sessions';
 
 export type PracticeResults = FunctionReturnType<
@@ -14,11 +16,11 @@ export type PracticeResults = FunctionReturnType<
 export type PracticeResult = PracticeResults[number];
 export type PracticeSessionType = PracticeResult['sessionType'];
 
-export const PRACTICE_SESSION_LABELS = {
-  fp1: 'Free Practice 1',
-  fp2: 'Free Practice 2',
-  fp3: 'Free Practice 3',
-} as const;
+/**
+ * Re-exported so the existing call sites keep importing from here, while the
+ * values themselves live in shared alongside mobile's copy.
+ */
+export { PRACTICE_SESSION_LABELS };
 
 /** Modal title: the session named in full, then what the sheet is. */
 export function practiceResultsHeading(session: PracticeSessionType): string {

@@ -220,14 +220,14 @@ function PickedRow({
           </Text>
         </View>
         {item.driver.racing === false ? (
-          <Text className="text-[11px] text-error" numberOfLines={1}>
+          <Text className="text-xs text-error" numberOfLines={1}>
             Not racing this round
           </Text>
         ) : item.driver.team ? (
           <View className="flex-row items-center gap-1.5">
             <TeamDot team={item.driver.team} />
             <Text
-              className="text-muted min-w-0 flex-1 text-[11px]"
+              className="text-muted min-w-0 flex-1 text-xs"
               numberOfLines={1}
             >
               {displayTeamName(item.driver.team)}
@@ -359,7 +359,7 @@ function PoolDriverCard({
           {driver.code}
         </Numeral>
         {surname ? (
-          <Text className="text-muted text-[11px]" numberOfLines={1}>
+          <Text className="text-muted text-xs" numberOfLines={1}>
             {surname}
           </Text>
         ) : null}

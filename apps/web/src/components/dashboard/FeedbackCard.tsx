@@ -1,4 +1,4 @@
-import { MessageSquarePlus } from 'lucide-react';
+import { MessageSquare, MessageSquarePlus } from 'lucide-react';
 import { useState } from 'react';
 
 import { FeedbackModal } from '@/components/FeedbackModal';
@@ -23,12 +23,15 @@ export function FeedbackCard() {
       aria-labelledby="feedback-card-heading"
     >
       <div className="p-4">
-        <p
-          id="feedback-card-heading"
-          className="text-xs font-medium text-text-muted"
-        >
-          Feedback
-        </p>
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-4 w-4 text-accent" aria-hidden />
+          <p
+            id="feedback-card-heading"
+            className="text-xs font-medium text-text-muted"
+          >
+            Feedback
+          </p>
+        </div>
         <p className="mt-2 text-sm text-text-muted">
           Something broken, missing, or just annoying? Tell us in a line.
         </p>

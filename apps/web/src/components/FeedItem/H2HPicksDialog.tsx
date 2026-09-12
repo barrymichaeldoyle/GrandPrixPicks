@@ -160,7 +160,12 @@ export function H2HPicksDialog({
             // Nothing here is a different shape from the loaded row, so
             // nothing reflows when it arrives.
             loadingRowsFor(teamOrder).map((duel) => (
-              <div key={duel.team} className="flex h-9 items-center gap-2 px-4">
+              <div
+                // Keyed on the pairing, not the team: a round-scoped line-up
+                // change can put two pairings under one team name.
+                key={`${duel.team}-${duel.driver1Code}-${duel.driver2Code}`}
+                className="flex h-9 items-center gap-2 px-4"
+              >
                 <TeamCell team={duel.team} />
                 <span className="inline-flex shrink-0 opacity-30">
                   <DriverBadge

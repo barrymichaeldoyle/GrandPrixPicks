@@ -72,6 +72,16 @@ function TimeUnit({
         className="items-center justify-center rounded-md border border-accent-hover/20 bg-accent/10"
         style={{ height: tileHeight, width: tileWidth }}
       >
+        {/*
+          The one figure that genuinely cannot scale with the OS text setting.
+          Three tiles have to fit across the narrowest phone, so `tileWidth` is
+          derived from screen width and the digit is sized from the tile
+          (`tileWidth * 0.55`) with `lineHeight` pinned to the tile height.
+          Letting the glyph grow independently overflows a box that cannot grow
+          back. It already renders at ~43px on a 390px screen, well clear of any
+          legibility floor, so nothing is lost by holding it. The label below is
+          the part that was too small, and that one does scale.
+        */}
         <Text
           allowFontScaling={false}
           className="text-foreground font-black"
@@ -83,7 +93,12 @@ function TimeUnit({
           {padded}
         </Text>
       </View>
-      <Text className="text-muted text-[10px] font-medium">{label}</Text>
+      <Text
+        className="text-muted text-xs font-medium"
+        maxFontSizeMultiplier={1.5}
+      >
+        {label}
+      </Text>
     </View>
   );
 }

@@ -352,7 +352,7 @@ function TopPlayersToFollow() {
 
   return (
     <View className="mt-1">
-      <Text className="text-muted mb-2 px-1 text-[11px] font-medium">
+      <Text className="text-muted mb-2 px-1 text-xs font-medium">
         Top players this season
       </Text>
       <View>
@@ -381,7 +381,7 @@ function TopPlayersToFollow() {
                     >
                       {p.username}
                     </Text>
-                    <Text className="text-muted mt-px text-[11px]">
+                    <Text className="text-muted mt-px text-xs">
                       Rank #{p.rank} · {p.points.toLocaleString()} pts
                     </Text>
                   </View>

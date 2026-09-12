@@ -468,7 +468,7 @@ export function LeaderboardScreen() {
                 ))}
                 {viewerOutsideTop && viewerEntry ? (
                   <View className="mt-2.5 rounded-lg border border-accent px-2">
-                    <Text className="mt-2 text-[11px] font-medium text-accent">
+                    <Text className="mt-2 text-xs font-medium text-accent">
                       Your rank
                     </Text>
                     <BoardRow
@@ -650,18 +650,18 @@ function PodiumRow({
             {entry.displayName ?? entry.username}
           </Text>
           {entry.isViewer ? (
-            <Text className="overflow-hidden rounded-full bg-accent px-1.5 py-px text-[9px] font-extrabold text-text-on-accent">
+            <Text className="overflow-hidden rounded-full bg-accent px-1.5 py-px text-xs font-extrabold text-text-on-accent">
               YOU
             </Text>
           ) : null}
         </View>
         {subline ? (
-          <Text className="text-muted mt-px text-[11px]">{subline}</Text>
+          <Text className="text-muted mt-px text-xs">{subline}</Text>
         ) : null}
       </View>
       <View className="min-w-11 items-end">
         <Numeral variant="large">{entry.points}</Numeral>
-        <Text className="text-muted text-[10px] font-medium">pts</Text>
+        <Text className="text-muted text-xs font-medium">pts</Text>
       </View>
     </Pressable>
   );
@@ -707,18 +707,18 @@ function BoardRow({
             {entry.displayName ?? entry.username}
           </Text>
           {entry.isViewer ? (
-            <Text className="overflow-hidden rounded-full bg-accent px-1.5 py-px text-[9px] font-extrabold text-text-on-accent">
+            <Text className="overflow-hidden rounded-full bg-accent px-1.5 py-px text-xs font-extrabold text-text-on-accent">
               YOU
             </Text>
           ) : null}
         </View>
         {subline ? (
-          <Text className="text-muted mt-px text-[11px]">{subline}</Text>
+          <Text className="text-muted mt-px text-xs">{subline}</Text>
         ) : null}
       </View>
       <View className="min-w-11 items-end">
         <Numeral variant="small">{entry.points}</Numeral>
-        <Text className="text-muted text-[10px] font-medium">pts</Text>
+        <Text className="text-muted text-xs font-medium">pts</Text>
       </View>
     </Pressable>
   );

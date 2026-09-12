@@ -40,8 +40,8 @@ export function Numeral({
 
   return (
     <Text
-      allowFontScaling={false}
       className={`${variantClasses[variant]} ${toneClasses[tone]}`}
+      maxFontSizeMultiplier={variantMaxScale[variant]}
       style={[fontFamily ? { fontFamily } : null, style]}
     >
       {children}
@@ -61,6 +61,29 @@ const toneClasses: Record<NumeralTone, string> = {
 const variantClasses: Record<NumeralVariant, string> = {
   display: 'text-[56px] leading-[64px]',
   large: 'text-[22px] leading-[26px]',
-  body: 'text-[15px] font-semibold',
-  small: 'text-xs font-bold',
+  body: 'text-base font-semibold',
+  small: 'text-sm font-bold',
+};
+
+/**
+ * Figures scale with the OS text-size setting, but not without a ceiling.
+ *
+ * This component used to pass `allowFontScaling={false}`, which kept every
+ * score, rank and points total in the app pinned at its authored size. That
+ * solved a layout problem (numerals sit in fixed-width columns and chips, so
+ * unbounded growth overflows them) by trading away the one accommodation the
+ * audience is most likely to be using: turn up iOS Dynamic Type and the prose
+ * grew while every number stayed put, which made the numbers *relatively*
+ * smaller than before.
+ *
+ * A ceiling keeps both. The cap tightens as the authored size grows, because a
+ * 12px chip label has far more headroom in its container than a 56px hero
+ * figure does. `small` gets the most room: it is the densest type in the app
+ * and the place the size complaint actually lands.
+ */
+const variantMaxScale: Record<NumeralVariant, number> = {
+  display: 1.15,
+  large: 1.3,
+  body: 1.4,
+  small: 1.6,
 };

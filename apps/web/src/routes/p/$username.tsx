@@ -394,7 +394,7 @@ function ProfilePage() {
                             ? `P${weekend.top5Rank}`
                             : '—'}
                         </p>
-                        <p className="text-[9px] tracking-label text-text-muted uppercase">
+                        <p className="text-xs tracking-label text-text-muted uppercase">
                           of {weekend.top5FieldSize}
                         </p>
                       </div>
@@ -402,7 +402,7 @@ function ProfilePage() {
                         <p className="font-title text-lg font-semibold text-text">
                           {weekend.totalPoints}
                         </p>
-                        <p className="text-[9px] tracking-label text-text-muted uppercase">
+                        <p className="text-xs tracking-label text-text-muted uppercase">
                           points
                         </p>
                       </div>
@@ -410,7 +410,7 @@ function ProfilePage() {
                         <p className="font-title text-lg font-semibold text-text">
                           {scoredSessionCount}
                         </p>
-                        <p className="text-[9px] tracking-label text-text-muted uppercase">
+                        <p className="text-xs tracking-label text-text-muted uppercase">
                           sessions
                         </p>
                       </div>

@@ -51,7 +51,7 @@ export function RailFooterLinks() {
     // The border and top padding moved off the <nav> when the outbound link
     // joined it: the rule separates the rail's content from all of the small
     // print, not just from the navigation half of it.
-    <div className="space-y-1 border-t border-border pt-4 text-[11px] leading-relaxed text-text-muted">
+    <div className="space-y-1 border-t border-border pt-4 text-xs leading-relaxed text-text-muted">
       <FriendGameLink linkClassName={linkClass} />
       <nav
         aria-label="Site information"

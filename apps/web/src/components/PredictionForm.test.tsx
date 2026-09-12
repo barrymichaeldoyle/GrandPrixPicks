@@ -318,6 +318,33 @@ describe('PredictionForm try-before-signup', () => {
     );
   });
 
+  it('uses one Top 5 heading when parent chrome already supplies it', async () => {
+    await act(async () => {
+      root.render(
+        <PredictionForm
+          raceId={RACE_ID}
+          existingPicks={[...DRIVER_IDS]}
+          hidePicksHeading
+          inlineSaveStatus
+        />,
+      );
+    });
+
+    expect(container.textContent).not.toContain('Your Picks');
+    const picks = container.querySelector('[data-testid="your-picks"]');
+    expect(picks?.firstElementChild?.textContent).toContain(
+      'Remove a pick to change',
+    );
+    expect(picks?.firstElementChild?.textContent).toContain(
+      'Reorder: drag or use',
+    );
+    expect(
+      picks?.firstElementChild?.querySelector(
+        '[data-testid="picks-save-status"]',
+      )?.textContent,
+    ).toBe('Saved');
+  });
+
   it('keeps empty-pick guidance beside the heading', async () => {
     clearPredictionDraft(draftKey);
     await act(async () => {

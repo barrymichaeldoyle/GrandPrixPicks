@@ -28,7 +28,7 @@ export function SignedOutPicksNotice({
           Your picks are saved on this phone
         </Text>
       </View>
-      <Text className="text-muted text-[12px] leading-[17px]">
+      <Text className="text-muted text-xs leading-[17px]">
         {lockLabel
           ? `They only count once you sign in, and they have to be in before this session locks on ${lockLabel}.`
           : 'They only count once you sign in, and they have to be in before the session locks.'}
@@ -39,7 +39,7 @@ export function SignedOutPicksNotice({
         className="mt-0.5 self-start rounded-sm bg-accent px-3 py-2 active:bg-accent-press"
         onPress={onSignIn}
       >
-        <Text className="text-[12px] font-bold text-text-on-accent">
+        <Text className="text-xs font-bold text-text-on-accent">
           Sign in so they count
         </Text>
       </Pressable>

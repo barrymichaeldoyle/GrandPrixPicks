@@ -86,10 +86,41 @@ describe('DashboardPracticeCard', () => {
       ...view.querySelectorAll('[data-testid="dashboard-practice"] p'),
     ];
     expect(columns.map((column) => column.textContent)).toEqual([
-      'Free Practice 1',
       'Free Practice 2',
+      'Free Practice 1',
     ]);
     expect(view.querySelector('.gpp-column-split')).not.toBeNull();
+  });
+
+  it('leads with FP3 when stacked and gives it the wide top row', () => {
+    const view = render(
+      <DashboardPracticeCard
+        raceId={RACE_ID}
+        initialResults={[
+          session('fp1', 20),
+          session('fp2', 20),
+          session('fp3', 20),
+        ]}
+      />,
+    );
+
+    const groups = view.querySelectorAll(
+      '[data-testid="dashboard-practice"] > div:last-of-type > div',
+    );
+    expect(groups).toHaveLength(2);
+    expect(groups[0]?.textContent).toContain('Free Practice 3');
+    expect(groups[0]?.textContent).not.toContain('Free Practice 2');
+    expect(groups[1]?.textContent).toContain('Free Practice 2');
+    expect(groups[1]?.textContent).toContain('Free Practice 1');
+
+    const labels = [
+      ...view.querySelectorAll('[data-testid="dashboard-practice"] p'),
+    ].map((label) => label.textContent);
+    expect(labels).toEqual([
+      'Free Practice 3',
+      'Free Practice 2',
+      'Free Practice 1',
+    ]);
   });
 
   it("shows each session's weather beside the label", () => {

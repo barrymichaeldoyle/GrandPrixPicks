@@ -249,7 +249,7 @@ export function SessionClock({
                 >
                   {segments[0].value}
                 </span>
-                <span className={`gpp-label ${large ? '' : 'text-[0.625rem]'}`}>
+                <span className={`gpp-label ${large ? '' : 'text-xs'}`}>
                   {unitWord(segments[0])}
                 </span>
               </span>
@@ -278,7 +278,7 @@ export function SessionClock({
                       {segment.value.toString().padStart(2, '0')}
                     </span>
                     <span
-                      className={`gpp-label mt-1.5 ${large ? '' : 'text-[0.625rem]'}`}
+                      className={`gpp-label mt-1.5 ${large ? '' : 'text-xs'}`}
                     >
                       {unitWord(segment)}
                     </span>

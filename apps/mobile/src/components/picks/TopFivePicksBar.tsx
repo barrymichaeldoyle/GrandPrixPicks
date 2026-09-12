@@ -34,7 +34,7 @@ export function TopFivePicksBar({
               className="absolute top-0 bottom-0 left-0 w-[3px]"
               style={{ backgroundColor: getTeamColor(driver.team) }}
             />
-            <Text className="text-[10px] leading-none text-accent">
+            <Text className="text-xs leading-none text-accent">
               {`P${index + 1}`}
             </Text>
             <Text

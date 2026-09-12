@@ -201,7 +201,21 @@ function SettingsPage() {
         <div className="grid items-start gap-6 md:grid-cols-[10rem_minmax(0,1fr)] lg:gap-10">
           <nav
             aria-label="Settings sections"
-            className="sticky top-20 z-10 -mx-1 flex gap-1 overflow-x-auto bg-page/95 px-1 py-1 md:top-24 md:mx-0 md:flex-col md:overflow-visible md:bg-transparent md:p-0"
+            // Flush under the header, not 16px below it. `top-20` was a
+            // hand-measured 80px against a header that is 64px, so the strip
+            // stuck with a gap and page content scrolled through it. Reading
+            // the same token the header sizes itself with (`h-(--nav-height)`
+            // in Header.tsx) keeps the two together if that value ever moves.
+            //
+            // Opaque, too: at `bg-page/95` the section heading underneath
+            // showed through the tabs as a ghost. There is nothing to gain
+            // from 5% here — it is a bar that exists to cover what passes
+            // behind it. From `md` the strip becomes a sidebar in its own grid
+            // column, so it goes transparent and takes a deliberate offset
+            // below the header instead — the same `calc()` shape the rails in
+            // AppPageLayout use, so it keeps its current 2rem of breathing
+            // room without hardcoding what the header happens to measure.
+            className="sticky top-(--nav-height) z-10 -mx-1 flex gap-1 overflow-x-auto bg-page px-1 py-1 md:top-[calc(var(--nav-height)+2rem)] md:mx-0 md:flex-col md:overflow-visible md:bg-transparent md:p-0"
           >
             {SETTINGS_NAV.map((item) => (
               <a

@@ -140,7 +140,7 @@ export const FirstSessionOnly: Story = {
   args: { results: [MONZA[0]] },
 };
 
-/** Saturday morning, once FP3 lands and three sessions share the row. */
+/** Saturday morning: FP3 leads, with the Friday sessions paired below. */
 export const AllThreeSessions: Story = {
   args: {
     results: [

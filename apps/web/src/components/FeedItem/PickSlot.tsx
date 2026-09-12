@@ -28,6 +28,12 @@ const SCORE_BAND: Record<number, string> = {
 };
 
 /*
+ * Driver codes are set at `text-sm`, not the `text-xs` that micro-labels use.
+ * These five cells are the substance of the card — the thing a player actually
+ * reads to see how they did — so they take the reading floor rather than the
+ * label size they used to share with eyebrow text. The cells are ~83px wide in
+ * the 5-column grid, so a three-letter code has room to spare at this size.
+ *
  * Picks and the published result are the same five columns, so they are told
  * apart the way a form tells an answer from an entry: outlined versus filled.
  * A pick is an outlined cell on the row's flat background; the result is a
@@ -38,8 +44,8 @@ const CELL_BASE = 'gpp-team-bar flex w-full items-center justify-center';
 const PICK_CELL = `${CELL_BASE} h-7 border border-border bg-surface-elevated`;
 const RESULT_CELL = `${CELL_BASE} h-8 bg-surface-sunken`;
 const CODE_BASE = 'gpp-mono pl-1 leading-none tracking-data uppercase';
-const PICK_CODE = `${CODE_BASE} text-xs text-text`;
-const RESULT_CODE = `${CODE_BASE} text-[13px] font-semibold text-text`;
+const PICK_CODE = `${CODE_BASE} text-sm text-text`;
+const RESULT_CODE = `${CODE_BASE} text-sm font-semibold text-text`;
 /*
  * Sector-band weight, set off from the cell by a hairline of page behind it.
  *

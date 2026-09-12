@@ -55,16 +55,14 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
 
       {event.type === 'results_amended' ? (
         <View className="gap-0.5 rounded-md border border-warning/40 bg-warning/10 px-2.5 py-2">
-          <Text className="text-[11px] font-medium text-warning">
+          <Text className="text-xs font-medium text-warning">
             Results amended
             {event.previousPoints !== undefined && event.points !== undefined
               ? ` · ${event.previousPoints} → ${event.points} pts`
               : ''}
           </Text>
           {event.amendmentNote ? (
-            <Text className="text-muted text-[11px]">
-              {event.amendmentNote}
-            </Text>
+            <Text className="text-muted text-xs">{event.amendmentNote}</Text>
           ) : null}
         </View>
       ) : null}
@@ -81,7 +79,7 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
             </Text>
           ) : null}
           {sessionLabel ? (
-            <Text className="text-muted text-[11px]">{sessionLabel}</Text>
+            <Text className="text-muted text-xs">{sessionLabel}</Text>
           ) : null}
         </View>
         <View
@@ -93,7 +91,7 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
             style={{ color: scoreColor }}
           >
             {pts}
-            <Text className="text-muted text-[11px]">/25</Text>
+            <Text className="text-muted text-xs">/25</Text>
           </Text>
         </View>
       </View>
@@ -121,7 +119,7 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
                 }}
               >
                 <Text
-                  className="text-[11px] font-bold"
+                  className="text-xs font-bold"
                   style={{
                     color:
                       pick.points > 0
@@ -169,7 +167,7 @@ function LineupChangeCard({ event }: { event: FeedEvent }) {
   return (
     <Card>
       <View className="gap-0.5">
-        <Text className="text-[11px] font-medium text-accent">Grid change</Text>
+        <Text className="text-xs font-medium text-accent">Grid change</Text>
         <Text className="text-foreground text-sm font-bold">
           {event.raceName
             ? `New line-up from the ${event.raceName}`

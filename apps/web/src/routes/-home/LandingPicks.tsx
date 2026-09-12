@@ -598,6 +598,7 @@ export function LandingPicks({
             key={`overlay-${pickerGeneration}`}
             raceId={raceId}
             initialDrivers={initialDrivers}
+            hidePicksHeading
             initialDraftPicks={rememberedState?.topFivePicks}
             suppressDraftRestoredNotice={Boolean(rememberedState)}
             onComplete={handleTopFiveComplete}

@@ -328,7 +328,7 @@ function DuelDriverButton({
       {/* The one place the two games talk to each other: if you already put
           this driver in your Top 5, the duel should not make you remember. */}
       {topFivePosition ? (
-        <span className="gpp-mono absolute top-2 left-2 rounded-sm border border-accent/40 px-1 py-0.5 text-[10px] leading-none text-accent">
+        <span className="gpp-mono absolute top-2 left-2 rounded-sm border border-accent/40 px-1 py-0.5 text-xs leading-none text-accent">
           YOUR P{topFivePosition}
         </span>
       ) : null}

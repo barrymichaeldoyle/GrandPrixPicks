@@ -125,7 +125,9 @@ function RaceNewsCard({
       <SlantedStripe color={teamColour} reverse={reverse} />
       <View className="min-w-0 flex-1 gap-2 py-2.5 pr-3 pl-4">
         {grouped ? null : (
-          <Text className="text-xs font-medium text-accent">Weekend news</Text>
+          <Text className="text-xs font-medium text-accent">
+            {event.raceName ? 'Weekend news' : 'News'}
+          </Text>
         )}
         <Text className="text-foreground text-sm font-semibold">
           {event.newsHeadline}
@@ -183,18 +185,21 @@ export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
   if (events.length === 0) {
     return null;
   }
-  const raceName = events.find((event) => event.raceName)?.raceName;
-  const raceSlug = events.find((event) => event.raceSlug)?.raceSlug;
+  const sameWeekend = events.every(
+    (event) => event.raceId && event.raceId === events[0].raceId,
+  );
+  const raceName = sameWeekend ? events[0].raceName : undefined;
+  const raceSlug = sameWeekend ? events[0].raceSlug : undefined;
 
   return (
     <View
-      accessibilityLabel={
-        raceName ? `Weekend news, ${raceName}` : 'Weekend news'
-      }
+      accessibilityLabel={raceName ? `Weekend news, ${raceName}` : 'News'}
       className="overflow-hidden border-y border-border bg-surface"
     >
       <View className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border px-3 py-2">
-        <Text className="text-xs font-medium text-accent">Weekend news</Text>
+        <Text className="text-xs font-medium text-accent">
+          {raceName ? 'Weekend news' : 'News'}
+        </Text>
         {raceName ? (
           <View className="flex-row items-center gap-1.5">
             {raceSlug ? <FlagImage raceSlug={raceSlug} /> : null}

@@ -272,6 +272,9 @@ importers:
       react-email:
         specifier: 6.9.5
         version: 6.9.5(bufferutil@4.1.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2)(utf-8-validate@6.0.6)
+      saxes:
+        specifier: 6.0.0
+        version: 6.0.0
       web-push:
         specifier: 3.6.7
         version: 3.6.7(supports-color@10.2.2)

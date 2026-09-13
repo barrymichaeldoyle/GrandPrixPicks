@@ -31,6 +31,7 @@ import type * as emails_urls from "../emails/urls.js";
 import type * as f1Standings from "../f1Standings.js";
 import type * as feed from "../feed.js";
 import type * as follows from "../follows.js";
+import type * as globalNews from "../globalNews.js";
 import type * as h2h from "../h2h.js";
 import type * as home from "../home.js";
 import type * as http from "../http.js";
@@ -48,6 +49,7 @@ import type * as lib_italy2026MonzaNewsCopy from "../lib/italy2026MonzaNewsCopy.
 import type * as lib_leaderboard from "../lib/leaderboard.js";
 import type * as lib_leaguePassword from "../lib/leaguePassword.js";
 import type * as lib_lineups from "../lib/lineups.js";
+import type * as lib_newsRss from "../lib/newsRss.js";
 import type * as lib_notificationChannels from "../lib/notificationChannels.js";
 import type * as lib_notificationEligibility from "../lib/notificationEligibility.js";
 import type * as lib_raceNewsStartingGrid from "../lib/raceNewsStartingGrid.js";
@@ -65,6 +67,7 @@ import type * as lib_weekendCapabilities from "../lib/weekendCapabilities.js";
 import type * as liveClassification from "../liveClassification.js";
 import type * as liveScoring from "../liveScoring.js";
 import type * as newsNotifications from "../newsNotifications.js";
+import type * as newsPipeline from "../newsPipeline.js";
 import type * as notificationDelivery from "../notificationDelivery.js";
 import type * as notificationEmails from "../notificationEmails.js";
 import type * as notifications from "../notifications.js";
@@ -118,6 +121,7 @@ declare const fullApi: ApiFromModules<{
   f1Standings: typeof f1Standings;
   feed: typeof feed;
   follows: typeof follows;
+  globalNews: typeof globalNews;
   h2h: typeof h2h;
   home: typeof home;
   http: typeof http;
@@ -135,6 +139,7 @@ declare const fullApi: ApiFromModules<{
   "lib/leaderboard": typeof lib_leaderboard;
   "lib/leaguePassword": typeof lib_leaguePassword;
   "lib/lineups": typeof lib_lineups;
+  "lib/newsRss": typeof lib_newsRss;
   "lib/notificationChannels": typeof lib_notificationChannels;
   "lib/notificationEligibility": typeof lib_notificationEligibility;
   "lib/raceNewsStartingGrid": typeof lib_raceNewsStartingGrid;
@@ -152,6 +157,7 @@ declare const fullApi: ApiFromModules<{
   liveClassification: typeof liveClassification;
   liveScoring: typeof liveScoring;
   newsNotifications: typeof newsNotifications;
+  newsPipeline: typeof newsPipeline;
   notificationDelivery: typeof notificationDelivery;
   notificationEmails: typeof notificationEmails;
   notifications: typeof notifications;

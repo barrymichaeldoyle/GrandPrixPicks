@@ -30,11 +30,14 @@ export function NewsGroup({ events }: { events: FeedEvent[] }) {
     return null;
   }
 
-  const raceName = events.find((event) => event.raceName)?.raceName;
+  const sameWeekend = events.every(
+    (event) => event.raceId && event.raceId === events[0].raceId,
+  );
+  const raceName = sameWeekend ? events[0].raceName : undefined;
   // Same flag the session cards fly, from the same slug. The race name alone is
   // a line of small mono text at the far end of a header row; the flag is what
   // makes the block identifiably Monza's before it is read.
-  const raceSlug = events.find((event) => event.raceSlug)?.raceSlug;
+  const raceSlug = sameWeekend ? events[0].raceSlug : undefined;
   const countryCode = raceSlug
     ? getCountryCodeForRace({ slug: raceSlug })
     : null;
@@ -49,7 +52,7 @@ export function NewsGroup({ events }: { events: FeedEvent[] }) {
          line of body copy. Inner padding is untouched: the block bleeds, the
          copy never does. */
       className="overflow-hidden border-y border-border/80 bg-surface max-md:-mx-4 max-md:pt-2 md:rounded-sm md:border"
-      aria-label={raceName ? `Weekend news, ${raceName}` : 'Weekend news'}
+      aria-label={raceName ? `Weekend news, ${raceName}` : 'News'}
     >
       {/* The eyebrow and the race name already mark this as the news block;
           a rule under them doubled the classification-style dividers the
@@ -57,7 +60,9 @@ export function NewsGroup({ events }: { events: FeedEvent[] }) {
           this block and whatever it follows on a phone: the same one practice
           takes, so the two never read as one long list. */}
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-2.5 py-2">
-        <p className="text-xs font-medium text-accent">Weekend news</p>
+        <p className="text-xs font-medium text-accent">
+          {raceName ? 'Weekend news' : 'News'}
+        </p>
         {raceName ? (
           <p className="flex items-center gap-1.5">
             {countryCode ? <Flag code={countryCode} size="xs" /> : null}

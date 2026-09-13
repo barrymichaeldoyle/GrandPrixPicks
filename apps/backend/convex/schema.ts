@@ -45,6 +45,9 @@ export default defineSchema({
     emailPredictionReminders: v.optional(v.boolean()),
     emailResults: v.optional(v.boolean()),
     pushNews: v.optional(v.boolean()),
+    newsPushPreference: v.optional(
+      v.union(v.literal('off'), v.literal('pick_related'), v.literal('all')),
+    ),
     notificationQuietHours: v.optional(v.boolean()),
     preferPushReminders: v.optional(v.boolean()),
     emailSuppressed: v.optional(v.boolean()),
@@ -709,6 +712,9 @@ export default defineSchema({
       v.literal('session_locked'),
       v.literal('news'),
     ),
+    newsCategory: v.optional(
+      v.union(v.literal('pick_related'), v.literal('general')),
+    ),
     status: v.union(
       v.literal('queued'),
       v.literal('sending'),
@@ -875,6 +881,9 @@ export default defineSchema({
     // without a second read per event. `newsKey` is what lets a correction
     // find its own event and edit it in place rather than posting again.
     newsKey: v.optional(v.string()),
+    newsCategory: v.optional(
+      v.union(v.literal('pick_related'), v.literal('general')),
+    ),
     newsHeadline: v.optional(v.string()),
     newsBody: v.optional(v.string()),
     newsAffectsSessions: v.optional(v.array(sessionType)),
@@ -931,14 +940,19 @@ export default defineSchema({
   // queries don't re-run as time passes, so server-side filtering would
   // leave connected clients with a stale banner at the boundaries.
   /**
-   * Short, pick-relevant news for a race weekend. See `docs/race-news.md`.
+   * Sourced news for a race weekend. See `docs/race-news.md`.
    *
    * Written by an agent through `raceNews:publish` rather than through a form:
-   * the workflow is "research the weekend, publish what changes a pick", and
+   * the workflow is "research the weekend, publish what matters", and
    * the mutation is the surface a person actually touches.
    */
   raceNews: defineTable({
     raceId: v.id('races'),
+    feedSelected: v.optional(v.boolean()),
+    writeUpSelected: v.optional(v.boolean()),
+    category: v.optional(
+      v.union(v.literal('pick_related'), v.literal('general')),
+    ),
     /**
      * Stable slug for the item, e.g. `antonelli-grid-penalty`, unique per race.
      *
@@ -950,10 +964,8 @@ export default defineSchema({
     headline: v.string(),
     body: v.string(),
     /**
-     * Which sessions this changes a pick for. Required and non-empty on
-     * purpose: naming the sessions *is* the "does this belong in the feed"
-     * test, and a schema does that job where a comment gets skimmed. It is
-     * also the hook the weekend card uses to flag an item on the Race tab and
+     * Which sessions this changes a pick for. Empty for general news.
+     * For pick-related news it is the hook the weekend card uses to flag the Race tab and
      * leave Qualifying alone.
      */
     affectsSessions: v.array(sessionType),
@@ -1029,6 +1041,109 @@ export default defineSchema({
   })
     .index('by_race', ['raceId'])
     .index('by_race_key', ['raceId', 'key']),
+
+  newsSources: defineTable({
+    name: v.string(),
+    feedUrl: v.string(),
+    approvedBy: v.optional(v.id('users')),
+    approvedAt: v.optional(v.number()),
+    enabled: v.boolean(),
+    pollIntervalMs: v.number(),
+    nextPollAt: v.number(),
+    lastError: v.optional(v.string()),
+  })
+    .index('by_next_poll', ['enabled', 'nextPollAt'])
+    .index('by_feed_url', ['feedUrl']),
+
+  newsCandidates: defineTable({
+    sourceId: v.id('newsSources'),
+    externalId: v.string(),
+    contentHash: v.optional(v.string()),
+    canonicalUrl: v.string(),
+    title: v.string(),
+    excerpt: v.string(),
+    suggestedRaceSlug: v.optional(v.string()),
+    suggestedDriverCodes: v.optional(v.array(v.string())),
+    suggestedTeams: v.optional(v.array(v.string())),
+    sourcePublishedAt: v.optional(v.number()),
+    foundAt: v.number(),
+    status: v.union(
+      v.literal('queued'),
+      v.literal('claimed'),
+      v.literal('review'),
+      v.literal('rejected'),
+      v.literal('published'),
+      v.literal('dead'),
+    ),
+    batchId: v.optional(v.id('newsBatches')),
+    attempts: v.number(),
+  })
+    .index('by_source_external', ['sourceId', 'externalId'])
+    .index('by_source_hash', ['sourceId', 'contentHash'])
+    .index('by_url', ['canonicalUrl'])
+    .index('by_status', ['status', 'foundAt'])
+    .index('by_batch', ['batchId']),
+
+  newsBatches: defineTable({
+    key: v.string(),
+    status: v.union(
+      v.literal('queued'),
+      v.literal('claimed'),
+      v.literal('submitted'),
+      v.literal('dead'),
+    ),
+    attempts: v.number(),
+    leaseUntil: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index('by_status', ['status', 'createdAt'])
+    .index('by_key', ['key']),
+
+  newsProposals: defineTable({
+    candidateId: v.id('newsCandidates'),
+    batchId: v.id('newsBatches'),
+    headline: v.string(),
+    body: v.string(),
+    category: v.union(v.literal('pick_related'), v.literal('general')),
+    raceSlug: v.optional(v.string()),
+    affectsSessions: v.array(sessionType),
+    confidence: v.union(
+      v.literal('low'),
+      v.literal('medium'),
+      v.literal('high'),
+    ),
+    contradictions: v.optional(v.array(v.string())),
+    reviewReason: v.string(),
+    status: v.union(
+      v.literal('review'),
+      v.literal('rejected'),
+      v.literal('published'),
+      v.literal('merged'),
+      v.literal('handoff'),
+    ),
+    mergedIntoId: v.optional(v.id('newsProposals')),
+    corroboratingCandidateIds: v.optional(v.array(v.id('newsCandidates'))),
+    handoffNote: v.optional(v.string()),
+    reviewerId: v.optional(v.id('users')),
+    reviewedAt: v.optional(v.number()),
+    publishedNewsId: v.optional(v.id('raceNews')),
+    publishedGlobalId: v.optional(v.id('globalNews')),
+  })
+    .index('by_candidate', ['candidateId'])
+    .index('by_status', ['status']),
+
+  globalNews: defineTable({
+    key: v.string(),
+    headline: v.string(),
+    body: v.string(),
+    sourceName: v.string(),
+    sourceUrl: v.string(),
+    sourcePublishedAt: v.optional(v.number()),
+    feedEventId: v.id('feedEvents'),
+    active: v.boolean(),
+    publishedAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_key', ['key']),
 
   announcements: defineTable({
     message: v.string(),

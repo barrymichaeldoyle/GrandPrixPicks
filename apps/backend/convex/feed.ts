@@ -520,6 +520,7 @@ type RawEvent = {
   newsHeadline?: string;
   newsBody?: string;
   newsAffectsSessions?: string[];
+  newsCategory?: 'pick_related' | 'general';
   newsSourceName?: string;
   newsSourceUrl?: string;
   newsDrivers?: Array<{
@@ -537,6 +538,7 @@ type RawEvent = {
     /** Absent on grids frozen into the feed before numbers were resolved. */
     number?: number | null;
     note?: string;
+    newsKey?: string;
   }>;
   createdAt: number;
 };

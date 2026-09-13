@@ -53,7 +53,22 @@ export function wantsPushSessionLocked(user: User): boolean {
   return user.pushSessionLocked ?? false;
 }
 export function wantsPushNews(user: User): boolean {
-  return user.pushNews ?? false;
+  return newsPushPreference(user) !== 'off';
+}
+export function newsPushPreference(user: User): 'off' | 'pick_related' | 'all' {
+  return (
+    user.newsPushPreference ?? (user.pushNews === true ? 'pick_related' : 'off')
+  );
+}
+export function wantsNewsCategory(
+  user: User,
+  category: 'pick_related' | 'general',
+): boolean {
+  const preference = newsPushPreference(user);
+  return (
+    preference === 'all' ||
+    (preference === 'pick_related' && category === 'pick_related')
+  );
 }
 /** An explicit email choice always wins; implicit reminders prefer available push. */
 export function shouldEmailReminder(user: User, healthyPush: boolean): boolean {
@@ -76,6 +91,7 @@ export function resolvedNotificationSettings(user: User) {
     pushResults: wantsPushResults(user),
     pushSessionLocked: wantsPushSessionLocked(user),
     pushNews: wantsPushNews(user),
+    newsPushPreference: newsPushPreference(user),
     notificationQuietHours: user.notificationQuietHours ?? true,
     preferPushReminders:
       user.preferPushReminders ??

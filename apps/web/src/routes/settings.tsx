@@ -292,6 +292,10 @@ function resolveNotificationSettings(
     preferPushReminders:
       optimistic?.preferPushReminders ?? user?.preferPushReminders ?? true,
     pushNews: optimistic?.pushNews ?? user?.pushNews ?? false,
+    newsPushPreference:
+      optimistic?.newsPushPreference ??
+      user?.newsPushPreference ??
+      (user?.pushNews ? 'pick_related' : 'off'),
     notificationQuietHours:
       optimistic?.notificationQuietHours ??
       user?.notificationQuietHours ??

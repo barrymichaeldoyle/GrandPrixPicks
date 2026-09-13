@@ -50,6 +50,61 @@ async function setup() {
   return { t, raceId, news };
 }
 describe('editorial news push', () => {
+  it('keeps general news for all-news subscribers and rechecks preference before delivery', async () => {
+    const { t } = await setup();
+    const users = await t.run((ctx) => ctx.db.query('users').collect());
+    await t.run(async (ctx) => {
+      for (const user of users) {
+        await ctx.db.patch(user._id, {
+          newsPushPreference: user.pushNews === true ? 'all' : 'pick_related',
+        });
+      }
+    });
+    await t.mutation(internal.raceNews.publish, {
+      raceSlug: 'test-2026',
+      key: 'livery',
+      headline: 'New livery',
+      body: 'The team unveiled its special livery.',
+      category: 'general',
+      affectsSessions: [],
+      sourceName: 'Team',
+      sourceUrl: 'https://example.com/livery',
+    });
+    const news = (
+      await t.run((ctx) => ctx.db.query('raceNews').collect())
+    ).find((row) => row.key === 'livery');
+    if (!news) {
+      throw new Error('Expected news.');
+    }
+    await t.mutation(internal.newsNotifications.select, {
+      raceSlug: 'test-2026',
+      key: 'livery',
+      storyKey: 'livery',
+      spoilerFree: true,
+      preview: false,
+    });
+    await t.mutation(internal.newsNotifications.fanout, {
+      newsId: news._id,
+      storyKey: 'livery',
+      expiresAt: Date.now() + 86400000,
+    });
+    const deliveries = await t.run((ctx) =>
+      ctx.db.query('notificationDeliveries').collect(),
+    );
+    expect(deliveries).toHaveLength(1);
+    expect(deliveries[0].newsCategory).toBe('general');
+    await t.run((ctx) =>
+      ctx.db.patch(deliveries[0].userId, { newsPushPreference: 'off' }),
+    );
+    await t.run((ctx) =>
+      ctx.db.patch(deliveries[0]._id, { status: 'sending' }),
+    );
+    expect(
+      await t.mutation(internal.notificationDelivery.prepare, {
+        deliveryId: deliveries[0]._id,
+      }),
+    ).toBeNull();
+  });
   it('never pushes automatically and previews selection by default', async () => {
     const { t, news } = await setup();
     expect(

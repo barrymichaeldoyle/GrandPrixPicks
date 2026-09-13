@@ -1,15 +1,12 @@
-import * as Haptics from 'expo-haptics';
 import { useQuery } from '../integrations/convex/query';
 
 import { Avatar } from '../components/ui/Avatar';
+import { FollowButton } from '../components/ui/FollowButton';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
-import { useFollowMutations } from '../hooks/useFollowMutations';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
-import { captureAnalyticsEvent } from '../lib/analytics';
-import { useToast } from '../providers/ToastProvider';
-import { Pressable, ScrollView, Text, View } from '../tw';
+import { ScrollView, Text, View } from '../tw';
 
 // Lightweight player view reachable from the Feed and Leaderboard stacks.
 // Only needs the username param, so it is typed independently of any stack.
@@ -22,10 +19,6 @@ export function PublicProfileScreen({ route }: Props) {
 
   const profile = useQuery(api.users.getProfileByUsername, { username });
   const me = useQuery(api.users.me);
-  const isFollowing = useQuery(
-    api.follows.isFollowing,
-    profile ? { followeeId: profile._id as ConvexId<'users'> } : 'skip',
-  );
   const followCounts = useQuery(
     api.follows.getFollowCounts,
     profile ? { userId: profile._id as ConvexId<'users'> } : 'skip',
@@ -34,9 +27,6 @@ export function PublicProfileScreen({ route }: Props) {
     api.users.getUserStats,
     profile ? { userId: profile._id as ConvexId<'users'> } : 'skip',
   );
-
-  const { follow, unfollow } = useFollowMutations();
-  const { showToast } = useToast();
 
   if (profile === undefined) {
     return <LoadingScreen />;
@@ -51,37 +41,6 @@ export function PublicProfileScreen({ route }: Props) {
 
   const isOwner = me ? profile._id === me._id : false;
   const displayName = profile.displayName ?? profile.username ?? username;
-
-  async function handleFollowToggle() {
-    if (!profile) {
-      return;
-    }
-    const followeeId = profile._id as ConvexId<'users'>;
-    const willFollow = !isFollowing;
-    void Haptics.selectionAsync();
-    try {
-      if (willFollow) {
-        await follow({ followeeId });
-        captureAnalyticsEvent('user_followed', {
-          followee_id: String(followeeId),
-          source: 'public_profile',
-        });
-      } else {
-        await unfollow({ followeeId });
-        captureAnalyticsEvent('user_unfollowed', {
-          followee_id: String(followeeId),
-          source: 'public_profile',
-        });
-      }
-    } catch {
-      showToast(
-        willFollow
-          ? 'Could not follow that player. Try again.'
-          : 'Could not unfollow that player. Try again.',
-        'error',
-      );
-    }
-  }
 
   return (
     <ScrollView
@@ -124,24 +83,13 @@ export function PublicProfileScreen({ route }: Props) {
         </View>
       </View>
 
-      {!isOwner && isFollowing !== undefined ? (
-        <Pressable
-          accessibilityRole="button"
-          className={`items-center rounded-lg border py-2.5 ${
-            isFollowing
-              ? 'border-button-accent bg-button-accent'
-              : 'border-accent'
-          }`}
-          onPress={() => void handleFollowToggle()}
-        >
-          <Text
-            className={`text-sm font-bold ${
-              isFollowing ? 'text-text-on-accent' : 'text-accent'
-            }`}
-          >
-            {isFollowing ? 'Following' : 'Follow'}
-          </Text>
-        </Pressable>
+      {!isOwner ? (
+        <View className="items-center">
+          <FollowButton
+            followeeId={profile._id as ConvexId<'users'>}
+            source="public_profile"
+          />
+        </View>
       ) : null}
 
       {stats ? (

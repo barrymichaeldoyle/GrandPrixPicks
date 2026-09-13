@@ -120,21 +120,15 @@ export function SuggestedFollowsCard() {
 
       {/* Rows are separated by rule rather than gap: three name/reason pairs
           stacked on plain background read as one block of text otherwise. */}
-      <ul className="-my-2.5 divide-y divide-border/40">
-        {/* One wrap flow rather than a fixed stack. The button carries a 7rem
-            min-width so "Following" cannot resize into "Unfollow" on hover;
-            beside a 8rem-minimum text column that fits a full-width card (the
-            mobile case, and the point of the row layout) but not the ~300px
-            desktop rail, where it drops to its own line and the reason keeps
-            the whole width instead of truncating to "Followed by Lan...".
-
-            The text column's fixed floor is also what lets a long display name
-            truncate rather than widen the row. */}
+      <ul className="-my-2 divide-y divide-border/40">
+        {/* One line, never two. This used to wrap the button onto its own row
+            below a fixed-width name column, which doubled a three-row card's
+            height for no reason a compact list needed. The name/reason column
+            is `min-w-0` so it truncates instead of forcing the row to wrap or
+            overflow, and the button is the `compact` size so it fits beside
+            it at every width this card renders at, rail included. */}
         {rows.map((user) => (
-          <li
-            key={user._id}
-            className="flex flex-wrap items-center gap-x-2.5 gap-y-2 py-2.5"
-          >
+          <li key={user._id} className="flex items-center gap-2.5 py-2">
             <Link
               to="/p/$username"
               params={{ username: user.username }}
@@ -150,7 +144,7 @@ export function SuggestedFollowsCard() {
               />
             </Link>
 
-            <div className="min-w-[8rem] flex-1">
+            <div className="min-w-0 flex-1">
               <Link
                 to="/p/$username"
                 params={{ username: user.username }}
@@ -160,18 +154,20 @@ export function SuggestedFollowsCard() {
                 {user.displayName}
               </Link>
 
-              <div className="mt-0.5 flex items-center gap-1.5">
+              <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
                 <MutualAvatars user={user} />
-                {/* Two lines before it gives up, so a long league name wraps
-                    instead of being cut mid-word. */}
-                <p className="line-clamp-2 min-w-0 text-xs leading-snug text-text-muted">
+                <p className="min-w-0 truncate text-xs leading-snug text-text-muted">
                   {reasonText(user)}
                 </p>
               </div>
             </div>
 
             <div className="shrink-0">
-              <FollowButton followeeId={user._id} source="suggested_follows" />
+              <FollowButton
+                followeeId={user._id}
+                source="suggested_follows"
+                compact
+              />
             </div>
           </li>
         ))}

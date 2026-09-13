@@ -17,12 +17,20 @@ interface FollowButtonProps {
    * its own state.
    */
   isFollowing?: boolean;
+  /**
+   * Shrinks the hit area for a dense list of rows (suggested follows, a
+   * followers list) where the default size forced a wrap onto its own line
+   * and doubled every row's height. Same icons and copy, just less padding
+   * and a lower minimum width.
+   */
+  compact?: boolean;
 }
 
 export function FollowButton({
   followeeId,
   source = 'follow_button',
   isFollowing: isFollowingProp,
+  compact = false,
 }: FollowButtonProps) {
   const { isAuthenticated } = useConvexAuth();
   const queriedIsFollowing = useQuery(
@@ -80,8 +88,13 @@ export function FollowButton({
     }
   }
 
-  const buttonClass =
-    'inline-flex min-w-[7rem] items-center justify-start gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors';
+  const buttonClass = compact
+    ? 'inline-flex min-w-[5.5rem] items-center justify-start gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors'
+    : 'inline-flex min-w-[7rem] items-center justify-start gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors';
+  const iconClass = compact ? 'h-3 w-3' : 'h-3.5 w-3.5';
+  const iconWrapClass = compact
+    ? 'relative flex h-3 w-3 shrink-0 items-center justify-center'
+    : 'relative flex h-3.5 w-3.5 shrink-0 items-center justify-center';
 
   if (following) {
     return (
@@ -107,14 +120,14 @@ export function FollowButton({
             : 'border border-border bg-surface-muted text-text-muted'
         }`}
       >
-        <span className="relative flex h-3.5 w-3.5 shrink-0 items-center justify-center">
+        <span className={iconWrapClass}>
           <span
             className={`absolute inset-0 flex items-center justify-center transition-opacity ${
               offeringUnfollow ? 'opacity-0' : 'opacity-100'
             }`}
             aria-hidden
           >
-            <UserCheck className="h-3.5 w-3.5" />
+            <UserCheck className={iconClass} />
           </span>
           <span
             className={`absolute inset-0 flex -translate-x-0.5 items-center justify-center transition-opacity ${
@@ -122,7 +135,7 @@ export function FollowButton({
             }`}
             aria-hidden
           >
-            <User className="h-3.5 w-3.5" />
+            <User className={iconClass} />
           </span>
         </span>
         <span className="flex-1">
@@ -138,8 +151,10 @@ export function FollowButton({
       onClick={handleClick}
       className={`${buttonClass} border border-accent/30 bg-accent-muted/35 text-accent-hover hover:bg-accent-muted/50`}
     >
-      <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
-        <UserPlus className="h-3.5 w-3.5" />
+      <span
+        className={`flex shrink-0 items-center justify-center ${compact ? 'h-3 w-3' : 'h-3.5 w-3.5'}`}
+      >
+        <UserPlus className={iconClass} />
       </span>
       <span className="flex-1">Follow</span>
     </button>

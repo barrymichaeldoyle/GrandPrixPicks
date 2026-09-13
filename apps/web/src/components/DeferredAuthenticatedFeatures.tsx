@@ -25,12 +25,15 @@ export function DeferredObservabilityUserSync() {
           username: user.username ?? undefined,
           name: user.fullName ?? undefined,
         });
-        // Clerk remains the source of profile data. PostHog only needs the
-        // stable account id to join anonymous and authenticated activity.
+        // Clerk remains the source of profile data, but PostHog needs email
+        // and name on the person record too, or a new signup can only be
+        // found in PostHog by Clerk id, not by looking someone up by name.
         identifyAnalyticsUser(user.id, {
           internal: isInternalAnalyticsEmail(
             user.primaryEmailAddress?.emailAddress,
           ),
+          email: user.primaryEmailAddress?.emailAddress,
+          name: user.fullName ?? undefined,
         });
       }
     } else if (prevIdRef.current !== null) {

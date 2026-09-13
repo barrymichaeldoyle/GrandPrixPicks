@@ -3,7 +3,7 @@
 import { convexTest } from 'convex-test';
 import { describe, expect, it } from 'vitest';
 
-import { internal } from './_generated/api';
+import { api, internal } from './_generated/api';
 import {
   ANTONELLI_MONZA_PU_SPEC_BODY,
   ARON_MONZA_FP1_BODY,
@@ -423,5 +423,133 @@ describe('publishItaly2026MercedesEngineSpec', () => {
       affectsSessions: ['quali', 'race'],
       active: true,
     });
+  });
+});
+
+const ROSTER = [
+  ['NOR', 'McLaren'],
+  ['PIA', 'McLaren'],
+  ['LEC', 'Ferrari'],
+  ['HAM', 'Ferrari'],
+  ['VER', 'Red Bull Racing'],
+  ['HAD', 'Red Bull Racing'],
+  ['RUS', 'Mercedes'],
+  ['ANT', 'Mercedes'],
+  ['ALO', 'Aston Martin'],
+  ['STR', 'Aston Martin'],
+  ['GAS', 'Alpine'],
+  ['COL', 'Alpine'],
+  ['ALB', 'Williams'],
+  ['SAI', 'Williams'],
+  ['LAW', 'Red Bull Racing'],
+  ['TSU', 'Racing Bulls'],
+  ['LIN', 'Racing Bulls'],
+  ['HUL', 'Audi'],
+  ['BOR', 'Audi'],
+  ['OCO', 'Haas'],
+  ['BEA', 'Haas'],
+  ['BOT', 'Cadillac'],
+  ['PER', 'Cadillac'],
+] as const;
+
+async function seedRaceAndRoster(
+  t: ReturnType<typeof convexTest>,
+  slug: string,
+  name: string,
+  round: number,
+) {
+  await t.run(async (ctx) => {
+    const now = 100;
+    await ctx.db.insert('races', {
+      season: 2026,
+      round,
+      name,
+      slug,
+      raceStartAt: 2_000,
+      predictionLockAt: 1_900,
+      status: 'upcoming',
+      createdAt: now,
+      updatedAt: now,
+    });
+    for (const [code, team] of ROSTER) {
+      await ctx.db.insert('drivers', {
+        code,
+        displayName: code,
+        team,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+  });
+}
+
+describe('publishItaly2026MonzaGridAndWeekendNews', () => {
+  it('publishes the Monza grid with links to the stories behind the notes', async () => {
+    const t = convexTest(schema, modules);
+    await seedRaceAndRoster(t, 'italy-2026', 'Italian Grand Prix', 13);
+    await t.mutation(internal.raceNews.publish, {
+      raceSlug: 'italy-2026',
+      key: 'antonelli-grid-penalty',
+      headline: 'Antonelli is expected to start from the back at Monza',
+      body: 'Full power unit change.',
+      affectsSessions: ['race'],
+      driverCodes: ['ANT'],
+      sourceName: 'Motorsport.com',
+      sourceUrl:
+        'https://www.motorsport.com/f1/news/george-russell-also-set-for-f1-engine-penalty-but-mercedes-yet-to-decide-when/10850409/',
+    });
+
+    await t.mutation(
+      internal.raceNewsMigrations.publishItaly2026MonzaGridAndWeekendNews,
+      {},
+    );
+    await t.mutation(
+      internal.raceNewsMigrations.publishItaly2026MonzaGridAndWeekendNews,
+      {},
+    );
+
+    const { items } = await t.query(api.raceNews.list, {
+      raceSlug: 'italy-2026',
+    });
+    const grid = items.find((item) => item.key === 'monza-starting-grid');
+    expect(grid?.startingGrid).toHaveLength(22);
+    expect(
+      grid?.startingGrid?.flatMap((entry) =>
+        entry.newsKey ? [entry.newsKey] : [],
+      ),
+    ).toEqual([
+      'verstappen-rear-axle-monza',
+      'piastri-monza-grid-penalty',
+      'antonelli-grid-penalty',
+      'albon-grid-penalty',
+      'alonso-pit-lane-start',
+      'lawson-grid-penalty',
+    ]);
+  });
+});
+
+describe('publishMadrid2026News', () => {
+  it('publishes the Madrid grid with links to the stories behind the notes', async () => {
+    const t = convexTest(schema, modules);
+    await seedRaceAndRoster(t, 'madrid-2026', 'Spanish Grand Prix', 14);
+
+    await t.mutation(internal.raceNewsMigrations.publishMadrid2026News, {});
+    await t.mutation(internal.raceNewsMigrations.publishMadrid2026News, {});
+
+    const { items } = await t.query(api.raceNews.list, {
+      raceSlug: 'madrid-2026',
+    });
+    expect(items).toHaveLength(18);
+    const grid = items.find((item) => item.key === 'madrid-starting-grid');
+    expect(grid?.startingGrid).toHaveLength(22);
+    expect(
+      grid?.startingGrid?.flatMap((entry) =>
+        entry.newsKey ? [entry.newsKey] : [],
+      ),
+    ).toEqual([
+      'sainz-madrid-grid-penalty',
+      'bearman-madrid-fp3-crash',
+      'stroll-madrid-grid-penalty',
+    ]);
   });
 });

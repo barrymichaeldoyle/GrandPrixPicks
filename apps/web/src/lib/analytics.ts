@@ -175,7 +175,7 @@ function initialLocaleProperties(): AnalyticsProperties {
 
 export function identifyAnalyticsUser(
   userId: string,
-  options?: { internal?: boolean },
+  options?: { internal?: boolean; email?: string; name?: string },
 ) {
   if (!isEnabled()) {
     return;
@@ -186,6 +186,8 @@ export function identifyAnalyticsUser(
       userId,
       {
         ...localeProperties(),
+        email: options?.email,
+        name: options?.name,
         $internal_or_test_user: Boolean(options?.internal),
       },
       initialLocaleProperties(),

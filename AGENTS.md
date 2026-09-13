@@ -19,6 +19,15 @@ Before writing or changing any user-facing copy, read
 Do not invent helper text, headings, taglines, or explanatory prose unless the
 feature requires them.
 
+## News editorial direction
+
+When changing news discovery, publication, feeds or news notifications, read
+`docs/automated-news-pipeline.md` alongside `docs/race-news.md` and
+`docs/notifications.md`. Reviewed general Formula 1 news may belong in the feed
+without changing a pick. Keep pick-related news identifiable so people can opt
+for pick-related pushes or all selected news. The current pick-only `raceNews`
+constraint is implementation history, not the product rule.
+
 ## Expo Mobile App
 
 This monorepo includes a WIP Expo app under `apps/mobile`.

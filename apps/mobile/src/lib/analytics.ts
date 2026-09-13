@@ -140,10 +140,17 @@ export function captureAnalyticsEvent(
 
 export function identifyAnalyticsUser(
   userId: string,
-  options?: { internal?: boolean },
+  options?: { internal?: boolean; email?: string; name?: string },
 ) {
   initAnalytics();
-  client?.identify(userId, compact(localeProperties()));
+  client?.identify(
+    userId,
+    compact({
+      ...localeProperties(),
+      email: options?.email,
+      name: options?.name,
+    }),
+  );
   // Unlike web, RN's `identify` takes capture options as its third argument
   // rather than a `$set_once` bag, so first-touch values are set separately.
   client?.setPersonProperties(

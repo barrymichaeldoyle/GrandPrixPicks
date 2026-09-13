@@ -1,17 +1,24 @@
+import { feedNewsAnchorId } from '@/lib/feedNewsAnchor';
+
 import type { FeedEvent } from './types';
 import { PracticePublishedItem } from './PracticePublishedItem';
 import { LineupChangeItem } from './LineupChangeItem';
-import { RaceNewsItem } from './RaceNewsItem';
+import { RaceNewsItem, type FeedNewsLink } from './RaceNewsItem';
 import { ScorePublishedItem } from './ScorePublishedItem';
 
 export function FeedItem({
   event,
   grouped,
   position,
+  newsLink,
+  onNoteSelect,
 }: {
   event: FeedEvent;
   grouped?: boolean;
   position?: 'first' | 'middle' | 'last';
+  /** Forwarded to `RaceNewsItem` for a `race_news` event; see `NewsGroup`. */
+  newsLink?: FeedNewsLink;
+  onNoteSelect?: (newsKey: string) => void;
 }) {
   // Defensive fallback for legacy rows and stale cached responses. Neither
   // event is feed content at the query boundary anymore.
@@ -35,6 +42,14 @@ export function FeedItem({
 
   return (
     <div
+      // The target of a grid row's note elsewhere on the page. Only a
+      // `race_news` event with a key can be linked to, so every other event
+      // gets no id and cannot collide with one.
+      id={
+        event.type === 'race_news' && event.newsKey
+          ? feedNewsAnchorId(event.newsKey)
+          : undefined
+      }
       className={
         // A grouped news card sits inside NewsGroup's own bordered block,
         // so it must not draw a second border inside it.
@@ -53,7 +68,12 @@ export function FeedItem({
       ) : event.type === 'lineup_change' ? (
         <LineupChangeItem event={event} />
       ) : event.type === 'race_news' ? (
-        <RaceNewsItem event={event} grouped={grouped} />
+        <RaceNewsItem
+          event={event}
+          grouped={grouped}
+          newsLink={newsLink}
+          onNoteSelect={onNoteSelect}
+        />
       ) : event.type === 'score_published' ||
         event.type === 'results_amended' ||
         event.type === 'session_locked' ? (

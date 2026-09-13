@@ -2,12 +2,18 @@ import { Link } from '@tanstack/react-router';
 import { ExternalLink } from 'lucide-react';
 import type { CSSProperties } from 'react';
 
-import { StartingGridTable } from '@/components/StartingGridTable';
+import {
+  StartingGridTable,
+  type GridNewsLink,
+} from '@/components/StartingGridTable';
 import { newsMentionsGridPenalty } from '@/lib/newsGridPenalty';
 import { TEAM_COLORS } from '@/lib/teamColors';
 
 import { formatRelativeTime } from './helpers';
 import type { FeedEvent } from './types';
+
+/** Resolves a grid row's `newsKey` to the card for it elsewhere in the feed. */
+export type FeedNewsLink = GridNewsLink;
 
 /**
  * A piece of weekend news that changes a pick.
@@ -35,6 +41,8 @@ import type { FeedEvent } from './types';
 export function RaceNewsItem({
   event,
   grouped = false,
+  newsLink,
+  onNoteSelect,
 }: {
   event: FeedEvent;
   /**
@@ -44,13 +52,28 @@ export function RaceNewsItem({
    * the reason the feed read as a wall.
    */
   grouped?: boolean;
+  /**
+   * Resolves a grid row's `newsKey` to the card for it, from every event
+   * currently loaded in the feed, not just this run. See `FeedContent`.
+   */
+  newsLink?: FeedNewsLink;
+  /** Smooth-scrolls to a linked card and focuses its source link. */
+  onNoteSelect?: (newsKey: string) => void;
 }) {
+  // A grid card belongs to no one driver — `driverCodes` is deliberately left
+  // off when it is published, see `docs/race-news.md` — so it gets no team
+  // bar at all rather than one painted in the generic accent. Two columns are
+  // the separator here instead.
+  const hasGrid = (event.newsStartingGrid?.length ?? 0) > 0;
+
   // The item's own colour, from the driver it is about. Same colour the badges
   // and `LineupChangeItem` use, so a run of news reads as a Williams story
   // then a Mercedes one rather than two grey blocks. With the badges gone it is
   // the only thing saying whose story this is before the headline.
   const team = event.newsDrivers?.[0]?.team ?? null;
-  const teamColour = (team && TEAM_COLORS[team]) || 'var(--accent)';
+  const teamColour = hasGrid
+    ? null
+    : (team && TEAM_COLORS[team]) || 'var(--accent)';
 
   return (
     <div
@@ -86,13 +109,15 @@ export function RaceNewsItem({
         </p>
       ) : null}
 
-      {/* Closed on the top ten, which is the part of a grid that decides a Top
-          5, with the rest a tap away. A feed card that opens twenty-two rows
-          tall buries the sessions either side of it. */}
-      {event.newsStartingGrid && event.newsStartingGrid.length > 0 ? (
+      {/* Two columns, no names, from the smallest screen: compact enough to
+          show the whole field without a disclosure, which is what used to
+          push the sessions either side of it off the screen. */}
+      {hasGrid ? (
         <StartingGridTable
-          entries={event.newsStartingGrid}
-          collapsedRows={10}
+          entries={event.newsStartingGrid!}
+          compact
+          newsLink={newsLink}
+          onNoteSelect={onNoteSelect}
         />
       ) : null}
 
@@ -106,6 +131,9 @@ export function RaceNewsItem({
               href={event.newsSourceUrl}
               target="_blank"
               rel="noreferrer"
+              // Where a grid row's note lands a reader: the point of jumping
+              // here is to read the source, not just to see the card.
+              data-feed-news-source
               className="gpp-touch-target inline-flex items-center gap-1 text-xs text-text-muted underline decoration-border-strong underline-offset-4 transition-colors hover:text-text"
             >
               {event.newsSourceName}

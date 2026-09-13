@@ -10,6 +10,7 @@ import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button/Button';
 import { FeedItem } from '@/components/FeedItem/FeedItem';
 import { NewsGroup } from '@/components/FeedItem/NewsGroup';
+import { feedNewsAnchorId, scrollToFeedNews } from '@/lib/feedNewsAnchor';
 import { groupFeedEvents, weekendStarts } from './groupFeedEvents';
 import { WeekendSplit } from './WeekendSplit';
 import { SessionGroup } from '@/components/FeedItem/SessionGroup';
@@ -398,6 +399,24 @@ export function FeedContent({
   );
   const groups = groupFeedEvents(allEvents);
 
+  // Every news card currently on the page, keyed by its own `newsKey`, so a
+  // grid row published in one news run can link to a story sitting in
+  // another: news groups by adjacency (see `feedGroups.ts`), so the card that
+  // explains a penalty is often not in the same run as the grid that shows it.
+  const newsCardsByKey = new Map(
+    allEvents.flatMap((event) =>
+      event.type === 'race_news' && event.newsKey
+        ? [[event.newsKey, event.newsHeadline ?? ''] as const]
+        : [],
+    ),
+  );
+  function feedNewsLink(newsKey: string) {
+    const headline = newsCardsByKey.get(newsKey);
+    return headline !== undefined
+      ? { href: `#${feedNewsAnchorId(newsKey)}`, headline }
+      : undefined;
+  }
+
   // Only the blocks whose group is actually here. The rest lead the stream:
   // under Load more was a position nobody opening the page for their next
   // pick would look.
@@ -441,7 +460,11 @@ export function FeedContent({
           return (
             <Fragment key={group.events[0]!._id}>
               {split}
-              <NewsGroup events={group.events} />
+              <NewsGroup
+                events={group.events}
+                newsLink={feedNewsLink}
+                onNoteSelect={scrollToFeedNews}
+              />
             </Fragment>
           );
         }

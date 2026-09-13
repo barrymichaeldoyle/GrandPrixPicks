@@ -8,7 +8,11 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
-import { internalAction, internalMutation } from './_generated/server';
+import {
+  internalAction,
+  internalMutation,
+  type MutationCtx,
+} from './_generated/server';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { computeFollowCountsForUser } from './lib/followCounts';
 import { HADJAR_DUTCH_GP_LINEUP_NOTE } from './lib/italy2026MonzaNewsCopy';
@@ -6833,13 +6837,13 @@ export const seedDashboardSocialFeed = internalMutation({
 });
 
 /**
- * Put the real Monza weekend-news cards onto the signed-in feed so Home has
- * news sitting next to scored session cards, not a wall of results.
+ * Put the real Monza and Madrid weekend-news cards onto the signed-in feed,
+ * including each starting grid and the rows that link to other cards.
  *
- * Replays the Italy publish migrations (idempotent upserts) and then pulls
- * those feed events to the top as one consecutive group. Does not invent
- * stories for other weekends: the copy is the same Monza items prod already
- * ships.
+ * Replays the Italy publish migrations plus the later Monza/Madrid items
+ * mirrored from prod (idempotent upserts). Madrid is the current weekend, so
+ * its feed events are pulled to the top as one consecutive group; Monza sits
+ * just under them.
  *
  * Run via:
  *   npx convex run seed:seedDashboardNews
@@ -6847,20 +6851,24 @@ export const seedDashboardSocialFeed = internalMutation({
 export const seedDashboardNews = internalMutation({
   args: {},
   returns: v.object({
-    race: v.string(),
+    races: v.array(v.string()),
     newsItems: v.number(),
     feedEvents: v.number(),
   }),
   handler: async (
     ctx,
-  ): Promise<{ race: string; newsItems: number; feedEvents: number }> => {
-    const race = await ctx.db
+  ): Promise<{ races: string[]; newsItems: number; feedEvents: number }> => {
+    const italy = await ctx.db
       .query('races')
       .withIndex('by_slug', (q) => q.eq('slug', 'italy-2026'))
       .unique();
-    if (!race) {
+    const madrid = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'madrid-2026'))
+      .unique();
+    if (!italy || !madrid) {
       throw new Error(
-        'italy-2026 not found. Run seedRaces first: npx convex run seed:seedRaces',
+        'italy-2026 and madrid-2026 are required. Run seedRaces first: npx convex run seed:seedRaces',
       );
     }
 
@@ -6888,44 +6896,77 @@ export const seedDashboardNews = internalMutation({
       internal.raceNewsMigrations.publishItaly2026MercedesEngineSpec,
       {},
     );
+    await ctx.runMutation(
+      internal.raceNewsMigrations.publishItaly2026MonzaGridAndWeekendNews,
+      {},
+    );
+    await ctx.runMutation(
+      internal.raceNewsMigrations.publishMadrid2026News,
+      {},
+    );
 
-    const items = await ctx.db
-      .query('raceNews')
-      .withIndex('by_race', (q) => q.eq('raceId', race._id))
-      .collect();
-    const active = items
-      .filter((item) => item.active)
-      .sort((a, b) => a.key.localeCompare(b.key));
-
-    // Consecutive timestamps so `groupFeedEvents` keeps them as one news
-    // block, parked at the top of Home rather than under last weekend's
-    // scores. `publish` leaves createdAt alone on a correction; this restamp
-    // is the dashboard-seed exception.
+    // Consecutive timestamps so `groupFeedEvents` keeps each weekend as one
+    // news block. Madrid is current, so it sits at the top; Monza is parked
+    // just under it. `publish` leaves createdAt alone on a correction; this
+    // restamp is the dashboard-seed exception.
     const now = Date.now();
-    let feedEvents = 0;
-    for (const [index, item] of active.entries()) {
-      const event = await ctx.db
-        .query('feedEvents')
-        .withIndex('by_race_news_key', (q) =>
-          q.eq('raceId', race._id).eq('newsKey', item.key),
-        )
-        .unique();
-      if (!event) {
-        continue;
-      }
-      await ctx.db.patch(event._id, {
-        createdAt: now - (active.length - 1 - index) * 30_000,
-      });
-      feedEvents++;
-    }
+    const italyEvents = await restampNewsFeedEvents(
+      ctx,
+      italy._id,
+      now - 3_600_000,
+    );
+    const madridEvents = await restampNewsFeedEvents(ctx, madrid._id, now);
+
+    const italyItems = await ctx.db
+      .query('raceNews')
+      .withIndex('by_race', (q) => q.eq('raceId', italy._id))
+      .collect();
+    const madridItems = await ctx.db
+      .query('raceNews')
+      .withIndex('by_race', (q) => q.eq('raceId', madrid._id))
+      .collect();
 
     return {
-      race: race.slug,
-      newsItems: active.length,
-      feedEvents,
+      races: [italy.slug, madrid.slug],
+      newsItems:
+        italyItems.filter((item) => item.active).length +
+        madridItems.filter((item) => item.active).length,
+      feedEvents: italyEvents + madridEvents,
     };
   },
 });
+
+async function restampNewsFeedEvents(
+  ctx: { db: MutationCtx['db'] },
+  raceId: Id<'races'>,
+  newestAt: number,
+): Promise<number> {
+  const items = await ctx.db
+    .query('raceNews')
+    .withIndex('by_race', (q) => q.eq('raceId', raceId))
+    .collect();
+  const active = items
+    .filter((item) => item.active)
+    .sort((a, b) => a.key.localeCompare(b.key));
+
+  let feedEvents = 0;
+  for (const [index, item] of active.entries()) {
+    const event = await ctx.db
+      .query('feedEvents')
+      .withIndex('by_race_news_key', (q) =>
+        q.eq('raceId', raceId).eq('newsKey', item.key),
+      )
+      .unique();
+    if (!event) {
+      continue;
+    }
+    await ctx.db.patch(event._id, {
+      createdAt: newestAt - (active.length - 1 - index) * 30_000,
+    });
+    feedEvents++;
+  }
+  return feedEvents;
+}
 
 /**
  * Seed a sprint weekend in a partially-complete state so the home page hero

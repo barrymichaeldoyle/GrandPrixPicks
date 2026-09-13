@@ -69,6 +69,8 @@ function ClerkAwareAnalytics() {
         internal: isInternalAnalyticsEmail(
           user.primaryEmailAddress?.emailAddress,
         ),
+        email: user.primaryEmailAddress?.emailAddress,
+        name: user.fullName ?? undefined,
       });
     } else if (identifiedIdRef.current !== null) {
       identifiedIdRef.current = null;

@@ -84,6 +84,8 @@ export type FeedEvent = {
     displayName: string;
     team: string | null;
     note?: string;
+    /** The news item that explains `note`, by key. See `StartingGridTable`. */
+    newsKey?: string;
   }[];
   createdAt: number;
 };

@@ -4,6 +4,7 @@ import { newsListMentionsGridPenalty } from '@/lib/newsGridPenalty';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 
 import { FeedItem } from './FeedItem';
+import type { FeedNewsLink } from './RaceNewsItem';
 import type { FeedEvent } from './types';
 
 /**
@@ -25,7 +26,16 @@ import type { FeedEvent } from './types';
  * Friday item up beside a Sunday one to sit under a shared heading would
  * reorder the weekend.
  */
-export function NewsGroup({ events }: { events: FeedEvent[] }) {
+export function NewsGroup({
+  events,
+  newsLink,
+  onNoteSelect,
+}: {
+  events: FeedEvent[];
+  /** Forwarded to each card's grid table; see `FeedContent`. */
+  newsLink?: FeedNewsLink;
+  onNoteSelect?: (newsKey: string) => void;
+}) {
   if (events.length === 0) {
     return null;
   }
@@ -79,7 +89,13 @@ export function NewsGroup({ events }: { events: FeedEvent[] }) {
           the full height of the row. The card supplies the padding. */}
       <div className="gpp-lean-run">
         {events.map((event) => (
-          <FeedItem key={event._id} event={event} grouped />
+          <FeedItem
+            key={event._id}
+            event={event}
+            grouped
+            newsLink={newsLink}
+            onNoteSelect={onNoteSelect}
+          />
         ))}
       </div>
 

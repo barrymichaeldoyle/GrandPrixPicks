@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
-import { internalMutation } from './_generated/server';
+import { internalMutation, type MutationCtx } from './_generated/server';
 import {
   ANTONELLI_MONZA_PENALTY_BODY,
   ANTONELLI_MONZA_PU_SPEC_BODY,
@@ -15,6 +15,11 @@ import {
   IWASA_MONZA_FP1_BODY,
   MERCEDES_MONZA_TOW_BODY,
 } from './lib/italy2026MonzaNewsCopy';
+import {
+  ITALY_2026_GRID_AND_WEEKEND_NEWS,
+  MADRID_2026_NEWS,
+  type SeedRaceNewsItem,
+} from './lib/prodWeekendNewsSeed';
 import {
   BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE,
   writeUpImageFieldsMatch,
@@ -308,5 +313,51 @@ export const publishItaly2026MercedesEngineSpec = internalMutation({
     });
 
     return { spec };
+  },
+});
+
+async function publishSeedNewsItems(
+  ctx: MutationCtx,
+  items: SeedRaceNewsItem[],
+): Promise<number> {
+  for (const item of items) {
+    await ctx.runMutation(internal.raceNews.publish, item);
+  }
+  return items.length;
+}
+
+/**
+ * The Monza items prod published by hand after the earlier Italy migrations:
+ * Saturday/Sunday penalties, the starting grid, and the stories its rows
+ * link to. Publish those stories first; the grid is last in the list because
+ * `newsKey` is validated against already-active items.
+ *
+ * `antonelli-grid-penalty` stays in `publishItaly2026MercedesAndWilliamsNews`.
+ * Run that first, or the Antonelli grid row will fail its link check.
+ *
+ * Idempotent. Seed-only: not in `migrations.config.json`.
+ */
+export const publishItaly2026MonzaGridAndWeekendNews = internalMutation({
+  args: {},
+  handler: async (ctx): Promise<{ published: number }> => {
+    const published = await publishSeedNewsItems(
+      ctx,
+      ITALY_2026_GRID_AND_WEEKEND_NEWS,
+    );
+    return { published };
+  },
+});
+
+/**
+ * The Madrid weekend as it stands on prod, including the starting grid and
+ * the three rows that link to other cards. Stories first, grid last.
+ *
+ * Idempotent. Seed-only: not in `migrations.config.json`.
+ */
+export const publishMadrid2026News = internalMutation({
+  args: {},
+  handler: async (ctx): Promise<{ published: number }> => {
+    const published = await publishSeedNewsItems(ctx, MADRID_2026_NEWS);
+    return { published };
   },
 });

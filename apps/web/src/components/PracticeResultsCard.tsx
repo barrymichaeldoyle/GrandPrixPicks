@@ -111,21 +111,41 @@ export function CompactPracticeRow({
   );
 }
 
+/** Uppercase, matching how a status reads next to a lap time: DNF, not dnf. */
+const STATUS_LABELS: Record<string, string> = {
+  dnf: 'DNF',
+  dns: 'DNS',
+  dsq: 'DSQ',
+  nc: 'NC',
+};
+
+/**
+ * Same grid template, padding and driver-badge treatment as
+ * `CompactPracticeRow`: quali and the practice sessions sit in the same
+ * modal, one tab switch apart, and used to sit in a narrower two-column grid
+ * with no fill or tooltip settings of its own — every tab change shifted the
+ * badge sideways and swapped how it rendered. A classified finisher has
+ * nothing to put in the third column (there is no lap time here, only
+ * finishing order), so it stays reserved but empty rather than filled with a
+ * dash on every row; a non-finisher's status fills it instead.
+ */
 function CompactCompetitiveRow({
   position,
   code,
   displayName,
   team,
   number,
+  status,
 }: {
   position: number;
   code: string;
   displayName: string;
   team?: string;
   number?: number | null;
+  status?: string | null;
 }) {
   return (
-    <div className="grid grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 px-3 py-1.5">
+    <div className="grid grid-cols-[1.75rem_auto_minmax(4.5rem,1fr)] items-center gap-1.5 py-1.5 px-2 sm:gap-2 sm:px-3">
       <span className="gpp-mono text-xs font-semibold text-text-muted">
         P{position}
       </span>
@@ -136,7 +156,12 @@ function CompactCompetitiveRow({
           team={team}
           number={number}
           size="sm"
+          fill="sunken"
+          prerenderTooltip={false}
         />
+      </span>
+      <span className="gpp-mono min-w-0 text-right text-xs font-semibold whitespace-nowrap text-text-muted">
+        {status ? (STATUS_LABELS[status] ?? status.toUpperCase()) : ''}
       </span>
     </div>
   );
@@ -330,6 +355,7 @@ export function PracticeResultsPanel({
                   displayName={entry.displayName}
                   team={entry.team ?? undefined}
                   number={entry.number}
+                  status={entry.status}
                 />
               )}
             />

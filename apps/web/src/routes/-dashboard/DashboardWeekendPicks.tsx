@@ -5,6 +5,7 @@ import { useQuery } from '@/integrations/convex/query';
 import { formatLockCountdown } from '@grandprixpicks/shared/picks';
 import {
   ArrowRight,
+  BarChart3,
   BookOpen,
   ChevronLeft,
   Clock3,
@@ -21,6 +22,7 @@ import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { NoticeCard } from '@/components/NoticeCard';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { PicksFormActionRow } from '@/components/PicksSaveStatus';
+import { PracticeResultsModal } from '@/components/PracticeResultsModal';
 import { PredictionForm } from '@/components/PredictionForm';
 import { RaceFlag } from '@/components/RaceFlag';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
@@ -235,6 +237,7 @@ function DashboardWeekendPicksReady({
   );
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerGeneration, setPickerGeneration] = useState(0);
+  const [showResults, setShowResults] = useState(false);
   /**
    * Which session's saved card is on screen. Null follows the weekend's own
    * answer (the next session that still wants something from you); once the
@@ -469,12 +472,18 @@ function DashboardWeekendPicksReady({
               read as another footer link next to the weekend preview. The
               fact belongs up here with the race: what it will be like while
               this session is open. */}
-          <WeatherSessionLine
-            race={weekend.race}
-            weather={weather}
-            sessionKey={clockSession?.sessionType}
-            className="mt-0.5 shrink-0"
-          />
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            <WeatherSessionLine
+              race={weekend.race}
+              weather={weather}
+              sessionKey={clockSession?.sessionType}
+              className="mt-0.5"
+            />
+            <WeekendResultsButton
+              raceId={weekend.race._id}
+              onClick={() => setShowResults(true)}
+            />
+          </div>
         </div>
       </div>
 
@@ -665,6 +674,20 @@ function DashboardWeekendPicksReady({
           ) : null}
         </div>
       </PicksFocusOverlay>
+      <PracticeResultsModal
+        open={showResults}
+        onClose={() => setShowResults(false)}
+        raceId={weekend.race._id}
+        raceSlug={weekend.race.slug}
+        raceName={weekend.race.name}
+        // Always the widest set the weekend has: this button is the "what has
+        // happened so far" summary, not scoped to whichever session the card
+        // above is picking or showing. `race` is what unlocks every published
+        // competitive session (quali, and sprint quali/sprint on a sprint
+        // weekend) in `getVisibleCompetitiveSessions`.
+        predictionSession="race"
+        hasSprint={Boolean(weekend.race.hasSprint)}
+      />
     </section>
   );
 }
@@ -797,6 +820,39 @@ function SessionClockLine({
  * picked?", and the invitation to go deeper belongs after that question is
  * answered, not in front of it.
  */
+/**
+ * Opens the same session-results modal the race page's picker offers, but
+ * from the dashboard hero, where there is no picker to hang it off — this is
+ * the only way in from here. Hidden rather than disabled before anything is
+ * published: an FP1-less Friday morning has nothing to show yet, and a dead
+ * button in the header is worse than no button.
+ */
+function WeekendResultsButton({
+  raceId,
+  onClick,
+}: {
+  raceId: Id<'races'>;
+  onClick: () => void;
+}) {
+  const results = useQuery(api.practiceResults.getPracticeResultsForRace, {
+    raceId,
+  });
+  if (!results || results.length === 0) {
+    return null;
+  }
+  return (
+    <Button
+      type="button"
+      variant="text"
+      size="inline"
+      leftIcon={BarChart3}
+      onClick={onClick}
+    >
+      Results
+    </Button>
+  );
+}
+
 function WeekendPreviewLink({ writeup }: { writeup: RaceWriteup }) {
   return (
     <Link

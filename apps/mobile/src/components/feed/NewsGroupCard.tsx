@@ -26,6 +26,15 @@ function newsMentionsGridPenalty(event: FeedEvent): boolean {
   );
 }
 
+/**
+ * A pit lane start is not a grid slot: the driver lines up behind every car
+ * that qualified, and `position` only exists on the row because the schema
+ * numbers the field 1..N with no gaps. Matches web's `StartingGridTable`.
+ */
+function isPitLaneStart(note?: string): boolean {
+  return /pit lane/i.test(note ?? '');
+}
+
 function openScoringPolicy() {
   void WebBrowser.openBrowserAsync(
     `${SITE_URL}/results-policy#sessions-heading`,
@@ -63,34 +72,41 @@ function StartingGrid({
 
   return (
     <View className="mt-1">
-      {shown.map((entry) => (
-        <View
-          className="flex-row items-center gap-2.5 border-b border-border py-1.5 last:border-b-0"
-          key={entry.code}
-        >
-          <Numeral tone="muted" variant="small">
-            {`P${entry.position}`}
-          </Numeral>
-          <View className="relative h-6 min-w-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-surface-elevated pr-1.5 pl-2">
-            <View
-              className="absolute top-0 bottom-0 left-0 w-[3px]"
-              style={{ backgroundColor: getTeamColor(entry.team) }}
-            />
-            <Text className="text-foreground text-xs leading-none font-medium uppercase">
-              {entry.code}
-            </Text>
-          </View>
-          <Text
-            className="text-foreground min-w-0 flex-1 text-sm"
-            numberOfLines={1}
+      {shown.map((entry) => {
+        const pitLane = isPitLaneStart(entry.note);
+        return (
+          <View
+            className="flex-row items-center gap-2.5 border-b border-border py-1.5 last:border-b-0"
+            key={entry.code}
           >
-            {entry.displayName}
-          </Text>
-          {entry.note ? (
-            <Text className="text-muted shrink-0 text-xs">{entry.note}</Text>
-          ) : null}
-        </View>
-      ))}
+            <Numeral tone={pitLane ? 'warning' : 'muted'} variant="small">
+              {pitLane ? 'PL' : `P${entry.position}`}
+            </Numeral>
+            <View className="relative h-6 min-w-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-surface-elevated pr-1.5 pl-2">
+              <View
+                className="absolute top-0 bottom-0 left-0 w-[3px]"
+                style={{ backgroundColor: getTeamColor(entry.team) }}
+              />
+              <Text className="text-foreground text-xs leading-none font-medium uppercase">
+                {entry.code}
+              </Text>
+            </View>
+            <Text
+              className="text-foreground min-w-0 flex-1 text-sm"
+              numberOfLines={1}
+            >
+              {entry.displayName}
+            </Text>
+            {entry.note ? (
+              <Text
+                className={`shrink-0 text-xs ${pitLane ? 'font-semibold text-warning' : 'text-muted'}`}
+              >
+                {entry.note}
+              </Text>
+            ) : null}
+          </View>
+        );
+      })}
       {collapsible ? (
         <Pressable
           accessibilityRole="button"

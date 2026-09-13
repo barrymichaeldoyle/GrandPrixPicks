@@ -1,3 +1,4 @@
+import { PRACTICE_SESSION_LABELS } from '@grandprixpicks/shared/practice';
 import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '../integrations/convex/query';
 
+import { CompactPracticeRow } from '../components/races/CompactPracticeRow';
 import { RaceDetailHero } from '../components/races/RaceDetailHero';
 import { SessionResultsCard } from '../components/races/SessionResultsCard';
 import { CountdownText } from '../components/ui/CountdownText';
@@ -99,42 +101,20 @@ export function RaceDetailScreen({ route }: Props) {
             {practiceResults?.map((result) => (
               <View key={result.sessionType}>
                 <Text className="bg-surface px-3 py-2 text-xs font-extrabold text-accent uppercase">
-                  {result.sessionType}
+                  {result.sessionType in PRACTICE_SESSION_LABELS
+                    ? PRACTICE_SESSION_LABELS[
+                        result.sessionType as keyof typeof PRACTICE_SESSION_LABELS
+                      ]
+                    : result.sessionType}
                 </Text>
-                {result.entries.map((entry, index) => (
-                  <View key={entry.driverNumber}>
-                    {index > 0 ? <View className="h-px bg-border" /> : null}
-                    <View className="flex-row items-center gap-3 px-3 py-2.5">
-                      <Text className="text-muted w-7 text-xs font-extrabold">
-                        P{entry.position}
-                      </Text>
-                      <View className="flex-1">
-                        <Text className="text-foreground text-xs font-extrabold">
-                          {entry.code}
-                        </Text>
-                        <Text className="text-muted text-xs" numberOfLines={1}>
-                          {entry.displayName}
-                        </Text>
-                      </View>
-                      <Text className="text-foreground text-xs font-bold">
-                        {entry.bestLapSeconds === undefined
-                          ? '—'
-                          : `${Math.floor(entry.bestLapSeconds / 60)}:${(
-                              entry.bestLapSeconds % 60
-                            )
-                              .toFixed(3)
-                              .padStart(6, '0')}`}
-                      </Text>
-                      <Text className="text-muted w-14 text-right text-xs">
-                        {entry.position === 1
-                          ? 'Leader'
-                          : entry.gapToLeaderSeconds === undefined
-                            ? '—'
-                            : `+${entry.gapToLeaderSeconds.toFixed(3)}`}
-                      </Text>
+                <View className="px-3">
+                  {result.entries.map((entry, index) => (
+                    <View key={entry.driverNumber}>
+                      {index > 0 ? <View className="h-px bg-border" /> : null}
+                      <CompactPracticeRow entry={entry} fill="elevated" />
                     </View>
-                  </View>
-                ))}
+                  ))}
+                </View>
               </View>
             ))}
           </View>

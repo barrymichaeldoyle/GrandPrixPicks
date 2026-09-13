@@ -21,6 +21,7 @@
     "./displayName": "./src/displayName.ts",
     "./driverStatus": "./src/driverStatus.ts",
     "./feedGroups": "./src/feedGroups.ts",
+    "./follows": "./src/follows.ts",
     "./indexNow": "./src/indexNow.ts",
     "./internalPath": "./src/internalPath.ts",
     "./notifications": "./src/notifications.ts",

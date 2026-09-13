@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useQuery } from '@/integrations/convex/query';
 
+import type { Suggestion } from './SuggestedFollowsCard';
 import { reasonText, SuggestedFollowsCard } from './SuggestedFollowsCard';
 
 (
@@ -45,8 +46,6 @@ vi.mock('@tanstack/react-router', () => ({
 vi.mock('@/components/FollowButton', () => ({
   FollowButton: () => <button type="button">Follow</button>,
 }));
-
-type Suggestion = Parameters<typeof reasonText>[0];
 
 function mutual(displayName: string) {
   return {

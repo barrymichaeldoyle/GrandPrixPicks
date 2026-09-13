@@ -19,11 +19,10 @@ import { PicksConnectedScreen } from '../PicksConnectedScreen';
 import { HomeHero } from '../../components/home/HomeHero';
 import { SignedOutHomePanel } from '../../components/home/SignedOutHomePanel';
 import { RaceRecapCard } from '../../components/home/RaceRecapCard';
-import { Avatar } from '../../components/ui/Avatar';
+import { SuggestedFollowsSection } from '../../components/home/SuggestedFollowsSection';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { CollapsingChrome, TabChrome } from '../../components/ui/TabChrome';
-import { useFollowMutations } from '../../hooks/useFollowMutations';
 import { useHideOnScroll } from '../../hooks/useHideOnScroll';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
@@ -38,9 +37,8 @@ import { useRefreshSpinner } from '../../lib/useRefreshSpinner';
 import { bucketWeatherNow } from '../../lib/weatherNow';
 import type { HomeStackParamList } from '../../navigation/types';
 import { useMobileConfig } from '../../providers/mobile-config';
-import { useToast } from '../../providers/ToastProvider';
 import { colors } from '../../theme/tokens';
-import { FlatList, Pressable, RefreshControl, Text, View } from '../../tw';
+import { FlatList, RefreshControl, Text, View } from '../../tw';
 
 // Up to 5 reactive pages of feed (5 × 40 = 200 events), matching web.
 const MAX_EXTRA_PAGES = 4;
@@ -258,6 +256,15 @@ export function FeedScreen() {
                 <HomeHero />
               </View>
             )}
+            {/* Ranked by mutual followers and shared leagues, matching web's
+                dashboard rail card — always visible for a signed-in player,
+                not just over an empty feed, the way the old leaderboard-rank
+                version here was. */}
+            {isSignedIn ? (
+              <View className="px-4 pt-3">
+                <SuggestedFollowsSection />
+              </View>
+            ) : null}
             {/* Under the weekend, not above it. Leading the tab with lap times
                 from a session in progress put them ahead of the picks the tab
                 exists to take. */}
@@ -265,11 +272,7 @@ export function FeedScreen() {
             {/* No "Activity" heading over the list. The tab is Home, the rows
                 below are plainly the activity, and the web feed dropped the
                 same label. */}
-            {groups.length > 0 ? null : isSignedIn ? (
-              <View className="gap-5 px-4 pt-4">
-                <TopPlayersToFollow />
-              </View>
-            ) : (
+            {groups.length > 0 || isSignedIn ? null : (
               <View className="px-4 pt-2">
                 <SignedOutHomePanel />
               </View>
@@ -327,107 +330,5 @@ export function FeedScreen() {
         showsVerticalScrollIndicator={false}
       />
     </CollapsingChrome>
-  );
-}
-
-/**
- * Empty-feed discovery: the season's top players with one-tap follow,
- * so a new account can fill its feed without leaving the tab.
- *
- * Signed-in only. `follows.follow` requires a viewer, so a guest never
- * reaches this block. Follow state comes from `getViewerFollowedIds`, written
- * into the query cache on tap so the button does not wait on the round-trip.
- */
-function TopPlayersToFollow() {
-  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
-  const { showToast } = useToast();
-  const topPlayers = useQuery(api.leaderboards.getCombinedSeasonLeaderboard, {
-    limit: 6,
-  });
-  const followedIds = useQuery(api.follows.getViewerFollowedIds, {});
-  const { follow } = useFollowMutations();
-
-  const entries = (topPlayers?.entries ?? [])
-    .filter((p) => !p.isViewer)
-    .slice(0, 5);
-
-  if (entries.length === 0) {
-    return null;
-  }
-
-  const followed = new Set(followedIds ?? []);
-
-  async function handleFollow(userId: ConvexId<'users'>) {
-    try {
-      await follow({ followeeId: userId });
-      captureAnalyticsEvent('user_followed', {
-        followee_id: String(userId),
-        source: 'home_top_players',
-      });
-    } catch {
-      showToast('Could not follow that player. Try again.', 'error');
-    }
-  }
-
-  return (
-    <View className="mt-1">
-      <Text className="text-muted mb-2 px-1 text-xs font-medium">
-        Top players this season
-      </Text>
-      <View>
-        {entries.map((p, i) => {
-          const isFollowed = followed.has(String(p.userId));
-          return (
-            <View key={String(p.userId)}>
-              {i > 0 ? <View className="ml-10 h-px bg-border" /> : null}
-              <View className="flex-row items-center gap-2.5 py-2">
-                <Pressable
-                  accessibilityRole="button"
-                  className="flex-1 flex-row items-center gap-2.5"
-                  onPress={() =>
-                    p.username
-                      ? navigation.navigate('PublicProfile', {
-                          username: p.username,
-                        })
-                      : null
-                  }
-                >
-                  <Avatar imageUrl={p.avatarUrl} name={p.username} size="sm" />
-                  <View className="flex-1">
-                    <Text
-                      className="text-foreground text-sm font-semibold"
-                      numberOfLines={1}
-                    >
-                      {p.username}
-                    </Text>
-                    <Text className="text-muted mt-px text-xs">
-                      Rank #{p.rank} · {p.points.toLocaleString()} pts
-                    </Text>
-                  </View>
-                </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  className={`rounded-full border px-3 py-1.5 ${
-                    isFollowed ? 'border-border' : 'border-accent'
-                  }`}
-                  disabled={isFollowed}
-                  onPress={() =>
-                    void handleFollow(p.userId as ConvexId<'users'>)
-                  }
-                >
-                  <Text
-                    className={`text-xs font-bold ${
-                      isFollowed ? 'text-muted' : 'text-accent'
-                    }`}
-                  >
-                    {isFollowed ? 'Following' : 'Follow'}
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          );
-        })}
-      </View>
-    </View>
   );
 }

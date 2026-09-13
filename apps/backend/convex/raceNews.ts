@@ -15,10 +15,10 @@ import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internalMutation, internalQuery, query } from './_generated/server';
 
 /**
- * Pick-relevant news for a race weekend. See `docs/race-news.md`.
+ * Reviewed news for a race weekend. See `docs/race-news.md`.
  *
  * The authoring surface is `npx convex run`, not a form: the workflow is to
- * prompt an agent to research the weekend and publish what changes a pick, so
+ * prompt an agent to research the weekend and publish a sourced story, so
  * these signatures and their return values are the interface a person actually
  * touches. They are written to be re-run — every one is idempotent, and
  * `publish` reports whether it created or updated so the caller can say what
@@ -132,16 +132,20 @@ export function sessionsForWeekend(hasSprint: boolean): string[] {
 export function validatePublishInput(input: {
   raceName: string;
   hasSprint: boolean;
+  category?: 'pick_related' | 'general';
   affectsSessions: string[];
   sourceUrl: string;
   sourcePublishedAt?: number;
   now: number;
 }): string | null {
-  if (input.affectsSessions.length === 0) {
-    return (
-      'affectsSessions must name at least one session. If this news changes ' +
-      'no pick, it belongs on a write-up page rather than in the feed.'
-    );
+  if (
+    (input.category ?? 'pick_related') === 'pick_related' &&
+    input.affectsSessions.length === 0
+  ) {
+    return 'Pick-related news must name at least one session; general news may have none.';
+  }
+  if (input.category === 'general' && input.affectsSessions.length !== 0) {
+    return 'General news cannot name affected sessions.';
   }
 
   // A weekend only runs the sessions it has, so `["sprint"]` on a conventional
@@ -258,7 +262,9 @@ async function listRaceNews(
     .take(MAX_NEWS_PER_RACE);
 
   const visible = (
-    includeRetracted ? rows : rows.filter((row) => row.active)
+    includeRetracted
+      ? rows
+      : rows.filter((row) => row.active && row.writeUpSelected !== false)
   ).sort((a, b) => b.publishedAt - a.publishedAt);
 
   // Resolved here rather than by each caller. The record stores codes,
@@ -299,7 +305,7 @@ async function listRaceNews(
   };
 }
 
-/** Active news for public feeds and write-up pages. */
+/** Active weekend news selected for write-up pages. Feed cards read `feedEvents`. */
 export const list = query({
   args: { raceSlug: v.string() },
   returns: raceNewsListResultValidator,
@@ -355,11 +361,8 @@ export async function loadActiveRaceNews(
  * a stewards' decision moves the classification. "Ten places minimum" becoming
  * "confirmed back of grid" is an edit, not news.
  *
- * `affectsSessions` is required and must be non-empty. Naming the sessions an
- * item changes *is* the test for whether it belongs in the feed, and a
- * validator applies that test where a comment in a doc gets skimmed. If the
- * honest answer is "none", this is a story for a write-up page and not for
- * somebody's feed.
+ * Pick-related items name affected sessions. General items pass an empty array
+ * and can still be selected for the feed or write-up independently.
  *
  * Run with `dryRun: true` first. It reports exactly what a real run would do
  * and writes nothing.
@@ -434,6 +437,11 @@ export const publish = internalMutation({
     headline: v.string(),
     body: v.string(),
     affectsSessions: sessionTypesValidator,
+    category: v.optional(
+      v.union(v.literal('pick_related'), v.literal('general')),
+    ),
+    feedSelected: v.optional(v.boolean()),
+    writeUpSelected: v.optional(v.boolean()),
     sourceName: v.string(),
     sourceUrl: v.string(),
     /**
@@ -488,6 +496,7 @@ export const publish = internalMutation({
       raceName: race.name,
       hasSprint: Boolean(race.hasSprint),
       affectsSessions: args.affectsSessions,
+      category: args.category,
       sourceUrl: args.sourceUrl,
       sourcePublishedAt: args.sourcePublishedAt,
       now: Date.now(),
@@ -509,6 +518,12 @@ export const publish = internalMutation({
     );
 
     const existing = await newsByKey(ctx, race._id, args.key);
+    const feedSelected = args.feedSelected ?? existing?.feedSelected ?? true;
+    const writeUpSelected =
+      args.writeUpSelected ?? existing?.writeUpSelected ?? true;
+    if (!feedSelected && !writeUpSelected) {
+      throw new Error('Select feed, write-up, or both.');
+    }
     const now = Date.now();
     const action = existing
       ? existing.active
@@ -523,7 +538,10 @@ export const publish = internalMutation({
     // what `retract` is for. So the hold only applies while the card has yet to
     // appear.
     const heldBack =
-      !alreadyInFeed && feedVisibleAt !== undefined && feedVisibleAt > now;
+      feedSelected &&
+      !alreadyInFeed &&
+      feedVisibleAt !== undefined &&
+      feedVisibleAt > now;
 
     if (dryRun) {
       return {
@@ -550,6 +568,10 @@ export const publish = internalMutation({
       headline: args.headline,
       body: args.body,
       affectsSessions: args.affectsSessions,
+      category: args.category ?? 'pick_related',
+      feedSelected,
+      writeUpSelected,
+      ...(!feedSelected ? { feedReleaseScheduledId: undefined } : {}),
       sourceName: args.sourceName,
       sourceUrl: args.sourceUrl,
       driverCodes,
@@ -577,12 +599,26 @@ export const publish = internalMutation({
     };
 
     if (existing) {
+      if (!feedSelected && existing.feedReleaseScheduledId) {
+        try {
+          await ctx.scheduler.cancel(
+            existing.feedReleaseScheduledId as Id<'_scheduled_functions'>,
+          );
+        } catch {
+          /* Already ran. */
+        }
+      }
       await ctx.db.patch(existing._id, fields);
     } else {
       await ctx.db.insert('raceNews', { ...fields, publishedAt: now });
     }
 
-    if (heldBack) {
+    if (!feedSelected) {
+      const oldFeed = await feedEventForNews(ctx, race._id, args.key);
+      if (oldFeed) {
+        await ctx.db.delete(oldFeed._id);
+      }
+    } else if (heldBack) {
       await scheduleFeedRelease(ctx, race._id, args.key, feedVisibleAt);
     } else {
       await syncFeedEvent(
@@ -669,7 +705,7 @@ export const releaseToFeed = internalMutation({
     }
     await ctx.db.patch(row._id, { feedReleaseScheduledId: undefined });
 
-    if (!row.active) {
+    if (!row.active || row.feedSelected === false) {
       return { action: 'retracted' as const, key: args.key };
     }
     const race = await ctx.db.get(args.raceId);
@@ -878,6 +914,7 @@ async function syncFeedEvent(
     headline: string;
     body: string;
     affectsSessions: string[];
+    category?: 'pick_related' | 'general';
     sourceName: string;
     sourceUrl: string;
   },
@@ -895,6 +932,7 @@ async function syncFeedEvent(
 ) {
   const shared = {
     newsHeadline: args.headline,
+    newsCategory: args.category ?? 'pick_related',
     newsBody: args.body,
     newsAffectsSessions:
       args.affectsSessions as Doc<'feedEvents'>['newsAffectsSessions'],

@@ -6,6 +6,7 @@ export type NotificationSettings = {
   pushResults: boolean;
   pushSessionLocked: boolean;
   pushNews: boolean;
+  newsPushPreference: 'off' | 'pick_related' | 'all';
   notificationQuietHours: boolean;
   preferPushReminders: boolean;
 };

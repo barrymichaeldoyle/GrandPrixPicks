@@ -9,6 +9,7 @@ import { internalMutation, internalQuery, mutation } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
 import {
   wantsPushNews,
+  wantsNewsCategory,
   wantsPushPredictionReminders,
   wantsPushPredictionLockReminders,
   wantsPushResults,
@@ -28,6 +29,9 @@ export const messageFields = {
   url: v.string(),
   eventKey: v.optional(v.string()),
   category: v.optional(categoryValidator),
+  newsCategory: v.optional(
+    v.union(v.literal('pick_related'), v.literal('general')),
+  ),
   expiresAt: v.optional(v.number()),
   raceId: v.optional(v.id('races')),
   sessionType: v.optional(
@@ -47,6 +51,7 @@ export type Message = {
   url: string;
   eventKey?: string;
   category?: Category;
+  newsCategory?: 'pick_related' | 'general';
   expiresAt?: number;
   raceId?: Id<'races'>;
   sessionType?: 'quali' | 'sprint_quali' | 'sprint' | 'race';
@@ -67,9 +72,16 @@ function inferCategory(url: string): Category {
   }
   return 'reminder';
 }
-export function allowed(user: Doc<'users'>, category: Category) {
+export function allowed(
+  user: Doc<'users'>,
+  category: Category,
+  newsCategory: 'pick_related' | 'general' = 'pick_related',
+) {
   if (user.deletingAt) {
     return false;
+  }
+  if (category === 'news') {
+    return wantsNewsCategory(user, newsCategory);
   }
   return {
     reminder: wantsPushPredictionReminders,
@@ -114,7 +126,7 @@ async function enqueue(
 ) {
   const user = await ctx.db.get(userId);
   const category = message.category ?? inferCategory(message.url);
-  if (!user || !allowed(user, category)) {
+  if (!user || !allowed(user, category, message.newsCategory)) {
     return;
   }
   const now = Date.now();
@@ -158,6 +170,7 @@ async function enqueue(
     body: message.body,
     url: message.url,
     category,
+    newsCategory: message.newsCategory,
     status: 'queued',
     attempts: 0,
     dueAt,
@@ -208,7 +221,11 @@ export const enqueueWeb = internalMutation({
 });
 async function isValid(ctx: MutationCtx, row: Doc<'notificationDeliveries'>) {
   const user = await ctx.db.get(row.userId);
-  if (!user || !allowed(user, row.category) || row.expiresAt <= Date.now()) {
+  if (
+    !user ||
+    !allowed(user, row.category, row.newsCategory) ||
+    row.expiresAt <= Date.now()
+  ) {
     return false;
   }
   const campaign = await ctx.db

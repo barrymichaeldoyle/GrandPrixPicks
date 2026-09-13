@@ -7,6 +7,7 @@ import { useState } from 'react';
 
 import { AdminBannerTab } from '@/components/admin/AdminBannerTab';
 import { AdminCreatorPollTab } from '@/components/admin/AdminCreatorPollTab';
+import { AdminNewsTab } from '@/components/admin/AdminNewsTab';
 import { AdminRacesTab } from '@/components/admin/AdminRacesTab';
 import type { AdminPredictionStatus } from '@/components/admin/AdminUsersTab';
 import { AdminUsersTab } from '@/components/admin/AdminUsersTab';
@@ -28,7 +29,7 @@ function AdminPage() {
   const isAdmin = useQuery(api.users.amIAdmin);
   const races = useQuery(api.races.listCurrentSeason)?.races;
   const [activeTab, setActiveTab] = useState<
-    'races' | 'users' | 'banner' | 'poll'
+    'races' | 'users' | 'banner' | 'poll' | 'news'
   >('races');
   const [selectedRaceId, setSelectedRaceId] = useState<Id<'races'> | null>(
     null,
@@ -84,6 +85,15 @@ function AdminPage() {
           <button
             type="button"
             role="tab"
+            aria-selected={activeTab === 'news'}
+            onClick={() => setActiveTab('news')}
+            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${activeTab === 'news' ? 'bg-slate-100 text-slate-900' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+          >
+            News
+          </button>
+          <button
+            type="button"
+            role="tab"
             aria-selected={activeTab === 'races'}
             onClick={() => setActiveTab('races')}
             className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
@@ -135,7 +145,9 @@ function AdminPage() {
           </button>
         </div>
 
-        {activeTab === 'poll' ? (
+        {activeTab === 'news' ? (
+          <AdminNewsTab />
+        ) : activeTab === 'poll' ? (
           <AdminCreatorPollTab races={races} />
         ) : activeTab === 'banner' ? (
           <AdminBannerTab />

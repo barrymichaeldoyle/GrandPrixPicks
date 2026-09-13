@@ -3,7 +3,7 @@ import { RateLimiter } from '@convex-dev/rate-limiter';
 import { components, internal } from './_generated/api';
 import { internalMutation } from './_generated/server';
 import { dispatchPushTargets, getExpoTokensForUser } from './push';
-import { wantsPushNews } from './lib/notificationChannels';
+import { wantsNewsCategory } from './lib/notificationChannels';
 const limiter = new RateLimiter(components.rateLimiter, {
   news: { kind: 'token bucket', rate: 1, period: 86400000, capacity: 1 },
 });
@@ -11,7 +11,7 @@ const limiter = new RateLimiter(components.rateLimiter, {
  * articles covering the same story. Preview first; exclude result spoilers. */
 export const select = internalMutation({
   args: {
-    raceSlug: v.string(),
+    raceSlug: v.optional(v.string()),
     key: v.string(),
     storyKey: v.string(),
     spoilerFree: v.literal(true),
@@ -26,31 +26,47 @@ export const select = internalMutation({
     if (!/^[a-z0-9][a-z0-9-]{2,100}$/.test(args.storyKey)) {
       throw new Error('Use a stable story slug.');
     }
-    const race = await ctx.db
-      .query('races')
-      .withIndex('by_slug', (q) => q.eq('slug', args.raceSlug))
-      .unique();
-    if (!race) {
+    const race = args.raceSlug
+      ? await ctx.db
+          .query('races')
+          .withIndex('by_slug', (q) => q.eq('slug', args.raceSlug!))
+          .unique()
+      : null;
+    if (args.raceSlug && !race) {
       throw new Error('Race not found.');
     }
-    const item = await ctx.db
-      .query('raceNews')
-      .withIndex('by_race_key', (q) =>
-        q.eq('raceId', race._id).eq('key', args.key),
-      )
-      .unique();
+    const raceItem = race
+      ? await ctx.db
+          .query('raceNews')
+          .withIndex('by_race_key', (q) =>
+            q.eq('raceId', race._id).eq('key', args.key),
+          )
+          .unique()
+      : null;
+    const globalItem = !race
+      ? await ctx.db
+          .query('globalNews')
+          .withIndex('by_key', (q) => q.eq('key', args.key))
+          .unique()
+      : null;
+    const item = raceItem ?? globalItem;
     if (
       !item?.active ||
-      (item.feedVisibleAt !== undefined && item.feedVisibleAt > Date.now())
+      (raceItem?.feedVisibleAt !== undefined &&
+        raceItem.feedVisibleAt > Date.now())
     ) {
       throw new Error('News must be active and released to the feed.');
     }
-    const feed = await ctx.db
-      .query('feedEvents')
-      .withIndex('by_race_news_key', (q) =>
-        q.eq('raceId', item.raceId).eq('newsKey', item.key),
-      )
-      .unique();
+    const feed = raceItem
+      ? await ctx.db
+          .query('feedEvents')
+          .withIndex('by_race_news_key', (q) =>
+            q.eq('raceId', raceItem.raceId).eq('newsKey', raceItem.key),
+          )
+          .unique()
+      : globalItem
+        ? await ctx.db.get(globalItem.feedEventId)
+        : null;
     if (!feed) {
       throw new Error('News must be visible in the feed.');
     }
@@ -69,7 +85,8 @@ export const select = internalMutation({
       createdAt: Date.now(),
     });
     await ctx.scheduler.runAfter(0, internal.newsNotifications.fanout, {
-      newsId: item._id,
+      newsId: raceItem?._id,
+      globalNewsId: globalItem?._id,
       storyKey: args.storyKey,
       expiresAt: Date.now() + 86400000,
     });
@@ -78,14 +95,22 @@ export const select = internalMutation({
 });
 export const fanout = internalMutation({
   args: {
-    newsId: v.id('raceNews'),
+    newsId: v.optional(v.id('raceNews')),
+    globalNewsId: v.optional(v.id('globalNews')),
     storyKey: v.string(),
     expiresAt: v.number(),
     cursor: v.optional(v.union(v.string(), v.null())),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const item = await ctx.db.get(args.newsId);
+    if (Boolean(args.newsId) === Boolean(args.globalNewsId)) {
+      return null;
+    }
+    const raceItem = args.newsId ? await ctx.db.get(args.newsId) : null;
+    const globalItem = args.globalNewsId
+      ? await ctx.db.get(args.globalNewsId)
+      : null;
+    const item = raceItem ?? globalItem;
     if (!item?.active || args.expiresAt <= Date.now()) {
       return null;
     }
@@ -96,12 +121,16 @@ export const fanout = internalMutation({
     if (!campaign || campaign.cancelled) {
       return null;
     }
-    const feed = await ctx.db
-      .query('feedEvents')
-      .withIndex('by_race_news_key', (q) =>
-        q.eq('raceId', item.raceId).eq('newsKey', item.key),
-      )
-      .unique();
+    const feed = raceItem
+      ? await ctx.db
+          .query('feedEvents')
+          .withIndex('by_race_news_key', (q) =>
+            q.eq('raceId', raceItem.raceId).eq('newsKey', raceItem.key),
+          )
+          .unique()
+      : globalItem
+        ? await ctx.db.get(globalItem.feedEventId)
+        : null;
     if (!feed) {
       return null;
     }
@@ -109,7 +138,13 @@ export const fanout = internalMutation({
       .query('users')
       .paginate({ cursor: args.cursor ?? null, numItems: 100 });
     for (const user of page.page) {
-      if (!wantsPushNews(user) || user.deletingAt) {
+      if (
+        !wantsNewsCategory(
+          user,
+          raceItem ? (raceItem.category ?? 'pick_related') : 'general',
+        ) ||
+        user.deletingAt
+      ) {
         continue;
       }
       const subscriptions = await ctx.db
@@ -140,8 +175,11 @@ export const fanout = internalMutation({
           url: `/feed/${feed._id}?utm_source=push&utm_campaign=news`,
           eventKey: `news:${args.storyKey}`,
           category: 'news',
+          newsCategory: raceItem
+            ? (raceItem.category ?? 'pick_related')
+            : 'general',
           expiresAt: args.expiresAt,
-          raceId: item.raceId,
+          raceId: raceItem?.raceId,
         },
       );
     }

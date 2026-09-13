@@ -39,18 +39,12 @@ type NotificationKey =
   | 'pushPredictionLockReminders'
   | 'pushResults'
   | 'pushSessionLocked'
-  | 'pushNews'
   | 'notificationQuietHours'
   | 'preferPushReminders'
   | 'emailPredictionReminders'
   | 'emailResults';
 
 const PUSH_TOGGLES: { key: NotificationKey; label: string; help: string }[] = [
-  {
-    key: 'pushNews',
-    label: 'Selected news',
-    help: 'Selected stories, at most once a day. Off by default.',
-  },
   {
     key: 'notificationQuietHours',
     label: 'Quiet hours',
@@ -518,6 +512,55 @@ export function SettingsScreen() {
           }}
           status={pushPermission.status}
         />
+        <View className="border-b border-border py-4">
+          <Text className="text-[15px] font-semibold text-text">
+            News alerts
+          </Text>
+          {(
+            [
+              ['off', 'Off'],
+              ['pick_related', 'Pick-related news only'],
+              ['all', 'All selected news'],
+            ] as const
+          ).map(([value, label]) => (
+            <Pressable
+              accessibilityRole="radio"
+              accessibilityState={{
+                checked:
+                  (me?.newsPushPreference ??
+                    (me?.pushNews ? 'pick_related' : 'off')) === value,
+                disabled: !pushGranted,
+              }}
+              className="flex-row items-center justify-between py-3"
+              disabled={!pushGranted}
+              key={value}
+              onPress={() => {
+                void Haptics.selectionAsync();
+                updateNotifications({ newsPushPreference: value }).catch(
+                  (err) =>
+                    showToast(
+                      err instanceof Error
+                        ? err.message
+                        : 'Could not update setting',
+                      'error',
+                    ),
+                );
+              }}
+            >
+              <Text className="text-[14px] text-text">{label}</Text>
+              <Ionicons
+                name={
+                  (me?.newsPushPreference ??
+                    (me?.pushNews ? 'pick_related' : 'off')) === value
+                    ? 'radio-button-on'
+                    : 'radio-button-off'
+                }
+                size={20}
+                color={colors.accent}
+              />
+            </Pressable>
+          ))}
+        </View>
         {PUSH_TOGGLES.map((toggle) => (
           <NotificationToggleRow
             disabled={!pushGranted}

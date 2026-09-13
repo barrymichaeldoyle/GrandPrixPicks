@@ -62,4 +62,17 @@ crons.interval(
   {},
 );
 
+crons.interval(
+  'discover approved news feeds',
+  { minutes: 30 },
+  internal.newsPipeline.pollDue,
+  {},
+);
+crons.interval(
+  'queue news review batches',
+  { minutes: 30 },
+  internal.newsPipeline.queueBatch,
+  {},
+);
+
 export default crons;

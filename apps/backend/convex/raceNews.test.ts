@@ -41,7 +41,20 @@ describe('validatePublishInput', () => {
     // affected, this is a story for a write-up page and not for the feed.
     const problem = validatePublishInput({ ...base, affectsSessions: [] });
     expect(problem).toMatch(/at least one session/);
-    expect(problem).toMatch(/write-up page/);
+    expect(problem).toMatch(/general news/);
+  });
+
+  it('allows general news without a session and rejects invented impact', () => {
+    expect(
+      validatePublishInput({
+        ...base,
+        category: 'general',
+        affectsSessions: [],
+      }),
+    ).toBeNull();
+    expect(validatePublishInput({ ...base, category: 'general' })).toMatch(
+      /cannot name affected sessions/,
+    );
   });
 
   it('refuses a session the weekend does not run', () => {

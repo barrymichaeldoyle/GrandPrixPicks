@@ -12,7 +12,6 @@ const IN_APP_NOTIFICATIONS = [
 ];
 
 const PUSH_NOTIFICATION_ROWS = [
-  { key: 'pushNews', label: 'Selected news (at most once a day)' },
   {
     key: 'notificationQuietHours',
     label: 'Quiet hours for news (22:00–08:00)',
@@ -116,6 +115,30 @@ export function NotificationsSection({
               </div>
             ) : (
               <div className="divide-y divide-border bg-page px-3">
+                <div className="py-3">
+                  <label
+                    htmlFor="news-push-preference"
+                    className="block text-sm text-text"
+                  >
+                    News alerts
+                  </label>
+                  <select
+                    id="news-push-preference"
+                    className="mt-2 w-full rounded border border-border bg-page p-2 text-sm text-text"
+                    value={settings.newsPushPreference}
+                    onChange={(event) =>
+                      onUpdateSetting({
+                        newsPushPreference: event.target
+                          .value as NotificationSettings['newsPushPreference'],
+                      })
+                    }
+                    disabled={isPushLoading}
+                  >
+                    <option value="off">Off</option>
+                    <option value="pick_related">Pick-related news only</option>
+                    <option value="all">All selected news</option>
+                  </select>
+                </div>
                 {PUSH_NOTIFICATION_ROWS.map(({ key, label }) => (
                   <NotificationRow
                     key={key}

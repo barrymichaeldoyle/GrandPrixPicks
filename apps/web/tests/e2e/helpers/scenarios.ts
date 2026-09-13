@@ -35,7 +35,7 @@ export function applyScenario(
   options: ApplyScenarioOptions = {},
 ) {
   ensureE2EEnvLoaded();
-  const args = ['-s', 'scenario', '--', 'apply', scenario];
+  const args = ['scenario', '--', 'apply', scenario];
   if (options.namespace) {
     args.push('--namespace', options.namespace);
   }

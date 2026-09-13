@@ -17,6 +17,6 @@
   {
     "name": "all client JS",
     "path": ".output/public/assets/*.js",
-    "limit": "592 KB"
+    "limit": "604 KB"
   }
 ]

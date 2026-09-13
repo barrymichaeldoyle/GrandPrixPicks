@@ -1015,6 +1015,9 @@ export const updateNotificationSettings = mutation({
     emailPredictionReminders: v.optional(v.boolean()),
     emailResults: v.optional(v.boolean()),
     pushNews: v.optional(v.boolean()),
+    newsPushPreference: v.optional(
+      v.union(v.literal('off'), v.literal('pick_related'), v.literal('all')),
+    ),
     notificationQuietHours: v.optional(v.boolean()),
     preferPushReminders: v.optional(v.boolean()),
     pushPredictionReminders: v.optional(v.boolean()),
@@ -1024,7 +1027,17 @@ export const updateNotificationSettings = mutation({
   },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
-    await ctx.db.patch(viewer._id, { ...args, updatedAt: Date.now() });
+    await ctx.db.patch(viewer._id, {
+      ...args,
+      ...(args.newsPushPreference === undefined && args.pushNews !== undefined
+        ? {
+            newsPushPreference: args.pushNews
+              ? ('pick_related' as const)
+              : ('off' as const),
+          }
+        : {}),
+      updatedAt: Date.now(),
+    });
   },
 });
 

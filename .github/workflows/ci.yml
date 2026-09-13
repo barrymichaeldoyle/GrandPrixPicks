@@ -325,7 +325,7 @@ jobs:
           summary_file="$(mktemp)"
 
           cleanup() {
-            pnpm -s scenario -- clear --namespace "$namespace" >/dev/null 2>&1 || true
+            pnpm scenario -- clear --namespace "$namespace" >/dev/null 2>&1 || true
             rm -f "$summary_file"
           }
           trap cleanup EXIT
@@ -334,7 +334,7 @@ jobs:
           echo "CONVEX_DEPLOYMENT=$CONVEX_DEPLOYMENT"
           echo "VITE_CONVEX_URL host=$(node --input-type=module -e 'console.log(new URL(process.env.VITE_CONVEX_URL).host)')"
 
-          pnpm -s scenario -- apply race_partial_results_sprint --namespace "$namespace" > "$summary_file"
+          pnpm scenario -- apply race_partial_results_sprint --namespace "$namespace" > "$summary_file"
 
           (
             cd apps/web

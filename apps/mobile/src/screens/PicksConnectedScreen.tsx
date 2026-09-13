@@ -25,7 +25,10 @@ import { WeekendPicksCard } from '../components/home/WeekendPicksCard';
 import { SignedOutPicksNotice } from '../components/picks/SignedOutPicksNotice';
 import { DraggableTop5 } from '../components/predict/DraggableTop5';
 import { H2HMatchupGrid } from '../components/predict/H2HMatchupGrid';
-import { PracticeResultsSheet } from '../components/races/practice-results-sheet';
+import {
+  competitiveSessions,
+  PracticeResultsSheet,
+} from '../components/races/practice-results-sheet';
 import { SessionResultsCard } from '../components/races/SessionResultsCard';
 import { EmptyState } from '../components/ui/EmptyState';
 import { FlagImage } from '../components/ui/FlagImage';
@@ -253,6 +256,45 @@ function PredictForRace({
       ? { raceId: race._id, sessionType: selectedSession }
       : 'skip',
   );
+
+  /*
+   * The full classification for whichever quali/sprint tabs the results
+   * sheet can show, not just the top five `actualTop5BySession` carries for
+   * the rest of the screen. That query exists for the scored-session summary
+   * above the picks, which only ever needs a top five; the sheet is a form
+   * guide and truncating a 22-driver field to five there is the mobile-only
+   * gap web's own quali/sprint tab doesn't have. Lazy, like web's modal: no
+   * reason to hold three more subscriptions open before the sheet is opened.
+   */
+  const visibleCompetitiveSessions = competitiveSessions(
+    selectedSession,
+    Boolean(race.hasSprint),
+  );
+  const sprintQualiResult = useQuery(
+    api.results.getResultForRace,
+    resultsSheetVisible && visibleCompetitiveSessions.includes('sprint_quali')
+      ? { raceId: race._id, sessionType: 'sprint_quali' }
+      : 'skip',
+  );
+  const sprintResult = useQuery(
+    api.results.getResultForRace,
+    resultsSheetVisible && visibleCompetitiveSessions.includes('sprint')
+      ? { raceId: race._id, sessionType: 'sprint' }
+      : 'skip',
+  );
+  const qualiResult = useQuery(
+    api.results.getResultForRace,
+    resultsSheetVisible && visibleCompetitiveSessions.includes('quali')
+      ? { raceId: race._id, sessionType: 'quali' }
+      : 'skip',
+  );
+  const sheetCompetitive: Partial<
+    Record<SessionType, Array<{ position: number; code: string; displayName: string }>>
+  > = {
+    sprint_quali: sprintQualiResult?.enrichedClassification,
+    sprint: sprintResult?.enrichedClassification,
+    quali: qualiResult?.enrichedClassification,
+  };
 
   if (
     driversQuery === undefined ||
@@ -578,7 +620,7 @@ function PredictForRace({
         )}
       </Container>
       <PracticeResultsSheet
-        competitive={actualTop5BySession ?? {}}
+        competitive={sheetCompetitive}
         hasSprint={Boolean(race.hasSprint)}
         onClose={() => setResultsSheetVisible(false)}
         practice={practiceResults ?? []}

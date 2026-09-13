@@ -38,7 +38,7 @@ const LABELS: Record<ResultTab, string> = {
   quali: 'Quali',
 };
 
-function competitiveSessions(
+export function competitiveSessions(
   predictionSession: SessionType,
   hasSprint: boolean,
 ): Array<'sprint_quali' | 'sprint' | 'quali'> {

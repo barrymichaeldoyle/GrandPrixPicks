@@ -28,6 +28,40 @@ export type GridNewsLink = (
 ) => { href: string; headline: string } | undefined;
 
 /**
+ * A pit lane start is not a grid slot: the driver lines up behind every car
+ * that qualified, and the row's `position` only exists here because the
+ * schema numbers the field 1..N with no gaps. Reading `note` is what a real
+ * grid does too — there is no separate flag for it — so this is the one
+ * place that decides what counts as one, and both row renderers below call it
+ * rather than each matching the string their own way.
+ */
+function isPitLaneStart(note?: string): boolean {
+  return /pit lane/i.test(note ?? '');
+}
+
+/**
+ * "P21" beside "Pit lane start" reads as a grid slot with a caption, and a
+ * reader scanning positions for a number skips straight past the muted text
+ * beside it — which is exactly the case a grid penalty is not: Stroll's P21
+ * is a real slot, Bearman's is not a slot at all. "PL" in the position's own
+ * spot says so without the reader ever reaching the note.
+ */
+function PositionLabel({ entry }: { entry: StartingGridEntry }) {
+  if (isPitLaneStart(entry.note)) {
+    return (
+      <span className="gpp-mono w-7 shrink-0 text-xs font-semibold text-warning">
+        PL
+      </span>
+    );
+  }
+  return (
+    <span className="gpp-mono w-7 shrink-0 text-xs font-semibold text-text-muted">
+      P{entry.position}
+    </span>
+  );
+}
+
+/**
  * The confirmed grid, as published on the news item that announced it.
  *
  * One component for both surfaces because the two must not disagree: the feed
@@ -203,11 +237,10 @@ function GridRow({
   newsLink?: GridNewsLink;
   onNoteSelect?: (newsKey: string) => void;
 }) {
+  const pitLane = isPitLaneStart(entry.note);
   return (
     <li className="flex items-center gap-2.5 border-b border-border py-1.5 last:border-0">
-      <span className="gpp-mono w-7 shrink-0 text-xs font-semibold text-text-muted">
-        P{entry.position}
-      </span>
+      <PositionLabel entry={entry} />
       <DriverBadge
         code={entry.code}
         team={entry.team}
@@ -223,7 +256,7 @@ function GridRow({
         entry={entry}
         newsLink={newsLink}
         onNoteSelect={onNoteSelect}
-        className="shrink-0 text-xs text-text-muted"
+        className={`shrink-0 text-xs ${pitLane ? 'font-semibold text-warning' : 'text-text-muted'}`}
       />
     </li>
   );
@@ -243,11 +276,10 @@ function CompactGridRow({
   newsLink?: GridNewsLink;
   onNoteSelect?: (newsKey: string) => void;
 }) {
+  const pitLane = isPitLaneStart(entry.note);
   return (
     <div className="flex items-center gap-2 py-1.5">
-      <span className="gpp-mono w-7 shrink-0 text-xs font-semibold text-text-muted">
-        P{entry.position}
-      </span>
+      <PositionLabel entry={entry} />
       <DriverBadge
         code={entry.code}
         team={entry.team}
@@ -265,7 +297,7 @@ function CompactGridRow({
         entry={entry}
         newsLink={newsLink}
         onNoteSelect={onNoteSelect}
-        className="min-w-0 flex-1 text-right text-xs text-text-muted"
+        className={`min-w-0 flex-1 text-right text-xs ${pitLane ? 'font-semibold text-warning' : 'text-text-muted'}`}
       />
     </div>
   );

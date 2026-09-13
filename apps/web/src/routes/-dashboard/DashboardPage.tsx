@@ -24,6 +24,7 @@ import { bucketWeatherNow } from '@/lib/weatherNow';
 import { useState } from 'react';
 
 import { DashboardPracticeCard } from './DashboardPracticeCard';
+import { DashboardStartingGridCard } from './DashboardStartingGridCard';
 import { DashboardWeekendPicks } from './DashboardWeekendPicks';
 import type { DashboardSsrData } from './ssr';
 import {
@@ -244,6 +245,13 @@ export function DashboardPage({
     />
   );
 
+  const gridCard = currentWeekend ? (
+    <DashboardStartingGridCard
+      key={currentWeekend.race._id}
+      raceSlug={currentWeekend.race.slug}
+    />
+  ) : null;
+
   const practiceCard = currentWeekend ? (
     <DashboardPracticeCard
       key={currentWeekend.race._id}
@@ -342,7 +350,12 @@ export function DashboardPage({
             arrive under a spinning picks card, which read as a page that had
             finished loading around a hole. One loader, then the whole
             column. */}
-        {pickerFollowsFeed && centerReady ? null : picksCard}
+        {pickerFollowsFeed && centerReady ? null : (
+          <>
+            {picksCard}
+            {gridCard}
+          </>
+        )}
 
         {centerReady ? (
           <>
@@ -371,7 +384,12 @@ export function DashboardPage({
                           promotedRecap.race.id,
                           'race',
                         ),
-                        node: picksCard,
+                        node: (
+                          <>
+                            {picksCard}
+                            {gridCard}
+                          </>
+                        ),
                       },
                     ]
                   : []),

@@ -69,6 +69,7 @@ type H2HSectionSlotProps = {
   selectedSession: SessionType;
   editingSession: SessionType | null;
   onEditingSessionChange: (session: SessionType | null) => void;
+  canManagePredictions: boolean;
   showRandomizeButton: boolean;
   hasPredictions: boolean;
   hasH2HPredictions: boolean;
@@ -553,6 +554,7 @@ export function RaceEventPage({
             selectedSession={selectedSession}
             editingSession={h2hEditing.session}
             onEditingSessionChange={h2hEditing.onSessionChange}
+            canManagePredictions={canManagePredictions}
             onEditingDirtyChange={h2hEditing.onDirtyChange}
             hasUnsavedEditingChanges={h2hEditing.hasUnsavedChanges}
             showRandomizeButton={!hasH2HPredictions}

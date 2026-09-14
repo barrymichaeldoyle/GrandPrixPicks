@@ -30,6 +30,15 @@ interface H2HSectionProps {
   /** When provided, section is controlled by parent (e.g. to hide other section while editing). */
   editingSession?: SessionType | null;
   onEditingSessionChange?: (session: SessionType | null) => void;
+  /**
+   * False once this race stops being the next calendar race (or drops out of
+   * `upcoming`) — mirrors the Top 5 half's `canManagePredictions`. Without this
+   * gate the "Pick H2H Winners" CTA stayed reachable after that point, so a
+   * player who filled it out always hit `submitH2HPredictions`'s "only open
+   * for the next upcoming race" guard: a doomed submit rather than a closed
+   * door. Also revokes Edit and drops any open overlay defensively.
+   */
+  canManagePredictions: boolean;
   /** When true, show Randomize button in this section (Top 5 done, H2H still needed). */
   showRandomizeButton?: boolean;
   hasPredictions?: boolean;
@@ -59,6 +68,7 @@ export function H2HSection({
   selectedSession,
   editingSession: controlledEditing,
   onEditingSessionChange,
+  canManagePredictions,
   showRandomizeButton,
   hasPredictions,
   hasH2HPredictions,
@@ -101,7 +111,10 @@ export function H2HSection({
   const isLoadingPredictions =
     h2hPredictions === undefined || matchups === undefined;
   const canEditSelectedSession = Boolean(
-    !isLoadingPredictions && hasH2HPredictions && !selectedSessionLocked,
+    canManagePredictions &&
+      !isLoadingPredictions &&
+      hasH2HPredictions &&
+      !selectedSessionLocked,
   );
   const selectedSessionHasH2H =
     !isLoadingPredictions && h2hPredictions?.[selectedSession] != null;
@@ -145,7 +158,11 @@ export function H2HSection({
       }).toString()}`
     : '';
 
-  const overlayOpen = initialPicksOpen || editingSession !== null;
+  // Defensive: a chained auto-open from the Top 5 save, or an overlay left
+  // open across a tab that outlived this race's window, must not stay
+  // reachable once `submitH2HPredictions` would refuse it anyway.
+  const overlayOpen =
+    canManagePredictions && (initialPicksOpen || editingSession !== null);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
   function closeOverlay() {
@@ -205,7 +222,8 @@ export function H2HSection({
           )}
         </div>
         <div className="flex items-center gap-2">
-          {showRandomizeButton &&
+          {canManagePredictions &&
+            showRandomizeButton &&
             hasPredictions !== undefined &&
             hasH2HPredictions !== undefined && (
               <RandomizeButton
@@ -246,7 +264,7 @@ export function H2HSection({
               </div>
             )}
           </>
-        ) : (
+        ) : canManagePredictions ? (
           <StartPicksCta
             icon={Swords}
             description="Pick each team-mate matchup once. We'll apply it across the weekend, and you can edit sessions before they start."
@@ -254,7 +272,7 @@ export function H2HSection({
             onStart={() => setInitialPicksOpen(true)}
             data-testid="h2h-start-button"
           />
-        )}
+        ) : null}
       </ErrorBoundary>
 
       {matchups !== undefined && (

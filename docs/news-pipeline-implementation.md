@@ -14,7 +14,7 @@ The existing `raceNews` publication path and `feedEvents` feed remain the public
 
 All new fields on populated `users`, `raceNews`, `feedEvents`, and `notificationDeliveries` are optional. Legacy documents therefore validate without a backfill. The new source, candidate, batch, proposal and global-publication tables are additive. Source polling is inert until `NEWS_RSS_ALLOWED_HOSTS` lists the exact feed host and an admin enables that source. Worker routes refuse requests until a 32-character or longer `NEWS_WORKER_SECRET` is set on the deployment. Start with one approved source, review its proposals, then add others. Do not change production deployment settings or enable a Cursor Automation without the operator's separate rollout decision.
 
-To pause, disable sources in Admin → News, remove the feed host allowlist, and remove the worker secret. To roll back code, keep the optional fields and new tables while stored documents exist. Existing published cards can be retracted through the matching `raceNews` or `globalNews` retraction function. Cancelling a selected news campaign remains separate from retracting a card.
+To pause, disable sources in Admin → News, remove the feed host allowlist, and remove the worker secret. To roll back code, keep the optional fields and new tables while stored documents exist. Existing published cards can be retracted through the matching `raceNews` or `globalNews` retraction function. To audit what either path published before a retraction, list active and retracted items with `raceNews:listForOperators` or `globalNews:listForOperators`. Cancelling a selected news campaign remains separate from retracting a card.
 
 ## Authorization and validation
 

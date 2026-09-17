@@ -47,10 +47,10 @@ export type TeamLineUp = {
 };
 
 /** Bumped by hand whenever the seats below are re-checked against reporting. */
-export const LINE_UP_2027_REVIEWED_AT = '2026-09-05';
+export const LINE_UP_2027_REVIEWED_AT = '2026-09-17';
 
 /** For prose. Kept next to the ISO date so the two cannot drift apart. */
-export const LINE_UP_2027_REVIEWED_LABEL = '5 September 2026';
+export const LINE_UP_2027_REVIEWED_LABEL = '17 September 2026';
 
 /**
  * Alphabetical by team. A championship order would be more flattering and
@@ -144,7 +144,7 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Esteban Ocon',
         status: 'out-of-contract',
-        note: 'Haas can extend him for a third year but has opened the seat to four other drivers instead.',
+        note: 'Haas can extend him for a third year but has run four other drivers against him instead. Reports since 16 September 2026 make Rafael Camara the favourite, and neither Haas nor Ferrari has confirmed anything.',
       },
     ],
   },
@@ -228,34 +228,38 @@ export const LINE_UP_2027: TeamLineUp[] = [
 /**
  * The drivers Haas is choosing between for the seat Ocon currently holds.
  *
- * Ordered as Ayao Komatsu framed it on 4 September 2026: the incumbent first,
- * then the four being measured against him. `claim` is why the driver is in
- * the room, which is the only part of this that stays true whoever wins.
+ * Ordered by where the contest stands rather than alphabetically, because the
+ * page numbers them and a number that means nothing is worse than no number.
+ * Komatsu named all five on 4 September 2026; the order below is how reporting
+ * ranked them after the Portimão test, with the incumbent second because Haas
+ * still holds his option. `claim` is why the driver is in the room, which is
+ * the only part of this that stays true whoever wins.
  */
 export const HAAS_2027_CONTENDERS = [
+  {
+    driver: 'Rafael Camara',
+    claim:
+      'Ferrari academy, and second in Formula 2 with three rounds to go, seven points behind Nikola Tsolov. Brazilian reports make him the quickest of the candidates who drove the Haas at Portimão, though the team has not published the times. Signing him would give Haas two Ferrari juniors.',
+  },
   {
     driver: 'Esteban Ocon',
     claim:
       'Holds the seat, has won a Grand Prix, and knows the team. Ollie Bearman has beaten him on both Saturdays and Sundays this season.',
   },
   {
-    driver: 'Ryo Hirakawa',
+    driver: 'Jack Doohan',
     claim:
-      'Seven Friday practice runs for Haas already, a world endurance title, and Toyota behind him. Toyota is a Haas partner.',
+      'The Haas reserve, with 2025 races for Alpine behind him. His run in the 2025 car at Jerez on 17 September is the last evidence Haas said it wanted before deciding.',
   },
   {
     driver: 'Leonardo Fornaroli',
     claim:
-      "The 2025 Formula 2 champion and McLaren's reserve. A letter of intent exists that would let Haas take him on loan.",
+      "The 2025 Formula 2 champion and McLaren's reserve, and the driver Camara was measured against at Portimão. A letter of intent exists that would let Haas take him on loan.",
   },
   {
-    driver: 'Rafael Camara',
-    claim: 'Ferrari academy, third in Formula 2, and Haas runs Ferrari power.',
-  },
-  {
-    driver: 'Jack Doohan',
+    driver: 'Ryo Hirakawa',
     claim:
-      'The Haas reserve, with 2025 races for Alpine behind him and a private test of his own.',
+      'Seven Friday practice runs for Haas already, a world endurance title, and Toyota, a Haas partner, behind him. The paddock rates his chances as slim.',
   },
 ] as const;
 

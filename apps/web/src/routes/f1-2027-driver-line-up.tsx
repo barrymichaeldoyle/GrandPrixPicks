@@ -5,6 +5,7 @@ import { displayTeamName } from '@/lib/display';
 import {
   HAAS_2027_CONTENDERS,
   LINE_UP_2027,
+  LINE_UP_2027_REVIEWED_AT,
   LINE_UP_2027_REVIEWED_LABEL,
   type Seat,
   SEAT_STATUS_LABELS,
@@ -32,7 +33,7 @@ import { PicksCallToAction } from '@/components/PicksCallToAction/PicksCallToAct
 
 const PAGE_TITLE = 'F1 2027 Driver Line-Up | Grand Prix Picks';
 const PAGE_DESCRIPTION =
-  'Every 2027 F1 seat, team by team: who has signed, who is expected back, and the five drivers Haas is choosing between for one drive.';
+  'Every 2027 F1 seat, team by team: who has signed, who is expected back, and where the Haas drive between Esteban Ocon and Rafael Camara stands.';
 
 const FAQS = [
   {
@@ -48,7 +49,17 @@ const FAQS = [
   {
     question: 'Who will replace Esteban Ocon at Haas?',
     answer:
-      'Haas has not decided. Ayao Komatsu said on 4 September 2026 that Ocon, Ryo Hirakawa, Jack Doohan, Leonardo Fornaroli and Rafael Camara are all in the running for the one seat.',
+      'Haas has not decided. Ayao Komatsu named Ocon, Rafael Camara, Jack Doohan, Leonardo Fornaroli and Ryo Hirakawa as the five in the running on 4 September 2026, and reporting since has put Camara in front.',
+  },
+  {
+    question: 'Is Rafael Camara driving in F1 in 2027?',
+    answer:
+      'Nothing is signed. The Ferrari junior is reported to be the leading candidate to partner Oliver Bearman at Haas, and one Brazilian report suggests an announcement around his home race on 8 November, but neither Haas nor Ferrari has confirmed it.',
+  },
+  {
+    question: 'When will Haas announce its 2027 driver line-up?',
+    answer:
+      'No date has been set. Haas said it would not choose until Jack Doohan had driven its 2025 car at Jerez on 17 September 2026, the last of four private tests it used to measure the candidates.',
   },
   {
     question: 'Is Fernando Alonso racing in 2027?',
@@ -98,6 +109,10 @@ export const Route = createFileRoute('/f1-2027-driver-line-up')({
                 name: 'F1 2027 Driver Line-Up',
                 description: PAGE_DESCRIPTION,
                 inLanguage: 'en',
+                // The reviewed stamp the reader sees, in the form a crawler
+                // reads. Both come from the data file, so a seat edit without
+                // a date bump cannot quietly claim freshness here either.
+                dateModified: LINE_UP_2027_REVIEWED_AT,
                 isPartOf: { '@id': `${siteConfig.url}/#app` },
               },
               {
@@ -246,7 +261,18 @@ function F1LineUp2027Page() {
             Haas holds an option on Esteban Ocon for a third year and has spent
             the summer testing alternatives to it instead. Ayao Komatsu put the
             contest on the record on 4 September 2026: five drivers, one seat,
-            and no date by which he has to choose.
+            and a choice he said would be settled on speed rather than on what a
+            driver brings with him.
+          </p>
+          <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
+            The contest has narrowed since. Brazilian reports make Rafael Camara
+            the quickest of the candidates who drove the 2025 car at Portimão,
+            and reporting in Europe and Brazil now puts the Ferrari junior in
+            front, with one outlet suggesting an announcement around his home
+            race on 8 November. Haas has announced nothing, and said it would
+            not decide until Jack Doohan had completed his own test at Jerez on
+            17 September. The five below are in the order the contest stands
+            today.
           </p>
           <ol className="mt-6 border-t border-border">
             {HAAS_2027_CONTENDERS.map((contender, index) => (

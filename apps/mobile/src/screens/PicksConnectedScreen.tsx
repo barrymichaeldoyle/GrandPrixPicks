@@ -289,7 +289,10 @@ function PredictForRace({
       : 'skip',
   );
   const sheetCompetitive: Partial<
-    Record<SessionType, Array<{ position: number; code: string; displayName: string }>>
+    Record<
+      SessionType,
+      Array<{ position: number; code: string; displayName: string }>
+    >
   > = {
     sprint_quali: sprintQualiResult?.enrichedClassification,
     sprint: sprintResult?.enrichedClassification,

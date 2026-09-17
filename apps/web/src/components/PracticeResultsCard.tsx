@@ -145,7 +145,7 @@ function CompactCompetitiveRow({
   status?: string | null;
 }) {
   return (
-    <div className="grid grid-cols-[1.75rem_auto_minmax(4.5rem,1fr)] items-center gap-1.5 py-1.5 px-2 sm:gap-2 sm:px-3">
+    <div className="grid grid-cols-[1.75rem_auto_minmax(4.5rem,1fr)] items-center gap-1.5 px-2 py-1.5 sm:gap-2 sm:px-3">
       <span className="gpp-mono text-xs font-semibold text-text-muted">
         P{position}
       </span>

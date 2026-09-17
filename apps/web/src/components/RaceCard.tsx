@@ -1,19 +1,21 @@
 import type { Doc } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Calendar } from 'lucide-react';
+import { ArrowRight, Calendar, Clock3, Lock } from 'lucide-react';
+
+import { formatLockCountdown } from '@grandprixpicks/shared/picks';
 
 import { useCountdown } from '@/lib/date';
 import { getLockStatusViewModel } from '@/lib/lock';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import {
   getNextSessionLockAt,
+  getRaceSessionLockAt,
   getWeekendSessionStarts,
 } from '@/lib/raceSessions';
 import { SESSION_LABELS } from '@/lib/sessions';
 import { useNow } from '@/lib/testing/now';
 import { useUserDateFormat } from '@/lib/useUserDateFormat';
 import { Badge } from './Badge';
-import { PredictionCountdownBadge } from './PredictionCountdownBadge';
 import { RaceFlag } from './RaceFlag';
 import { Pill } from './Pill';
 
@@ -191,8 +193,9 @@ export function RaceCard({
               <Badge variant="finished">COMPLETED</Badge>
             )}
             {race.hasSprint && <Badge variant="sprint">SPRINT</Badge>}
-            {/* The "Open" state is already conveyed by the countdown badge —
-                only surface this status pill when it adds new info (Closing Soon, Locked). */}
+            {/* The "Open" state is already conveyed by the "locks in" clock
+                line below the sessions — only surface this status pill when it
+                adds new info (Closing Soon, Locked). */}
             {isPredictable && lockStatus.urgency !== 'open' && (
               <Pill
                 tone={lockStatus.badgeTone}
@@ -208,12 +211,6 @@ export function RaceCard({
                 </span>
               </Pill>
             )}
-            {isPredictable && (
-              <PredictionCountdownBadge
-                predictionLockAt={nextSessionLockAt}
-                labelMode="lock"
-              />
-            )}
             {race.status === 'locked' && (
               <Pill tone="warning" className="gpp-mono">
                 {race.raceStartAt > now ? (
@@ -228,7 +225,7 @@ export function RaceCard({
           {/* Weekend sessions */}
           {scheduleEntries.length > 0 && (
             <div className="mt-0.5 flex flex-1 flex-col border-t border-border/60 pt-1.5">
-              <div className="mb-1 flex items-center justify-between text-xs font-medium tracking-label text-text-muted uppercase">
+              <div className="mb-1 flex items-center justify-between gap-2 text-xs font-medium tracking-label text-text-muted uppercase">
                 <span className="inline-flex items-center gap-1">
                   <Calendar size={12} aria-hidden />
                   Weekend Sessions
@@ -238,26 +235,57 @@ export function RaceCard({
                 ) : null}
               </div>
               <div className="grid flex-1 grid-cols-[auto_1fr] content-end items-baseline gap-x-2 gap-y-1 text-sm text-text-muted">
-                {scheduleEntries.map((entry) => (
-                  <div key={entry.type} className="contents">
-                    <span
-                      className={`font-medium ${
-                        entry.type === 'race' ? 'text-text' : ''
-                      }`}
-                    >
-                      {SESSION_LABELS[entry.type]}
-                    </span>
-                    <span
-                      suppressHydrationWarning
-                      className={`gpp-mono text-right ${
-                        entry.type === 'race' ? 'font-semibold text-text' : ''
-                      }`}
-                    >
-                      {formatDate(entry.startAt)} · {formatTime(entry.startAt)}
-                    </span>
-                  </div>
-                ))}
+                {scheduleEntries.map((entry) => {
+                  // Same state the dashboard's session chips carry: an icon and
+                  // a tone, no status word. A race doc has no per-session
+                  // results, so this stops at open / locked — the trophy state
+                  // needs data this card does not load.
+                  const isSessionLocked =
+                    now >= getRaceSessionLockAt(race, entry.type);
+                  const SessionIcon = isSessionLocked ? Lock : Clock3;
+                  return (
+                    <div key={entry.type} className="contents">
+                      <span
+                        className={`inline-flex items-center gap-1.5 font-medium ${
+                          entry.type === 'race' ? 'text-text' : ''
+                        }`}
+                      >
+                        <SessionIcon
+                          className={`size-3 shrink-0 ${
+                            isSessionLocked ? 'text-warning' : 'text-accent'
+                          }`}
+                          aria-hidden
+                        />
+                        {SESSION_LABELS[entry.type]}
+                      </span>
+                      <span
+                        suppressHydrationWarning
+                        className={`gpp-mono text-right ${
+                          entry.type === 'race' ? 'font-semibold text-text' : ''
+                        }`}
+                      >
+                        {formatDate(entry.startAt)} ·{' '}
+                        {formatTime(entry.startAt)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
+              {/* The countdown reads as the dashboard hero's clock line rather
+                  than a bordered pill: quiet mono, the value carrying the
+                  emphasis. It sits under the sessions it describes, so "locks
+                  in" needs no session name. */}
+              {isPredictable && msUntilLock > 0 && (
+                <p
+                  className="gpp-mono mt-1.5 flex min-h-5 items-center justify-end text-xs whitespace-nowrap text-text-muted"
+                  suppressHydrationWarning
+                >
+                  locks in
+                  <strong className="ml-1.5 font-medium text-text">
+                    {formatLockCountdown(msUntilLock)}
+                  </strong>
+                </p>
+              )}
             </div>
           )}
         </div>

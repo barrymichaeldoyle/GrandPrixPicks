@@ -112,9 +112,9 @@ export function H2HSection({
     h2hPredictions === undefined || matchups === undefined;
   const canEditSelectedSession = Boolean(
     canManagePredictions &&
-      !isLoadingPredictions &&
-      hasH2HPredictions &&
-      !selectedSessionLocked,
+    !isLoadingPredictions &&
+    hasH2HPredictions &&
+    !selectedSessionLocked,
   );
   const selectedSessionHasH2H =
     !isLoadingPredictions && h2hPredictions?.[selectedSession] != null;

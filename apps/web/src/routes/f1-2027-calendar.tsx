@@ -3,97 +3,75 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { CalendarClock, ChevronRight, Flag } from 'lucide-react';
 
+import {
+  CALENDAR_2027,
+  CALENDAR_2027_ANNOUNCED_LABEL,
+  CALENDAR_2027_REVIEWED_AT,
+  CALENDAR_2027_REVIEWED_LABEL,
+  sprintRounds,
+} from '@/lib/calendar2027';
+import { getCountryCodeForRaceSlug } from '@grandprixpicks/shared/raceCountries';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
+import { RaceFlag } from '@/components/RaceFlag';
 import { PicksCallToAction } from '@/components/PicksCallToAction/PicksCallToAction';
 
 /**
- * The 2027 calendar, before there is a 2027 calendar.
+ * The 2027 calendar, now that there is a 2027 calendar.
  *
- * Deliberately not a table of dates. Nothing about 2027 is official until the
- * FIA ratifies it, and a grid of TBC rows is exactly the placeholder shape that
- * got this site turned down by AdSense once already. What this page can do
- * honestly is answer the questions people are typing now: whether it is
- * confirmed, when it usually becomes confirmed, and what is being reported in
- * the meantime, clearly marked as reporting rather than fact.
+ * This page spent a year answering "has it been confirmed yet", because a grid
+ * of TBC rows is the placeholder shape that got the site turned down by AdSense
+ * once already. The FIA ratified the list on 16 September 2026, so the holding
+ * page became the round list it always said it would become, and the reporting
+ * section went with it.
  *
- * When the calendar is ratified this becomes the round list and the reporting
- * section goes. Until then every claim here has to survive being wrong about
- * the rumours.
+ * The dates live in `@/lib/calendar2027`, which is where a re-check happens.
+ * This file only decides how they are shown.
  */
 
-/** Bumped by hand whenever the reported section below is re-checked. */
-const LAST_REVIEWED = '1 September 2026';
-
-const PAGE_TITLE = 'F1 2027 Calendar | Grand Prix Picks';
+const PAGE_TITLE = 'F1 2027 Calendar: All 24 Races | Grand Prix Picks';
 const PAGE_DESCRIPTION =
-  'The 2027 F1 calendar is not official yet. F1 says it will publish in autumn 2026. Here is the 24-race plan being discussed and what happens if the opener moves.';
-
-const REPORTED_ROWS = [
-  {
-    term: 'When it comes out',
-    detail:
-      'Formula 1 has said autumn 2026. It may still change the list before the year ends.',
-  },
-  {
-    term: 'How many races',
-    detail:
-      '24. F1 has said that number still holds if the first races have to move.',
-  },
-  {
-    term: 'Season opener',
-    detail:
-      'Bahrain in mid-March, then Saudi Arabia a week later. Reports currently have 12–14 March and 19–21 March.',
-  },
-  {
-    term: 'Tracks coming back',
-    detail: 'Istanbul Park is confirmed. Reports have Portimão returning too.',
-  },
-  {
-    term: 'Testing',
-    detail:
-      'Bahrain, last week of February, on the current plan. Barcelona is the standby if that cannot happen.',
-  },
-  {
-    term: 'If the Middle East races cannot run',
-    detail:
-      'F1 says it has other options. Reports have named China as a possible March start.',
-  },
-] as const;
+  'The confirmed 2027 F1 calendar: 24 races from Bahrain on 14 March to Abu Dhabi on 12 December, ten sprint weekends, and Portugal and Türkiye back.';
 
 const FAQS = [
   {
     question: 'Has the 2027 F1 calendar been confirmed?',
     answer:
-      'No. F1 has not published it, and the FIA has not ratified it. Treat every date you see as unofficial.',
+      'Yes. The FIA World Motor Sport Council approved it on 16 September 2026 and Formula 1 published it the same day. Rounds can still be amended, as they are most seasons.',
   },
   {
-    question: 'When will it be announced?',
+    question: 'When does the 2027 F1 season start?',
     answer:
-      'F1 has said autumn 2026, with room to change it before the year is out.',
+      'The Bahrain Grand Prix at Sakhir on 12 to 14 March 2027, which is also a sprint weekend. Saudi Arabia follows a week later.',
   },
   {
-    question: 'When does the 2027 season start?',
+    question: 'When does the 2027 F1 season finish?',
     answer:
-      'Nothing is official. Reports have Bahrain on 12–14 March and Saudi Arabia the next weekend.',
+      'The Abu Dhabi Grand Prix at Yas Marina on 10 to 12 December 2027, a sprint weekend and the second half of a December double header with Qatar.',
   },
   {
-    question: 'How many races in 2027?',
-    answer: 'F1 is targeting 24. The 2026 season on this site has 23.',
-  },
-  {
-    question: 'What if Bahrain and Saudi Arabia cannot open the season?',
+    question: 'How many races are in the 2027 F1 season?',
     answer:
-      'F1 says it has other plans. Reports have pointed to China as a possible March opener.',
+      'Twenty-four, the fourth season in a row at that number. The 2026 season on this site has 23.',
   },
   {
-    question: 'Will there be sprints in 2027?',
+    question: 'How many sprint races are there in 2027?',
     answer:
-      'Almost certainly, but the number and venues are not set. Recent seasons have used six sprint weekends.',
+      'Ten, up from six. Bahrain, Australia, Japan, Monaco and Abu Dhabi hold a sprint for the first time, and Canada, Great Britain, Italy, Brazil and Qatar keep theirs.',
   },
   {
-    question: 'Where will the official dates appear?',
+    question: 'Which races are new on the 2027 F1 calendar?',
     answer:
-      'On this page, and on the 2027 race list once the rounds are loaded.',
+      'Portugal returns at Portimão on 18 to 20 June and Türkiye returns at Istanbul Park on 1 to 3 October. Both last held a Grand Prix in 2021.',
+  },
+  {
+    question: 'Which races are not on the 2027 F1 calendar?',
+    answer:
+      'Barcelona-Catalunya and the Dutch Grand Prix at Zandvoort. Madrid keeps the Spanish Grand Prix name on 10 to 12 September.',
+  },
+  {
+    question: 'When is 2027 pre-season testing?',
+    answer:
+      'One four-day test at the Bahrain International Circuit, 24 to 27 February 2027.',
   },
 ] as const;
 
@@ -105,7 +83,7 @@ export const Route = createFileRoute('/f1-2027-calendar')({
       title: PAGE_TITLE,
       description: PAGE_DESCRIPTION,
       path: '/f1-2027-calendar',
-      imageAlt: 'F1 2027 calendar, still unofficial',
+      imageAlt: 'The confirmed 2027 F1 calendar',
     });
     return {
       ...meta,
@@ -122,6 +100,10 @@ export const Route = createFileRoute('/f1-2027-calendar')({
                 name: 'F1 2027 Calendar',
                 description: PAGE_DESCRIPTION,
                 inLanguage: 'en',
+                // The reviewed stamp the reader sees, in the form a crawler
+                // reads. Both come from the data file, so a date edit without
+                // a review bump cannot quietly claim freshness.
+                dateModified: CALENDAR_2027_REVIEWED_AT,
                 isPartOf: { '@id': `${siteConfig.url}/#app` },
               },
               {
@@ -144,26 +126,41 @@ export const Route = createFileRoute('/f1-2027-calendar')({
   },
 });
 
+/** Nothing on the 2027 list is missing a flag, but the map can return null. */
+function RoundFlag({ slug }: { slug: string }) {
+  const code = getCountryCodeForRaceSlug(slug);
+  return code ? <RaceFlag countryCode={code} size="sm" /> : null;
+}
+
+function SprintPill() {
+  return (
+    <span className="inline-flex w-fit shrink-0 items-center rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-accent">
+      Sprint
+    </span>
+  );
+}
+
 function F1Calendar2027Page() {
+  const sprints = sprintRounds();
+  const opener = CALENDAR_2027[0];
+  const finale = CALENDAR_2027[CALENDAR_2027.length - 1];
+
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-(--page-max) px-4 py-6 sm:py-8">
         <header className="max-w-4xl">
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
-            <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
-              The 2027 F1 calendar
-            </h1>
-            <span className="inline-flex w-fit items-center rounded-full border border-warning/35 bg-warning-muted/40 px-3 py-1 text-xs font-semibold text-warning">
-              Unofficial
-            </span>
-          </div>
+          <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
+            The 2027 F1 calendar
+          </h1>
           <p className="gpp-label mt-3 text-text-muted">
-            Last reviewed {LAST_REVIEWED}
+            Last reviewed {CALENDAR_2027_REVIEWED_LABEL}
           </p>
           <p className="gpp-reading-copy mt-4 text-text-muted">
-            Formula 1 has not signed off a 2027 calendar. It has said it will
-            publish one in autumn 2026. Dates can still move after that, until
-            the FIA ratifies the list.
+            The FIA World Motor Sport Council approved the 2027 calendar on{' '}
+            {CALENDAR_2027_ANNOUNCED_LABEL} and Formula 1 published it the same
+            day. That is {CALENDAR_2027.length} rounds, from Bahrain on{' '}
+            {opener.dates} to Abu Dhabi on {finale.dates}, with {sprints.length}{' '}
+            sprint weekends.
           </p>
           <p className="gpp-reading-copy mt-4 text-text-muted">
             <Link
@@ -176,38 +173,57 @@ function F1Calendar2027Page() {
           </p>
         </header>
 
-        <section aria-labelledby="plan-so-far" className="mt-10 sm:mt-12">
+        <section aria-labelledby="every-round" className="mt-10 sm:mt-12">
           <h2
-            id="plan-so-far"
+            id="every-round"
             className="font-title text-2xl font-semibold text-text sm:text-3xl"
           >
-            The 2027 plan so far
+            Every round
           </h2>
-          <p className="gpp-reading-copy mt-3 max-w-3xl text-text-muted">
-            Last reviewed {LAST_REVIEWED}.
-          </p>
-          <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-surface">
-            <table className="w-full min-w-[20rem] table-fixed border-collapse text-sm sm:min-w-[36rem] sm:table-auto">
+          <div className="mt-6 overflow-x-auto rounded-xl border border-border">
+            <table className="w-full min-w-[20rem] border-collapse text-sm sm:min-w-[40rem]">
               <caption className="sr-only">
-                Unofficial 2027 Formula 1 calendar details.
+                The 2027 Formula 1 calendar: every round with its venue, dates
+                and whether it runs a sprint.
               </caption>
-              <thead className="sr-only">
-                <tr>
-                  <th scope="col">Item</th>
-                  <th scope="col">Detail</th>
+              <thead>
+                <tr className="bg-surface-muted/40 text-left">
+                  <th scope="col" className="gpp-label px-3 py-3 sm:px-4">
+                    Rd
+                  </th>
+                  <th scope="col" className="gpp-label px-3 py-3 sm:px-4">
+                    Grand Prix
+                  </th>
+                  <th scope="col" className="gpp-label px-3 py-3 sm:px-4">
+                    Dates
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {REPORTED_ROWS.map((row) => (
-                  <tr key={row.term} className="border-b border-border/60">
+                {CALENDAR_2027.map((round) => (
+                  <tr key={round.round} className="border-t border-border/70">
+                    <td className="gpp-mono px-3 py-3 align-top text-text-muted sm:px-4">
+                      {round.round}
+                    </td>
                     <th
                       scope="row"
-                      className="px-4 py-3.5 align-top text-sm font-semibold text-text sm:py-4 sm:pr-2"
+                      className="px-3 py-3 text-left align-top font-medium text-text sm:px-4"
                     >
-                      {row.term}
+                      <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                        <RoundFlag slug={round.slug} />
+                        {round.name}
+                        {round.sprint ? <SprintPill /> : null}
+                      </span>
+                      {/* The venue sits under the name rather than in a
+                          column of its own: a fourth column leaves the dates
+                          two words a line on a phone, and rendering it in both
+                          places put every venue into the page twice. */}
+                      <span className="gpp-reading-meta mt-1 block text-text-muted">
+                        {round.venue}
+                      </span>
                     </th>
-                    <td className="gpp-reading-copy px-4 py-3.5 align-top text-text-muted sm:py-4">
-                      {row.detail}
+                    <td className="px-3 py-3 align-top whitespace-nowrap text-text-muted sm:px-4">
+                      {round.dates}
                     </td>
                   </tr>
                 ))}
@@ -215,7 +231,45 @@ function F1Calendar2027Page() {
             </table>
           </div>
           <p className="gpp-reading-meta mt-4 rounded-lg border border-border/70 bg-surface-muted/30 px-4 py-3 text-text-muted">
-            Dates can still move before the FIA list is final.
+            Session times are not published this far out. Dates can still be
+            amended before the season starts, as they are most years.
+          </p>
+        </section>
+
+        <section aria-labelledby="what-changed" className="mt-12 sm:mt-16">
+          <h2
+            id="what-changed"
+            className="font-title text-2xl font-semibold text-text sm:text-3xl"
+          >
+            What changed from 2026
+          </h2>
+          <p className="gpp-reading-copy mt-3 max-w-3xl text-text-muted">
+            Portugal comes back at Portimão in mid-June and Türkiye comes back
+            at Istanbul Park at the start of October, both for the first time
+            since 2021. Formula 1 has signed Istanbul on a deal that runs to the
+            end of 2031. Barcelona-Catalunya and the Dutch Grand Prix at
+            Zandvoort leave the calendar, and Madrid keeps the Spanish Grand
+            Prix name.
+          </p>
+          <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
+            The larger change is the sprint. There were six in 2026 and there
+            are {sprints.length} in 2027. Bahrain, Australia, Japan, Monaco and
+            Abu Dhabi run one for the first time, and Canada, Great Britain,
+            Italy, Brazil and Qatar keep theirs. Monaco is the surprise of the
+            ten, and the first and last rounds of a season have never both been
+            sprints before. Pre-season testing shrinks to a single four-day run
+            at Sakhir from 24 to 27 February.
+          </p>
+          <p className="gpp-reading-meta mt-4 max-w-3xl text-text-muted">
+            A sprint weekend is four sessions to predict rather than two.{' '}
+            <Link
+              to="/guides/$guideSlug"
+              params={{ guideSlug: 'f1-race-weekend-format' }}
+              className="font-medium text-accent underline-offset-2 hover:underline"
+            >
+              What happens across a race weekend
+            </Link>{' '}
+            covers the order they run in.
           </p>
         </section>
 
@@ -239,23 +293,6 @@ function F1Calendar2027Page() {
               </div>
             ))}
           </dl>
-        </section>
-
-        <section
-          aria-labelledby="season-shape"
-          className="mt-10 rounded-lg border border-border/60 bg-surface-muted/20 p-5 sm:mt-12 sm:p-6"
-        >
-          <h2
-            id="season-shape"
-            className="text-base font-semibold text-text-muted"
-          >
-            A normal F1 season
-          </h2>
-          <p className="gpp-reading-meta mt-3 text-text-muted">
-            A season runs from March to December. A normal weekend is practice,
-            qualifying, then the race. A sprint weekend drops two practices and
-            adds a short Saturday race.
-          </p>
         </section>
 
         <aside
@@ -289,20 +326,19 @@ function F1Calendar2027Page() {
             </li>
             <li>
               <Link
-                to="/guides/$guideSlug"
-                params={{ guideSlug: 'f1-race-weekend-format' }}
+                to="/f1-predictions-this-weekend"
                 className="group flex h-full flex-col rounded-lg border border-border p-4 transition-colors hover:border-accent/40 hover:bg-surface-muted/30"
               >
                 <span className="inline-flex items-center gap-2 font-semibold text-text group-hover:text-accent">
                   <CalendarClock className="h-4 w-4 text-accent" aria-hidden />
-                  What happens across a race weekend
+                  This weekend's round
                   <ChevronRight
                     className="h-4 w-4 text-text-muted group-hover:text-accent"
                     aria-hidden
                   />
                 </span>
                 <span className="gpp-reading-meta mt-2 text-text-muted">
-                  Each session, and what it is for.
+                  Sessions, the grid and when each set of picks locks.
                 </span>
               </Link>
             </li>

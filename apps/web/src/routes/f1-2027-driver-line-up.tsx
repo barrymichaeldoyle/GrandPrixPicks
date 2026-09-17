@@ -21,11 +21,13 @@ import { PicksCallToAction } from '@/components/PicksCallToAction/PicksCallToAct
 /**
  * Who is driving what in 2027, while the answer is still being decided.
  *
- * The sibling of `/f1-2027-calendar` and built on the same principle: a page
- * about next season earns its place by being honest about what is not settled
- * yet, not by filling 22 rows with plausible names. Every seat therefore
- * carries a status and the reason for it, and the two seats nobody can call
- * are given the space at the top rather than buried in alphabetical order.
+ * The sibling of `/f1-2027-calendar`, which became a round list when the FIA
+ * ratified the dates on 16 September 2026. This page cannot, because a page
+ * about next season's seats earns its place by being honest about what is not
+ * settled yet rather than filling 22 rows with plausible names. Every seat
+ * therefore carries a status and the reason for it, and the two seats nobody
+ * can call are given the space at the top rather than buried in alphabetical
+ * order.
  *
  * All the facts live in `@/lib/lineUp2027`, which is where a re-check happens.
  * This file only decides how they are shown.

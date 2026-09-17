@@ -45,6 +45,8 @@ const SLUG_TO_COUNTRY: Record<string, string> = {
   'saudi-arabian': 'sa',
   singapore: 'sg',
   spain: 'es',
+  turkey: 'tr',
+  turkiye: 'tr',
   uae: 'ae',
   'united-states': 'us',
   usa: 'us',

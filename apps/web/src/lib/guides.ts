@@ -126,7 +126,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
   // retain the shortlist as dated context, and bump guideMeta.updatedAt.
   'f1-2027-haas-second-seat': {
     status:
-      'As of 9 September 2026, Haas has not announced who will take the second seat for 2027.',
+      'As of 17 September 2026, Haas has not announced who will take the second seat for 2027. Reporting now puts Rafael Câmara in front.',
     hero: {
       src: '/images/guides/haas-monza-2025.jpg',
       width: 1280,
@@ -145,7 +145,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         heading: 'What Komatsu has said',
         paragraphs: [
           'Writing for the Japanese publication as-web.jp during the Monza weekend, Ayao Komatsu named the five drivers in contention for one 2027 Haas seat.',
-          'Ocon has the seat now and is one of the five. Haas has been comparing the others in private testing. Grandprix.com reports that Hirakawa, Fornaroli and Bearman were within a tenth of a second of each other at Jerez, and that Haas gathered more data at Portimao afterwards. Doohan’s own test is due at Jerez, and Haas has not said the seat has been offered to anyone.',
+          'Ocon has the seat now and is one of the five. Haas has been comparing the others in private testing. Grandprix.com reports that Hirakawa, Fornaroli and Bearman were within a tenth of a second of each other at Jerez, and that Haas gathered more data at Portimao afterwards. Doohan drove the 2025 car at Jerez on 17 September, the last of the runs Haas said it wanted before deciding, and Haas has not said the seat has been offered to anyone.',
         ],
         sources: [
           {
@@ -156,6 +156,20 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           {
             label: 'SPEEDWEEK: Komatsu’s comments at Monza (5 September)',
             url: 'https://www.speedweek.com/en/a/formula-1/haas-team-principal-ayao-komatsu-these-five-drivers-are-in-the-running-for-2027',
+          },
+        ],
+      },
+      {
+        heading: 'Where the contest stands',
+        paragraphs: [
+          'Grandprix.com reported on 17 September 2026 that reporting in Europe and Brazil places Câmara at the front of the queue to partner Bearman, and that neither Haas nor Ferrari has announced an agreement. GPblog puts the move at 90 percent through its paddock sources, and Grande Prêmio suggests he could be announced around his home Grand Prix in São Paulo.',
+          'Câmara’s case rests on a private Haas test at Portimão in late August. Brazilian reports say he produced the strongest comparison of the candidates who drove the car, though Haas has not published the times. Ocon is still formally part of the process, because the five Komatsu named have not been cut.',
+        ],
+        sources: [
+          {
+            label:
+              'Grandprix.com: Câmara moves to the front of the Haas queue (17 September 2026)',
+            url: 'https://www.grandprix.com/news/camara-moves-to-front-of-haas-queue-for-2027-seat.html',
           },
         ],
       },
@@ -320,7 +334,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
       {
         heading: 'When will Haas decide?',
         paragraphs: [
-          'Haas has named no date, and none appears in the reporting linked here. Komatsu’s shortlist leaves the seat open to Ocon and to the four drivers who would replace him. This guide will be updated when Haas confirms its 2027 line-up, and the five names will stay as the shortlist it considered.',
+          'Haas has named no date. Komatsu’s shortlist leaves the seat open to Ocon and to the four drivers who would replace him, and the last test it said it wanted, Doohan at Jerez, ran on 17 September. The only timing anyone has reported is Grande Prêmio’s suggestion of an announcement around Câmara’s home race in São Paulo on 8 November. This guide will be updated when Haas confirms its 2027 line-up, and the five names will stay as the shortlist it considered.',
         ],
         sources: [
           {

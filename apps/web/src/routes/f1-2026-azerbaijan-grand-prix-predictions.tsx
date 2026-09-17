@@ -1,5 +1,5 @@
 import { api } from '@convex-generated/api';
-import { createFileRoute, notFound } from '@tanstack/react-router';
+import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { BakuCrashMap } from '@/components/race-writeups/BakuCrashMap';
@@ -50,6 +50,8 @@ const QUALIFYING_2025_SOURCE =
   'https://www.autosport.com/f1/news/six-shunts-azerbaijans-2025-f1-qualifying-broke-a-red-flag-record/10761064/';
 const RACE_SOURCE =
   'https://www.formula1.com/en/latest/article/what-the-teams-said-race-day-in-azerbaijan-2025.6AWm00FUiNNbYWhkFqRjLH';
+const MADRID_RESULT_SOURCE =
+  'https://www.formula1.com/en/latest/article/antonelli-clinches-victory-over-verstappen-and-norris-in-spanish-gp.644ZZfPzRPEaUh2JBHcB9';
 
 const FAQS = [
   {
@@ -190,6 +192,7 @@ function AzerbaijanGrandPrixPredictionsPage() {
             raceSlug={RACE_SLUG}
             schedule={race}
           />
+          <MadridRecap />
           <RaceWriteupChampionshipContext
             championship={championship}
             races={season.races}
@@ -316,5 +319,40 @@ function TyreChoice() {
         .
       </p>
     </TyreCompoundSection>
+  );
+}
+
+/** The previous round’s result, with a link to its full write-up. */
+function MadridRecap() {
+  return (
+    <RaceWriteupSection
+      id="madrid-recap"
+      heading="Norris lost pole in the pits, Antonelli won"
+    >
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Norris took pole for the Madring&rsquo;s debut but lost the race in the
+        pits: a Virtual Safety Car for Stroll&rsquo;s stopped car let Antonelli
+        pit and rejoin ahead of him. Antonelli went on to win by 4.3 seconds
+        from Verstappen, with Norris recovering from fifth to complete the
+        podium in third. Leclerc finished fourth and Russell fifth. Hamilton
+        retired early with brake problems.{' '}
+        <ExternalSource href={MADRID_RESULT_SOURCE}>
+          The Madrid race report
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Madrid rewarded strategy and pit timing on a tight street-style layout.
+        Baku&rsquo;s straight is over a kilometre long, so raw top speed counts
+        for more here than it did last weekend.{' '}
+        <Link
+          to="/f1-2026-madrid-grand-prix-predictions"
+          className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+        >
+          Madrid results and predictions
+        </Link>
+        .
+      </p>
+    </RaceWriteupSection>
   );
 }

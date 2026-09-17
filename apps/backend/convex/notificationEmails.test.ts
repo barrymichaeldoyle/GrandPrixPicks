@@ -96,7 +96,7 @@ describe('email preference enforcement', () => {
   });
 });
 
-it('enqueues a real Resend component job with an unsubscribe token, once', async () => {
+it('schedules exactly one delivery, with an unsubscribe token, once', async () => {
   const { default: resendTest } = await import('@convex-dev/resend/test');
   vi.useFakeTimers();
   vi.stubEnv('CONVEX_SITE_URL', 'https://test.convex.site');
@@ -143,6 +143,22 @@ it('enqueues a real Resend component job with an unsubscribe token, once', async
     expect(
       (await t.run((ctx) => ctx.db.get(ids.userId)))?.unsubscribeToken?.length,
     ).toBeGreaterThan(60);
+    // `send` flips the job and schedules the render in one transaction, so a
+    // second call must find it already `accepted` and schedule nothing more.
+    const scheduled = await t.run((ctx) =>
+      ctx.db.system
+        .query('_scheduled_functions')
+        .filter((q) =>
+          q.eq(q.field('name'), 'emails/deliverNotificationEmail:deliver'),
+        )
+        .collect(),
+    );
+    expect(scheduled).toHaveLength(1);
+    expect(scheduled[0].args[0]).toMatchObject({
+      to: 'delivered@resend.dev',
+      idempotencyKey: job.key,
+      payload: { kind: 'reminder', raceName: 'Test' },
+    });
   } finally {
     resend.config.apiKey = originalKey;
     vi.unstubAllEnvs();

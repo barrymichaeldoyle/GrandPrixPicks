@@ -37,8 +37,11 @@
       "ignoreBinaries": ["cloudflared"]
     },
     "apps/backend": {
-      "entry": ["convex/**/*.ts"],
-      "project": ["convex/**/*.ts"]
+      // .tsx matters: the React Email templates live here, and while the globs
+      // said .ts only, knip could not see them. A whole retired email suite
+      // survived that blind spot unreferenced.
+      "entry": ["convex/**/*.{ts,tsx}"],
+      "project": ["convex/**/*.{ts,tsx}"]
     },
     "apps/mobile": {
       "entry": ["App.tsx"],

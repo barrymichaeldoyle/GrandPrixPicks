@@ -1,7 +1,14 @@
 import { v } from 'convex/values';
 import { vOnEmailEventArgs } from '@convex-dev/resend';
+import { getCountryCodeForRaceSlug } from '@grandprixpicks/shared/raceCountries';
+import { SESSION_LABELS_FULL } from '@grandprixpicks/shared/sessions';
 import { internal } from './_generated/api';
 import { internalMutation } from './_generated/server';
+import type { DeliverPayload } from './emails/deliverNotificationEmail';
+import {
+  buildRaceEmailUrl,
+  buildWeekendLeaderboardEmailUrl,
+} from './emails/urls';
 import {
   healthyReminderPush,
   missingPicks,
@@ -11,21 +18,11 @@ import {
   shouldEmailReminder,
   wantsEmailResults,
 } from './lib/notificationChannels';
-import { resend } from './lib/email';
 const kind = v.union(
   v.literal('reminder'),
   v.literal('summary'),
   v.literal('signup'),
 );
-function escape(value: string) {
-  return value.replace(
-    /[&<>"']/g,
-    (c) =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
-        c
-      ]!,
-  );
-}
 export const queue = internalMutation({
   args: {
     userId: v.id('users'),
@@ -138,10 +135,9 @@ export const send = internalMutation({
       return await cancel();
     }
     const now = Date.now();
-    let subject: string;
-    let text: string;
-    let destination: string;
     const appUrl = process.env.APP_URL ?? 'https://grandprixpicks.com';
+    const countryCode = getCountryCodeForRaceSlug(race.slug);
+    let payload: DeliverPayload;
     if (job.kind === 'summary') {
       if (!wantsEmailResults(user)) {
         return await cancel();
@@ -163,11 +159,22 @@ export const send = internalMutation({
       if (!top5.length && !h2h.length) {
         return await cancel();
       }
-      subject = `${race.name}: your weekend summary`;
-      text = `Your weekend score: ${top5.reduce((sum, row) => sum + row.points, 0) + h2h.reduce((sum, row) => sum + row.points, 0)} points.\nTop 5: ${top5.reduce((sum, row) => sum + row.points, 0)} points.\nHead-to-head: ${h2h.reduce((sum, row) => sum + row.points, 0)} points.`;
-      destination = `${appUrl}/leaderboard?time=weekend&raceId=${race._id}`;
+      payload = {
+        kind: 'summary',
+        raceName: race.name,
+        raceUrl: buildWeekendLeaderboardEmailUrl({
+          appUrl,
+          raceId: race._id,
+          campaign: 'weekend_summary',
+        }),
+        round: race.round,
+        countryCode,
+        top5Points: top5.reduce((sum, row) => sum + row.points, 0),
+        h2hPoints: h2h.reduce((sum, row) => sum + row.points, 0),
+      };
     } else {
-      const first = sessionLocks(race)[0];
+      const locks = sessionLocks(race);
+      const first = locks[0];
       if (
         job.expectedLockAt !== undefined &&
         (first?.lockAt !== job.expectedLockAt || job.expectedLockAt <= now)
@@ -180,6 +187,12 @@ export const send = internalMutation({
       ) {
         return await cancel();
       }
+      const raceUrl = buildRaceEmailUrl({
+        appUrl,
+        raceSlug: race.slug,
+        campaign:
+          job.kind === 'signup' ? 'signup_nudge' : 'prediction_reminder',
+      });
       if (job.kind === 'signup') {
         const prediction = await ctx.db
           .query('predictions')
@@ -188,13 +201,31 @@ export const send = internalMutation({
         if (prediction || !first || first.lockAt - now <= 25 * 3600000) {
           return await cancel();
         }
+        payload = { kind: 'signup', raceName: race.name, raceUrl };
+      } else {
+        if (!first) {
+          return await cancel();
+        }
+        // Only the sessions still open: a deadline that has passed is not an
+        // action, and the reminder exists to name the ones that remain.
+        payload = {
+          kind: 'reminder',
+          raceName: race.name,
+          raceUrl,
+          round: race.round,
+          countryCode,
+          lockAt: first.lockAt,
+          sessions: locks
+            .filter((lock) => lock.lockAt > now)
+            .map((lock) => ({
+              label: SESSION_LABELS_FULL[lock.sessionType],
+              startAt: lock.lockAt,
+              isSprint:
+                lock.sessionType === 'sprint' ||
+                lock.sessionType === 'sprint_quali',
+            })),
+        };
       }
-      subject =
-        job.kind === 'signup'
-          ? `Make your ${race.name} picks`
-          : `${race.name}: you have missing picks`;
-      text = `Complete your Top 5 and head-to-head picks before each session starts.`;
-      destination = `${appUrl}/races/${race.slug}`;
     }
     let token = user.unsubscribeToken;
     if (!token) {
@@ -206,22 +237,22 @@ export const send = internalMutation({
       throw new Error('CONVEX_SITE_URL is required for email unsubscribe');
     }
     const category = job.kind === 'summary' ? 'results' : 'reminders';
-    const unsubscribe = `${site}/notifications/unsubscribe?token=${encodeURIComponent(token)}&category=${category}`;
-    const fullText = `${text}\n\n${destination}\n\nUnsubscribe: ${unsubscribe}`;
-    await resend.sendEmail(ctx, {
-      from:
-        process.env.EMAIL_FROM ??
-        'Grand Prix Picks <noreply@grandprixpicks.com>',
-      to: user.email,
-      subject,
-      text: fullText,
-      html: `<html><body style="margin:0;background:#101113;color:#f4f4f5;font-family:Arial,sans-serif"><table role="presentation" style="max-width:560px;width:100%;margin:auto;padding:32px"><tr><td><img src="${escape(appUrl)}/logo-email.png" width="160" alt="Grand Prix Picks"><h1 style="font-size:24px">${escape(subject)}</h1><p>${escape(text).replace(/\n/g, '<br>')}</p><p><a style="color:#D4FF3F" href="${escape(destination)}">${job.kind === 'summary' ? 'Weekend standings' : 'Make picks'}</a></p><p><a style="color:#b5b5bb" href="${escape(unsubscribe)}">Unsubscribe</a></p></td></tr></table></body></html>`,
-      headers: [
-        { name: 'List-Unsubscribe', value: `<${unsubscribe}>` },
-        { name: 'List-Unsubscribe-Post', value: 'List-Unsubscribe=One-Click' },
-      ],
-      idempotencyKey: job.key,
-    });
+    const unsubscribeUrl = `${site}/notifications/unsubscribe?token=${encodeURIComponent(token)}&category=${category}`;
+    // Scheduling commits with this mutation, so flipping the job to `accepted`
+    // here cannot hand the same job to Resend twice.
+    await ctx.scheduler.runAfter(
+      0,
+      internal.emails.deliverNotificationEmail.deliver,
+      {
+        to: user.email,
+        idempotencyKey: job.key,
+        unsubscribeUrl,
+        settingsUrl: `${appUrl}/settings`,
+        logoUrl: `${appUrl}/logo-email.png`,
+        timezone: user.timezone,
+        payload,
+      },
+    );
     await ctx.db.patch(job._id, { status: 'accepted' });
     return null;
   },

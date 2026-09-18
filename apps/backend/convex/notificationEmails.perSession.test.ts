@@ -3,6 +3,7 @@ import { convexTest } from 'convex-test';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { internal } from './_generated/api';
+import type { Id } from './_generated/dataModel';
 import schema from './schema';
 
 const modules = import.meta.glob('./**/*.ts');
@@ -47,9 +48,28 @@ async function sprintWeekendInProgress() {
   return { t, ...ids };
 }
 
+/** A follow-up deadline only reaches people who already started the weekend. */
+async function startWeekend(
+  t: Awaited<ReturnType<typeof sprintWeekendInProgress>>['t'],
+  userId: Id<'users'>,
+  raceId: Id<'races'>,
+) {
+  await t.run((ctx) =>
+    ctx.db.insert('predictions', {
+      userId,
+      raceId,
+      sessionType: 'sprint_quali',
+      picks: [],
+      submittedAt: Date.now(),
+      updatedAt: Date.now(),
+    }),
+  );
+}
+
 describe('per-session reminder email', () => {
   it('reaches an email-only reader before qualifying, not just the first lock', async () => {
-    const { t, raceId } = await sprintWeekendInProgress();
+    const { t, userId, raceId } = await sprintWeekendInProgress();
+    await startWeekend(t, userId, raceId);
     await t.mutation(internal.notificationEmails.fanout, {
       raceId,
       kind: 'reminder',
@@ -97,6 +117,7 @@ describe('per-session reminder email', () => {
 
   it('does not chase a reader about a session they have already picked', async () => {
     const { t, userId, raceId } = await sprintWeekendInProgress();
+    await startWeekend(t, userId, raceId);
     await t.run((ctx) =>
       ctx.db.insert('predictions', {
         userId,
@@ -107,6 +128,22 @@ describe('per-session reminder email', () => {
         updatedAt: Date.now(),
       }),
     );
+    await t.mutation(internal.notificationEmails.fanout, {
+      raceId,
+      kind: 'reminder',
+      sessionType: 'quali',
+    });
+    const [job] = await t.run((ctx) =>
+      ctx.db.query('notificationEmails').collect(),
+    );
+    await t.mutation(internal.notificationEmails.send, { id: job._id });
+    expect((await t.run((ctx) => ctx.db.get(job._id)))?.status).toBe(
+      'cancelled',
+    );
+  });
+
+  it('leaves alone a reader who never opened this weekend', async () => {
+    const { t, raceId } = await sprintWeekendInProgress();
     await t.mutation(internal.notificationEmails.fanout, {
       raceId,
       kind: 'reminder',

@@ -69,6 +69,36 @@ export async function missingPicks(
       ),
   );
 }
+/**
+ * Has this reader engaged with this weekend at all yet?
+ *
+ * Only the opening deadline goes to the whole roster. Chasing someone through
+ * four sessions of a weekend they never opened is how a small list earns spam
+ * complaints; chasing someone who picked the sprint and forgot the race is the
+ * reminder doing its job.
+ */
+export async function hasStartedWeekend(
+  ctx: MutationCtx | QueryCtx,
+  userId: Id<'users'>,
+  raceId: Id<'races'>,
+) {
+  const [top5, h2h] = await Promise.all([
+    ctx.db
+      .query('predictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', userId).eq('raceId', raceId),
+      )
+      .first(),
+    ctx.db
+      .query('h2hPredictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', userId).eq('raceId', raceId),
+      )
+      .first(),
+  ]);
+  return Boolean(top5 ?? h2h);
+}
+
 export async function healthyReminderPush(
   ctx: MutationCtx | QueryCtx,
   user: Doc<'users'>,

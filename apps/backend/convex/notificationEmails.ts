@@ -12,6 +12,7 @@ import {
   buildWeekendLeaderboardEmailUrl,
 } from './emails/urls';
 import {
+  hasStartedWeekend,
   healthyReminderPush,
   missingPicks,
   sessionLocks,
@@ -220,6 +221,18 @@ async function prepare(ctx: MutationCtx, job: Doc<'notificationEmails'>) {
         return await cancel();
       }
       const first = locks[0];
+      if (
+        // Only the opening deadline goes to the whole roster. A follow-up is
+        // for people who started this weekend and have sessions left, not for
+        // everyone who ignored the first mail.
+        job.sessionType !== undefined &&
+        target !== undefined &&
+        first !== undefined &&
+        target.sessionType !== first.sessionType &&
+        !(await hasStartedWeekend(ctx, user._id, race._id))
+      ) {
+        return await cancel();
+      }
       if (
         // Scoped to the session that is about to lock. Someone who has done
         // qualifying and not the race should not be chased about qualifying.

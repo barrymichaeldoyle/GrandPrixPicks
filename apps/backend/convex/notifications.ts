@@ -14,6 +14,14 @@ import { shouldEmailReminder } from './lib/notificationChannels';
 import { getExpoTokensForUser, dispatchPushTargets } from './push';
 const TWENTY_FOUR_HOURS_MS = 86400000;
 const TWO_HOURS_MS = 7200000;
+/**
+ * How close to the first lock the signup nudge stops firing. Inside this
+ * window the T-24h deadline reminder already owns the conversation, and two
+ * mails an hour apart read as a mistake.
+ */
+const SIGNUP_NUDGE_LEAD_MS = 25 * 3600000;
+/** Race weekends this nudge waits through before it gives up on a new account. */
+const SIGNUP_NUDGE_MAX_ATTEMPTS = 3;
 export const USER_NOTIFICATION_BATCH_SIZE = 100;
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -176,7 +184,7 @@ export const sendH2HRemindersForRaceBatch = internalMutation({
   handler: sendH2HRemindersForRaceBatchCore,
 });
 export const sendSignupPredictionNudgeForUser = internalMutation({
-  args: { userId: v.id('users') },
+  args: { userId: v.id('users'), attempt: v.optional(v.number()) },
   returns: v.null(),
   handler: async (ctx, args) => {
     const user = await ctx.db.get(args.userId);
@@ -184,20 +192,36 @@ export const sendSignupPredictionNudgeForUser = internalMutation({
       return null;
     }
     const now = Date.now();
-    const race = await loadNextUpcomingRace(ctx, now);
-    if (!race) {
-      return null;
-    }
-    const first = sessionLocks(race)[0];
-    if (!first || first.lockAt - now <= 25 * 3600000) {
-      return null;
-    }
     if (
       await ctx.db
         .query('predictions')
         .withIndex('by_user', (q) => q.eq('userId', user._id))
         .first()
     ) {
+      return null;
+    }
+    const race = await loadNextUpcomingRace(ctx, now);
+    if (!race) {
+      return null;
+    }
+    const first = sessionLocks(race)[0];
+    if (!first) {
+      return null;
+    }
+    if (first.lockAt - now <= SIGNUP_NUDGE_LEAD_MS) {
+      // Signing up during a race weekend is the common case, not the edge, and
+      // this used to drop the nudge on the floor: the people most likely to be
+      // here because a race is on were the ones never asked to make a pick.
+      // Wait for the next round instead. `predictionLockAt` is the weekend's
+      // last lock, so once it passes `loadNextUpcomingRace` has moved on.
+      const attempt = (args.attempt ?? 0) + 1;
+      if (attempt < SIGNUP_NUDGE_MAX_ATTEMPTS) {
+        await ctx.scheduler.runAt(
+          race.predictionLockAt + 3600000,
+          internal.notifications.sendSignupPredictionNudgeForUser,
+          { userId: user._id, attempt },
+        );
+      }
       return null;
     }
     const push = await healthyReminderPush(ctx, user, now);

@@ -119,20 +119,21 @@ footer on one run and 118 on the next, because `/f1-predictions-this-weekend`
 renders a signed-out "Sign in" control after its footer and whether that reaches
 the crawler depends on the edge cache.
 
-Baseline, measured against prod on 2026-09-08 after the practice pages and
-three guides were removed:
+Baseline, measured against prod. The 2026-09-08 column is the state after the
+practice pages and three guides were removed; the 2026-09-18 column is the
+current reading, after the Haas seat guide and the ratified 2027 calendar:
 
-|                        | 2026-09-06 refusal | after circuit pages | now      |
-| ---------------------- | ------------------ | ------------------- | -------- |
-| Sitemap URLs           | 82                 | 58                  | **42**   |
-| Templated              | 72%                | 71%                 | **60%**  |
-| Worst overlap anywhere | 67-74%             | 37%                 | **37%**  |
-| Cross-template at 50%+ | 19 pages           | none                | **none** |
+|                        | 2026-09-06 refusal | after circuit pages | 2026-09-08 | 2026-09-18 |
+| ---------------------- | ------------------ | ------------------- | ---------- | ---------- |
+| Sitemap URLs           | 82                 | 58                  | 42         | **43**     |
+| Templated              | 72%                | 71%                 | 60%        | **60%**    |
+| Worst overlap anywhere | 67-74%             | 37%                 | 37%        | **37%**    |
+| Cross-template at 50%+ | 19 pages           | none                | none       | **none**   |
 
 The 67-74% band that got the circuit pages deleted is gone, and the worst
-figure left is 37% between two race pages, inside the 17-35% band this doc
-calls normal. Templates are now race (18), write-up (5) and guide (2), with 17
-standalone pages.
+figure left is 37% between `/races/hungary-2026` and `/races/austria-2026`,
+inside the 17-35% band this doc calls normal. Templates are now race (18),
+write-up (5) and guide (3), with 17 standalone pages.
 
 The manual version, if the script is ever in doubt:
 
@@ -150,6 +151,34 @@ hardcode 135, it moves when the header or footer changes), then report:
 - for each page, the single other page on the site it overlaps most with. This
   last one is what found the circuit problem, and the sibling-only comparison
   missed it entirely.
+
+## How a change gets announced
+
+Bing, Yandex, Seznam and Naver consume IndexNow; **Google ignores it**, so this
+speeds up the smaller engines only and is not ranking work. Two mechanisms, and
+they deliberately do not overlap:
+
+- **A publish pings immediately.** `results.ts` and `practiceResults.ts` call
+  `indexNow.submitPublishedResult` / `submitPublishedPractice`, which submit the
+  fixed URL lists in `packages/shared/src/indexNow.ts`: the race page, the
+  tables a result moves, and the practice page whose `noindex` just came off.
+- **An hourly sweep catches everything a person edited.** `indexNow.sweepSitemap`
+  reads the **live** sitemap, compares each `lastmod` against
+  `indexNowSubmissions`, and submits what moved. `isCoveredByPublishPing` skips
+  the URLs the publish path already owns, so nothing is submitted twice.
+
+The sweep reads prod rather than the deployment it runs in, because Convex
+deploys before web: a sweep run against source could announce a page that is
+not live yet. It records a URL on first sight **without** submitting it, so
+shipping it did not submit ten unchanged pages at once, and it banks a stamp
+only after the POST succeeds.
+
+This covers exactly the pages nothing else announces: the guides, the five race
+write-ups, and the two 2027 reference pages. A page with no `lastmod` in the
+sitemap is skipped, because it has no review stamp to compare against.
+
+Submitting URLs that did not change is how a site gets its quota throttled, so
+resist widening either list.
 
 ## Before requesting another review
 

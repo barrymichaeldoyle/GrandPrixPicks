@@ -773,6 +773,19 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_token', ['token']),
 
+  /**
+   * The `lastmod` this site last told IndexNow about, per URL.
+   *
+   * Only the sweep writes here, and only for pages no publish already pings.
+   * A row means "Bing has been told about this stamp", so a missing row is a
+   * page the sweep has not learned yet rather than a page that never changed.
+   */
+  indexNowSubmissions: defineTable({
+    url: v.string(),
+    lastmod: v.string(),
+    submittedAt: v.number(),
+  }).index('by_url', ['url']),
+
   processedPaddleWebhookEvents: defineTable({
     eventId: v.string(),
     eventType: v.optional(v.string()),

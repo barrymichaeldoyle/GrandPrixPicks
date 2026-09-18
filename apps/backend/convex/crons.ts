@@ -37,6 +37,17 @@ crons.interval(
 // MET Norway supplies cache headers, while weather.refreshWeather adds a
 // slower adaptive cadence until the race is close. The hourly tick therefore
 // does not imply an hourly provider request throughout the forecast window.
+// The publish pings announce a result the moment it lands. Nothing announced a
+// hand-edited page, so a guide or a write-up waited for an organic crawl.
+// Hourly is well inside the time it takes anyone to notice a stale page, and a
+// sweep with nothing to report costs one sitemap fetch.
+crons.interval(
+  'sweep sitemap for IndexNow',
+  { hours: 1 },
+  internal.indexNow.sweepSitemap,
+  {},
+);
+
 crons.interval(
   'refresh race weekend weather',
   { hours: 1 },

@@ -62,3 +62,96 @@ export function indexNowUrlsForPublishedPractice(
   const base = origin.replace(/\/$/, '');
   return [`${base}/races/${raceSlug}/practice`, `${base}/races/${raceSlug}`];
 }
+
+/** One sitemap entry that carries a real `lastmod`. */
+export type SitemapEntry = { loc: string; lastmod: string };
+
+/**
+ * The `<url>` blocks of a sitemap that declare a `lastmod`.
+ *
+ * Entries without one are dropped rather than treated as "changed now": the
+ * sitemap gives `lastmod` only where a real date exists to give, so its absence
+ * means the page has no review stamp to compare against, not that it is new.
+ */
+export function parseSitemapEntries(xml: string): SitemapEntry[] {
+  const entries: SitemapEntry[] = [];
+  for (const block of xml.match(/<url>[\s\S]*?<\/url>/g) ?? []) {
+    const loc = block.match(/<loc>([^<]+)<\/loc>/)?.[1]?.trim();
+    const lastmod = block.match(/<lastmod>([^<]+)<\/lastmod>/)?.[1]?.trim();
+    if (loc && lastmod) {
+      entries.push({ loc, lastmod });
+    }
+  }
+  return entries;
+}
+
+/**
+ * Does a published result or practice classification already ping this URL?
+ *
+ * The sweep exists for the pages nothing else announces. Every URL in
+ * {@link indexNowUrlsForPublishedResult} and
+ * {@link indexNowUrlsForPublishedPractice} is submitted the moment it changes,
+ * so including it here would spend quota asking Bing to recrawl a page it was
+ * told about an hour ago.
+ */
+export function isCoveredByPublishPing(loc: string): boolean {
+  // Parsed by hand rather than with `URL`, which this package's lib target
+  // does not declare. Strip scheme and host, then the query, hash and any
+  // trailing slash, so `/races/x`, `/races/x/` and `/races/x?a=1` agree.
+  const path = loc
+    .replace(/^[a-z][a-z0-9+.-]*:\/\/[^/]*/i, '')
+    .replace(/[?#].*$/, '')
+    .replace(/\/$/, '');
+
+  return (
+    path === '' ||
+    path === '/races' ||
+    path === '/f1-standings' ||
+    path === '/f1-team-mate-battles' ||
+    path === '/leaderboard' ||
+    /^\/races\/[^/]+(\/practice)?$/.test(path)
+  );
+}
+
+/** At most this many URLs per sweep, so a bad diff cannot burn the quota. */
+export const INDEXNOW_SWEEP_LIMIT = 25;
+
+/**
+ * Split a sitemap into what to submit and what to remember.
+ *
+ * A URL seen for the first time is recorded but **not** submitted. Otherwise
+ * the first sweep after this ships would submit every hand-edited page at once,
+ * none of which changed, which is how a site gets its quota throttled. The
+ * cost is that the sweep starts working from the first edit after it sees a
+ * page, rather than claiming credit for edits made before it existed.
+ */
+export function indexNowSitemapDelta(
+  entries: SitemapEntry[],
+  known: ReadonlyMap<string, string>,
+): { submit: SitemapEntry[]; record: SitemapEntry[] } {
+  const firstSeen: SitemapEntry[] = [];
+  const submit: SitemapEntry[] = [];
+
+  for (const entry of entries) {
+    if (isCoveredByPublishPing(entry.loc)) {
+      continue;
+    }
+
+    const previous = known.get(entry.loc);
+    if (previous === entry.lastmod) {
+      continue;
+    }
+
+    if (previous === undefined) {
+      firstSeen.push(entry);
+    } else if (submit.length < INDEXNOW_SWEEP_LIMIT) {
+      submit.push(entry);
+    }
+    // Past the cap the entry is neither submitted nor recorded, so it still
+    // reads as changed on the next sweep. Recording it here would bank a stamp
+    // that was never announced and lose the page for good.
+  }
+
+  // Only what was announced, plus the pages being learned for the first time.
+  return { submit, record: [...firstSeen, ...submit] };
+}

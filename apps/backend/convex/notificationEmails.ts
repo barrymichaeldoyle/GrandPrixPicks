@@ -3,6 +3,8 @@ import { vOnEmailEventArgs } from '@convex-dev/resend';
 import { getCountryCodeForRaceSlug } from '@grandprixpicks/shared/raceCountries';
 import { SESSION_LABELS_FULL } from '@grandprixpicks/shared/sessions';
 import { internal } from './_generated/api';
+import type { Doc } from './_generated/dataModel';
+import type { MutationCtx } from './_generated/server';
 import { internalMutation } from './_generated/server';
 import type { DeliverPayload } from './emails/deliverNotificationEmail';
 import {
@@ -23,6 +25,12 @@ const kind = v.union(
   v.literal('summary'),
   v.literal('signup'),
 );
+/**
+ * Tries before a job is abandoned. The dispatch cron re-runs every `queued`
+ * row once a minute, so anything that fails the same way every time would
+ * otherwise retry until the race is over.
+ */
+const MAX_ATTEMPTS = 5;
 export const queue = internalMutation({
   args: {
     userId: v.id('users'),
@@ -110,6 +118,20 @@ export const send = internalMutation({
     if (!job || job.status !== 'queued') {
       return null;
     }
+    try {
+      return await prepare(ctx, job);
+    } catch (error) {
+      // A throw here rolls back everything this mutation wrote, so the attempt
+      // has to be recorded from the catch or it is never counted at all.
+      await recordFailure(ctx, job, error);
+      return null;
+    }
+  },
+});
+
+async function prepare(ctx: MutationCtx, job: Doc<'notificationEmails'>) {
+  {
+    const args = { id: job._id };
     const [user, race] = await Promise.all([
       ctx.db.get(job.userId),
       ctx.db.get(job.raceId),
@@ -244,6 +266,7 @@ export const send = internalMutation({
       0,
       internal.emails.deliverNotificationEmail.deliver,
       {
+        jobId: job._id,
         to: user.email,
         idempotencyKey: job.key,
         unsubscribeUrl,
@@ -255,8 +278,42 @@ export const send = internalMutation({
     );
     await ctx.db.patch(job._id, { status: 'accepted' });
     return null;
+  }
+}
+
+/**
+ * Counts one failed try and stops the job once it has had enough of them.
+ * Anything short of the ceiling goes back on the queue for the dispatch cron.
+ */
+async function recordFailure(
+  ctx: MutationCtx,
+  job: Doc<'notificationEmails'>,
+  error: unknown,
+) {
+  const attempts = (job.attempts ?? 0) + 1;
+  await ctx.db.patch(job._id, {
+    attempts,
+    error: error instanceof Error ? error.message : String(error),
+    status: attempts >= MAX_ATTEMPTS ? 'failed' : 'queued',
+  });
+}
+
+/** Called by the render action when it could not hand the mail to Resend. */
+export const markDeliveryFailed = internalMutation({
+  args: { id: v.id('notificationEmails'), error: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const job = await ctx.db.get(args.id);
+    // `send` optimistically marks the job `accepted` because scheduling the
+    // action commits with it. Only the action knows the render or the handoff
+    // then failed, so without this the mail is silently lost.
+    if (job) {
+      await recordFailure(ctx, job, args.error);
+    }
+    return null;
   },
 });
+
 export const unsubscribe = internalMutation({
   args: {
     token: v.string(),

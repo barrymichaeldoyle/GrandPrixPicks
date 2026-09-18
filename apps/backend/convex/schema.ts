@@ -691,6 +691,12 @@ export default defineSchema({
       v.literal('failed'),
     ),
     expectedLockAt: v.optional(v.number()),
+    // Bounded retry. `send` and the render action both fail in ways a retry
+    // cannot fix (a missing env var, a template that throws), and the dispatch
+    // cron re-runs every queued row every minute, so without a ceiling one bad
+    // job retries forever and crowds the 100-row window.
+    attempts: v.optional(v.number()),
+    error: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index('by_key', ['key'])

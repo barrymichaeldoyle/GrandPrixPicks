@@ -4,6 +4,7 @@ import { type Infer, v } from 'convex/values';
 import type { ReactElement } from 'react';
 import { render } from 'react-email';
 
+import { internal } from '../_generated/api';
 import { internalAction } from '../_generated/server';
 import { sendEmail } from '../lib/email';
 import { PredictionReminderEmail } from './PredictionReminderEmail';
@@ -125,6 +126,7 @@ export type DeliverPayload = Infer<typeof payload>;
 
 export const deliver = internalAction({
   args: {
+    jobId: v.optional(v.id('notificationEmails')),
     to: v.string(),
     idempotencyKey: v.string(),
     unsubscribeUrl: v.string(),
@@ -135,96 +137,113 @@ export const deliver = internalAction({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const shared = {
-      settingsUrl: args.settingsUrl,
-      unsubscribeUrl: args.unsubscribeUrl,
-      logoUrl: args.logoUrl,
-    };
-    let subject: string;
-    let body: ReactElement;
-    let lines: Array<string>;
+    try {
+      const shared = {
+        settingsUrl: args.settingsUrl,
+        unsubscribeUrl: args.unsubscribeUrl,
+        logoUrl: args.logoUrl,
+      };
+      let subject: string;
+      let body: ReactElement;
+      let lines: Array<string>;
 
-    if (args.payload.kind === 'reminder') {
-      const timeUntilLock = formatTimeUntil(args.payload.lockAt - Date.now());
-      const sessions = formatSessionSchedule(
-        args.payload.sessions,
-        args.timezone,
-      );
-      subject = `${args.payload.raceName}: your picks lock in ${timeUntilLock}`;
-      lines = [
-        `Predictions for the ${args.payload.raceName} lock in ${timeUntilLock}.`,
-        '',
-        ...sessions.map((s) => `${s.label}: ${s.date}, ${s.time}`),
-      ];
-      body = (
-        <PredictionReminderEmail
-          {...shared}
-          raceName={args.payload.raceName}
-          raceUrl={args.payload.raceUrl}
-          timeUntilLock={timeUntilLock}
-          sessions={sessions}
-          round={args.payload.round}
-          countryCode={args.payload.countryCode}
-        />
-      );
-    } else if (args.payload.kind === 'signup') {
-      subject = args.payload.raceName
-        ? `Make your ${args.payload.raceName} picks`
-        : 'Make your first picks';
-      lines = [
-        args.payload.raceName
-          ? `Pick your top 5 for the ${args.payload.raceName} and start scoring this weekend.`
-          : 'Pick your top 5 for the next race and start scoring.',
-      ];
-      body = (
-        <SignupNudgeEmail
-          {...shared}
-          raceName={args.payload.raceName}
-          raceUrl={args.payload.raceUrl}
-        />
-      );
-    } else {
-      const { top5Points, h2hPoints, raceName } = args.payload;
-      const total = top5Points + h2hPoints;
-      const intro = `Top 5: ${top5Points} points. Head-to-head: ${h2hPoints} points.`;
-      subject = `${raceName}: you scored ${total} points`;
-      lines = [`You scored ${total} points at the ${raceName}.`, intro];
-      body = (
-        <ResultsEmailShell
-          {...shared}
-          previewText={`You scored ${total} points at the ${raceName}.`}
-          headline={`You scored ${total} points`}
-          intro={intro}
-          raceName={raceName}
-          raceUrl={args.payload.raceUrl}
-          round={args.payload.round}
-          countryCode={args.payload.countryCode}
-          primaryCtaLabel="See Weekend Standings"
-          footerText="You're receiving this because you have result notifications enabled."
-        />
-      );
+      if (args.payload.kind === 'reminder') {
+        const timeUntilLock = formatTimeUntil(args.payload.lockAt - Date.now());
+        const sessions = formatSessionSchedule(
+          args.payload.sessions,
+          args.timezone,
+        );
+        subject = `${args.payload.raceName}: your picks lock in ${timeUntilLock}`;
+        lines = [
+          `Predictions for the ${args.payload.raceName} lock in ${timeUntilLock}.`,
+          '',
+          ...sessions.map((s) => `${s.label}: ${s.date}, ${s.time}`),
+        ];
+        body = (
+          <PredictionReminderEmail
+            {...shared}
+            raceName={args.payload.raceName}
+            raceUrl={args.payload.raceUrl}
+            timeUntilLock={timeUntilLock}
+            sessions={sessions}
+            round={args.payload.round}
+            countryCode={args.payload.countryCode}
+          />
+        );
+      } else if (args.payload.kind === 'signup') {
+        subject = args.payload.raceName
+          ? `Make your ${args.payload.raceName} picks`
+          : 'Make your first picks';
+        lines = [
+          args.payload.raceName
+            ? `Pick your top 5 for the ${args.payload.raceName} and start scoring this weekend.`
+            : 'Pick your top 5 for the next race and start scoring.',
+        ];
+        body = (
+          <SignupNudgeEmail
+            {...shared}
+            raceName={args.payload.raceName}
+            raceUrl={args.payload.raceUrl}
+          />
+        );
+      } else {
+        const { top5Points, h2hPoints, raceName } = args.payload;
+        const total = top5Points + h2hPoints;
+        const intro = `Top 5: ${top5Points} points. Head-to-head: ${h2hPoints} points.`;
+        subject = `${raceName}: you scored ${total} points`;
+        lines = [`You scored ${total} points at the ${raceName}.`, intro];
+        body = (
+          <ResultsEmailShell
+            {...shared}
+            previewText={`You scored ${total} points at the ${raceName}.`}
+            headline={`You scored ${total} points`}
+            intro={intro}
+            raceName={raceName}
+            raceUrl={args.payload.raceUrl}
+            round={args.payload.round}
+            countryCode={args.payload.countryCode}
+            primaryCtaLabel="See Weekend Standings"
+            footerText="You're receiving this because you have result notifications enabled."
+          />
+        );
+      }
+
+      await sendEmail(ctx, {
+        from:
+          process.env.EMAIL_FROM ??
+          'Grand Prix Picks <noreply@grandprixpicks.com>',
+        to: args.to,
+        subject,
+        html: await render(body),
+        text: [
+          ...lines,
+          '',
+          args.payload.raceUrl,
+          '',
+          `Unsubscribe: ${args.unsubscribeUrl}`,
+        ].join('\n'),
+        headers: [
+          { name: 'List-Unsubscribe', value: `<${args.unsubscribeUrl}>` },
+          {
+            name: 'List-Unsubscribe-Post',
+            value: 'List-Unsubscribe=One-Click',
+          },
+        ],
+        idempotencyKey: args.idempotencyKey,
+      });
+    } catch (error) {
+      // `send` already marked the job `accepted`, because scheduling this
+      // action commits with that mutation. Only this side knows the render
+      // or the handoff then failed, so report it back or the mail is lost
+      // with the job still claiming success.
+      if (args.jobId) {
+        await ctx.runMutation(internal.notificationEmails.markDeliveryFailed, {
+          id: args.jobId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+      throw error;
     }
-
-    await sendEmail(ctx, {
-      from:
-        process.env.EMAIL_FROM ??
-        'Grand Prix Picks <noreply@grandprixpicks.com>',
-      to: args.to,
-      subject,
-      html: await render(body),
-      text: [
-        ...lines,
-        '',
-        args.payload.raceUrl,
-        '',
-        `Unsubscribe: ${args.unsubscribeUrl}`,
-      ].join('\n'),
-      headers: [
-        { name: 'List-Unsubscribe', value: `<${args.unsubscribeUrl}>` },
-        { name: 'List-Unsubscribe-Post', value: 'List-Unsubscribe=One-Click' },
-      ],
-      idempotencyKey: args.idempotencyKey,
-    });
     return null;
   },
 });

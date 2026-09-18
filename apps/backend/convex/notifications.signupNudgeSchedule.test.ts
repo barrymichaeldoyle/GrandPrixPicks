@@ -37,10 +37,11 @@ async function seed(firstLockInHours: number, raceLockInHours: number) {
   return { t, ...ids };
 }
 
-const deferrals = <T extends { name: string }>(rows: Array<T>) =>
-  rows.filter(
+function deferrals<T extends { name: string }>(rows: Array<T>) {
+  return rows.filter(
     (row) => row.name === 'notifications:sendSignupPredictionNudgeForUser',
   );
+}
 
 describe('signup prediction nudge', () => {
   it('nudges when the first lock is comfortably away', async () => {

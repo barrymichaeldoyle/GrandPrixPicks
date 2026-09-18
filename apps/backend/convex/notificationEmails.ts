@@ -31,12 +31,19 @@ const kind = v.union(
  * otherwise retry until the race is over.
  */
 const MAX_ATTEMPTS = 5;
+const sessionType = v.union(
+  v.literal('quali'),
+  v.literal('sprint_quali'),
+  v.literal('sprint'),
+  v.literal('race'),
+);
 export const queue = internalMutation({
   args: {
     userId: v.id('users'),
     raceId: v.id('races'),
     kind,
     expectedLockAt: v.optional(v.number()),
+    sessionType: v.optional(sessionType),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -67,6 +74,9 @@ export const fanout = internalMutation({
   args: {
     raceId: v.id('races'),
     kind,
+    // Which deadline this fan-out is for. Omitted means the weekend's first
+    // lock, which is what older queued jobs meant and all this used to do.
+    sessionType: v.optional(sessionType),
     cursor: v.optional(v.union(v.string(), v.null())),
   },
   returns: v.null(),
@@ -75,26 +85,27 @@ export const fanout = internalMutation({
     if (!race || race.status === 'cancelled') {
       return null;
     }
-    const page = await ctx.db
-      .query('users')
-      .paginate({ cursor: args.cursor ?? null, numItems: 100 });
-    const first = sessionLocks(race)[0];
-    // This entry point can also be invoked by older queued reminder jobs.
+    const now = Date.now();
+    const lock = sessionLocks(race).find(
+      (s) => !args.sessionType || s.sessionType === args.sessionType,
+    );
     if (
       args.kind === 'reminder' &&
-      (!first ||
-        first.lockAt <= Date.now() ||
-        first.lockAt - Date.now() > 25 * 3600000)
+      (!lock || lock.lockAt <= now || lock.lockAt - now > 25 * 3600000)
     ) {
       return null;
     }
+    const page = await ctx.db
+      .query('users')
+      .paginate({ cursor: args.cursor ?? null, numItems: 100 });
     for (const user of page.page) {
       if (user.email && !user.deletingAt) {
         await ctx.runMutation(internal.notificationEmails.queue, {
           userId: user._id,
           raceId: race._id,
           kind: args.kind,
-          expectedLockAt: args.kind === 'reminder' ? first?.lockAt : undefined,
+          expectedLockAt: args.kind === 'reminder' ? lock?.lockAt : undefined,
+          sessionType: args.kind === 'reminder' ? args.sessionType : undefined,
         });
       }
     }
@@ -196,15 +207,23 @@ async function prepare(ctx: MutationCtx, job: Doc<'notificationEmails'>) {
       };
     } else {
       const locks = sessionLocks(race);
-      const first = locks[0];
+      // The deadline this job was queued for, not simply the weekend's first:
+      // one fan-out now runs before each lock, so a job can be about qualifying
+      // on a weekend whose sprint sessions have already gone.
+      const target = job.sessionType
+        ? locks.find((lock) => lock.sessionType === job.sessionType)
+        : locks[0];
       if (
         job.expectedLockAt !== undefined &&
-        (first?.lockAt !== job.expectedLockAt || job.expectedLockAt <= now)
+        (target?.lockAt !== job.expectedLockAt || job.expectedLockAt <= now)
       ) {
         return await cancel();
       }
+      const first = locks[0];
       if (
-        !(await missingPicks(ctx, user._id, race, now)) ||
+        // Scoped to the session that is about to lock. Someone who has done
+        // qualifying and not the race should not be chased about qualifying.
+        !(await missingPicks(ctx, user._id, race, now, job.sessionType)) ||
         !shouldEmailReminder(user, await healthyReminderPush(ctx, user, now))
       ) {
         return await cancel();
@@ -236,7 +255,7 @@ async function prepare(ctx: MutationCtx, job: Doc<'notificationEmails'>) {
           raceUrl,
           round: race.round,
           countryCode,
-          lockAt: first.lockAt,
+          lockAt: (target ?? first).lockAt,
           sessions: locks
             .filter((lock) => lock.lockAt > now)
             .map((lock) => ({

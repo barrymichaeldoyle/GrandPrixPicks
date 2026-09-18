@@ -98,6 +98,7 @@ export async function sendPredictionRemindersBatchCore(
   ctx: MutationCtx,
   args: {
     raceId: Id<'races'>;
+    sessionType?: SessionType;
     startAfter?: string;
     recipientCount?: number;
     batchesScheduled?: number;
@@ -106,17 +107,22 @@ export async function sendPredictionRemindersBatchCore(
   await ctx.runMutation(internal.notificationEmails.fanout, {
     raceId: args.raceId,
     kind: 'reminder',
+    sessionType: args.sessionType,
   });
   return null;
 }
 export const sendPredictionReminders = internalMutation({
-  args: { raceId: v.id('races') },
+  args: {
+    raceId: v.id('races'),
+    sessionType: v.optional(sessionTypeValidator),
+  },
   returns: v.null(),
   handler: sendPredictionRemindersBatchCore,
 });
 export const sendPredictionRemindersBatch = internalMutation({
   args: {
     raceId: v.id('races'),
+    sessionType: v.optional(sessionTypeValidator),
     startAfter: v.optional(v.string()),
     recipientCount: v.optional(v.number()),
     batchesScheduled: v.optional(v.number()),
@@ -344,6 +350,19 @@ export async function scheduleReminder(
               expectedLockAt: lock.lockAt,
               version,
             },
+          ),
+        );
+      }
+      // Push gets a T-2h nudge per session; email only ever got the first one.
+      // `shouldEmailReminder` routes to email precisely the people with no
+      // healthy push, so on a sprint weekend the readers who depend on mail
+      // were told about Friday and never about qualifying or the race.
+      if (lock !== first && lock.lockAt - TWENTY_FOUR_HOURS_MS > now) {
+        ids.push(
+          await ctx.scheduler.runAt(
+            lock.lockAt - TWENTY_FOUR_HOURS_MS,
+            internal.notifications.sendPredictionReminders,
+            { raceId: race._id, sessionType: lock.sessionType },
           ),
         );
       }

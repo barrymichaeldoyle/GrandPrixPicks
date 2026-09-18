@@ -691,6 +691,9 @@ export default defineSchema({
       v.literal('failed'),
     ),
     expectedLockAt: v.optional(v.number()),
+    // Which session's deadline a reminder is about. Absent on summary and
+    // signup rows, and on reminders queued before per-session mail existed.
+    sessionType: v.optional(sessionType),
     // Bounded retry. `send` and the render action both fail in ways a retry
     // cannot fix (a missing env var, a template that throws), and the dispatch
     // cron re-runs every queued row every minute, so without a ceiling one bad

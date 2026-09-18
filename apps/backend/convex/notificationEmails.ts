@@ -48,7 +48,9 @@ export const queue = internalMutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const key = `${args.kind}:${args.raceId}:${args.userId}:${args.expectedLockAt ?? ''}`;
+    // The session belongs in the key, not just its lock time: two sessions
+    // sharing a timestamp would otherwise dedupe each other away.
+    const key = `${args.kind}:${args.raceId}:${args.userId}:${args.expectedLockAt ?? ''}:${args.sessionType ?? ''}`;
     if (
       await ctx.db
         .query('notificationEmails')

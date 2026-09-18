@@ -18,8 +18,6 @@ import type * as emails_PredictionReminderEmail from "../emails/PredictionRemind
 import type * as emails_SignupNudgeEmail from "../emails/SignupNudgeEmail.js";
 import type * as emails_deliverNotificationEmail from "../emails/deliverNotificationEmail.js";
 import type * as emails_fonts from "../emails/fonts.js";
-import type * as emails_sendReminderEmails from "../emails/sendReminderEmails.js";
-import type * as emails_sendResultEmails from "../emails/sendResultEmails.js";
 import type * as emails_sendSupportEmail from "../emails/sendSupportEmail.js";
 import type * as emails_urls from "../emails/urls.js";
 import type * as f1Standings from "../f1Standings.js";
@@ -103,8 +101,6 @@ declare const fullApi: ApiFromModules<{
   "emails/SignupNudgeEmail": typeof emails_SignupNudgeEmail;
   "emails/deliverNotificationEmail": typeof emails_deliverNotificationEmail;
   "emails/fonts": typeof emails_fonts;
-  "emails/sendReminderEmails": typeof emails_sendReminderEmails;
-  "emails/sendResultEmails": typeof emails_sendResultEmails;
   "emails/sendSupportEmail": typeof emails_sendSupportEmail;
   "emails/urls": typeof emails_urls;
   f1Standings: typeof f1Standings;

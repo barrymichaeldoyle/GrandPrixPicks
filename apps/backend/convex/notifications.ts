@@ -22,7 +22,6 @@ const TWO_HOURS_MS = 7200000;
 const SIGNUP_NUDGE_LEAD_MS = 25 * 3600000;
 /** Race weekends this nudge waits through before it gives up on a new account. */
 const SIGNUP_NUDGE_MAX_ATTEMPTS = 3;
-export const USER_NOTIFICATION_BATCH_SIZE = 100;
 const sessionTypeValidator = v.union(
   v.literal('quali'),
   v.literal('sprint_quali'),
@@ -30,70 +29,6 @@ const sessionTypeValidator = v.union(
   v.literal('race'),
 );
 type SessionType = 'quali' | 'sprint_quali' | 'sprint' | 'race';
-export function getIncompleteH2HNudgeEligibility(params: {
-  raceStatus: string;
-  predictionLockAt: number;
-  now: number;
-  requiredSessions: Array<SessionType>;
-  top5Sessions: Set<SessionType>;
-  h2hSessions: Set<SessionType>;
-}):
-  | { eligible: true }
-  | {
-      eligible: false;
-      reason:
-        | 'race_not_upcoming'
-        | 'predictions_locked'
-        | 'top5_incomplete'
-        | 'h2h_complete';
-    } {
-  if (params.raceStatus !== 'upcoming') {
-    return { eligible: false, reason: 'race_not_upcoming' };
-  }
-  if (params.predictionLockAt <= params.now) {
-    return { eligible: false, reason: 'predictions_locked' };
-  }
-
-  const hasCompleteTop5 = params.requiredSessions.every((s) =>
-    params.top5Sessions.has(s),
-  );
-  if (!hasCompleteTop5) {
-    return { eligible: false, reason: 'top5_incomplete' };
-  }
-
-  const hasCompleteH2H = params.requiredSessions.every((s) =>
-    params.h2hSessions.has(s),
-  );
-  if (hasCompleteH2H) {
-    return { eligible: false, reason: 'h2h_complete' };
-  }
-
-  return { eligible: true };
-}
-
-export function getSignupPredictionNudgeEligibility(params: {
-  hasPredictions: boolean;
-  remindersEnabled: boolean;
-  canEmail: boolean;
-  canPush: boolean;
-}):
-  | { eligible: true }
-  | {
-      eligible: false;
-      reason: 'already_predicted' | 'notifications_disabled' | 'no_channel';
-    } {
-  if (params.hasPredictions) {
-    return { eligible: false, reason: 'already_predicted' };
-  }
-  if (!params.remindersEnabled) {
-    return { eligible: false, reason: 'notifications_disabled' };
-  }
-  if (!params.canEmail && !params.canPush) {
-    return { eligible: false, reason: 'no_channel' };
-  }
-  return { eligible: true };
-}
-
 export async function sendPredictionRemindersBatchCore(
   ctx: MutationCtx,
   args: {
@@ -119,17 +54,6 @@ export const sendPredictionReminders = internalMutation({
   returns: v.null(),
   handler: sendPredictionRemindersBatchCore,
 });
-export const sendPredictionRemindersBatch = internalMutation({
-  args: {
-    raceId: v.id('races'),
-    sessionType: v.optional(sessionTypeValidator),
-    startAfter: v.optional(v.string()),
-    recipientCount: v.optional(v.number()),
-    batchesScheduled: v.optional(v.number()),
-  },
-  returns: v.null(),
-  handler: sendPredictionRemindersBatchCore,
-});
 export const sendResultEmailsForSession = internalMutation({
   args: { raceId: v.id('races'), sessionType: sessionTypeValidator },
   returns: v.null(),
@@ -142,52 +66,6 @@ export const sendResultEmailsForSession = internalMutation({
     }
     return null;
   },
-});
-export const sendResultEmailsForSessionBatch = internalMutation({
-  args: {
-    raceId: v.id('races'),
-    sessionType: sessionTypeValidator,
-    startAfter: v.optional(v.string()),
-    recipientCount: v.optional(v.number()),
-    batchesScheduled: v.optional(v.number()),
-  },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    if (args.sessionType === 'race') {
-      await ctx.runMutation(internal.notificationEmails.fanout, {
-        raceId: args.raceId,
-        kind: 'summary',
-      });
-    }
-    return null;
-  },
-});
-// Retired: completion nudges now share the missing-picks deadline reminder.
-// Keep old scheduled entry points safe during rollout.
-export const sendIncompleteH2HNudgeForUser = internalMutation({
-  args: { raceId: v.id('races'), userId: v.id('users') },
-  returns: v.null(),
-  handler: async () => null,
-});
-export async function sendH2HRemindersForRaceBatchCore(
-  _ctx: MutationCtx,
-  _args: { raceId: Id<'races'>; startAfter?: string; scheduled?: number },
-) {
-  return null;
-}
-export const sendH2HRemindersForRace = internalMutation({
-  args: { raceId: v.id('races') },
-  returns: v.null(),
-  handler: sendH2HRemindersForRaceBatchCore,
-});
-export const sendH2HRemindersForRaceBatch = internalMutation({
-  args: {
-    raceId: v.id('races'),
-    startAfter: v.optional(v.string()),
-    scheduled: v.optional(v.number()),
-  },
-  returns: v.null(),
-  handler: sendH2HRemindersForRaceBatchCore,
 });
 export const sendSignupPredictionNudgeForUser = internalMutation({
   args: { userId: v.id('users'), attempt: v.optional(v.number()) },

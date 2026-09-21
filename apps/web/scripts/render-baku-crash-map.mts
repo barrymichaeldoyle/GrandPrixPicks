@@ -15,9 +15,12 @@ import {
 import { BAKU_CRASHES } from '../src/lib/bakuCrashes';
 import {
   countsByCorner,
+  countsByDriver,
+  driverSurname,
   markerRadius,
   placeMarkers,
   rankedCorners,
+  rankedDrivers,
 } from '../src/components/race-writeups/bakuCrashMapModel';
 
 /**
@@ -47,6 +50,21 @@ const corners = rankedCorners(counts);
 const maxCorner = Math.max(...counts.values());
 const firstYear = Math.min(...BAKU_CRASHES.map((entry) => entry.year));
 const TRACK = '#4a4c3c';
+
+/**
+ * The drivers the poster names: everyone on the top two counts, so a tie is
+ * never cut. Today that is Hülkenberg and Stroll on six, Ricciardo on five;
+ * the next row down is a four-way tie, which is the caption's to carry.
+ */
+const driverCounts = rankedDrivers(countsByDriver(BAKU_CRASHES));
+const driverRows = [...new Set(driverCounts.map((entry) => entry.count))]
+  .slice(0, 2)
+  .map((count) => ({
+    count,
+    names: driverCounts
+      .filter((entry) => entry.count === count)
+      .map((entry) => driverSurname(entry.driver)),
+  }));
 
 const markers = placeMarkers(
   BAKU_CORNERS.map((corner) => ({
@@ -183,6 +201,51 @@ function map(
   );
 }
 
+/**
+ * The drivers most often involved, in the same numeral-and-label grammar as
+ * the corners, one step smaller. "Involved", because an incident can have
+ * several drivers and the archive does not assign blame.
+ */
+function driverBlock(left: number, top: number, numeral: number): ReactNode {
+  return box(
+    { position: 'absolute', left, top, flexDirection: 'column' },
+    box(
+      {
+        fontSize: numeral * 0.3,
+        fontWeight: 600,
+        color: colors.textMuted,
+        lineHeight: 1,
+      },
+      'Drivers most involved',
+    ),
+    ...driverRows.map(({ count, names }) =>
+      box(
+        { alignItems: 'center', marginTop: numeral * 0.2 },
+        box(
+          {
+            width: numeral * 0.72,
+            fontSize: numeral,
+            fontWeight: 900,
+            letterSpacing: -numeral * 0.04,
+            lineHeight: 0.9,
+          },
+          String(count),
+        ),
+        box(
+          {
+            flexDirection: 'column',
+            marginLeft: numeral * 0.18,
+            fontSize: numeral * 0.4,
+            fontWeight: 600,
+            lineHeight: 1.12,
+          },
+          ...names.map((name) => box({}, name)),
+        ),
+      ),
+    ),
+  );
+}
+
 function poster(wide: boolean): ReactNode {
   const width = wide ? 1600 : 1080;
   const height = wide ? 900 : 1350;
@@ -200,11 +263,11 @@ function poster(wide: boolean): ReactNode {
     box(
       {
         position: 'absolute',
-        left: wide ? 58 : 52,
-        top: wide ? 34 : 24,
-        fontSize: wide ? 250 : 320,
+        left: wide ? 58 : 54,
+        top: wide ? 40 : 40,
+        fontSize: wide ? 210 : 260,
         fontWeight: 900,
-        letterSpacing: wide ? -10 : -12,
+        letterSpacing: wide ? -8 : -10,
         lineHeight: 1,
         color: colors.accent,
       },
@@ -213,9 +276,9 @@ function poster(wide: boolean): ReactNode {
     box(
       {
         position: 'absolute',
-        left: wide ? 66 : 64,
-        top: wide ? 300 : 352,
-        fontSize: wide ? 50 : 54,
+        left: wide ? 66 : 66,
+        top: wide ? 262 : 312,
+        fontSize: wide ? 52 : 58,
         fontWeight: 600,
         letterSpacing: -1.5,
         lineHeight: 1,
@@ -223,16 +286,19 @@ function poster(wide: boolean): ReactNode {
       fact,
     ),
     wide
-      ? map(600, 160, 960, { 3: { side: 'left' }, 15: { side: 'left' } }, 150)
+      ? map(600, 150, 960, { 3: { side: 'left' }, 15: { side: 'left' } }, 132)
       : /* Turn 15 sits at the left edge in portrait, with track on both
            sides of it, so its number goes underneath. */
         map(
           30,
-          420,
+          400,
           1020,
-          { 3: { side: 'left' }, 15: { below: true, drop: 62 } },
-          150,
+          { 3: { side: 'left' }, 15: { below: true, drop: 48 } },
+          132,
         ),
+    /* Under the lap's long straight in portrait, which is otherwise empty;
+       down the left column on X, clear of the Turn 15 number. */
+    wide ? driverBlock(66, 380, 84) : driverBlock(620, 940, 88),
     /* Bottom right: X's ALT badge covers the lower left, and in portrait
        the Turn 15 number holds that corner. */
     box(

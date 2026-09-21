@@ -10,16 +10,19 @@ Status: **not scheduled or published.** One poster per format, revised on
 | Instagram | `baku-crash-map-2026-instagram.png` | 1080×1350 |
 | X         | `baku-crash-map-2026-x.png`         | 1600×900  |
 
-A poster, not an infographic. The image carries four things: the race name,
-one line of fact ("57 incidents since 2016"), the lap with a dot per corner
-sized by its count, and the two busiest corners as large numerals beside
-their dots (Turn 3, 11; Turn 15, 10).
+A poster, not an infographic. The image carries the race name, one line of
+fact ("57 incidents since 2016"), the lap with a dot per corner sized by its
+count, the two busiest corners as large numerals beside their dots (Turn 3,
+11; Turn 15, 10), and the drivers most involved (Hülkenberg and Stroll, 6;
+Ricciardo, 5). The driver block names everyone on the top two counts, so a
+tie is never cut; the four-way tie on 4 stays in the caption.
 
 The first revision also carried a legend, a "Crash map" subtitle, a date line,
 a driver key and an archive qualification in the footer. Barry found it "too
 wordy and not like a stand out social poster". None of those facts were
-dropped: the driver totals and the archive's scope are in the captions below,
-and the whole archive is on the write-up the captions link to.
+dropped: the top drivers came back as their own block at Barry's request, the
+archive's scope is in the captions below, and the whole archive is on the
+write-up the captions link to.
 
 ## Data and scope
 
@@ -54,7 +57,7 @@ No hashtags on the brand account.
 
 > 57 incidents at Baku since 2016, and two corners stand out: Turn 3 with 11 and Turn 15 with 10.
 >
-> Hülkenberg and Stroll have been involved in the most, six each, then Ricciardo with five.
+> Hülkenberg and Stroll have been involved in the most, six each, then Ricciardo with five. Ocon, Pérez, Räikkönen and Verstappen have four each.
 >
 > The archive covers practice, qualifying, sprints and races across nine weekends, with a source for every incident. Six have no named corner and are not on the map. The full map is in our Azerbaijan GP preview, link in bio.
 >
@@ -65,7 +68,8 @@ No hashtags on the brand account.
 Poster on a charcoal background. "Baku" in large chartreuse letters, then "57
 incidents since 2016". Below, the outline of the Baku City Circuit with a
 chartreuse dot at each corner where incidents happened, larger dots for more.
-Two corners are labelled with large numbers: Turn 3 with 11 and Turn 15 with 10. GrandPrixPicks.com in the bottom right.
+Two corners are labelled with large numbers: Turn 3 with 11 and Turn 15 with 10. A list headed "Drivers most involved" shows Hülkenberg and Stroll with 6
+and Ricciardo with 5. GrandPrixPicks.com in the bottom right.
 
 ## Rendering and posting
 

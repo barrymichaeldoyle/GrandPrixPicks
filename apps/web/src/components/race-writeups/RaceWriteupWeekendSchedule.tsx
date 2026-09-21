@@ -1,3 +1,5 @@
+import { Droplet } from 'lucide-react';
+
 import { WeatherTimeToggle } from '@/components/weather/WeatherTimeToggle';
 
 import { WeatherIcon } from '@/components/weather/WeatherIcon';
@@ -25,6 +27,14 @@ type ScheduleRace = {
   raceStartAt: number;
 };
 
+/**
+ * Day, date and time, without the zone: the card header names it.
+ *
+ * Each row used to end in the zone abbreviation too, and that is the one field
+ * whose width depends on the reader. "CEST" fitted the hero's card column;
+ * "GMT+2" wrapped every row onto two lines, so pressing "My time" shifted the
+ * whole hero. Without it the row is the same width in every zone.
+ */
 function formatTrackTime(timestamp: number | undefined, timeZone: string) {
   if (timestamp === undefined) {
     return 'To be confirmed';
@@ -37,7 +47,6 @@ function formatTrackTime(timestamp: number | undefined, timeZone: string) {
     minute: '2-digit',
     hour12: false,
     timeZone,
-    timeZoneName: 'short',
   }).format(timestamp);
 }
 
@@ -59,15 +68,21 @@ function formatTrackTimeShort(
   return formatSessionClockTime(timestamp, timeZone);
 }
 
-/** How warm, and how likely rain is, in the width a table cell has. */
-function summaryFigures(summary: WeatherWindowSummary): string {
-  const rain =
-    summary.precipitationProbability != null
-      ? `${Math.round(summary.precipitationProbability)}%`
-      : summary.precipitationAmountMm > 0
-        ? `${summary.precipitationAmountMm.toFixed(1)} mm`
-        : 'dry';
-  return `${summary.temperatureC}°C · ${rain}`;
+/**
+ * The rain cell: a chance where the model gives one, otherwise an amount.
+ *
+ * It has its own column rather than trailing the temperature after a dot. As
+ * one string, `dry` and `0.4 mm` are different widths, so every figure before
+ * them moved with them and a weekend with mixed conditions read as a
+ * misaligned table.
+ */
+function rainFigure(summary: WeatherWindowSummary): string | null {
+  if (summary.precipitationProbability != null) {
+    return `${Math.round(summary.precipitationProbability)}%`;
+  }
+  return summary.precipitationAmountMm > 0
+    ? `${summary.precipitationAmountMm.toFixed(1)} mm`
+    : null;
 }
 
 /**
@@ -172,7 +187,17 @@ export function RaceWriteupWeekendSchedule({
           />
         ) : null}
       </div>
-      <dl>
+      {/* One grid for the whole list, and each row a subgrid of it, so a
+          column is as wide as its widest cell on *any* row. Each row used to be
+          its own grid, sized to its own contents: a wet session's longer
+          figures pushed its start time left of every dry row's. */}
+      <dl
+        className={`grid gap-x-3 ${
+          forecast
+            ? 'grid-cols-[minmax(0,1fr)_auto_auto] sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]'
+            : 'grid-cols-[auto_minmax(0,1fr)] sm:grid-cols-[6.5rem_1fr]'
+        }`}
+      >
         {sessions.map(([label, timestamp]) => {
           const session = weatherSessions.find(
             (candidate) => candidate.startsAt === timestamp,
@@ -182,6 +207,7 @@ export function RaceWriteupWeekendSchedule({
               ? summarizeSessionWindow(forecast, session)
               : null;
           const isNext = Boolean(session && session.key === nextSession?.key);
+          const rain = summary ? rainFigure(summary) : null;
           return (
             <div
               key={label}
@@ -196,14 +222,12 @@ export function RaceWriteupWeekendSchedule({
               // sat low against the session name and start time. With one line
               // of similar text in each cell, centring aligns all three and
               // does not depend on what the third one happens to contain.
-              className={`grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-0.5 border-b border-border/60 px-4 py-2 last:border-b-0 sm:py-2.5 ${
-                forecast
-                  ? 'sm:grid-cols-[minmax(0,1fr)_auto_auto]'
-                  : 'sm:grid-cols-[6.5rem_1fr]'
-              } ${isNext ? 'gpp-stripe bg-surface-elevated' : ''}`}
+              className={`col-span-full grid grid-cols-subgrid items-center gap-y-0.5 border-b border-border/60 px-4 py-2 last:border-b-0 sm:py-2.5 ${
+                isNext ? 'gpp-stripe bg-surface-elevated' : ''
+              }`}
             >
               <dt
-                className={`text-sm ${summary ? 'row-span-2 sm:row-span-1' : ''} ${isNext ? 'font-medium text-text' : 'text-text-muted'}`}
+                className={`col-[1] text-sm ${summary ? 'row-[1/span_2] sm:row-[1]' : 'row-[1]'} ${isNext ? 'font-medium text-text' : 'text-text-muted'}`}
               >
                 {/* The row that matters carries the stripe, a surface step and
                     the heavier weight. It used to be an accent fill with accent
@@ -216,58 +240,73 @@ export function RaceWriteupWeekendSchedule({
                 ) : null}
                 {label}
               </dt>
-              <dd className="gpp-mono text-right text-sm text-text">
+              {/* Below `sm` the time sits over the forecast in the right-hand
+                  columns, so the session name centres against both lines. */}
+              <dd
+                className={`gpp-mono row-[1] text-right text-sm whitespace-nowrap text-text ${
+                  forecast ? 'col-[2/span_2] sm:col-[2]' : ''
+                }`}
+              >
                 {forecast
                   ? formatTrackTimeShort(timestamp, activeTimeZone)
                   : formatTrackTime(timestamp, activeTimeZone)}
               </dd>
-              {forecast && (
-                // Time and forecast share the right column below `sm`, so the
-                // session name centres against both lines. Forecast used to
-                // span the full width as a second row: the name sat on the
-                // first line only, and the wrap drew a break under it that
-                // was not the row rule.
-                //
-                // A session with no forecast keeps the dash that gives the
-                // column its shape on a wide card, and drops the whole cell
-                // on a phone rather than spending a second line of a row
-                // on an em dash.
-                <dd
-                  className={`col-start-2 items-center justify-end gap-1.5 text-right sm:col-start-auto sm:flex ${
-                    summary ? 'flex' : 'hidden'
-                  }`}
-                >
-                  {summary ? (
-                    <>
+              {forecast &&
+                (summary ? (
+                  <>
+                    <dd className="col-[2] row-[2] flex items-center justify-end gap-1.5 sm:col-[3] sm:row-[1]">
                       <WeatherIcon
                         conditionCode={summary.conditionCode}
                         className="h-4 w-4 shrink-0 text-text-muted"
                       />
-                      {/* The icon carries the condition for anyone who can see
-                          it, and carries nothing at all otherwise. */}
+                      {/* The icon carries the condition for anyone who can
+                          see it, and carries nothing at all otherwise. */}
                       <span className="sr-only">
                         {conditionLabel(summary.conditionCode)},{' '}
                       </span>
                       <span className="gpp-mono text-sm text-text-muted">
-                        {summaryFigures(summary)}
+                        {summary.temperatureC}°C
                       </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="sr-only">
-                        {timestamp !== undefined &&
-                        now !== undefined &&
-                        timestamp < now
-                          ? 'Has run'
-                          : 'Not yet forecast'}
-                      </span>
-                      <span className="text-sm text-text-disabled" aria-hidden>
-                        &mdash;
-                      </span>
-                    </>
-                  )}
-                </dd>
-              )}
+                    </dd>
+                    {/* Rain is the figure that changes a pick, so a wet
+                        session is the one lit in the column, and a dry one
+                        stays quiet. */}
+                    <dd
+                      className={`col-[3] row-[2] flex items-center justify-end gap-1 text-sm sm:col-[4] sm:row-[1] ${
+                        rain ? 'text-text' : 'text-text-muted'
+                      }`}
+                    >
+                      {rain ? (
+                        <>
+                          <Droplet
+                            className="h-3.5 w-3.5 shrink-0 text-text-muted"
+                            aria-hidden
+                          />
+                          <span className="sr-only">Rain </span>
+                          <span className="gpp-mono">{rain}</span>
+                        </>
+                      ) : (
+                        'Dry'
+                      )}
+                    </dd>
+                  </>
+                ) : (
+                  // A session with no forecast keeps a dash across the
+                  // forecast columns on a wide card, and drops them on a
+                  // phone rather than spend a second line on it.
+                  <dd className="hidden text-right sm:col-[3/span_2] sm:row-[1] sm:block">
+                    <span className="sr-only">
+                      {timestamp !== undefined &&
+                      now !== undefined &&
+                      timestamp < now
+                        ? 'Has run'
+                        : 'Not yet forecast'}
+                    </span>
+                    <span className="text-sm text-text-disabled" aria-hidden>
+                      &mdash;
+                    </span>
+                  </dd>
+                ))}
             </div>
           );
         })}

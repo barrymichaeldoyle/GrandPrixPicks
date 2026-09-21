@@ -2,13 +2,10 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-
 import { colors } from '@grandprixpicks/shared/tokens';
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
-import type { ReactNode } from 'react';
-import { createElement as e } from 'react';
+import { createElement as e, type CSSProperties, type ReactNode } from 'react';
 import satori from 'satori';
-
 import {
   BAKU_CORNERS,
   BAKU_START_FINISH,
@@ -20,47 +17,23 @@ import {
   countsByCorner,
   countsByDriver,
   driverSurname,
-  heatStep,
   markerRadius,
   placeMarkers,
   rankedCorners,
   rankedDrivers,
 } from '../src/components/race-writeups/bakuCrashMapModel';
-import { loadFonts } from '../src/lib/og/fonts';
-import { brandMark } from '../src/lib/og/templates';
 
 /**
- * The Baku crash archive, as posts.
- *
- *   pnpm --filter @grandprixpicks/web social-baku-crash-map
- *
- * Two subjects, because the archive has two findings and one card cannot carry
- * both: where the walls are (turns 3 and 15), and who they have caught (nobody
- * more than Hulkenberg and Stroll).
- *
- * **The map is drawn here, not imported.** The Madrid lap map embeds a PNG
- * exported by hand from the write-up, which means a change to the map is a
- * change in two places and the post can quietly go stale. This one builds the
- * same SVG from `bakuCircuitGeometry` and `bakuCrashes` and rasterises it on
- * the way past, so the card is a rendering of the data rather than a picture of
- * an older version of it. Satori cannot lay out arbitrary SVG, hence the
- * intermediate raster rather than an inline element.
- *
- * Raw counts, never percentages: with nine weekends the real numbers are more
- * credible than a share that implies a bigger sample. That is the same rule the
- * community picks cards follow.
- *
- * Nothing here reads as advice about who to pick. The cars and the regulations
- * have changed underneath these numbers and drivers learn from a wall; the
- * cards are circuit history, and the copy in `campaign.md` has to stay that
- * way too.
+ * Combined Baku archive posters. Regenerate with social-baku-crash-map.
+ * THESIS: one circuit-history poster, with driver totals inside the map's
+ * negative space rather than a second chart. Read mode, F1-literate audience.
+ * WORLD: inherit the race-week poster's chartreuse, charcoal and oversized Baku
+ * title. Clarity first: no city illustration, interface cards or top logo.
+ * STORY: recognize Baku, locate the busiest corners, then read driver totals.
+ * COMPOSITION: exact map geometry and archive-derived type on a plain ground;
+ * portrait and landscape are separately composed, never cropped from one another.
+ * FINISH: visually inspect both exports; record the design and archive scope.
  */
-
-const INSTAGRAM_WIDTH = 1080;
-const INSTAGRAM_HEIGHT = 1350;
-const X_WIDTH = 1600;
-const X_HEIGHT = 900;
-
 const SLUG = 'baku-crash-map-2026';
 const artifactOutputDir = fileURLToPath(
   new URL(`../../../artifacts/social/${SLUG}/`, import.meta.url),
@@ -68,48 +41,38 @@ const artifactOutputDir = fileURLToPath(
 const publicOutputDir = fileURLToPath(
   new URL(`../public/social/${SLUG}/`, import.meta.url),
 );
-
+const fontDir = fileURLToPath(new URL('../public/fonts/', import.meta.url));
 const counts = countsByCorner(BAKU_CRASHES);
 const corners = rankedCorners(counts);
 const drivers = rankedDrivers(countsByDriver(BAKU_CRASHES));
 const maxCorner = Math.max(...counts.values());
-const maxDriver = drivers[0].count;
+const years = [...new Set(BAKU_CRASHES.map((entry) => entry.year))].sort();
+const unplaced = BAKU_CRASHES.filter((entry) => entry.corner === null).length;
+const period = `${years[0]}–${years.at(-1)}`;
+const groups = [
+  ...new Set(
+    drivers.filter((entry) => entry.count >= 4).map((entry) => entry.count),
+  ),
+].map((count) => ({
+  count,
+  names: drivers
+    .filter((entry) => entry.count === count)
+    .map((entry) => driverSurname(entry.driver)),
+}));
 
-const HEAT = [
-  colors.crashHeat1,
-  colors.crashHeat2,
-  colors.crashHeat3,
-  colors.crashHeat4,
-  colors.crashHeat5,
-] as const;
-
-function heat(count: number, max: number): string {
-  return HEAT[heatStep(count, max) - 1] ?? colors.border;
-}
-
-/**
- * The lap, shaded and marked, as standalone SVG.
- *
- * A larger stroke and marker ring than the page uses: this is read at a
- * thumbnail's size in a feed rather than at a section's size on a page, and the
- * weights that are right at 700px on a screen disappear at 300px in a timeline.
- */
 function mapSvg(width: number): string {
   const scale = width / BAKU_VIEW_BOX.width;
   const height = Math.round(BAKU_VIEW_BOX.height * scale);
   const base = BAKU_TRACK_SEGMENTS.map(
     (segment) =>
-      `<path d="${segment.d}" fill="none" stroke="${colors.borderStrong}" stroke-width="13" stroke-linejoin="round" stroke-linecap="round"/>`,
+      `<path d="${segment.d}" fill="none" stroke="#616448" stroke-width="13" stroke-linejoin="round" stroke-linecap="round"/>`,
   ).join('');
   const lit = BAKU_TRACK_SEGMENTS.filter(
     (segment) => (counts.get(segment.corner) ?? 0) > 0,
   )
     .map(
       (segment) =>
-        `<path d="${segment.d}" fill="none" stroke="${heat(
-          counts.get(segment.corner) ?? 0,
-          maxCorner,
-        )}" stroke-width="15" stroke-linejoin="round" stroke-linecap="round"/>`,
+        `<path d="${segment.d}" fill="none" stroke="#879b38" stroke-width="15" stroke-linejoin="round" stroke-linecap="round"/>`,
     )
     .join('');
   /* The same nudging the page does, so the card and the section cannot show
@@ -134,13 +97,13 @@ function mapSvg(width: number): string {
         Math.hypot(anchor.x - marker.x, anchor.y - marker.y) > 6
           ? `<line x1="${anchor.x}" y1="${anchor.y}" x2="${marker.x.toFixed(
               1,
-            )}" y2="${marker.y.toFixed(1)}" stroke="${colors.borderStrong}" stroke-width="3"/>`
+            )}" y2="${marker.y.toFixed(1)}" stroke="#616448" stroke-width="3"/>`
           : '';
       return `${leader}<circle cx="${marker.x.toFixed(
         1,
       )}" cy="${marker.y.toFixed(1)}" r="${marker.radius.toFixed(
         1,
-      )}" fill="${heat(marker.count, maxCorner)}" stroke="${colors.page}" stroke-width="4"/>`;
+      )}" fill="${colors.accent}" stroke="${colors.page}" stroke-width="4"/>`;
     })
     .join('');
 
@@ -150,612 +113,204 @@ function mapSvg(width: number): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${BAKU_VIEW_BOX.width} ${BAKU_VIEW_BOX.height}" width="${width}" height="${height}">${base}${lit}${sf}${markers}</svg>`;
 }
 
-/**
- * Rasterise the lap, with fonts.
- *
- * resvg has no font of its own and silently drops every `<text>` without one,
- * which is how the first render of this card came out with unlabelled markers:
- * a map whose whole point is naming the corner. The buffers are the same
- * Archivo satori is laying the card out with.
- */
-function mapDataUri(
-  width: number,
-  fontBuffers: Uint8Array[],
-): { uri: string; height: number } {
-  const png = new Resvg(mapSvg(width), {
-    fitTo: { mode: 'width', value: width },
-    font: {
-      fontBuffers,
-      defaultFontFamily: 'Archivo',
-      loadSystemFonts: false,
+function box(style: CSSProperties, ...children: ReactNode[]): ReactNode {
+  return e('div', { style: { display: 'flex', ...style } }, ...children);
+}
+function text(
+  value: string,
+  left: number,
+  top: number,
+  size: number,
+  extra: CSSProperties = {},
+): ReactNode {
+  return box(
+    {
+      position: 'absolute',
+      left,
+      top,
+      fontSize: size,
+      lineHeight: 1,
+      ...extra,
     },
-  })
-    .render()
-    .asPng();
-  return {
-    uri: `data:image/png;base64,${Buffer.from(png).toString('base64')}`,
-    height: Math.round((BAKU_VIEW_BOX.height / BAKU_VIEW_BOX.width) * width),
+    value,
+  );
+}
+function rule(left: number, top: number, width: number): ReactNode {
+  return box({
+    position: 'absolute',
+    left,
+    top,
     width,
-  };
+    height: 1,
+    backgroundColor: '#61635c',
+  });
 }
-
-function logo(gutter: number, top: number): ReactNode {
-  return e(
-    'div',
-    {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 16,
-        position: 'absolute',
-        left: gutter,
-        top,
-      },
-    },
-    brandMark(38),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          fontSize: 22,
-          fontWeight: 600,
-          letterSpacing: 3.4,
-          color: colors.text,
-        },
-      },
-      'GRAND PRIX PICKS',
-    ),
-  );
-}
-
-function canvas(
+function driverKey(
+  left: number,
+  top: number,
   width: number,
-  height: number,
-  children: ReactNode[],
+  scale = 1,
 ): ReactNode {
-  return e(
-    'div',
-    {
-      style: {
-        display: 'flex',
-        position: 'relative',
-        width,
-        height,
-        overflow: 'hidden',
-        backgroundColor: colors.page,
-        color: colors.text,
-        fontFamily: 'Archivo',
-      },
-    },
-    ...children,
-  );
-}
-
-function eyebrow(text: string): ReactNode {
-  return e(
-    'div',
-    {
-      style: {
-        display: 'flex',
-        fontFamily: 'IBM Plex Mono',
-        fontSize: 18,
-        fontWeight: 600,
-        letterSpacing: 3,
-        color: colors.accent,
-      },
-    },
-    text,
-  );
-}
-
-function headline(text: string, size: number): ReactNode {
-  return e(
-    'div',
-    {
-      style: {
-        display: 'flex',
-        marginTop: 14,
-        fontSize: size,
-        fontWeight: 600,
-        lineHeight: 1.05,
-        letterSpacing: -1,
-        color: colors.text,
-      },
-    },
-    text,
-  );
-}
-
-function domain(size = 16): ReactNode {
-  return e(
-    'div',
-    {
-      style: {
-        display: 'flex',
-        fontFamily: 'IBM Plex Mono',
-        fontSize: size,
-        fontWeight: 600,
-        letterSpacing: 2.4,
-        color: colors.accent,
-      },
-    },
-    'GRANDPRIXPICKS.COM',
-  );
-}
-
-/**
- * One row of the ranked list: a label, a bar and the count.
- *
- * The bar is the same sequential ramp the page uses, so a reader who has seen
- * the section recognises the scale rather than learning a new one.
- */
-type BarSpec = {
-  /** Longest bar, in pixels. */
-  barWidth: number;
-  /** Fixed column for the name, so every bar starts on the same line. */
-  labelWidth: number;
-  fontSize: number;
-  barHeight: number;
-  /** Space under each row. Set per frame so the list fills its canvas. */
-  gap: number;
-};
-
-function barRow(
-  label: string,
-  count: number,
-  max: number,
-  spec: BarSpec,
-): ReactNode {
-  return e(
-    'div',
-    {
-      key: label,
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 24,
-        marginBottom: spec.gap,
-      },
-    },
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          width: spec.labelWidth,
-          fontSize: spec.fontSize,
-          fontWeight: 500,
-          color: colors.text,
-        },
-      },
-      label,
-    ),
-    e('div', {
-      style: {
-        display: 'flex',
-        width: Math.round((count / max) * spec.barWidth),
-        height: spec.barHeight,
-        borderRadius: 2,
-        backgroundColor: heat(count, max),
-      },
+  let y = 46 * scale;
+  return box(
+    { position: 'absolute', left, top, width, height: 270 * scale },
+    text('Most incidents by driver', 0, 0, 24 * scale, { fontWeight: 600 }),
+    ...groups.flatMap((group) => {
+      const names =
+        group.names.length > 2
+          ? [
+              group.names.slice(0, 2).join(' · '),
+              group.names.slice(2).join(' · '),
+            ]
+          : [group.names.join(' · ')];
+      const row = [
+        text(String(group.count), 0, y - 3 * scale, 48 * scale, {
+          fontWeight: 900,
+          color: colors.accent,
+        }),
+        ...names.map((line, index) =>
+          text(line, 58 * scale, y + index * 30 * scale, 25 * scale),
+        ),
+      ];
+      y += (names.length === 2 ? 78 : 64) * scale;
+      return row;
     }),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          fontFamily: 'IBM Plex Mono',
-          fontSize: spec.fontSize,
-          fontWeight: 600,
-          color: colors.textMuted,
-        },
-      },
-      String(count),
-    ),
   );
 }
-
-type MapArt = { uri: string; height: number; width: number };
-
-/** How many corners get a callout on the artwork. */
-const LABELLED_CORNERS = 3;
-
-/**
- * The map with its busiest corners called out.
- *
- * The labels are drawn by satori rather than inside the SVG, because resvg has
- * no font of its own and cannot parse the WOFF that satori is using, so every
- * `<text>` in the rasterised lap silently disappeared. Drawing them in the
- * layout layer fixes that and reads better anyway: a numeral inside a small
- * circle is illegible at the size a card is actually seen, where a chip naming
- * the corner and its count is not.
- *
- * Each chip is offset from its marker toward the middle of the map, which is
- * the one direction that cannot run off an edge.
- */
-function mapWithLabels(art: MapArt): ReactNode {
-  const scale = art.width / BAKU_VIEW_BOX.width;
-  const centre = { x: BAKU_VIEW_BOX.width / 2, y: BAKU_VIEW_BOX.height / 2 };
-  return e(
-    'div',
-    {
-      style: {
-        display: 'flex',
-        position: 'relative',
-        width: art.width,
-        height: art.height,
-      },
-    },
-    e('img', { src: art.uri, width: art.width, height: art.height }),
-    ...corners.slice(0, LABELLED_CORNERS).map((entry) => {
-      const corner = BAKU_CORNERS.find((c) => c.number === entry.corner);
-      if (corner === undefined) {
-        return null;
-      }
-      const dx = centre.x - corner.x;
-      const dy = centre.y - corner.y;
-      const length = Math.hypot(dx, dy) || 1;
-      const offset = 92;
-      // Written out, as on the page: the card is read by people who may not
-      // think in circuit shorthand.
-      const text = `Turn ${entry.corner} · ${entry.count}`;
-      // Satori has no text metrics here, so the chip is centred on its anchor
-      // using an estimate: mono glyphs at this size run about half the em.
-      const chipWidth = text.length * 12 + 26;
-      return e(
-        'div',
+function map(left: number, top: number, width: number): ReactNode {
+  const scale = width / BAKU_VIEW_BOX.width;
+  const png = new Resvg(mapSvg(width)).render().asPng();
+  // Callouts live in the font-aware layout layer. Lines anchor the label to the
+  // actual corner, not the collision-adjusted marker or a generated image.
+  const positions: Record<
+    number,
+    { x: number; y: number; endX: number; endY: number }
+  > = {
+    2: { x: 735, y: -4, endX: 865, endY: 42 },
+    3: { x: 288, y: 164, endX: 486, endY: 190 },
+    15: { x: 125, y: 503, endX: 112, endY: 535 },
+  };
+  const leaders = corners
+    .slice(0, 3)
+    .map(({ corner }) => {
+      const anchor = BAKU_CORNERS.find((c) => c.number === corner)!;
+      const pos = positions[corner];
+      return `<line x1="${anchor.x}" y1="${anchor.y}" x2="${pos.endX}" y2="${pos.endY}" stroke="#a7a8ad" stroke-width="1.5"/>`;
+    })
+    .join('');
+  const leaderSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${710 * scale}" viewBox="0 0 1000 710">${leaders}</svg>`;
+  return box(
+    { position: 'absolute', left, top, width, height: 710 * scale },
+    e('img', {
+      src: `data:image/png;base64,${Buffer.from(png).toString('base64')}`,
+      width,
+      height: 710 * scale,
+    }),
+    e('img', {
+      src: `data:image/svg+xml;base64,${Buffer.from(leaderSvg).toString('base64')}`,
+      width,
+      height: 710 * scale,
+      style: { position: 'absolute', left: 0, top: 0 },
+    }),
+    ...corners.slice(0, 3).map(({ corner, count }) => {
+      const pos = positions[corner];
+      return box(
         {
-          key: entry.corner,
-          style: {
-            display: 'flex',
-            position: 'absolute',
-            left: Math.round(
-              (corner.x + (dx / length) * offset) * scale - chipWidth / 2,
-            ),
-            top: Math.round((corner.y + (dy / length) * offset) * scale - 19),
-            width: chipWidth,
-            height: 38,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 4,
-            backgroundColor: colors.page,
-            border: `1px solid ${colors.borderStrong}`,
-            fontFamily: 'IBM Plex Mono',
-            fontSize: 21,
-            fontWeight: 600,
-            color: colors.text,
-          },
+          position: 'absolute',
+          left: pos.x * scale,
+          top: pos.y * scale,
+          flexDirection: 'column',
         },
-        text,
+        box({ fontSize: 25 * scale, fontWeight: 600 }, `Turn ${corner}`),
+        box(
+          { fontSize: 23 * scale, marginTop: 4 * scale, color: colors.accent },
+          `${count} incidents`,
+        ),
       );
     }),
   );
 }
-
-/** Instagram crops anything taller than 4:5, so the map sits as a band. */
-function cornerInstagram(art: MapArt): ReactNode {
-  const gutter = 72;
-  return canvas(INSTAGRAM_WIDTH, INSTAGRAM_HEIGHT, [
-    logo(gutter, 64),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'absolute',
-          left: gutter,
-          right: gutter,
-          /* Centred rather than hung from the logo: the map is 4:3 inside a
-             4:5 frame, so top-aligning it left a quarter of the card empty. */
-          top: 230,
-        },
-      },
-      eyebrow('BAKU CITY CIRCUIT'),
-      headline('Where the walls take cars', 66),
-      e(
-        'div',
-        { style: { display: 'flex', marginTop: 28 } },
-        mapWithLabels(art),
-      ),
-      e(
-        'div',
-        { style: { display: 'flex', gap: 56, marginTop: 24 } },
-        ...HEADLINE_STATS.map(([value, label]) => statBlock(label, value)),
-      ),
-    ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          position: 'absolute',
-          left: gutter,
-          bottom: 64,
-        },
-      },
-      domain(),
-    ),
-  ]);
-}
-
-function statBlock(label: string, value: string): ReactNode {
-  return e(
-    'div',
+function poster(wide: boolean): ReactNode {
+  const width = wide ? 1600 : 1080;
+  const height = wide ? 900 : 1350;
+  const totalLine = `${BAKU_CRASHES.length} incidents · ${years.length} weekends`;
+  return box(
     {
-      key: label,
-      style: { display: 'flex', flexDirection: 'column' },
+      position: 'relative',
+      width,
+      height,
+      overflow: 'hidden',
+      backgroundColor: colors.page,
+      color: colors.text,
+      fontFamily: 'Archivo',
     },
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          fontFamily: 'IBM Plex Mono',
-          fontSize: 52,
-          fontWeight: 600,
-          color: colors.text,
-        },
-      },
-      value,
+    text('Baku', 60, wide ? 20 : 16, wide ? 226 : 300, {
+      fontWeight: 900,
+      letterSpacing: -9,
+      color: colors.accent,
+    }),
+    text('Crash map', 65, wide ? 257 : 282, wide ? 66 : 73, {
+      fontWeight: 600,
+      letterSpacing: -2,
+    }),
+    text(period, wide ? 65 : 770, wide ? 352 : 321, wide ? 29 : 27, {
+      color: colors.textMuted,
+    }),
+    text(totalLine, 65, wide ? 402 : 386, wide ? 27 : 29),
+    map(wide ? 604 : 60, wide ? 183 : 454, wide ? 944 : 960),
+    driverKey(
+      wide ? 65 : 558,
+      wide ? 478 : 836,
+      wide ? 490 : 450,
+      wide ? 1.08 : 1,
     ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          marginTop: 4,
-          fontFamily: 'IBM Plex Mono',
-          fontSize: 17,
-          letterSpacing: 2,
-          color: colors.textMuted,
-        },
-      },
-      label.toUpperCase(),
+    text(
+      'Larger dots = more incidents',
+      wide ? 970 : 65,
+      wide ? 778 : 438,
+      wide ? 22 : 20,
+      { color: colors.textMuted },
+    ),
+    box({
+      position: 'absolute',
+      left: 0,
+      bottom: 0,
+      width,
+      height: wide ? 76 : 84,
+      backgroundColor: colors.page,
+    }),
+    rule(65, wide ? 824 : 1266, width - 130),
+    text('grandprixpicks.com', 65, wide ? 850 : 1296, wide ? 23 : 22),
+    text(
+      `Curated archive · ${unplaced} incidents unplaced`,
+      wide ? 950 : 606,
+      wide ? 852 : 1300,
+      wide ? 21 : 18,
+      { color: colors.textMuted },
     ),
   );
 }
-
-/** X shows 16:9 nearly full size, so the map takes the right half. */
-function cornerX(art: MapArt): ReactNode {
-  const gutter = 72;
-  return canvas(X_WIDTH, X_HEIGHT, [
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          position: 'absolute',
-          right: 24,
-          top: Math.round((X_HEIGHT - art.height) / 2),
-        },
-      },
-      mapWithLabels(art),
-    ),
-    logo(gutter, 64),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'absolute',
-          left: gutter,
-          top: 210,
-          width: 620,
-        },
-      },
-      eyebrow('BAKU, 2016 TO 2025'),
-      headline('Where the walls take cars', 62),
-      e(
-        'div',
-        { style: { display: 'flex', gap: 48, marginTop: 40 } },
-        ...HEADLINE_STATS.map(([value, label]) => statBlock(label, value)),
-      ),
-    ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          position: 'absolute',
-          left: gutter,
-          bottom: 64,
-        },
-      },
-      domain(),
-    ),
-  ]);
-}
-
-/**
- * The figures beside the map, which must not be the ones already on it.
- *
- * The callouts name the three busiest corners and their counts, so repeating
- * those here spent the row saying nothing. These are the facts the picture
- * cannot show: how much of the lap is implicated, and over how long.
- */
-const HEADLINE_STATS: readonly (readonly [string, string])[] = [
-  [String(BAKU_CRASHES.length), 'Incidents'],
-  ['9', 'Weekends'],
-  [String(corners.length), 'Corners hit'],
-];
-
-const DRIVER_ROWS = 8;
-
-function driverInstagram(): ReactNode {
-  const gutter = 72;
-  return canvas(INSTAGRAM_WIDTH, INSTAGRAM_HEIGHT, [
-    logo(gutter, 64),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'absolute',
-          left: gutter,
-          right: gutter,
-          top: 150,
-        },
-      },
-      eyebrow('BAKU, 2016 TO 2025'),
-      headline('Caught out most in Baku', 66),
-      e(
-        'div',
-        { style: { display: 'flex', flexDirection: 'column', marginTop: 44 } },
-        ...drivers.slice(0, DRIVER_ROWS).map((entry) =>
-          barRow(driverSurname(entry.driver), entry.count, maxDriver, {
-            barWidth: 500,
-            labelWidth: 300,
-            fontSize: 36,
-            barHeight: 18,
-            gap: 58,
-          }),
-        ),
-      ),
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            marginTop: 18,
-            fontSize: 22,
-            color: colors.textMuted,
-          },
-        },
-        `${BAKU_CRASHES.length} incidents across nine weekends`,
-      ),
-    ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          position: 'absolute',
-          left: gutter,
-          bottom: 64,
-        },
-      },
-      domain(),
-    ),
-  ]);
-}
-
-function driverX(): ReactNode {
-  const gutter = 72;
-  return canvas(X_WIDTH, X_HEIGHT, [
-    logo(gutter, 64),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'absolute',
-          left: gutter,
-          top: 190,
-          width: 560,
-        },
-      },
-      eyebrow('BAKU, 2016 TO 2025'),
-      headline('Caught out most in Baku', 60),
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            marginTop: 26,
-            fontSize: 22,
-            lineHeight: 1.4,
-            color: colors.textMuted,
-          },
-        },
-        `${BAKU_CRASHES.length} incidents that ended in a red flag, a retirement or a stewards' collision note.`,
-      ),
-    ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'absolute',
-          right: gutter,
-          top: 150,
-          width: 780,
-        },
-      },
-      ...drivers.slice(0, DRIVER_ROWS).map((entry) =>
-        barRow(driverSurname(entry.driver), entry.count, maxDriver, {
-          barWidth: 420,
-          labelWidth: 270,
-          fontSize: 30,
-          barHeight: 16,
-          gap: 40,
-        }),
-      ),
-    ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          position: 'absolute',
-          left: gutter,
-          bottom: 64,
-        },
-      },
-      domain(),
-    ),
-  ]);
-}
-
-async function render(
-  filename: string,
-  node: ReactNode,
-  width: number,
-  height: number,
-) {
-  const svg = await satori(node, { width, height, fonts: await loadFonts() });
-  const png = new Resvg(svg, { fitTo: { mode: 'width', value: width } })
-    .render()
-    .asPng();
-  await writeFile(path.join(artifactOutputDir, filename), png);
-  await writeFile(path.join(publicOutputDir, filename), png);
-}
-
 await mkdir(artifactOutputDir, { recursive: true });
 await mkdir(publicOutputDir, { recursive: true });
 const require = createRequire(import.meta.url);
 await initWasm(
   await readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm')),
 );
-
-const fontBuffers = (await loadFonts()).map(
-  (font) => new Uint8Array(font.data),
+const fonts = await Promise.all(
+  ([400, 600, 900] as const).map(async (weight) => ({
+    name: 'Archivo',
+    data: await readFile(path.join(fontDir, `archivo-${weight}-latin.ttf`)),
+    weight,
+    style: 'normal' as const,
+  })),
 );
-const instagramMapWidth = INSTAGRAM_WIDTH - 72 * 2;
-
-await render(
-  `${SLUG}-corners-instagram.png`,
-  cornerInstagram(mapDataUri(instagramMapWidth, fontBuffers)),
-  INSTAGRAM_WIDTH,
-  INSTAGRAM_HEIGHT,
-);
-await render(
-  `${SLUG}-corners-x.png`,
-  cornerX(mapDataUri(880, fontBuffers)),
-  X_WIDTH,
-  X_HEIGHT,
-);
-await render(
-  `${SLUG}-drivers-instagram.png`,
-  driverInstagram(),
-  INSTAGRAM_WIDTH,
-  INSTAGRAM_HEIGHT,
-);
-await render(`${SLUG}-drivers-x.png`, driverX(), X_WIDTH, X_HEIGHT);
-
-console.log(`Wrote ${SLUG} artwork to ${artifactOutputDir}`);
+for (const wide of [false, true]) {
+  const width = wide ? 1600 : 1080;
+  const height = wide ? 900 : 1350;
+  const filename = `${SLUG}-${wide ? 'x' : 'instagram'}.png`;
+  const svg = await satori(poster(wide), { width, height, fonts });
+  const png = new Resvg(svg).render().asPng();
+  await writeFile(path.join(artifactOutputDir, filename), png);
+  await writeFile(path.join(publicOutputDir, filename), png);
+  console.log(`Wrote ${filename} (${width}×${height})`);
+}

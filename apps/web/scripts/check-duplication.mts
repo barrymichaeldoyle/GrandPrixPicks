@@ -133,7 +133,9 @@ async function mapLimit<T, R>(
 
 const sitemap = await fetchText(`${BASE}/sitemap.xml`);
 const paths = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)]
-  .map((m) => m[1]!.replace(BASE, '') || '/')
+  // The path only: a local server still lists the canonical prod origin in
+  // its sitemap, so stripping `BASE` left absolute URLs behind with `--base`.
+  .map((m) => new URL(m[1]!).pathname)
   .sort();
 
 if (paths.length === 0) {

@@ -190,11 +190,16 @@ resist widening either list.
   review was requested before the content deploy landed.
 - Wait for Search Console to show the changes indexed. Repeat requests with no
   substantive change slow subsequent ones.
-- The evergreen guides were written by Claude and are **not fact-checked**.
-  That is a standing risk on an editorial review. The 22 circuit guides were
-  the larger part of it and are deleted.
 - The five race write-ups **were** audited on 2026-09-08, every claim against
   the raw text of the article cited beside it. Four fabrications and three
   wrong figures came out of it; see `docs/race-writeup-lifecycle.md` for how
-  and what to repeat. That leaves the guides and `circuitGuides.ts`, which
-  still renders on every race page, as the unchecked prose on the site.
+  and what to repeat.
+- `circuitGuides.ts` and the points and weekend-format guides were audited
+  the same way on 2026-09-21. Sepang's guide said nobody on the grid had raced
+  there (Hamilton, Verstappen and Alonso all started the 2017 race), Zandvoort
+  was placed north of Amsterdam, Baku's castle section was "a car and a half"
+  wide (it is 7.6 metres), and the weekend-format guide gave seven sprint
+  rounds instead of six and said a sprint weekend keeps two practice sessions.
+  Unsourced superlatives came out rather than being replaced. The Haas seat
+  guide carries its own sources. As of that date nothing on the site is
+  unchecked Claude-written prose.

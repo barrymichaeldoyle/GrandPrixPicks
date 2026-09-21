@@ -416,8 +416,8 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
       {
         heading: 'Two championships, one set of results',
         paragraphs: [
-          'Every point a driver scores counts twice: once towards the drivers championship, and once towards their team constructors total. A team constructors score is the sum of what both of its drivers score, which is why a team with two consistently strong drivers can out-score a team with one exceptional driver and one struggling one.',
-          'This is also why teams sometimes make decisions that look strange from a single driver perspective. Protecting a constructors position is worth real money in prize distribution, and it can outweigh an individual driver interest late in a season.',
+          'Every point a driver scores counts twice: once towards the drivers’ championship, and once towards their team’s constructors’ total. A team’s constructors’ score is the sum of what both of its drivers score, which is why a team with two consistently strong drivers can out-score a team with one exceptional driver and one struggling one.',
+          'This is also why teams sometimes make decisions that look strange from a single driver’s perspective. Protecting a constructors’ position is worth real money in prize distribution, and it can outweigh an individual driver’s interest late in a season.',
         ],
       },
       {
@@ -455,14 +455,14 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         heading: 'Practice',
         paragraphs: [
           'A Grand Prix weekend opens with three practice sessions, two on Friday and one on Saturday morning. Nothing that happens in them affects the grid, and no points are on offer.',
-          'Teams spend the time working through a programme: aerodynamic measurement runs, setup changes compared back to back, and a long run on heavy fuel to see how the tyres hold up over a stint. Final practice, an hour before qualifying, is usually the closest thing to a qualifying simulation.',
+          'Teams spend the time working through a programme: aerodynamic measurement runs, setup changes compared back to back, and a long run on heavy fuel to see how the tyres hold up over a stint. Final practice, on the morning of qualifying, is usually the closest thing to a qualifying simulation.',
           'Fuel loads and engine modes vary from car to car and from run to run, so the practice timing screen rarely shows the real order. The lap times within a single long stint are the part that holds up, because they show how quickly a car is wearing its tyres.',
         ],
       },
       {
         heading: 'Sprint weekends',
         paragraphs: [
-          'Seven rounds of the 2026 season run a sprint. One practice session makes way for sprint qualifying on Friday, which sets the grid for a short race on Saturday morning, and the weekend then picks up its usual shape with qualifying and the Grand Prix.',
+          'Six rounds of the 2026 season run a sprint. Only one practice session is held. Sprint qualifying on Friday sets the grid for a short race on Saturday, and the weekend then picks up its usual shape with qualifying and the Grand Prix.',
           'That gives a sprint weekend four sessions worth predicting instead of two, in the order sprint qualifying, sprint, qualifying, race. The sprint itself pays points to the top eight finishers.',
         ],
       },
@@ -494,7 +494,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         heading: 'Grid penalties',
         paragraphs: [
           'The starting grid is not always the qualifying order. Drivers take grid penalties for going beyond their season allocation of power unit parts, for gearbox changes, or as a sanction for an incident at a previous race, and those are applied after qualifying has run.',
-          'A penalty never changes the qualifying classification. A driver can be third in qualifying and start the race tenth, and both of those are the official result of their session.',
+          'A grid penalty never changes the qualifying classification. A driver can be third in qualifying and start the race tenth, and both of those are the official result of their session.',
         ],
       },
       {

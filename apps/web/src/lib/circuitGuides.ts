@@ -44,7 +44,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
     racing:
       'The long straights and multiple straight-mode zones give a genuinely quick car a route past, but the corners in between are hard to follow through. Passes tend to happen in bursts on the run to the heavy braking zones rather than steadily across the lap.',
     predicting:
-      'The season opener is what makes this one hard to call. Nobody has a reliable read on the pecking order yet, testing form is a weak signal, and reliability failures are more common here than at any other point in the year. Treat the back half of your Top 5 as the volatile part and expect at least one surprise.',
+      'The season opener is what makes this one hard to call. Nobody has a reliable read on the pecking order yet, and testing form is a weak signal. Treat the back half of your Top 5 as the volatile part and expect at least one surprise.',
     traits: [
       { label: 'Track type', value: 'Temporary parkland' },
       { label: 'Overtaking', value: 'Moderate' },
@@ -68,13 +68,13 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
   },
   suzuka: {
     character:
-      'Suzuka is the drivers’ circuit, the one they name when asked for a favourite. It crosses over itself in a figure of eight and strings together a set of high-speed direction changes that reward bravery and expose a nervous car immediately.',
+      'Honda opened Suzuka in 1962 to a design by John Hugenholtz. It crosses over itself in a figure of eight and strings together a set of high-speed direction changes that reward bravery and expose a nervous car immediately.',
     layout:
       'The opening esses are the heart of it: a rhythmic sequence taken close to flat where every corner sets up the next, so a single mistake costs time all the way through. The rest of the lap keeps asking for high-speed stability, which favours cars with a strong aerodynamic platform.',
     racing:
       'Following closely through the esses is genuinely difficult, and the passing opportunities are limited to the run down to the final chicane and the first corner. Grid position matters more here than at most tracks.',
     predicting:
-      'This is one of the calendar’s more predictable weekends: the fastest car on Saturday usually converts on Sunday, and the order rarely scrambles. Weight your Top 5 towards qualifying pace. The wildcard is weather, which turns up here more often than the calendar slot suggests.',
+      'This is one of the calendar’s more predictable weekends: the fastest car on Saturday usually converts on Sunday, and the order rarely scrambles. Weight your Top 5 towards qualifying pace. The wildcard is weather.',
     traits: [
       { label: 'Track type', value: 'Permanent' },
       { label: 'Overtaking', value: 'Hard' },
@@ -113,13 +113,13 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
   },
   monaco: {
     character:
-      'The slowest, narrowest and most unforgiving circuit of the year, run through the streets of Monte Carlo with barriers on both sides for the entire lap. It has been on the calendar since the beginning and it makes no concession whatsoever to modern car dimensions.',
+      'The slowest, narrowest and most unforgiving circuit of the year, run through the streets of Monte Carlo with barriers on both sides for the entire lap. It held a round of the first world championship in 1950 and makes no concession whatsoever to modern car dimensions.',
     layout:
       'There is no margin anywhere. The lap is a sequence of blind, cambered, wall-lined corners taken at speeds that would be unremarkable elsewhere but feel enormous with armco a few centimetres away. Mechanical grip and driver confidence outweigh aerodynamic performance.',
     racing:
       'Overtaking is close to impossible. A significantly faster car will spend an entire race stuck behind a slower one, and the only realistic route past is through the pit stops or someone else’s mistake.',
     predicting:
-      'Qualifying is the race. Saturday’s order is the single best predictor of Sunday’s result anywhere on the calendar, so build your Top 5 from the grid and change very little. The one caveat is that the barriers claim someone most years, so a retirement ahead can promote a driver you had written off.',
+      'Qualifying is the race, so build your Top 5 from the grid and change very little. The one caveat is that the barriers claim someone most years, so a retirement ahead can promote a driver you had written off.',
     traits: [
       { label: 'Track type', value: 'Street' },
       { label: 'Overtaking', value: 'Very hard' },
@@ -130,7 +130,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
     character:
       'Barcelona is the circuit every team knows better than any other, having tested here for decades. That familiarity is exactly what makes it revealing: nobody has an excuse, and the finishing order tends to reflect the real order of the field.',
     layout:
-      'A demanding lap with a long opening straight, a fast middle sector and a slow final section that punishes any car lacking front-end grip. Sustained high-speed corners make it the most aerodynamically demanding conventional circuit on the calendar.',
+      'A demanding lap with a long opening straight, a fast middle sector and a slow final section that punishes any car lacking front-end grip. Sustained high-speed corners make it a hard test of aerodynamic performance.',
     racing:
       'Following through the fast corners costs a lot of front tyre performance, which historically made passing difficult. The removal of the old chicane restored the fast final corner and helped, but this is still a track where track position is worth defending.',
     predicting:
@@ -173,7 +173,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
   },
   spa: {
     character:
-      'Spa-Francorchamps is the longest lap of the season, cut through the Ardennes forest with enormous elevation change and the most famous corner in the sport at Eau Rouge and Raidillon. Its scale is the point: a lap here takes noticeably longer than anywhere else.',
+      'Spa-Francorchamps is the longest lap of the season, cut through the Ardennes forest with enormous elevation change and its most famous corner at Eau Rouge and Raidillon.',
     layout:
       'The circuit splits into a power-hungry first sector, a fast and technical middle section, and a final run back to the line. Teams must choose between straight-line speed and middle-sector downforce, and that choice determines where they are strong.',
     racing:
@@ -203,7 +203,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
   },
   zandvoort: {
     character:
-      'Zandvoort runs through the coastal dunes north of Amsterdam, an old-school circuit brought back to the calendar with steep banking added at two corners. The 2026 Dutch Grand Prix was its final Formula 1 race, ending a six-year modern run after the promoters chose not to renew amid rising hosting and operational costs. The circuit itself remains active, with Formula E planned from 2027.',
+      'Zandvoort runs through the coastal dunes west of Amsterdam, an old-school circuit brought back to the calendar with steep banking added at two corners. The 2026 Dutch Grand Prix was its final Formula 1 race, ending a six-year modern run after the promoter chose not to renew because the cost of staging it had become a challenge. The circuit itself remains active, with Formula E planned from 2027.',
     layout:
       'The banking at Hugenholtz and at the final corner lets cars carry far more speed than a flat equivalent would allow, and it changes how the car has to be set up. The lap is short and flowing with very little respite, and the surface offers less grip when sand blows in off the dunes.',
     racing:
@@ -248,7 +248,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
   },
   baku: {
     character:
-      'Baku pairs one of the longest flat-out runs in the championship with a section threaded between the walls of the old city that is barely wider than a car and a half. That combination makes it one of the most unpredictable races of the year.',
+      'Baku pairs one of the longest flat-out runs in the championship with a section threaded between the walls of the old city that is 7.6 metres wide at its narrowest. That combination makes it one of the most unpredictable races of the year.',
     layout:
       'A low-downforce setup helps down the enormous main straight but hurts through the twisting castle section, and teams have to pick a side. The walls are close for most of the lap and the surface offers little grip.',
     racing:
@@ -263,13 +263,13 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
   },
   sepang: {
     character:
-      'Sepang is a Hermann Tilke design from 1999 that hosted Formula 1 until 2017, and it returns as the venue for a Grand Prix carrying another country\u2019s name. It is a proper permanent circuit with generous run-off, enormous width and a 2016 surface laid for wet grip, with Turns 7 to 12 relaid in 2023. Heat and humidity sit close to Singapore levels, but here they are endured in daylight.',
+      'Sepang is a Hermann Tilke design from 1999 that hosted Formula 1 until 2017, and it returns as the venue for a Grand Prix carrying another country\u2019s name. It is a proper permanent circuit with generous run-off, enormous width and a 2016 surface laid for wet grip, with Turns 7 to 12 relaid in 2023. It is hot and humid, and the race runs in the afternoon.',
     layout:
       'Two very long straights joined by a hairpin give the lap its shape, and either side of them is a sequence of fast, wide, constant-radius corners that reward a car with aerodynamic load at speed. The width is the defining feature: there is almost always more than one line through a corner, and a driver can commit to an unusual entry without being punished for it.',
     racing:
       'Among the easier tracks on the calendar to pass on. The braking zones at the end of both straights are heavy and wide enough to permit a move that goes slightly wrong, so drivers attempt passes here that they would not risk elsewhere. Afternoon rain is common, and a wet or drying race spreads the field.',
     predicting:
-      'This is one of the least sticky rounds you will predict all year. Qualifying matters less than usual because the layout genuinely allows recovery, and afternoon rain can rearrange the order. Nobody on the current grid has raced a Grand Prix here, so track-specific form is no guide. Lean on outright car pace over qualifying position, and treat the lower half of your Top 5 as close to a coin toss.',
+      'This is one of the least sticky rounds you will predict all year. Qualifying matters less than usual because the layout genuinely allows recovery, and afternoon rain can rearrange the order. Formula 1 last raced here in 2017, so there is no recent form to go on. Lean on outright car pace over qualifying position, and treat the lower half of your Top 5 as close to a coin toss.',
     traits: [
       { label: 'Track type', value: 'Permanent (tropical)' },
       { label: 'Overtaking', value: 'Easy' },
@@ -278,11 +278,11 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
   },
   'marina-bay': {
     character:
-      'A night race through the streets of Singapore, run in heat and humidity that make it the most physically demanding event of the season. Drivers routinely lose several kilograms across the race distance.',
+      'A night race through the streets of Singapore, run in heat and humidity that make it the most physically demanding event of the season. Drivers routinely lose several kilograms across the race distance. It hosted Formula 1’s first night race, in 2008, and the whole lap is floodlit.',
     layout:
-      'A long lap with a high corner count, bumpy surface and walls throughout. Mechanical grip and traction out of slow corners dominate, and the humidity keeps cockpit temperatures brutal for the full two hours.',
+      'A long lap with a high corner count, bumpy surface and walls throughout. Mechanical grip and traction out of slow corners dominate, and the humidity keeps cockpit temperatures brutal for the whole race.',
     racing:
-      'Historically very difficult to pass on, though layout revisions have improved it somewhat. This is a track where track position is defended successfully and where the race often runs close to the two-hour limit.',
+      'Historically very difficult to pass on, though layout revisions have improved it somewhat. Track position is usually defended successfully.',
     predicting:
       'Qualifying position is important and the order is relatively sticky, but the safety car probability here is among the highest of the season and a well-timed one can rewrite the result. Driver fitness and concentration late in the race genuinely matter, so consider who tends to hold up under sustained pressure.',
     traits: [
@@ -310,7 +310,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
     character:
       'Mexico City sits well over two kilometres above sea level, and the thin air changes everything. Cars run maximum downforce configurations yet still behave as though they have very little, because there is simply less air to work with.',
     layout:
-      'The altitude reduces aerodynamic grip and makes cooling a serious engineering problem, so teams open up bodywork at a cost to drag. The main straight is enormous, top speeds are the highest of the year, and the stadium section at the end of the lap is slow and tight.',
+      'The altitude reduces aerodynamic grip and makes cooling a serious engineering problem, so teams open up bodywork at a cost to drag. The main straight is enormous, top speeds are among the highest of the year, and the stadium section at the end of the lap is slow and tight.',
     racing:
       'The long straight into a heavy braking zone is a strong overtaking spot, and the low grip at the first corner produces regular first-lap incidents. Braking performance suffers in the thin air, which contributes.',
     predicting:
@@ -340,7 +340,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
     character:
       'A night race down the Las Vegas Strip, run in the coldest conditions of the season on a fast, low-downforce street layout. The combination of cold ambient temperatures and a street surface creates a tyre problem unlike anywhere else.',
     layout:
-      'Very long straights joined by slow corners, so teams run minimal downforce and top speeds are among the highest of the year. The defining difficulty is getting tyres into their working range at all: in near-freezing night conditions, warming them up is harder than managing wear.',
+      'Very long straights joined by slow corners, so teams run minimal downforce and top speeds are among the highest of the year. The defining difficulty is getting tyres into their working range at all: in cold night conditions, warming them up is harder than managing wear.',
     racing:
       'The long straights make passing straightforward and slipstreaming is a significant factor. Cold tyres and a slippery surface produce lock-ups and off-track excursions throughout the weekend.',
     predicting:
@@ -355,7 +355,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
     character:
       'Lusail is a fast, flowing circuit originally built for motorcycle racing, which shows in its wide, sweeping corners and near-total absence of slow sections. It is run at night and remains punishingly hot even after dark.',
     layout:
-      'An almost continuous sequence of medium and high-speed corners with very little straight-line respite. That loads the tyres more heavily and more constantly than anywhere else on the calendar, and aggressive kerbs add to the stress.',
+      'An almost continuous sequence of medium and high-speed corners with very little straight-line respite. That loads the tyres heavily and without a break, and aggressive kerbs add to the stress.',
     racing:
       'The high-speed nature makes following difficult, though the main straight offers a passing opportunity. The bigger factor is that tyre life is severely limited here, which forces teams into more pit stops than they would otherwise choose and can compress or spread the field artificially. Races here are frequently decided by who can complete a stint without falling off a performance cliff rather than by outright pace.',
     predicting:

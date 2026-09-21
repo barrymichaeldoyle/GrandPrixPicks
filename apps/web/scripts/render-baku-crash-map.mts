@@ -243,7 +243,7 @@ function poster(wide: boolean): ReactNode {
         fontSize: wide ? 26 : 28,
         color: colors.textMuted,
       },
-      'grandprixpicks.com',
+      'GrandPrixPicks.com',
     ),
   );
 }

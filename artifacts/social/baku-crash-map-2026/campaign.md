@@ -65,7 +65,7 @@ No hashtags on the brand account.
 Poster on a charcoal background. "Baku" in large chartreuse letters, then "57
 incidents since 2016". Below, the outline of the Baku City Circuit with a
 chartreuse dot at each corner where incidents happened, larger dots for more.
-Two corners are labelled with large numbers: Turn 3 with 11 and Turn 15 with 10. grandprixpicks.com in the bottom right.
+Two corners are labelled with large numbers: Turn 3 with 11 and Turn 15 with 10. GrandPrixPicks.com in the bottom right.
 
 ## Rendering and posting
 

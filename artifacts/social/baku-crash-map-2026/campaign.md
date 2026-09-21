@@ -1,7 +1,9 @@
 # Baku crash map
 
-Status: **not scheduled or published.** One poster per format, revised on
-21 September 2026.
+Status: **scheduled** in Buffer for Tuesday 22 September 2026, 12:45 SAST
+(10:45 UTC), on X and Instagram. Post IDs and asset hashes are in
+`buffer-schedule.json`. The images attach from grandprixpicks.com, verified
+byte-identical to the files here before scheduling.
 
 ## Selected artwork
 

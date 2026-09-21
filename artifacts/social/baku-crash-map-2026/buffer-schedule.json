@@ -1,0 +1,30 @@
+{
+  "timezone": "Africa/Johannesburg",
+  "localDueAt": "2026-09-22T12:45:00+02:00",
+  "dueAt": "2026-09-22T10:45:00.000Z",
+  "assetBaseUrl": "https://grandprixpicks.com/social/baku-crash-map-2026",
+  "assetSha256Prefix": {
+    "baku-crash-map-2026-x.png": "bacde2d0d93c7400",
+    "baku-crash-map-2026-instagram.png": "5247de1241c64e94"
+  },
+  "posts": [
+    {
+      "service": "twitter",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "bufferPostId": "6ab147e97aee1d76cb264dbf",
+      "status": "scheduled",
+      "automaticPublishing": true,
+      "verified": true,
+      "asset": "baku-crash-map-2026-x.png?v=1"
+    },
+    {
+      "service": "instagram",
+      "channelId": "6a7050c899afb44349f18cbd",
+      "bufferPostId": "6ab147f35d8ba22c02583752",
+      "status": "scheduled",
+      "automaticPublishing": true,
+      "verified": true,
+      "asset": "baku-crash-map-2026-instagram.png?v=1"
+    }
+  ]
+}

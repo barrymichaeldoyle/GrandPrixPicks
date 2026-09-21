@@ -9,7 +9,7 @@ import {
   BAKU_VIEW_BOX,
 } from '@/lib/bakuCircuitGeometry';
 import type { BakuCrash } from '@/lib/bakuCrashes';
-import { BAKU_CRASHES } from '@/lib/bakuCrashes';
+import { BAKU_BEST_KNOWN, BAKU_CRASHES } from '@/lib/bakuCrashes';
 
 import type { BakuBreakdown, BakuFilter } from './bakuCrashMapModel';
 import {
@@ -30,6 +30,7 @@ import {
   markerRadius,
   orderedForList,
   placeMarkers,
+  previewIncidents,
   rankedCorners,
   rankedDrivers,
   rowsBeforeTie,
@@ -95,7 +96,6 @@ export function BakuCrashMap() {
   const max = Math.max(0, ...counts.values());
   const ranked = rankedCorners(counts);
   const rankedDriverRows = rankedDrivers(countsByDriver(visible));
-  const unplaced = unplacedCount(visible);
   const callouts = calloutCorners(ranked);
   const placed = placeMarkers(
     BAKU_CORNERS.map((corner) => ({
@@ -469,7 +469,7 @@ export function BakuCrashMap() {
 
       <div ref={selectionRef} className="scroll-mt-20">
         {selected === null ? (
-          <FullArchive crashes={visible} unplaced={unplaced} filter={filter} />
+          <FullArchive crashes={visible} filter={filter} />
         ) : (
           <SelectedIncidents
             selection={selected}
@@ -734,30 +734,36 @@ const VISIBLE_ROWS = 12;
  * corner can be read, since nothing places them on the map.
  */
 /**
- * The three newest incidents in view, then the rest behind a disclosure.
+ * Three incidents in view, then the rest behind a disclosure. The best-known
+ * three where the filter allows, the newest otherwise (`previewIncidents`).
  *
  * Collapsing the whole archive was right for the section's height but it left no
  * incident visible at all, and the notes are the part of this page that exists
  * nowhere else. Three of them read above the fold, and the archive underneath
- * holds the other fifty-four rather than repeating these: the same paragraph
+ * holds the rest rather than repeating these: the same paragraph
  * twice in one document helps nobody, least of all a crawler weighing it.
  */
 function FullArchive({
   crashes,
-  unplaced,
   filter,
 }: {
   crashes: readonly BakuCrash[];
-  unplaced: number;
   filter: BakuFilter;
 }) {
-  const listed = orderedForList(crashes);
-  const preview = listed.slice(0, PREVIEW_COUNT);
-  const rest = listed.slice(PREVIEW_COUNT);
+  const { kind, preview, rest } = previewIncidents(
+    crashes,
+    BAKU_BEST_KNOWN,
+    PREVIEW_COUNT,
+  );
+  // Counted over the folded rows: Vettel into Hamilton has no corner and is
+  // usually in the preview, so it must not be promised under the fold too.
+  const unplaced = unplacedCount(rest);
   const label = BAKU_FILTERS.find((entry) => entry.value === filter)?.label;
   return (
     <>
-      <h3 className="mt-8 text-sm font-semibold text-text">Latest incidents</h3>
+      <h3 className="mt-8 text-sm font-semibold text-text">
+        {kind === 'best-known' ? 'Best known incidents' : 'Latest incidents'}
+      </h3>
       <ol className="mt-2 flex flex-col gap-px bg-border">
         {preview.map((crash) => (
           <li key={crash.id} className="bg-page py-3">
@@ -807,7 +813,7 @@ function selectionTitle(selection: Selection): string {
 }
 
 /**
- * The incidents behind what the reader selected, in place of the latest
+ * The incidents behind what the reader selected, in place of the preview
  * three. Under the map and the tally rather than over them, so the ring on
  * the map and the highlighted row stay in view while the reader reads.
  */

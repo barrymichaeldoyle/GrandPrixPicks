@@ -688,7 +688,7 @@ HTML. Three changes did it:
 - **Drill-down is in place** (since 2026-09-21; it was a modal before).
   Selecting a corner or a driver, from a marker or a tally row, rings it on the
   map, highlights its row, and lists its incidents under the map in place of
-  the latest three, with a Clear button. The modal covered the map the reader
+  the three previewed ones, with a Clear button. The modal covered the map the reader
   had just clicked, so they lost sight of the corner and its neighbours at the
   moment they wanted to compare them. See "The in-place review" below.
 - **The full archive is a closed `details`.** All fifty-seven rows and every
@@ -729,9 +729,9 @@ here and it is now something a reader can actually reach.
 **No incident was visible without a click.** Collapsing all fifty-seven was
 right for the height, but the notes are the part of this page that exists
 nowhere else, and hiding every one of them gave a crawler and a reader nothing
-to read. The three newest now sit above the archive, and the `details` holds the
-other fifty-four rather than repeating them: the same paragraph twice in one
-document helps nobody.
+to read. Three incidents now sit above the archive, and the `details` holds the
+rest rather than repeating them: the same paragraph twice in one document
+helps nobody. Which three changed later; see "Best known first" below.
 
 **Nothing responded to hover.** A marker with only `cursor-pointer` reads as
 decoration. Markers brighten on hover and rows take a surface fill. Brightness
@@ -934,3 +934,17 @@ and fourteen rows (Leclerc's new one among them) are contacts where the car
 carried on. All of them now use the rule the rows actually follow: a car hit
 a wall, a barrier, another car or something on the track, as recorded in a
 race report or the FIA race control log.
+
+**Best known first (2026-09-21).** A Reddit comment on the crash map post
+listed Baku's famous crashes (Vettel into Hamilton, Grosjean behind the safety
+car, Leclerc in 2019, Piastri last year) as if the page lacked them. It had
+every one; none was visible. The preview showed the newest three, two of them
+minor 2025 contacts, and Vettel into Hamilton has no named corner, so it had no
+marker either and could only be read inside the closed archive.
+
+The preview is now **Best known incidents**, from a hand-ordered list
+(`BAKU_BEST_KNOWN` in `bakuCrashes.ts`, chosen by `previewIncidents`). Under a
+filter that leaves fewer than three of them (practice and qualifying today) it
+falls back to the newest three and says **Latest incidents**, so the heading
+always describes how the rows were picked. The archive's "including N with no
+corner named" now counts only the folded rows.

@@ -892,3 +892,21 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
       'https://www.formula1.com/en/latest/article/verstappen-claims-dominant-azerbaijan-win-over-russell-and-sainz-after.gT4fbKTwpl3dI79nDmrHS',
   },
 ];
+
+/**
+ * The incidents a fan already associates with Baku, most famous first.
+ *
+ * The map leads with these rather than the newest three: the newest were
+ * minor 2025 contacts, while Vettel into Hamilton sits under a corner no
+ * source names, so without this list it was readable only inside the closed
+ * archive. An editorial call like the archive itself; revise it when a
+ * weekend produces one people will still bring up.
+ */
+export const BAKU_BEST_KNOWN: readonly string[] = [
+  '2017-race-vettel-hamilton',
+  '2018-race-grosjean-sc',
+  '2019-quali-leclerc-t8',
+  '2025-quali-piastri-t3',
+  '2018-race-verstappen-ricciardo',
+  '2021-race-verstappen-straight',
+];

@@ -158,6 +158,37 @@ export function orderedForList(
   );
 }
 
+/**
+ * The incidents shown before the archive folds, and what to call them.
+ *
+ * The best-known ones when the filter leaves enough of them to fill the
+ * preview, otherwise the newest: a heading of "Best known" over a row picked
+ * for its date would be wrong. `rest` keeps the newest-first order, without
+ * the previewed rows.
+ */
+export function previewIncidents(
+  crashes: readonly BakuCrash[],
+  bestKnown: readonly string[],
+  count: number,
+): {
+  kind: 'best-known' | 'latest';
+  preview: readonly BakuCrash[];
+  rest: readonly BakuCrash[];
+} {
+  const listed = orderedForList(crashes);
+  const famous = bestKnown
+    .map((id) => listed.find((crash) => crash.id === id))
+    .filter((crash): crash is BakuCrash => crash !== undefined);
+  const kind = famous.length >= count ? 'best-known' : 'latest';
+  const preview = (kind === 'best-known' ? famous : listed).slice(0, count);
+  const shown = new Set(preview.map((crash) => crash.id));
+  return {
+    kind,
+    preview,
+    rest: listed.filter((crash) => !shown.has(crash.id)),
+  };
+}
+
 export function sessionLabel(session: BakuSession): string {
   if (session === 'SprintQualifying') {
     return 'Sprint Qualifying';

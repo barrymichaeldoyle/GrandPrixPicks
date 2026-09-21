@@ -42,12 +42,12 @@ describe('baku dataset schema', () => {
     expect(schema.license).toMatch(/^https:\/\//);
   });
 
-  it('references the organization entity rather than restating it', () => {
-    // A second, half-populated Organization node is what the SEO invariants
-    // test catches, and an `@id` that does not match the real one is a
-    // dangling reference nothing resolves.
+  it('names a typed creator that is the one Organization', () => {
+    // Google rejects a `creator` with no `@type` ("Invalid object type"), and
+    // it does not resolve an `@id` against another page. So the full node
+    // goes in, and it must be the same copy as everywhere else.
     const schema = bakuCrashDatasetSchema('/x');
-    expect(schema.creator).toEqual({ '@id': organizationSchema()['@id'] });
-    expect(schema.creator).not.toHaveProperty('@type');
+    expect(schema.creator).toEqual(organizationSchema());
+    expect(schema.creator['@type']).toBe('Organization');
   });
 });

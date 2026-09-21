@@ -1,6 +1,8 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { WeekendCardSkeleton } from '@/components/WeekendCardSkeleton';
+import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
+import { picksOverlayHeading } from '@/lib/picksOverlayHeading';
 import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { useLocation } from '@tanstack/react-router';
@@ -11,9 +13,23 @@ import type { SessionType } from '@/lib/sessions';
 import { useNow } from '@/lib/testing/now';
 import { UpcomingPredictionNudge } from './UpcomingPredictionNudge';
 
+let picksModalModule: Promise<typeof import('./UpcomingPicksModal')> | null =
+  null;
+
+function loadPicksModal() {
+  picksModalModule ??= import('./UpcomingPicksModal');
+  return picksModalModule;
+}
+
 const UpcomingPicksModal = lazy(() =>
-  import('./UpcomingPicksModal').then((module) => ({
+  loadPicksModal().then((module) => ({
     default: module.UpcomingPicksModal,
+  })),
+);
+
+const UpcomingPicksPrefetch = lazy(() =>
+  loadPicksModal().then((module) => ({
+    default: module.UpcomingPicksPrefetch,
   })),
 );
 
@@ -239,8 +255,21 @@ function UpcomingPredictionBannerInner() {
 
   const [pickerRace, setPickerRace] = useState<{
     slug: string;
-    name: string;
+    step: 'top5' | 'h2h';
   } | null>(null);
+  // Set when a player reaches for the CTA (hover, focus, touch). Mounting the
+  // prefetch then starts the picker's reads a few hundred milliseconds before
+  // the tap, which is most of what the loading shell used to wait on.
+  const [intent, setIntent] = useState(false);
+
+  // The picker's code is fetched once the page has settled, so the first tap
+  // does not wait on a chunk as well as on data.
+  useEffect(() => {
+    if (!bannerState.isVisible) {
+      return;
+    }
+    return deferUntilAfterLoad(() => void loadPicksModal());
+  }, [bannerState.isVisible]);
 
   if (!bannerState.isVisible && !pickerRace) {
     return null;
@@ -257,10 +286,19 @@ function UpcomingPredictionBannerInner() {
           raceSlug={activeRace.slug}
           ctaLabel={ctaLabel}
           onDismiss={dismiss}
+          onIntent={() => setIntent(true)}
           onMakePicks={() =>
-            setPickerRace({ slug: activeRace.slug, name: activeRace.name })
+            setPickerRace({
+              slug: activeRace.slug,
+              step: shouldShowH2HNudge ? 'h2h' : 'top5',
+            })
           }
         />
+      )}
+      {intent && !pickerRace && (
+        <Suspense fallback={null}>
+          <UpcomingPicksPrefetch />
+        </Suspense>
       )}
       {pickerRace && (
         <Suspense
@@ -268,7 +306,7 @@ function UpcomingPredictionBannerInner() {
             <PicksFocusOverlay
               open
               onClose={() => setPickerRace(null)}
-              title={pickerRace.name}
+              {...picksOverlayHeading(pickerRace.step)}
             >
               <WeekendCardSkeleton />
             </PicksFocusOverlay>
@@ -276,7 +314,7 @@ function UpcomingPredictionBannerInner() {
         >
           <UpcomingPicksModal
             raceSlug={pickerRace.slug}
-            raceName={pickerRace.name}
+            step={pickerRace.step}
             onClose={() => setPickerRace(null)}
           />
         </Suspense>

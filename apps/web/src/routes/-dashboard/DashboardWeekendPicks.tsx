@@ -21,6 +21,7 @@ import { Button } from '@/components/Button/Button';
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { NoticeCard } from '@/components/NoticeCard';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
+import { picksOverlayHeading } from '@/lib/picksOverlayHeading';
 import { PicksFormActionRow } from '@/components/PicksSaveStatus';
 import { PracticeResultsModal } from '@/components/PracticeResultsModal';
 import { PredictionForm } from '@/components/PredictionForm';
@@ -435,12 +436,7 @@ export function DashboardWeekendPicksReady({
     <PicksFocusOverlay
       open={pickerOpen}
       onClose={closePicker}
-      title={step === 'h2h' ? 'Team-mate picks' : 'Your Top 5'}
-      subtitle={
-        step === 'h2h'
-          ? 'Step 2 of 2'
-          : 'Step 1 of 2 · applies to every open session'
-      }
+      {...picksOverlayHeading(step === 'h2h' ? 'h2h' : 'top5')}
     >
       <div className="pb-4 sm:pb-0">
         {step === 'h2h' && topFiveComplete ? (

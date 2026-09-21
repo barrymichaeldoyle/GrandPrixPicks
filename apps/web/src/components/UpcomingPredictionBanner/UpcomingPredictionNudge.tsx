@@ -12,6 +12,8 @@ interface UpcomingPredictionNudgeProps {
   ctaLabel?: string;
   onDismiss?: () => void;
   onMakePicks: () => void;
+  /** The player is reaching for the CTA: a cue to start loading the picker. */
+  onIntent?: () => void;
 }
 
 export function UpcomingPredictionNudge({
@@ -20,6 +22,7 @@ export function UpcomingPredictionNudge({
   ctaLabel = 'Make picks',
   onDismiss,
   onMakePicks,
+  onIntent,
 }: UpcomingPredictionNudgeProps) {
   const countryCode = getCountryCodeForRace({ slug: raceSlug });
   const [isExiting, setIsExiting] = useState(false);
@@ -45,6 +48,9 @@ export function UpcomingPredictionNudge({
         <button
           type="button"
           onClick={onMakePicks}
+          onPointerEnter={onIntent}
+          onFocus={onIntent}
+          onTouchStart={onIntent}
           aria-haspopup="dialog"
           className="group relative mx-auto flex w-full max-w-(--page-max) items-center gap-2 px-4 py-2 pr-10 text-left"
         >

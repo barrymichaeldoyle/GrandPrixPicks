@@ -101,7 +101,7 @@ const RACE_WRITEUPS = {
     venueName: 'Baku',
     label: 'Baku predictions',
     summary:
-      'Why Baku races on Saturday in 2026, where the lap is won and lost, and the qualifying session that set a Formula 1 red-flag record.',
+      'Why Baku races on Saturday in 2026, its 2.2 km flat-out run and old-town corners, and the qualifying session that set a Formula 1 red-flag record.',
     cta: 'Read the Baku predictions',
   },
   'usa-2026': {

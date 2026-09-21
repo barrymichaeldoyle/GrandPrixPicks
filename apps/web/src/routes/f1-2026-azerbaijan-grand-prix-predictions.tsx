@@ -4,15 +4,12 @@ import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { BakuCrashMap } from '@/components/race-writeups/BakuCrashMap';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
-import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
-import {
-  RaceWriteupFactList,
-  RaceWriteupSection,
-} from '@/components/race-writeups/RaceWriteupSection';
+import { RACE_SIGNALS_ANCHOR } from '@/components/race-writeups/RaceSignalsSection';
+import { RaceWriteupSection } from '@/components/race-writeups/RaceWriteupSection';
 import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
@@ -34,7 +31,7 @@ const RACE_SLUG = 'azerbaijan-2026';
  * The circuit section's heading, declared once because two places use it:
  * the section itself and the hero link that scrolls to it.
  */
-const SIGNALS_HEADING = 'What matters in Baku';
+const SIGNALS_HEADING = 'The Baku City Circuit';
 const PATH = '/f1-2026-azerbaijan-grand-prix-predictions';
 const PROSE_REVIEWED = getRaceWriteupReviewedAt(RACE_SLUG);
 const PROSE_REVIEWED_AT = lastReviewedAt(PROSE_REVIEWED);
@@ -141,7 +138,7 @@ export const Route = createFileRoute(
           ? RACE_WEEKEND_DESCRIPTION
           : 'Make your 2026 Azerbaijan Grand Prix predictions. Baku races on Saturday this year, with practice starting Thursday. Pick a top 5 for every session.',
         finished:
-          '2026 Azerbaijan Grand Prix predictions scored against the official Baku classification. See who called the top 5 on a street circuit that punishes a mistake.',
+          '2026 Azerbaijan Grand Prix predictions, scored against the official Baku classification.',
         cancelled: 'The 2026 Azerbaijan Grand Prix was called off.',
       },
       imageAlt:
@@ -190,7 +187,7 @@ function AzerbaijanGrandPrixPredictionsPage() {
         summary={raceWriteupHeroSummary(
           phase,
           'The Azerbaijan Grand Prix',
-          'Baku races on Saturday this year. The long straight rewards efficiency; the old-city walls punish every mistake.',
+          'The Grand Prix moved to Saturday this year, so practice starts on Thursday and qualifying is on Friday.',
         )}
         phase={phase}
         raceSlug={RACE_SLUG}
@@ -205,10 +202,9 @@ function AzerbaijanGrandPrixPredictionsPage() {
         }}
       />
 
-      <SaturdayRace />
-      <WatchTable />
-      <TyreChoice />
-      <BakuCrashMap />
+      {/* This weekend's news and practice lead the page while it is live: they
+          are what changes between visits. Both render nothing until they have
+          an item or a session. */}
       {isLive ? (
         <>
           <WeekendNewsSection items={news.items} />
@@ -217,6 +213,13 @@ function AzerbaijanGrandPrixPredictionsPage() {
             raceSlug={RACE_SLUG}
             schedule={race}
           />
+        </>
+      ) : null}
+      <Circuit />
+      <BakuCrashMap />
+      <TyreChoice />
+      {isLive ? (
+        <>
           <MadridRecap />
           <RaceWriteupChampionshipContext
             championship={championship}
@@ -239,33 +242,38 @@ function AzerbaijanGrandPrixPredictionsPage() {
   );
 }
 
-function SaturdayRace() {
+/**
+ * The circuit's figures, written into the prose in bold rather than set as a
+ * four-up strip: a reader got the numbers without what they mean. The start
+ * time is in the hero's schedule card and is not repeated here.
+ */
+function Circuit() {
   return (
-    <RaceWriteupSection
-      id="saturday-race"
-      heading="The Grand Prix is on Saturday"
-      aside={
-        <RaceWriteupFactList
-          facts={[
-            ['Thursday', 'Practice 1 and Practice 2'],
-            ['Friday', 'Practice 3 and Qualifying'],
-            ['Saturday', 'Grand Prix'],
-            ['Race start', '15:00 Baku time'],
-          ]}
-        />
-      }
-    >
+    <RaceWriteupSection id={RACE_SIGNALS_ANCHOR} heading={SIGNALS_HEADING}>
       <p className="gpp-reading-copy mt-4 text-text-muted">
-        The Azerbaijan Grand Prix was originally due on Sunday 27 September.
-        Formula 1 and the FIA moved it to Saturday 26 September at the
-        promoter&rsquo;s request, to accommodate a national day.
+        Baku is a street circuit of <Figure>6.003 km</Figure> and{' '}
+        <Figure>20 corners</Figure>, and the Grand Prix runs for{' '}
+        <Figure>51 laps</Figure>. The cars are flat out for{' '}
+        <Figure>2.2 km</Figure> between Turn 16 and Turn 1, along the shoreline
+        and down the start/finish straight, and then brake from around{' '}
+        <Figure>350 km/h</Figure> for the 90-degree Turn 1, where most of the
+        overtaking happens.{' '}
+        <ExternalSource href={F1_EVENT_SOURCE}>
+          Formula 1&rsquo;s circuit guide
+        </ExternalSource>
+        .
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        The entire programme moved with it. Practice starts on Thursday,
-        qualifying is Friday, and race picks lock on Saturday. The sessions are
-        in their usual order; only the days changed.{' '}
-        <ExternalSource href={SATURDAY_SOURCE}>
-          Formula 1 announcement
+        Away from the straight, the lap winds through the old town. Turns 8 to
+        10 run past the medieval city walls on the narrowest part of the track.
+        Teams have to choose between downforce for the slow corners and low drag
+        for the straight.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Qualifying in 2025 was stopped <Figure>six times</Figure>, a Formula 1
+        record, and six different drivers crashed.{' '}
+        <ExternalSource href={QUALIFYING_2025_SOURCE}>
+          Autosport on the record
         </ExternalSource>
         .
       </p>
@@ -273,53 +281,8 @@ function SaturdayRace() {
   );
 }
 
-function WatchTable() {
-  return (
-    <RaceSignalsSection
-      heading={SIGNALS_HEADING}
-      stats={[
-        ['6.003', 'km circuit'],
-        ['51', 'race laps'],
-        ['20', 'turns'],
-        ['15:00', 'local start'],
-      ]}
-      signals={[
-        [
-          'Straight-line efficiency',
-          'Speed from Turn 16 to Turn 1',
-          'The flat-out run is long enough to expose drag. A car that reaches the straight slowly keeps paying for it for 2.2 kilometres.',
-        ],
-        [
-          'Old-city confidence',
-          'Commitment through Turns 8 to 10',
-          'The road narrows beside the castle walls. A driver who leaves margin loses time that cannot be recovered in that sector.',
-        ],
-        [
-          'Braking stability',
-          'Lock-ups at Turns 1 and 3',
-          'Both stops follow high speed and offer passing chances. A weak front end costs lap time and invites an overtake.',
-        ],
-        [
-          'Wind direction',
-          'Changes in braking points and tow strength',
-          'The exposed straights make the lap sensitive to gusts. A braking reference that worked on one lap can move on the next.',
-        ],
-      ]}
-    >
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        Baku asks for low drag on its enormous straight and grip through the
-        slow old-city section. Every setup gives something away.
-      </p>
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        Qualifying is where that bites. The 2025 session was stopped six times,
-        a Formula 1 record, and six different drivers put it into the walls.{' '}
-        <ExternalSource href={QUALIFYING_2025_SOURCE}>
-          Autosport on the record
-        </ExternalSource>
-        .
-      </p>
-    </RaceSignalsSection>
-  );
+function Figure({ children }: { children: string }) {
+  return <strong className="font-semibold text-text">{children}</strong>;
 }
 
 function TyreChoice() {
@@ -330,16 +293,6 @@ function TyreChoice() {
       hardest="C3"
     >
       <p className="gpp-reading-copy mt-7 text-text-muted">
-        Pirelli selected C3, C4 and C5, the softest three compounds in its
-        range.{' '}
-        <ExternalSource href={TYRE_SOURCE}>
-          Pirelli&rsquo;s selection
-        </ExternalSource>
-        .
-      </p>
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        The strategic question is timing. A Safety Car can make a stop cheap,
-        but waiting for one that never arrives leaves a driver on old tyres.
         Degradation was low in 2025, and Verstappen won with a single stop from
         hard to medium after an early Safety Car.{' '}
         <ExternalSource href={RACE_SOURCE}>
@@ -371,16 +324,12 @@ function MadridRecap() {
         .
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        Madrid rewarded strategy and pit timing on a tight street-style layout.
-        Baku&rsquo;s flat-out run is 2.2 kilometres long, so top speed counts
-        for more here than it did in Madrid.{' '}
         <Link
           to="/f1-2026-madrid-grand-prix-predictions"
           className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
         >
           Madrid results and predictions
         </Link>
-        .
       </p>
     </RaceWriteupSection>
   );

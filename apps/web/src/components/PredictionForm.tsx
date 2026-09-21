@@ -26,10 +26,15 @@ import { useQuery } from '@/integrations/convex/query';
 import { m } from 'framer-motion';
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import type { CSSProperties, ReactNode } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import {
+  useEffect,
+  useEffectEvent,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { useAutoSaveOnFirstComplete } from '@/hooks/useAutoSaveOnFirstComplete';
-import { useCallbackRef } from '@/hooks/useCallbackRef';
 import { useClerkRuntimeControl } from '@/integrations/clerk/runtime-control';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import {
@@ -584,9 +589,13 @@ export function PredictionForm({
   const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
   const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
   const now = useNow();
-  // Data-driven, not identity-driven. See useCallbackRef.
-  const reportCompletionState = useCallbackRef(onCompletionStateChange);
-  const reportPicksChange = useCallbackRef<[Id<'drivers'>[]]>(onPicksChange);
+  // Effect Events read current callbacks without retriggering notifications.
+  const reportCompletionState = useEffectEvent((complete: boolean) =>
+    onCompletionStateChange?.(complete),
+  );
+  const reportPicksChange = useEffectEvent((next: Id<'drivers'>[]) =>
+    onPicksChange?.(next),
+  );
 
   function analyticsProperties() {
     return {
@@ -659,17 +668,17 @@ export function PredictionForm({
     setHasHydratedDraft(true);
   }, [draftKey, existingPicks, initialDraftPicks, suppressDraftRestoredNotice]);
 
-  useIsomorphicLayoutEffect(() => {
+  useLayoutEffect(() => {
     if (hasHydratedDraft) {
       reportCompletionState(picks.length === 5);
     }
-  }, [hasHydratedDraft, reportCompletionState, picks.length]);
+  }, [hasHydratedDraft, picks.length]);
 
-  useIsomorphicLayoutEffect(() => {
+  useLayoutEffect(() => {
     if (hasHydratedDraft) {
       reportPicksChange(picks);
     }
-  }, [hasHydratedDraft, reportPicksChange, picks]);
+  }, [hasHydratedDraft, picks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),

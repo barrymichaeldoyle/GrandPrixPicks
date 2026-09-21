@@ -923,7 +923,22 @@
     overflow: hidden;
   }
 
+  ::view-transition-group(.leaderboard-change) {
+    animation-duration: 180ms;
+  }
+
+  ::view-transition-old(.leaderboard-change),
+  ::view-transition-new(.leaderboard-change) {
+    animation-duration: 180ms;
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(.leaderboard-change),
+    ::view-transition-old(.leaderboard-change),
+    ::view-transition-new(.leaderboard-change) {
+      animation: none;
+    }
+
     *,
     *::before,
     *::after {

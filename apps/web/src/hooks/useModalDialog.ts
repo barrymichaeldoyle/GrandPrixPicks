@@ -1,7 +1,5 @@
 import type { RefObject } from 'react';
-import { useEffect, useRef } from 'react';
-
-import { useCallbackRef } from './useCallbackRef';
+import { useEffect, useEffectEvent, useRef } from 'react';
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])';
@@ -87,7 +85,7 @@ export function useModalDialog<Panel extends HTMLElement>({
   initialFocusRef?: RefObject<HTMLElement | null>;
 }): RefObject<Panel | null> {
   const panelRef = useRef<Panel>(null);
-  const handleClose = useCallbackRef(onClose ?? (() => {}));
+  const handleClose = useEffectEvent(() => onClose?.());
 
   useEffect(() => {
     if (!open) {
@@ -167,7 +165,7 @@ export function useModalDialog<Panel extends HTMLElement>({
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [open, suspended, handleClose]);
+  }, [open, suspended]);
 
   return panelRef;
 }

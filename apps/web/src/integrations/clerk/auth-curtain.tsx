@@ -1,7 +1,13 @@
 import * as Sentry from '@sentry/tanstackstart-react';
 import { Loader2 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useEffectEvent,
+  useState,
+} from 'react';
 
 import { errorDiagnosticTags } from '@/components/error/diagnostics';
 import { useBodyScrollLock } from '@/hooks/useModalDialog';
@@ -225,24 +231,15 @@ export function AuthCurtainHost({
     !(isLoaded && !isSignedIn) &&
     (!confirmedSignedIn || pendingGates > 0);
 
-  // What the curtain was still waiting for, for the timeout report. A ref so
-  // reading it cannot restart the timeout that reads it.
-  const pendingGateNames = heldGates.map((gate) => gate.name);
-  const stateRef = useRef({
-    confirmedSignedIn,
-    isLoaded,
-    isSignedIn,
-    pendingGateNames,
+  const reportTimeout = useEffectEvent(() => {
+    reportCurtainTimeout({
+      label,
+      confirmedSignedIn,
+      isLoaded,
+      isSignedIn,
+      pendingGateNames: heldGates.map((gate) => gate.name),
+    });
   });
-  // Written during render on purpose, per the note above: the timeout
-  // must read the latest values without listing them as dependencies.
-  // oxlint-disable-next-line react/refs
-  stateRef.current = {
-    confirmedSignedIn,
-    isLoaded,
-    isSignedIn,
-    pendingGateNames,
-  };
 
   useEffect(() => {
     if (!active) {
@@ -255,11 +252,7 @@ export function AuthCurtainHost({
     }
     const timer = window.setTimeout(() => {
       setExpired(true);
-      // Read through the ref rather than the closure: listing these in the
-      // dependency array would restart the eight seconds every time a gate
-      // registered or released, so a page that flaps a gate would never reach
-      // the ceiling at all — which is the one thing the ceiling exists for.
-      reportCurtainTimeout({ label, ...stateRef.current });
+      reportTimeout();
     }, CURTAIN_TIMEOUT_MS);
     return () => window.clearTimeout(timer);
   }, [active, label]);

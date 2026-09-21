@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Activity, lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
 import { TabSwitch } from '@/components/TabSwitch';
@@ -66,6 +66,30 @@ function useNearViewport() {
   }, []);
 
   return { ref, near };
+}
+
+/** Visit once, then retain chart state while Activity pauses hidden effects. */
+function RetainedChart({
+  active,
+  children,
+  fallback,
+}: {
+  active: boolean;
+  children: ReactNode;
+  fallback: ReactNode;
+}) {
+  const [visited, setVisited] = useState(false);
+  if (active && !visited) {
+    setVisited(true);
+  }
+  if (!active && !visited) {
+    return fallback;
+  }
+  return (
+    <Activity mode={active ? 'visible' : 'hidden'}>
+      <Suspense fallback={fallback}>{children}</Suspense>
+    </Activity>
+  );
 }
 
 /** Holds the chart's height from the first paint, so nothing moves later. */
@@ -295,21 +319,18 @@ export function StandingsChartsSection({
             />
           }
           chart={
-            near && tab === 'gap' ? (
-              <Suspense
-                fallback={
-                  <ChartPlaceholder height={gapSeries.length * GAP_CHART_ROW} />
-                }
-              >
-                <GapChart
-                  series={gapSeries}
-                  summary={summaries.gap}
-                  mode={gapMode}
-                />
-              </Suspense>
-            ) : (
-              <ChartPlaceholder height={gapSeries.length * GAP_CHART_ROW} />
-            )
+            <RetainedChart
+              active={near && tab === 'gap'}
+              fallback={
+                <ChartPlaceholder height={gapSeries.length * GAP_CHART_ROW} />
+              }
+            >
+              <GapChart
+                series={gapSeries}
+                summary={summaries.gap}
+                mode={gapMode}
+              />
+            </RetainedChart>
           }
           fallback={
             <p className="mt-2 text-xs text-text-muted">
@@ -325,17 +346,16 @@ export function StandingsChartsSection({
           title="Points progression"
           description="Championship points after every round. A dot on a round label marks a sprint weekend."
           chart={
-            near && tab === 'progression' ? (
-              <Suspense fallback={<ChartPlaceholder />}>
-                <ProgressionChart
-                  series={lineSeries}
-                  rounds={rounds}
-                  summary={summaries.progression}
-                />
-              </Suspense>
-            ) : (
-              <ChartPlaceholder />
-            )
+            <RetainedChart
+              active={near && tab === 'progression'}
+              fallback={<ChartPlaceholder />}
+            >
+              <ProgressionChart
+                series={lineSeries}
+                rounds={rounds}
+                summary={summaries.progression}
+              />
+            </RetainedChart>
           }
           fallback={
             <RoundMatrixTable
@@ -357,17 +377,16 @@ export function StandingsChartsSection({
           title="Position by round"
           description={`Where every ${unit} stood in the championship after each round.`}
           chart={
-            near && tab === 'positions' ? (
-              <Suspense fallback={<ChartPlaceholder />}>
-                <BumpChart
-                  series={bumpSeries}
-                  rounds={rounds}
-                  summary={summaries.bump}
-                />
-              </Suspense>
-            ) : (
-              <ChartPlaceholder />
-            )
+            <RetainedChart
+              active={near && tab === 'positions'}
+              fallback={<ChartPlaceholder />}
+            >
+              <BumpChart
+                series={bumpSeries}
+                rounds={rounds}
+                summary={summaries.bump}
+              />
+            </RetainedChart>
           }
           fallback={
             <RoundMatrixTable

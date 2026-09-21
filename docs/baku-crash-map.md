@@ -461,7 +461,7 @@ Section heading: **"Every Baku crash since 2023"**. Direct, names the scope,
 and the date bound is doing honest work by telling a reader up front that this
 is three seasons and not the full circuit history.
 
-Placement: after the existing `RaceSignalsSection` (`What matters in Baku`),
+Placement: after the circuit section (`The Baku City Circuit`),
 before the FAQ. It supports the pick rather than introducing the weekend.
 
 Note that the Baku page currently has **no track map at all**: Monza and Madrid

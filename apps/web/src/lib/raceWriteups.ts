@@ -92,7 +92,7 @@ const RACE_WRITEUPS = {
     venueName: 'Singapore',
     label: 'Singapore predictions',
     summary:
-      'Singapore’s first sprint weekend, the single practice session before competitive running, and what matters at Marina Bay.',
+      'Singapore’s first sprint weekend, the single practice session before competitive running, and racing in the heat at Marina Bay.',
     cta: 'Read the Singapore predictions',
   },
   'azerbaijan-2026': {
@@ -115,12 +115,12 @@ const RACE_WRITEUPS = {
   },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
-    reviewedAt: '2026-09-12',
+    reviewedAt: '2026-09-21',
     venueName: 'Madrid',
-    label: 'Madrid GP predictions',
+    label: 'Madrid results',
     summary:
-      'Norris on pole for the first race at the Madring, Stroll starting from the back, and what practice showed in Madrid.',
-    cta: 'Read the Madrid predictions',
+      'How Antonelli won the first race at the Madring, how the field picked it, and why a Virtual Safety Car decided it.',
+    cta: 'Read the Madrid results',
   },
 } as const satisfies Record<string, RaceWriteup>;
 

@@ -6,13 +6,13 @@ import { RACE_WRITEUP_PICKS_ANCHOR } from '@/components/race-writeups/DeferredRa
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
 import { RaceNameLink } from '@/components/race-writeups/RaceNameLink';
-import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
 import {
-  RaceWriteupFactList,
+  RACE_WRITEUP_CIRCUIT_ANCHOR,
+  RaceWriteupFigure as Figure,
   RaceWriteupSection,
 } from '@/components/race-writeups/RaceWriteupSection';
 import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
@@ -42,7 +42,8 @@ const RACE_SLUG = 'bahrain-2026';
  * The circuit section's heading. Declared once so the section cannot drift
  * from the name the rest of the page uses for it.
  */
-const SIGNALS_HEADING = 'What matters at Sepang';
+const SIGNALS_HEADING = 'The Sepang International Circuit';
+const F1_CIRCUIT_SOURCE = 'https://www.formula1.com/en/racing/2026/bahrain';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
 const F1_EVENT_SOURCE =
   'https://www.formula1.com/en/latest/article/formula-1-and-fia-confirm-malaysia-will-join-2026-calendar-as-host-venue-for-bahrain-grand-prix.6lL7vjFEM2VVynRHvg1TCf';
@@ -253,7 +254,9 @@ function BahrainGrandPrixPredictionsPage() {
         }}
       />
 
-      <WhyMalaysia />
+      {/* This weekend's news and practice lead the page while it is live:
+          they are what changes between visits. Both render nothing until they
+          have an item or a session. */}
       {isLive ? (
         <>
           <WeekendNewsSection items={news.items} />
@@ -265,8 +268,9 @@ function BahrainGrandPrixPredictionsPage() {
         </>
       ) : null}
       <SessionConsensusSections sessions={consensusSessions} />
+      <WhyMalaysia />
       <NoCurrentForm />
-      <WatchTable />
+      <Circuit />
       <TyreChoice />
       <TripleHeader season={season} />
       {isLive ? (
@@ -308,16 +312,6 @@ function WhyMalaysia() {
     <RaceWriteupSection
       id="why-malaysia"
       heading="A Bahrain Grand Prix in Malaysia"
-      aside={
-        <RaceWriteupFactList
-          facts={[
-            ['Race name', 'Bahrain Grand Prix'],
-            ['Venue', 'Sepang, Malaysia'],
-            ['Originally', 'Sakhir, 10–12 April'],
-            ['Now', '2–4 October, round 16'],
-          ]}
-        />
-      }
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         The Bahrain Grand Prix was the fourth round of the season, due at Sakhir
@@ -338,10 +332,6 @@ function WhyMalaysia() {
           Sky Sports on the calendar change
         </ExternalSource>
         .
-      </p>
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        This is round 16 at Sepang. Scoring is the same as every other round.
-        The layout is two long straights and a fast middle sector.
       </p>
     </RaceWriteupSection>
   );
@@ -392,54 +382,40 @@ function NoCurrentForm() {
         </ExternalSource>
         .
       </p>
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        Simulations built on old data are the starting point for every team.
-        Friday is the first chance to correct them.
-      </p>
     </RaceWriteupSection>
   );
 }
 
-function WatchTable() {
+/**
+ * The circuit's figures, written into the prose in bold rather than set as a
+ * four-up strip above four signal rows. The start time is in the hero's
+ * schedule card, and the resurfacing is in the section above.
+ */
+function Circuit() {
   return (
-    <RaceSignalsSection
+    <RaceWriteupSection
+      id={RACE_WRITEUP_CIRCUIT_ANCHOR}
       heading={SIGNALS_HEADING}
-      stats={[
-        ['5.543', 'km circuit'],
-        ['56', 'race laps'],
-        ['15', 'turns'],
-        ['15:00', 'local start'],
-      ]}
-      signals={[
-        [
-          'The middle sector',
-          'Pace through the fast, constant-radius corners',
-          'Sepang is wide and quick between the hairpins. A car that carries aerodynamic load through those long corners is quick across the rest of the lap.',
-        ],
-        [
-          'Tyre management',
-          'Long-run degradation, and whether it changes across the lap',
-          'The 2016 surface was laid for wet grip, and Turns 7 to 12 were relaid in 2023. A driver who is quick over one lap may not hold a stint together.',
-        ],
-        [
-          'The hairpins',
-          'Stability at the end of both long straights',
-          'Both of the main passing places are heavy, wide stops. A car that brakes well can make a move there.',
-        ],
-        [
-          'Heat and rain',
-          'Cooling, and what happens if a tropical shower arrives',
-          'Afternoon rain is common at Sepang. A wet or drying race spreads the field further than dry pace would.',
-        ],
-      ]}
     >
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        Two long straights joined by a hairpin, and a middle sector of fast,
-        wide corners. Passing is easier here than at most circuits, so
-        qualifying sets less of the Sunday order. Afternoon showers also arrive
-        quickly.
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Sepang is <Figure>5.543 km</Figure> long with{' '}
+        <Figure>15 corners</Figure>, and the Grand Prix runs for{' '}
+        <Figure>56 laps</Figure>. The track is wide, with long straights, heavy
+        braking zones and fast, flowing corners, so drivers can attack from
+        different lines. Its best-known corners are the long sweep through Turns
+        5 and 6 and the final hairpin at Turn 15, which leads onto the main
+        straight.
       </p>
-    </RaceSignalsSection>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        The heat and humidity are high, and a tropical downpour can change
+        conditions quickly. Vettel&rsquo;s <Figure>1:34.080</Figure> from 2017
+        is still the lap record.{' '}
+        <ExternalSource href={F1_CIRCUIT_SOURCE}>
+          Formula 1&rsquo;s circuit guide
+        </ExternalSource>
+        .
+      </p>
+    </RaceWriteupSection>
   );
 }
 
@@ -459,14 +435,10 @@ function TyreChoice() {
       hardest="C2"
     >
       <p className="gpp-reading-copy mt-7 text-text-muted">
-        C2, C3 and C4, one step harder than the C3, C4 and C5 going to Baku and
-        Singapore either side of this weekend. That is the same set, in current
-        names, that Pirelli brought to the last race here.
-      </p>
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        Pirelli picked the middle of the range to keep a one-stop and a two-stop
-        close. Teams are likely to disagree about how many stops to make, and
-        that can decide a result on a circuit where passing is possible.{' '}
+        Pirelli brings C2, C3 and C4, one step harder than the C3, C4 and C5
+        going to Baku and Singapore either side of this weekend. It left out the
+        hardest compounds to narrow the gap between a one-stop and a two-stop
+        race, so teams have more strategies to choose from.{' '}
         <ExternalSource href={TYRE_SOURCE}>
           Pirelli&rsquo;s compound selection
         </ExternalSource>
@@ -516,16 +488,9 @@ function TripleHeader({
       }
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
-        Sepang was slotted between Azerbaijan and Singapore, so the teams run
-        three races in three weekends and travel from Baku to Malaysia to
-        Singapore. Two of the three are hot and humid, and the third is a street
-        circuit.
-      </p>
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        Reliability and damage carry across a run like this. A car that breaks
-        in Baku may take a penalty here, and a driver who struggles with the
-        heat here has Singapore a week later. Singapore is a sprint weekend,
-        with four sessions instead of two.
+        Sepang was slotted between Azerbaijan and Singapore, so the teams race
+        three weekends in a row and travel from Baku to Malaysia to Singapore.
+        Singapore is a sprint weekend.
       </p>
     </RaceWriteupSection>
   );

@@ -5,7 +5,6 @@ import type { FunctionReturnType } from 'convex/server';
 import { DriverBadge } from '@/components/DriverBadge';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
-import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
 import { TyreCompoundScale } from '@/components/race-writeups/TyreCompoundSection';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
@@ -16,7 +15,11 @@ import {
   RaceWriteupPhotoLayout,
   RaceWriteupPhotoSection,
 } from '@/components/race-writeups/RaceWriteupPhotoLayout';
-import { RaceWriteupSection } from '@/components/race-writeups/RaceWriteupSection';
+import {
+  RACE_WRITEUP_CIRCUIT_ANCHOR,
+  RaceWriteupFigure as Figure,
+  RaceWriteupSection,
+} from '@/components/race-writeups/RaceWriteupSection';
 import { RaceWriteupTrackMap } from '@/components/race-writeups/RaceWriteupTrackMap';
 import { RACE_WRITEUP_PICKS_ANCHOR } from '@/components/race-writeups/DeferredRaceWriteupPicks';
 import { RaceWriteupNextRound } from '@/components/race-writeups/RaceWriteupNextRound';
@@ -58,7 +61,7 @@ const RACE_SLUG = 'italy-2026';
  * The circuit section's heading, declared once because two places use it:
  * the section itself and the hero link that scrolls to it.
  */
-const SIGNALS_HEADING = 'What matters at Monza';
+const SIGNALS_HEADING = 'Autodromo Nazionale Monza';
 const HADJAR_AUTOSPORT_SOURCE =
   'https://www.autosport.com/f1/news/red-bull-to-keep-dutch-gp-driver-line-up-for-monza/10851595/';
 const LIVERY_SOURCE =
@@ -373,7 +376,7 @@ function ItalianGrandPrixPredictionsPage() {
           />
         </>
       ) : null}
-      <WatchTable />
+      <Circuit />
       <TrackMap />
       <TyreChoice />
       {/* The standings carry a right-hand card, the tribute and the contracts
@@ -497,44 +500,29 @@ function RaceReport() {
   );
 }
 
-function WatchTable() {
+/**
+ * The circuit's figures, written into the prose in bold rather than set as a
+ * four-up strip above four signal rows. The chicanes are the track map's
+ * subject, below.
+ */
+function Circuit() {
   return (
-    <RaceSignalsSection
+    <RaceWriteupSection
+      id={RACE_WRITEUP_CIRCUIT_ANCHOR}
       heading={SIGNALS_HEADING}
-      stats={[
-        ['5.793', 'km circuit'],
-        ['53', 'race laps'],
-        ['80%', 'full throttle'],
-        ['1.1', 'km main straight'],
-      ]}
-      signals={[
-        [
-          'Straight-line pace',
-          'Speed without relying on a tow',
-          'A car with low drag is quick on every lap. A tow only helps when there is a car close ahead.',
-        ],
-        [
-          'Heavy braking',
-          'A settled car into Rettifilo (Turns 1–2) and Roggia (Turns 4–5)',
-          'Lock-ups or poor rotation make overtaking and tyre life harder.',
-        ],
-        [
-          'Corner exits',
-          'Traction out of the chicanes',
-          'A weak exit gives away speed for the length of the next straight.',
-        ],
-        [
-          'Long runs',
-          'Consistent pace over several laps',
-          'A qualifying lap says nothing about how a car holds its tyres over a stint.',
-        ],
-      ]}
     >
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        A speed-trap result can be inflated by a tow, so clean laps, braking and
-        long runs are what separate the cars here.
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Monza is <Figure>5.793 km</Figure> long and the Grand Prix runs for{' '}
+        <Figure>53 laps</Figure>. The cars are at full throttle for about{' '}
+        <Figure>80%</Figure> of the lap and reach their top speed on the{' '}
+        <Figure>1.1 km</Figure> start/finish straight. Norris&rsquo;s pole lap
+        in 2024 averaged <Figure>263 km/h</Figure>.{' '}
+        <ExternalSource href={F1_EVENT_SOURCE}>
+          Formula 1&rsquo;s circuit guide
+        </ExternalSource>
+        .
       </p>
-    </RaceSignalsSection>
+    </RaceWriteupSection>
   );
 }
 

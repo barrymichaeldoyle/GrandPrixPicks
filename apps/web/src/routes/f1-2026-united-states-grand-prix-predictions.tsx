@@ -3,13 +3,13 @@ import { createFileRoute, notFound } from '@tanstack/react-router';
 
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
-import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
 import {
-  RaceWriteupFactList,
+  RACE_WRITEUP_CIRCUIT_ANCHOR,
+  RaceWriteupFigure as Figure,
   RaceWriteupSection,
 } from '@/components/race-writeups/RaceWriteupSection';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
@@ -31,7 +31,7 @@ const RACE_SLUG = 'usa-2026';
  * The circuit section's heading, declared once because two places use it:
  * the section itself and the hero link that scrolls to it.
  */
-const SIGNALS_HEADING = 'What matters at COTA';
+const SIGNALS_HEADING = 'The Circuit of the Americas';
 const PATH = '/f1-2026-united-states-grand-prix-predictions';
 const PROSE_REVIEWED = getRaceWriteupReviewedAt(RACE_SLUG);
 const PROSE_REVIEWED_AT = lastReviewedAt(PROSE_REVIEWED);
@@ -174,7 +174,7 @@ function UnitedStatesGrandPrixPredictionsPage() {
         summary={raceWriteupHeroSummary(
           phase,
           'The United States Grand Prix',
-          'Austin opens three races in the Americas, and this year it is a standard weekend: three practice sessions before qualifying, and no Sprint.',
+          'Austin opens three races in the Americas, and this year it has no Sprint.',
         )}
         phase={phase}
         raceSlug={RACE_SLUG}
@@ -189,10 +189,9 @@ function UnitedStatesGrandPrixPredictionsPage() {
         }}
       />
 
-      <StandardWeekend />
-      <WatchTable />
-      <Upgrades />
-      <LastYear />
+      {/* This weekend's news and practice lead the page while it is live:
+          they are what changes between visits. Both render nothing until they
+          have an item or a session. */}
       {isLive ? (
         <>
           <WeekendNewsSection items={news.items} />
@@ -201,6 +200,14 @@ function UnitedStatesGrandPrixPredictionsPage() {
             raceSlug={RACE_SLUG}
             schedule={race}
           />
+        </>
+      ) : null}
+      <StandardWeekend />
+      <Circuit />
+      <Upgrades />
+      <LastYear />
+      {isLive ? (
+        <>
           <RaceWriteupChampionshipContext
             championship={championship}
             races={season.races}
@@ -227,16 +234,6 @@ function StandardWeekend() {
     <RaceWriteupSection
       id="standard-weekend"
       heading="Three practice sessions this time"
-      aside={
-        <RaceWriteupFactList
-          facts={[
-            ['Friday', 'Practice 1 and Practice 2'],
-            ['Saturday', 'Practice 3 and Qualifying'],
-            ['Sunday', 'Grand Prix'],
-            ['Race start', '15:00 Austin time'],
-          ]}
-        />
-      }
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         Austin ran the Sprint format in 2025, which left teams one hour of
@@ -256,50 +253,49 @@ function StandardWeekend() {
   );
 }
 
-function WatchTable() {
+/**
+ * The circuit's figures, written into the prose in bold rather than set as a
+ * four-up strip above four signal rows. The start time is in the hero's
+ * schedule card and is not repeated here.
+ */
+function Circuit() {
   return (
-    <RaceSignalsSection
+    <RaceWriteupSection
+      id={RACE_WRITEUP_CIRCUIT_ANCHOR}
       heading={SIGNALS_HEADING}
-      stats={[
-        ['5.513', 'km circuit'],
-        ['56', 'race laps'],
-        ['20', 'turns'],
-        ['15:00', 'local start'],
-      ]}
-      signals={[
-        [
-          'Turn 1',
-          'The climb after the start line',
-          'The circuit has 41 metres of elevation change, and the steepest of it is the run up to Turn 1. It is a braking zone and a passing chance on every lap, and the busiest place on the circuit on the first.',
-        ],
-        [
-          'High-speed direction changes',
-          'Balance through Turns 3 to 6',
-          'The run is modelled on Maggotts and Becketts. A car that moves around there loses time and heats its tyres.',
-        ],
-        [
-          'Thermal degradation',
-          'Lap times late in a long run',
-          'Pirelli describes the tyre wear here as mostly thermal. The temperature passed 30°C during the 2024 race.',
-        ],
-        [
-          'Track evolution',
-          'How far times fall between sessions',
-          'Rubber builds up across the weekend. In 2024 that let drivers stretch their stints further than the Sprint had suggested.',
-        ],
-      ]}
     >
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        Pirelli describes a lap that needs top-end speed as well as stability
-        through its more technical sections. The circuit was partially
-        resurfaced in 2024, which Pirelli says made it smoother and less bumpy
-        than before.{' '}
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        COTA is <Figure>5.513 km</Figure> long with <Figure>20 corners</Figure>,
+        and the Grand Prix runs anticlockwise for <Figure>56 laps</Figure>. The
+        lap has <Figure>41 metres</Figure> of elevation change, most of it in
+        the steep climb from the start line to Turn 1. Several corners borrow
+        from other circuits: Turns 3 to 6 are modelled on Silverstone&rsquo;s
+        Maggotts and Becketts, and other sections take after Suzuka, Hockenheim
+        and Istanbul Park.{' '}
         <ExternalSource href={PIRELLI_2025_SOURCE}>
           Pirelli&rsquo;s circuit notes
         </ExternalSource>
         .
       </p>
-    </RaceSignalsSection>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Turn 1 is wide at the top of the hill and regularly produces overtaking.{' '}
+        <ExternalSource href={F1_EVENT_SOURCE}>
+          Formula 1&rsquo;s circuit guide
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Pirelli describes the tyre wear here as mostly thermal, and the
+        temperature passed <Figure>30°C</Figure> during the 2024 race. The
+        circuit was partially resurfaced that year, which made it smoother. Grip
+        builds as rubber goes down over the weekend, and in 2024 that let
+        drivers run the Medium longer than the Sprint had suggested.{' '}
+        <ExternalSource href={PIRELLI_2025_SOURCE}>
+          Pirelli&rsquo;s 2025 preview
+        </ExternalSource>
+        .
+      </p>
+    </RaceWriteupSection>
   );
 }
 

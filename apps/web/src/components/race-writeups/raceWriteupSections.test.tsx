@@ -4,10 +4,8 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { CircuitStatStrip } from './CircuitStatStrip';
 import { RaceFaqSection } from './RaceFaqSection';
-import { RaceSignalsSection } from './RaceSignalsSection';
-import { RaceWriteupFactList, RaceWriteupSection } from './RaceWriteupSection';
+import { RaceWriteupFigure, RaceWriteupSection } from './RaceWriteupSection';
 import { RaceWriteupPage } from './RaceWriteupPage';
 import {
   RaceWriteupPhotoLayout,
@@ -45,86 +43,6 @@ describe('race write-up sections', () => {
     act(() => root!.render(node));
     return container;
   }
-
-  describe('CircuitStatStrip', () => {
-    it('reads each figure as its label’s value', () => {
-      const el = render(
-        <CircuitStatStrip
-          stats={[
-            ['6.003', 'km circuit'],
-            ['51', 'race laps'],
-          ]}
-        />,
-      );
-
-      // dt names the stat and dd carries the figure, whatever order CSS
-      // paints them in.
-      expect([...el.querySelectorAll('dt')].map((n) => n.textContent)).toEqual([
-        'km circuit',
-        'race laps',
-      ]);
-      expect([...el.querySelectorAll('dd')].map((n) => n.textContent)).toEqual([
-        '6.003',
-        '51',
-      ]);
-    });
-  });
-
-  describe('RaceSignalsSection', () => {
-    const signals = [
-      [
-        'Braking stability',
-        'Lock-ups at Turn 1',
-        'A weak front end costs time',
-      ],
-      ['Wind direction', 'Braking points move', 'References shift lap to lap'],
-    ] as const;
-
-    it('renders each signal as a heading and its two explanations', () => {
-      const el = render(
-        <RaceSignalsSection heading="What matters in Baku" signals={signals}>
-          <p>Baku asks for low drag.</p>
-        </RaceSignalsSection>,
-      );
-
-      expect(el.querySelector('h2')?.textContent).toBe('What matters in Baku');
-      expect(el.textContent).toContain('Baku asks for low drag.');
-      expect([...el.querySelectorAll('h3')].map((n) => n.textContent)).toEqual([
-        'Braking stability',
-        'Wind direction',
-      ]);
-      expect(el.textContent).toContain('A weak front end costs time');
-    });
-
-    it('names the section for its heading, so the landmark is labelled', () => {
-      const el = render(
-        <RaceSignalsSection heading="What matters" signals={signals} />,
-      );
-      const section = el.querySelector('section');
-      expect(section?.getAttribute('aria-labelledby')).toBe('what-to-watch');
-      expect(el.querySelector('h2')?.id).toBe('what-to-watch');
-    });
-
-    it('omits the figure strip when a page has no figures to give', () => {
-      const el = render(
-        <RaceSignalsSection heading="What matters" signals={signals} />,
-      );
-      expect(el.querySelector('dl')).toBeNull();
-    });
-
-    it('sets each signal as one sentence pair, punctuation supplied', () => {
-      const el = render(
-        <RaceSignalsSection heading="What matters" signals={signals} />,
-      );
-      // The rows are prose, not a table: the page data leaves `lookFor`
-      // without its full stop and the component closes the sentence, so a
-      // reader never meets "Lock-ups at Turn 1 A weak front end costs time".
-      expect([...el.querySelectorAll('p')].map((n) => n.textContent)).toEqual([
-        'Lock-ups at Turn 1. A weak front end costs time',
-        'Braking points move. References shift lap to lap',
-      ]);
-    });
-  });
 
   describe('TyreCompoundScale', () => {
     it('marks the three nominated compounds and leaves the rest at home', () => {
@@ -263,25 +181,16 @@ describe('race write-up sections', () => {
     });
   });
 
-  describe('RaceWriteupFactList', () => {
-    it('reads each label as its value’s term', () => {
+  describe('RaceWriteupFigure', () => {
+    it('sets the figure in bold inside the sentence it belongs to', () => {
       const el = render(
-        <RaceWriteupFactList
-          facts={[
-            ['Thursday', 'Practice 1 and Practice 2'],
-            ['Race start', '15:00 Baku time'],
-          ]}
-        />,
+        <p>
+          The lap is <RaceWriteupFigure>6.003 km</RaceWriteupFigure> long.
+        </p>,
       );
 
-      expect([...el.querySelectorAll('dt')].map((n) => n.textContent)).toEqual([
-        'Thursday',
-        'Race start',
-      ]);
-      expect([...el.querySelectorAll('dd')].map((n) => n.textContent)).toEqual([
-        'Practice 1 and Practice 2',
-        '15:00 Baku time',
-      ]);
+      expect(el.querySelector('strong')?.textContent).toBe('6.003 km');
+      expect(el.textContent).toBe('The lap is 6.003 km long.');
     });
   });
 

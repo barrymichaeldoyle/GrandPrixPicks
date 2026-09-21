@@ -8,8 +8,11 @@ import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceW
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
-import { RACE_SIGNALS_ANCHOR } from '@/components/race-writeups/RaceSignalsSection';
-import { RaceWriteupSection } from '@/components/race-writeups/RaceWriteupSection';
+import {
+  RACE_WRITEUP_CIRCUIT_ANCHOR,
+  RaceWriteupFigure as Figure,
+  RaceWriteupSection,
+} from '@/components/race-writeups/RaceWriteupSection';
 import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
@@ -47,6 +50,13 @@ const QUALIFYING_2025_SOURCE =
   'https://www.autosport.com/f1/news/six-shunts-azerbaijans-2025-f1-qualifying-broke-a-red-flag-record/10761064/';
 const RACE_SOURCE =
   'https://www.formula1.com/en/latest/article/what-the-teams-said-race-day-in-azerbaijan-2025.6AWm00FUiNNbYWhkFqRjLH';
+/**
+ * The official result, for the winning margin. Formula 1's own race report
+ * says 4.2s; the classification says Verstappen was 4.351s behind, and a
+ * number on this page follows the classification.
+ */
+const MADRID_CLASSIFICATION_SOURCE =
+  'https://www.formula1.com/en/results/2026/races/1294/spain/race-result';
 const MADRID_RESULT_SOURCE =
   'https://www.formula1.com/en/latest/article/antonelli-clinches-victory-over-verstappen-and-norris-in-spanish-gp.644ZZfPzRPEaUh2JBHcB9';
 
@@ -249,7 +259,10 @@ function AzerbaijanGrandPrixPredictionsPage() {
  */
 function Circuit() {
   return (
-    <RaceWriteupSection id={RACE_SIGNALS_ANCHOR} heading={SIGNALS_HEADING}>
+    <RaceWriteupSection
+      id={RACE_WRITEUP_CIRCUIT_ANCHOR}
+      heading={SIGNALS_HEADING}
+    >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         Baku is a street circuit of <Figure>6.003 km</Figure> and{' '}
         <Figure>20 corners</Figure>, and the Grand Prix runs for{' '}
@@ -279,10 +292,6 @@ function Circuit() {
       </p>
     </RaceWriteupSection>
   );
-}
-
-function Figure({ children }: { children: string }) {
-  return <strong className="font-semibold text-text">{children}</strong>;
 }
 
 function TyreChoice() {
@@ -315,11 +324,15 @@ function MadridRecap() {
         Norris started the Madring&rsquo;s first Grand Prix from pole and led
         until a Virtual Safety Car for Stroll&rsquo;s stopped car let Antonelli
         pit cheaply. Norris stopped after it ended, was held for seven seconds
-        by a slow tyre change and rejoined fifth. Antonelli won by 4.2 seconds
-        from Verstappen, with Norris recovering to third. Leclerc finished
-        fourth and Russell fifth. Hamilton retired early with brake problems.{' '}
+        by a slow tyre change and rejoined fifth. Hamilton retired early with
+        brake problems.{' '}
         <ExternalSource href={MADRID_RESULT_SOURCE}>
           The Madrid race report
+        </ExternalSource>
+        . Antonelli won by 4.351 seconds from Verstappen, with Norris third,
+        Leclerc fourth and Russell fifth.{' '}
+        <ExternalSource href={MADRID_CLASSIFICATION_SOURCE}>
+          The official race result
         </ExternalSource>
         .
       </p>

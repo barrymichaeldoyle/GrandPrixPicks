@@ -16,7 +16,7 @@ export const RACE_WRITEUP_SECTION_HEADING =
  * the heading scale or the `lg` split lands on every write-up at once.
  *
  * `aside` is the right-hand column at `lg` (a photo, a fact list). `extra` is
- * full-width below that row: a stat strip, a lap map, a session grid. The two
+ * full-width below that row: a lap map, a session grid. The two
  * are separate because a figure that belongs under the prose should not have
  * to live in the margin, and a margin card should not have to share a row
  * with a four-up strip.
@@ -62,24 +62,23 @@ export function RaceWriteupSection({
 }
 
 /**
- * The stacked definition list that sits in a section's margin.
+ * The id of each write-up's circuit section, and the write-ups' one in-page
+ * destination: the hero's secondary action scrolls here.
  *
- * Two write-ups needed the same sheet — Baku's relocated Saturday, Sepang's
- * "why this race is in Malaysia" — and a third would have been a third copy.
+ * The value predates the section's current shape. It stays, because a shared
+ * link to `#what-to-watch` should still land on the circuit.
  */
-export function RaceWriteupFactList({
-  facts,
-}: {
-  facts: readonly (readonly [label: string, value: ReactNode])[];
-}) {
-  return (
-    <dl className="self-start rounded-sm bg-surface-elevated px-4">
-      {facts.map(([label, value]) => (
-        <div key={label} className="border-b border-border py-4 last:border-0">
-          <dt className="text-xs font-medium text-text-muted">{label}</dt>
-          <dd className="mt-2 text-sm text-text">{value}</dd>
-        </div>
-      ))}
-    </dl>
-  );
+export const RACE_WRITEUP_CIRCUIT_ANCHOR = 'what-to-watch';
+
+/**
+ * A figure set in bold inside a write-up paragraph: a lap length, a lap
+ * count, a temperature.
+ *
+ * The figures used to sit in a four-up strip of large numerals above the
+ * prose, and a reader got "6.003 / km circuit" without what it meant. Written
+ * into the sentence, the number and its meaning arrive together, and the bold
+ * keeps them findable at a glance.
+ */
+export function RaceWriteupFigure({ children }: { children: string }) {
+  return <strong className="font-semibold text-text">{children}</strong>;
 }

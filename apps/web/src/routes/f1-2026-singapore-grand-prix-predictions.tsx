@@ -3,12 +3,15 @@ import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
-import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
-import { RaceWriteupSection } from '@/components/race-writeups/RaceWriteupSection';
+import {
+  RACE_WRITEUP_CIRCUIT_ANCHOR,
+  RaceWriteupFigure as Figure,
+  RaceWriteupSection,
+} from '@/components/race-writeups/RaceWriteupSection';
 import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
@@ -29,7 +32,7 @@ const RACE_SLUG = 'singapore-2026';
  * The circuit section's heading, declared once because two places use it:
  * the section itself and the hero link that scrolls to it.
  */
-const SIGNALS_HEADING = 'What matters at Marina Bay';
+const SIGNALS_HEADING = 'The Marina Bay Street Circuit';
 const PATH = '/f1-2026-singapore-grand-prix-predictions';
 const PROSE_REVIEWED = getRaceWriteupReviewedAt(RACE_SLUG);
 const PROSE_REVIEWED_AT = lastReviewedAt(PROSE_REVIEWED);
@@ -165,7 +168,7 @@ function SingaporeGrandPrixPredictionsPage() {
         summary={raceWriteupHeroSummary(
           phase,
           'The Singapore Grand Prix',
-          'Singapore hosts its first sprint weekend. One practice session has to answer every question before the competitive running starts.',
+          'Singapore hosts its first sprint weekend, with one practice session before Sprint Qualifying on Friday.',
         )}
         phase={phase}
         raceSlug={RACE_SLUG}
@@ -180,10 +183,9 @@ function SingaporeGrandPrixPredictionsPage() {
         }}
       />
 
-      <FirstSingaporeSprint />
-      <WatchTable />
-      <TyreChoice />
-      <SaturdayEvidence />
+      {/* This weekend's news and practice lead the page while it is live:
+          they are what changes between visits. Both render nothing until they
+          have an item or a session. */}
       {isLive ? (
         <>
           <WeekendNewsSection items={news.items} />
@@ -192,6 +194,13 @@ function SingaporeGrandPrixPredictionsPage() {
             raceSlug={RACE_SLUG}
             schedule={race}
           />
+        </>
+      ) : null}
+      <SaturdayEvidence />
+      <Circuit />
+      <TyreChoice />
+      {isLive ? (
+        <>
           <RaceWriteupChampionshipContext
             championship={championship}
             races={season.races}
@@ -213,95 +222,40 @@ function SingaporeGrandPrixPredictionsPage() {
   );
 }
 
-function FirstSingaporeSprint() {
-  const sessions = [
-    ['Friday', 'Practice 1', 'Only setup and long-run sample'],
-    ['Friday', 'Sprint Qualifying', 'First competitive classification'],
-    ['Saturday', 'Sprint', 'Race-pace evidence'],
-    ['Saturday', 'Qualifying', 'Grand Prix grid'],
-    ['Sunday', 'Grand Prix', '62 laps'],
-  ] as const;
-
+/**
+ * The circuit's figures, written into the prose in bold rather than set as a
+ * four-up strip above four signal rows. The start time is in the hero's
+ * schedule card and is not repeated here.
+ */
+function Circuit() {
   return (
     <RaceWriteupSection
-      id="first-sprint"
-      heading="One hour of practice before the first pick locks"
-      extra={
-        <ol className="mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-5">
-          {sessions.map(([day, session, note], index) => (
-            <li key={session} className="bg-surface p-4 sm:p-5">
-              <p className="gpp-mono text-xs text-text-muted">
-                {String(index + 1).padStart(2, '0')} · {day.toUpperCase()}
-              </p>
-              <h3 className="font-title mt-2 font-medium text-text">
-                {session}
-              </h3>
-              <p className="mt-2 text-xs leading-5 text-text-muted">{note}</p>
-            </li>
-          ))}
-        </ol>
-      }
+      id={RACE_WRITEUP_CIRCUIT_ANCHOR}
+      heading={SIGNALS_HEADING}
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
-        Marina Bay has never hosted the sprint format. Friday has one practice
-        session, followed by Sprint Qualifying that evening. The usual second
-        and third practice sessions are replaced by competitive running.
+        Marina Bay is <Figure>4.927 km</Figure> long with{' '}
+        <Figure>19 corners</Figure>, down from 23 before the 2023 layout change,
+        and the Grand Prix runs for <Figure>62 laps</Figure>. The street surface
+        is bumpy, and drivers are busy at the wheel for most of the lap.{' '}
+        <ExternalSource href={F1_EVENT_SOURCE}>
+          Formula 1&rsquo;s circuit guide
+        </ExternalSource>
+        .
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        That makes the first hour unusually valuable. Teams have to establish
-        ride height, cooling and tyre behaviour on a street circuit that gains
-        grip throughout the weekend, then commit before they have a second
-        long-run sample.{' '}
-        <Link
-          to="/how-to-play"
-          className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-        >
-          How sprint weekends are scored
-        </Link>
+        Singapore held the first Grand Prix run entirely at night, in 2008.
+        Humidity is usually above <Figure>70%</Figure> and the temperature sits
+        between <Figure>24 and 31°C</Figure>, and drivers can lose up to{' '}
+        <Figure>3 kg</Figure> over the race. The 2023 layout change made
+        overtaking a little easier, but Pirelli still describes passing here as
+        rather complicated.{' '}
+        <ExternalSource href={HEAT_SOURCE}>
+          Pirelli on racing in the heat
+        </ExternalSource>
         .
       </p>
     </RaceWriteupSection>
-  );
-}
-
-function WatchTable() {
-  return (
-    <RaceSignalsSection
-      heading={SIGNALS_HEADING}
-      stats={[
-        ['4.927', 'km circuit'],
-        ['62', 'race laps'],
-        ['19', 'turns'],
-        ['20:00', 'local start'],
-      ]}
-      signals={[
-        [
-          'Low-speed traction',
-          'Drive out of the slow corners',
-          'The lap repeatedly asks the rear tyres to find grip beside a wall. Poor traction costs time all the way down the next straight.',
-        ],
-        [
-          'Kerb and bump control',
-          'How settled the car stays over the street surface',
-          'A nervous car forces a driver to leave margin. That margin adds up across a long lap with little run-off.',
-        ],
-        [
-          'Cooling',
-          'Brake, power-unit and cockpit temperatures',
-          'The race starts at night, but the heat and humidity remain. Opening bodywork for cooling costs performance.',
-        ],
-        [
-          'Driver accuracy',
-          'Missed apexes and wall contact late in a run',
-          'Concentration matters across a race that often approaches two hours. Small errors have no run-off to absorb them.',
-        ],
-      ]}
-    >
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        Track position, traction and mistake-free laps. Passing remains hard, so
-        qualifying carries more weight here than at Baku or Sepang.
-      </p>
-    </RaceSignalsSection>
   );
 }
 
@@ -313,16 +267,15 @@ function TyreChoice() {
       hardest="C3"
     >
       <p className="gpp-reading-copy mt-7 text-text-muted">
-        Pirelli selected C3, C4 and C5, the same softest trio used at Baku.
-        Marina Bay is dominated by traction and low-speed grip, while the street
-        surface evolves as rubber goes down.
-      </p>
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        The heat can push the rear tyres towards overheating even when wear is
-        manageable. Watch the Sprint for degradation, but remember that the
-        Grand Prix runs later and over a much longer distance.{' '}
+        Baku gets the same three.{' '}
         <ExternalSource href={TYRE_SOURCE}>
           Pirelli&rsquo;s selection
+        </ExternalSource>
+        . In 2025 Pirelli left out its softest compound, the C6, because of the
+        forces and heat here, and it names thermal stress as the main cause of
+        tyre degradation in Singapore.{' '}
+        <ExternalSource href={HEAT_SOURCE}>
+          Pirelli&rsquo;s 2025 preview
         </ExternalSource>
         .
       </p>
@@ -333,34 +286,28 @@ function TyreChoice() {
 /**
  * What the Sprint tells you before qualifying, and what it does not.
  *
- * A second paragraph telling the reader to "use the Sprint to update the back
- * of your Grand Prix Top 5" and to "keep qualifying weighted heavily" came off
- * on 2026-09-08, for the reasons the same shape came off the Baku page: it
- * instructs rather than reports, and its one fact, that Marina Bay rewards
- * track position, is already the framing above the signals table. The heading
- * and the paragraph under it carry the point on their own.
+ * A paragraph telling the reader to "use the Sprint to update the back of
+ * your Grand Prix Top 5" came off on 2026-09-08 because it instructed rather
+ * than reported. The "pick order" card beside this section and the five-up
+ * session grid that opened the page came off on 2026-09-21: both restated the
+ * hero's schedule card.
  */
 function SaturdayEvidence() {
   return (
     <RaceWriteupSection
       id="saturday-evidence"
       heading="The Sprint is the only race-pace evidence before qualifying"
-      aside={
-        <div className="self-start rounded-sm bg-surface-elevated p-5">
-          <p className="text-xs font-medium text-text-muted">Pick order</p>
-          <ol className="mt-4 space-y-3 text-sm text-text">
-            <li>1. Sprint Qualifying Top 5</li>
-            <li>2. Sprint Top 5</li>
-            <li>3. Grand Prix Qualifying Top 5</li>
-            <li>4. Grand Prix Top 5</li>
-          </ol>
-        </div>
-      }
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
-        The Sprint starts four hours before Grand Prix Qualifying. It shows tyre
-        behaviour, traffic pace and who can keep the car out of the walls, but
-        it does not set Sunday&rsquo;s grid.
+        The Sprint starts four hours before Grand Prix Qualifying on Saturday,
+        and its result does not set the Grand Prix grid.{' '}
+        <Link
+          to="/how-to-play"
+          className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+        >
+          How sprint weekends are scored
+        </Link>
+        .
       </p>
     </RaceWriteupSection>
   );

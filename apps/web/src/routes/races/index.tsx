@@ -319,8 +319,8 @@ function RacesPage() {
                 Read up before you pick
               </h2>
               <p className="mt-1 text-sm text-text-muted">
-                What matters at the circuit, who is driving and what to watch in
-                practice, for the rounds we have written up.
+                The circuit, the weekend&rsquo;s news and practice results, for
+                the rounds we have written up.
               </p>
               <ul className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
                 {previewRaces.map(({ race, writeup }) => (

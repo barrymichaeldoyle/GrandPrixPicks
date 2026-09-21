@@ -15,6 +15,7 @@ import {
 } from '@/components/race-writeups/RaceWriteupSection';
 import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
+import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { lastReviewedAt } from '@/lib/lastReviewed';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
@@ -23,6 +24,11 @@ import {
   isRaceWriteupLive,
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
+import {
+  ANTONELLI_WIN_WRITEUP_IMAGE,
+  BAKU_FERRARI_WRITEUP_IMAGE,
+  BAKU_START_WRITEUP_IMAGE,
+} from '@/lib/azerbaijan2026WriteUpImages';
 import { bakuCrashDatasetSchema } from '@/lib/bakuDataset';
 import { raceWeekendSnippet, raceWriteupPageHead } from '@/lib/raceWriteupSeo';
 import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
@@ -262,6 +268,7 @@ function Circuit() {
     <RaceWriteupSection
       id={RACE_WRITEUP_CIRCUIT_ANCHOR}
       heading={SIGNALS_HEADING}
+      aside={<WriteUpNewsPhoto {...BAKU_START_WRITEUP_IMAGE} />}
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         Baku is a street circuit of <Figure>6.003 km</Figure> and{' '}
@@ -300,6 +307,7 @@ function TyreChoice() {
       heading="Baku gets the softest three tyres"
       venue="Baku"
       hardest="C3"
+      aside={<WriteUpNewsPhoto {...BAKU_FERRARI_WRITEUP_IMAGE} />}
     >
       <p className="gpp-reading-copy mt-7 text-text-muted">
         Degradation was low in 2025, and Verstappen won with a single stop from
@@ -319,6 +327,7 @@ function MadridRecap() {
     <RaceWriteupSection
       id="madrid-recap"
       heading="Antonelli won Madrid after Norris’s slow stop"
+      aside={<WriteUpNewsPhoto {...ANTONELLI_WIN_WRITEUP_IMAGE} />}
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         Norris started the Madring&rsquo;s first Grand Prix from pole and led

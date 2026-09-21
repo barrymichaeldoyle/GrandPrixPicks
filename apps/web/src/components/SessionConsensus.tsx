@@ -176,10 +176,7 @@ function ConsensusTable({
           </thead>
           <tbody>
             {rows.map((driver) => (
-              <tr
-                key={driver.driverId}
-                className="border-b border-border last:border-0"
-              >
+              <tr key={driver.driverId}>
                 <th
                   scope="row"
                   className="gpp-mono w-14 px-3 py-1.5 text-left text-xs font-semibold text-text-muted"
@@ -264,7 +261,7 @@ export function SessionConsensusSections({
   const anyScored = sessions.some((entry) => crowdScore(entry) !== null);
 
   return (
-    <div className="mt-10 max-w-3xl border-t border-border pt-6">
+    <div className="mt-16 max-w-3xl">
       <h2 className="font-title text-xl font-semibold text-text">
         How players picked this weekend
       </h2>

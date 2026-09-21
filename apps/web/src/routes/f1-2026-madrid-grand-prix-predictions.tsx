@@ -692,7 +692,7 @@ const CORNERS = [
 function RaceReport() {
   return (
     <section
-      className="mt-10 max-w-3xl border-t border-border pt-6"
+      className="mt-16 max-w-3xl"
       aria-labelledby="race-report"
     >
       <h2

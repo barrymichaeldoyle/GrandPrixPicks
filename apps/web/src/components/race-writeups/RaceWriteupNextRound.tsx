@@ -34,7 +34,7 @@ export function RaceWriteupNextRound({
   const writeup = getRaceWriteup(nextRace.slug);
 
   return (
-    <section className="mt-10 max-w-3xl border-t border-border pt-6">
+    <section className="mt-16 max-w-3xl">
       <h2 className="font-title text-xl font-semibold text-text">Next round</h2>
       <p className="mt-2 text-sm leading-6 text-text-muted">
         Round {nextRace.round} is the {nextRace.name}.{' '}

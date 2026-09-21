@@ -24,7 +24,7 @@ function ResultTable({ session, classification }: OfficialResultSession) {
         {SESSION_LABELS[session]}
       </h3>
       <div className="mt-2 overflow-x-auto">
-        <table className="w-full min-w-[20rem] border-collapse">
+        <table className="w-full border-collapse">
           <caption className="sr-only">
             Official {SESSION_LABELS[session]} top five
           </caption>
@@ -46,10 +46,7 @@ function ResultTable({ session, classification }: OfficialResultSession) {
           </thead>
           <tbody>
             {classification.map((driver) => (
-              <tr
-                key={driver.driverId}
-                className="border-b border-border last:border-0"
-              >
+              <tr key={driver.driverId}>
                 <th
                   scope="row"
                   className="gpp-mono w-14 px-3 py-1.5 text-left text-xs font-semibold text-text-muted"
@@ -112,16 +109,21 @@ export function RaceWriteupOfficialResult({
   }
 
   return (
-    <div className="mt-10 max-w-3xl border-t border-border pt-6">
+    <div className="mt-16 max-w-3xl">
       <h2 className="font-title text-xl font-semibold text-text">
         How {venueName} finished
       </h2>
       <p className="mt-2 text-sm text-text-muted">
         The official classification, which is what picks are scored against.
       </p>
-      {scored.map((entry) => (
-        <ResultTable key={entry.session} {...entry} />
-      ))}
+      {/* Side by side from `sm`: five rows each, so stacked they were two
+          short tables and a lot of page between the heading and the next
+          block. A sprint weekend's four sessions wrap to two rows of two. */}
+      <div className="sm:grid sm:grid-cols-2 sm:gap-x-8">
+        {scored.map((entry) => (
+          <ResultTable key={entry.session} {...entry} />
+        ))}
+      </div>
     </div>
   );
 }

@@ -49,14 +49,14 @@ import {
  * carries news, practice results, the weekend schedule and championship
  * context, so the archive cannot take a screen and a half on the way past. The
  * summary is the map beside its tally, a selected corner or driver lists its
- * incidents in place under them, and the full fifty-seven rows sit in a closed
+ * incidents in place under them, and the full archive sits in a closed
  * `details`. An earlier version listed every
  * incident inline and ran to seven thousand pixels, which is a fine page and a
  * bad section.
  *
  * Everything still renders on the server, the rows inside the closed `details`
  * included: the filter and the selection narrow what is already in the HTML rather
- * than fetching, so a crawler and a reviewer see all fifty-seven incidents and
+ * than fetching, so a crawler and a reviewer see every incident and
  * every citation on first paint. That is not a nicety here, since a `<Link>`
  * behind a client query once orphaned all eleven practice pages.
  *
@@ -89,7 +89,7 @@ export function BakuCrashMap() {
   const selectionRef = useRef<HTMLDivElement>(null);
 
   // Plain derivations: the React Compiler memoizes these, and the whole
-  // dataset is 57 rows, so there is nothing here worth a manual cache.
+  // dataset is under sixty rows, so there is nothing here worth a manual cache.
   const visible = filterCrashes(BAKU_CRASHES, filter);
   const counts = countsByCorner(visible);
   const max = Math.max(0, ...counts.values());
@@ -185,10 +185,11 @@ export function BakuCrashMap() {
         Every notable crash at Baku since 2016
       </h2>
       <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
-        Nine weekends, {BAKU_CRASHES.length} incidents that ended in a red flag,
-        a retirement or a stewards' collision note, each placed at the corner
-        where the car stopped. Turn 3 has taken the most, and it takes them in
-        groups: three in the 2021 qualifying hour alone.
+        Nine weekends, {BAKU_CRASHES.length} times a car hit a wall, a barrier,
+        another car or something on the track, as recorded in race reports and
+        the FIA race control log, each placed at the corner where the car
+        stopped. Turns 3 and 15 have taken the most, 11 each, and Turn 3 takes
+        them in groups: three in the 2021 qualifying hour alone.
       </p>
 
       <div className="mt-6">
@@ -735,7 +736,7 @@ const VISIBLE_ROWS = 12;
 /**
  * The three newest incidents in view, then the rest behind a disclosure.
  *
- * Collapsing all fifty-seven was right for the section's height but it left no
+ * Collapsing the whole archive was right for the section's height but it left no
  * incident visible at all, and the notes are the part of this page that exists
  * nowhere else. Three of them read above the fold, and the archive underneath
  * holds the other fifty-four rather than repeating these: the same paragraph

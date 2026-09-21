@@ -13,8 +13,13 @@
  * would misplace the circuit's danger. These rows were researched per weekend
  * and every one carries a citation.
  *
- * Inclusion: contact with a wall or another car that had a consequence, being
- * a red flag, a retirement, a stopped car or a steward's collision note.
+ * Inclusion: a car hitting a wall, a barrier, another car or something on the
+ * track, recorded in a race report or the FIA race control log. This is the
+ * rule the rows actually follow. An earlier wording, "that had a consequence,
+ * being a red flag, a retirement, a stopped car or a steward's collision
+ * note", was narrower than the data: fourteen rows are contacts where the car
+ * carried on, and the page and captions repeated the narrow version until
+ * 2026-09-21.
  * Excluded: lock-ups and escape-road excursions with no contact, and purely
  * mechanical retirements. Two researched incidents were dropped for failing
  * this test and the reasons are recorded in
@@ -477,6 +482,21 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     confidence: 'high',
     note: 'Ricciardo locked up attempting a move on Kvyat at Turn 3 and went down the escape road; both retired with collision damage.',
     source: 'https://en.wikipedia.org/wiki/2019_Azerbaijan_Grand_Prix',
+  },
+  {
+    id: '2021-fp2-leclerc-t15',
+    year: 2021,
+    event: 'Azerbaijan Grand Prix',
+    session: 'FP2',
+    drivers: ['LEC'],
+    corner: 15,
+    outcome: 'continued',
+    confidence: 'high',
+    note: 'Locked up heavily into Turn 15 and hit the barrier, tearing off the front wing and bringing out a Virtual Safety Car. Pitted for a new nose and finished the session fourth.',
+    sourcing:
+      'Missing from the first research pass; reported by Barry on 2026-09-21 and confirmed against the raw text of the cited Formula 1 report.',
+    source:
+      'https://www.formula1.com/en/latest/article/fp2-perez-heads-red-bull-1-2-in-second-practice-with-hamilton-only-11th.4wbrtBWSsjSsxvXQPU44EI',
   },
   {
     id: '2021-quali-giovinazzi-t15',

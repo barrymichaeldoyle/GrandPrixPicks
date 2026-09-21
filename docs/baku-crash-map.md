@@ -923,3 +923,14 @@ Follow-up the same day:
 - **The heat ramp stays orange.** A sequential scale needs several distinct
   steps, and chartreuse is the site accent that now marks the selection ring;
   a chartreuse ramp would hide the selection on the busiest corners.
+
+**A missed incident, and a definition that was too narrow (2026-09-21).**
+Barry spotted Leclerc's 2021 FP2 crash at Turn 15 missing. Formula 1's own
+session report confirms it, so the archive is now 58 and Turn 15 is level with
+Turn 3 on 11. Checking whether it met the stated definition showed the
+definition was the problem: the page, the dataset and the captions said every
+incident "ended in a red flag, a retirement or a stewards' collision note",
+and fourteen rows (Leclerc's new one among them) are contacts where the car
+carried on. All of them now use the rule the rows actually follow: a car hit
+a wall, a barrier, another car or something on the track, as recorded in a
+race report or the FIA race control log.

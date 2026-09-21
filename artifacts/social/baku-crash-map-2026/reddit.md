@@ -9,23 +9,23 @@ blocks unauthenticated requests), so nothing below assumes them.
 
 ## Title
 
-> [OC] Every notable incident at Baku since 2016, mapped by corner: Turn 3 has 11, Turn 15 has 10
+> [OC] Every notable incident at Baku since 2016, mapped by corner: Turns 3 and 15 have 11 each
 
 Alternative, if the first is too long for the sub:
 
-> [OC] 57 incidents at Baku since 2016, and 21 of them happened at two corners
+> [OC] 58 incidents at Baku since 2016, and 22 of them happened at two corners
 
 ## Body
 
-> I went through every Baku weekend since 2016 and logged each incident that ended in a red flag, a retirement or a stewards' collision note, then placed it at the corner where the car stopped. That's 57 across nine weekends, in practice, qualifying, sprints and races.
+> I went through every Baku weekend since 2016 and logged every time a car hit a wall, a barrier, another car or something on the track, as recorded in race reports or the FIA race control log, then placed it at the corner where the car stopped. That's 58 across nine weekends, in practice, qualifying, sprints and races.
 >
 > A few things that stood out:
 >
-> - Turn 3 has 11 and Turn 15 has 10. Turn 2 is next with 7.
+> - Turns 3 and 15 have 11 each. Turn 2 is next with 7.
 > - Three of Turn 3's came in the 2021 qualifying hour alone: Ricciardo, Sainz and Tsunoda.
 > - Hülkenberg and Stroll have been involved in the most, six each, then Ricciardo with five.
 >
-> The driver counts include everyone involved in an incident, not just the driver at fault. Six incidents have no named corner in the sources, so they count towards the 57 but aren't on the map.
+> The driver counts include everyone involved in an incident, not just the driver at fault. Six incidents have no named corner in the sources, so they count towards the 58 but aren't on the map.
 >
 > Every incident has a source. The full list, with an interactive version of the map you can filter by session, is here: https://grandprixpicks.com/f1-2026-azerbaijan-grand-prix-predictions?utm_source=reddit&utm_medium=organic&utm_campaign=baku_crash_map_2026&utm_content=r_formula1
 >

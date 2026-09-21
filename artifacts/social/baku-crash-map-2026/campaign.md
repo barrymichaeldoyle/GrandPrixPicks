@@ -13,12 +13,12 @@ byte-identical to the files here before scheduling.
 | X         | `baku-crash-map-2026-x.png`         | 1600×900  |
 
 A poster, not an infographic. The image carries the title "F1 Baku Crash
-Map", one line of fact ("57 incidents since 2016"), the lap with a dot per
+Map", one line of fact ("58 incidents since 2016"), the lap with a dot per
 corner sized by its count, the two busiest corners as large numerals beside
-their dots (Turn 3, 11; Turn 15, 10), and a "Drivers most involved" list: one
+their dots (Turn 3 and Turn 15, 11 each), and a "Drivers most involved" list: one
 row per driver with count, flag and full name, for everyone on the top three
-counts (Hülkenberg and Stroll 6; Ricciardo 5; Ocon, Pérez, Räikkönen and
-Verstappen 4), so no tie is cut.
+counts (Hülkenberg and Stroll 6; Ricciardo 5; Leclerc, Ocon, Pérez, Räikkönen
+and Verstappen 4), so no tie is cut.
 
 The first revision also carried a legend, a "Crash map" subtitle, a date line,
 a driver key and an archive qualification in the footer. Barry found it "too
@@ -33,11 +33,13 @@ All figures are derived from `apps/web/src/lib/bakuCrashes.ts` and the shared
 map model. The circuit uses `bakuCircuitGeometry.ts`, never an image prompt or
 a hand drawing.
 
-- 57 curated incidents across nine weekends, 2016–2025.
-- 51 incidents placed at 12 corners; six have no named corner.
-- Turn 3: 11 incidents. Turn 15: 10. Turn 2: 7.
+- 58 curated incidents across nine weekends, 2016–2025.
+- 52 incidents placed at 12 corners; six have no named corner.
+- Turn 3: 11 incidents. Turn 15: 11. Turn 2: 7.
 - Hülkenberg and Stroll: six each. Ricciardo: five.
-- Ocon, Pérez, Räikkönen and Verstappen: four each.
+- Leclerc, Ocon, Pérez, Räikkönen and Verstappen: four each.
+- Leclerc's 2021 FP2 crash at Turn 15 was added on 21 September after Barry
+  spotted it missing, which moved the total from 57 and Turn 15 from 10.
 
 Driver counts mean involvement in an archive incident, not responsibility;
 several drivers can share one incident. Corner attribution follows the
@@ -47,25 +49,28 @@ claimed".
 
 ## Captions
 
-Written against the write-up's own definition (`BakuCrashMap.tsx`): an
-incident ended in a red flag, a retirement or a stewards' collision note, and
-is placed at the corner where the car stopped. Say "incidents", never
-"crashes" or "cars claimed", and say "involved", never "caused".
+Written against the archive's inclusion rule (`bakuCrashes.ts`): a car hit a
+wall, a barrier, another car or something on the track, as recorded in a race
+report or the FIA race control log, placed at the corner where the car
+stopped. Until 2026-09-21 the captions said "ended in a red flag, a retirement
+or a stewards' collision note", which fourteen of the incidents did not meet.
+Say "incidents", never "crashes" or "cars claimed", and say "involved", never
+"caused".
 
 ### X
 
 No hashtags on the brand account.
 
-> 57 incidents at Baku since 2016. Turn 3 has had the most with 11, then Turn 15 with 10.
+> 58 incidents at Baku since 2016. Turns 3 and 15 have had the most, 11 each.
 >
-> We count an incident when it ended in a red flag, a retirement or a stewards' collision note. Each one is listed with its source in our Azerbaijan GP preview:
+> We count every recorded time a car hit a wall, a barrier, another car or something on the track. Each one is listed with its source in our Azerbaijan GP preview:
 > https://grandprixpicks.com/f1-2026-azerbaijan-grand-prix-predictions?utm_source=x&utm_medium=organic&utm_campaign=baku_crash_map_2026
 
 ### Instagram
 
-> 57 incidents at Baku since 2016. Turn 3 has had the most with 11, then Turn 15 with 10.
+> 58 incidents at Baku since 2016. Turns 3 and 15 have had the most, 11 each, then Turn 2 with 7.
 >
-> We count an incident when it ended in a red flag, a retirement or a stewards' note about a collision, in practice, qualifying, sprints or races, across nine race weekends. Each one is placed at the corner where the car stopped. Six have no named corner, so they're in the total but not on the map.
+> We count every time a car hit a wall, a barrier, another car or something on the track, as recorded in race reports or the FIA race control log, in practice, qualifying, sprints and races across nine race weekends. Each one is placed at the corner where the car stopped. Six have no named corner, so they're in the total but not on the map.
 >
 > The driver counts include every driver involved in an incident, not only the one at fault.
 >
@@ -75,12 +80,7 @@ No hashtags on the brand account.
 
 ## Alt text
 
-Poster on a charcoal background titled "F1 Baku Crash Map", with "F1 Baku" in
-large chartreuse letters, then "57 incidents since 2016". Below, the outline
-of the Baku City Circuit with a chartreuse dot at each corner where incidents
-happened, larger dots for more. Turn 3 is labelled 11 and Turn 15 is labelled 10. A list headed "Drivers most involved": Nico Hülkenberg 6, Lance Stroll 6,
-Daniel Ricciardo 5, Esteban Ocon 4, Sergio Pérez 4, Kimi Räikkönen 4, Max
-Verstappen 4. GrandPrixPicks.com at the bottom.
+Poster on a charcoal background titled "F1 Baku Crash Map", with "F1 Baku" in large chartreuse letters, then "58 incidents since 2016". Below, the outline of the Baku City Circuit with a chartreuse dot at each corner where incidents happened, larger dots for more. Turn 3 and Turn 15 are each labelled 11. A list headed "Drivers most involved": Nico Hülkenberg 6, Lance Stroll 6, Daniel Ricciardo 5, Charles Leclerc 4, Esteban Ocon 4, Sergio Pérez 4, Kimi Räikkönen 4, Max Verstappen 4. GrandPrixPicks.com at the bottom.
 
 ## Rendering and posting
 

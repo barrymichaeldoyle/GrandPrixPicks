@@ -1,4 +1,7 @@
 import type { Id } from '@convex-generated/dataModel';
+import { Link } from '@tanstack/react-router';
+
+import { primaryButtonStyles } from '@/components/Button/Button';
 
 import type { RaceWriteupPhase } from '@/lib/raceWriteupPhase';
 
@@ -32,6 +35,16 @@ export function RaceWriteupFinish({
   venueName: string;
   nextRace?: { slug: string; name: string; round: number } | null;
 }) {
+  // Only the next race on the calendar takes picks. A write-up published
+  // weeks ahead is live long before its round opens, and the embedded picker
+  // used to let a reader fill in a whole weekend that the backend then refused:
+  // a new sign-up from search made eleven Sepang duels on 14 September and hit
+  // six save failures in a row. `nextRace` is loader data, so this is in the
+  // SSR HTML too.
+  if (isLive && nextRace && nextRace.slug !== raceSlug) {
+    return <PicksNotOpenYet venueName={venueName} nextRace={nextRace} />;
+  }
+
   if (isLive) {
     return (
       <DeferredRaceWriteupPicks
@@ -57,5 +70,40 @@ export function RaceWriteupFinish({
         <RaceWriteupNextRound nextRace={nextRace} />
       ) : null}
     </>
+  );
+}
+
+function PicksNotOpenYet({
+  venueName,
+  nextRace,
+}: {
+  venueName: string;
+  nextRace: { slug: string; name: string };
+}) {
+  return (
+    <section
+      aria-labelledby="race-writeup-picks-not-open-heading"
+      className="rounded-sm bg-surface px-5 py-7 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:px-7"
+    >
+      <div className="max-w-xl">
+        <h2
+          id="race-writeup-picks-not-open-heading"
+          className="font-title text-xl font-medium text-text"
+        >
+          {venueName} picks open when the {nextRace.name} starts
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-text-muted">
+          Only the next race on the calendar takes picks, and that is the{' '}
+          {nextRace.name}.
+        </p>
+      </div>
+      <Link
+        to="/races/$raceSlug"
+        params={{ raceSlug: nextRace.slug }}
+        className={`${primaryButtonStyles('md')} mt-5 shrink-0 sm:mt-0`}
+      >
+        Make your {nextRace.name} picks
+      </Link>
+    </section>
   );
 }

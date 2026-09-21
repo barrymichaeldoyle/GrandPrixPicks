@@ -76,9 +76,9 @@ export function Badge({ variant, icon, children }: BadgeProps) {
 
   return (
     // A status badge is a micro label: 2px radius (pill is reserved for the
-    // 5px team dot), uppercase and tracked. Statuses are three words max.
+    // 5px team dot), sentence case. Statuses are three words max.
     <span
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-sm border px-2 py-1 text-xs font-medium tracking-label uppercase ${variantStyles[variant]}`}
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-sm border px-2 py-1 text-xs font-medium ${variantStyles[variant]}`}
     >
       {showIcon}
       {label}
@@ -95,7 +95,7 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, isNext }: StatusBadgeProps) {
   if (status === 'cancelled') {
-    return <Badge variant="cancelled">Called Off</Badge>;
+    return <Badge variant="cancelled">Called off</Badge>;
   }
 
   const effectiveStatus: BadgeVariant =

@@ -59,7 +59,7 @@ export function RaceDetailHeader({
         )}
         <div className="min-w-0">
           <span
-            className={`gpp-label block ${
+            className={`block text-xs font-medium ${
               isNextRace ? 'text-accent' : 'text-text-muted'
             }`}
           >
@@ -70,7 +70,7 @@ export function RaceDetailHeader({
               "Dutch Grand Prix" with the year stated right above it.
             */}
             {race.season} · Round {race.round}
-            {isNextRace ? ' · Next Race' : ''}
+            {isNextRace ? ' · Next race' : ''}
           </span>
           {/*
             The race name is the page hero, and the type scale names it as

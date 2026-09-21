@@ -247,7 +247,7 @@ function RacesPage() {
               />
               {displayedFeaturedRace ? (
                 <div className="mb-6 max-w-3xl">
-                  <p className="mb-2 text-xs font-semibold tracking-label text-text-muted uppercase">
+                  <p className="mb-2 text-xs font-semibold text-text-muted">
                     Next event
                   </p>
                   <RaceCard

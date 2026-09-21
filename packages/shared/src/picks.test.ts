@@ -48,7 +48,7 @@ describe('getLockStatusViewModel', () => {
     expect(vm).toMatchObject({
       badgeTone: 'warning',
       isLocked: false,
-      label: 'Closing Soon',
+      label: 'Closing soon',
       shouldPulse: true,
       urgency: 'closing_soon',
     });

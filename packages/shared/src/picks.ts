@@ -31,7 +31,7 @@ export function getLockUrgencyLabel(urgency: LockUrgency): string {
     return 'Locked';
   }
   if (urgency === 'closing_soon') {
-    return 'Closing Soon';
+    return 'Closing soon';
   }
   return 'Open';
 }

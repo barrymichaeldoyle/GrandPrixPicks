@@ -31,9 +31,9 @@ export const AllVariants: Story = {
           </code>
           <Badge variant={variant}>
             {variant === 'sprint'
-              ? 'SPRINT'
+              ? 'Sprint'
               : variant === 'cancelled'
-                ? 'Called Off'
+                ? 'Called off'
                 : undefined}
           </Badge>
         </div>
@@ -51,11 +51,11 @@ export const Sprint: Story = {
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3 rounded-lg bg-page p-4">
         <span className="text-xs text-text-muted">on page</span>
-        <Badge variant="sprint">SPRINT</Badge>
+        <Badge variant="sprint">Sprint</Badge>
       </div>
       <div className="flex items-center gap-3 rounded-lg bg-surface p-4">
         <span className="text-xs text-text-muted">on surface</span>
-        <Badge variant="sprint">SPRINT</Badge>
+        <Badge variant="sprint">Sprint</Badge>
       </div>
     </div>
   ),

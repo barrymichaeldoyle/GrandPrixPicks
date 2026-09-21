@@ -161,12 +161,12 @@ export function RaceCard({
           )}
           <div className="min-w-0 flex-1">
             <p
-              className={`text-xs font-semibold tracking-label uppercase ${
+              className={`text-xs font-semibold ${
                 isNext ? 'text-accent' : 'text-text-muted'
               }`}
             >
               Round {race.round}
-              {isNext ? ' · Next Race' : ''}
+              {isNext ? ' · Next race' : ''}
             </p>
             {/* h2, not h3: these cards sit directly under the page's h1 on the
                 calendar, and the level was skipping a rank. Heading level is
@@ -175,6 +175,21 @@ export function RaceCard({
               {race.name}
             </h2>
           </div>
+          {/* The countdown reads as the dashboard hero's clock line rather
+              than a bordered pill: quiet mono, the value carrying the
+              emphasis. It sits in the corner beside the race it belongs to,
+              so "locks in" needs no session name. */}
+          {isPredictable && msUntilLock > 0 && (
+            <p
+              className="gpp-mono shrink-0 text-xs whitespace-nowrap text-text-muted"
+              suppressHydrationWarning
+            >
+              locks in
+              <strong className="ml-1.5 font-medium text-text">
+                {formatLockCountdown(msUntilLock)}
+              </strong>
+            </p>
+          )}
           <ArrowRight
             size={14}
             strokeWidth={2}
@@ -187,15 +202,15 @@ export function RaceCard({
           {/* Badges and status */}
           <div className="flex flex-wrap items-center gap-1">
             {race.status === 'cancelled' && (
-              <Badge variant="cancelled">CALLED OFF</Badge>
+              <Badge variant="cancelled">Called off</Badge>
             )}
             {race.status === 'finished' && (
-              <Badge variant="finished">COMPLETED</Badge>
+              <Badge variant="finished">Completed</Badge>
             )}
-            {race.hasSprint && <Badge variant="sprint">SPRINT</Badge>}
+            {race.hasSprint && <Badge variant="sprint">Sprint</Badge>}
             {/* The "Open" state is already conveyed by the "locks in" clock
                 line below the sessions — only surface this status pill when it
-                adds new info (Closing Soon, Locked). */}
+                adds new info (Closing soon, Locked). */}
             {isPredictable && lockStatus.urgency !== 'open' && (
               <Pill
                 tone={lockStatus.badgeTone}
@@ -225,10 +240,10 @@ export function RaceCard({
           {/* Weekend sessions */}
           {scheduleEntries.length > 0 && (
             <div className="mt-0.5 flex flex-1 flex-col border-t border-border/60 pt-1.5">
-              <div className="mb-1 flex items-center justify-between gap-2 text-xs font-medium tracking-label text-text-muted uppercase">
+              <div className="mb-1 flex items-center justify-between gap-2 text-xs font-medium text-text-muted">
                 <span className="inline-flex items-center gap-1">
                   <Calendar size={12} aria-hidden />
-                  Weekend Sessions
+                  Weekend sessions
                 </span>
                 {timezoneLabel ? (
                   <span suppressHydrationWarning>{timezoneLabel}</span>
@@ -271,21 +286,6 @@ export function RaceCard({
                   );
                 })}
               </div>
-              {/* The countdown reads as the dashboard hero's clock line rather
-                  than a bordered pill: quiet mono, the value carrying the
-                  emphasis. It sits under the sessions it describes, so "locks
-                  in" needs no session name. */}
-              {isPredictable && msUntilLock > 0 && (
-                <p
-                  className="gpp-mono mt-1.5 flex min-h-5 items-center justify-end text-xs whitespace-nowrap text-text-muted"
-                  suppressHydrationWarning
-                >
-                  locks in
-                  <strong className="ml-1.5 font-medium text-text">
-                    {formatLockCountdown(msUntilLock)}
-                  </strong>
-                </p>
-              )}
             </div>
           )}
         </div>

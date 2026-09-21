@@ -8,6 +8,8 @@ import { BAKU_CRASHES, BAKU_DRIVERS } from '@/lib/bakuCrashes';
 
 import {
   bucketOf,
+  calloutCorners,
+  rowsBeforeTie,
   countsByCorner,
   countsByDriver,
   driverCountry,
@@ -294,6 +296,43 @@ describe('baku crash map model', () => {
 
     it('says nothing rather than guessing for an unknown driver', () => {
       expect(driverCountry('ZZZ')).toBeUndefined();
+    });
+  });
+
+  describe('rowsBeforeTie', () => {
+    it('takes in a tie the cap would split, when it is short', () => {
+      // The driver list: six, six, five, then a four-way tie on four.
+      expect(rowsBeforeTie([6, 6, 5, 4, 4, 4, 4, 3, 3], 6)).toBe(7);
+    });
+
+    it('stops where the count changes when the cap already does', () => {
+      expect(rowsBeforeTie([6, 6, 5, 4, 3, 3, 2], 4)).toBe(4);
+    });
+
+    it('backs off to the start of a tie too long to take in', () => {
+      expect(rowsBeforeTie([6, 5, 3, 3, 3, 3, 3, 3, 3, 3], 4)).toBe(2);
+    });
+
+    it('shows everything when the list is within the cap', () => {
+      expect(rowsBeforeTie([3, 2, 1], 6)).toBe(3);
+    });
+  });
+
+  describe('calloutCorners', () => {
+    it('labels every corner on the two highest counts', () => {
+      const ranked = [
+        { corner: 15, count: 4 },
+        { corner: 1, count: 2 },
+        { corner: 2, count: 2 },
+        { corner: 3, count: 1 },
+      ];
+      expect([...calloutCorners(ranked)].sort((a, b) => a - b)).toEqual([
+        1, 2, 15,
+      ]);
+    });
+
+    it('does not label a corner with a single incident', () => {
+      expect([...calloutCorners([{ corner: 3, count: 1 }])]).toEqual([]);
     });
   });
 });

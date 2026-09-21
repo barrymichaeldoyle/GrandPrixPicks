@@ -685,10 +685,12 @@ HTML. Three changes did it:
   800px between them; side by side they cost the height of the map, and the
   tally now reads as the map's key rather than as a second module. They stack
   again below `lg`.
-- **Drill-down is a modal.** Selecting a corner, from a marker or a tally row,
-  opens that corner's incidents over the page. This reverses an earlier call in
-  this doc: a panel on the page beats a floating one only while the section owns
-  the page, which stops being true during a race weekend.
+- **Drill-down is in place** (since 2026-09-21; it was a modal before).
+  Selecting a corner or a driver, from a marker or a tally row, rings it on the
+  map, highlights its row, and lists its incidents under the map in place of
+  the latest three, with a Clear button. The modal covered the map the reader
+  had just clicked, so they lost sight of the corner and its neighbours at the
+  moment they wanted to compare them. See "The in-place review" below.
 - **The full archive is a closed `details`.** All fifty-seven rows and every
   citation still server-render, so a crawler, a reviewer and anyone without
   JavaScript get the whole thing; it just costs one line of height instead of
@@ -699,14 +701,9 @@ The `details` needed its own chevron: `list-none` removes the native marker, and
 without a replacement the summary read as a caption and nobody would have found
 the archive under it.
 
-The modal is `PracticeResultsModal`'s shell and the shared `useModalDialog`
-hook, so the focus trap, Escape and focus restoration are the ones already in
-use rather than a second implementation. Verified by hand: Escape closes and
-focus returns to the tally row that opened it.
-
-The axe smoke spec now scans this page **twice**, once closed and once with the
-dialog open. A page-level pass says nothing about a dialog whose content does
-not exist until it is opened.
+The axe smoke spec scans this page **twice**, once with nothing selected and
+once with a corner selected. A page-level pass says nothing about content that
+does not exist until something is selected.
 
 ## The polish pass
 
@@ -888,3 +885,26 @@ mitigation: claim three seasons, deliver three seasons.
 tests it, and a live-session 401 has blocked a deploy before. This feature adds
 no runtime dependency on it (all data is checked in), and it must stay that
 way.
+
+## The in-place review (2026-09-21)
+
+A UX pass on the live page found three correctness problems and two reading
+problems. All five are fixed in `BakuCrashMap.tsx` and `bakuCrashMapModel.ts`.
+
+- **Bar lengths misstated the counts.** Each bar was a percentage of the whole
+  row, so the name and the count beside it squeezed the long bars together:
+  Hülkenberg's 6 and Ocon's 4 drew the same length, and Turn 2's 7 nearly
+  matched Turn 3's 11. Each bar now has its own track.
+- **The phone cap split a tie.** Six rows cut the driver list between
+  Räikkönen and Verstappen, both on four. `rowsBeforeTie` moves the cut to the
+  nearest change of count.
+- **Research notes were reader copy.** "Wikipedia's Turn 7 is wrong" and "the
+  FIA race control log is the citation" moved to a `sourcing` field on each
+  incident that is never rendered. Short placement notes a reader needs ("Shown
+  at Turn 3, where the cars stopped") stay in `note`.
+- **Drill-down covered the map.** Now in place; see above.
+- **The map said "3" where the posters say "11".** The social posters that link
+  here put the count beside the dot. The corners holding the two highest counts
+  now carry a "Turn 3 / 11" callout beside the dot in the same reading
+  (`calloutCorners`, placed per corner by `CALLOUT_SIDE`); every other dot keeps
+  its turn number inside.

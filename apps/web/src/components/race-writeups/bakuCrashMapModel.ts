@@ -365,3 +365,56 @@ export function placeMarkers(
     return { ...marker, x: anchor.x + dx * scale, y: anchor.y + dy * scale };
   });
 }
+
+/**
+ * How many rows of a ranked list to show under a cap without splitting a tie.
+ *
+ * A fixed cap of six cut the driver list between Räikkönen and Verstappen,
+ * both on four, so one of them silently fell below the fold for having a
+ * later surname. The cut moves to the nearest place the count changes:
+ * forward to take in the whole tie when that costs at most `slack` extra
+ * rows, otherwise back to where the tie begins.
+ *
+ * `counts` must already be sorted high to low, as the ranked lists are.
+ */
+export function rowsBeforeTie(
+  counts: readonly number[],
+  limit: number,
+  slack = 3,
+): number {
+  if (counts.length <= limit) {
+    return counts.length;
+  }
+  const tied = counts[limit - 1];
+  if (counts[limit] !== tied) {
+    return limit;
+  }
+  let end = limit;
+  while (end < counts.length && counts[end] === tied) {
+    end += 1;
+  }
+  if (end - limit <= slack) {
+    return end;
+  }
+  let start = limit - 1;
+  while (start > 0 && counts[start - 1] === tied) {
+    start -= 1;
+  }
+  return start > 0 ? start : end;
+}
+
+/**
+ * The corners the map labels with their count: every corner holding one of
+ * the two highest counts, in the current filter. Two counts rather than two
+ * corners, so a tie for second is labelled whole rather than cut.
+ */
+export function calloutCorners(
+  ranked: readonly { corner: number; count: number }[],
+): ReadonlySet<number> {
+  const top = [...new Set(ranked.map((entry) => entry.count))].slice(0, 2);
+  return new Set(
+    ranked
+      .filter((entry) => top.includes(entry.count) && entry.count > 1)
+      .map((entry) => entry.corner),
+  );
+}

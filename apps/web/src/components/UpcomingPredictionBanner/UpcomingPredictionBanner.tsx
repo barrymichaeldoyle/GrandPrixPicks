@@ -1,3 +1,6 @@
+import { lazy, Suspense, useState } from 'react';
+import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
+import { WeekendCardSkeleton } from '@/components/WeekendCardSkeleton';
 import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { useLocation } from '@tanstack/react-router';
@@ -7,6 +10,12 @@ import { useUpcomingPredictionBannerDismissal } from '@/hooks/useUpcomingPredict
 import type { SessionType } from '@/lib/sessions';
 import { useNow } from '@/lib/testing/now';
 import { UpcomingPredictionNudge } from './UpcomingPredictionNudge';
+
+const UpcomingPicksModal = lazy(() =>
+  import('./UpcomingPicksModal').then((module) => ({
+    default: module.UpcomingPicksModal,
+  })),
+);
 
 const SPRINT_SESSIONS = ['sprint_quali', 'sprint', 'quali', 'race'] as const;
 const STANDARD_SESSIONS = ['quali', 'race'] as const;
@@ -228,7 +237,12 @@ export function UpcomingPredictionBanner() {
 function UpcomingPredictionBannerInner() {
   const bannerState = useUpcomingPredictionBannerState();
 
-  if (!bannerState.isVisible) {
+  const [pickerRace, setPickerRace] = useState<{
+    slug: string;
+    name: string;
+  } | null>(null);
+
+  if (!bannerState.isVisible && !pickerRace) {
     return null;
   }
 
@@ -236,11 +250,37 @@ function UpcomingPredictionBannerInner() {
   const ctaLabel = shouldShowH2HNudge ? 'Submit H2H' : 'Make picks';
 
   return (
-    <UpcomingPredictionNudge
-      raceName={activeRace.name}
-      raceSlug={activeRace.slug}
-      ctaLabel={ctaLabel}
-      onDismiss={dismiss}
-    />
+    <>
+      {bannerState.isVisible && activeRace && (
+        <UpcomingPredictionNudge
+          raceName={activeRace.name}
+          raceSlug={activeRace.slug}
+          ctaLabel={ctaLabel}
+          onDismiss={dismiss}
+          onMakePicks={() =>
+            setPickerRace({ slug: activeRace.slug, name: activeRace.name })
+          }
+        />
+      )}
+      {pickerRace && (
+        <Suspense
+          fallback={
+            <PicksFocusOverlay
+              open
+              onClose={() => setPickerRace(null)}
+              title={pickerRace.name}
+            >
+              <WeekendCardSkeleton />
+            </PicksFocusOverlay>
+          }
+        >
+          <UpcomingPicksModal
+            raceSlug={pickerRace.slug}
+            raceName={pickerRace.name}
+            onClose={() => setPickerRace(null)}
+          />
+        </Suspense>
+      )}
+    </>
   );
 }

@@ -1,5 +1,4 @@
 import { ArrowRight, X } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
 import { useRef, useState } from 'react';
 
 import { Flag as CountryFlag } from '@/components/Flag';
@@ -12,6 +11,7 @@ interface UpcomingPredictionNudgeProps {
   raceSlug: string;
   ctaLabel?: string;
   onDismiss?: () => void;
+  onMakePicks: () => void;
 }
 
 export function UpcomingPredictionNudge({
@@ -19,6 +19,7 @@ export function UpcomingPredictionNudge({
   raceSlug,
   ctaLabel = 'Make picks',
   onDismiss,
+  onMakePicks,
 }: UpcomingPredictionNudgeProps) {
   const countryCode = getCountryCodeForRace({ slug: raceSlug });
   const [isExiting, setIsExiting] = useState(false);
@@ -41,10 +42,11 @@ export function UpcomingPredictionNudge({
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-border"
         />
-        <Link
-          to="/races/$raceSlug"
-          params={{ raceSlug }}
-          className="group relative mx-auto flex max-w-(--page-max) items-center gap-2 px-4 py-2 pr-10"
+        <button
+          type="button"
+          onClick={onMakePicks}
+          aria-haspopup="dialog"
+          className="group relative mx-auto flex w-full max-w-(--page-max) items-center gap-2 px-4 py-2 pr-10 text-left"
         >
           <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-70" />
@@ -62,7 +64,7 @@ export function UpcomingPredictionNudge({
             {ctaLabel}
           </span>
           <ArrowRight className="h-3.5 w-3.5 shrink-0 text-accent" />
-        </Link>
+        </button>
         {onDismiss && (
           <button
             type="button"

@@ -12,6 +12,7 @@ const meta = {
   args: {
     raceName: 'Miami Grand Prix',
     raceSlug: 'miami-2026',
+    onMakePicks: () => {},
   },
 } satisfies Meta<typeof UpcomingPredictionNudge>;
 

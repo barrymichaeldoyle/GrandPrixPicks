@@ -16,7 +16,8 @@ import { BAKU_CRASHES } from '../src/lib/bakuCrashes';
 import {
   countsByCorner,
   countsByDriver,
-  driverSurname,
+  driverCountry,
+  driverName,
   markerRadius,
   placeMarkers,
   rankedCorners,
@@ -52,19 +53,22 @@ const firstYear = Math.min(...BAKU_CRASHES.map((entry) => entry.year));
 const TRACK = '#4a4c3c';
 
 /**
- * The drivers the poster names: everyone on the top two counts, so a tie is
- * never cut. Today that is Hülkenberg and Stroll on six, Ricciardo on five;
- * the next row down is a four-way tie, which is the caption's to carry.
+ * The drivers the poster names: everyone on the top three counts, so a tie is
+ * never cut. Today that is Hülkenberg and Stroll on 6, Ricciardo on 5, and
+ * Ocon, Pérez, Räikkönen and Verstappen on 4.
  */
 const driverCounts = rankedDrivers(countsByDriver(BAKU_CRASHES));
-const driverRows = [...new Set(driverCounts.map((entry) => entry.count))]
-  .slice(0, 2)
-  .map((count) => ({
-    count,
-    names: driverCounts
-      .filter((entry) => entry.count === count)
-      .map((entry) => driverSurname(entry.driver)),
+const shownCounts = [
+  ...new Set(driverCounts.map((entry) => entry.count)),
+].slice(0, 3);
+const driverRows = driverCounts
+  .filter((entry) => shownCounts.includes(entry.count))
+  .map((entry) => ({
+    count: entry.count,
+    name: driverName(entry.driver),
+    country: driverCountry(entry.driver),
   }));
+const flagDir = fileURLToPath(new URL('../public/flags/', import.meta.url));
 
 const markers = placeMarkers(
   BAKU_CORNERS.map((corner) => ({
@@ -202,51 +206,56 @@ function map(
 }
 
 /**
- * The drivers most often involved, in the same numeral-and-label grammar as
- * the corners, one step smaller. "Involved", because an incident can have
- * several drivers and the archive does not assign blame.
+ * The drivers most often involved: one row each, count, flag, full name. The
+ * count leads so the column scans like the corners do. "Involved", because an
+ * incident can have several drivers and the archive does not assign blame.
  */
-function driverBlock(left: number, top: number, numeral: number): ReactNode {
+function driverBlock(
+  left: number,
+  top: number,
+  size: number,
+  flags: ReadonlyMap<string, string>,
+): ReactNode {
+  const flagHeight = Math.round(size * 0.62);
   return box(
     { position: 'absolute', left, top, flexDirection: 'column' },
     box(
       {
-        fontSize: numeral * 0.3,
+        fontSize: size * 0.72,
         fontWeight: 600,
         color: colors.textMuted,
         lineHeight: 1,
+        marginBottom: size * 0.5,
       },
       'Drivers most involved',
     ),
-    ...driverRows.map(({ count, names }) =>
+    ...driverRows.map(({ count, name, country }) =>
       box(
-        { alignItems: 'center', marginTop: numeral * 0.2 },
+        { alignItems: 'center', height: size * 1.45 },
         box(
           {
-            width: numeral * 0.72,
-            fontSize: numeral,
+            width: size * 1.35,
+            fontSize: size * 1.2,
             fontWeight: 900,
-            letterSpacing: -numeral * 0.04,
-            lineHeight: 0.9,
+            lineHeight: 1,
           },
           String(count),
         ),
-        box(
-          {
-            flexDirection: 'column',
-            marginLeft: numeral * 0.18,
-            fontSize: numeral * 0.4,
-            fontWeight: 600,
-            lineHeight: 1.12,
-          },
-          ...names.map((name) => box({}, name)),
-        ),
+        country !== undefined && flags.has(country)
+          ? e('img', {
+              src: flags.get(country),
+              width: Math.round((flagHeight * 4) / 3),
+              height: flagHeight,
+              style: { marginRight: size * 0.4, borderRadius: 2 },
+            })
+          : box({ width: Math.round((flagHeight * 4) / 3) + size * 0.4 }),
+        box({ fontSize: size, fontWeight: 600, lineHeight: 1 }, name),
       ),
     ),
   );
 }
 
-function poster(wide: boolean): ReactNode {
+function poster(wide: boolean, flags: ReadonlyMap<string, string>): ReactNode {
   const width = wide ? 1600 : 1080;
   const height = wide ? 900 : 1350;
   const fact = `${BAKU_CRASHES.length} incidents since ${firstYear}`;
@@ -264,21 +273,34 @@ function poster(wide: boolean): ReactNode {
       {
         position: 'absolute',
         left: wide ? 58 : 54,
-        top: wide ? 40 : 40,
-        fontSize: wide ? 210 : 260,
+        top: wide ? 34 : 40,
+        fontSize: wide ? 176 : 224,
         fontWeight: 900,
-        letterSpacing: wide ? -8 : -10,
+        letterSpacing: wide ? -7 : -9,
         lineHeight: 1,
         color: colors.accent,
       },
-      'Baku',
+      'F1 Baku',
+    ),
+    box(
+      {
+        position: 'absolute',
+        left: wide ? 64 : 62,
+        top: wide ? 212 : 266,
+        fontSize: wide ? 100 : 124,
+        fontWeight: 900,
+        letterSpacing: wide ? -4 : -5,
+        lineHeight: 1,
+      },
+      'Crash Map',
     ),
     box(
       {
         position: 'absolute',
         left: wide ? 66 : 66,
-        top: wide ? 262 : 312,
-        fontSize: wide ? 52 : 58,
+        top: wide ? 340 : 416,
+        fontSize: wide ? 40 : 46,
+        color: colors.textMuted,
         fontWeight: 600,
         letterSpacing: -1.5,
         lineHeight: 1,
@@ -290,21 +312,21 @@ function poster(wide: boolean): ReactNode {
       : /* Turn 15 sits at the left edge in portrait, with track on both
            sides of it, so its number goes underneath. */
         map(
-          30,
-          400,
-          1020,
-          { 3: { side: 'left' }, 15: { below: true, drop: 48 } },
+          70,
+          450,
+          940,
+          { 3: { side: 'left' }, 15: { below: true, drop: 36 } },
           132,
         ),
     /* Under the lap's long straight in portrait, which is otherwise empty;
        down the left column on X, clear of the Turn 15 number. */
-    wide ? driverBlock(66, 380, 84) : driverBlock(620, 940, 88),
-    /* Bottom right: X's ALT badge covers the lower left, and in portrait
-       the Turn 15 number holds that corner. */
+    wide ? driverBlock(66, 430, 30, flags) : driverBlock(596, 900, 30, flags),
+    /* Bottom right on X, whose ALT badge covers the lower left. Bottom left
+       in portrait, where the driver list fills the right-hand corner. */
     box(
       {
         position: 'absolute',
-        right: 64,
+        ...(wide ? { right: 64 } : { left: 66 }),
         bottom: wide ? 40 : 48,
         fontSize: wide ? 26 : 28,
         color: colors.textMuted,
@@ -328,11 +350,30 @@ const fonts = await Promise.all(
     style: 'normal' as const,
   })),
 );
+const flags = new Map(
+  await Promise.all(
+    [
+      ...new Set(
+        driverRows.flatMap((row) =>
+          row.country === undefined ? [] : [row.country],
+        ),
+      ),
+    ].map(
+      async (country) =>
+        [
+          country,
+          `data:image/svg+xml;base64,${(
+            await readFile(path.join(flagDir, `${country}.svg`))
+          ).toString('base64')}`,
+        ] as const,
+    ),
+  ),
+);
 for (const wide of [false, true]) {
   const width = wide ? 1600 : 1080;
   const height = wide ? 900 : 1350;
   const filename = `${SLUG}-${wide ? 'x' : 'instagram'}.png`;
-  const svg = await satori(poster(wide), { width, height, fonts });
+  const svg = await satori(poster(wide, flags), { width, height, fonts });
   const png = new Resvg(svg).render().asPng();
   await writeFile(path.join(artifactOutputDir, filename), png);
   await writeFile(path.join(publicOutputDir, filename), png);

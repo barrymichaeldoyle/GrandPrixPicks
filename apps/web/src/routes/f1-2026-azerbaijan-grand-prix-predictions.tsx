@@ -138,7 +138,7 @@ export const Route = createFileRoute(
           ? RACE_WEEKEND_DESCRIPTION
           : 'Make your 2026 Azerbaijan Grand Prix predictions. Baku races on Saturday this year, with practice starting Thursday. Pick a top 5 for every session.',
         finished:
-          '2026 Azerbaijan Grand Prix predictions, scored against the official Baku classification.',
+          '2026 Azerbaijan Grand Prix predictions, scored against the official Baku classification. See your Top 5 and team-mate picks alongside the results.',
         cancelled: 'The 2026 Azerbaijan Grand Prix was called off.',
       },
       imageAlt:

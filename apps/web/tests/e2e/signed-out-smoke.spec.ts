@@ -77,6 +77,7 @@ const PUBLIC_ROUTES = [
   '/f1-2026-singapore-grand-prix-predictions',
   '/f1-2026-azerbaijan-grand-prix-predictions',
   '/f1-2026-madrid-grand-prix-predictions',
+  '/f1-2026-united-states-grand-prix-predictions',
   '/f1-2027-calendar',
   '/circuits',
   '/terms',

@@ -293,13 +293,13 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
   },
   cota: {
     character:
-      'Circuit of the Americas in Austin borrows ideas from several classic circuits, most obviously in the steep uphill run to the first corner and a fast esses sequence inspired by Silverstone. It has become notably bumpy as the ground has settled.',
+      'Circuit of the Americas in Austin borrows ideas from several classic circuits, most obviously in the steep uphill run to the first corner and a fast esses sequence inspired by Silverstone. The settling ground made it notoriously bumpy, and a partial resurface in 2024 smoothed the worst of it.',
     layout:
-      'A varied lap that asks for a bit of everything: a heavy braking zone into turn one, high-speed changes of direction through the early esses, a long back straight and a slow, technical final sector. Ride quality over the bumps has become a real differentiator.',
+      'A varied lap that asks for a bit of everything: a heavy braking zone into turn one, high-speed changes of direction through the early esses, a long back straight and a slow, technical final sector. Tyre wear is mostly thermal, so the heat of a Texas October matters.',
     racing:
       'Two good passing zones and a wide track make for solid racing. The blind, uphill run to the first corner is the standout moment: drivers arrive without a clear view of the apex, the track is wide enough for three cars to try it at once, and first-lap position changes here are routine. The back straight offers the more conventional overtaking opportunity later in the race.',
     predicting:
-      'A reasonably honest circuit where the quicker cars generally come through, so the grid is a decent starting point. The bumps are the variable: teams that cannot run their preferred ride height here sometimes underperform their season form.',
+      'A reasonably honest circuit where the quicker cars generally come through, so the grid is a decent starting point. Heat is the variable: a car that overheats its tyres through the esses can fade over a long run even from a good grid slot.',
     traits: [
       { label: 'Track type', value: 'Permanent' },
       { label: 'Overtaking', value: 'Good' },

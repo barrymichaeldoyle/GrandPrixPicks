@@ -104,6 +104,15 @@ const RACE_WRITEUPS = {
       'Why Baku races on Saturday in 2026, where the lap is won and lost, and the qualifying session that set a Formula 1 red-flag record.',
     cta: 'Read the Baku predictions',
   },
+  'usa-2026': {
+    to: '/f1-2026-united-states-grand-prix-predictions',
+    reviewedAt: '2026-09-21',
+    venueName: 'Austin',
+    label: 'Austin predictions',
+    summary:
+      'Austin returns to a standard weekend, Ferrari and Mercedes bring new parts, and Verstappen won from pole last year.',
+    cta: 'Read the Austin predictions',
+  },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
     reviewedAt: '2026-09-12',

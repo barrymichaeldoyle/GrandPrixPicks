@@ -80,28 +80,37 @@ App Store listing fields are kept in `store.config.json`. Validate them with
 `eas metadata:lint`; after the first binary reaches App Store Connect, publish
 them with `eas metadata:push`.
 
-## The `ios/` trap
+## Native projects are generated
 
-`ios/` is **tracked in git**, so asset and config changes in `app.json` do not
-reach the native project on their own. The app icon lived in
-`ios/GrandPrixPicks/Images.xcassets/AppIcon.appiconset/` as Expo's blank
-placeholder long after `app.json` pointed at a real one, and nothing failed:
-it simply shipped blank.
+`ios/` and `android/` are **not** in git. This app uses Continuous Native
+Generation: `app.json` and `plugins/` are the whole source of truth, EAS runs
+`expo prebuild` on its own servers for every build, and a local `pnpm ios` or
+`npx expo run:ios` regenerates a local copy that nobody commits. Anything
+hand-edited in `ios/` is lost on the next prebuild, so native config goes in
+one of two places instead:
 
-After changing anything in `app.json` that affects native config (icons, splash,
-plugins, permissions), either run `npx expo prebuild --platform ios` and commit
-the result, or update the native file by hand and check it.
+- `app.json`, for anything Expo has a key for. The privacy manifest lives in
+  `ios.privacyManifests`; the icon, splash, entitlements (`usesAppleSignIn`,
+  `associatedDomains`) and Info.plist keys already did.
+- A config plugin in `plugins/`, for the rest. `withReleasePushEntitlements.cjs`
+  gives the Release build its own entitlements file asking for the production
+  APNs gateway. Debug and Release used to share one file asking for
+  development, and a store build made from it registers sandbox tokens and
+  silently delivers no notifications at all.
 
-`scripts/check-native-assets.mjs` runs as part of `pnpm lint` and pins the
-specific facts that have bitten: the app icon, the Info.plist keys app.json
-claims to own, and the push entitlement per build configuration. That last one
-matters most, because Debug and Release shared a single entitlements file
-asking for the development APNs gateway, and a store build made from it
-registers sandbox tokens and silently delivers no notifications at all.
+`ios/` used to be committed, and every prebuild (including the one `expo
+run:ios` runs first) deleted the hand-maintained Release entitlements and
+privacy manifest. The app icon also sat in the committed catalog as Expo's
+blank placeholder long after `app.json` pointed at a real one.
 
-expo-doctor's own app-config check is disabled in `package.json`: it cannot be
-satisfied while `ios/` is tracked, and an advisory nobody can action is worse
-than none. The check above is the actionable part of it, enforced. The icons
+`scripts/check-native-assets.mjs` runs as part of `pnpm lint`. It prebuilds
+into a throwaway directory and fails if the result is missing the push
+entitlement per configuration, Sign in with Apple, the associated domain, the
+privacy manifest or the icon, or if `ios/` has been committed again. The icons
 themselves are generated from the shared brand mark by
 `apps/web/scripts/render-logo-png.mjs`, so regenerate there rather than editing
 PNGs.
+
+A change to `app.json`, `plugins/` or a native dependency needs a new
+development build (`eas build --profile development`) before the dev client can
+see it; JavaScript-only changes do not.

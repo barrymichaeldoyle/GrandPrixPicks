@@ -34,7 +34,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#101113"
         }
-      ]
+      ],
+      "./plugins/withReleasePushEntitlements.cjs"
     ],
     "ios": {
       "bundleIdentifier": "com.barrymichaeldoyle.grandprixpicks",
@@ -49,7 +50,25 @@
       },
       "appleTeamId": "LBZ6C9H52C",
       "associatedDomains": ["applinks:grandprixpicks.com"],
-      "supportsTablet": false
+      "supportsTablet": false,
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": ["C617.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
+          }
+        ],
+        "NSPrivacyCollectedDataTypes": [],
+        "NSPrivacyTracking": false
+      }
     },
     "android": {
       "package": "com.barrymichaeldoyle.grandprixpicks",

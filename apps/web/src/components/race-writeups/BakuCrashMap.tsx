@@ -946,7 +946,10 @@ function IncidentRow({
 }) {
   return (
     <>
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+      {/* Centred rather than baseline-aligned: a flag has no text baseline, so
+          on a baseline row the flagged names sat lower than the year and the
+          session beside them. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <span className="gpp-mono text-sm text-text">{crash.year}</span>
         <span className="text-sm text-text-muted">
           {sessionLabel(crash.session)}
@@ -977,16 +980,28 @@ function DriverNames({ drivers }: { drivers: readonly string[] }) {
       <span className="font-semibold text-text">{driversLabel(drivers)}</span>
     );
   }
+  const last = drivers.length - 1;
   return (
-    <span className="font-semibold text-text">
+    <span className="inline-flex flex-wrap items-center gap-x-1.5 gap-y-1">
       {drivers.map((code, index) => {
         const country = driverCountry(code);
         return (
-          <span key={code}>
-            {index === 0 ? null : index === drivers.length - 1 ? ' and ' : ', '}
-            <span className="inline-flex items-center gap-1.5">
+          <span key={code} className="inline-flex items-center gap-x-1.5">
+            {/* The joining words are plain text: in bold they competed with
+                the names they sit between. */}
+            {index === last && index > 0 ? (
+              <span className="text-text-muted">{' and '}</span>
+            ) : null}
+            <span className="inline-flex items-center gap-1.5 font-semibold text-text">
               {country === undefined ? null : <Flag code={country} size="xs" />}
-              {driverName(code)}
+              <span>
+                {driverName(code)}
+                {/* A comma sits against the name before it, so it lives
+                    inside the name's box rather than after a gap. */}
+                {index < last - 1 ? (
+                  <span className="font-normal text-text-muted">{', '}</span>
+                ) : null}
+              </span>
             </span>
           </span>
         );

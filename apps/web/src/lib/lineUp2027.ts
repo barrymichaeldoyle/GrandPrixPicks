@@ -47,10 +47,10 @@ export type TeamLineUp = {
 };
 
 /** Bumped by hand whenever the seats below are re-checked against reporting. */
-export const LINE_UP_2027_REVIEWED_AT = '2026-09-17';
+export const LINE_UP_2027_REVIEWED_AT = '2026-09-21';
 
 /** For prose. Kept next to the ISO date so the two cannot drift apart. */
-export const LINE_UP_2027_REVIEWED_LABEL = '17 September 2026';
+export const LINE_UP_2027_REVIEWED_LABEL = '21 September 2026';
 
 /**
  * Alphabetical by team. A championship order would be more flattering and
@@ -84,7 +84,7 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Fernando Alonso',
         status: 'out-of-contract',
-        note: 'His deal ends with this season and he has set no deadline for deciding. He says he stays at Aston Martin in some role either way.',
+        note: 'His deal ends with this season. In Madrid he said there would be no news on 2027 "anytime soon", and that he stays at Aston Martin in some role either way.',
       },
     ],
   },
@@ -144,7 +144,7 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Esteban Ocon',
         status: 'out-of-contract',
-        note: 'Haas can extend him for a third year but has run four other drivers against him instead. Reports since 16 September 2026 make Rafael Camara the favourite, and neither Haas nor Ferrari has confirmed anything.',
+        note: 'Haas can extend him for a third year but has run four other drivers against him instead. Reports since 16 September 2026 make Rafael Camara the favourite, and Ayao Komatsu said on 18 September that a decision was "not next week".',
       },
     ],
   },
@@ -154,7 +154,7 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Lando Norris',
         status: 'signed',
-        note: 'Under contract past 2027 on the long-term deal he signed in 2025.',
+        note: 'Extended on 29 August 2026 to at least the end of 2030, with an option beyond that.',
       },
       {
         driver: 'Oscar Piastri',
@@ -169,12 +169,12 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'George Russell',
         status: 'expected',
-        note: 'His October 2025 extension is understood to run past 2026, but Mercedes has only ever announced him for this season.',
+        note: 'Mercedes has told PlanetF1 its line-up stays for 2027, but has made no formal announcement.',
       },
       {
         driver: 'Kimi Antonelli',
         status: 'expected',
-        note: 'Extended at the same time as Russell, and announced in the same words: 2026 only.',
+        note: 'Covered by the same statement as Russell, and by the same lack of a formal announcement.',
       },
     ],
   },
@@ -184,12 +184,12 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Liam Lawson',
         status: 'expected',
-        note: 'No 2027 deal. Red Bull is leaning towards keeping both of its current juniors.',
+        note: 'No 2027 deal announced. The New Zealand Herald reported on 19 September that Red Bull will keep all four of its current drivers.',
       },
       {
         driver: 'Arvid Lindblad',
         status: 'expected',
-        note: 'No 2027 deal. The pressure on both seats is Nikola Tsolov, who leads Formula 2.',
+        note: 'No 2027 deal announced. The same report sends Nikola Tsolov, who leads Formula 2, to Super Formula in Japan rather than into this seat.',
       },
     ],
   },
@@ -204,7 +204,7 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Isack Hadjar',
         status: 'expected',
-        note: 'No 2027 deal signed. Red Bull has said an extension is close.',
+        note: 'No 2027 deal signed. Red Bull has said an extension is close, and the 19 September report has him staying.',
       },
     ],
   },
@@ -249,7 +249,7 @@ export const HAAS_2027_CONTENDERS = [
   {
     driver: 'Jack Doohan',
     claim:
-      'The Haas reserve, with 2025 races for Alpine behind him. His run in the 2025 car at Jerez on 17 September is the last evidence Haas said it wanted before deciding.',
+      'The Haas reserve, with 2025 races for Alpine behind him. He completed his own test at Jerez in September, his first Formula 1 running since Alpine dropped him, and the last of the runs Haas said it wanted before deciding.',
   },
   {
     driver: 'Leonardo Fornaroli',

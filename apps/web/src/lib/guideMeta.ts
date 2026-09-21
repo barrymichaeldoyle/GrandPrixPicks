@@ -56,7 +56,7 @@ const GUIDE_META: readonly GuideMeta[] = [
   {
     slug: 'f1-2027-haas-second-seat',
     publishedAt: '2026-09-09',
-    updatedAt: '2026-09-17',
+    updatedAt: '2026-09-21',
     title: 'The 2027 Haas seat: five drivers in contention',
     metaTitle:
       '2027 Haas Seat: The Five Candidates to Partner Bearman | Grand Prix Picks',

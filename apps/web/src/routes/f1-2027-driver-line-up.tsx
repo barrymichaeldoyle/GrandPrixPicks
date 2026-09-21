@@ -61,12 +61,12 @@ const FAQS = [
   {
     question: 'When will Haas announce its 2027 driver line-up?',
     answer:
-      'No date has been set. Haas said it would not choose until Jack Doohan had driven its 2025 car at Jerez on 17 September 2026, the last of four private tests it used to measure the candidates.',
+      'No date has been set. Jack Doohan has now completed the last of the private tests Haas used to measure the candidates, at Jerez, and Ayao Komatsu said on 18 September 2026 that the decision was "not next week".',
   },
   {
     question: 'Is Fernando Alonso racing in 2027?',
     answer:
-      'He has not said. His Aston Martin contract ends with this season and he has set no deadline for deciding, though he expects to stay with the team in some role.',
+      'He has not said. His Aston Martin contract ends with this season, and in Madrid he said there would be no news on 2027 "anytime soon". He expects to stay with the team in some role either way.',
   },
   {
     question: 'Who is Max Verstappen driving for in 2027?',
@@ -76,7 +76,7 @@ const FAQS = [
   {
     question: 'Are Mercedes keeping George Russell and Kimi Antonelli?',
     answer:
-      'Almost certainly. Both signed extensions in October 2025 that are understood to run past 2026, but Mercedes has never announced either of them for 2027.',
+      'Almost certainly. Mercedes has told PlanetF1 that its line-up stays for 2027, and Toto Wolff said in June that the team does not want to change it, but there has been no formal announcement.',
   },
   {
     question: 'How many teams are on the 2027 grid?',
@@ -271,10 +271,11 @@ function F1LineUp2027Page() {
             the quickest of the candidates who drove the 2025 car at Portimão,
             and reporting in Europe and Brazil now puts the Ferrari junior in
             front, with one outlet suggesting an announcement around his home
-            race on 8 November. Haas has announced nothing, and said it would
-            not decide until Jack Doohan had completed his own test at Jerez on
-            17 September. The five below are in the order the contest stands
-            today.
+            race on 8 November. Haas has announced nothing. Jack Doohan has
+            since completed his own test at Jerez, the last one Haas said it
+            wanted, and Komatsu said on 18 September that the decision was
+            &ldquo;not next week&rdquo;. The five below are in the order the
+            contest stands today.
           </p>
           <ol className="mt-6 border-t border-border">
             {HAAS_2027_CONTENDERS.map((contender, index) => (

@@ -126,7 +126,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
   // retain the shortlist as dated context, and bump guideMeta.updatedAt.
   'f1-2027-haas-second-seat': {
     status:
-      'As of 17 September 2026, Haas has not announced who will take the second seat for 2027. Reporting now puts Rafael Câmara in front.',
+      'As of 21 September 2026, Haas has not announced who will take the second seat for 2027. Reporting puts Rafael Câmara in front, and Ayao Komatsu says the decision is not imminent.',
     hero: {
       src: '/images/guides/haas-monza-2025.jpg',
       width: 1280,
@@ -145,7 +145,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         heading: 'What Komatsu has said',
         paragraphs: [
           'Writing for the Japanese publication as-web.jp during the Monza weekend, Ayao Komatsu named the five drivers in contention for one 2027 Haas seat.',
-          'Ocon has the seat now and is one of the five. Haas has been comparing the others in private testing. Grandprix.com reports that Hirakawa, Fornaroli and Bearman were within a tenth of a second of each other at Jerez, and that Haas gathered more data at Portimao afterwards. Doohan drove the 2025 car at Jerez on 17 September, the last of the runs Haas said it wanted before deciding, and Haas has not said the seat has been offered to anyone.',
+          'Ocon has the seat now and is one of the five. Haas has been comparing the others in private testing. Grandprix.com reports that Hirakawa, Fornaroli and Bearman were within a tenth of a second of each other at Jerez, and that Haas gathered more data at Portimao afterwards. Doohan has since completed his own test at Jerez, running alongside Hirakawa and Sho Tsuboi. It was the last of the runs Haas said it wanted before deciding. Asked on 18 September when he would decide, Komatsu said: “I don’t know, not next week, shall I say.” He added that performance comes first, and that a driver’s backing only counts if two candidates are otherwise equal.',
         ],
         sources: [
           {
@@ -156,6 +156,16 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           {
             label: 'SPEEDWEEK: Komatsu’s comments at Monza (5 September)',
             url: 'https://www.speedweek.com/en/a/formula-1/haas-team-principal-ayao-komatsu-these-five-drivers-are-in-the-running-for-2027',
+          },
+          {
+            label:
+              'Grandprix.com: Doohan completes his Jerez test (20 September)',
+            url: 'https://www.grandprix.com/news/doohan-completes-first-haas-test-at-jerez.html',
+          },
+          {
+            label:
+              'Motorsport Week: Komatsu on timing and “performance first” (18 September)',
+            url: 'https://www.motorsportweek.com/2026/09/18/haas-f1-2027-driver-decision/',
           },
         ],
       },

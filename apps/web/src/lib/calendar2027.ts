@@ -35,10 +35,10 @@ export type Round2027 = {
 };
 
 /** Bumped by hand whenever the rounds below are re-checked against F1. */
-export const CALENDAR_2027_REVIEWED_AT = '2026-09-17';
+export const CALENDAR_2027_REVIEWED_AT = '2026-09-21';
 
 /** For prose. Kept next to the ISO date so the two cannot drift apart. */
-export const CALENDAR_2027_REVIEWED_LABEL = '17 September 2026';
+export const CALENDAR_2027_REVIEWED_LABEL = '21 September 2026';
 
 /** The day the FIA approved the calendar and Formula 1 published it. */
 export const CALENDAR_2027_ANNOUNCED_LABEL = '16 September 2026';

@@ -45,20 +45,29 @@ claimed".
 
 ## Captions
 
+Written against the write-up's own definition (`BakuCrashMap.tsx`): an
+incident ended in a red flag, a retirement or a stewards' collision note, and
+is placed at the corner where the car stopped. Say "incidents", never
+"crashes" or "cars claimed", and say "involved", never "caused".
+
 ### X
 
 No hashtags on the brand account.
 
-> 57 incidents at Baku since 2016, and two corners stand out: Turn 3 with 11 and Turn 15 with 10.
+> 57 incidents at Baku since 2016. Turn 3 has had the most with 11, then Turn 15 with 10.
 >
-> Every one is mapped, with a source, in our Azerbaijan GP preview:
+> We count an incident when it ended in a red flag, a retirement or a stewards' collision note. Each one is listed with its source in our Azerbaijan GP preview:
 > https://grandprixpicks.com/f1-2026-azerbaijan-grand-prix-predictions?utm_source=x&utm_medium=organic&utm_campaign=baku_crash_map_2026
 
 ### Instagram
 
-> 57 incidents at Baku since 2016, and two corners stand out: Turn 3 with 11 and Turn 15 with 10.
+> 57 incidents at Baku since 2016. Turn 3 has had the most with 11, then Turn 15 with 10.
 >
-> The archive covers practice, qualifying, sprints and races across nine weekends, with a source for every incident. Six have no named corner and are not on the map. The full map is in our Azerbaijan GP preview, link in bio.
+> We count an incident when it ended in a red flag, a retirement or a stewards' note about a collision, in practice, qualifying, sprints or races, across nine race weekends. Each one is placed at the corner where the car stopped. Six have no named corner, so they're in the total but not on the map.
+>
+> The driver counts include every driver involved in an incident, not only the one at fault.
+>
+> Each incident is listed with its source in our Azerbaijan GP preview. Link in bio.
 >
 > #F1 #Baku #AzerbaijanGP
 

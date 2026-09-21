@@ -94,13 +94,18 @@ export function H2HDuelQuestion({
       {/* Capped, then centred, in the takeover: stretched to a tall phone's
           full height each panel became a box with a small island of driver
           floating in the middle of it. The cap keeps the panel a card and
-          `justify-center` hands the leftover height back to the margins. */}
+          `justify-center` hands the leftover height back to the margins.
+
+          Capped in width too, for a surface that does not cap it already
+          (the sequence sits in a 3xl column; the takeover can be wider): a
+          duel reads as two cards facing each other, close enough to compare
+          at a glance, not two slabs with "VS" lost between them. */}
       <div
-        className={
+        className={`mx-auto w-full max-w-2xl ${
           isTakeover
             ? 'flex min-h-0 flex-1 flex-col justify-center gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] sm:items-stretch sm:gap-3'
             : 'grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] sm:gap-3'
-        }
+        }`}
       >
         <BouncingDuelPanel
           key={matchup.driver1._id}
@@ -271,7 +276,10 @@ function DuelDriverButton({
         topFivePosition ? `, your P${topFivePosition}` : ''
       }`}
       onClick={onClick}
-      className={`gpp-team-bar relative flex min-h-36 min-w-0 flex-col items-center justify-center gap-3 overflow-hidden rounded-lg border px-2 py-5 text-center transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none sm:min-h-44 sm:px-4 ${
+      // `w-full`: a button sizes to its content even as a grid item's child,
+      // so without it each card hugged its own name and the pair came out at
+      // two different widths, pinned to the left of their columns.
+      className={`gpp-team-bar relative flex min-h-36 w-full min-w-0 flex-col items-center justify-center gap-3 overflow-hidden rounded-lg border px-2 py-5 text-center transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none sm:min-h-44 sm:px-4 ${
         selected
           ? 'border-accent bg-accent-muted/25'
           : 'border-border bg-page hover:border-border-strong hover:bg-surface-elevated'

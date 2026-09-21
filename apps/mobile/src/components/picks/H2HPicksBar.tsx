@@ -14,10 +14,13 @@ export type H2HBarMatchup = {
 export function H2HPicksBar({
   matchups,
   selections,
+  activeIndex = -1,
   onSelectIndex,
 }: {
   matchups: ReadonlyArray<H2HBarMatchup>;
   selections: Record<string, string | undefined>;
+  /** Cell currently being asked about in the duel sequence, or -1. */
+  activeIndex?: number;
   onSelectIndex?: (index: number) => void;
 }) {
   const interactive = onSelectIndex !== undefined;
@@ -33,10 +36,13 @@ export function H2HPicksBar({
         const label = `Battle ${index + 1} of ${matchups.length}, ${displayTeamName(
           matchup.team,
         )}. ${picked ? `${picked.code} picked` : 'Not called yet'}.`;
+        const isActive = index === activeIndex;
         const className = `relative h-9 min-w-0 flex-row items-center justify-center overflow-hidden rounded-sm border pr-1 pl-2 ${
-          picked
-            ? 'border-border bg-surface-elevated'
-            : 'border-dashed border-border bg-page'
+          isActive
+            ? 'border-accent bg-surface-elevated'
+            : picked
+              ? 'border-border bg-surface-elevated'
+              : 'border-dashed border-border bg-page'
         }`;
         const content = (
           <>
@@ -73,6 +79,7 @@ export function H2HPicksBar({
           <Pressable
             accessibilityLabel={label}
             accessibilityRole="button"
+            accessibilityState={{ selected: isActive }}
             className={className}
             key={matchup._id}
             onPress={() => onSelectIndex(index)}

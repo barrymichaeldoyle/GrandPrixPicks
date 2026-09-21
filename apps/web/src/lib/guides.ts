@@ -95,7 +95,8 @@ type GuideLiveLink = {
     | '/f1-standings'
     | '/f1-team-mate-battles'
     | '/races'
-    | '/leaderboard';
+    | '/leaderboard'
+    | '/f1-2027-driver-line-up';
   label: string;
   detail: string;
 };
@@ -355,6 +356,11 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
       },
     ],
     liveLinks: [
+      {
+        to: '/f1-2027-driver-line-up',
+        label: 'The 2027 F1 driver line-up',
+        detail: 'Every 2027 seat, team by team, and how firm each one is.',
+      },
       {
         to: '/f1-team-mate-battles',
         label: 'F1 teammate head-to-head results',

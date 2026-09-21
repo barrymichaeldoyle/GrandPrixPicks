@@ -307,7 +307,15 @@ function F1LineUp2027Page() {
             >
               Ocon and Bearman's season head to head
             </Link>{' '}
-            is the number Komatsu is being asked about every weekend.
+            is the number Komatsu is being asked about every weekend.{' '}
+            <Link
+              to="/guides/$guideSlug"
+              params={{ guideSlug: 'f1-2027-haas-second-seat' }}
+              className="font-medium text-accent underline-offset-2 hover:underline"
+            >
+              The five Haas candidates
+            </Link>{' '}
+            have a guide of their own, with each driver&rsquo;s record.
           </p>
         </section>
 

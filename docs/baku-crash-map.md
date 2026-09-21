@@ -908,3 +908,18 @@ problems. All five are fixed in `BakuCrashMap.tsx` and `bakuCrashMapModel.ts`.
   now carry a "Turn 3 / 11" callout beside the dot in the same reading
   (`calloutCorners`, placed per corner by `CALLOUT_SIDE`); every other dot keeps
   its turn number inside.
+
+Follow-up the same day:
+
+- **Tap targets size to the space around each dot** (`hitRadius`): half the
+  distance to the nearest marker, capped at 64 units. On a 390px phone the
+  isolated corners (1, 2, 13, 15) went from about 16px to 47px; the castle
+  section stays bounded so no target swallows a neighbour.
+- **Driver names carry their nationality flag** in every incident row
+  (`DriverNames`), the same flag as the tally and the social posters.
+- The breakdown toggle is sentence case like the session filter, the filter
+  fits one row on a phone, a mouse click no longer leaves the browser's
+  default focus box around a marker, and the corner callouts are a step larger.
+- **The heat ramp stays orange.** A sequential scale needs several distinct
+  steps, and chartreuse is the site accent that now marks the selection ring;
+  a chartreuse ramp would hide the selection on the busiest corners.

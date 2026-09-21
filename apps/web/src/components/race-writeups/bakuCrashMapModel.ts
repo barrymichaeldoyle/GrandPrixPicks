@@ -418,3 +418,29 @@ export function calloutCorners(
       .map((entry) => entry.corner),
   );
 }
+
+/**
+ * The radius, in viewBox units, of a marker's invisible tap target.
+ *
+ * As large as the space around the marker allows: half the distance to its
+ * nearest neighbour, capped at `HIT_RADIUS_MAX`, and never smaller than the
+ * dot plus a margin. A lone corner like Turn 1 or Turn 15 gets a target a
+ * thumb can find on a phone, where the map is drawn at about a third of its
+ * viewBox size; the castle section, where corners sit a few units apart,
+ * keeps targets that do not swallow their neighbours.
+ */
+export const HIT_RADIUS_MAX = 64;
+
+export function hitRadius(
+  marker: PlacedMarker,
+  all: readonly PlacedMarker[],
+): number {
+  const nearest = Math.min(
+    Infinity,
+    ...all
+      .filter((other) => other.corner !== marker.corner)
+      .map((other) => Math.hypot(other.x - marker.x, other.y - marker.y)),
+  );
+  const room = nearest / 2;
+  return Math.max(marker.radius + 10, Math.min(HIT_RADIUS_MAX, room));
+}

@@ -26,6 +26,7 @@ import {
   HEAT_STEPS,
   heatColor,
   heatStep,
+  hitRadius,
   markerRadius,
   orderedForList,
   placeMarkers,
@@ -96,6 +97,15 @@ export function BakuCrashMap() {
   const rankedDriverRows = rankedDrivers(countsByDriver(visible));
   const unplaced = unplacedCount(visible);
   const callouts = calloutCorners(ranked);
+  const placed = placeMarkers(
+    BAKU_CORNERS.map((corner) => ({
+      corner: corner.number,
+      count: counts.get(corner.number) ?? 0,
+      x: corner.x,
+      y: corner.y,
+      radius: markerRadius(counts.get(corner.number) ?? 0, max),
+    })).filter((marker) => marker.count > 0),
+  );
   const selectedCrashes =
     selected === null
       ? []
@@ -274,15 +284,7 @@ export function BakuCrashMap() {
                 in a few metres, which at map scale put whole markers underneath
                 each other.
               */}
-              {placeMarkers(
-                BAKU_CORNERS.map((corner) => ({
-                  corner: corner.number,
-                  count: counts.get(corner.number) ?? 0,
-                  x: corner.x,
-                  y: corner.y,
-                  radius: markerRadius(counts.get(corner.number) ?? 0, max),
-                })).filter((marker) => marker.count > 0),
-              )
+              {placed
                 .slice()
                 .sort((a, b) => a.count - b.count)
                 .map((marker) => {
@@ -322,7 +324,7 @@ export function BakuCrashMap() {
                         count, and in the castle section it would also push a
                         marker over its neighbour.
                       */
-                      className="cursor-pointer transition-[filter] hover:brightness-125 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent motion-reduce:transition-none"
+                      className="cursor-pointer transition-[filter] outline-none hover:brightness-125 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent motion-reduce:transition-none"
                       onClick={() =>
                         select({ kind: 'corner', corner: marker.corner })
                       }
@@ -362,12 +364,13 @@ export function BakuCrashMap() {
                           strokeWidth={2}
                         />
                       ) : null}
-                      {/* A transparent target wider than the drawn dot, so a
-                          pointer need not land on an 11-unit circle. */}
+                      {/* A transparent target as wide as the space around the
+                          dot allows (`hitRadius`), so a thumb need not land on
+                          an 11-unit circle drawn at a third of its size. */}
                       <circle
                         cx={corner.x}
                         cy={corner.y}
-                        r={Math.max(radius + 14, 26)}
+                        r={hitRadius(marker, placed)}
                         fill="transparent"
                       />
                       {/* The selection ring: the one mark that says "this is
@@ -496,7 +499,7 @@ function FilterBar({
     <div
       role="radiogroup"
       aria-label="Filter incidents by session"
-      className="flex flex-wrap gap-2"
+      className="flex flex-wrap gap-1.5 sm:gap-2"
     >
       {BAKU_FILTERS.map((entry) => {
         const active = entry.value === filter;
@@ -507,7 +510,7 @@ function FilterBar({
             role="radio"
             aria-checked={active}
             onClick={() => onChange(entry.value)}
-            className={`inline-flex min-h-9 items-center gap-2 rounded-sm border px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+            className={`inline-flex min-h-9 items-center gap-1.5 rounded-sm border px-2.5 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:gap-2 sm:px-3 ${
               active
                 ? 'border-accent bg-accent-muted font-semibold text-text'
                 : 'border-border text-text-muted hover:border-border-strong hover:text-text'
@@ -606,7 +609,7 @@ function BreakdownPanel({
               role="radio"
               aria-checked={active}
               onClick={() => onBreakdownChange(value)}
-              className={`min-h-9 rounded-sm border px-3 text-xs tracking-label uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+              className={`min-h-9 rounded-sm border px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                 active
                   ? 'border-accent bg-accent-muted font-semibold text-text'
                   : 'border-border text-text-muted hover:border-border-strong hover:text-text'
@@ -903,7 +906,7 @@ function CornerCallout({
       : side === 'right'
         ? x + radius + gap
         : x;
-  const top = side === 'below' ? y + radius + gap : y - 38;
+  const top = side === 'below' ? y + radius + gap : y - 44;
   return (
     <text
       aria-hidden
@@ -914,7 +917,7 @@ function CornerCallout({
         x={tx}
         y={top}
         dominantBaseline="hanging"
-        fontSize={24}
+        fontSize={30}
         fontWeight={600}
         fill="var(--text-muted)"
       >
@@ -922,9 +925,9 @@ function CornerCallout({
       </tspan>
       <tspan
         x={tx}
-        y={top + 30}
+        y={top + 36}
         dominantBaseline="hanging"
-        fontSize={46}
+        fontSize={52}
         fontWeight={800}
         fill="var(--text)"
       >
@@ -949,9 +952,7 @@ function IncidentRow({
           {sessionLabel(crash.session)}
           {crash.lap === undefined ? '' : `, lap ${crash.lap}`}
         </span>
-        <span className="font-semibold text-text">
-          {driversLabel(crash.drivers)}
-        </span>
+        <DriverNames drivers={crash.drivers} />
         {showCorner && crash.corner !== null ? (
           <span className="gpp-mono text-sm text-text-muted">
             Turn {crash.corner}
@@ -962,6 +963,35 @@ function IncidentRow({
         {crash.note} <IncidentSource crash={crash} />
       </p>
     </>
+  );
+}
+
+/**
+ * The drivers in an incident, each with their nationality flag, joined the
+ * way `driversLabel` joins them ("A, B and C"). The flag is the same one the
+ * tally and the social posters carry, so a driver reads the same everywhere.
+ */
+function DriverNames({ drivers }: { drivers: readonly string[] }) {
+  if (drivers.length === 0) {
+    return (
+      <span className="font-semibold text-text">{driversLabel(drivers)}</span>
+    );
+  }
+  return (
+    <span className="font-semibold text-text">
+      {drivers.map((code, index) => {
+        const country = driverCountry(code);
+        return (
+          <span key={code}>
+            {index === 0 ? null : index === drivers.length - 1 ? ' and ' : ', '}
+            <span className="inline-flex items-center gap-1.5">
+              {country === undefined ? null : <Flag code={country} size="xs" />}
+              {driverName(code)}
+            </span>
+          </span>
+        );
+      })}
+    </span>
   );
 }
 

@@ -9,6 +9,8 @@ import { BAKU_CRASHES, BAKU_DRIVERS } from '@/lib/bakuCrashes';
 import {
   bucketOf,
   calloutCorners,
+  hitRadius,
+  HIT_RADIUS_MAX,
   rowsBeforeTie,
   countsByCorner,
   countsByDriver,
@@ -333,6 +335,27 @@ describe('baku crash map model', () => {
 
     it('does not label a corner with a single incident', () => {
       expect([...calloutCorners([{ corner: 3, count: 1 }])]).toEqual([]);
+    });
+  });
+
+  describe('hitRadius', () => {
+    function at(corner: number, x: number, radius = 12) {
+      return { corner, count: 1, x, y: 0, radius };
+    }
+
+    it('gives a lone marker the largest target', () => {
+      const lone = at(1, 0);
+      expect(hitRadius(lone, [lone, at(2, 500)])).toBe(HIT_RADIUS_MAX);
+    });
+
+    it('stops halfway to a close neighbour', () => {
+      const a = at(1, 0);
+      expect(hitRadius(a, [a, at(2, 60)])).toBe(30);
+    });
+
+    it('never drops below the dot plus a margin', () => {
+      const a = at(1, 0, 20);
+      expect(hitRadius(a, [a, at(2, 20)])).toBe(30);
     });
   });
 });

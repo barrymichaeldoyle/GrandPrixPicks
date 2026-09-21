@@ -6,36 +6,45 @@ colors:
   chartreuse: '#d4ff3f'
   off-white: '#f2f2f0'
   muted: '#a7a8ad'
-  track-base: '#616448'
-  track-active: '#879b38'
-  footer-rule: '#61635c'
+  track: '#4a4c3c'
 ---
 
 ## Overview
 
-One poster combines circuit incidents and driver involvement. The race-week artwork supplies the oversized mixed-case Baku title and palette; this campaign uses a plain ground and prioritizes data clarity.
+A poster that reads at thumbnail size: the race name, one fact, the lap, and
+two numbers. Anything a reader has to lean in for belongs in the caption.
 
-## Colors
+## Colours
 
-Chartreuse identifies Baku, incident markers and counts; off-white carries headings, driver names and lap direction. Muted text holds dates and qualifications. Olive distinguishes the circuit from its markers.
+Chartreuse is the Baku title and the incident dots, and nothing else. The two
+numerals are off-white so they don't compete with the title. Corner labels
+and the URL are muted. The track is one flat olive; an earlier two-tone track
+read as sectors that meant nothing.
 
 ## Typography
 
-Local Archivo at weights 400, 600 and 900. Baku is 300px in portrait and 226px in landscape, weight 900, tracking −9px. Crash map is 73px/66px, weight 600, tracking −2px. Large driver counts establish grouped rows; supporting text remains quieter.
+Local Archivo, weights 600 and 900. "Baku" is 320px portrait / 250px
+landscape, weight 900, tight tracking. The fact line is 54px / 50px, weight 600. Corner numerals are 150px, weight 900, with a small muted "Turn N" above.
 
 ## Layout
 
-Compose Instagram at 1080×1350 and X at 1600×900 independently. Portrait places drivers in the negative space right of the lower circuit; landscape places the driver list left and circuit right. Content and footer align around 65px side insets. A fine bottom rule separates website attribution and archive qualification.
+Instagram (1080×1350): title, fact line, then the map across the full width.
+Turn 3's number sits left of its dot; Turn 15's goes under its dot, because
+track runs on both sides of it. URL bottom right.
 
-## Elevation & Depth
-
-Flat charcoal, without shadows, cards, architectural imagery or generated assets.
+X (1600×900): title and fact line top left, map on the right. Both numbers sit
+left of their dots, in open space. URL bottom right, since X's ALT badge covers
+the lower left.
 
 ## Components
 
-Use exact `bakuCircuitGeometry.ts` geometry and shared marker placement/radius logic. Size dots by incident count, retain start/finish and direction, and annotate the three highest-count corners with leaders anchored to their actual locations. Show raw counts. Group every driver with at least four involvements by count, retaining all ties; the current rows are 6, 5 and 4. Attribution is website-only.
+Exact `bakuCircuitGeometry.ts` geometry and the page's own marker placement
+and radius, so the poster and the write-up cannot disagree. Dots are sized by
+count. Start/finish mark and lap direction are kept: without them the
+drawing is a shape, not a circuit. No leader lines.
 
-## Do's and Don'ts
+## Don'ts
 
-Do reproduce with `pnpm --filter @grandprixpicks/web social-baku-crash-map` from the repository root. `apps/web/scripts/render-baku-crash-map.mts` uses local fonts, Satori and Resvg to export both PNGs here and identical public copies. Data comes from `bakuCrashes.ts` and `bakuCrashMapModel.ts`; scope and captions live in `campaign.md`.
-Do inspect both exports after regeneration. Preserve the curated-archive qualification and unplaced count. Don't redraw geometry by eye, crop one format into the other, add decoration, or describe driver involvement as responsibility.
+No legend, subtitle, date line, driver key, rule or fine print on the image.
+No decoration, architecture or generated imagery. Don't crop one format into
+the other, and don't describe incidents as crashes or blame.

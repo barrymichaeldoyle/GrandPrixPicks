@@ -1,6 +1,10 @@
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
 import { reviewedIsoDate } from '@/lib/lastReviewed';
+import {
+  getRaceWriteupPhase,
+  type RaceWriteupPhaseRace,
+} from '@/lib/raceWriteupPhase';
 import { getRaceWriteup, listRaceWriteups } from '@/lib/raceWriteups';
 import {
   breadcrumbSchema,
@@ -56,6 +60,32 @@ export function circuitPageRedirectTarget(circuitSlug: string): string {
     }
   }
   return '/races';
+}
+
+/**
+ * Which search snippet a write-up should carry on race weekend.
+ *
+ * Monza drew 483 impressions on its qualifying and race days at position 6.5
+ * and not one click, while its title still read "Predictions & Picks". By then
+ * the search is "when does it start" and "who is on pole", and a preview title
+ * is not an answer. So once qualifying has locked and the starting grid is on
+ * the page (it rides on a `raceNews` item), the snippet leads with the grid.
+ *
+ * Gated on the grid rather than on the clock alone, because metadata must not
+ * promise what the page does not show (`docs/race-writeup-lifecycle.md`). It
+ * also ends at lights out: the news section, and the grid with it, is a live
+ * module that the page drops once race picks lock.
+ */
+export function raceWeekendSnippet({
+  race,
+  now,
+  gridPublished,
+}: {
+  race: RaceWriteupPhaseRace;
+  now: number;
+  gridPublished: boolean;
+}): boolean {
+  return gridPublished && getRaceWriteupPhase(race, now) === 'race-picks';
 }
 
 type WriteupHeadRace = {

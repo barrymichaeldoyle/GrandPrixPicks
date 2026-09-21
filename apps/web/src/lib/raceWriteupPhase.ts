@@ -6,7 +6,7 @@ export type RaceWriteupPhase =
   | 'finished'
   | 'cancelled';
 
-type RaceWriteupPhaseRace = {
+export type RaceWriteupPhaseRace = {
   status: 'upcoming' | 'locked' | 'finished' | 'cancelled';
   fp1StartAt?: number;
   qualiLockAt?: number;

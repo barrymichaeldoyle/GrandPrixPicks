@@ -24,7 +24,7 @@ import {
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
 import { bakuCrashDatasetSchema } from '@/lib/bakuDataset';
-import { raceWriteupPageHead } from '@/lib/raceWriteupSeo';
+import { raceWeekendSnippet, raceWriteupPageHead } from '@/lib/raceWriteupSeo';
 import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
 import { routeQuery } from '@/lib/routeQuery';
 
@@ -52,6 +52,16 @@ const RACE_SOURCE =
   'https://www.formula1.com/en/latest/article/what-the-teams-said-race-day-in-azerbaijan-2025.6AWm00FUiNNbYWhkFqRjLH';
 const MADRID_RESULT_SOURCE =
   'https://www.formula1.com/en/latest/article/antonelli-clinches-victory-over-verstappen-and-norris-in-spanish-gp.644ZZfPzRPEaUh2JBHcB9';
+
+/**
+ * The race-weekend snippet (see `raceWeekendSnippet`), a trial on this page
+ * before it goes into the shared builder: Monza's preview title took 483
+ * race-weekend impressions and no clicks.
+ */
+const RACE_WEEKEND_TITLE =
+  'Azerbaijan GP 2026: Starting Grid, Start Time & Picks';
+const RACE_WEEKEND_DESCRIPTION =
+  'The confirmed starting grid for the 2026 Azerbaijan Grand Prix in Baku, and the 15:00 Saturday race start. Race picks stay open until lights out.';
 
 const FAQS = [
   {
@@ -109,13 +119,27 @@ export const Route = createFileRoute(
     }
     return { race, championship, weather, weatherNow, news, season, practice };
   },
-  head: ({ loaderData }) =>
-    raceWriteupPageHead({
+  head: ({ loaderData }) => {
+    const snippet =
+      loaderData?.race && loaderData.news
+        ? raceWeekendSnippet({
+            race: loaderData.race,
+            now: loaderData.weatherNow,
+            gridPublished: loaderData.news.items.some(
+              (item) => (item.startingGrid?.length ?? 0) > 0,
+            ),
+          })
+        : false;
+    return raceWriteupPageHead({
       path: PATH,
       raceSlug: RACE_SLUG,
-      title: '2026 Azerbaijan Grand Prix Predictions & Picks | Baku',
+      title: snippet
+        ? RACE_WEEKEND_TITLE
+        : '2026 Azerbaijan Grand Prix Predictions & Picks | Baku',
       description: {
-        live: 'Make your 2026 Azerbaijan Grand Prix predictions. Baku races on Saturday this year, with practice starting Thursday. Pick a top 5 for every session.',
+        live: snippet
+          ? RACE_WEEKEND_DESCRIPTION
+          : 'Make your 2026 Azerbaijan Grand Prix predictions. Baku races on Saturday this year, with practice starting Thursday. Pick a top 5 for every session.',
         finished:
           '2026 Azerbaijan Grand Prix predictions scored against the official Baku classification. See who called the top 5 on a street circuit that punishes a mistake.',
         cancelled: 'The 2026 Azerbaijan Grand Prix was called off.',
@@ -128,7 +152,8 @@ export const Route = createFileRoute(
       race: loaderData?.race,
       faqs: FAQS,
       extraGraph: [bakuCrashDatasetSchema(PATH)],
-    }),
+    });
+  },
 });
 
 function AzerbaijanGrandPrixPredictionsPage() {

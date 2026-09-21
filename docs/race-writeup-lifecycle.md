@@ -79,6 +79,14 @@ publish a house qualifying order.
 Record the official qualifying classification and starting-grid changes. Keep
 qualifying classification and starting position distinct when penalties apply.
 
+Publish the starting grid as a `raceNews` item as soon as it is confirmed. On
+the Baku write-up it also switches the search snippet: between qualifying lock
+and lights out, with a grid on the page, `raceWeekendSnippet` swaps the preview
+title for one that leads with the grid and the start time. Monza kept its
+"Predictions & Picks" title through race weekend and took 483 impressions at
+position 6.5 without a click. Baku is the trial; compare its race-weekend CTR
+before moving the snippet into `raceWriteupPageHead` for every write-up.
+
 ### Sunday and Monday
 
 After results publish, place the official Top 5 on the page. When aggregated

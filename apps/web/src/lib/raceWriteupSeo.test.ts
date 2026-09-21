@@ -5,6 +5,7 @@ import { listRaceWriteups } from './raceWriteups';
 import {
   circuitPageRedirectTarget,
   racePageWriteupHeadOptions,
+  raceWeekendSnippet,
   raceWriteupPageHead,
 } from './raceWriteupSeo';
 
@@ -177,5 +178,46 @@ describe('raceWriteupPageHead', () => {
       '@type': 'Dataset',
       name: 'Baku crashes',
     });
+  });
+});
+
+describe('raceWeekendSnippet', () => {
+  const race = {
+    status: 'upcoming' as const,
+    fp1StartAt: 1_000,
+    qualiLockAt: 2_000,
+    predictionLockAt: 3_000,
+    raceStartAt: 3_000,
+  };
+
+  it('leads with the grid between qualifying lock and lights out', () => {
+    expect(raceWeekendSnippet({ race, now: 2_500, gridPublished: true })).toBe(
+      true,
+    );
+  });
+
+  it('keeps the preview snippet until the grid is on the page', () => {
+    expect(raceWeekendSnippet({ race, now: 2_500, gridPublished: false })).toBe(
+      false,
+    );
+  });
+
+  it('keeps the preview snippet before qualifying locks', () => {
+    expect(raceWeekendSnippet({ race, now: 1_500, gridPublished: true })).toBe(
+      false,
+    );
+  });
+
+  it('drops the grid snippet once race picks lock, as the page drops the grid', () => {
+    expect(raceWeekendSnippet({ race, now: 3_500, gridPublished: true })).toBe(
+      false,
+    );
+    expect(
+      raceWeekendSnippet({
+        race: { ...race, status: 'finished' },
+        now: 3_500,
+        gridPublished: true,
+      }),
+    ).toBe(false);
   });
 });

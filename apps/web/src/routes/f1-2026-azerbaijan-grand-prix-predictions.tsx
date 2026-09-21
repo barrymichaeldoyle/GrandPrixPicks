@@ -262,11 +262,11 @@ function WatchTable() {
         [
           'Straight-line efficiency',
           'Speed from Turn 16 to Turn 1',
-          'The flat-out run is long enough to expose drag. A car that reaches the straight slowly keeps paying for it for almost two kilometres.',
+          'The flat-out run is long enough to expose drag. A car that reaches the straight slowly keeps paying for it for 2.2 kilometres.',
         ],
         [
           'Old-city confidence',
-          'Commitment through Turns 8 to 12',
+          'Commitment through Turns 8 to 10',
           'The road narrows beside the castle walls. A driver who leaves margin loses time that cannot be recovered in that sector.',
         ],
         [
@@ -305,16 +305,20 @@ function TyreChoice() {
       hardest="C3"
     >
       <p className="gpp-reading-copy mt-7 text-text-muted">
-        Pirelli selected C3, C4 and C5. Baku generally produces low degradation,
-        and the one-stop has often been the quickest route even when a softer
-        range is available.
+        Pirelli selected C3, C4 and C5, the softest three compounds in its
+        range.{' '}
+        <ExternalSource href={TYRE_SOURCE}>
+          Pirelli&rsquo;s selection
+        </ExternalSource>
+        .
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
         The strategic question is timing. A Safety Car can make a stop cheap,
-        but waiting for one that never arrives leaves a driver on old tyres. The
-        2025 race stayed a straightforward one-stop after its early Safety Car.{' '}
-        <ExternalSource href={TYRE_SOURCE}>
-          Pirelli&rsquo;s selection
+        but waiting for one that never arrives leaves a driver on old tyres.
+        Degradation was low in 2025, and Verstappen won with a single stop from
+        hard to medium after an early Safety Car.{' '}
+        <ExternalSource href={RACE_SOURCE}>
+          What the teams said after the 2025 race
         </ExternalSource>
         .
       </p>
@@ -327,15 +331,15 @@ function MadridRecap() {
   return (
     <RaceWriteupSection
       id="madrid-recap"
-      heading="Norris lost pole in the pits, Antonelli won"
+      heading="Antonelli won Madrid after Norris’s slow stop"
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
-        Norris took pole for the Madring&rsquo;s debut but lost the race in the
-        pits: a Virtual Safety Car for Stroll&rsquo;s stopped car let Antonelli
-        pit and rejoin ahead of him. Antonelli went on to win by 4.3 seconds
-        from Verstappen, with Norris recovering from fifth to complete the
-        podium in third. Leclerc finished fourth and Russell fifth. Hamilton
-        retired early with brake problems.{' '}
+        Norris started the Madring&rsquo;s first Grand Prix from pole and led
+        until a Virtual Safety Car for Stroll&rsquo;s stopped car let Antonelli
+        pit cheaply. Norris stopped after it ended, was held for seven seconds
+        by a slow tyre change and rejoined fifth. Antonelli won by 4.2 seconds
+        from Verstappen, with Norris recovering to third. Leclerc finished
+        fourth and Russell fifth. Hamilton retired early with brake problems.{' '}
         <ExternalSource href={MADRID_RESULT_SOURCE}>
           The Madrid race report
         </ExternalSource>
@@ -343,8 +347,8 @@ function MadridRecap() {
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
         Madrid rewarded strategy and pit timing on a tight street-style layout.
-        Baku&rsquo;s straight is over a kilometre long, so raw top speed counts
-        for more here than it did last weekend.{' '}
+        Baku&rsquo;s flat-out run is 2.2 kilometres long, so top speed counts
+        for more here than it did in Madrid.{' '}
         <Link
           to="/f1-2026-madrid-grand-prix-predictions"
           className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"

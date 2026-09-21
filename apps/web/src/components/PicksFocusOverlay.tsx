@@ -175,7 +175,10 @@ export function PicksFocusOverlay({
               ease: [0.16, 1, 0.3, 1],
             }}
           >
-            <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-3 sm:px-6">
+            {/* A div, not a <header>: outside a sectioning element a header
+                is the page's banner landmark, so the dialog announced a second
+                one. The dialog is already named by the h2 below. */}
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-3 sm:px-6">
               <div className="flex min-w-0 items-center gap-2.5">
                 <div className="min-w-0">
                   <h2
@@ -200,7 +203,7 @@ export function PicksFocusOverlay({
               >
                 <X size={20} aria-hidden />
               </button>
-            </header>
+            </div>
             {/* No bottom padding on mobile: a sticky bottom bar (H2H submit) can't
             enter the scroll container's padding, so padding would leave a gap
             under it. Content without its own bar should bring pb-4 sm:pb-0. */}

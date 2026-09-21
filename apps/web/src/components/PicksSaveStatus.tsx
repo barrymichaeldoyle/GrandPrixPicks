@@ -24,7 +24,14 @@ const COPY: Record<SaveState, string> = {
  * are one state, "in flight", and the distinction between a debounce timer and
  * an open request is ours, not theirs.
  */
-export function PicksSaveStatus({ state }: { state: SaveState }) {
+export function PicksSaveStatus({
+  state,
+  testId = 'picks-save-status',
+}: {
+  state: SaveState;
+  /** `null` for a second copy that tests should not find. */
+  testId?: string | null;
+}) {
   const settled = state === 'saved';
   const failed = state === 'error';
 
@@ -33,7 +40,7 @@ export function PicksSaveStatus({ state }: { state: SaveState }) {
       // Polite, not assertive: this narrates a background write, and a player
       // still reordering their picks should not be interrupted by it.
       aria-live="polite"
-      data-testid="picks-save-status"
+      data-testid={testId ?? undefined}
       className={`flex items-center gap-1.5 text-sm ${
         failed ? 'text-error' : 'text-text-muted'
       }`}
@@ -42,7 +49,11 @@ export function PicksSaveStatus({ state }: { state: SaveState }) {
         <Check size={16} className="shrink-0 text-accent" aria-hidden />
       ) : failed ? (
         <TriangleAlert size={16} className="shrink-0" aria-hidden />
-      ) : null}
+      ) : (
+        // Holds the icon's width while saving, so the tick arriving does not
+        // nudge the words along.
+        <span className="w-4 shrink-0" aria-hidden />
+      )}
       {COPY[state]}
     </p>
   );

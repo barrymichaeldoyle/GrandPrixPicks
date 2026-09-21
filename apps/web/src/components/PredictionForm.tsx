@@ -174,7 +174,9 @@ function SortablePickRow({
         {...listeners}
         className="flex min-w-0 flex-1 cursor-grab active:cursor-grabbing"
         style={{ touchAction: 'none' }}
-        aria-label="Drag to reorder"
+        // Position first: the P1-P5 column beside the list is aria-hidden, so
+        // this is the only place a screen reader hears where the driver sits.
+        aria-label={`P${position}, ${driver.displayName}. Drag to reorder`}
       >
         <DriverPickBadge driver={driver} />
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-0 px-2 py-1.5 sm:px-3 sm:py-2">
@@ -225,9 +227,9 @@ function SortablePickRow({
             }}
             disabled={index === 0}
             className="flex h-6 w-6 items-center justify-center transition-colors hover:bg-accent-muted/40 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none disabled:opacity-30"
-            aria-label="Move up"
+            aria-label={`Move ${driver.displayName} up`}
           >
-            <ChevronUp size={14} className="text-accent" />
+            <ChevronUp size={14} className="text-accent" aria-hidden />
           </button>
           <button
             type="button"
@@ -237,9 +239,9 @@ function SortablePickRow({
             }}
             disabled={index >= picksLength - 1}
             className="flex h-6 w-6 items-center justify-center transition-colors hover:bg-accent-muted/40 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none disabled:opacity-30"
-            aria-label="Move down"
+            aria-label={`Move ${driver.displayName} down`}
           >
-            <ChevronDown size={14} className="text-accent" />
+            <ChevronDown size={14} className="text-accent" aria-hidden />
           </button>
         </div>
         <button
@@ -249,10 +251,10 @@ function SortablePickRow({
             removeDriver(driver._id);
           }}
           className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-error-muted focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
-          aria-label="Remove"
+          aria-label={`Remove ${driver.displayName}`}
           data-testid={`remove-pick-${position}`}
         >
-          <X size={16} className="text-error" />
+          <X size={16} className="text-error" aria-hidden />
         </button>
       </div>
     </m.div>
@@ -275,6 +277,7 @@ function EmptySlotDroppable({
         className={`flex h-14 w-full shrink-0 cursor-default items-center border-b border-dashed border-border bg-surface text-left last:border-b-0 sm:h-16 sm:cursor-help ${isOver ? 'bg-accent-muted/30' : ''}`}
       >
         <span className="flex-1 px-2 py-1.5 text-sm text-text-muted sm:px-3 sm:py-2">
+          <span className="sr-only">P{slotIndex + 1}, </span>
           Select a driver
         </span>
       </div>
@@ -856,6 +859,38 @@ export function PredictionForm({
     setSubmitStatus('idle');
   }
 
+  /**
+   * Where keyboard focus goes after a Remove button takes its own row away.
+   * Left alone it fell to `<body>`, which in the overlay means outside the
+   * dialog: a keyboard player removing two picks had to tab back in from the
+   * top. It lands on the Remove button now in the same position, else the one
+   * above, else the first driver they can pick.
+   */
+  const focusAfterRemoveRef = useRef<number | null>(null);
+  function removeDriverFromRow(driverId: Id<'drivers'>) {
+    focusAfterRemoveRef.current = picks.indexOf(driverId);
+    removeDriver(driverId);
+  }
+  useEffect(() => {
+    const index = focusAfterRemoveRef.current;
+    if (index === null) {
+      return;
+    }
+    focusAfterRemoveRef.current = null;
+    const scope = yourPicksRef.current?.parentElement;
+    const target =
+      scope?.querySelector<HTMLElement>(
+        `[data-testid="remove-pick-${index + 1}"]`,
+      ) ??
+      scope?.querySelector<HTMLElement>(
+        `[data-testid="remove-pick-${index}"]`,
+      ) ??
+      scope?.querySelector<HTMLElement>(
+        '[data-testid^="driver-"]:not(:disabled)',
+      );
+    target?.focus();
+  }, [picks]);
+
   /** Insert driver at slot index (0–4). Used when dropping from pool onto a row. */
   function addDriverAtPosition(driverId: Id<'drivers'>, slotIndex: number) {
     markInteraction();
@@ -1155,14 +1190,47 @@ export function PredictionForm({
   // This status leads the compact instruction row when parent chrome already
   // names the Top 5, and supports the local heading on standalone forms.
   const pickStatusClassName = 'text-sm font-normal text-text-muted';
-  const pickStatus =
-    picks.length >= 5 ? (
-      <span className={pickStatusClassName}>Remove a pick to change</span>
-    ) : (
-      <span className={pickStatusClassName} data-testid="picks-remaining">
-        {5 - picks.length} left
+  // `withTestIds` is off for the copy beside "Select Drivers": only one of the
+  // two is ever displayed, but both are in the DOM, and tests find one.
+  //
+  // One node whose text changes, rather than two that swap, so the live region
+  // survives the change and a screen reader hears each pick land ("2 left").
+  // Only the displayed copy is in the accessibility tree, so only it speaks.
+  function renderPickStatus(withTestIds: boolean) {
+    return (
+      <span
+        className={pickStatusClassName}
+        aria-live="polite"
+        data-testid={
+          withTestIds && picks.length < 5 ? 'picks-remaining' : undefined
+        }
+      >
+        {picks.length >= 5
+          ? 'Remove a pick to change'
+          : `${5 - picks.length} left`}
       </span>
     );
+  }
+  const pickStatus = renderPickStatus(true);
+
+  /**
+   * The auto-save receipt, in the layout from the first pick rather than
+   * mounted by the fifth. Mounting it then pushed the row (and wrapped it on a
+   * phone) the moment the set completed; now it only turns visible.
+   */
+  function renderInlineSaveStatus(withTestIds: boolean) {
+    return inlineSaveStatus ? (
+      <div
+        className={`shrink-0 ${picks.length === 5 ? '' : 'invisible'}`}
+        aria-hidden={picks.length !== 5}
+      >
+        <PicksSaveStatus
+          state={picks.length === 5 ? saveState : 'saved'}
+          testId={withTestIds ? undefined : null}
+        />
+      </div>
+    ) : null;
+  }
 
   return (
     <DndContext
@@ -1185,19 +1253,18 @@ export function PredictionForm({
           <div
             ref={yourPicksRef}
             data-testid="your-picks"
-            className={`${mobileActionFirst ? 'order-2 scroll-mt-28 @min-[875px]:order-1' : ''} @min-[875px]:w-[min(100%,380px)] @min-[875px]:min-w-0 @min-[875px]:shrink-0`}
+            className={`${mobileActionFirst ? 'order-2 scroll-mt-28 @min-[875px]:order-1' : ''} @min-[875px]:w-[min(100%,380px)] @min-[875px]:min-w-0 @min-[875px]:shrink-0 ${hidePicksHeading ? '@min-[875px]:pt-10' : ''}`}
           >
             {hidePicksHeading ? (
-              <div className="mb-2 space-y-1 sm:mb-3">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              // Side by side, the status moves up beside "Select Drivers" (see
+              // the pool's heading) and the column's top padding stands in for
+              // it, so the list starts level with the driver grid.
+              <div className="mb-2 space-y-1 sm:mb-3 @min-[875px]:hidden">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                   {pickStatus}
-                  {inlineSaveStatus && picks.length === 5 ? (
-                    <div className="ml-auto shrink-0">
-                      <PicksSaveStatus state={saveState} />
-                    </div>
-                  ) : null}
+                  {renderInlineSaveStatus(true)}
                 </div>
-                <div className="flex min-h-4 items-center">
+                <div className="flex min-h-5 items-center">
                   {picks.length < 5 ? (
                     <p className="text-sm text-text-muted sm:hidden">
                       Tap drivers to fill your Top 5.
@@ -1206,10 +1273,8 @@ export function PredictionForm({
                   {picks.length >= 2 ? (
                     <p className="ml-auto flex shrink-0 items-center gap-1 text-xs text-text-muted sm:hidden">
                       Reorder: drag or use
-                      <span
-                        className="inline-flex items-center"
-                        aria-label="up and down buttons"
-                      >
+                      <span className="inline-flex items-center">
+                        <span className="sr-only">the up and down buttons</span>
                         <ChevronUp
                           size={14}
                           className="text-accent"
@@ -1239,10 +1304,8 @@ export function PredictionForm({
                 {picks.length >= 2 ? (
                   <p className="ml-auto flex shrink-0 items-center gap-1 text-xs text-text-muted sm:hidden">
                     Reorder: drag or use
-                    <span
-                      className="inline-flex items-center"
-                      aria-label="up and down buttons"
-                    >
+                    <span className="inline-flex items-center">
+                      <span className="sr-only">the up and down buttons</span>
                       <ChevronUp
                         size={14}
                         className="text-accent"
@@ -1280,7 +1343,11 @@ export function PredictionForm({
                 items={picks}
                 strategy={verticalListSortingStrategy}
               >
-                <div className="flex min-w-0 flex-1 flex-col">
+                <div
+                  role="group"
+                  aria-label="Your Top 5"
+                  className="flex min-w-0 flex-1 flex-col"
+                >
                   {picks.map((driverId, index) => {
                     const driver = drivers.find((d) => d._id === driverId);
                     if (!driver) {
@@ -1295,7 +1362,7 @@ export function PredictionForm({
                         picksLength={picks.length}
                         moveUp={moveUp}
                         moveDown={moveDown}
-                        removeDriver={removeDriver}
+                        removeDriver={removeDriverFromRow}
                       />
                     );
                   })}
@@ -1395,11 +1462,19 @@ export function PredictionForm({
             {/* The label only earns its line in the side-by-side layout, where
                 it names the right-hand column against "Your Picks". Stacked it
                 just repeats the section heading, so it stays sr-only then. */}
-            <h3 className="mb-0 text-lg font-semibold text-text @min-[875px]:mb-3">
-              <span className="sr-only @min-[875px]:not-sr-only">
-                Select Drivers
-              </span>
-            </h3>
+            <div className="mb-0 flex flex-wrap items-baseline gap-x-3 gap-y-1 @min-[875px]:mb-3">
+              <h3 className="text-lg font-semibold text-text">
+                <span className="sr-only @min-[875px]:not-sr-only">
+                  Select Drivers
+                </span>
+              </h3>
+              {hidePicksHeading ? (
+                <div className="hidden items-baseline gap-x-3 @min-[875px]:flex">
+                  {renderPickStatus(false)}
+                  {renderInlineSaveStatus(false)}
+                </div>
+              ) : null}
+            </div>
             {mobileActionFirst ? (
               /* Sentences are inline-block so the line breaks between them
                  rather than mid-sentence, and stays on one line when it fits. */

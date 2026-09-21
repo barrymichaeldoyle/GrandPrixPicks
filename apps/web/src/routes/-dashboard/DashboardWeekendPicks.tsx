@@ -39,7 +39,10 @@ import { getRaceWriteup } from '@/lib/raceWriteups';
 import type { SessionType } from '@/lib/sessions';
 import type { RaceWeather } from '@/lib/weatherPresentation';
 import { SESSION_LABELS, SESSION_LABELS_SHORT } from '@/lib/sessions';
-import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
+import {
+  curtainGateName,
+  useAuthCurtainGate,
+} from '@/integrations/clerk/auth-curtain';
 import { useNow } from '@/lib/testing/now';
 
 import { DashboardPicksSummary } from './DashboardPicksSummary';
@@ -217,11 +220,14 @@ export function DashboardWeekendPicksReady({
    * render, so this is only ever held on a handoff, where SSR had no viewer to
    * read as. See `./ssr`.
    */
+  const curtainWaiting = {
+    predictions: myPredictions === undefined,
+    h2h: myH2H === undefined,
+    drivers: liveDrivers === undefined,
+  };
   useAuthCurtainGate(
-    Boolean(onModalClose) ||
-      (myPredictions !== undefined &&
-        myH2H !== undefined &&
-        liveDrivers !== undefined),
+    Boolean(onModalClose) || !Object.values(curtainWaiting).some(Boolean),
+    curtainGateName('weekendPicks', curtainWaiting),
   );
 
   const existingTop5 = firstWeekendTop5(myPredictions?.predictions);

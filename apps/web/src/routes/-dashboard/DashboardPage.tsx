@@ -16,7 +16,10 @@ import { AdSlot } from '@/components/AdSlot';
 import { FeedContent } from '@/components/feed/FeedContent';
 import { useFeedOffersFollows } from '@/components/feed/followSuggestions';
 import { sessionGroupKey } from '@/components/feed/groupFeedEvents';
-import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
+import {
+  curtainGateName,
+  useAuthCurtainGate,
+} from '@/integrations/clerk/auth-curtain';
 import { AD_SLOTS } from '@/lib/adsense';
 import { promotedRaceRecap } from '@grandprixpicks/shared/raceRecap';
 import { useIsBefore } from '@/lib/testing/now';
@@ -196,20 +199,25 @@ export function DashboardPage({
 
   /**
    * Holds the sign-in curtain until above-the-fold rails + weekend chrome are
-   * final. The feed below is deliberately excluded.
+   * final. The feed below is deliberately excluded. Each read is named so a
+   * curtain timeout reports which one never answered.
    */
+  const curtainWaiting = {
+    me: me === undefined,
+    weekend: currentWeekend === undefined,
+    // `!== undefined` only says the query answered; the first answer can still
+    // be the pre-auth one, whose weekend chrome is not final.
+    weekendViewer:
+      currentWeekend != null && !weekendReflectsViewer(currentWeekend.sessions),
+    seasonLeaderboard: seasonLeaderboard === undefined,
+    leagues: leagues === undefined,
+    weather: weather === undefined,
+    recap: recap === undefined,
+    latestResult: !latestResultReady,
+  };
   useAuthCurtainGate(
-    me !== undefined &&
-      currentWeekend !== undefined &&
-      // `!== undefined` only says the query answered; the first answer can still
-      // be the pre-auth one, whose weekend chrome is not final.
-      (currentWeekend === null ||
-        weekendReflectsViewer(currentWeekend.sessions)) &&
-      seasonLeaderboard !== undefined &&
-      leagues !== undefined &&
-      weather !== undefined &&
-      recap !== undefined &&
-      latestResultReady,
+    !Object.values(curtainWaiting).some(Boolean),
+    curtainGateName('dashboard', curtainWaiting),
   );
 
   const pickerFollowsFeed = picksFollowFeed(

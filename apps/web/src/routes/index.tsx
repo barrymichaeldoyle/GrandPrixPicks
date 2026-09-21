@@ -229,7 +229,7 @@ function DashboardSkeleton() {
   // Held for the same reason `DashboardPage` holds: during a sign-in handoff
   // the curtain should lift onto the dashboard, not onto its skeleton. Outside
   // a handoff there is no curtain and this is a no-op.
-  useAuthCurtainGate(false);
+  useAuthCurtainGate(false, 'dashboardChunk');
 
   return (
     // Frame copied from `AppPageLayout` rather than imported: importing the

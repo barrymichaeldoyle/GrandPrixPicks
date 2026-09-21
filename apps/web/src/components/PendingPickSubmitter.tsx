@@ -90,7 +90,7 @@ export function PendingPickSubmitter() {
    * and a visitor with nothing pending must never be gated on this.
    */
   const [draining, setDraining] = useState(false);
-  useAuthCurtainGate(!draining);
+  useAuthCurtainGate(!draining, 'pendingPicks');
 
   useEffect(() => {
     if (!isAuthenticated || drainedRef.current) {

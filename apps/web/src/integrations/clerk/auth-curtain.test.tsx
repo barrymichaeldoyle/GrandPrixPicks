@@ -10,6 +10,7 @@ vi.mock('@sentry/tanstackstart-react', () => ({
 
 import {
   AuthCurtainHost,
+  curtainGateName,
   reportPrePaintCurtainTimeout,
   useAuthCurtainGate,
 } from './auth-curtain';
@@ -24,7 +25,7 @@ import { ViewerSessionProvider } from './viewer-session-context';
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
 function Gate({ ready }: { ready: boolean }) {
-  useAuthCurtainGate(ready);
+  useAuthCurtainGate(ready, 'testGate');
   return <p>page content</p>;
 }
 
@@ -246,6 +247,28 @@ describe('AuthCurtainHost', () => {
     expect(options.tags.curtain_waiting_for).toBe('gates');
   });
 
+  /**
+   * Two September events said "one gate pending" and nothing else, which left
+   * seven dashboard reads to guess between. The report must name the gate.
+   */
+  it('names the gates still held when it times out', () => {
+    vi.useFakeTimers();
+    captureMessage.mockClear();
+    render({ handoff: true, confirmedSignedIn: true, gate: false });
+    act(() => void vi.advanceTimersByTime(8_000));
+
+    const [, options] = captureMessage.mock.calls[0] as [
+      string,
+      {
+        tags: Record<string, string>;
+        extra: { pendingGates: number; pendingGateNames: string[] };
+      },
+    ];
+    expect(options.tags.curtain_gates).toBe('testGate');
+    expect(options.extra.pendingGates).toBe(1);
+    expect(options.extra.pendingGateNames).toEqual(['testGate']);
+  });
+
   it('says nothing when the handoff resolves in time', () => {
     vi.useFakeTimers();
     captureMessage.mockClear();
@@ -277,6 +300,18 @@ describe('AuthCurtainHost', () => {
 
     expect(curtain()).toBeNull();
     expect(captureMessage).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('curtainGateName', () => {
+  it('lists only the reads still waiting', () => {
+    expect(
+      curtainGateName('dashboard', { me: false, weather: true, recap: true }),
+    ).toBe('dashboard(weather,recap)');
+  });
+
+  it('is the bare owner once nothing is waiting', () => {
+    expect(curtainGateName('dashboard', { me: false })).toBe('dashboard');
   });
 });
 

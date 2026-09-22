@@ -5,7 +5,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { internal } from './_generated/api';
 import schema from './schema';
 
-const modules = import.meta.glob('./**/*.ts');
+// `.tsx` too: the delivery action these jobs schedule lives in
+// `emails/deliverNotificationEmail.tsx`, and without it convex-test logs a
+// missing-module error whenever the scheduler runs it.
+const modules = import.meta.glob('./**/*.{ts,tsx}');
+
+// The Resend component is not registered with convex-test, so stand in for the
+// handoff. The email still renders for real.
+vi.mock('./lib/email', () => ({ sendEmail: vi.fn(async () => 'email-id') }));
 
 beforeEach(() => {
   vi.stubEnv('NOTIFICATION_DELIVERY_ENABLED', 'true');

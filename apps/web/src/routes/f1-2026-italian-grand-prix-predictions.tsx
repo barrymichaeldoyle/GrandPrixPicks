@@ -182,7 +182,7 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
           routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
         ),
         context.queryClient.ensureQueryData(
-          routeQuery(api.weather.getByRaceSlug, {
+          routeQuery(api.weather.getForWriteup, {
             raceSlug: RACE_SLUG,
             now: weatherNow,
           }),
@@ -489,12 +489,6 @@ function RaceReport() {
           Read the championship standings
         </ExternalSource>
         .
-      </p>
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        The two tables above disagree in three places. Gasly took pole without
-        appearing in the qualifying consensus at all. Leclerc and Hamilton,
-        second and third in the race consensus, finished out and sixth. And
-        Antonelli, who won from 19th, was the fifth name on that list.
       </p>
     </section>
   );

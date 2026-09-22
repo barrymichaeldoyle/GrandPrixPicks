@@ -226,7 +226,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
         routeQuery(api.f1Standings.getF1Championship, {}),
       ),
       context.queryClient.ensureQueryData(
-        routeQuery(api.weather.getByRaceSlug, {
+        routeQuery(api.weather.getForWriteup, {
           raceSlug: RACE_SLUG,
           now: weatherNow,
         }),
@@ -691,10 +691,7 @@ const CORNERS = [
  */
 function RaceReport() {
   return (
-    <section
-      className="mt-16 max-w-3xl"
-      aria-labelledby="race-report"
-    >
+    <section className="mt-16 max-w-3xl" aria-labelledby="race-report">
       <h2
         id="race-report"
         className="font-title text-xl font-semibold text-text"
@@ -704,15 +701,15 @@ function RaceReport() {
       <p className="gpp-reading-copy mt-3 text-text-muted">
         Norris led from pole while Antonelli twice went off track trying to pass
         him in the opening laps. Hamilton was out after seven laps, when Ferrari
-        retired his car with a brake problem.
+        retired his car due to a brake problem.
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
         Stroll then stopped at Turn 20, also with brake trouble, and the Virtual
         Safety Car let Mercedes and Red Bull pit Antonelli, Russell and
-        Verstappen. It ended before Norris could stop, and a slow tyre change
-        held him for seven seconds, so he rejoined fifth. Leclerc stayed out
-        until lap 48 hoping for a Safety Car, and Antonelli led from there. His
-        championship lead grew to 81 points.{' '}
+        Verstappen. The VSC ended before Norris could stop, and a slow tyre
+        change held him for seven seconds, so he rejoined fifth. Leclerc stayed
+        out until lap 48 hoping for a Safety Car, and Antonelli led from there.
+        His championship lead grew to 81 points.{' '}
         <ExternalSource href={RACE_REPORT_SOURCE}>
           Read the F1 race report
         </ExternalSource>
@@ -731,14 +728,6 @@ function RaceReport() {
           Read the final classification
         </ExternalSource>
         .
-      </p>
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        The two tables above disagree most over qualifying. None of the 12
-        players who picked it put Norris on pole, and 9 put Antonelli there.
-        Russell, third in the qualifying consensus, qualified outside the top
-        five, and Hamilton, sixth in it, qualified fourth. The race consensus
-        had Antonelli winning, as 9 of 14 players did, and four of its five
-        drivers finished in the top five. The fifth was Hamilton.
       </p>
     </section>
   );
@@ -907,11 +896,15 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
       aside={
         <>
           <div className="border border-border bg-surface">
-            <div className="border-b border-border px-4 py-3">
+            {/* The positions are championship places, read live from the
+                standings. Unlabelled, "P16" beside prose saying Sainz retired
+                in this race read as his finishing position. */}
+            <div className="flex items-baseline justify-between gap-3 border-b border-border px-4 py-3">
               <h3 className="font-title flex items-center gap-2 font-medium text-text">
                 <Flag code="ES" size="sm" />
                 Spanish drivers
               </h3>
+              <span className="text-xs text-text-muted">Championship</span>
             </div>
             <ul aria-label="Spanish drivers on the 2026 grid">
               {drivers.map((driver) => (

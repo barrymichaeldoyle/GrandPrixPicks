@@ -330,16 +330,18 @@ function MadridRecap() {
       aside={<WriteUpNewsPhoto {...ANTONELLI_WIN_WRITEUP_IMAGE} />}
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
-        Norris started the Madring&rsquo;s first Grand Prix from pole and led
-        until a Virtual Safety Car for Stroll&rsquo;s stopped car let Antonelli
-        pit cheaply. Norris stopped after it ended, was held for seven seconds
-        by a slow tyre change and rejoined fifth. Hamilton retired early with
-        brake problems.{' '}
+        {/* Two sentences, deliberately. This was the Madrid write-up's race
+            report retold at length, and the same account on two pages is the
+            cross-page duplication `docs/seo-content-policy.md` exists to stop.
+            What Baku needs is the result and why; the link carries the rest. */}
+        Norris led the Madring&rsquo;s first Grand Prix from pole until he
+        pitted after a Virtual Safety Car, and a slow tyre change dropped him to
+        fifth.{' '}
         <ExternalSource href={MADRID_RESULT_SOURCE}>
           The Madrid race report
         </ExternalSource>
-        . Antonelli won by 4.351 seconds from Verstappen, with Norris third,
-        Leclerc fourth and Russell fifth.{' '}
+        . Antonelli won by 4.351 seconds from Verstappen, and Norris recovered
+        to third.{' '}
         <ExternalSource href={MADRID_CLASSIFICATION_SOURCE}>
           The official race result
         </ExternalSource>

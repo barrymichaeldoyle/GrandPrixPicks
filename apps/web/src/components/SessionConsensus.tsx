@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 
 import { DriverBadge } from '@/components/DriverBadge';
+import { RACE_WRITEUP_SECTION_HEADING } from '@/components/race-writeups/RaceWriteupSection';
 import { TabSwitch } from '@/components/TabSwitch';
 import type { SessionType } from '@/lib/sessions';
 import { SESSION_LABELS } from '@/lib/sessions';
@@ -408,11 +409,11 @@ export function SessionConsensusSections({
   }
 
   return (
-    <div className="mt-16 max-w-3xl">
-      <h2 className="font-title text-xl font-semibold text-text">
+    <div className="max-w-3xl py-8 sm:py-16">
+      <h2 className={RACE_WRITEUP_SECTION_HEADING}>
         How players picked this weekend
       </h2>
-      <p className="mt-2 text-sm text-text-muted">
+      <p className="mt-4 text-sm text-text-muted">
         Every player&rsquo;s picks, as they were when each session locked.
       </p>
       <TabSwitch

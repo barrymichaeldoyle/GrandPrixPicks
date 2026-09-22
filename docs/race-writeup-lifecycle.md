@@ -90,7 +90,10 @@ before moving the snippet into `raceWriteupPageHead` for every write-up.
 ### Sunday and Monday
 
 After results publish, place the official Top 5 on the page. When aggregated
-player picks exist, show them beside that result and how they scored. Add a
+player picks exist, show them beside that result (`SessionConsensus`: who
+players put in P1, and their Top 5 behind a tab). Do not score the crowd's
+consensus as if it were an entry; readers could not tell what "worth 6 of 25"
+meant, and it was removed on 2026-09-22. Add a
 short account of the facts that decided the result. This is an archive, not a
 full race report.
 

@@ -65,8 +65,6 @@ const WILLIAMS_UPGRADE_SOURCE =
   'https://cadenaser.com/nacional/2026/09/09/carlos-sainz-tengo-ganas-de-probar-el-madring-que-diria-que-es-parecido-a-baku-y-a-yeda-cadena-ser/';
 const TEST_SOURCE =
   'https://www.grandprix.com/news/madring-praise-red-flags-first-formula-3-test-2026.html';
-const FILMING_SOURCE =
-  'https://www.madring.com/en/press-releases/ferrari-estrena-madring';
 const TYRE_SOURCE =
   'https://press.pirelli.com/the-madring-makes-its-world-championship-debut-with-the-challenge-of-the-monumental/';
 const F3_OFFICIAL_SOURCE =
@@ -91,8 +89,6 @@ const LAYOUT_SOURCE =
   'https://www.the-race.com/formula-1/madrid-f1-circuit-layout-revealed/';
 const SAINZ_SOURCE =
   'https://www.planetf1.com/news/carlos-sainz-lands-new-role-ahead-of-key-f1-2026-arrival';
-const HAMILTON_SOURCE =
-  'https://www.motorsportweek.com/2026/07/17/lewis-hamilton-ferrari-madrid-f1-test/';
 const MONZA_RESULT_SOURCE =
   'https://www.formula1.com/en/latest/article/antonelli-beats-russell-to-italian-grand-prix-win-with-stunning-comeback-drive.15WtFEBT5JEe4drdeO88t2';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
@@ -361,10 +357,8 @@ function MadridGrandPrixPredictionsPage() {
           layout: <ExternalSource href={LAYOUT_SOURCE}>The Race</ExternalSource>
           . F3 test:{' '}
           <ExternalSource href={TEST_SOURCE}>Grandprix.com</ExternalSource>.
-          Ferrari filming:{' '}
-          <ExternalSource href={FILMING_SOURCE}>Madring</ExternalSource>. Tyres:{' '}
-          <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>. F3 test
-          format:{' '}
+          Tyres: <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>. F3
+          test format:{' '}
           <ExternalSource href={F3_OFFICIAL_SOURCE}>
             FIA Formula 3
           </ExternalSource>
@@ -372,27 +366,33 @@ function MadridGrandPrixPredictionsPage() {
           <ExternalSource href={RED_FLAG_SOURCE}>PlanetF1</ExternalSource>. Test
           times:{' '}
           <ExternalSource href={LAP_TIME_SOURCE}>Pit Debrief</ExternalSource>.
-          Cable theft:{' '}
-          <ExternalSource href={THEFT_SOURCE}>Grandprix.com</ExternalSource>.
-          Construction and homologation:{' '}
-          <ExternalSource href={BUILD_SOURCE}>
-            RacingCircuits.info
-          </ExternalSource>
-          . Ambassador role:{' '}
+          Ambassador role:{' '}
           <ExternalSource href={SAINZ_SOURCE}>PlanetF1</ExternalSource>.
-          Hamilton on the lap:{' '}
-          <ExternalSource href={HAMILTON_SOURCE}>
-            Motorsport Week
-          </ExternalSource>
-          . Qualifying:{' '}
-          <ExternalSource href={QUALIFYING_SOURCE}>Sky Sports</ExternalSource>.
-          Pit-lane fine:{' '}
-          <ExternalSource href={NORRIS_FINE_SOURCE}>FIA</ExternalSource>.
-          Stroll&rsquo;s grid penalty:{' '}
-          <ExternalSource href={STROLL_PENALTY_SOURCE}>
-            Formula 1
-          </ExternalSource>
-          .
+          {/* The sections these support render only while the weekend is
+              live, so an archive listing them cited facts it no longer
+              shows. */}
+          {isLive ? (
+            <>
+              {' '}
+              Cable theft:{' '}
+              <ExternalSource href={THEFT_SOURCE}>Grandprix.com</ExternalSource>
+              . Construction and homologation:{' '}
+              <ExternalSource href={BUILD_SOURCE}>
+                RacingCircuits.info
+              </ExternalSource>
+              . Qualifying:{' '}
+              <ExternalSource href={QUALIFYING_SOURCE}>
+                Sky Sports
+              </ExternalSource>
+              . Pit-lane fine:{' '}
+              <ExternalSource href={NORRIS_FINE_SOURCE}>FIA</ExternalSource>.
+              Stroll&rsquo;s grid penalty:{' '}
+              <ExternalSource href={STROLL_PENALTY_SOURCE}>
+                Formula 1
+              </ExternalSource>
+              .
+            </>
+          ) : null}
         </>
       }
     >
@@ -434,7 +434,6 @@ function MadridGrandPrixPredictionsPage() {
           />
           <SessionConsensusSections sessions={consensusSessions} />
           <RaceReport />
-          <RaceWriteupNextRound nextRace={nextRace} />
         </>
       ) : null}
       <FormulaThreeTest />
@@ -485,6 +484,13 @@ function MadridGrandPrixPredictionsPage() {
       ) : null}
 
       <RaceFaqSection faqs={faqs(phase === 'finished')} />
+
+      {/* At the end, where a reader who has finished with this weekend looks
+          for the next one. It sat between the race story and the preview
+          material, a one-line section breaking the page in two. */}
+      {phase === 'finished' ? (
+        <RaceWriteupNextRound nextRace={nextRace} />
+      ) : null}
 
       <RaceWriteupFinish
         isLive={isLive}
@@ -614,9 +620,9 @@ function FormulaThreeTest() {
         .
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        Sainz was more cautious when asked about the crashes at Monza. He said
-        it was too early to judge how Formula 1 cars would handle the circuit
-        from the Formula 3 test alone.{' '}
+        Speaking at the Italian Grand Prix, Sainz was more cautious. He said it
+        was too early to judge how Formula 1 cars would handle the circuit from
+        the Formula 3 test alone.{' '}
         <ExternalSource href={SAINZ_LABEL_SOURCE}>
           Sainz on the Formula 3 comparison
         </ExternalSource>
@@ -691,13 +697,7 @@ const CORNERS = [
  */
 function RaceReport() {
   return (
-    <section className="mt-16 max-w-3xl" aria-labelledby="race-report">
-      <h2
-        id="race-report"
-        className="font-title text-xl font-semibold text-text"
-      >
-        What decided the race
-      </h2>
+    <RaceWriteupSection id="race-report" heading="What decided the race">
       <p className="gpp-reading-copy mt-3 text-text-muted">
         Norris led from pole while Antonelli twice went off track trying to pass
         him in the opening laps. Hamilton was out after seven laps, when Ferrari
@@ -708,15 +708,15 @@ function RaceReport() {
         Safety Car let Mercedes and Red Bull pit Antonelli, Russell and
         Verstappen. The VSC ended before Norris could stop, and a slow tyre
         change held him for seven seconds, so he rejoined fifth. Leclerc stayed
-        out until lap 48 hoping for a Safety Car, and Antonelli led from there.
-        His championship lead grew to 81 points.{' '}
-        <ExternalSource href={RACE_REPORT_SOURCE}>
-          Read the F1 race report
-        </ExternalSource>
-        . He beat Verstappen by 4.351 seconds, with Norris a further 0.738
-        seconds back.{' '}
+        out until lap 48 hoping for a Safety Car, and Antonelli led from there
+        to beat Verstappen by 4.351 seconds, with Norris a further 0.738 seconds
+        back.{' '}
         <ExternalSource href={OFFICIAL_RESULT_SOURCE}>
           Read the official result
+        </ExternalSource>
+        . His championship lead grew to 81 points.{' '}
+        <ExternalSource href={RACE_REPORT_SOURCE}>
+          Read the F1 race report
         </ExternalSource>
         .
       </p>
@@ -729,7 +729,7 @@ function RaceReport() {
         </ExternalSource>
         .
       </p>
-    </section>
+    </RaceWriteupSection>
   );
 }
 

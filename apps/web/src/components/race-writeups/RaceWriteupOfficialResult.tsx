@@ -1,4 +1,5 @@
 import { DriverBadge } from '@/components/DriverBadge';
+import { RACE_WRITEUP_SECTION_HEADING } from './RaceWriteupSection';
 import type { SessionType } from '@/lib/sessions';
 import { SESSION_LABELS } from '@/lib/sessions';
 
@@ -32,13 +33,13 @@ function ResultTable({ session, classification }: OfficialResultSession) {
             <tr className="border-b border-border">
               <th
                 scope="col"
-                className="w-14 px-3 py-1.5 text-left text-xs font-medium text-text-muted"
+                className="w-14 px-3 py-1.5 text-left text-xs font-semibold tracking-label text-text-muted uppercase"
               >
                 Pos
               </th>
               <th
                 scope="col"
-                className="px-3 py-1.5 text-left text-xs font-medium text-text-muted"
+                className="px-3 py-1.5 text-left text-xs font-semibold tracking-label text-text-muted uppercase"
               >
                 Driver
               </th>
@@ -109,11 +110,9 @@ export function RaceWriteupOfficialResult({
   }
 
   return (
-    <div className="mt-16 max-w-3xl">
-      <h2 className="font-title text-xl font-semibold text-text">
-        How {venueName} finished
-      </h2>
-      <p className="mt-2 text-sm text-text-muted">
+    <div className="max-w-3xl py-8 sm:py-16">
+      <h2 className={RACE_WRITEUP_SECTION_HEADING}>How {venueName} finished</h2>
+      <p className="mt-4 text-sm text-text-muted">
         The official classification, which is what picks are scored against.
       </p>
       {/* Side by side from `sm`: five rows each, so stacked they were two

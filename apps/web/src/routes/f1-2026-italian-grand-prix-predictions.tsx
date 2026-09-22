@@ -354,7 +354,6 @@ function ItalianGrandPrixPredictionsPage() {
           />
           <SessionConsensusSections sessions={consensusSessions} />
           <RaceReport />
-          <RaceWriteupNextRound nextRace={nextRace} />
         </>
       ) : null}
       {/* Directly under the hero, whose schedule card now carries the
@@ -398,6 +397,12 @@ function ItalianGrandPrixPredictionsPage() {
 
       <RaceFaqSection faqs={faqs(phase === 'finished')} />
 
+      {/* At the end, where a reader finished with this weekend looks for the
+          next one, as on Madrid. */}
+      {phase === 'finished' ? (
+        <RaceWriteupNextRound nextRace={nextRace} />
+      ) : null}
+
       <RaceWriteupFinish
         isLive={isLive}
         phase={phase}
@@ -436,16 +441,7 @@ function ItalianGrandPrixPredictionsPage() {
  */
 function RaceReport() {
   return (
-    <section
-      className="mt-16 max-w-3xl"
-      aria-labelledby="race-report"
-    >
-      <h2
-        id="race-report"
-        className="font-title text-xl font-semibold text-text"
-      >
-        What decided the race
-      </h2>
+    <RaceWriteupSection id="race-report" heading="What decided the race">
       <p className="gpp-reading-copy mt-3 text-text-muted">
         Leclerc was out on lap 2. He put a left-rear wheel on a drain cover at
         Parabolica, spun through the gravel and hit the barrier hard enough to
@@ -490,7 +486,7 @@ function RaceReport() {
         </ExternalSource>
         .
       </p>
-    </section>
+    </RaceWriteupSection>
   );
 }
 

@@ -82,27 +82,30 @@ export function RaceWriteupNextLinks({
           .{' '}
         </>
       )}
+      {/* One sentence for both links. It was two, each describing the page
+          behind its link ("The leaderboard shows the current standings"),
+          which is narration: the link text can say what the reader does. */}
+      See where players stand on the{' '}
       <Link
         to="/leaderboard"
         className={LINK_CLASS}
         onClick={() => track('leaderboard')}
       >
-        The leaderboard
-      </Link>{' '}
-      shows the current standings.
+        leaderboard
+      </Link>
       {showHub ? (
         <>
-          {' '}
+          , or{' '}
           <Link
             to="/f1-predictions-this-weekend"
             className={LINK_CLASS}
             onClick={() => track('weekend_hub')}
           >
-            Predictions this weekend
-          </Link>{' '}
-          covers every session that is still open.
+            make picks for this weekend
+          </Link>
         </>
       ) : null}
+      .
     </p>
   );
 }

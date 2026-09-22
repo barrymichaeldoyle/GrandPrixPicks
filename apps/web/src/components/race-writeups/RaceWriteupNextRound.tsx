@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 
+import { RACE_WRITEUP_SECTION_HEADING } from './RaceWriteupSection';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { getRaceWriteup } from '@/lib/raceWriteups';
 
@@ -34,9 +35,9 @@ export function RaceWriteupNextRound({
   const writeup = getRaceWriteup(nextRace.slug);
 
   return (
-    <section className="mt-16 max-w-3xl">
-      <h2 className="font-title text-xl font-semibold text-text">Next round</h2>
-      <p className="mt-2 text-sm leading-6 text-text-muted">
+    <section className="max-w-3xl py-8 sm:py-16">
+      <h2 className={RACE_WRITEUP_SECTION_HEADING}>Next round</h2>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
         Round {nextRace.round} is the {nextRace.name}.{' '}
         <Link
           to={writeup ? writeup.to : '/races/$raceSlug'}

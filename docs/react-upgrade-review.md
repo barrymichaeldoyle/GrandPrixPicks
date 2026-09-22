@@ -47,6 +47,12 @@ regression tests including a new chart lifecycle/state test and changed modal
 callback coverage. Typechecking, lint, and production build passed. Existing
 session-clock server-rendering tests verify the circuit-local fallback.
 
+Chrome checks at 1280px and 390px confirmed retained chart selections, real
+View Transition calls during leaderboard filter changes, keyboard activation,
+reduced-motion rendering, and home-page hydration without page errors. Desktop
+and mobile screenshots were inspected. The existing development server needed
+dependency re-optimization after the React upgrade.
+
 ## References
 
 - [React 19.3](https://react.dev/blog/2026/09/09/react-19-3)

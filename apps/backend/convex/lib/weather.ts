@@ -141,6 +141,31 @@ export function isWeatherEligible(race: RaceSchedule, now: number): boolean {
   );
 }
 
+/**
+ * Whether stored hours describe every session of the weekend, to within the
+ * hour each one starts in. A finished weekend is shown from what was stored,
+ * and a record with gaps would draw a dash beside every session it lost:
+ * Monza ran before refreshes stopped deleting past hours, so it kept race day
+ * and nothing else.
+ */
+export function coversEverySession(
+  race: RaceSchedule,
+  hours: readonly Pick<WeatherHour, 'at'>[],
+): boolean {
+  const starts = [
+    race.fp1StartAt,
+    race.fp2StartAt,
+    race.fp3StartAt,
+    race.qualiStartAt,
+    race.sprintQualiStartAt,
+    race.sprintStartAt,
+    race.raceStartAt,
+  ].filter((value): value is number => value !== undefined);
+  return starts.every((start) =>
+    hours.some((hour) => hour.at <= start && start < hour.at + HOUR),
+  );
+}
+
 export function refreshIntervalMs(race: RaceSchedule, now: number): number {
   const untilRace = race.raceStartAt - now;
   if (untilRace <= 48 * HOUR) {

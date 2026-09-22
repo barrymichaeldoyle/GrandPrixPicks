@@ -122,7 +122,7 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
           routeQuery(api.f1Standings.getF1Championship, {}),
         ),
         context.queryClient.ensureQueryData(
-          routeQuery(api.weather.getByRaceSlug, {
+          routeQuery(api.weather.getForWriteup, {
             raceSlug: RACE_SLUG,
             now: weatherNow,
           }),

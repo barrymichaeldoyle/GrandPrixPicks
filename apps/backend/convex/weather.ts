@@ -11,6 +11,7 @@ import {
   query,
 } from './_generated/server';
 import {
+  coversEverySession,
   getEventDates,
   isForecastStale,
   isWeatherEligible,
@@ -111,6 +112,43 @@ export const getByRaceSlug = query({
       return null;
     }
     return publicWeather(forecast);
+  },
+});
+
+/**
+ * Weather for a race write-up, which outlives the weekend it describes.
+ *
+ * Until the race is over this answers exactly as `getByRaceSlug` does. After
+ * that, `getByRaceSlug` goes quiet, because the app's home and feed ask it
+ * about the current weekend and must not keep showing one that has finished.
+ * A write-up is the record of that weekend, so it keeps the weather the
+ * sessions ran in, provided the stored hours cover all of them.
+ */
+export const getForWriteup = query({
+  args: { raceSlug: v.string(), now: v.number() },
+  returns: publicWeatherValidator,
+  handler: async (ctx, args) => {
+    const forecast = await ctx.db
+      .query('weatherForecasts')
+      .withIndex('by_raceSlug', (q) => q.eq('raceSlug', args.raceSlug))
+      .unique();
+    if (!forecast) {
+      return null;
+    }
+    const race = await ctx.db.get('races', forecast.raceId);
+    if (!race) {
+      return null;
+    }
+    if (isWeatherEligible(race, args.now)) {
+      return publicWeather(forecast);
+    }
+    const finished = race.raceStartAt < args.now;
+    if (!finished || !coversEverySession(race, forecast.hours)) {
+      return null;
+    }
+    // Refreshing stops when the weekend does, so a failure recorded by the
+    // last attempt is not a forecast going out of date. Saying so would be.
+    return { ...publicWeather(forecast)!, isStale: false };
   },
 });
 

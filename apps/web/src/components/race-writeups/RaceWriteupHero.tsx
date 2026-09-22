@@ -98,7 +98,15 @@ export function RaceWriteupHero({
         race={schedule.race}
         timeZone={schedule.timeZone}
         timeZoneLabel={schedule.timeZoneLabel}
-        weather={isRaceWriteupLive(phase) ? schedule.weather : null}
+        // Live, it is the forecast for sessions still to run. Finished, it is
+        // the weather they ran in: `weather.getForWriteup` only returns a
+        // finished weekend when every session is covered. Before the weekend
+        // opens and when it is called off there is nothing to show.
+        weather={
+          isRaceWriteupLive(phase) || phase === 'finished'
+            ? schedule.weather
+            : null
+        }
         now={schedule.now}
       />
     </div>

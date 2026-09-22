@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
 import {
+  coversEverySession,
   getEventDates,
   isForecastStale,
   isWeatherEligible,
@@ -285,5 +286,45 @@ describe('retaining hours a refresh no longer covers', () => {
     expect(mergeRetainedHours(undefined, incoming, eventDates)).toEqual(
       incoming,
     );
+  });
+});
+
+describe('coversEverySession', () => {
+  const race = {
+    fp1StartAt: Date.parse('2026-09-11T11:30:00Z'),
+    qualiStartAt: Date.parse('2026-09-12T14:00:00Z'),
+    raceStartAt: Date.parse('2026-09-13T13:00:00Z'),
+  };
+  function hourOf(iso: string) {
+    return { at: Date.parse(iso) };
+  }
+
+  test('accepts hours that contain every session start', () => {
+    expect(
+      coversEverySession(race, [
+        hourOf('2026-09-11T11:00:00Z'),
+        hourOf('2026-09-12T14:00:00Z'),
+        hourOf('2026-09-13T13:00:00Z'),
+      ]),
+    ).toBe(true);
+  });
+
+  test('rejects a record that kept race day only', () => {
+    expect(
+      coversEverySession(race, [
+        hourOf('2026-09-13T12:00:00Z'),
+        hourOf('2026-09-13T13:00:00Z'),
+      ]),
+    ).toBe(false);
+  });
+
+  test('does not count the hour after a start as covering it', () => {
+    expect(
+      coversEverySession(race, [
+        hourOf('2026-09-11T12:00:00Z'),
+        hourOf('2026-09-12T14:00:00Z'),
+        hourOf('2026-09-13T13:00:00Z'),
+      ]),
+    ).toBe(false);
   });
 });

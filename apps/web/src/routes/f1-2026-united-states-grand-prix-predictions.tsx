@@ -90,7 +90,7 @@ export const Route = createFileRoute(
           routeQuery(api.f1Standings.getF1Championship, {}),
         ),
         context.queryClient.ensureQueryData(
-          routeQuery(api.weather.getByRaceSlug, {
+          routeQuery(api.weather.getForWriteup, {
             raceSlug: RACE_SLUG,
             now: weatherNow,
           }),

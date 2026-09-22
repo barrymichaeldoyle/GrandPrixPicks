@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 
+import { Flag } from '@/components/Flag';
 import { displayTeamName } from '@/lib/display';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 
@@ -69,8 +70,13 @@ export function LineupChangeItem({ event }: { event: FeedEvent }) {
                       {/* Struck through rather than labelled "out": the row is
                           already read left to right as a handover, and a word
                           for it would just be a third thing to read. */}
-                      <span className="text-text-muted line-through decoration-text-muted/50">
-                        {move.outDriverName}
+                      <span className="flex items-center gap-1.5">
+                        {move.outNationality ? (
+                          <Flag code={move.outNationality} size="xs" />
+                        ) : null}
+                        <span className="text-text-muted line-through decoration-text-muted/50">
+                          {move.outDriverName}
+                        </span>
                       </span>
                       <ArrowRight
                         className="h-3.5 w-3.5 shrink-0 text-text-muted/60"
@@ -78,7 +84,12 @@ export function LineupChangeItem({ event }: { event: FeedEvent }) {
                       />
                     </>
                   ) : null}
-                  <span className="font-semibold">{move.inDriverName}</span>
+                  <span className="flex items-center gap-1.5">
+                    {move.inNationality ? (
+                      <Flag code={move.inNationality} size="xs" />
+                    ) : null}
+                    <span className="font-semibold">{move.inDriverName}</span>
+                  </span>
                 </p>
               </div>
             </li>

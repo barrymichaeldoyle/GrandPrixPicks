@@ -10,7 +10,7 @@ import { useQuery } from '../../integrations/convex/query';
 import { getTeamColor } from '../../lib/teamColors';
 import { colors } from '../../theme/tokens';
 import { Pressable, Text, View } from '../../tw';
-import { FlagImage } from '../ui/FlagImage';
+import { FlagImage, NationalityFlag } from '../ui/FlagImage';
 import { Avatar } from '../ui/Avatar';
 import { Card } from '../ui/Card';
 import { formatRelativeTime } from './helpers';
@@ -259,17 +259,27 @@ function LineupChangeCard({ event }: { event: FeedEvent }) {
             />
             <View className="flex-1 gap-0.5">
               <Text className="text-muted text-xs">{move.team}</Text>
-              <Text className="text-foreground text-sm">
+              {/* A row of views rather than nested Text, because a flag is an
+                  image and cannot sit inside a Text run. */}
+              <View className="flex-row flex-wrap items-center gap-1.5">
                 {move.outDriverName ? (
-                  <Text className="text-muted line-through">
-                    {move.outDriverName}
-                  </Text>
+                  <>
+                    {move.outNationality ? (
+                      <NationalityFlag code={move.outNationality} />
+                    ) : null}
+                    <Text className="text-muted text-sm line-through">
+                      {move.outDriverName}
+                    </Text>
+                    <Text className="text-muted text-sm">to</Text>
+                  </>
                 ) : null}
-                {move.outDriverName ? (
-                  <Text className="text-muted"> to </Text>
+                {move.inNationality ? (
+                  <NationalityFlag code={move.inNationality} />
                 ) : null}
-                <Text className="font-bold">{move.inDriverName}</Text>
-              </Text>
+                <Text className="text-foreground text-sm font-bold">
+                  {move.inDriverName}
+                </Text>
+              </View>
             </View>
           </View>
         ))}

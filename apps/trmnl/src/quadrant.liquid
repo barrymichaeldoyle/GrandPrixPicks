@@ -1,0 +1,17 @@
+{% if has_race %}
+<div class="layout layout--col layout--top layout--stretch-x gap--small">
+  {% render "race_header", race: race, name_size: "lg:title--base", flag_size: "h--[56px] w--max-[112px] lg:h--[76px] lg:w--max-[152px]" %}
+  <div class="flex flex--row flex--center-y gap--medium w--full">
+    <div class="grow flex flex--col flex--center gap--xsmall">
+      {% render "lead", lead: lead, size: "value--medium lg:value--large" %}
+      {% render "lead_weather", weather: lead.weather %}
+    </div>
+    {% render "qr", race: race %}
+  </div>
+</div>
+{% else %}
+<div class="layout layout--col layout--center">
+  <span class="title title--small">No race scheduled.</span>
+</div>
+{% endif %}
+{% render "title_bar", race: race %}

@@ -24,6 +24,8 @@ apps/
   web/        # TanStack Router + Vite web app (SSR via Nitro, deployed to Cloudflare Pages)
   mobile/     # Expo / React Native app (iOS + Android, also runs on web via Expo)
   backend/    # Convex backend (schema, queries/mutations, scoring, emails)
+  trmnl/      # TRMNL e-ink plugin: Liquid layouts + settings (no package.json;
+              # polls apps/web /api/trmnl/weekend; docs/trmnl-plugin-specification.md)
 packages/
   shared/     # Code shared between web + mobile (e.g. session types, scoring constants)
 convex/       # Root-level _generated only — actual Convex code lives in apps/backend/convex
@@ -159,6 +161,7 @@ routes/                # TanStack Router file-based routes
   settings.tsx         # Account settings (profile, regional, notifications)
   pricing.tsx, pay.tsx, refund-policy.tsx  # Season pass / Paddle checkout
   support.tsx          # Support request form
+  trmnl.tsx            # TRMNL plugin screens, every moment x size (noindex)
   admin/               # Admin routes (race management, result publishing)
   terms.tsx, privacy.tsx
 components/            # Shared React components (app-wide)

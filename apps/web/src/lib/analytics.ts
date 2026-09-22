@@ -122,6 +122,9 @@ export function pageViewProperties(path: string): AnalyticsProperties {
     utm_source: url.searchParams.get('utm_source'),
     utm_medium: url.searchParams.get('utm_medium'),
     utm_campaign: url.searchParams.get('utm_campaign'),
+    // Bounded by the sender, e.g. the TRMNL screen phase a QR code was
+    // scanned from (`apps/web/server/lib/trmnl.ts`).
+    utm_content: url.searchParams.get('utm_content'),
   };
 }
 

@@ -38,6 +38,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TrmnlRouteImport } from './routes/trmnl'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as CircuitsIndexRouteImport } from './routes/circuits/index'
 import { Route as CircuitsCircuitSlugRouteImport } from './routes/circuits/$circuitSlug'
@@ -212,6 +213,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrmnlRoute = TrmnlRouteImport.update({
+  id: '/trmnl',
+  path: '/trmnl',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -348,6 +354,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/trmnl': typeof TrmnlRoute
   '/circuits/$circuitSlug': typeof CircuitsCircuitSlugRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
   '/guides/$guideSlug': typeof GuidesGuideSlugRoute
@@ -399,6 +406,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/trmnl': typeof TrmnlRoute
   '/circuits/$circuitSlug': typeof CircuitsCircuitSlugRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
   '/guides/$guideSlug': typeof GuidesGuideSlugRoute
@@ -452,6 +460,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/trmnl': typeof TrmnlRoute
   '/circuits/$circuitSlug': typeof CircuitsCircuitSlugRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
   '/guides/$guideSlug': typeof GuidesGuideSlugRoute
@@ -506,6 +515,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/support'
     | '/terms'
+    | '/trmnl'
     | '/circuits/$circuitSlug'
     | '/feed/$feedEventId'
     | '/guides/$guideSlug'
@@ -557,6 +567,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/support'
     | '/terms'
+    | '/trmnl'
     | '/circuits/$circuitSlug'
     | '/feed/$feedEventId'
     | '/guides/$guideSlug'
@@ -609,6 +620,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/support'
     | '/terms'
+    | '/trmnl'
     | '/circuits/$circuitSlug'
     | '/feed/$feedEventId'
     | '/guides/$guideSlug'
@@ -662,6 +674,7 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
+  TrmnlRoute: typeof TrmnlRoute
   CircuitsCircuitSlugRoute: typeof CircuitsCircuitSlugRoute
   GuidesGuideSlugRoute: typeof GuidesGuideSlugRoute
   LeaguesSlugRoute: typeof LeaguesSlugRouteWithChildren
@@ -883,6 +896,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trmnl': {
+      id: '/trmnl'
+      path: '/trmnl'
+      fullPath: '/trmnl'
+      preLoaderRoute: typeof TrmnlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -1108,6 +1128,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
+  TrmnlRoute: TrmnlRoute,
   CircuitsCircuitSlugRoute: CircuitsCircuitSlugRoute,
   GuidesGuideSlugRoute: GuidesGuideSlugRoute,
   LeaguesSlugRoute: LeaguesSlugRouteWithChildren,

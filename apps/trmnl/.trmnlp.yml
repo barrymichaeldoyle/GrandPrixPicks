@@ -1,0 +1,10 @@
+---
+# Local preview with trmnlp (https://github.com/usetrmnl/trmnlp), which needs
+# Ruby 4 or Docker: `trmnlp serve` from this directory.
+watch:
+  - src
+  - .trmnlp.yml
+
+# Europe/London so a local preview reads like the site's default. Change it to
+# check how deadlines render in another zone.
+time_zone: Europe/London

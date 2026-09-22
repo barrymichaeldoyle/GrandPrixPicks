@@ -51,6 +51,7 @@ const CLERK_FREE_EXACT = new Set([
   '/sign-in',
   '/support',
   '/terms',
+  '/trmnl',
 ]);
 
 /**

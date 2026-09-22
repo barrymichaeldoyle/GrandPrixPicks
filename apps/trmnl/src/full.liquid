@@ -1,0 +1,52 @@
+{% if has_race %}
+<div class="layout layout--col layout--top layout--stretch-x gap--medium">
+  {% render "race_header", race: race, name_size: "lg:title--xlarge", flag_size: "h--[56px] w--max-[112px] lg:h--[76px] lg:w--max-[152px]" %}
+  <div class="columns grow">
+    <div class="column">
+      {% comment %}
+        On race morning the grid fills the right column, so the code sits
+        beside the lead instead; under the timeline it overflowed the OG.
+      {% endcomment %}
+      {% if focus == "grid" %}
+      <div class="flex flex--row flex--center-y gap--medium">
+        <div class="grow flex flex--col flex--center gap--xsmall">
+          {% render "lead", lead: lead, size: "value--large lg:value--xxlarge" %}
+          {% render "lead_weather", weather: lead.weather %}
+        </div>
+        {% render "qr", race: race %}
+      </div>
+      {% else %}
+      <div class="flex flex--col flex--center gap--xsmall">
+        {% render "lead", lead: lead, size: "value--large lg:value--xxlarge" %}
+        {% render "lead_weather", weather: lead.weather %}
+      </div>
+      {% endif %}
+      {% comment %}No weather line: each timeline row carries its own forecast.{% endcomment %}
+      {% render "schedule", schedule: schedule, size: "table--small lg:table--large", name: "label" %}
+    </div>
+    <div class="column h--full">
+      {% comment %}
+        The focus block takes the column's spare height and the QR code sits
+        under it at the bottom. The spare height has to belong to the block
+        itself: TRMNL's overflow script hides news items that do not fit, and
+        a separate spacer would read to it as content.
+      {% endcomment %}
+      <div class="grow">
+        {% if focus == "result" %}
+          {% render "result", result: result, limit: 10, split: true %}
+        {% elsif focus == "grid" %}
+          {% render "grid", grid: grid %}
+        {% elsif focus == "news" %}
+          {% render "news", news: news, limit: 4, headline_size: "title--base lg:title--xlarge" %}
+        {% endif %}
+      </div>
+      {% unless focus == "grid" %}{% render "qr", race: race %}{% endunless %}
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="layout layout--col layout--center">
+  <span class="title">No race scheduled.</span>
+</div>
+{% endif %}
+{% render "title_bar", race: race %}

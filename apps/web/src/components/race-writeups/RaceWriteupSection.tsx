@@ -43,12 +43,25 @@ export function RaceWriteupSection({
   return (
     <section className="py-8 sm:py-16" aria-labelledby={id}>
       {aside ? (
-        <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_18rem]">
-          <div>
-            {headingEl}
-            {children}
+        // The aside floats into the prose rather than owning a column. As a
+        // column it was pinned to the top of the section with nothing under
+        // it however long the prose ran, so a photo read as crammed into a
+        // corner above an empty margin. Floated, the prose wraps beside it
+        // and continues full width underneath, as a magazine sets a picture.
+        //
+        // It hangs half its width into the margin (`-mr-48` on a 24rem
+        // float) so the prose keeps the same `max-w-3xl` measure as every
+        // other section: about 34rem beside the photo and the full column
+        // below it. Floated flush, the lines under it would have run the
+        // width of the page. Below `lg` it is an ordinary block between the
+        // heading and the prose.
+        <div className="max-w-3xl">
+          {headingEl}
+          <div className="mt-4 lg:float-right lg:-mr-48 lg:mb-4 lg:ml-8 lg:w-96">
+            {aside}
           </div>
-          <div className="self-start">{aside}</div>
+          {children}
+          <div className="clear-both" />
         </div>
       ) : (
         <div className="max-w-3xl">

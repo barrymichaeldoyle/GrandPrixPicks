@@ -70,13 +70,11 @@ export const TEAMMATE_PAIRINGS_2026: ReadonlyArray<TeammatePairing> = [
   // round 12 (Dutch GP). Lawson steps up from Racing Bulls to partner
   // Verstappen; Tsunoda takes the vacated Racing Bulls seat.
   //
-  // Confirmed out through round 14 (Madrid), his third weekend on the sidelines
-  // after Zandvoort and Monza. Open-ended on purpose: his return is a third
-  // pairing from whichever round he is fit for, never an edit to these two.
-  // When it is confirmed, close both round-12 entries with `toRound` at the
-  // last round he misses, add the two replacing them, then run
-  // `seed:applyLineup --prod` followed by a dry run of
-  // `seed:migrateOrphanedH2HPicks`, because a duel pick backs a seat.
+  // He missed rounds 12 to 14 (Zandvoort, Monza, Madrid) and returns at round
+  // 15 (Baku), confirmed by Red Bull on 22 Sep 2026. Lawson goes back to
+  // Racing Bulls and Tsunoda to reserve duty. His return is a third pairing,
+  // never an edit to the round-12 entries, so those three rounds keep the duels
+  // they actually had.
   {
     team: 'Red Bull Racing',
     driver1Code: 'VER',
@@ -89,6 +87,13 @@ export const TEAMMATE_PAIRINGS_2026: ReadonlyArray<TeammatePairing> = [
     driver1Code: 'VER',
     driver2Code: 'LAW',
     fromRound: 12,
+    toRound: 14,
+  },
+  {
+    team: 'Red Bull Racing',
+    driver1Code: 'VER',
+    driver2Code: 'HAD',
+    fromRound: 15,
   },
   { team: 'Mercedes', driver1Code: 'RUS', driver2Code: 'ANT', fromRound: 1 },
   {
@@ -111,6 +116,13 @@ export const TEAMMATE_PAIRINGS_2026: ReadonlyArray<TeammatePairing> = [
     driver1Code: 'TSU',
     driver2Code: 'LIN',
     fromRound: 12,
+    toRound: 14,
+  },
+  {
+    team: 'Racing Bulls',
+    driver1Code: 'LAW',
+    driver2Code: 'LIN',
+    fromRound: 15,
   },
   { team: 'Audi', driver1Code: 'HUL', driver2Code: 'BOR', fromRound: 1 },
   { team: 'Haas', driver1Code: 'OCO', driver2Code: 'BEA', fromRound: 1 },

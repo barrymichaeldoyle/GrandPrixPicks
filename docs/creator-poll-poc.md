@@ -268,21 +268,21 @@ their own team, and a listed team always beats an unlisted one, so a mid-season
 replacement stays in the picker beside their team-mate instead of falling off the
 end of it.
 
-That is not hypothetical — it is already load-bearing. His list has Hadjar in the
-Red Bull seat and Lawson at Racing Bulls. Since the Dutch Grand Prix it has been
-Lawson at Red Bull and Tsunoda at Racing Bulls, so ours renders his exact
-twenty-two-name order with those two slots filled by whoever is actually in the
-car.
+That is not hypothetical — it was load-bearing for three rounds. His list has
+Hadjar in the Red Bull seat and Lawson at Racing Bulls. From the Dutch Grand Prix
+to Madrid it was Lawson at Red Bull and Tsunoda at Racing Bulls, so ours rendered
+his exact twenty-two-name order with those two slots filled by whoever was
+actually in the car.
 
-### The two seats that differ from his list
+### The two seats that differed from his list
 
-His list has Hadjar at Red Bull and Lawson at Racing Bulls. Since the Dutch Grand
-Prix it has been Lawson at Red Bull and Tsunoda at Racing Bulls, so those two
-slots show whoever is actually in the car.
+His list has Hadjar at Red Bull and Lawson at Racing Bulls. From the Dutch Grand
+Prix to Madrid (rounds 12 to 14) it was Lawson at Red Bull and Tsunoda at Racing
+Bulls, so those two slots showed whoever was actually in the car.
 
-**This is why the driver list is not hardcoded to his twenty-two.** The moment
-Hadjar is back — Monza or Madrid — `seed:applyLineup` puts him in the roster and
-the picker becomes byte-identical to his form with no code change, because `HAD`
+**This is why the driver list is not hardcoded to his twenty-two.** Hadjar is
+back from Baku (round 15), and `seed:applyLineup` puts him in the roster, so the
+picker is byte-identical to his form again with no code change, because `HAD`
 is already at position six of `CHINWAG_DRIVER_ORDER`. Freezing his list instead
 would offer a vote for a driver who is not racing, and would keep offering it if
 he is not fit in time.

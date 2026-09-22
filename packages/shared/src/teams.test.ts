@@ -135,6 +135,14 @@ describe('round-scoped pairings', () => {
     expect(teamFor(13, 'TSU')).toBe('Racing Bulls');
   });
 
+  it('brings Hadjar back and sends Lawson to Racing Bulls from round 15', () => {
+    expect(teamFor(14, 'LAW')).toBe('Red Bull Racing');
+    expect(teamFor(15, 'HAD')).toBe('Red Bull Racing');
+    expect(teamFor(15, 'LAW')).toBe('Racing Bulls');
+    expect(teamFor(14, 'TSU')).toBe('Racing Bulls');
+    expect(teamFor(15, 'TSU')).toBeNull();
+  });
+
   it('keeps the pairings on each side of the swap as separate records', () => {
     // The point of round-scoping: round 11 must still read as
     // Verstappen-vs-Hadjar rather than being relabelled by a later change.
@@ -181,6 +189,12 @@ describe('driverStintsForSeason', () => {
         driverCode: 'LAW',
         team: 'Red Bull Racing',
         fromRound: 12,
+        toRound: 14,
+      },
+      {
+        driverCode: 'LAW',
+        team: 'Racing Bulls',
+        fromRound: 15,
         toRound: undefined,
       },
     ]);
@@ -189,14 +203,15 @@ describe('driverStintsForSeason', () => {
   it('closes an injured driver and opens his replacement', () => {
     expect(stintsFor('HAD')).toEqual([
       { driverCode: 'HAD', team: 'Red Bull Racing', fromRound: 1, toRound: 11 },
-    ]);
-    expect(stintsFor('TSU')).toEqual([
       {
-        driverCode: 'TSU',
-        team: 'Racing Bulls',
-        fromRound: 12,
+        driverCode: 'HAD',
+        team: 'Red Bull Racing',
+        fromRound: 15,
         toRound: undefined,
       },
+    ]);
+    expect(stintsFor('TSU')).toEqual([
+      { driverCode: 'TSU', team: 'Racing Bulls', fromRound: 12, toRound: 14 },
     ]);
   });
 
@@ -248,8 +263,8 @@ describe('currentPairings', () => {
     const racingBulls = current.find(
       (pairing) => pairing.team === 'Racing Bulls',
     );
-    expect(redBull?.driver2Code).toBe('LAW');
-    expect(racingBulls?.driver1Code).toBe('TSU');
+    expect(redBull?.driver2Code).toBe('HAD');
+    expect(racingBulls?.driver1Code).toBe('LAW');
   });
 });
 
@@ -283,6 +298,22 @@ describe('seat moves', () => {
     expect(moves.some((move) => move.inDriverCode === 'LIN')).toBe(false);
   });
 
+  it("describes Hadjar's round 15 return as two seat moves", () => {
+    const moves = seatMovesForRound(15);
+
+    expect(moves).toHaveLength(2);
+    expect(moves).toContainEqual({
+      team: 'Red Bull Racing',
+      outDriverCode: 'LAW',
+      inDriverCode: 'HAD',
+    });
+    expect(moves).toContainEqual({
+      team: 'Racing Bulls',
+      outDriverCode: 'TSU',
+      inDriverCode: 'LAW',
+    });
+  });
+
   it('reports nothing for a round where the grid did not change', () => {
     expect(seatMovesForRound(2)).toEqual([]);
     expect(seatMovesForRound(11)).toEqual([]);
@@ -290,7 +321,7 @@ describe('seat moves', () => {
   });
 
   it('finds the rounds that have a change', () => {
-    expect(roundsWithSeatMoves()).toEqual([12]);
+    expect(roundsWithSeatMoves()).toEqual([12, 15]);
   });
 
   // The announcement is derived from the same list the grid is built from, so

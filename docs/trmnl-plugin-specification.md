@@ -369,11 +369,23 @@ a layout change, and the plugin's "learn more" link from the TRMNL directory.
   is their reason to sign up. A signed-out visitor writes first, presses
   "Sign in and send", and the message goes once sign-in completes; the route
   stays Clerk-free because sign-in goes through `requestSignIn`.
-- **No jank between tabs.** Each screen is double-buffered: a new screen loads
-  invisibly over the old one and replaces it once TRMNL's script has fitted
-  it, so a tab change never flashes white or jumps. The caption reserves two
-  lines. A sweep of every tab on both devices measured a total layout shift
-  of about 0.005.
+- **No jank between tabs.** Each screen is double-buffered: a new screen is
+  drawn in a hidden frame and replaces the old one once TRMNL's script has
+  fitted it, so a tab change never flashes white or jumps. The caption
+  reserves two lines. A sweep of every tab on both devices measured a total
+  layout shift of about 0.005.
+- **A switch takes about a quarter of a second.** It took two to seven. The
+  frames are sandboxed without `allow-same-origin`, so TRMNL's script never
+  runs with this site's cookies, and Chrome gives each such frame a cache of
+  its own: a document per screen re-fetched and re-parsed the Framework's 18MB
+  stylesheet every time. So each `TrmnlScreen` keeps two frames that load
+  `TRMNL_PREVIEW_SHELL` once and are then sent screens by `postMessage`; the
+  shell swaps its body, re-runs the Framework's `terminalize()` and reports
+  back. The hidden frame sits under a white cover, never at zero opacity:
+  Chrome throttles animation frames in a cross-origin frame it takes to be
+  invisible, and `terminalize()` waits on them, which alone cost four seconds
+  a switch. A covered frame is not throttled. A spinner shows after
+  400ms of waiting, which in practice is a frame's first boot.
 - **Screens** are `trmnlScreenProfile` in `render.ts`, which turns the three
   switches into the Framework's own device classes (`TRMNL_PALETTES` lists
   the palettes). The OG in 2-bit is `screen--ogv2 screen--md screen--2bit`,

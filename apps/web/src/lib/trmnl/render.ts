@@ -339,17 +339,12 @@ const MASHUPS: Record<TrmnlLayout, { mashup: string | null; slots: number }> = {
 };
 
 /**
- * A whole screen as TRMNL composes it on the given device, for an iframe. A half or
- * quarter layout sits in its mashup with the other slots marked as someone
- * else's plugin, because that is how an owner actually sees it.
- *
- * TRMNL's Framework CSS and JS load from trmnl.com, as they do on the device:
- * the JS is what clamps long headlines and fits the large values. Images marked
- * `image-dither` are dithered to the palette, standing in for the platform
- * (`DITHER_SOURCE`); the caller has to give them a readable source, since the
- * sandboxed document cannot read pixels from another origin.
+ * A whole screen as TRMNL composes it on the given device: the `.screen`
+ * element, without the document around it. A half or quarter layout sits in
+ * its mashup with the other slots marked as someone else's plugin, because
+ * that is how an owner actually sees it.
  */
-export function trmnlScreenDocument(
+export function trmnlScreenMarkup(
   layout: TrmnlLayout,
   payload: TrmnlPayload,
   config: TrmnlScreenConfig = DEFAULT_SCREEN_CONFIG,
@@ -361,5 +356,91 @@ export function trmnlScreenDocument(
   const screen = mashup
     ? `<div class="mashup ${mashup}">${ours}${other.repeat(slots - 1)}</div>`
     : ours;
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="https://trmnl.com/css/latest/plugins.css"><script src="https://trmnl.com/js/latest/plugins.js"></script>${ditherScript(config.palette)}</head><body class="environment trmnl"><div class="screen ${screenClass}">${screen}</div></body></html>`;
+  return `<div class="screen ${screenClass}">${screen}</div>`;
 }
+
+const FRAMEWORK_HEAD =
+  '<meta charset="utf-8"><link rel="stylesheet" href="https://trmnl.com/css/latest/plugins.css"><script src="https://trmnl.com/js/latest/plugins.js"></script>';
+
+/**
+ * One screen as a standalone document, for the render harness and tests.
+ *
+ * TRMNL's Framework CSS and JS load from trmnl.com, as they do on the device:
+ * the JS is what clamps long headlines and fits the large values. Images marked
+ * `image-dither` are dithered to the palette, standing in for the platform
+ * (`DITHER_SOURCE`); the caller has to give them a readable source, since a
+ * sandboxed document cannot read pixels from another origin.
+ */
+export function trmnlScreenDocument(
+  layout: TrmnlLayout,
+  payload: TrmnlPayload,
+  config: TrmnlScreenConfig = DEFAULT_SCREEN_CONFIG,
+): string {
+  return `<!DOCTYPE html><html><head>${FRAMEWORK_HEAD}${ditherScript(config.palette)}</head><body class="environment trmnl">${trmnlScreenMarkup(layout, payload, config)}</body></html>`;
+}
+
+/** What the `/trmnl` page sends a preview frame for each screen. */
+export type TrmnlPreviewMessage = {
+  type: typeof TRMNL_PREVIEW_RENDER;
+  id: number;
+  screen: string;
+  inks: number[][] | null;
+  gray: boolean;
+};
+
+export const TRMNL_PREVIEW_RENDER = 'trmnl-preview:render';
+/** From a preview frame: booted, with the Framework loaded. */
+export const TRMNL_PREVIEW_READY = 'trmnl-preview:ready';
+/** From a preview frame: the screen with this `id` is drawn and fitted. */
+export const TRMNL_PREVIEW_RENDERED = 'trmnl-preview:rendered';
+
+/** The dithering a palette needs in the preview, or null for full colour. */
+export function trmnlPreviewInks(palette: TrmnlPalette): {
+  inks: number[][] | null;
+  gray: boolean;
+} {
+  return {
+    inks: PALETTE_INKS[palette],
+    gray: !palette.startsWith('color-'),
+  };
+}
+
+/**
+ * The document every `/trmnl` preview frame loads once, then draws each
+ * screen it is sent.
+ *
+ * The frames are sandboxed without `allow-same-origin`, so TRMNL's script
+ * never runs with this site's cookies. The cost is an opaque origin, which
+ * Chrome gives a cache of its own: a frame loaded per screen re-downloaded
+ * and re-parsed the Framework's 18MB stylesheet, its script and its fonts,
+ * about two seconds on every switch. So a frame boots once, and each screen
+ * after that replaces its body and re-runs `terminalize()`, the Framework's
+ * own fitting and clamping pass, before reporting back.
+ */
+export const TRMNL_PREVIEW_SHELL = `<!DOCTYPE html><html><head>${FRAMEWORK_HEAD}<script>${DITHER_SOURCE}
+var queue = Promise.resolve();
+function settled(img) {
+  return img.complete ? null : new Promise(function (resolve) {
+    img.addEventListener('load', resolve, { once: true });
+    img.addEventListener('error', resolve, { once: true });
+  });
+}
+async function draw(message) {
+  document.body.innerHTML = message.screen;
+  await Promise.all(Array.prototype.map.call(document.images, settled));
+  if (document.fonts) await document.fonts.ready;
+  if (window.terminalize) await window.terminalize();
+  if (message.inks) ditherScreenImages(message.inks, message.gray);
+  await Promise.all(Array.prototype.map.call(document.images, settled));
+  await new Promise(function (resolve) { requestAnimationFrame(function () { requestAnimationFrame(resolve); }); });
+  window.parent.postMessage({ type: '${TRMNL_PREVIEW_RENDERED}', id: message.id }, '*');
+}
+window.addEventListener('message', function (event) {
+  var message = event.data;
+  if (event.source !== window.parent || !message || message.type !== '${TRMNL_PREVIEW_RENDER}') return;
+  queue = queue.then(function () { return draw(message); }).catch(function () {});
+});
+window.addEventListener('load', function () {
+  window.parent.postMessage({ type: '${TRMNL_PREVIEW_READY}' }, '*');
+});
+</script></head><body class="environment trmnl"></body></html>`;

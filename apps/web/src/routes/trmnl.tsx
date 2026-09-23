@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { PageHeader } from '@/components/PageHeader';
@@ -6,11 +7,17 @@ import { TabSwitch } from '@/components/TabSwitch';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { pageMeta, siteConfig } from '@/lib/site';
 import type { TrmnlLayout, TrmnlScreenConfig } from '@/lib/trmnl/render';
+import type { TrmnlPreviewMessage } from '@/lib/trmnl/render';
 import {
   defaultTrmnlPalette,
   TRMNL_LAYOUTS,
   TRMNL_PALETTES,
-  trmnlScreenDocument,
+  TRMNL_PREVIEW_READY,
+  TRMNL_PREVIEW_RENDER,
+  TRMNL_PREVIEW_RENDERED,
+  TRMNL_PREVIEW_SHELL,
+  trmnlPreviewInks,
+  trmnlScreenMarkup,
   trmnlScreenProfile,
 } from '@/lib/trmnl/render';
 import type { TrmnlPageScenario } from '@/lib/trmnl/pageScenarios';
@@ -348,27 +355,30 @@ function useInlinedImage(url: string | null): string | null | undefined {
   return inlinedImages.get(url);
 }
 
-type Frame = {
-  id: number;
-  doc: string;
-  width: number;
-  height: number;
-  ready: boolean;
-};
-
-/** Long enough for TRMNL's script to fit values and clamp headlines. */
-const SETTLE_MS = 150;
+/** The two frames each screen alternates between; see `TrmnlScreen`. */
+type Slot = { width: number; height: number };
 
 /**
- * One TRMNL screen in an iframe at the device's own pixel size (800x480 for
- * the OG, 1872x1404 for the X), scaled down to the column. An iframe because
+ * How long a screen may take before the spinner shows. A warm frame draws a
+ * new screen in well under this, and a spinner that blinks on every tab
+ * change reads as noise.
+ */
+const SPINNER_DELAY_MS = 400;
+
+/**
+ * One TRMNL screen at the device's own pixel size (800x480 for the OG,
+ * 1872x1404 for the X), scaled down to the column. In an iframe because
  * TRMNL's Framework CSS is global and would restyle the site, and because its
  * JS (value fitting, headline clamping) expects a whole document.
  *
- * Double-buffered. Swapping an iframe's document blanks it, then TRMNL's
- * script refits the text a moment later, so every tab change flashed white
- * and then jumped. A new screen loads invisibly over the old one and replaces
- * it once it has settled; the old one is kept until then.
+ * Each frame loads `TRMNL_PREVIEW_SHELL` once and is then sent screens by
+ * message: loading a document per screen cost about two seconds a switch
+ * (see the shell's comment). Two frames alternate, so a new screen is drawn
+ * and fitted in the hidden one and shown only when it reports back; a screen
+ * swapped in place would flash unfitted text. The second frame boots after
+ * the first screen shows, so a first visit loads the Framework once, not twice.
+ * A spinner covers any wait long enough to notice: a frame's first boot, or
+ * a slow network.
  */
 function TrmnlScreen({
   scenario,
@@ -384,21 +394,44 @@ function TrmnlScreen({
     ? withLocalAssets(scenario.payload.race.flag_url)
     : null;
   const flag = useInlinedImage(flagUrl);
-  const html = withLocalAssets(
-    trmnlScreenDocument(layout, scenario.payload, config),
+  const markup = withLocalAssets(
+    trmnlScreenMarkup(layout, scenario.payload, config),
   );
-  // Hold the screen back until the flag is inlined, so it is never drawn
-  // first in colour and then again dithered.
-  const doc =
+  // Held back until the flag is inlined, so it is never drawn first in colour
+  // and then again dithered.
+  const screen =
     flag === undefined
       ? null
       : flagUrl && flag
-        ? html.replaceAll(`src="${flagUrl}"`, `src="${flag}"`)
-        : html;
+        ? markup.replaceAll(`src="${flagUrl}"`, `src="${flag}"`)
+        : markup;
+  const { inks, gray } = trmnlPreviewInks(config.palette);
+  const inksKey = inks ? JSON.stringify(inks) : '';
+  /** Everything that makes this screen look the way it does. */
+  const screenKey =
+    screen === null ? null : `${width}x${height}|${inksKey}|${screen}`;
+
   const boxRef = useRef<HTMLDivElement>(null);
-  const nextId = useRef(0);
+  const frameRefs = useRef<(HTMLIFrameElement | null)[]>([null, null]);
+  const booted = useRef([false, false]);
+  const nextId = useRef(1);
+  /** The latest screen asked for, and the frame drawing it. */
+  const pending = useRef<{
+    slot: number;
+    key: string;
+    size: Slot;
+    message: TrmnlPreviewMessage;
+  } | null>(null);
+  const visibleRef = useRef<number | null>(null);
   const [boxWidth, setBoxWidth] = useState<number | null>(null);
-  const [frames, setFrames] = useState<Frame[]>([]);
+  const [slots, setSlots] = useState<Slot[]>([{ width, height }]);
+  const [visible, setVisible] = useState<number | null>(null);
+  /** The key of the screen showing now. */
+  const [shownKey, setShownKey] = useState<string | null>(null);
+  /** The screen the spinner's delay ran out for, if it is still awaited. */
+  const [slowKey, setSlowKey] = useState<string | null>(null);
+  const waiting = screenKey === null || screenKey !== shownKey;
+  const showSpinner = waiting && slowKey === screenKey;
 
   useEffect(() => {
     const element = boxRef.current;
@@ -412,33 +445,95 @@ function TrmnlScreen({
     return () => observer.disconnect();
   }, []);
 
+  function send(slot: number, message: TrmnlPreviewMessage) {
+    // The frame's origin is opaque, so no narrower target is possible; the
+    // message is a public screen.
+    frameRefs.current[slot]?.contentWindow?.postMessage(message, '*');
+  }
+
   useEffect(() => {
-    if (doc === null) {
+    function onMessage(event: MessageEvent) {
+      const slot = frameRefs.current.findIndex(
+        (frame) => frame !== null && frame.contentWindow === event.source,
+      );
+      const data = event.data as { type?: string; id?: number } | null;
+      if (slot < 0 || !data) {
+        return;
+      }
+      if (data.type === TRMNL_PREVIEW_READY) {
+        booted.current[slot] = true;
+        if (pending.current?.slot === slot) {
+          send(slot, pending.current.message);
+        }
+      } else if (
+        data.type === TRMNL_PREVIEW_RENDERED &&
+        pending.current &&
+        data.id === pending.current.message.id
+      ) {
+        const { key, size } = pending.current;
+        pending.current = null;
+        visibleRef.current = slot;
+        setVisible(slot);
+        setShownKey(key);
+        setSlots((current) => {
+          const next = current.map((existing, index) =>
+            index === slot ? size : existing,
+          );
+          // The second frame boots once there is something on screen.
+          return next.length === 2 ? next : [...next, size];
+        });
+      }
+    }
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, []);
+
+  useEffect(() => {
+    if (screen === null || screenKey === null) {
       return;
     }
-    setFrames((current) =>
-      current.at(-1)?.doc === doc
-        ? current
-        : [
-            // Keep the last settled screen showing while the new one loads.
-            ...current.filter((frame) => frame.ready).slice(-1),
-            { id: nextId.current++, doc, width, height, ready: false },
-          ],
-    );
-  }, [doc, width, height]);
+    const message: TrmnlPreviewMessage = {
+      type: TRMNL_PREVIEW_RENDER,
+      id: nextId.current++,
+      screen,
+      inks: inksKey ? (JSON.parse(inksKey) as number[][]) : null,
+      gray,
+    };
+    // Draw into the hidden frame, or the first one before anything shows. A
+    // second change before the first lands goes to the same frame, whose
+    // queue draws them in order; only the latest is ever shown.
+    const slot =
+      visibleRef.current === null
+        ? 0
+        : (pending.current?.slot ??
+          (frameRefs.current[1 - visibleRef.current]
+            ? 1 - visibleRef.current
+            : visibleRef.current));
+    pending.current = {
+      slot,
+      key: screenKey,
+      size: { width, height },
+      message,
+    };
+    // The frame drawing it takes the new screen's size now, while it is
+    // hidden; its state catches up when it is shown.
+    const frame = frameRefs.current[slot];
+    if (frame && slot !== visibleRef.current) {
+      frame.width = String(width);
+      frame.height = String(height);
+    }
+    if (booted.current[slot]) {
+      send(slot, message);
+    }
+  }, [screen, screenKey, inksKey, gray, width, height]);
 
-  function settle(id: number) {
-    setFrames((current) => {
-      const index = current.findIndex((frame) => frame.id === id);
-      if (index < 0) {
-        return current;
-      }
-      // This screen is ready: show it and drop everything under it.
-      return current
-        .slice(index)
-        .map((frame, i) => (i === 0 ? { ...frame, ready: true } : frame));
-    });
-  }
+  useEffect(() => {
+    if (!waiting || screenKey === null) {
+      return;
+    }
+    const timer = setTimeout(() => setSlowKey(screenKey), SPINNER_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [waiting, screenKey]);
 
   const label = TRMNL_LAYOUTS.find((l) => l.id === layout)?.label ?? layout;
 
@@ -452,22 +547,43 @@ function TrmnlScreen({
       style={{ aspectRatio: `${width} / ${height}` }}
     >
       {boxWidth !== null &&
-        frames.map((frame) => (
+        slots.map((slot, index) => (
           <iframe
-            key={frame.id}
-            title={`${scenario.label}: ${label} on ${deviceLabel}`}
-            srcDoc={frame.doc}
-            sandbox="allow-scripts"
-            width={frame.width}
-            height={frame.height}
-            onLoad={() => setTimeout(() => settle(frame.id), SETTLE_MS)}
-            className="absolute top-0 left-0 origin-top-left border-0 transition-opacity duration-150"
-            style={{
-              transform: `scale(${boxWidth / frame.width})`,
-              opacity: frame.ready ? 1 : 0,
+            // Keyed by position: a frame is never remounted, which is the
+            // point of keeping it.
+            // oxlint-disable-next-line react/no-array-index-key
+            key={index}
+            ref={(element) => {
+              frameRefs.current[index] = element;
             }}
+            title={`${scenario.label}: ${label} on ${deviceLabel}`}
+            srcDoc={TRMNL_PREVIEW_SHELL}
+            sandbox="allow-scripts"
+            width={slot.width}
+            height={slot.height}
+            aria-hidden={visible !== index || undefined}
+            tabIndex={visible === index ? undefined : -1}
+            className={`absolute top-0 left-0 origin-top-left border-0 ${
+              visible === index ? 'z-20' : 'z-0'
+            }`}
+            // Hidden by the cover below, never by opacity or visibility:
+            // Chrome throttles animation frames in a cross-origin frame it
+            // takes to be invisible, and the Framework's fitting pass waits on
+            // them, so a transparent frame took four seconds to draw what a
+            // covered one draws in a tenth of that.
+            style={{ transform: `scale(${boxWidth / slot.width})` }}
           />
         ))}
+      <div className="absolute inset-0 z-10 bg-white" />
+      <div
+        role="status"
+        className={`pointer-events-none absolute top-2 right-2 z-30 rounded-full bg-black/70 p-1.5 text-white transition-opacity duration-150 ${
+          showSpinner ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+        <span className="sr-only">{showSpinner ? 'Loading screen' : ''}</span>
+      </div>
     </div>
   );
 }

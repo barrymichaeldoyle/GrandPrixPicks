@@ -10,12 +10,13 @@ does not change a pick.
 
 ## Why the mutation is the product
 
-The authoring surface is `npx convex run`, not a form. The workflow this is
-built for is: prompt an agent to research the weekend, and when it finds
-something that matters, prompt it to publish. The admin portal is a phone
-fallback for when the laptop is shut, and the realistic phone moment here is not
-writing an item, it is **killing one an agent got wrong before a session locks**.
-So the portal gets a list and a retract button, and no editor.
+Direct authoring remains available through `npx convex run`, which is useful
+for a sourced, already-reviewed item. For discovered stories, the admin area
+now configures approved sources and reviews private proposals before a human
+edits, rejects, merges or publishes them. Weekend proposals can also be sent
+to a private write-up handoff queue. Operators can still list and retract
+published items when a correction is needed; the review queue does not replace
+the CLI's direct publishing path.
 
 That inverts the usual priority. The function signature, its docstring and its
 return value are the interface a person actually touches, and they are designed
@@ -25,17 +26,18 @@ to be read by something that will re-run them.
 
 **Research the event, not just the picks.**
 
-Use two publishing paths:
+Every sourced story a fan would want goes through `raceNews`, in one of two
+categories:
 
-- Sporting news with a real effect on a session goes through `raceNews` and
-  appears in both the feed and the write-up.
-- Event news such as a special livery, a tribute, a launch or a local story
-  belongs in the relevant write-up section, with a source and the event date
-  where useful. Include it when it adds something a fan would want to know.
+- `pick_related` (the default) has a real effect on a session and names it in
+  a non-empty `affectsSessions`.
+- `general` changes no session: an upgrade still being evaluated, a contract,
+  the forecast, a livery. It passes `"category": "general"` and an empty
+  `affectsSessions`, and publishing rejects one that names sessions.
 
-The current feed API requires a non-empty `affectsSessions` list. That is a
-constraint of that publishing path, not a reason to omit event coverage.
-Never invent a qualifying or race impact to fit a story into the feed.
+Both appear in the feed and the write-up unless `feedSelected` or
+`writeUpSelected` is set to false. Never invent a qualifying or race impact to
+make a story pick-related.
 
 Before finishing a weekend research task, check both sporting and event news
 and account for both in the update. For example, Williams unveiling its 1981
@@ -55,7 +57,7 @@ weekend card flag the item on the Race tab and leave Qualifying alone, which is
 | `raceId`                  | Scopes the item to a weekend, so it retires when the race does  |
 | `key`                     | Stable slug, e.g. `antonelli-grid-penalty`. The idempotency key |
 | `headline`, `body`        | One line and one or two sentences on what it means for picks    |
-| `affectsSessions`         | Required, non-empty. The editorial gate and the UI hook         |
+| `affectsSessions`         | Non-empty for `pick_related`, empty for `general`. The UI hook  |
 | `driverCodes`             | Optional. Colours the card with the first driver's team         |
 | `sourceName`, `sourceUrl` | Attribution, same standard as the write-up pages                |
 | `sourcePublishedAt`       | Optional. When the source published it, shown on the write-up   |

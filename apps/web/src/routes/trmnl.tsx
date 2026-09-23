@@ -30,7 +30,7 @@ import { fetchTrmnlPageScenarios } from '@/lib/trmnl/pageScenarios';
 
 type View = TrmnlLayout | 'all';
 
-type Device = 'og' | 'x';
+type Device = 'og' | 'og-1bit' | 'x' | 'x-portrait';
 
 type TrmnlSearch = { scenario?: string; size?: View; device?: Device };
 
@@ -42,6 +42,13 @@ type TrmnlSearch = { scenario?: string; size?: View; device?: Device };
  * the client sees only as a stub. The component checks the scenario id and
  * falls back to the first.
  */
+const DEVICE_IDS = new Set<string>([
+  'og',
+  'og-1bit',
+  'x',
+  'x-portrait',
+] satisfies Device[]);
+
 const VIEW_IDS = new Set<string>([
   'full',
   'half_horizontal',
@@ -67,8 +74,8 @@ export const Route = createFileRoute('/trmnl')({
         ? (search.size as View)
         : undefined,
     device:
-      search.device === 'x' || search.device === 'og'
-        ? search.device
+      typeof search.device === 'string' && DEVICE_IDS.has(search.device)
+        ? (search.device as Device)
         : undefined,
   }),
   component: TrmnlPage,
@@ -84,7 +91,9 @@ export const Route = createFileRoute('/trmnl')({
 
 const DEVICE_OPTIONS: { value: Device; label: string }[] = [
   { value: 'og', label: 'TRMNL OG' },
+  { value: 'og-1bit', label: 'OG 1-bit' },
   { value: 'x', label: 'TRMNL X' },
+  { value: 'x-portrait', label: 'X portrait' },
 ];
 
 const VIEW_OPTIONS: { value: View; label: string }[] = [
@@ -315,7 +324,10 @@ function TrmnlScreen({
   return (
     <div
       ref={boxRef}
-      className="relative w-full max-w-[800px] overflow-hidden rounded-md border border-border bg-white"
+      className={`relative w-full overflow-hidden rounded-md border border-border bg-white ${
+        // A portrait X at 800px wide would be over 1000px tall.
+        height > width ? 'max-w-[480px]' : 'max-w-[800px]'
+      }`}
       style={{ aspectRatio: `${width} / ${height}` }}
     >
       {boxWidth !== null &&

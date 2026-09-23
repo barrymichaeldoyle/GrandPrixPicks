@@ -36,7 +36,7 @@ export const TRMNL_LAYOUTS: readonly { id: TrmnlLayout; label: string }[] = [
   { id: 'quadrant', label: 'Quarter' },
 ];
 
-export type TrmnlDevice = 'og' | 'x';
+export type TrmnlDevice = 'og' | 'og-1bit' | 'x' | 'x-portrait';
 
 /**
  * The two TRMNL devices, as the Framework's device profiles
@@ -65,11 +65,30 @@ export const TRMNL_DEVICES: readonly {
     height: 480,
   },
   {
+    // An OG set to the black-and-white palette. TRMNL's reviewers check
+    // gray text here, which is why every gray label has `1bit:text--black`.
+    id: 'og-1bit',
+    label: 'TRMNL OG 1-bit',
+    screenClass: 'screen--og screen--md screen--1bit',
+    width: 800,
+    height: 480,
+  },
+  {
     id: 'x',
     label: 'TRMNL X',
     screenClass: 'screen--v2 screen--lg screen--density-2x screen--4bit',
     width: 1872,
     height: 1404,
+  },
+  {
+    // TRMNL's reviewers preview every layout on the X in portrait too.
+    // `screen--portrait` swaps the screen's dimensions.
+    id: 'x-portrait',
+    label: 'TRMNL X portrait',
+    screenClass:
+      'screen--v2 screen--lg screen--density-2x screen--4bit screen--portrait',
+    width: 1404,
+    height: 1872,
   },
 ];
 

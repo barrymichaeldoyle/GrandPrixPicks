@@ -1,4 +1,10 @@
 {% comment %}
+  Every gray label also carries `1bit:text--black`: TRMNL's reviewers flag
+  gray labels as hard to read on an OG set to the 1-bit palette, and the
+  override leaves 2-bit and 4-bit screens gray.
+{% endcomment %}
+
+{% comment %}
   Reusable blocks for the four layouts. The payload is built by
   apps/web/src/lib/trmnl/payload.ts and is fully formatted there:
   times are already in the owner's zone and language, so nothing here does
@@ -45,8 +51,8 @@
   {% endif %}
   <div class="flex flex--col flex--left gap--none">
     <span class="title {{ name_size }}">{{ race.name }}</span>
-    {% if race.circuit %}<span class="label label--small lg:label--base label--gray">{{ race.circuit }}</span>{% endif %}
-    <span class="label label--small lg:label--base label--gray">Round {{ race.round }} · {{ race.dates | replace: " ", "&nbsp;" }}</span>
+    {% if race.circuit %}<span class="label label--small lg:label--base label--gray 1bit:text--black">{{ race.circuit }}</span>{% endif %}
+    <span class="label label--small lg:label--base label--gray 1bit:text--black">Round {{ race.round }} · {{ race.dates | replace: " ", "&nbsp;" }}</span>
   </div>
 </div>
 {% endtemplate %}
@@ -77,7 +83,7 @@
         {% elsif row.next %}
           <span class="label label--small label--filled">Next</span>
         {% elsif row.state == "awaiting" %}
-          <span class="label label--small label--gray">Awaiting result</span>
+          <span class="label label--small label--gray 1bit:text--black">Awaiting result</span>
         {% endif %}
       </td>
     </tr>
@@ -98,7 +104,7 @@
   <div class="item">
     <div class="content">
       <span class="title {{ headline_size }}" data-clamp="2">{{ item.headline }}</span>
-      <span class="label label--small lg:label--large label--gray">{{ item.source }}{% if item.sessions != "" %} · {{ item.sessions }}{% endif %}</span>
+      <span class="label label--small lg:label--large label--gray 1bit:text--black">{{ item.source }}{% if item.sessions != "" %} · {{ item.sessions }}{% endif %}</span>
     </div>
   </div>
   {% endfor %}
@@ -148,14 +154,18 @@
 </div>
 {% endtemplate %}
 
+{% comment %}
+  `lg:portrait:table--xsmall`: stacked under the timeline on a portrait X, the
+  base row height pushed the back of the grid off the screen.
+{% endcomment %}
 {% template grid_rows %}
-<table class="table table--xsmall lg:table--base">
+<table class="table table--xsmall lg:table--base lg:portrait:table--xsmall">
   <tbody>
     {% for row in rows limit: limit offset: offset %}
     <tr>
       <td><span class="label label--small">{{ row.pos }}</span></td>
       <td><span class="title title--small">{{ row.code }}</span></td>
-      <td><span class="label label--small label--gray">{{ row.note }}</span></td>
+      <td><span class="label label--small label--gray 1bit:text--black">{{ row.note }}</span></td>
     </tr>
     {% endfor %}
   </tbody>

@@ -9,7 +9,12 @@
     {% render "qr", race: race %}
   </div>
   {% if focus == "result" %}
-    {% render "result", result: result, limit: 10, split: true %}
+    {% comment %}
+      Two columns of five in landscape; one column of ten in portrait, where
+      the half is tall and narrow and two columns wrapped every name.
+    {% endcomment %}
+    <div class="portrait:hidden">{% render "result", result: result, limit: 10, split: true %}</div>
+    <div class="hidden portrait:block">{% render "result", result: result, limit: 10, split: false %}</div>
   {% else %}
     {% render "schedule", schedule: schedule, size: "table--small lg:table--large", name: "short" %}
     {% comment %}One headline: two overflow into the title bar once the timeline is full.{% endcomment %}

@@ -319,7 +319,8 @@ a layout change, and the plugin's "learn more" link from the TRMNL directory.
   lines. A sweep of every tab and both devices measured a total layout shift
   of about 0.005.
 - **Devices** are `TRMNL_DEVICES` in `render.ts`, as the Framework's own device
-  profiles. The OG (2-bit) is `screen--ogv2 screen--md screen--2bit`, 800x480.
+  profiles: the OG in 2-bit and 1-bit, and the X in landscape and portrait,
+  the four views TRMNL's reviewers check. The OG (2-bit) is `screen--ogv2 screen--md screen--2bit`, 800x480.
   The X is `screen--v2 screen--lg screen--density-2x screen--4bit`: it lays out
   at 1040x780 CSS pixels and the Framework scales the whole screen by its 1.8
   pixel ratio to the panel's 1872x1404, so the frame has to be 1872x1404 or
@@ -406,20 +407,27 @@ A Recipe is a private plugin TRMNL has approved for its directory
 the author makes, or **Fork** it into an editable copy that no longer
 updates. Forking needs the Developer add-on.
 
-**Before submitting.** TRMNL's reviewers work through a checklist, and three
-items on it are not met yet:
+**Before submitting.** TRMNL's reviewers work through a checklist. Three
+items on it were not met at first, and were fixed on 23 September 2026:
 
 1. **Portrait.** They preview every layout on the OG and the X in landscape,
    and on the X in portrait, looking for whitespace and content cut off.
-   Nothing here has been rendered in portrait. Add a portrait option to
-   `TRMNL_DEVICES` (`screen--portrait`) so `/trmnl` shows it, then fix
-   what breaks with `portrait:` classes.
-2. **Gray labels on 1-bit screens.** They flag `label--gray` as hard to read
-   on an OG set to the 1-bit palette and ask for `1bit:text--black` beside it.
-   The race header, news sources, weather and "Awaiting result" all use it.
-3. **A way to contact the author.** The `author_bio` form field must give
-   one. Add `email_address` (and optionally `github_url`) to it in
-   `settings.yml`.
+   `/trmnl` now has an "X portrait" view (`screen--portrait`, 1404x1872). The
+   full layout's two columns are a grid that stacks in portrait
+   (`grid--cols-2 portrait:grid--cols-1`): side by side they wrapped every name
+   and time and left half the screen empty. The half-vertical shows one column
+   of ten results in portrait instead of two of five (`portrait:hidden` /
+   `hidden portrait:block`), and the race-morning grid drops to its smallest
+   rows on a portrait X (`lg:portrait:table--xsmall`), where the base size
+   pushed P8 onwards off the screen. The grid children are plain flex
+   columns: the Framework's `column` class is positioned by the `columns`
+   engine and clipped its content inside a grid.
+2. **Gray labels on 1-bit screens.** They flag `label--gray` as hard to read on
+   an OG set to the 1-bit palette. Every gray label now also carries
+   `1bit:text--black`, and `/trmnl` has an "OG 1-bit" view to check it.
+3. **A way to contact the author.** `author_bio` in `settings.yml` now has
+   `email_address` (barry@barrymichaeldoyle.com, a placeholder until Barry
+   picks the address to list).
 
 Also check:
 

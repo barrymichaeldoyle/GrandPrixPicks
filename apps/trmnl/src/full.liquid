@@ -1,8 +1,13 @@
 {% if has_race %}
 <div class="layout layout--col layout--top layout--stretch-x gap--medium">
   {% render "race_header", race: race, name_size: "lg:title--xlarge", flag_size: "h--[56px] w--max-[112px] lg:h--[76px] lg:w--max-[152px]" %}
-  <div class="columns grow">
-    <div class="column">
+  {% comment %}
+    Two columns side by side, stacked in portrait: side by side on a portrait
+    X they squeezed every name and time onto two lines and left the bottom
+    half empty.
+  {% endcomment %}
+  <div class="grid grid--cols-2 portrait:grid--cols-1 gap--large grow">
+    <div class="flex flex--col flex--stretch-x gap--small">
       {% comment %}
         On race morning the grid fills the right column, so the code sits
         beside the lead instead; under the timeline it overflowed the OG.
@@ -24,7 +29,7 @@
       {% comment %}No weather line: each timeline row carries its own forecast.{% endcomment %}
       {% render "schedule", schedule: schedule, size: "table--small lg:table--large", name: "label" %}
     </div>
-    <div class="column h--full">
+    <div class="flex flex--col flex--stretch-x gap--small h--full">
       {% comment %}
         The focus block takes the column's spare height and the QR code sits
         under it at the bottom. The spare height has to belong to the block

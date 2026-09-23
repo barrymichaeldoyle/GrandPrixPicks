@@ -67,10 +67,26 @@ describe('race-independent news', () => {
     );
     expect(deliveries).toHaveLength(1);
     expect(deliveries[0].newsCategory).toBe('general');
+    const listedActive = await t.query(
+      internal.globalNews.listForOperators,
+      {},
+    );
+    expect(listedActive.items).toHaveLength(1);
+    expect(listedActive.items[0]).toMatchObject({
+      key: input.key,
+      headline: 'An updated announcement',
+      active: true,
+    });
     await t.mutation(internal.globalNews.retract, { key: input.key });
     expect(
       await t.run((ctx) => ctx.db.query('feedEvents').collect()),
     ).toHaveLength(0);
+    const listedAfterRetract = await t.query(
+      internal.globalNews.listForOperators,
+      {},
+    );
+    expect(listedAfterRetract.items).toHaveLength(1);
+    expect(listedAfterRetract.items[0].active).toBe(false);
     await t.run((ctx) =>
       ctx.db.patch(deliveries[0]._id, { status: 'sending' }),
     );

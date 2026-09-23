@@ -15,6 +15,35 @@ type RouteEvent = {
   req: Request;
 };
 
+function validPollingQuery(params: URLSearchParams): boolean {
+  const keys = [...params.keys()];
+  if (
+    keys.length > 2 ||
+    keys.some((key) => key !== 'tz' && key !== 'locale') ||
+    new Set(keys).size !== keys.length
+  ) {
+    return false;
+  }
+
+  const timeZone = params.get('tz');
+  const locale = params.get('locale');
+  if ((timeZone?.length ?? 0) > 64 || (locale?.length ?? 0) > 35) {
+    return false;
+  }
+
+  try {
+    if (timeZone) {
+      new Intl.DateTimeFormat('en', { timeZone });
+    }
+    if (locale && Intl.DateTimeFormat.supportedLocalesOf(locale).length === 0) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * The polling endpoint for the Grand Prix Picks TRMNL plugin
  * (`apps/trmnl`, spec in `docs/trmnl-plugin-specification.md`).
@@ -31,6 +60,15 @@ type RouteEvent = {
 export default async function handler(event: RouteEvent) {
   try {
     const url = new URL(event.req.url);
+    if (!validPollingQuery(url.searchParams)) {
+      return new Response(JSON.stringify({ error: 'invalid_query' }), {
+        status: 400,
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+          'cache-control': 'no-store',
+        },
+      });
+    }
     const convexUrl = process.env.VITE_CONVEX_URL;
     if (!convexUrl) {
       throw new Error('Missing VITE_CONVEX_URL');

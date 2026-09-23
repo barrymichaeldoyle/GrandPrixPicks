@@ -340,7 +340,18 @@ short links in `server/lib/socialRedirect.ts`. `pageViewProperties` in
 - `apps/web/server/routes/api/trmnl/weekend.get.ts`: the polling endpoint,
   `GET /api/trmnl/weekend?tz=<IANA>&locale=<lang>`. Public, cached 60s per
   zone and language, answers 503 on failure so TRMNL keeps the last good
-  screen. An unknown zone falls back to UTC and says so on screen.
+  screen. A missing zone falls back to UTC and says so on screen; invalid or
+  unexpected query parameters return 400 before any Convex reads.
+
+The production Cloudflare zone has a cache rule for this GET path, ordered
+after the signed-in bypass rule. It respects the endpoint's 60-second edge and
+browser TTLs; verify with two identical requests and `cf-cache-status: HIT` on
+the second. A rate limiting rule blocks non-TRMNL sources after 20 requests
+in 10 seconds per IP, for 10 seconds. A path-scoped custom rule skips only
+rate limiting for TRMNL's published IPv4 and IPv6 servers. Compare that rule
+with <https://trmnl.com/api/ips> whenever polling fails or TRMNL changes its
+server addresses. This is abuse protection for a public Recipe feed, not an
+authentication mechanism for a future paid API.
 - `apps/web/server/routes/t/[...path].get.ts`: the QR code's short link.
 - `apps/web/src/lib/trmnl/payload.ts`: weekend selection, phase, formatting,
   QR landing. Pure and tested (`payload.test.ts`), including the rule that two

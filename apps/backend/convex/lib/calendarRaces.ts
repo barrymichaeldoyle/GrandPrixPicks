@@ -1,18 +1,10 @@
 import type { Doc } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
+import { isSyntheticRaceSlug } from '@grandprixpicks/shared/syntheticRaces';
 
 type DbCtx = Pick<QueryCtx, 'db'> | Pick<MutationCtx, 'db'>;
 
-const SYNTHETIC_SLUG_PREFIXES = ['scenario-race-', 'social-race-'] as const;
-
-/**
- * Leftover Playwright / seed fixtures. Their lock times sit on `Date.now()`,
- * so they steal getNextRace, season, and reminder fanout from the real
- * calendar whenever someone forgets to clear a scenario.
- */
-export function isSyntheticRaceSlug(slug: string): boolean {
-  return SYNTHETIC_SLUG_PREFIXES.some((prefix) => slug.startsWith(prefix));
-}
+export { isSyntheticRaceSlug };
 
 export function calendarRaces<T extends { slug: string }>(
   races: Array<T>,

@@ -33,6 +33,7 @@
     "./raceTimezones": "./src/raceTimezones.ts",
     "./scoring": "./src/scoring.ts",
     "./sessions": "./src/sessions.ts",
+    "./syntheticRaces": "./src/syntheticRaces.ts",
     "./share": "./src/share.ts",
     "./teams": "./src/teams.ts",
     "./tokens": "./src/tokens.ts"

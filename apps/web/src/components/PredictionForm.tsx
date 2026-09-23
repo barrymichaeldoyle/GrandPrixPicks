@@ -19,6 +19,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { isSyntheticRaceSlug } from '@grandprixpicks/shared/syntheticRaces';
 import { getWebTop5DraftStorageKey } from '@grandprixpicks/shared/picks';
 import { useBlocker } from '@tanstack/react-router';
 import { useConvexAuth, useMutation } from 'convex/react';
@@ -789,7 +790,11 @@ export function PredictionForm({
   const sessionLockAt = race
     ? getRaceSessionLockAt(race, sessionType ?? 'race') || undefined
     : undefined;
-  const isRaceCurrentlyOpen = nextPredictionRace?._id === raceId;
+  // A scenario fixture is never the next calendar race but takes picks when
+  // opened on purpose, as the backend allows (`isRaceAcceptingPredictions`).
+  const isRaceCurrentlyOpen =
+    nextPredictionRace?._id === raceId ||
+    (race !== undefined && race !== null && isSyntheticRaceSlug(race.slug));
   const isSessionCurrentlyLocked =
     sessionType !== undefined &&
     sessionLockAt !== undefined &&

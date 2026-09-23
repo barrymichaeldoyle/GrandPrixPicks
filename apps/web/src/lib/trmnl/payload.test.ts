@@ -273,8 +273,6 @@ describe('buildTrmnlPayload', () => {
   it('shows the confirmed grid until the race result replaces it', () => {
     const gridNews = {
       headline: 'Starting grid confirmed',
-      sourceName: 'FIA',
-      affectsSessions: ['race' as const],
       publishedAt: at('2026-09-06T09:00:00Z'),
       startingGrid: [
         { position: 1, code: 'NOR', displayName: 'Lando Norris' },
@@ -316,8 +314,6 @@ describe('buildTrmnlPayload', () => {
       return [
         {
           headline: 'Antonelli takes a grid penalty',
-          sourceName: 'FIA',
-          affectsSessions: ['race' as const],
           publishedAt: at(publishedAt),
         },
       ];
@@ -330,10 +326,13 @@ describe('buildTrmnlPayload', () => {
       buildTrmnlPayload(input({ ...base, news: news('2026-09-04T10:00:00Z') }))
         .focus,
     ).toBe('result');
-    expect(
-      buildTrmnlPayload(input({ ...base, news: news('2026-09-05T17:00:00Z') }))
-        .focus,
-    ).toBe('news');
+    const latestNews = buildTrmnlPayload(
+      input({ ...base, news: news('2026-09-05T17:00:00Z') }),
+    );
+    expect(latestNews.focus).toBe('news');
+    expect(latestNews.news).toEqual([
+      { headline: 'Antonelli takes a grid penalty' },
+    ]);
   });
 
   it('gives every session in the forecast window its own weather', () => {
@@ -409,7 +408,7 @@ describe('the off-season payload', () => {
     const payload = buildTrmnlPayload(input({ race: null, standings }));
     expect(payload.has_race).toBe(false);
     expect(payload.standings).toMatchObject({
-      title: '2026 final standings',
+      title: 'Formula 1 2026 Standings',
       detail: 'After 23 rounds',
       leader_label: '2026 champion',
       drivers: [{ pos: 1, code: 'NOR', name: 'Lando Norris', points: 412 }],
@@ -423,7 +422,7 @@ describe('the off-season payload', () => {
       input({ race: null, standings: { ...standings, roundsScored: 16 } }),
     );
     expect(payload.standings).toMatchObject({
-      title: '2026 standings',
+      title: 'Formula 1 2026 Standings',
       detail: 'After round 16 of 23',
       leader_label: 'Championship leader',
     });

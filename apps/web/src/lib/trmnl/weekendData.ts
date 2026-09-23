@@ -80,6 +80,6 @@ export async function loadTrmnlOffSeason(
   ]);
   return {
     standings: championship,
-    news: news.map((item) => ({ ...item, affectsSessions: [] })),
+    news,
   };
 }

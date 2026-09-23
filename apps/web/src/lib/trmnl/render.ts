@@ -212,6 +212,125 @@ export function renderTrmnlMarkup(
   }) as string;
 }
 
+/**
+ * Each palette's inks, for the preview's stand-in for TRMNL's image
+ * dithering. Grays are evenly spaced levels; the colour inks are nominal, and
+ * a real panel's are duller. Full colour has none: it prints what it is given.
+ */
+const PALETTE_INKS: Record<TrmnlPalette, number[][] | null> = {
+  '1bit': grays(2),
+  '2bit': grays(4),
+  '4bit': grays(16),
+  'color-4bwry': [
+    [0, 0, 0],
+    [255, 255, 255],
+    [255, 0, 0],
+    [255, 255, 0],
+  ],
+  'color-7a': [
+    [0, 0, 0],
+    [255, 255, 255],
+    [0, 255, 0],
+    [0, 0, 255],
+    [255, 0, 0],
+    [255, 255, 0],
+    [255, 128, 0],
+  ],
+  'color-full': null,
+};
+
+function grays(levels: number): number[][] {
+  return Array.from({ length: levels }, (_, i) => {
+    const v = Math.round((255 * i) / (levels - 1));
+    return [v, v, v];
+  });
+}
+
+/**
+ * The preview's stand-in for TRMNL's dithering of `image-dither` images.
+ *
+ * The Framework only marks an image for dithering; TRMNL's renderer does it,
+ * when it draws the screen for the device, and neither the Framework CSS nor
+ * its JS dithers. Without this every flag showed in full colour on a 1-bit
+ * or grayscale screen. Floyd-Steinberg to the nearest ink, at the image's
+ * size in panel pixels, which is what the device prints; grayscale palettes
+ * compare on luminance.
+ *
+ * A string rather than a function's `toString()`, because a bundler may
+ * rewrite a function's source (helper calls, renamed globals) and this runs
+ * inside the screen's own document. The render tests evaluate this string.
+ */
+export const DITHER_SOURCE = `
+function ditherPixels(px, w, h, inks, gray) {
+  var buf = new Float32Array(w * h * 3);
+  for (var i = 0; i < w * h; i++) {
+    var r = px[i * 4], g = px[i * 4 + 1], b = px[i * 4 + 2], a = px[i * 4 + 3] / 255;
+    r = r * a + 255 * (1 - a); g = g * a + 255 * (1 - a); b = b * a + 255 * (1 - a);
+    if (gray) { r = g = b = 0.299 * r + 0.587 * g + 0.114 * b; }
+    buf[i * 3] = r; buf[i * 3 + 1] = g; buf[i * 3 + 2] = b;
+  }
+  function spread(x, y, er, eg, eb, f) {
+    if (x < 0 || x >= w || y >= h) return;
+    var j = (y * w + x) * 3;
+    buf[j] += er * f; buf[j + 1] += eg * f; buf[j + 2] += eb * f;
+  }
+  for (var y = 0; y < h; y++) {
+    for (var x = 0; x < w; x++) {
+      var k = (y * w + x) * 3, best = inks[0], bestD = Infinity;
+      for (var n = 0; n < inks.length; n++) {
+        var dr = buf[k] - inks[n][0], dg = buf[k + 1] - inks[n][1], db = buf[k + 2] - inks[n][2];
+        var d = dr * dr + dg * dg + db * db;
+        if (d < bestD) { bestD = d; best = inks[n]; }
+      }
+      var er = buf[k] - best[0], eg = buf[k + 1] - best[1], eb = buf[k + 2] - best[2];
+      var o = (y * w + x) * 4;
+      px[o] = best[0]; px[o + 1] = best[1]; px[o + 2] = best[2]; px[o + 3] = 255;
+      spread(x + 1, y, er, eg, eb, 7 / 16);
+      spread(x - 1, y + 1, er, eg, eb, 3 / 16);
+      spread(x, y + 1, er, eg, eb, 5 / 16);
+      spread(x + 1, y + 1, er, eg, eb, 1 / 16);
+    }
+  }
+  return px;
+}
+function ditherScreenImages(inks, gray) {
+  var images = document.querySelectorAll('img.image-dither');
+  for (var i = 0; i < images.length; i++) {
+    var img = images[i];
+    if (img.dataset.dithered || !img.complete || !img.naturalWidth) continue;
+    // Panel pixels: the X's screen is scaled up by the Framework, and the
+    // flag's 1px frame is a border, not part of the image.
+    var scale = img.getBoundingClientRect().width / img.offsetWidth;
+    var w = Math.round(img.clientWidth * scale), h = Math.round(img.clientHeight * scale);
+    if (!w || !h) continue;
+    try {
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      var data = ctx.getImageData(0, 0, w, h);
+      ditherPixels(data.data, w, h, inks, gray);
+      ctx.putImageData(data, 0, 0);
+      img.dataset.dithered = '1';
+      img.style.imageRendering = 'pixelated';
+      img.src = canvas.toDataURL();
+    } catch (e) {
+      /* An image the canvas cannot read stays as it is. */
+    }
+  }
+}
+`;
+
+/** The script a preview document runs for its palette, or '' for full colour. */
+function ditherScript(palette: TrmnlPalette): string {
+  const inks = PALETTE_INKS[palette];
+  if (!inks) {
+    return '';
+  }
+  const gray = !palette.startsWith('color-');
+  return `<script>${DITHER_SOURCE}window.addEventListener('load',function(){ditherScreenImages(${JSON.stringify(inks)},${gray});});</script>`;
+}
+
 const MASHUPS: Record<TrmnlLayout, { mashup: string | null; slots: number }> = {
   full: { mashup: null, slots: 1 },
   half_horizontal: { mashup: 'mashup--1Tx1B', slots: 2 },
@@ -225,7 +344,10 @@ const MASHUPS: Record<TrmnlLayout, { mashup: string | null; slots: number }> = {
  * else's plugin, because that is how an owner actually sees it.
  *
  * TRMNL's Framework CSS and JS load from trmnl.com, as they do on the device:
- * the JS is what clamps long headlines and fits the large values.
+ * the JS is what clamps long headlines and fits the large values. Images marked
+ * `image-dither` are dithered to the palette, standing in for the platform
+ * (`DITHER_SOURCE`); the caller has to give them a readable source, since the
+ * sandboxed document cannot read pixels from another origin.
  */
 export function trmnlScreenDocument(
   layout: TrmnlLayout,
@@ -239,5 +361,5 @@ export function trmnlScreenDocument(
   const screen = mashup
     ? `<div class="mashup ${mashup}">${ours}${other.repeat(slots - 1)}</div>`
     : ours;
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="https://trmnl.com/css/latest/plugins.css"><script src="https://trmnl.com/js/latest/plugins.js"></script></head><body class="environment trmnl"><div class="screen ${screenClass}">${screen}</div></body></html>`;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="https://trmnl.com/css/latest/plugins.css"><script src="https://trmnl.com/js/latest/plugins.js"></script>${ditherScript(config.palette)}</head><body class="environment trmnl"><div class="screen ${screenClass}">${screen}</div></body></html>`;
 }

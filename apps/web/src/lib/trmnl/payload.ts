@@ -112,8 +112,6 @@ type ResultRow = { position: number; code: string; displayName: string };
 
 type NewsItem = {
   headline: string;
-  sourceName: string;
-  affectsSessions: SessionType[];
   publishedAt: number;
   startingGrid?: {
     position: number;
@@ -228,10 +226,10 @@ export type TrmnlPayload = {
     rows: { pos: number; code: string; name: string }[];
   } | null;
   grid: { pos: number; code: string; name: string; note: string }[];
-  news: { headline: string; source: string; sessions: string }[];
+  news: { headline: string }[];
   /** The off-season screen: set only when `has_race` is false. */
   standings: {
-    /** "2026 final standings", or "2026 standings" while rounds remain. */
+    /** The season heading shown on the off-season screen. */
     title: string;
     /** "After 23 rounds", or "After round 16 of 23". */
     detail: string;
@@ -364,17 +362,12 @@ function formatNews(news: NewsItem[]): TrmnlPayload['news'] {
   return [...news]
     .sort((a, b) => b.publishedAt - a.publishedAt)
     .slice(0, NEWS_LIMIT)
-    .map((item) => ({
-      headline: item.headline,
-      source: item.sourceName,
-      sessions: item.affectsSessions
-        .map((session) => SESSION_LABELS_SHORT[session])
-        .join(', '),
-    }));
+    .map((item) => ({ headline: item.headline }));
 }
 
-/** Rows each table carries: the layouts show at most ten. */
-const STANDINGS_ROWS = 10;
+/** Full-screen standings carry the complete 22-driver, 11-team grid. */
+const DRIVER_STANDINGS_ROWS = 22;
+const CONSTRUCTOR_STANDINGS_ROWS = 11;
 
 /**
  * The off-season screen: the season just run, as its final tables. Before
@@ -390,19 +383,21 @@ function buildStandings(
   const { season, roundsScored, roundsTotal } = championship;
   const final = roundsTotal > 0 && roundsScored >= roundsTotal;
   return {
-    title: final ? `${season} final standings` : `${season} standings`,
+    title: `Formula 1 ${season} Standings`,
     detail: final
       ? `After ${roundsScored} rounds`
       : `After round ${roundsScored} of ${roundsTotal}`,
     leader_label: final ? `${season} champion` : 'Championship leader',
-    drivers: championship.drivers.slice(0, STANDINGS_ROWS).map((row) => ({
-      pos: row.position,
-      code: row.code,
-      name: row.displayName,
-      points: row.points,
-    })),
+    drivers: championship.drivers
+      .slice(0, DRIVER_STANDINGS_ROWS)
+      .map((row) => ({
+        pos: row.position,
+        code: row.code,
+        name: row.displayName,
+        points: row.points,
+      })),
     constructors: championship.constructors
-      .slice(0, STANDINGS_ROWS)
+      .slice(0, CONSTRUCTOR_STANDINGS_ROWS)
       .map((row) => ({
         pos: row.position,
         name: row.team,

@@ -37,6 +37,11 @@
   sets the flag's height, matched in each layout to the
   height of the three lines beside it (measured on the OG and the X); its width follows the flag's own shape, capped for
   Qatar, whose file's viewBox is 75:18 and stretches to fit.
+  Widths over 128px use the named scale (`lg:w--max-48` is 192px): the
+  Framework only generates bracketed sizes up to `[128px]`, and a larger one
+  silently does nothing, which squeezed every flag on the X into the OG's cap.
+  `shrink-0` keeps the shape in a narrow column, where flex shrank the width
+  and not the height.
 
   Nothing is clamped: an ellipsis cut the dates off. The dates never split
   ("1 – 3 May"): their spaces become non-breaking here, because the Framework's
@@ -54,7 +59,7 @@
 {% template race_header %}
 <div class="flex flex--row flex--left flex--center-y gap--small">
   {% if race.flag_url %}
-  <img class="image image-dither w--auto {{ flag_size }}" style="border: 1px solid #000" src="{{ race.flag_url }}" alt="">
+  <img class="image image-dither shrink-0 w--auto {{ flag_size }}" style="border: 1px solid #000" src="{{ race.flag_url }}" alt="">
   {% endif %}
   <div class="flex flex--col flex--left gap--none">
     <span class="title {{ name_size }}">{{ race.name }}</span>
@@ -111,7 +116,6 @@
   <div class="item">
     <div class="content">
       <span class="title {{ headline_size }}" data-clamp="2">{{ item.headline }}</span>
-      <span class="label label--small lg:label--large 2bit:label--gray 4bit:label--gray">{{ item.source }}{% if item.sessions != "" %} · {{ item.sessions }}{% endif %}</span>
     </div>
   </div>
   {% endfor %}
@@ -210,8 +214,8 @@
 {% endtemplate %}
 
 {% comment %}
-  The off-season screen: the season just run. `standings.title` is "2026
-  final standings" and `standings.detail` "After 23 rounds"; before the
+  The off-season screen: the season just run. `standings.title` is "Formula 1
+  2026 Standings" and `standings.detail` "After 23 rounds"; before the
   season ends (only the /trmnl page shows it then) they say so instead.
 {% endcomment %}
 {% template standings_header %}
@@ -231,14 +235,15 @@
 
 {% comment %}
   One championship table, drivers or constructors: position, name, points.
-  `label`, `limit` and `size` are always passed.
+  `label`, `limit`, `offset` and `size` are always passed. An empty label
+  leaves the second driver column aligned below the shared heading.
 {% endcomment %}
 {% template standings_table %}
 <div class="flex flex--col gap--xsmall">
-  <span class="title title--small lg:title--base">{{ label }}</span>
+  {% if label != "" %}<span class="title title--small lg:title--base">{{ label }}</span>{% endif %}
   <table class="table {{ size }}">
     <tbody>
-      {% for row in rows limit: limit %}
+      {% for row in rows limit: limit offset: offset %}
       <tr>
         <td><span class="label label--small">{{ row.pos }}</span></td>
         <td><span class="title title--small">{{ row.name }}</span></td>

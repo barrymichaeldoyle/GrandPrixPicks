@@ -6,9 +6,15 @@
   runs full width beneath them.
 {% endcomment %}
 <div class="layout layout--row portrait:layout--col layout--stretch gap--large">
-  <div class="flex flex--row flex--center-y gap--medium">
+  {% comment %}
+    `flex-none` on the header and the code: `layout--stretch` otherwise gives
+    every child an equal third, so the code's column sat mostly empty while a
+    wide flag (the US) wrapped the race name until the lead ran out of the
+    slot on the OG. The news or result takes what is left, and wraps.
+  {% endcomment %}
+  <div class="flex flex--row flex--center-y gap--medium flex-none">
     <div class="grow flex flex--col gap--small">
-      {% render "race_header", race: race, name_size: "lg:title--base", detail_size: "lg:label--base", flag_size: "h--[48px] w--max-[96px] lg:h--[68px] lg:w--max-[136px]" %}
+      {% render "race_header", race: race, name_size: "lg:title--base", detail_size: "lg:label--base", flag_size: "h--[36px] w--max-[72px] lg:h--[68px] lg:w--max-36" %}
       {% render "lead", lead: lead, size: "value--large lg:value--xlarge" %}
       {% render "lead_weather", weather: lead.weather %}
     </div>
@@ -23,11 +29,11 @@
       {% render "schedule", schedule: schedule, size: "table--xsmall", name: "short" %}
     {% endif %}
   </div>
-  <div class="portrait:hidden">{% render "qr", url: race.url %}</div>
+  <div class="portrait:hidden flex-none">{% render "qr", url: race.url %}</div>
 </div>
 {% elsif standings %}
 <div class="layout layout--row portrait:layout--col layout--stretch gap--large">
-  <div class="flex flex--row flex--center-y gap--medium">
+  <div class="flex flex--row flex--center-y gap--medium flex-none">
     <div class="grow flex flex--col gap--small">
       {% render "standings_header", standings: standings, title_size: "lg:title--large", detail_size: "lg:label--base" %}
       {% render "leader", standings: standings, value_size: "value--small lg:value--large" %}
@@ -40,9 +46,9 @@
     The constructors' champion is named under the drivers' instead.
   {% endcomment %}
   <div class="grow">
-    {% render "standings_table", label: "Drivers", rows: standings.drivers, limit: 5, size: "table--xsmall lg:table--small" %}
+    {% render "standings_table", label: "Drivers", rows: standings.drivers, limit: 5, offset: 0, size: "table--xsmall lg:table--small" %}
   </div>
-  <div class="portrait:hidden">{% render "qr", url: standings.url %}</div>
+  <div class="portrait:hidden flex-none">{% render "qr", url: standings.url %}</div>
 </div>
 {% else %}
 <div class="layout layout--col layout--center">

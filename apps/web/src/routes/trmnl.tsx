@@ -297,6 +297,57 @@ function withLocalAssets(html: string): string {
     .replaceAll(`${siteConfig.url}/trmnl-icon.svg`, `${origin}/trmnl-icon.svg`);
 }
 
+/** Flags already inlined, by URL, so a tab change never refetches one. */
+const inlinedImages = new Map<string, string>();
+
+/**
+ * An image as a `data:` URI, so the screen's document can read its pixels.
+ * The screens run in sandboxed documents with an opaque origin, where a canvas
+ * cannot read an image from this site, and the preview dithers the flag
+ * through a canvas (`DITHER_SOURCE` in render.ts). Undefined while it loads;
+ * the URL itself if it cannot be fetched, which then shows undithered.
+ */
+function useInlinedImage(url: string | null): string | null | undefined {
+  const [, setLoaded] = useState(0);
+
+  useEffect(() => {
+    if (!url || inlinedImages.has(url)) {
+      return;
+    }
+    let cancelled = false;
+    async function inline(from: string) {
+      try {
+        const response = await fetch(from);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const blob = await response.blob();
+        const dataUri = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(blob);
+        });
+        inlinedImages.set(from, dataUri);
+      } catch {
+        inlinedImages.set(from, from);
+      }
+      if (!cancelled) {
+        setLoaded((n) => n + 1);
+      }
+    }
+    void inline(url);
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
+
+  if (!url) {
+    return null;
+  }
+  return inlinedImages.get(url);
+}
+
 type Frame = {
   id: number;
   doc: string;
@@ -329,9 +380,21 @@ function TrmnlScreen({
   config: TrmnlScreenConfig;
 }) {
   const { width, height, label: deviceLabel } = trmnlScreenProfile(config);
-  const doc = withLocalAssets(
+  const flagUrl = scenario.payload.race?.flag_url
+    ? withLocalAssets(scenario.payload.race.flag_url)
+    : null;
+  const flag = useInlinedImage(flagUrl);
+  const html = withLocalAssets(
     trmnlScreenDocument(layout, scenario.payload, config),
   );
+  // Hold the screen back until the flag is inlined, so it is never drawn
+  // first in colour and then again dithered.
+  const doc =
+    flag === undefined
+      ? null
+      : flagUrl && flag
+        ? html.replaceAll(`src="${flagUrl}"`, `src="${flag}"`)
+        : html;
   const boxRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(0);
   const [boxWidth, setBoxWidth] = useState<number | null>(null);
@@ -350,6 +413,9 @@ function TrmnlScreen({
   }, []);
 
   useEffect(() => {
+    if (doc === null) {
+      return;
+    }
     setFrames((current) =>
       current.at(-1)?.doc === doc
         ? current

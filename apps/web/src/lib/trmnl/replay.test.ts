@@ -131,8 +131,6 @@ describe('replayWeekend', () => {
     news: [
       {
         headline: 'Starting grid confirmed',
-        sourceName: 'FIA',
-        affectsSessions: ['race'],
         publishedAt: at('2026-09-06T09:00:00Z'),
       },
     ],

@@ -1,6 +1,6 @@
 {% if has_race %}
 <div class="layout layout--col layout--top layout--stretch-x gap--medium">
-  {% render "race_header", race: race, name_size: "lg:title--large", detail_size: "lg:label--large", flag_size: "h--[56px] w--max-[112px] lg:h--[88px] lg:w--max-[176px]" %}
+  {% render "race_header", race: race, name_size: "lg:title--large", detail_size: "lg:label--large", flag_size: "h--[56px] w--max-[112px] lg:h--[88px] lg:w--max-44" %}
   <div class="flex flex--row flex--center-y gap--medium">
     <div class="grow flex flex--col flex--center gap--xsmall">
       {% render "lead", lead: lead, size: "value--large lg:value--large" %}
@@ -29,13 +29,13 @@
     </div>
     {% render "qr", url: standings.url %}
   </div>
-  {% render "standings_table", label: "Drivers", rows: standings.drivers, limit: 10, size: "table--xsmall lg:table--base lg:portrait:table--small" %}
+  {% render "standings_table", label: "Drivers", rows: standings.drivers, limit: 10, offset: 0, size: "table--xsmall lg:table--base lg:portrait:table--small" %}
   {% comment %}
     The constructors only fit under the drivers on the tall portrait half,
     and on a portrait X only at the smaller row height.
   {% endcomment %}
   <div class="hidden portrait:block">
-    {% render "standings_table", label: "Constructors", rows: standings.constructors, limit: 10, size: "table--xsmall lg:table--base lg:portrait:table--small" %}
+    {% render "standings_table", label: "Constructors", rows: standings.constructors, limit: 10, offset: 0, size: "table--xsmall lg:table--base lg:portrait:table--small" %}
   </div>
 </div>
 {% else %}

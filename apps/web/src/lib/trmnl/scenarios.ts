@@ -11,8 +11,8 @@ import { buildTrmnlPayload } from './payload';
  * the builder or a Liquid layout and every scenario changes with it.
  *
  * The data is illustrative and the page says so. Results are invented, and
- * news carries no real publisher's name, so nothing here reads as a report of
- * what happened at a real race.
+ * news is invented, so nothing here reads as a report of what happened at a
+ * real race.
  */
 export type TrmnlScenario = {
   id: string;
@@ -108,34 +108,25 @@ const practice = (['fp1', 'fp2', 'fp3'] as const).map((sessionType, i) => ({
 }));
 
 /*
- * Several sources, so the screens show how attribution varies. They name a
- * kind of source rather than a real publisher: this is sample news.
+ * Invented headlines for the sample screens.
  */
 const news: TrmnlInput['news'] = [
   {
     headline: 'Five-place grid penalty for a gearbox change',
-    sourceName: "Sample stewards' document",
-    affectsSessions: ['race'],
     publishedAt: at('2026-09-05T18:00:00Z'),
   },
   {
     headline: 'Rain forecast for qualifying',
-    sourceName: 'Sample weather service',
-    affectsSessions: ['quali'],
     publishedAt: at('2026-09-04T09:00:00Z'),
   },
   {
     headline: 'New floor for the home race',
-    sourceName: 'Sample team statement',
-    affectsSessions: [],
     publishedAt: at('2026-09-03T09:00:00Z'),
   },
 ];
 
 const gridNews: TrmnlInput['news'][number] = {
   headline: 'Starting grid confirmed',
-  sourceName: 'Sample timing sheet',
-  affectsSessions: ['race'],
   publishedAt: at('2026-09-06T09:00:00Z'),
   startingGrid: classification.map((row) =>
     row.code === 'ANT' ? { ...row, note: '5-place penalty' } : row,
@@ -146,7 +137,10 @@ const gridNews: TrmnlInput['news'][number] = {
  * An invented final season, for the off-season sample. The points are made
  * up; the order follows the sample grid.
  */
-const DRIVER_POINTS = [412, 389, 331, 318, 290, 244, 231, 142, 128, 97];
+const DRIVER_POINTS = [
+  412, 389, 331, 318, 290, 244, 231, 142, 128, 97, 88, 77, 69, 61, 54, 46, 38,
+  31, 24, 18, 12, 7,
+];
 const sampleStandings: NonNullable<TrmnlInput['standings']> = {
   season: 2026,
   roundsScored: 23,
@@ -179,20 +173,14 @@ const sampleStandings: NonNullable<TrmnlInput['standings']> = {
 export const SAMPLE_OFF_SEASON_NEWS: TrmnlInput['news'] = [
   {
     headline: 'Pre-season testing dates confirmed',
-    sourceName: 'Sample series announcement',
-    affectsSessions: [],
     publishedAt: at('2026-12-18T10:00:00Z'),
   },
   {
     headline: 'Team reveals launch date for its new car',
-    sourceName: 'Sample team statement',
-    affectsSessions: [],
     publishedAt: at('2026-12-15T10:00:00Z'),
   },
   {
     headline: 'Sporting regulations updated for next season',
-    sourceName: 'Sample governing body notice',
-    affectsSessions: [],
     publishedAt: at('2026-12-11T10:00:00Z'),
   },
 ];

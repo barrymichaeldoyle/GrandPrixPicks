@@ -117,15 +117,15 @@ The weekend shown is the next race, except that a race holds the screen for
 **The off-season** (no race left, and the result hold over) shows the season
 just run: `standings` in the payload, built by `buildStandings` from
 `f1Standings.getF1Championship`, and the site's race-independent news
-(`globalNews.listRecent`). The title reads "2026 final standings" and "After
+(`globalNews.listRecent`). The title reads "Formula 1 2026 Standings" and "After
 23 rounds"; before every round is scored (only the `/trmnl` page previews it
-then) it reads "2026 standings", "After round 16 of 23" and names the
+then) it keeps the title, reads "After round 16 of 23" and names the
 "Championship leader" rather than a champion. Only when no round is scored
 at all does the screen say "No race scheduled.".
 
-- **Full:** drivers, constructors and the news in three columns, the QR code
-  under the news. In portrait the tables share the top and the news runs
-  beneath.
+- **Full:** all 22 drivers in two columns, all 11 constructors in a third,
+  and one news item beside the QR code in the heading. In portrait the
+  constructors follow the drivers.
 - **Half horizontal:** the champion (a fitted value) and the constructors'
   champion, beside the drivers' top five. Two tables side by side wrapped
   every name and ran into the title bar.
@@ -153,12 +153,20 @@ read on the X. On the X they are `label--large` beside the larger race names
 quarter), always a step below the name (`detail_size`).
 
 Every flag in a layout stands the same height, matched to the three lines
-beside it on each device: on the OG 56px, or 48px on the half-horizontal; on
+beside it on each device: on the OG 56px, or 36px on the half-horizontal,
+whose 200px-high slot overflowed at 48px; on
 the X 96px on the full layout, 88px on the half-vertical and 68px on the
 half-horizontal and quarter. Its width follows the flag's own shape: Monaco
 is 5:4, Italy 3:2, the US 1.9:1. A fixed 3:2 box letterboxed the others inside
 their frame, so the frames looked different sizes. The width is capped for
-Qatar, whose file's viewBox is 75:18 and stretches to fit. A 1px border frames
+Qatar, whose file's viewBox is 75:18 and stretches to fit. On the X the cap
+uses the named scale (`lg:w--max-48` is 192px): the Framework generates
+bracketed sizes only up to `[128px]`, a larger one silently does nothing, and
+that squeezed every X flag into the OG's 112px cap. A render test now rejects
+any bracketed size over 128px in the templates. The flag is `shrink-0`, and
+in the half-horizontal the header and QR code are `flex-none`:
+`layout--stretch` gives every child of the row an equal third, which left the
+header too narrow for a wide flag. A 1px border frames
 the image itself, so white fields (Japan, Monaco, Poland) keep an edge against
 the white screen. In 2-bit grayscale most flags stay recognisable, but
 tricolours that differ only by hue (Italy, Mexico, Ireland) come out alike, so
@@ -247,8 +255,8 @@ Notes on news:
 - The starting grid is researched as a news item each weekend and carried on
   that item as structured data (`startingGrid`, resolved to names by
   `raceNews.list`). The race-morning grid needs no pipeline of its own.
-- `sourceName` gives attribution without a link, which matters because e-ink
-  has none.
+- News headlines stand alone on the display. The linked race write-up carries
+  source attribution for its stories.
 
 ## 6. Layout and design
 
@@ -352,9 +360,8 @@ a layout change, and the plugin's "learn more" link from the TRMNL directory.
   (`SAMPLE_OFF_SEASON_NEWS`): off-season news is months away.
 - **Samples** (`TRMNL_SCENARIOS` in `scenarios.ts`) remain for any moment no
   weekend has reached yet (the sprint before the first
-  sprint weekend), and for the render and parity tests. Sample news names a
-  kind of source ("Sample stewards' document"), never a real publisher, and
-  the page says when it is showing a sample.
+  sprint weekend), and for the render and parity tests. Sample news uses
+  invented headlines, and the page says when it is showing a sample.
 - **Feedback** (`routes/-trmnl/TrmnlFeedback.tsx`) sits under the screens:
   one box, sent through `support.submitRequest` with category `trmnl`, so it
   reaches the support inbox. Sending needs an account, deliberately: someone
@@ -386,6 +393,14 @@ a layout change, and the plugin's "learn more" link from the TRMNL directory.
   extensions (`{% template %}` and `qr_code`). Half and quarter layouts are
   shown inside their mashup beside "Another plugin" slots, with TRMNL's
   Framework CSS and JS loaded from trmnl.com in a sandboxed iframe.
+- **Palettes include the platform's dithering.** `image-dither` only marks an
+  image: TRMNL's renderer dithers it to the device's inks, and the Framework
+  CSS and JS do not, so the flags showed in full colour on every palette. The
+  preview document runs `DITHER_SOURCE` (Floyd-Steinberg to the palette's
+  nearest ink, at the image's size in panel pixels; none on full colour).
+  The sandboxed frame cannot read pixels from another origin, so
+  `TrmnlScreen` inlines the flag as a `data:` URI first and holds the screen
+  back until it has.
 - **Parity:** on 22 September 2026 all 28 renders (7 scenarios x 4 layouts;
   the device changes only the screen class around them) were compared with TRMNL's own Ruby renderer (the `trmnl-liquid` gem, strict
   mode) and were identical once the QR SVG was set aside. liquidjs is still a
@@ -553,8 +568,8 @@ sharper:
   block, and nothing that does not change what the reader knows.
 - It reports the weekend. It never mentions picks, and news never tells the
   reader how to weight a Top 5 (`feedback_writeups_report_dont_instruct`).
-- No em dashes (`feedback_no_em_dashes`). A URL on screen is dead text, so name
-  the source instead; the QR code is the one way off the screen.
+- No em dashes (`feedback_no_em_dashes`). A URL on screen is dead text; the QR
+  code is the one way off the screen.
 
 ## 11. Open
 

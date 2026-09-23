@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  DITHER_SOURCE,
   qrCodeSvg,
   renderTrmnlMarkup,
   TRMNL_LAYOUTS,
@@ -26,7 +27,9 @@ describe('TRMNL layouts', () => {
         // A variable a layout forgot to pass. liquidjs renders some missing
         // names as 0 where TRMNL's Ruby Liquid renders nothing, so this is
         // also where the page and the device would quietly disagree.
-        expect(html).not.toMatch(/class="[^"]*\b(0|undefined|null)\b/);
+        expect(html).not.toMatch(
+          /class="(?:[^"]*\s)?(?:0|undefined|null)(?=\s|")/,
+        );
       });
     }
   }
@@ -46,13 +49,25 @@ describe('TRMNL layouts', () => {
   it('shows the champion and both tables in the off-season', () => {
     const offSeason = TRMNL_SCENARIOS.find((s) => s.id === 'off-season')!;
     const full = renderTrmnlMarkup('full', offSeason.payload);
-    expect(full).toContain('2026 final standings');
+    expect(full).toContain('Formula 1 2026 Standings');
     expect(full).toContain('Drivers');
     expect(full).toContain('Constructors');
+    expect(offSeason.payload.standings?.drivers).toHaveLength(22);
+    expect(offSeason.payload.standings?.constructors).toHaveLength(11);
+    expect(full.match(/<tr>/g)).toHaveLength(33);
+    expect(full).toContain('Arvid Lindblad');
+    expect(full).toContain('Cadillac');
     expect(full).toContain('Pre-season testing dates confirmed');
     const quadrant = renderTrmnlMarkup('quadrant', offSeason.payload);
     expect(quadrant).toContain('2026 champion');
     expect(quadrant).toContain('Constructors: McLaren');
+  });
+
+  it('shows news headlines without source or affected session labels', () => {
+    const friday = TRMNL_SCENARIOS.find((s) => s.id === 'friday')!;
+    const half = renderTrmnlMarkup('half_vertical', friday.payload);
+    expect(half).toContain('Rain forecast for qualifying');
+    expect(half).not.toContain('Sample weather service');
   });
 
   it('says there is no race when the off-season has no standings', () => {
@@ -115,5 +130,96 @@ describe('qrCodeSvg', () => {
     const svg = qrCodeSvg('https://grandprixpicks.com/t/abc-2026/w', 3, 'm');
     expect(svg).toContain('width="87"');
     expect(svg).toContain('class="qr-code"');
+  });
+});
+
+describe('the preview dithers images to the palette', () => {
+  const ditherPixels = new Function(
+    `${DITHER_SOURCE}; return ditherPixels;`,
+  )() as (
+    px: Uint8ClampedArray,
+    w: number,
+    h: number,
+    inks: number[][],
+    gray: boolean,
+  ) => Uint8ClampedArray;
+
+  function solid(rgb: number[], count: number) {
+    return Uint8ClampedArray.from(
+      Array.from({ length: count }, () => [...rgb, 255]).flat(),
+    );
+  }
+
+  it("prints only the palette's inks", () => {
+    const inks = [
+      [0, 0, 0],
+      [255, 255, 255],
+    ];
+    const out = ditherPixels(solid([0, 146, 70], 64), 8, 8, inks, true);
+    const colours = new Set<string>();
+    for (let i = 0; i < out.length; i += 4) {
+      colours.add(`${out[i]},${out[i + 1]},${out[i + 2]}`);
+    }
+    expect([...colours].sort()).toEqual(['0,0,0', '255,255,255']);
+  });
+
+  it('keeps a mid gray as a mix of black and white', () => {
+    const inks = [
+      [0, 0, 0],
+      [255, 255, 255],
+    ];
+    const out = ditherPixels(solid([128, 128, 128], 256), 16, 16, inks, true);
+    let white = 0;
+    for (let i = 0; i < out.length; i += 4) {
+      white += out[i] === 255 ? 1 : 0;
+    }
+    expect(white / 256).toBeGreaterThan(0.4);
+    expect(white / 256).toBeLessThan(0.6);
+  });
+
+  it('runs on every palette but full colour', () => {
+    const payload = TRMNL_SCENARIOS[0].payload;
+    for (const palette of [
+      '1bit',
+      '2bit',
+      '4bit',
+      'color-4bwry',
+      'color-7a',
+    ] as const) {
+      expect(
+        trmnlScreenDocument('full', payload, {
+          device: 'og',
+          orientation: 'landscape',
+          palette,
+        }),
+      ).toContain('ditherScreenImages(');
+    }
+    expect(
+      trmnlScreenDocument('full', payload, {
+        device: 'og',
+        orientation: 'landscape',
+        palette: 'color-full',
+      }),
+    ).not.toContain('ditherScreenImages(');
+  });
+});
+
+describe('the Liquid templates', () => {
+  const sources = import.meta.glob<string>('../../../../trmnl/src/*.liquid', {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  });
+
+  it('use no bracketed size the Framework does not generate', () => {
+    // Bracketed pixel sizes stop at [128px]; a larger one silently does
+    // nothing. That squeezed every flag on the X into the OG's width cap.
+    for (const [path, text] of Object.entries(sources)) {
+      for (const match of text.matchAll(/--(?:[a-z]+-)*\[(\d+)px\]/g)) {
+        expect(Number(match[1]), `${match[0]} in ${path}`).toBeLessThanOrEqual(
+          128,
+        );
+      }
+    }
   });
 });

@@ -156,7 +156,7 @@ export type TrmnlNewsCount = (typeof TRMNL_NEWS_COUNTS)[number];
  * The starting grid arrives as a news item, so an item carrying one is kept
  * (race morning keeps its grid) but its headline is not counted. The samples
  * are published in the half hours before the moment, so they are its newest
- * news. The payload carries at most six headlines, so ten shows as six, as it
+ * news. The payload carries at most ten headlines, so ten shows all candidates, as it
  * would on a device.
  */
 export function sampleNewsVariant(
@@ -171,7 +171,7 @@ export function sampleNewsVariant(
     publishedAt: input.now - (index + 1) * 30 * 60 * 1000,
   }));
   // The focus sees the grid too; the headlines are the samples alone, so the
-  // grid's own headline never takes one of the payload's six places.
+  // grid's own headline never takes one of the payload's ten places.
   return {
     focus: buildTrmnlPayload({ ...input, news: [...grids, ...samples] }).focus,
     news: buildTrmnlPayload({ ...input, news: samples }).news,

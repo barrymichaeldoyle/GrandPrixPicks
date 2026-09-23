@@ -1,4 +1,6 @@
 {% if has_race %}
+{% assign full_news_size = "title--base lg:title--large" %}
+{% if news.size > 6 %}{% assign full_news_size = "title--small lg:title--base" %}{% endif %}
 <div class="layout layout--col layout--top layout--stretch-x gap--medium">
   <div class="flex flex--row flex--center-y gap--medium">
     <div class="grow">
@@ -12,7 +14,7 @@
     half empty.
   {% endcomment %}
   <div class="grid grid--cols-2 portrait:grid--cols-1 gap--large grow">
-    <div class="flex flex--col flex--stretch-x gap--small">
+    <div class="flex flex--col flex--stretch-x gap--distribute">
       <div class="flex flex--col flex--center gap--xsmall">
         {% render "lead", lead: lead, size: "value--large lg:value--xxlarge" %}
         {% render "lead_weather", weather: lead.weather %}
@@ -32,9 +34,9 @@
         {% elsif focus == "grid" %}
           {% render "grid", grid: grid %}
         {% elsif focus == "news" %}
-          {% render "news", news: news, limit: 4, headline_size: "title--base lg:title--xlarge" %}
+          {% render "news", news: news, limit: 10, headline_size: full_news_size, fill: true %}
         {% elsif news.size == 0 %}
-          {% render "news", news: news, limit: 4, headline_size: "title--base lg:title--xlarge" %}
+          {% render "news", news: news, limit: 10, headline_size: full_news_size, fill: true %}
         {% endif %}
       </div>
     </div>

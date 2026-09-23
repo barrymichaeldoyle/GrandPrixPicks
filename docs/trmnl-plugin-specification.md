@@ -206,7 +206,10 @@ forecasts in 6-hour periods, and a 16:00 race in Baku drew a moon.
 weekend timeline (sessions with local times, weather, each one's top three,
 and a filled "Next" marker on the first session that has not started). Right
 column: the grid on race morning, otherwise whichever is newer of the latest
-session result ("Race result", "Qualifying result") and up to four headlines.
+session result ("Race result", "Qualifying result") and up to ten headline
+candidates. When more than six arrive, headline type steps down once; TRMNL
+overflow hides trailing items that do not fit. A horizontal divider separates
+each adjacent headline.
 The focus block owns the column's spare
 height: TRMNL's overflow script hides news items that do not fit, and a
 separate spacer read to it as content and hid most of them. On race morning
@@ -214,14 +217,14 @@ the grid fills the right column while the QR code stays in the header.
 When there is no news to show, a short empty message is centred in the right
 column.
 
-**Half horizontal:** the race header, lead and the lead's weather, beside the
-latest result or two headlines, then the QR code. With no news it shows the
-timeline in its short form instead of an empty message: this layout has no
-timeline otherwise.
+**Half horizontal:** the compact race header and QR code sit above the lead
+and its weather, beside the latest result or headlines as space allows. With
+no news it shows the timeline in its short form instead of an empty message:
+this layout has no timeline otherwise.
 
-**Half vertical:** the race header, then the lead and its weather beside the
-QR code, then the race result once it lands, otherwise the timeline and one
-headline (two overflowed into the title bar once the timeline was full).
+**Half vertical:** the compact race header and QR code sit above the lead and
+its weather. Before results, it shows the first four upcoming sessions and
+up to seven headlines after the timeline, with dividers between headlines.
 
 **Quadrant:** the race header, then the lead and its weather beside the QR
 code. Like every layout, its title bar reads "GrandPrixPicks.com".
@@ -373,7 +376,7 @@ default is each device's own, 2-bit on the OG and 4-bit on the X). A fourth,
 `?news=`, shows any moment with 0, 1, 2 or 10 sample headlines instead of the
 news as published (`sampleNewsVariant` in `scenarios.ts`; the server builds
 each moment's variants, since news can change the focus block too). The
-payload carries at most six headlines, so 10 shows the overflow as a device
+payload carries at most ten headlines, so 10 shows the overflow as a device
 would. There was a size switch as well; showing every size at once replaced
 it. It is the place to check
 a layout change, and the plugin's "learn more" link from the TRMNL directory.
@@ -406,8 +409,8 @@ a layout change, and the plugin's "learn more" link from the TRMNL directory.
   sprint weekend), and for the render and parity tests. Sample news uses
   invented headlines, and the page says when it is showing a sample. The news
   switch covers the empty state and overflow for every moment; the full
-  layout renders at most four headlines and keeps the QR code in the header
-  above them.
+  layout offers up to ten headlines at once and keeps the QR code in the
+  header above them; overflow determines how many fit.
 - **Feedback** (`routes/-trmnl/TrmnlFeedback.tsx`) sits under the screens:
   one box, sent through `support.submitRequest` with category `trmnl`, so it
   reaches the support inbox. Sending needs an account, deliberately: someone

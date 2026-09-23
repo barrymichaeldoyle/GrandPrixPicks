@@ -55,7 +55,7 @@ const TRMNL_PAYLOAD_VERSION = 2;
  */
 export const TRMNL_RESULT_HOLD_MS = 36 * 60 * 60 * 1000;
 
-const NEWS_LIMIT = 6;
+const NEWS_LIMIT = 10;
 /**
  * Result rows the payload carries per session. The race and the sprint go to
  * ten, the points places a fan reads; the qualifying top five is the pick

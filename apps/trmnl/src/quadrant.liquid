@@ -1,27 +1,28 @@
 {% if has_race %}
-{% comment %}
-  The QR code sits beside the lead, or beneath it in portrait, where the
-  quarter is 240px wide and tall enough for both.
-{% endcomment %}
+{% comment %}The compact race header keeps the QR code in the upper-right corner.{% endcomment %}
 <div class="layout layout--col layout--top layout--stretch-x gap--small">
-  {% render "race_header", race: race, name_size: "lg:title--base", detail_size: "lg:label--base", flag_size: "h--[56px] w--max-[112px] lg:h--[68px] lg:w--max-36" %}
+  <div class="flex flex--row flex--center-y gap--small w--full">
+    <div class="grow">{% render "race_header", race: race, name_size: "title--small lg:title--base", detail_size: "lg:label--base", flag_size: "h--[24px] w--max-[48px] lg:h--[32px] lg:w--max-[64px]", inline_flag: true %}</div>
+    <div class="flex-none">{% render "qr", url: race.url %}</div>
+  </div>
   <div class="grow flex flex--row portrait:flex--col flex--center-y gap--medium w--full">
     <div class="grow flex flex--col flex--center gap--xsmall">
       {% render "lead", lead: lead, size: "value--medium lg:value--large" %}
       {% render "lead_weather", weather: lead.weather %}
     </div>
-    {% render "qr", url: race.url %}
   </div>
 </div>
 {% elsif standings %}
 <div class="layout layout--col layout--top layout--stretch-x gap--small">
-  {% render "standings_header", standings: standings, title_size: "lg:title--base", detail_size: "lg:label--base" %}
+  <div class="flex flex--row flex--center-y gap--small w--full">
+    <div class="grow">{% render "standings_header", standings: standings, title_size: "lg:title--base", detail_size: "lg:label--base" %}</div>
+    <div class="flex-none">{% render "qr", url: standings.url %}</div>
+  </div>
   <div class="grow flex flex--row portrait:flex--col flex--center-y gap--medium w--full">
     <div class="grow flex flex--col flex--center gap--xsmall">
       {% render "leader", standings: standings, value_size: "value--small lg:value--large" %}
       <span class="label label--small lg:label--base">Constructors: {{ standings.constructors.first.name }}</span>
     </div>
-    {% render "qr", url: standings.url %}
   </div>
 </div>
 {% else %}

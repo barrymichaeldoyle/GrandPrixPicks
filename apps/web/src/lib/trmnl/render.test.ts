@@ -113,13 +113,26 @@ describe('TRMNL layouts', () => {
     expect(half).toContain('FP1');
   });
 
-  it('caps ten sample headlines at six in the payload and four on screen', () => {
+  it('passes ten headline candidates to full-screen overflow layout', () => {
     const buildUp = TRMNL_SCENARIOS.find((s) => s.id === 'build-up')!;
     const variant = sampleNewsVariant(buildUp.input, 10);
-    expect(variant.news).toHaveLength(6);
+    expect(variant.news).toHaveLength(10);
     expect(variant.focus).toBe('news');
     const full = renderTrmnlMarkup('full', { ...buildUp.payload, ...variant });
-    expect(full.match(/data-clamp="2"/g)).toHaveLength(4);
+    expect(full.match(/data-clamp="2"/g)).toHaveLength(10);
+    expect(full.match(/class="divider divider--h"/g)).toHaveLength(9);
+    const halfHorizontal = renderTrmnlMarkup('half_horizontal', {
+      ...buildUp.payload,
+      ...variant,
+    });
+    expect(halfHorizontal.match(/data-clamp="2"/g)).toHaveLength(10);
+    expect(halfHorizontal.match(/class="divider divider--h"/g)).toHaveLength(9);
+    const halfVertical = renderTrmnlMarkup('half_vertical', {
+      ...buildUp.payload,
+      ...variant,
+    });
+    expect(halfVertical.match(/data-clamp="2"/g)).toHaveLength(7);
+    expect(halfVertical.match(/class="divider divider--h"/g)).toHaveLength(6);
   });
 
   it('keeps the starting grid when the news is swapped for samples', () => {
@@ -127,7 +140,7 @@ describe('TRMNL layouts', () => {
     for (const count of TRMNL_NEWS_COUNTS) {
       const variant = sampleNewsVariant(raceMorning.input, count);
       expect(variant.focus, `${count}`).toBe('grid');
-      expect(variant.news, `${count}`).toHaveLength(Math.min(count, 6));
+      expect(variant.news, `${count}`).toHaveLength(Math.min(count, 10));
     }
   });
 

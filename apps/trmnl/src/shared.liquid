@@ -27,8 +27,8 @@
 
 {% comment %}
   Flag, race name, circuit, then round and dates. The full layout can combine
-  the circuit and round/date line; smaller layouts keep three lines. The flag
-  is decoration beside the name: in grayscale Italy, Ireland
+  the circuit and round/date line; half screens put the flag beside the name
+  and the details below. The flag is decoration: in grayscale Italy, Ireland
   and Mexico are the same three stripes, so it can never be the only thing that
   says which race this is.
 
@@ -61,13 +61,22 @@
   border class; 2px is its smallest padding step.
 {% endcomment %}
 {% template race_header %}
-<div class="flex flex--row flex--left flex--center-y gap--small">
-  {% if race.flag_url %}
-  <div class="bg--black p--0.5 shrink-0 flex">
-    <img class="image image-dither lg:hidden shrink-0 w--auto {{ flag_size }}" src="{{ race.flag_url }}" alt="">
-    <img class="image hidden lg:block shrink-0 w--auto {{ flag_size }}" src="{{ race.flag_url }}" alt="">
+{% if inline_flag %}
+<div class="flex flex--col flex--left gap--none">
+  <div class="flex flex--row flex--left flex--center-y gap--small">
+    {% render "race_flag", race: race, flag_size: flag_size %}
+    <span class="title {{ name_size }}">{{ race.name }}</span>
   </div>
+  {% if split_dates %}
+    <span class="label label--small {{ detail_size }}">{% if race.circuit %}{{ race.circuit }} · {% endif %}Round&nbsp;{{ race.round }}</span>
+    <span class="label label--small {{ detail_size }}">{{ race.dates | replace: " ", "&nbsp;" | replace: "–", "‑" | replace: "-", "‑" }}</span>
+  {% else %}
+    <span class="label label--small {{ detail_size }}">{% if race.circuit %}{{ race.circuit }} · {% endif %}Round&nbsp;{{ race.round }} · {{ race.dates | replace: " ", "&nbsp;" | replace: "–", "‑" | replace: "-", "‑" }}</span>
   {% endif %}
+</div>
+{% else %}
+<div class="flex flex--row flex--left flex--center-y gap--medium">
+  {% render "race_flag", race: race, flag_size: flag_size %}
   <div class="flex flex--col flex--left gap--none">
     <span class="title {{ name_size }}">{{ race.name }}</span>
     {% if compact_details %}
@@ -78,6 +87,16 @@
     {% endif %}
   </div>
 </div>
+{% endif %}
+{% endtemplate %}
+
+{% template race_flag %}
+{% if race.flag_url %}
+<div class="bg--black p--0.5 shrink-0 flex">
+  <img class="image image-dither lg:hidden shrink-0 w--auto {{ flag_size }}" src="{{ race.flag_url }}" alt="">
+  <img class="image hidden lg:block shrink-0 w--auto {{ flag_size }}" src="{{ race.flag_url }}" alt="">
+</div>
+{% endif %}
 {% endtemplate %}
 
 {% comment %}
@@ -86,9 +105,10 @@
   ("FP1", "SQ") where there is not. Each row carries its own forecast.
 {% endcomment %}
 {% template schedule %}
+{% assign schedule_limit = limit | default: 99 %}
 <table class="table {{ size }}">
   <tbody>
-    {% for row in schedule %}
+    {% for row in schedule limit: schedule_limit %}
     <tr>
       <td><span class="title title--small lg:title--base">{{ row[name] }}</span></td>
       <td><span class="label label--small lg:label--base">{{ row.when }}</span></td>
@@ -122,7 +142,7 @@
   Liquid falls back to a default, so the page and the device disagreed.
 {% endcomment %}
 {% template news %}
-<div class="flex flex--col gap--small {% if news.size == 0 %}h--full flex--center{% endif %}" data-overflow="true">
+<div class="flex flex--col gap--xsmall {% if fill or news.size == 0 %}h--full{% endif %} {% if news.size == 0 %}flex--center{% endif %}" data-overflow="true">
   {% if news.size == 0 %}<span class="label label--small lg:label--base">No news yet.</span>{% endif %}
   {% for item in news limit: limit %}
   <div class="item">
@@ -131,6 +151,7 @@
       <span class="title {{ headline_size }}" data-clamp="2">{{ item.headline }}</span>
     </div>
   </div>
+  {% unless forloop.last %}<div class="divider divider--h"></div>{% endunless %}
   {% endfor %}
 </div>
 {% endtemplate %}

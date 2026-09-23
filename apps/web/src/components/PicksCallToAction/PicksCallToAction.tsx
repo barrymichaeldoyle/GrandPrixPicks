@@ -1,5 +1,6 @@
 import { api } from '@convex-generated/api';
 import type { Doc } from '@convex-generated/dataModel';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, Flag as FlagIcon } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
@@ -10,7 +11,6 @@ import { Flag } from '@/components/Flag';
 import { InlineLoader } from '@/components/InlineLoader';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
-import { useQuery } from '@/integrations/convex/query';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { type PicksCtaState, picksCtaCopy } from '@/lib/picksCta';
@@ -18,6 +18,7 @@ import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { formatViewerLockDate } from '@/lib/raceLockTime';
 import { getNextSessionLock } from '@/lib/raceSessions';
 import { getRaceWriteupPhase, isRaceWriteupLive } from '@/lib/raceWriteupPhase';
+import { routeQuery } from '@/lib/routeQuery';
 import { SESSION_LABELS } from '@/lib/sessions';
 import { useNow } from '@/lib/testing/now';
 
@@ -133,12 +134,18 @@ export function PicksCallToAction({
    *
    * `getQuickPickRace` is the query the hub resolves too, so the panel and the
    * page its button leads to can never name different weekends.
+   *
+   * Through TanStack Query, the cache the root loader primes on every page, so
+   * the server renders the same race the browser hydrates with. Read over the
+   * WebSocket instead, the server always rendered no race and the browser
+   * named one as soon as the socket answered; on a slow machine that landed
+   * before hydration and React reported a mismatch (CI, 23 September 2026).
    */
   const needsWeekend = !raceSlug && !venueName;
-  const weekendRace = useQuery(
-    api.races.getQuickPickRace,
-    needsWeekend ? {} : 'skip',
-  );
+  const { data: weekendRace } = useQuery({
+    ...routeQuery(api.races.getQuickPickRace, {}),
+    enabled: needsWeekend,
+  });
   // Coarse: the panel names a lock date, it does not count seconds, and the
   // live/locked boundary is the only thing that has to notice the clock.
   const now = useNow(30_000);

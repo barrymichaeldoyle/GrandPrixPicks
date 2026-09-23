@@ -1,8 +1,11 @@
 # Automated news discovery and editorial pipeline
 
-Implementation brief for an agent working in this repository. This document
-records the intended product behavior; `docs/race-news.md` describes the current
-publishing tools until the migration is complete.
+Product and security requirements for the news pipeline. The publication,
+push, discovery, worker and review stages have been implemented; see
+`docs/news-pipeline-implementation.md` for the delivered behavior and remaining
+editorial limitations. `docs/race-news.md` documents the operator workflow.
+The work sequence below is the original implementation plan, retained as
+design context rather than a list of outstanding engineering tasks.
 
 ## Product decision
 

@@ -1,6 +1,61 @@
 import { v } from 'convex/values';
-import { internalMutation, query } from './_generated/server';
+import { internalMutation, internalQuery, query } from './_generated/server';
 import { safeHttpUrl } from './lib/newsRss';
+
+/**
+ * A read bound rather than an editorial one. Race-independent stories are rare,
+ * but a read still has to be bounded, and fifty is far above any run of them the
+ * site has ever carried.
+ */
+const MAX_GLOBAL_NEWS = 50;
+
+const globalNewsListResultValidator = v.object({
+  items: v.array(
+    v.object({
+      key: v.string(),
+      headline: v.string(),
+      body: v.string(),
+      sourceName: v.string(),
+      sourceUrl: v.string(),
+      active: v.boolean(),
+      publishedAt: v.number(),
+      updatedAt: v.number(),
+      sourcePublishedAt: v.optional(v.number()),
+    }),
+  ),
+});
+
+/**
+ * Active and retracted race-independent news for the operator audit trail.
+ *
+ * The feed reads `feedEvents`, so nothing in the app reads this table. This is
+ * the one way to list what the pipeline published and confirm it before a
+ * `retract`, the same job `raceNews:listForOperators` does for weekend news.
+ *
+ * Run via:
+ *   npx convex run --prod globalNews:listForOperators '{}'
+ */
+export const listForOperators = internalQuery({
+  args: {},
+  returns: globalNewsListResultValidator,
+  handler: async (ctx) => {
+    const rows = await ctx.db.query('globalNews').take(MAX_GLOBAL_NEWS);
+    const items = rows
+      .sort((a, b) => b.publishedAt - a.publishedAt)
+      .map((row) => ({
+        key: row.key,
+        headline: row.headline,
+        body: row.body,
+        sourceName: row.sourceName,
+        sourceUrl: row.sourceUrl,
+        active: row.active,
+        publishedAt: row.publishedAt,
+        updatedAt: row.updatedAt,
+        sourcePublishedAt: row.sourcePublishedAt,
+      }));
+    return { items };
+  },
+});
 
 /** Race-independent, reviewed news. Its feed card keeps arrival-time order on correction. */
 export const publish = internalMutation({

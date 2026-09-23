@@ -219,20 +219,17 @@ When there is no news to show, a short empty message is centred in the right
 column.
 
 **Half horizontal:** the compact race header and QR code sit above the lead
-and its weather, beside the latest result or headlines as space allows. With
-no news it shows the timeline in its short form instead of an empty message:
-this layout has no timeline otherwise.
+and its weather. Beside them, it shows the latest result or, before results,
+the short weekend schedule followed by as many headlines as fit.
 
 **Half vertical:** the compact race header and QR code sit above the lead and
 its weather. Before results, it shows the first four upcoming sessions and
 up to seven headlines after the timeline, with dividers between headlines.
 
 **Quadrant:** the compact race header and QR code sit above the lead and its
-weather. When headlines are available, they share the lower area with the lead;
-the layout offers up to twenty headlines to TRMNL's overflow manager, which keeps
-the ones that fit. The visible list is centred vertically beside the lead.
-Headline type steps down on larger screens when there are more than three, with
-a divider between each. Like every layout, its title bar reads
+weather. The lead stays primary; up to two headlines sit below it when there is
+room. TRMNL's overflow manager hides a headline if it does not fit, and a
+divider separates two visible items. Like every layout, its title bar reads
 "GrandPrixPicks.com".
 
 **The lead's weather** is the lead session's own forecast (`lead.weather`),

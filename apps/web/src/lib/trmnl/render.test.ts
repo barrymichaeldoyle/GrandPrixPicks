@@ -130,6 +130,8 @@ describe('TRMNL layouts', () => {
     expect(halfHorizontal.match(/class="divider divider--h"/g)).toHaveLength(
       19,
     );
+    expect(halfHorizontal).toContain('FP1');
+    expect(halfHorizontal).toContain('Race');
     const halfVertical = renderTrmnlMarkup('half_vertical', {
       ...buildUp.payload,
       ...variant,
@@ -145,10 +147,13 @@ describe('TRMNL layouts', () => {
       ...buildUp.payload,
       ...variant,
     });
-    expect(quadrant.match(/data-clamp="2"/g)).toHaveLength(20);
-    expect(quadrant.match(/class="divider divider--h"/g)).toHaveLength(19);
-    expect(quadrant).toContain('title--small lg:title--small');
+    expect(quadrant.match(/data-clamp="2"/g)).toHaveLength(2);
+    expect(quadrant.match(/class="divider divider--h"/g)).toHaveLength(1);
     expect(quadrant).toContain('h--full flex--left flex--center-y');
+    expect(quadrant).toContain(buildUp.payload.lead!.value);
+    expect(quadrant.indexOf(buildUp.payload.lead!.value)).toBeLessThan(
+      quadrant.indexOf(variant.news[0]!.headline),
+    );
   });
 
   it('keeps the starting grid when the news is swapped for samples', () => {

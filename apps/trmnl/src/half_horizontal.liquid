@@ -16,17 +16,16 @@
       {% render "lead_weather", weather: lead.weather %}
     </div>
   </div>
-  <div class="grow">
+  <div class="grow flex flex--col gap--small">
     {% if focus == "result" %}
       {% render "result", result: result, limit: 5, split: false %}
-    {% elsif news.size > 0 %}
-      {% render "news", news: news, limit: 20, headline_size: half_horizontal_news_size, fill: true %}
     {% else %}
-      {% comment %}
-        No news yet: the sessions, which this layout otherwise leaves out,
-        rather than an empty state.
-      {% endcomment %}
-      {% render "schedule", schedule: schedule, size: "table--xsmall", name: "short" %}
+      {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short" %}
+      {% if news.size > 0 %}
+        <div class="grow">
+          {% render "news", news: news, limit: 20, headline_size: half_horizontal_news_size, fill: true %}
+        </div>
+      {% endif %}
     {% endif %}
   </div>
 </div>

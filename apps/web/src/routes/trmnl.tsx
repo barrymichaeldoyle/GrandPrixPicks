@@ -81,7 +81,7 @@ export const Route = createFileRoute('/trmnl')({
   component: TrmnlPage,
   head: () =>
     pageMeta({
-      title: 'F1 Race Weekend for TRMNL | Grand Prix Picks',
+      title: 'Formula 1 Race Weekend for TRMNL | Grand Prix Picks',
       description:
         'Every screen of the Grand Prix Picks plugin for TRMNL e-ink displays, for each moment of a race weekend and each screen size.',
       path: '/trmnl',
@@ -120,7 +120,7 @@ function TrmnlPage() {
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-5xl px-4 py-6">
         <PageHeader
-          title="F1 Race Weekend for TRMNL"
+          title="Formula 1 Race Weekend for TRMNL"
           subtitle="Our plugin for the TRMNL e-ink display shows the current race weekend: session times in your time zone, practice and session results as they are published, the starting grid on race morning, and the news."
         />
 

@@ -5,7 +5,12 @@ September 2026); not yet submitted as a Recipe (section 9). The polling
 endpoint is `apps/web/server/routes/api/trmnl/weekend.get.ts` (logic in
 `apps/web/server/lib/trmnl.ts`), and the Liquid plugin is `apps/trmnl/`.  
 **Product type:** Public TRMNL Recipe. No sign-in, no per-player data.  
-**Marketplace name:** F1 Race Weekend by Grand Prix Picks  
+**Marketplace name:** Formula 1 Race Weekend, tagline "F1 weekend: times,
+results, news". The name matches the four "Formula 1 …" plugins already
+listed, so a search for "formula 1" puts it beside them, and "Race Weekend" is
+the difference from all four; "F1" in the tagline catches the other search.
+The brand is on every screen (the title bar, the QR code), so the name is
+spent on being found.  
 **Specification version:** 0.3  
 **Prepared:** 9 September 2026, revised 22 September 2026  
 **Parent product:** [Grand Prix Picks](https://grandprixpicks.com)
@@ -436,9 +441,10 @@ Also check:
   `text-align`, `object-fit` and `font-size`. The templates use only `border`
   (the flag frame) and `white-space`, which are not on that list, but a
   reviewer may still comment.
-- **The Description field** on the plugin's settings page. It is the tagline
-  in search results, and it is still TRMNL's placeholder ("Upcoming train
-  departures"). Suggested: "F1 race weekend: times, results, news".
+- **The Description field** on the plugin's settings page is the tagline in
+  search results, capped at 35 characters. It is set: "F1 weekend: times,
+  results, news" (the first draft, "F1 race weekend: times, results, news",
+  was 37).
 - **The icon.** The plugin's settings take a PNG or SVG, 512x512
   recommended. `apps/web/public/trmnl-icon.svg` is the mark to use.
 - **Form fields.** A plugin set up by hand has no `author_bio`. Paste the

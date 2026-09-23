@@ -1,5 +1,7 @@
 ---
-name: F1 Race Weekend by Grand Prix Picks
+name: Formula 1 Race Weekend
+# The tagline in TRMNL's search results; TRMNL caps it at 35 characters.
+description: 'F1 weekend: times, results, news'
 strategy: polling
 # Minutes. With on-demand refresh this is a floor, not a schedule: TRMNL
 # polls just before the device draws, never more often than this. 15 is the

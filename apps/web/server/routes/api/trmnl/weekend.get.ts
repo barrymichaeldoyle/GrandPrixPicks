@@ -6,7 +6,10 @@ import {
   buildTrmnlPayload,
   selectTrmnlRace,
 } from '../../../../src/lib/trmnl/payload';
-import { loadTrmnlWeekend } from '../../../../src/lib/trmnl/weekendData';
+import {
+  loadTrmnlOffSeason,
+  loadTrmnlWeekend,
+} from '../../../../src/lib/trmnl/weekendData';
 
 type RouteEvent = {
   req: Request;
@@ -38,21 +41,31 @@ export default async function handler(event: RouteEvent) {
     const payload = await startServerSpan(
       { name: 'trmnl.weekend' },
       async () => {
-        const { races } = await convex.query(api.races.listCurrentSeason, {});
+        const { season, races } = await convex.query(
+          api.races.listCurrentSeason,
+          {},
+        );
         const race = selectTrmnlRace(races, now);
-
-        const weekend = race ? await loadTrmnlWeekend(convex, race, now) : null;
-
-        return buildTrmnlPayload({
+        const base = {
           now,
           timeZone: url.searchParams.get('tz'),
           locale: url.searchParams.get('locale'),
-          race,
-          news: weekend?.news ?? [],
-          results: weekend?.results ?? {},
-          practice: weekend?.practice ?? [],
-          weather: weekend?.weather ?? null,
-        });
+        };
+
+        if (!race) {
+          // The off-season: the season just run, and the site's other news.
+          return buildTrmnlPayload({
+            ...base,
+            race: null,
+            results: {},
+            practice: [],
+            weather: null,
+            ...(await loadTrmnlOffSeason(convex, season)),
+          });
+        }
+
+        const weekend = await loadTrmnlWeekend(convex, race, now);
+        return buildTrmnlPayload({ ...base, ...weekend });
       },
     );
 

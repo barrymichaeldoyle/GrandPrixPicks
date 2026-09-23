@@ -1,12 +1,12 @@
 {% if has_race %}
 <div class="layout layout--col layout--top layout--stretch-x gap--medium">
-  {% render "race_header", race: race, name_size: "lg:title--large", flag_size: "h--[56px] w--max-[112px] lg:h--[76px] lg:w--max-[152px]" %}
+  {% render "race_header", race: race, name_size: "lg:title--large", detail_size: "lg:label--large", flag_size: "h--[56px] w--max-[112px] lg:h--[88px] lg:w--max-[176px]" %}
   <div class="flex flex--row flex--center-y gap--medium">
     <div class="grow flex flex--col flex--center gap--xsmall">
       {% render "lead", lead: lead, size: "value--large lg:value--large" %}
       {% render "lead_weather", weather: lead.weather %}
     </div>
-    {% render "qr", race: race %}
+    {% render "qr", url: race.url %}
   </div>
   {% if focus == "result" %}
     {% comment %}
@@ -20,6 +20,23 @@
     {% comment %}One headline: two overflow into the title bar once the timeline is full.{% endcomment %}
     {% render "news", news: news, limit: 1, headline_size: "title--small lg:title--large" %}
   {% endif %}
+</div>
+{% elsif standings %}
+<div class="layout layout--col layout--top layout--stretch-x gap--medium">
+  <div class="flex flex--row flex--center-y gap--medium">
+    <div class="grow">
+      {% render "standings_header", standings: standings, title_size: "lg:title--large", detail_size: "lg:label--large" %}
+    </div>
+    {% render "qr", url: standings.url %}
+  </div>
+  {% render "standings_table", label: "Drivers", rows: standings.drivers, limit: 10, size: "table--xsmall lg:table--base lg:portrait:table--small" %}
+  {% comment %}
+    The constructors only fit under the drivers on the tall portrait half,
+    and on a portrait X only at the smaller row height.
+  {% endcomment %}
+  <div class="hidden portrait:block">
+    {% render "standings_table", label: "Constructors", rows: standings.constructors, limit: 10, size: "table--xsmall lg:table--base lg:portrait:table--small" %}
+  </div>
 </div>
 {% else %}
 <div class="layout layout--col layout--center">

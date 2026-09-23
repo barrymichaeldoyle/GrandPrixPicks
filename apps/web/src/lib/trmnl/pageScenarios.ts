@@ -7,9 +7,9 @@ import { withRetry } from '@/lib/retry';
 import type { TrmnlPayload } from './payload';
 import { buildTrmnlPayload } from './payload';
 import { pickReplay, replayWeekend, TRMNL_MOMENTS } from './replay';
-import { TRMNL_SCENARIOS } from './scenarios';
+import { SAMPLE_OFF_SEASON_NEWS, TRMNL_SCENARIOS } from './scenarios';
 import type { TrmnlWeekendData } from './weekendData';
-import { loadTrmnlWeekend } from './weekendData';
+import { loadTrmnlOffSeason, loadTrmnlWeekend } from './weekendData';
 
 /** One tab of the `/trmnl` page. */
 export type TrmnlPageScenario = {
@@ -52,7 +52,7 @@ export const fetchTrmnlPageScenarios = createServerFn({
   method: 'GET',
 }).handler(async (): Promise<TrmnlPageScenario[]> => {
   const now = Date.now();
-  const { races } = await withRetry(() =>
+  const { season, races } = await withRetry(() =>
     convexHttp.query(api.races.listCurrentSeason, {}),
   );
 
@@ -106,14 +106,41 @@ export const fetchTrmnlPageScenarios = createServerFn({
     };
   });
 
-  const offSeason = TRMNL_SCENARIOS.find((s) => s.id === 'off-season');
-  if (offSeason) {
-    scenarios.push({
-      id: offSeason.id,
-      label: offSeason.label,
-      caption: 'After the last race of the season.',
-      payload: offSeason.payload,
-    });
-  }
+  scenarios.push(await offSeasonScenario(season, now));
   return scenarios;
 });
+
+/**
+ * The off-season screen with this season's real standings as they stand now.
+ * Its news is always the sample: off-season news is months away.
+ */
+async function offSeasonScenario(
+  season: number,
+  now: number,
+): Promise<TrmnlPageScenario> {
+  const { standings } = await withRetry(() =>
+    loadTrmnlOffSeason(convexHttp, season),
+  );
+  const real = (standings?.drivers.length ?? 0) > 0;
+  const sample = TRMNL_SCENARIOS.find((s) => s.id === 'off-season');
+  return {
+    id: 'off-season',
+    label: 'Off-season',
+    caption: real
+      ? `After the last race of the season: the ${season} standings as they are today, with sample news.`
+      : 'After the last race of the season. A sample, with invented standings and news.',
+    payload: real
+      ? buildTrmnlPayload({
+          now,
+          timeZone: ZONE,
+          locale: LOCALE,
+          race: null,
+          results: {},
+          practice: [],
+          weather: null,
+          standings,
+          news: SAMPLE_OFF_SEASON_NEWS,
+        })
+      : (sample ?? TRMNL_SCENARIOS[0]).payload,
+  };
+}

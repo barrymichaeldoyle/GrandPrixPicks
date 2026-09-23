@@ -1,12 +1,27 @@
 {% if has_race %}
+{% comment %}
+  The QR code sits beside the lead, or beneath it in portrait, where the
+  quarter is 240px wide and tall enough for both.
+{% endcomment %}
 <div class="layout layout--col layout--top layout--stretch-x gap--small">
-  {% render "race_header", race: race, name_size: "lg:title--base", flag_size: "h--[56px] w--max-[112px] lg:h--[76px] lg:w--max-[152px]" %}
-  <div class="flex flex--row flex--center-y gap--medium w--full">
+  {% render "race_header", race: race, name_size: "lg:title--base", detail_size: "lg:label--base", flag_size: "h--[56px] w--max-[112px] lg:h--[68px] lg:w--max-[136px]" %}
+  <div class="flex flex--row portrait:flex--col flex--center-y gap--medium w--full">
     <div class="grow flex flex--col flex--center gap--xsmall">
       {% render "lead", lead: lead, size: "value--medium lg:value--large" %}
       {% render "lead_weather", weather: lead.weather %}
     </div>
-    {% render "qr", race: race %}
+    {% render "qr", url: race.url %}
+  </div>
+</div>
+{% elsif standings %}
+<div class="layout layout--col layout--top layout--stretch-x gap--small">
+  {% render "standings_header", standings: standings, title_size: "lg:title--base", detail_size: "lg:label--base" %}
+  <div class="flex flex--row portrait:flex--col flex--center-y gap--medium w--full">
+    <div class="grow flex flex--col flex--center gap--xsmall">
+      {% render "leader", standings: standings, value_size: "value--small lg:value--large" %}
+      <span class="label label--small lg:label--base">Constructors: {{ standings.constructors.first.name }}</span>
+    </div>
+    {% render "qr", url: standings.url %}
   </div>
 </div>
 {% else %}

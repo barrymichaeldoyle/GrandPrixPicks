@@ -64,3 +64,22 @@ export async function loadTrmnlWeekend(
     weather: forecast,
   };
 }
+
+/**
+ * What the off-season screen needs: the season's championship tables and the
+ * site's race-independent news. Used by the polling endpoint, and by the
+ * `/trmnl` page for its standings.
+ */
+export async function loadTrmnlOffSeason(
+  convex: Pick<ConvexHttpClient, 'query'>,
+  season: number,
+): Promise<Pick<TrmnlInput, 'standings' | 'news'>> {
+  const [championship, news] = await Promise.all([
+    convex.query(api.f1Standings.getF1Championship, { season }),
+    convex.query(api.globalNews.listRecent, { limit: 4 }),
+  ]);
+  return {
+    standings: championship,
+    news: news.map((item) => ({ ...item, affectsSessions: [] })),
+  };
+}

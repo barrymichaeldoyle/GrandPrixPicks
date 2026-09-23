@@ -36,61 +36,102 @@ export const TRMNL_LAYOUTS: readonly { id: TrmnlLayout; label: string }[] = [
   { id: 'quadrant', label: 'Quarter' },
 ];
 
-export type TrmnlDevice = 'og' | 'og-1bit' | 'x' | 'x-portrait';
+export type TrmnlDevice = 'og' | 'x';
+type TrmnlOrientation = 'landscape' | 'portrait';
+/**
+ * The Framework's rendering modes (trmnl.com/framework/docs/3.3/color_palettes).
+ * Grayscale: 1-bit (black and white), 2-bit (4 grays, the OG's own) and 4-bit
+ * (16 grays, the X's own); an owner can choose a lower one per playlist item.
+ * Colour: the OG's black/white/red/yellow panel, 7-colour e-paper (Inkplate,
+ * Inky Impression) and full colour (tablets and other colour screens), which
+ * TRMNL serves through bring-your-own-device.
+ */
+export type TrmnlPalette =
+  | '1bit'
+  | '2bit'
+  | '4bit'
+  | 'color-4bwry'
+  | 'color-7a'
+  | 'color-full';
+
+export const TRMNL_PALETTES: readonly { id: TrmnlPalette; label: string }[] = [
+  { id: '1bit', label: 'Black & white' },
+  { id: '2bit', label: '4 grays' },
+  { id: '4bit', label: '16 grays' },
+  { id: 'color-4bwry', label: 'B/W/R/Y' },
+  { id: 'color-7a', label: '7 colours' },
+  { id: 'color-full', label: 'Full colour' },
+];
+
+/** Each device's own palette, when an owner has not chosen another. */
+export function defaultTrmnlPalette(device: TrmnlDevice): TrmnlPalette {
+  return device === 'og' ? '2bit' : '4bit';
+}
+
+export type TrmnlScreenConfig = {
+  device: TrmnlDevice;
+  orientation: TrmnlOrientation;
+  palette: TrmnlPalette;
+};
+
+const DEFAULT_SCREEN_CONFIG: TrmnlScreenConfig = {
+  device: 'og',
+  orientation: 'landscape',
+  palette: '2bit',
+};
 
 /**
- * The two TRMNL devices, as the Framework's device profiles
+ * The screen a TRMNL owner can actually have: a device, turned either way,
+ * on either palette. These are the Framework's device profiles
  * (trmnl.com/framework/docs/3.3/devices). On the platform the screen class is
  * supplied for us; here it has to be spelled out, or the Framework renders its
- * default 1-bit 800x480 screen, which is neither.
+ * default 1-bit 800x480 screen, which is neither device.
  *
- * The X is not just a bigger OG: it lays out at 1040x780 CSS pixels and the
- * Framework then scales the whole screen by its 1.8 pixel ratio to the
- * panel's 1872x1404, so `width`/`height` here are the panel's, the size the
- * frame has to be. It is 4:3 rather than 5:3, has 16 grays, and its 2x
- * density swaps TRMNL's pixel fonts for Inter.
+ * - The OG is 800x480. Its 2-bit profile is `screen--ogv2`; on any other
+ *   palette, including the B/W/R/Y colour OG, it is `screen--og`.
+ * - The X lays out at 1040x780 CSS pixels and the Framework then scales the
+ *   whole screen by its 1.8 pixel ratio to the panel's 1872x1404, so the size
+ *   returned is the panel's, the size the frame has to be. Its 2x density
+ *   swaps TRMNL's pixel fonts for Inter.
+ * - `screen--portrait` swaps the dimensions. TRMNL's reviewers check every
+ *   layout on the X in portrait, and on the OG and X in landscape.
+ * - The palette is the rendering-mode class (`screen--2bit`,
+ *   `screen--color-4bwry`...). Labels are gray only on 2-bit and 4-bit,
+ *   where the ink has real grays; 1-bit and colour would dither them.
  */
-export const TRMNL_DEVICES: readonly {
-  id: TrmnlDevice;
+export function trmnlScreenProfile(config: TrmnlScreenConfig): {
   label: string;
   screenClass: string;
   width: number;
   height: number;
-}[] = [
-  {
-    id: 'og',
-    label: 'TRMNL OG',
-    screenClass: 'screen--ogv2 screen--md screen--2bit',
-    width: 800,
-    height: 480,
-  },
-  {
-    // An OG set to the black-and-white palette. TRMNL's reviewers check
-    // gray text here, which is why every gray label has `1bit:text--black`.
-    id: 'og-1bit',
-    label: 'TRMNL OG 1-bit',
-    screenClass: 'screen--og screen--md screen--1bit',
-    width: 800,
-    height: 480,
-  },
-  {
-    id: 'x',
-    label: 'TRMNL X',
-    screenClass: 'screen--v2 screen--lg screen--density-2x screen--4bit',
-    width: 1872,
-    height: 1404,
-  },
-  {
-    // TRMNL's reviewers preview every layout on the X in portrait too.
-    // `screen--portrait` swaps the screen's dimensions.
-    id: 'x-portrait',
-    label: 'TRMNL X portrait',
-    screenClass:
-      'screen--v2 screen--lg screen--density-2x screen--4bit screen--portrait',
-    width: 1404,
-    height: 1872,
-  },
-];
+} {
+  const og = config.device === 'og';
+  const portrait = config.orientation === 'portrait';
+  const classes = og
+    ? [config.palette === '2bit' ? 'screen--ogv2' : 'screen--og', 'screen--md']
+    : ['screen--v2', 'screen--lg', 'screen--density-2x'];
+  classes.push(`screen--${config.palette}`);
+  if (portrait) {
+    classes.push('screen--portrait');
+  }
+  const [long, short] = og ? [800, 480] : [1872, 1404];
+  return {
+    label: [
+      og ? 'TRMNL OG' : 'TRMNL X',
+      portrait ? 'portrait' : null,
+      // Mid-sentence: "black & white", but "B/W/R/Y" keeps its capitals.
+      TRMNL_PALETTES.find((p) => p.id === config.palette)?.label.replace(
+        /^[A-Z](?=[a-z])/,
+        (first) => first.toLowerCase(),
+      ),
+    ]
+      .filter(Boolean)
+      .join(', '),
+    screenClass: classes.join(' '),
+    width: portrait ? short : long,
+    height: portrait ? long : short,
+  };
+}
 
 const SOURCES = import.meta.glob<string>('../../../../trmnl/src/*.liquid', {
   query: '?raw',
@@ -189,10 +230,9 @@ const MASHUPS: Record<TrmnlLayout, { mashup: string | null; slots: number }> = {
 export function trmnlScreenDocument(
   layout: TrmnlLayout,
   payload: TrmnlPayload,
-  device: TrmnlDevice = 'og',
+  config: TrmnlScreenConfig = DEFAULT_SCREEN_CONFIG,
 ): string {
-  const { screenClass } =
-    TRMNL_DEVICES.find((d) => d.id === device) ?? TRMNL_DEVICES[0];
+  const { screenClass } = trmnlScreenProfile(config);
   const ours = `<div class="view view--${layout}">${renderTrmnlMarkup(layout, payload)}</div>`;
   const { mashup, slots } = MASHUPS[layout];
   const other = `<div class="view view--${layout}"><div class="layout layout--col layout--center"><span class="label label--gray">Another plugin</span></div></div>`;

@@ -108,11 +108,31 @@ the race document and what has been published; nothing is scheduled.
 | Before the race is next             | `<Session> <time>`   | Newer of news or result   |
 | Race next or under way, no result   | `Lights out <time>`  | Grid if published         |
 | Race result published, held for 36h | `Race winner <name>` | Race top 5                |
-| No race left in the season          | `No race scheduled.` | Nothing                   |
+| No race left in the season          | The champion         | Both tables, the news     |
 
 The weekend shown is the next race, except that a race holds the screen for
 36 hours after lights out so a Sunday result is still up on Monday
 (`selectTrmnlRace`). A cancelled round is skipped.
+
+**The off-season** (no race left, and the result hold over) shows the season
+just run: `standings` in the payload, built by `buildStandings` from
+`f1Standings.getF1Championship`, and the site's race-independent news
+(`globalNews.listRecent`). The title reads "2026 final standings" and "After
+23 rounds"; before every round is scored (only the `/trmnl` page previews it
+then) it reads "2026 standings", "After round 16 of 23" and names the
+"Championship leader" rather than a champion. Only when no round is scored
+at all does the screen say "No race scheduled.".
+
+- **Full:** drivers, constructors and the news in three columns, the QR code
+  under the news. In portrait the tables share the top and the news runs
+  beneath.
+- **Half horizontal:** the champion (a fitted value) and the constructors'
+  champion, beside the drivers' top five. Two tables side by side wrapped
+  every name and ran into the title bar.
+- **Half vertical:** the title beside the QR code, then the drivers' top ten;
+  the constructors' ten join them only on the tall portrait half.
+- **Quadrant:** the title, then the champion and the constructors' champion
+  beside the QR code.
 
 **Race header (every layout):** the race flag beside three lines: the race
 name, the circuit, then "Round 16 · 4 – 6 Sept". The flag follows race
@@ -127,9 +147,15 @@ dates off. The dates never split ("1 – 3 May"): their spaces become
 non-breaking in the template, because the Framework's label is a flex container
 that swallowed the space before a nested no-wrap span.
 
-Every flag stands the same height (56px on the full layout, the half-vertical
-and the quarter; 36px on the half-horizontal, whose narrow column otherwise
-wrapped the race name), with its width following the flag's own shape: Monaco
+The circuit and round lines are black: gray small labels were too faint to
+read on the X. On the X they are `label--large` beside the larger race names
+(full, half-vertical) and `label--base` beside `title--base` (half-horizontal,
+quarter), always a step below the name (`detail_size`).
+
+Every flag in a layout stands the same height, matched to the three lines
+beside it on each device: on the OG 56px, or 48px on the half-horizontal; on
+the X 96px on the full layout, 88px on the half-vertical and 68px on the
+half-horizontal and quarter. Its width follows the flag's own shape: Monaco
 is 5:4, Italy 3:2, the US 1.9:1. A fixed 3:2 box letterboxed the others inside
 their frame, so the frames looked different sizes. The width is capped for
 Qatar, whose file's viewBox is 75:18 and stretches to fit. A 1px border frames
@@ -203,13 +229,15 @@ failed OpenF1 poll cannot leave it up until Monday.
 
 All public Convex queries, called from the Nitro route:
 
-| Block             | Query                                                |
-| ----------------- | ---------------------------------------------------- |
-| Weekend selection | `races.listCurrentSeason`                            |
-| News and grid     | `raceNews.list`                                      |
-| Session results   | `results.getEnrichedTop5BySessionForRaceSlug`        |
-| Practice          | `practiceResults.getPracticeSessionSummariesForRace` |
-| Weather           | `weather.getByRaceSlug` (dropped when stale)         |
+| Block             | Query                                                 |
+| ----------------- | ----------------------------------------------------- |
+| Weekend selection | `races.listCurrentSeason`                             |
+| News and grid     | `raceNews.list`                                       |
+| Session results   | `results.getEnrichedTop5BySessionForRaceSlug`         |
+| Practice          | `practiceResults.getPracticeSessionSummariesForRace`  |
+| Weather           | `weather.getByRaceSlug` (dropped when stale)          |
+| Off-season tables | `f1Standings.getF1Championship` (the season just run) |
+| Off-season news   | `globalNews.listRecent`                               |
 
 Notes on news:
 
@@ -251,6 +279,9 @@ module (about 0.6mm on the OG, comfortably scannable). Error correction is
 level M; TRMNL's filter defaults to H, which is for printed codes that get
 scuffed.
 
+The off-season code is `grandprixpicks.com/t/standings`, which lands on
+`/f1-standings` with `utm_content=off_season`.
+
 `server/routes/t/[...path].get.ts` expands it with `resolveTrmnlLanding`: the
 weekend's write-up when one exists (`getRaceWriteup` in
 `apps/web/src/lib/raceWriteups.ts`, the registry the footer and race page
@@ -289,8 +320,11 @@ short links in `server/lib/socialRedirect.ts`. `pageViewProperties` in
 ### The screens page: `/trmnl`
 
 `apps/web/src/routes/trmnl.tsx` shows every screen, for each sample moment of
-a weekend, each size, and each device (`?device=og` or `?device=x`), with the
-payload behind it. It is the place to check
+a weekend and each size, on any screen, with the payload behind it. Three
+switches pick the screen: the device (`?device=og|x`), the orientation
+(`?orientation=landscape|portrait`) and the palette (`?palette=`, one of
+`1bit`, `2bit`, `4bit`, `color-4bwry`, `color-7a`, `color-full`; the default
+is each device's own, 2-bit on the OG and 4-bit on the X). It is the place to check
 a layout change, and the plugin's "learn more" link from the TRMNL directory.
 
 - **The screens are the site's real weekends.** Each moment (build-up,
@@ -313,19 +347,32 @@ a layout change, and the plugin's "learn more" link from the TRMNL directory.
   code-split, so importing the builder there would put it on every page; the
   client sees only a stub. The page caches for a minute at the edge
   (`setRaceDataCacheHeaders`), because the build-up tab is live.
-- **Samples** (`TRMNL_SCENARIOS` in `scenarios.ts`) remain for the off-season
-  tab, for any moment no weekend has reached yet (the sprint before the first
+- **The off-season tab** shows this season's real standings as they stand,
+  so it reads "Championship leader" until the finale, with sample news
+  (`SAMPLE_OFF_SEASON_NEWS`): off-season news is months away.
+- **Samples** (`TRMNL_SCENARIOS` in `scenarios.ts`) remain for any moment no
+  weekend has reached yet (the sprint before the first
   sprint weekend), and for the render and parity tests. Sample news names a
   kind of source ("Sample stewards' document"), never a real publisher, and
   the page says when it is showing a sample.
+- **Feedback** (`routes/-trmnl/TrmnlFeedback.tsx`) sits under the screens:
+  one box, sent through `support.submitRequest` with category `trmnl`, so it
+  reaches the support inbox. Sending needs an account, deliberately: someone
+  who found the plugin in TRMNL's directory has never seen the site, and this
+  is their reason to sign up. A signed-out visitor writes first, presses
+  "Sign in and send", and the message goes once sign-in completes; the route
+  stays Clerk-free because sign-in goes through `requestSignIn`.
 - **No jank between tabs.** Each screen is double-buffered: a new screen loads
   invisibly over the old one and replaces it once TRMNL's script has fitted
   it, so a tab change never flashes white or jumps. The caption reserves two
-  lines. A sweep of every tab and both devices measured a total layout shift
+  lines. A sweep of every tab on both devices measured a total layout shift
   of about 0.005.
-- **Devices** are `TRMNL_DEVICES` in `render.ts`, as the Framework's own device
-  profiles: the OG in 2-bit and 1-bit, and the X in landscape and portrait,
-  the four views TRMNL's reviewers check. The OG (2-bit) is `screen--ogv2 screen--md screen--2bit`, 800x480.
+- **Screens** are `trmnlScreenProfile` in `render.ts`, which turns the three
+  switches into the Framework's own device classes (`TRMNL_PALETTES` lists
+  the palettes). The OG in 2-bit is `screen--ogv2 screen--md screen--2bit`,
+  800x480; in any other palette it is `screen--og screen--md` plus that
+  palette's class (`screen--1bit`, `screen--color-4bwry` and so on). Portrait
+  adds `screen--portrait` and swaps the dimensions.
   The X is `screen--v2 screen--lg screen--density-2x screen--4bit`: it lays out
   at 1040x780 CSS pixels and the Framework scales the whole screen by its 1.8
   pixel ratio to the panel's 1872x1404, so the frame has to be 1872x1404 or
@@ -417,19 +464,27 @@ items on it were not met at first, and were fixed on 23 September 2026:
 
 1. **Portrait.** They preview every layout on the OG and the X in landscape,
    and on the X in portrait, looking for whitespace and content cut off.
-   `/trmnl` now has an "X portrait" view (`screen--portrait`, 1404x1872). The
+   `/trmnl` has an orientation switch (`screen--portrait`; the X is
+   1404x1872, the OG 480x800). The
    full layout's two columns are a grid that stacks in portrait
    (`grid--cols-2 portrait:grid--cols-1`): side by side they wrapped every name
    and time and left half the screen empty. The half-vertical shows one column
    of ten results in portrait instead of two of five (`portrait:hidden` /
    `hidden portrait:block`), and the race-morning grid drops to its smallest
-   rows on a portrait X (`lg:portrait:table--xsmall`), where the base size
-   pushed P8 onwards off the screen. The grid children are plain flex
+   rows on a portrait X (`lg:portrait:table--small`), where the base size
+   pushed P8 onwards off the screen. The half-horizontal's three columns
+   become two rows in portrait (`portrait:layout--col`): the header and lead
+   beside the QR code, then the news or result full width, because at 480px
+   three columns truncated every headline and clipped the winner's name. The
+   quarter puts its QR code under the lead in portrait (`portrait:flex--col`). The grid children are plain flex
    columns: the Framework's `column` class is positioned by the `columns`
    engine and clipped its content inside a grid.
 2. **Gray labels on 1-bit screens.** They flag `label--gray` as hard to read on
-   an OG set to the 1-bit palette. Every gray label now also carries
-   `1bit:text--black`, and `/trmnl` has an "OG 1-bit" view to check it.
+   an OG set to the 1-bit palette. Labels are black by default and gray only
+   on palettes with real gray ink (`2bit:label--gray 4bit:label--gray`): a
+   1-bit screen dithers gray text into speckle, and so does every colour
+   palette, which has no gray and no Framework prefix to override it with.
+   `/trmnl`'s palette switch shows all six.
 3. **A way to contact the author.** `author_bio` in `settings.yml` now has
    `email_address` (barry@barrymichaeldoyle.com, a placeholder until Barry
    picks the address to list).

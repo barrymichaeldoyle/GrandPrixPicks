@@ -29,6 +29,7 @@ export const analyticsEventNames = [
   'feed_loaded',
   'feed_paginated',
   'feedback_widget_opened',
+  'feedback_widget_signin_prompted',
   'feedback_widget_submit_failed',
   'feedback_widget_submitted',
   'h2h_duel_edited',

@@ -2,7 +2,7 @@
 import { convexTest } from 'convex-test';
 import rateLimiter from '@convex-dev/rate-limiter/test';
 import { describe, expect, it } from 'vitest';
-import { internal } from './_generated/api';
+import { api, internal } from './_generated/api';
 import schema from './schema';
 
 const modules = import.meta.glob('./**/*.ts');
@@ -79,5 +79,29 @@ describe('race-independent news', () => {
         deliveryId: deliveries[0]._id,
       }),
     ).toBeNull();
+  });
+
+  it('lists live news newest first, without retracted items', async () => {
+    const t = convexTest(schema, modules);
+    rateLimiter.register(t);
+    for (const key of ['first-story', 'second-story', 'third-story']) {
+      await t.mutation(internal.globalNews.publish, {
+        key,
+        headline: `Headline ${key}`,
+        body: 'The organizer announced a new initiative.',
+        sourceName: 'Organizer',
+        sourceUrl: 'https://example.com/story',
+      });
+    }
+    await t.mutation(internal.globalNews.retract, { key: 'second-story' });
+
+    const items = await t.query(api.globalNews.listRecent, {});
+    expect(items.map((item) => item.headline)).toEqual([
+      'Headline third-story',
+      'Headline first-story',
+    ]);
+    expect(await t.query(api.globalNews.listRecent, { limit: 1 })).toHaveLength(
+      1,
+    );
   });
 });

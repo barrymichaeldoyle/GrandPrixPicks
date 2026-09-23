@@ -1,6 +1,6 @@
 {% if has_race %}
 <div class="layout layout--col layout--top layout--stretch-x gap--medium">
-  {% render "race_header", race: race, name_size: "lg:title--xlarge", flag_size: "h--[56px] w--max-[112px] lg:h--[76px] lg:w--max-[152px]" %}
+  {% render "race_header", race: race, name_size: "lg:title--xlarge", detail_size: "lg:label--large", flag_size: "h--[56px] w--max-[112px] lg:h--[96px] lg:w--max-[192px]" %}
   {% comment %}
     Two columns side by side, stacked in portrait: side by side on a portrait
     X they squeezed every name and time onto two lines and left the bottom
@@ -18,7 +18,7 @@
           {% render "lead", lead: lead, size: "value--large lg:value--xxlarge" %}
           {% render "lead_weather", weather: lead.weather %}
         </div>
-        {% render "qr", race: race %}
+        {% render "qr", url: race.url %}
       </div>
       {% else %}
       <div class="flex flex--col flex--center gap--xsmall">
@@ -45,7 +45,25 @@
           {% render "news", news: news, limit: 4, headline_size: "title--base lg:title--xlarge" %}
         {% endif %}
       </div>
-      {% unless focus == "grid" %}{% render "qr", race: race %}{% endunless %}
+      {% unless focus == "grid" %}{% render "qr", url: race.url %}{% endunless %}
+    </div>
+  </div>
+</div>
+{% elsif standings %}
+{% comment %}
+  The off-season: the season's two tables and the news, three columns. In
+  portrait the tables share the top and the news runs beneath them.
+{% endcomment %}
+<div class="layout layout--col layout--top layout--stretch-x gap--medium">
+  {% render "standings_header", standings: standings, title_size: "lg:title--xlarge", detail_size: "lg:label--large" %}
+  <div class="grid grid--cols-3 portrait:grid--cols-2 gap--large grow">
+    {% render "standings_table", label: "Drivers", rows: standings.drivers, limit: 10, size: "table--xsmall lg:table--base" %}
+    {% render "standings_table", label: "Constructors", rows: standings.constructors, limit: 10, size: "table--xsmall lg:table--base" %}
+    <div class="flex flex--col portrait:flex--row flex--stretch-x gap--small h--full portrait:col--span-2">
+      <div class="grow">
+        {% render "news", news: news, limit: 3, headline_size: "title--small lg:title--large" %}
+      </div>
+      {% render "qr", url: standings.url %}
     </div>
   </div>
 </div>

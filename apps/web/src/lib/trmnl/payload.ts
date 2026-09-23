@@ -47,7 +47,7 @@ import {
  * without a prefix. The shape is versioned (`v`) because installed copies of a
  * published plugin update their markup when we publish, not when we deploy.
  */
-const TRMNL_PAYLOAD_VERSION = 1;
+const TRMNL_PAYLOAD_VERSION = 2;
 
 /**
  * How long a finished race keeps the screen before it moves on to the next
@@ -123,6 +123,23 @@ type NewsItem = {
   }[];
 };
 
+/**
+ * The season's championship tables, for the off-season screen. Shaped like
+ * `f1Standings.getF1Championship`, of which this is a subset.
+ */
+type ChampionshipInput = {
+  season: number;
+  roundsScored: number;
+  roundsTotal: number;
+  drivers: {
+    position: number;
+    code: string;
+    displayName: string;
+    points: number;
+  }[];
+  constructors: { position: number; team: string; points: number }[];
+};
+
 type PracticeSummary = {
   sessionType: keyof typeof PRACTICE_LABELS;
   topThree: ResultRow[];
@@ -137,6 +154,11 @@ export type TrmnlInput = {
   results: Partial<Record<SessionType, ResultRow[]>>;
   practice: PracticeSummary[];
   weather: { isStale: boolean; forecast: WeatherForecast } | null;
+  /**
+   * Read only when there is no race: the season just run, shown through the
+   * off-season. Its `news` is then the site's race-independent news.
+   */
+  standings?: ChampionshipInput | null;
 };
 
 /** One session's forecast, compact enough for a row of the timeline. */
@@ -207,6 +229,18 @@ export type TrmnlPayload = {
   } | null;
   grid: { pos: number; code: string; name: string; note: string }[];
   news: { headline: string; source: string; sessions: string }[];
+  /** The off-season screen: set only when `has_race` is false. */
+  standings: {
+    /** "2026 final standings", or "2026 standings" while rounds remain. */
+    title: string;
+    /** "After 23 rounds", or "After round 16 of 23". */
+    detail: string;
+    /** "2026 champion", or "Championship leader" while rounds remain. */
+    leader_label: string;
+    drivers: { pos: number; code: string; name: string; points: number }[];
+    constructors: { pos: number; name: string; points: number }[];
+    url: string;
+  } | null;
 };
 
 /**
@@ -251,10 +285,11 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
       race: null,
       lead: null,
       schedule: [],
-      focus: 'schedule',
+      focus: 'news',
       result: null,
       grid: [],
-      news: [],
+      news: formatNews(input.news),
+      standings: buildStandings(input.standings ?? null),
     };
   }
 
@@ -320,13 +355,60 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
     }),
     result,
     grid,
-    news: newsByRecency.slice(0, NEWS_LIMIT).map((item) => ({
+    news: formatNews(input.news),
+    standings: null,
+  };
+}
+
+function formatNews(news: NewsItem[]): TrmnlPayload['news'] {
+  return [...news]
+    .sort((a, b) => b.publishedAt - a.publishedAt)
+    .slice(0, NEWS_LIMIT)
+    .map((item) => ({
       headline: item.headline,
       source: item.sourceName,
       sessions: item.affectsSessions
         .map((session) => SESSION_LABELS_SHORT[session])
         .join(', '),
+    }));
+}
+
+/** Rows each table carries: the layouts show at most ten. */
+const STANDINGS_ROWS = 10;
+
+/**
+ * The off-season screen: the season just run, as its final tables. Before
+ * the season is over (only the `/trmnl` page previews it then) the same
+ * tables say so, rather than crowning a leader.
+ */
+function buildStandings(
+  championship: ChampionshipInput | null,
+): TrmnlPayload['standings'] {
+  if (!championship || championship.drivers.length === 0) {
+    return null;
+  }
+  const { season, roundsScored, roundsTotal } = championship;
+  const final = roundsTotal > 0 && roundsScored >= roundsTotal;
+  return {
+    title: final ? `${season} final standings` : `${season} standings`,
+    detail: final
+      ? `After ${roundsScored} rounds`
+      : `After round ${roundsScored} of ${roundsTotal}`,
+    leader_label: final ? `${season} champion` : 'Championship leader',
+    drivers: championship.drivers.slice(0, STANDINGS_ROWS).map((row) => ({
+      pos: row.position,
+      code: row.code,
+      name: row.displayName,
+      points: row.points,
     })),
+    constructors: championship.constructors
+      .slice(0, STANDINGS_ROWS)
+      .map((row) => ({
+        pos: row.position,
+        name: row.team,
+        points: row.points,
+      })),
+    url: `${siteConfig.url}/t/${STANDINGS_SLUG}`,
   };
 }
 
@@ -378,6 +460,8 @@ const PHASE_CODES: Record<TrmnlPhase, string> = {
 };
 
 const RACE_SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/;
+/** The off-season QR code's path segment: `/t/standings`. No race slug ends without a year. */
+const STANDINGS_SLUG = 'standings';
 
 /**
  * The QR code's link, as short as it can be: `/t/<race>/<phase>`.
@@ -396,7 +480,8 @@ function raceUrl(slug: string, phase: TrmnlPhase): string {
  * Where a scanned QR code lands, with PostHog attribution.
  *
  * The weekend's write-up when it has one, because that is the fuller read,
- * otherwise the race page; both carry the picks CTA. `utm_content` is the
+ * otherwise the race page; both carry the picks CTA. The off-season screen's
+ * `/t/standings` lands on the championship tables. `utm_content` is the
  * phase the screen showed. The path comes from a URL anyone can type, so the
  * slug is matched against a strict pattern and an unknown phase is dropped
  * rather than repeated into analytics. Anything unrecognisable goes to the
@@ -411,6 +496,10 @@ export function resolveTrmnlLanding(pathname: string): string {
   });
   if (prefix !== 't' || !slug || !RACE_SLUG_PATTERN.test(slug)) {
     return `/?${params}`;
+  }
+  if (slug === STANDINGS_SLUG) {
+    params.set('utm_content', 'off_season');
+    return `/f1-standings?${params}`;
   }
   const phase = (Object.keys(PHASE_CODES) as TrmnlPhase[]).find(
     (key) => PHASE_CODES[key] === code,

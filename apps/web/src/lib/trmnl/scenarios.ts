@@ -142,6 +142,61 @@ const gridNews: TrmnlInput['news'][number] = {
   ),
 };
 
+/**
+ * An invented final season, for the off-season sample. The points are made
+ * up; the order follows the sample grid.
+ */
+const DRIVER_POINTS = [412, 389, 331, 318, 290, 244, 231, 142, 128, 97];
+const sampleStandings: NonNullable<TrmnlInput['standings']> = {
+  season: 2026,
+  roundsScored: 23,
+  roundsTotal: 23,
+  drivers: classification.slice(0, DRIVER_POINTS.length).map((row, index) => ({
+    ...row,
+    points: DRIVER_POINTS[index]!,
+  })),
+  constructors: (
+    [
+      ['McLaren', 801],
+      ['Ferrari', 575],
+      ['Mercedes', 521],
+      ['Red Bull Racing', 402],
+      ['Williams', 225],
+      ['Aston Martin', 118],
+      ['Alpine', 74],
+      ['Haas', 61],
+      ['Racing Bulls', 58],
+      ['Audi', 40],
+      ['Cadillac', 12],
+    ] as const
+  ).map(([team, points], index) => ({ position: index + 1, team, points })),
+};
+
+/**
+ * Off-season news, a winter's worth ahead of when it could be real, so it is
+ * invented and says so.
+ */
+export const SAMPLE_OFF_SEASON_NEWS: TrmnlInput['news'] = [
+  {
+    headline: 'Pre-season testing dates confirmed',
+    sourceName: 'Sample series announcement',
+    affectsSessions: [],
+    publishedAt: at('2026-12-18T10:00:00Z'),
+  },
+  {
+    headline: 'Team reveals launch date for its new car',
+    sourceName: 'Sample team statement',
+    affectsSessions: [],
+    publishedAt: at('2026-12-15T10:00:00Z'),
+  },
+  {
+    headline: 'Sporting regulations updated for next season',
+    sourceName: 'Sample governing body notice',
+    affectsSessions: [],
+    publishedAt: at('2026-12-11T10:00:00Z'),
+  },
+];
+
 type SampleDay = {
   temperatureC: number;
   conditionCode: string;
@@ -299,5 +354,7 @@ export const TRMNL_SCENARIOS: readonly TrmnlScenario[] = [
   scenario('off-season', 'Off-season', 'No race left in the season', {
     now: at('2026-12-20T09:00:00Z'),
     race: null,
+    standings: sampleStandings,
+    news: SAMPLE_OFF_SEASON_NEWS,
   }),
 ];

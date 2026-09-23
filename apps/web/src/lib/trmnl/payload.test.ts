@@ -394,12 +394,61 @@ describe('buildTrmnlPayload', () => {
   });
 });
 
+describe('the off-season payload', () => {
+  const standings = {
+    season: 2026,
+    roundsScored: 23,
+    roundsTotal: 23,
+    drivers: [
+      { position: 1, code: 'NOR', displayName: 'Lando Norris', points: 412 },
+    ],
+    constructors: [{ position: 1, team: 'McLaren', points: 801 }],
+  };
+
+  it('crowns the champion once every round is scored', () => {
+    const payload = buildTrmnlPayload(input({ race: null, standings }));
+    expect(payload.has_race).toBe(false);
+    expect(payload.standings).toMatchObject({
+      title: '2026 final standings',
+      detail: 'After 23 rounds',
+      leader_label: '2026 champion',
+      drivers: [{ pos: 1, code: 'NOR', name: 'Lando Norris', points: 412 }],
+      constructors: [{ pos: 1, name: 'McLaren', points: 801 }],
+      url: 'https://grandprixpicks.com/t/standings',
+    });
+  });
+
+  it('calls it a leader while rounds remain', () => {
+    const payload = buildTrmnlPayload(
+      input({ race: null, standings: { ...standings, roundsScored: 16 } }),
+    );
+    expect(payload.standings).toMatchObject({
+      title: '2026 standings',
+      detail: 'After round 16 of 23',
+      leader_label: 'Championship leader',
+    });
+  });
+
+  it('has no standings before a single round is scored', () => {
+    const payload = buildTrmnlPayload(
+      input({ race: null, standings: { ...standings, drivers: [] } }),
+    );
+    expect(payload.standings).toBe(null);
+  });
+});
+
 describe('resolveTrmnlLanding', () => {
   const utm = 'utm_source=trmnl&utm_medium=qr&utm_campaign=trmnl_plugin';
 
   it('lands on the write-up when the weekend has one', () => {
     expect(resolveTrmnlLanding('/t/italy-2026/w')).toBe(
       `/f1-2026-italian-grand-prix-predictions?${utm}&utm_content=weekend`,
+    );
+  });
+
+  it('lands the off-season code on the standings', () => {
+    expect(resolveTrmnlLanding('/t/standings')).toBe(
+      `/f1-standings?${utm}&utm_content=off_season`,
     );
   });
 

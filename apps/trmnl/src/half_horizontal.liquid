@@ -1,9 +1,18 @@
 {% if has_race %}
-<div class="layout layout--row layout--stretch gap--large">
-  <div class="flex flex--col gap--small">
-    {% render "race_header", race: race, name_size: "lg:title--base", flag_size: "h--[36px] w--max-[72px] lg:h--[52px] lg:w--max-[104px]" %}
-    {% render "lead", lead: lead, size: "value--large lg:value--xlarge" %}
-    {% render "lead_weather", weather: lead.weather %}
+{% comment %}
+  Three columns in landscape. A portrait half is 480px wide, where three
+  columns truncated every headline and clipped the winner's name, so there
+  the header and lead share a row with the QR code and the news or result
+  runs full width beneath them.
+{% endcomment %}
+<div class="layout layout--row portrait:layout--col layout--stretch gap--large">
+  <div class="flex flex--row flex--center-y gap--medium">
+    <div class="grow flex flex--col gap--small">
+      {% render "race_header", race: race, name_size: "lg:title--base", detail_size: "lg:label--base", flag_size: "h--[48px] w--max-[96px] lg:h--[68px] lg:w--max-[136px]" %}
+      {% render "lead", lead: lead, size: "value--large lg:value--xlarge" %}
+      {% render "lead_weather", weather: lead.weather %}
+    </div>
+    <div class="hidden portrait:block">{% render "qr", url: race.url %}</div>
   </div>
   <div class="grow">
     {% if focus == "result" %}
@@ -14,7 +23,26 @@
       {% render "schedule", schedule: schedule, size: "table--xsmall", name: "short" %}
     {% endif %}
   </div>
-  {% render "qr", race: race %}
+  <div class="portrait:hidden">{% render "qr", url: race.url %}</div>
+</div>
+{% elsif standings %}
+<div class="layout layout--row portrait:layout--col layout--stretch gap--large">
+  <div class="flex flex--row flex--center-y gap--medium">
+    <div class="grow flex flex--col gap--small">
+      {% render "standings_header", standings: standings, title_size: "lg:title--large", detail_size: "lg:label--base" %}
+      {% render "leader", standings: standings, value_size: "value--small lg:value--large" %}
+      <span class="label label--small lg:label--base">Constructors: {{ standings.constructors.first.name }}</span>
+    </div>
+    <div class="hidden portrait:block">{% render "qr", url: standings.url %}</div>
+  </div>
+  {% comment %}
+    One table: two side by side wrapped every name and ran into the title bar.
+    The constructors' champion is named under the drivers' instead.
+  {% endcomment %}
+  <div class="grow">
+    {% render "standings_table", label: "Drivers", rows: standings.drivers, limit: 5, size: "table--xsmall lg:table--small" %}
+  </div>
+  <div class="portrait:hidden">{% render "qr", url: standings.url %}</div>
 </div>
 {% else %}
 <div class="layout layout--col layout--center">

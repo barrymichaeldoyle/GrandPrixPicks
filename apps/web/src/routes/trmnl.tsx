@@ -5,14 +5,18 @@ import { PageHeader } from '@/components/PageHeader';
 import { TabSwitch } from '@/components/TabSwitch';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { pageMeta, siteConfig } from '@/lib/site';
-import type { TrmnlDevice, TrmnlLayout } from '@/lib/trmnl/render';
+import type { TrmnlLayout, TrmnlScreenConfig } from '@/lib/trmnl/render';
 import {
-  TRMNL_DEVICES,
+  defaultTrmnlPalette,
   TRMNL_LAYOUTS,
+  TRMNL_PALETTES,
   trmnlScreenDocument,
+  trmnlScreenProfile,
 } from '@/lib/trmnl/render';
 import type { TrmnlPageScenario } from '@/lib/trmnl/pageScenarios';
 import { fetchTrmnlPageScenarios } from '@/lib/trmnl/pageScenarios';
+
+import { TrmnlFeedback } from './-trmnl/TrmnlFeedback';
 
 /**
  * Every screen of the TRMNL plugin, rendered from the real Liquid layouts in
@@ -30,9 +34,17 @@ import { fetchTrmnlPageScenarios } from '@/lib/trmnl/pageScenarios';
 
 type View = TrmnlLayout | 'all';
 
-type Device = 'og' | 'og-1bit' | 'x' | 'x-portrait';
+type Device = TrmnlScreenConfig['device'];
+type Orientation = TrmnlScreenConfig['orientation'];
+type Palette = TrmnlScreenConfig['palette'];
 
-type TrmnlSearch = { scenario?: string; size?: View; device?: Device };
+type TrmnlSearch = {
+  scenario?: string;
+  size?: View;
+  device?: Device;
+  orientation?: Orientation;
+  palette?: Palette;
+};
 
 /*
  * `loader`, `validateSearch` and `head` stay in the main bundle, which every
@@ -42,12 +54,9 @@ type TrmnlSearch = { scenario?: string; size?: View; device?: Device };
  * the client sees only as a stub. The component checks the scenario id and
  * falls back to the first.
  */
-const DEVICE_IDS = new Set<string>([
-  'og',
-  'og-1bit',
-  'x',
-  'x-portrait',
-] satisfies Device[]);
+function oneOf<T extends string>(value: unknown, allowed: readonly T[]) {
+  return allowed.includes(value as T) ? (value as T) : undefined;
+}
 
 const VIEW_IDS = new Set<string>([
   'full',
@@ -73,10 +82,19 @@ export const Route = createFileRoute('/trmnl')({
       typeof search.size === 'string' && VIEW_IDS.has(search.size)
         ? (search.size as View)
         : undefined,
-    device:
-      typeof search.device === 'string' && DEVICE_IDS.has(search.device)
-        ? (search.device as Device)
-        : undefined,
+    device: oneOf<Device>(search.device, ['og', 'x']),
+    orientation: oneOf<Orientation>(search.orientation, [
+      'landscape',
+      'portrait',
+    ]),
+    palette: oneOf<Palette>(search.palette, [
+      '1bit',
+      '2bit',
+      '4bit',
+      'color-4bwry',
+      'color-7a',
+      'color-full',
+    ]),
   }),
   component: TrmnlPage,
   head: () =>
@@ -91,9 +109,12 @@ export const Route = createFileRoute('/trmnl')({
 
 const DEVICE_OPTIONS: { value: Device; label: string }[] = [
   { value: 'og', label: 'TRMNL OG' },
-  { value: 'og-1bit', label: 'OG 1-bit' },
   { value: 'x', label: 'TRMNL X' },
-  { value: 'x-portrait', label: 'X portrait' },
+];
+
+const ORIENTATION_OPTIONS: { value: Orientation; label: string }[] = [
+  { value: 'landscape', label: 'Landscape' },
+  { value: 'portrait', label: 'Portrait' },
 ];
 
 const VIEW_OPTIONS: { value: View; label: string }[] = [
@@ -113,30 +134,66 @@ function TrmnlPage() {
   }));
   const view = search.size ?? 'full';
   const device = search.device ?? 'og';
-  const deviceProfile =
-    TRMNL_DEVICES.find((d) => d.id === device) ?? TRMNL_DEVICES[0];
+  const config: TrmnlScreenConfig = {
+    device,
+    orientation: search.orientation ?? 'landscape',
+    // Unset follows the device: switching to the X shows it in its own 16
+    // grays, not the OG's 4.
+    palette: search.palette ?? defaultTrmnlPalette(device),
+  };
+  const deviceProfile = trmnlScreenProfile(config);
+  const paletteOptions = TRMNL_PALETTES.map((p) => ({
+    value: p.id,
+    label: p.label,
+  }));
 
   return (
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-5xl px-4 py-6">
         <PageHeader
           title="Formula 1 Race Weekend for TRMNL"
-          subtitle="Our plugin for the TRMNL e-ink display shows the current race weekend: session times in your time zone, practice and session results as they are published, the starting grid on race morning, and the news."
+          subtitle="Our plugin for the TRMNL e-ink display shows the current race weekend: session times in your time zone, practice and session results as they are published, the starting grid on race morning, and the news. Between seasons it shows the final standings."
         />
 
         <div className="flex flex-col gap-3">
-          <TabSwitch
-            value={device}
-            onChange={(value) =>
-              navigate({
-                search: (prev) => ({ ...prev, device: value }),
-                replace: true,
-              })
-            }
-            options={DEVICE_OPTIONS}
-            className="flex flex-wrap gap-1 rounded-lg bg-surface-muted/70 p-1"
-            ariaLabel="Device"
-          />
+          <div className="flex flex-wrap gap-3">
+            <TabSwitch
+              value={config.device}
+              onChange={(value) =>
+                navigate({
+                  search: (prev) => ({ ...prev, device: value }),
+                  replace: true,
+                })
+              }
+              options={DEVICE_OPTIONS}
+              className="flex gap-1 rounded-lg bg-surface-muted/70 p-1"
+              ariaLabel="Device"
+            />
+            <TabSwitch
+              value={config.orientation}
+              onChange={(value) =>
+                navigate({
+                  search: (prev) => ({ ...prev, orientation: value }),
+                  replace: true,
+                })
+              }
+              options={ORIENTATION_OPTIONS}
+              className="flex gap-1 rounded-lg bg-surface-muted/70 p-1"
+              ariaLabel="Orientation"
+            />
+            <TabSwitch
+              value={config.palette}
+              onChange={(value) =>
+                navigate({
+                  search: (prev) => ({ ...prev, palette: value }),
+                  replace: true,
+                })
+              }
+              options={paletteOptions}
+              className="flex gap-1 rounded-lg bg-surface-muted/70 p-1"
+              ariaLabel="Palette"
+            />
+          </div>
           <TabSwitch
             value={scenario.id}
             onChange={(value) =>
@@ -176,7 +233,7 @@ function TrmnlPage() {
                 <TrmnlScreen
                   scenario={scenario}
                   layout={layout.id}
-                  device={device}
+                  config={config}
                 />
                 <figcaption className="text-sm text-text-muted">
                   {layout.label}
@@ -186,9 +243,11 @@ function TrmnlPage() {
           </div>
         ) : (
           <div className="mt-3">
-            <TrmnlScreen scenario={scenario} layout={view} device={device} />
+            <TrmnlScreen scenario={scenario} layout={view} config={config} />
           </div>
         )}
+
+        <TrmnlFeedback />
 
         <PayloadDetails payload={scenario.payload} />
       </div>
@@ -263,19 +322,15 @@ const SETTLE_MS = 150;
 function TrmnlScreen({
   scenario,
   layout,
-  device,
+  config,
 }: {
   scenario: TrmnlPageScenario;
   layout: TrmnlLayout;
-  device: TrmnlDevice;
+  config: TrmnlScreenConfig;
 }) {
-  const {
-    width,
-    height,
-    label: deviceLabel,
-  } = TRMNL_DEVICES.find((d) => d.id === device) ?? TRMNL_DEVICES[0];
+  const { width, height, label: deviceLabel } = trmnlScreenProfile(config);
   const doc = withLocalAssets(
-    trmnlScreenDocument(layout, scenario.payload, device),
+    trmnlScreenDocument(layout, scenario.payload, config),
   );
   const boxRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(0);

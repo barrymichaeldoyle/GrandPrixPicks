@@ -361,3 +361,78 @@ export const publishMadrid2026News = internalMutation({
     return { published };
   },
 });
+
+/**
+ * Mirror two Madrid steward decisions added to prod after the original seed.
+ * Preserve their publication times so historical TRMNL previews show them at
+ * the correct weekend moment. Safe to rerun: publish upserts both cards.
+ */
+export const syncMadrid2026LateNews = internalMutation({
+  args: {},
+  handler: async (ctx): Promise<{ synced: number }> => {
+    const items = [
+      {
+        key: 'leclerc-madrid-delta-reprimand',
+        publishedAt: 1789278695712,
+        headline: 'Ferrari reprimanded for giving Leclerc the wrong delta',
+        body: 'Leclerc exceeded the required delta time between Safety Car lines after his final Q3 lap. Stewards cleared him personally, finding he followed the time shown on his dashboard, and ruled Ferrari alone at fault for a calculation error in the delta it supplied him. Ferrari received a reprimand and Leclerc keeps his grid position.',
+        driverCodes: ['LEC'],
+      },
+      {
+        key: 'bortoleto-madrid-delta-warning',
+        publishedAt: 1789278706736,
+        headline: 'Bortoleto warned over qualifying delta, keeps his grid slot',
+        body: 'Bortoleto had to let another car by mid-sector during qualifying and did not recover enough time to meet the required delta between Safety Car lines. Stewards said energy management made this difficult but that he could have done more to comply, and gave him a warning rather than a grid penalty. He starts Sunday from 12th.',
+        driverCodes: ['BOR'],
+      },
+    ] as const;
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'madrid-2026'))
+      .unique();
+    if (!race) {
+      throw new Error('madrid-2026 race not found');
+    }
+
+    for (const item of items) {
+      await ctx.runMutation(internal.raceNews.publish, {
+        raceSlug: 'madrid-2026',
+        key: item.key,
+        headline: item.headline,
+        body: item.body,
+        affectsSessions: ['race'],
+        driverCodes: [...item.driverCodes],
+        sourceName: 'RaceFans',
+        sourceUrl:
+          'https://www.racefans.net/2026/09/12/sainz-penalised-antonelli-russell-leclerc-and-bortoleto-avoid-grid-drops-for-qualifying-incidents/',
+      });
+
+      const news = await ctx.db
+        .query('raceNews')
+        .withIndex('by_race_key', (q) =>
+          q.eq('raceId', race._id).eq('key', item.key),
+        )
+        .unique();
+      if (!news) {
+        throw new Error(`Madrid news ${item.key} was not published`);
+      }
+      if (news.publishedAt !== item.publishedAt) {
+        await ctx.db.patch(news._id, { publishedAt: item.publishedAt });
+      }
+
+      const feed = await ctx.db
+        .query('feedEvents')
+        .withIndex('by_race_news_key', (q) =>
+          q.eq('raceId', race._id).eq('newsKey', item.key),
+        )
+        .unique();
+      if (!feed) {
+        throw new Error(`Madrid feed event ${item.key} was not published`);
+      }
+      if (feed.createdAt !== item.publishedAt) {
+        await ctx.db.patch(feed._id, { createdAt: item.publishedAt });
+      }
+    }
+    return { synced: items.length };
+  },
+});

@@ -119,17 +119,19 @@ describe('TRMNL layouts', () => {
     expect(variant.news).toHaveLength(20);
     expect(variant.focus).toBe('news');
     const full = renderTrmnlMarkup('full', { ...buildUp.payload, ...variant });
-    expect(full.match(/data-clamp="2"/g)).toHaveLength(20);
-    expect(full.match(/class="divider divider--h"/g)).toHaveLength(19);
+    expect(full.match(/data-clamp="2"/g)).toHaveLength(19);
+    expect(full.match(/class="divider divider--h"/g)).toHaveLength(17);
+    expect(full).toContain('class="grow lg:hidden"');
+    expect(full).toContain('class="grow hidden lg:block"');
     expect(full).toContain('h--full flex--left flex--center-y');
+    expect(full).toContain('Free Practice 1');
+    expect(full).toContain('Race');
     const halfHorizontal = renderTrmnlMarkup('half_horizontal', {
       ...buildUp.payload,
       ...variant,
     });
-    expect(halfHorizontal.match(/data-clamp="2"/g)).toHaveLength(20);
-    expect(halfHorizontal.match(/class="divider divider--h"/g)).toHaveLength(
-      19,
-    );
+    expect(halfHorizontal.match(/data-clamp="2"/g)).toHaveLength(6);
+    expect(halfHorizontal.match(/class="divider divider--h"/g)).toHaveLength(4);
     expect(halfHorizontal).toContain('FP1');
     expect(halfHorizontal).toContain('Race');
     const halfVertical = renderTrmnlMarkup('half_vertical', {
@@ -138,6 +140,8 @@ describe('TRMNL layouts', () => {
     });
     expect(halfVertical.match(/data-clamp="2"/g)).toHaveLength(7);
     expect(halfVertical.match(/class="divider divider--h"/g)).toHaveLength(6);
+    expect(halfVertical).toContain('FP1');
+    expect(halfVertical).toContain('Quali');
   });
 
   it('offers headlines to the quarter layout overflow manager', () => {

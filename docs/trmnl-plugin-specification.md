@@ -206,10 +206,10 @@ forecasts in 6-hour periods, and a 16:00 race in Baku drew a moon.
 weekend timeline (sessions with local times, weather, each one's top three,
 and a filled "Next" marker on the first session that has not started). Right
 column: the grid on race morning, otherwise whichever is newer of the latest
-session result ("Race result", "Qualifying result") and up to twenty headline
-candidates. When more than six arrive, headline type steps down once; TRMNL
-overflow hides trailing items that do not fit. A horizontal divider separates
-each adjacent headline.
+session result ("Race result", "Qualifying result") and the headlines. It
+offers seven headlines on the OG and twelve on the X to avoid clipping the last
+item; more than six headlines steps the type down once. A horizontal divider
+separates each adjacent headline.
 The focus block owns the column's spare
 height: TRMNL's overflow script hides news items that do not fit, and a
 separate spacer read to it as content and hid most of them. When headlines fit,
@@ -220,7 +220,8 @@ column.
 
 **Half horizontal:** the compact race header and QR code sit above the lead
 and its weather. Beside them, it shows the latest result or, before results,
-the short weekend schedule followed by as many headlines as fit.
+the short weekend schedule followed by two headlines on the OG or four on the
+X. This keeps the session times visible while making room for current news.
 
 **Half vertical:** the compact race header and QR code sit above the lead and
 its weather. Before results, it shows the first four upcoming sessions and
@@ -411,9 +412,9 @@ a layout change, and the plugin's "learn more" link from the TRMNL directory.
   weekend has reached yet (the sprint before the first
   sprint weekend), and for the render and parity tests. Sample news uses
   invented headlines, and the page says when it is showing a sample. The news
-  switch covers the empty state and overflow for every moment; the full
-  layout offers up to twenty headlines at once and keeps the QR code in the
-  header above them; overflow determines how many fit.
+  switch covers the empty state and overflow for every moment; the payload
+  carries twenty headlines, while each layout caps what it offers based on
+  available space. The full layout keeps the QR code in the header above them.
 - **Feedback** (`routes/-trmnl/TrmnlFeedback.tsx`) sits under the screens:
   one box, sent through `support.submitRequest` with category `trmnl`, so it
   reaches the support inbox. Sending needs an account, deliberately: someone

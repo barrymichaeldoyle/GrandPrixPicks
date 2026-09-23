@@ -22,8 +22,11 @@
     {% else %}
       {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short" %}
       {% if news.size > 0 %}
-        <div class="grow">
-          {% render "news", news: news, limit: 20, headline_size: half_horizontal_news_size, fill: true %}
+        <div class="grow lg:hidden">
+          {% render "news", news: news, limit: 2, headline_size: half_horizontal_news_size, fill: true %}
+        </div>
+        <div class="grow hidden lg:block">
+          {% render "news", news: news, limit: 4, headline_size: half_horizontal_news_size, fill: true %}
         </div>
       {% endif %}
     {% endif %}

@@ -34,9 +34,18 @@
         {% elsif focus == "grid" %}
           {% render "grid", grid: grid %}
         {% elsif focus == "news" %}
-          {% render "news", news: news, limit: 20, headline_size: full_news_size, fill: true %}
+          {% comment %}
+            Cap headlines for the physical screen size. The overflow script
+            left the last two-line item partly under the title bar on the OG.
+          {% endcomment %}
+          <div class="grow lg:hidden">
+            {% render "news", news: news, limit: 7, headline_size: full_news_size, fill: true %}
+          </div>
+          <div class="grow hidden lg:block">
+            {% render "news", news: news, limit: 12, headline_size: full_news_size, fill: true %}
+          </div>
         {% elsif news.size == 0 %}
-          {% render "news", news: news, limit: 20, headline_size: full_news_size, fill: true %}
+          {% render "news", news: news, limit: 1, headline_size: full_news_size, fill: true %}
         {% endif %}
       </div>
     </div>

@@ -49,9 +49,9 @@ const FAQS = [
       'Esteban Ocon at Haas and Fernando Alonso at Aston Martin. Both are out of contract at the end of 2026.',
   },
   {
-    question: 'Who will replace Esteban Ocon at Haas?',
+    question: 'Who is in contention for Haas’s second seat?',
     answer:
-      'Haas has not decided. Ayao Komatsu named Ocon, Rafael Camara, Jack Doohan, Leonardo Fornaroli and Ryo Hirakawa as the five in the running on 4 September 2026, and reporting since has put Camara in front.',
+      'Haas has not decided. Ayao Komatsu named Ocon, Rafael Camara, Jack Doohan, Leonardo Fornaroli and Ryo Hirakawa as the five in the running on 4 September 2026. Ocon called himself a free agent for 2027 on 23 September, while saying talks with Haas were ongoing.',
   },
   {
     question: 'Is Rafael Camara driving in F1 in 2027?',
@@ -265,6 +265,20 @@ function F1LineUp2027Page() {
             contest on the record on 4 September 2026: five drivers, one seat,
             and a choice he said would be settled on speed rather than on what a
             driver brings with him.
+          </p>
+          <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
+            At Baku on 23 September, Ocon called himself a free agent for 2027
+            and said discussions with Haas were ongoing. His departure is not
+            confirmed.{' '}
+            <a
+              className="text-link underline decoration-border underline-offset-4 hover:decoration-current"
+              href="https://www.formula1.com/en/latest/article/definitely-a-free-agent-for-next-year-ocon-gives-update-on-haas-future-as-discussions-ongoing.5puGpQ2dMNroVXzQiV0Tgd"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Ocon on his Haas future
+            </a>
+            .
           </p>
           <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
             The contest has narrowed since. Brazilian reports make Rafael Camara

@@ -144,7 +144,7 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Esteban Ocon',
         status: 'out-of-contract',
-        note: 'Haas can extend him for a third year but has run four other drivers against him instead. Reports since 16 September 2026 make Rafael Camara the favourite, and Ayao Komatsu said on 18 September that a decision was "not next week".',
+        note: 'Haas can extend him for a third year but has run four other drivers against him. At Baku on 23 September, Ocon called himself a free agent for 2027 and said talks with Haas were ongoing.',
       },
     ],
   },
@@ -244,7 +244,7 @@ export const HAAS_2027_CONTENDERS = [
   {
     driver: 'Esteban Ocon',
     claim:
-      'Holds the seat, has won a Grand Prix, and knows the team. Ollie Bearman has beaten him on both Saturdays and Sundays this season.',
+      'Holds the seat, has won a Grand Prix, and knows the team. At Baku on 23 September, he called himself a free agent for 2027 and said talks with Haas were ongoing.',
   },
   {
     driver: 'Jack Doohan',

@@ -1,29 +1,44 @@
 ---
 name: publish-race-news
-description: Research F1 news for the upcoming race weekend and publish anything that changes a prediction to the Grand Prix Picks activity feed. Use when asked to check for race news, add a news item to the feed, correct or retract one.
+description: Research F1 news for the upcoming race weekend and publish what fans would want to know (sporting news that changes a pick, plus interesting paddock, technical and event news) to the Grand Prix Picks feed and race write-up. Use when asked to check for race news, add a news item, correct or retract one.
 ---
 
 # Publish race news
 
-Short, pick-relevant news for a race weekend, shown in the signed-in activity
-feed. Full design in `docs/race-news.md`.
+Short, sourced news for a race weekend, shown in the activity feed and under
+"What changed this weekend" on the race write-up. Full design in
+`docs/race-news.md`.
 
-## The rule that decides everything
+## What to publish
 
-**Publish only what changes a pick.**
+**Publish what a fan following the weekend would want to know.** That is wider
+than what changes a pick. A McLaren upgrade, a Williams weight saving, a
+contract extension, a dry forecast: none of these changes a pick on its own, and
+all of them belong on the write-up and in the feed. Do not drop a real,
+sourced story because it has no session to name.
 
-A grid penalty changes one. A rookie taking a seat for FP1 changes how Friday
-should be read, so it changes one. A tribute livery does not, however good the
-story: that belongs on a write-up page, not in somebody's feed.
+Two categories, and the choice is honest rather than generous:
 
-The test is mechanical. Name the sessions the item changes. If the honest answer
-is "none", do not publish it. `affectsSessions` is required and rejected when
-empty, so the schema asks this question whether or not you do.
+- **`pick_related`** (the default): the story changes a session. Name every
+  session it changes in `affectsSessions`; publishing rejects an empty list.
+- **`general`**: interesting, sourced, but it changes no session. Pass
+  `"category": "general"` and `"affectsSessions": []`; publishing rejects a
+  general item that names sessions.
 
-Get it right per session. A grid penalty moves a race start and leaves the
-qualifying classification untouched, so it is `["race"]` and not
+Never invent an impact to promote a story to `pick_related`. A part being
+evaluated in FP1 is general until the team says it stays on the car.
+
+Both categories go to the feed and the write-up by default. `feedSelected:
+false` or `writeUpSelected: false` keeps one off a surface, e.g. a future
+round's colour that should only be on its write-up.
+
+Get sessions right on pick-related items. A grid penalty moves a race start and
+leaves the qualifying classification untouched, so it is `["race"]` and not
 `["quali","race"]` — see `/results-policy`. That field drives what the app tells
 a player, so a careless value misinforms them.
+
+Still skip: gossip with no named source, stories sourced to another prediction
+site, and anything already covered by an existing key (republish that one).
 
 ## Name the drivers
 

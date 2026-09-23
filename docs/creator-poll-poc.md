@@ -89,9 +89,10 @@ Google account, though he never sees the address.
    "62% Verstappen for pole" onto a live show is a manual step every week.
 2. **A Google account is a wall**, small but real, and it is the reason the
    response limit works at all.
-3. **The driver list is hand-maintained.** It is still the pre-round-12 grid:
-   Hadjar is on it, Tsunoda (in a Racing Bulls seat since the Dutch GP) is not.
-   Ours is round-scoped and comes out of the same roster the game uses.
+3. **The driver list is hand-maintained.** At the 2026-09-02 review, it was
+   still the pre-round-12 grid: Hadjar was on it, Tsunoda (in a Racing Bulls
+   seat since the Dutch GP) was not. Ours is round-scoped and comes out of the
+   same roster the game uses.
 
 Point 1 is the pitch. Points 2 and 3 are supporting.
 

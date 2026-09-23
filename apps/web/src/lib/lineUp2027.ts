@@ -47,10 +47,10 @@ export type TeamLineUp = {
 };
 
 /** Bumped by hand whenever the seats below are re-checked against reporting. */
-export const LINE_UP_2027_REVIEWED_AT = '2026-09-05';
+export const LINE_UP_2027_REVIEWED_AT = '2026-09-23';
 
 /** For prose. Kept next to the ISO date so the two cannot drift apart. */
-export const LINE_UP_2027_REVIEWED_LABEL = '5 September 2026';
+export const LINE_UP_2027_REVIEWED_LABEL = '23 September 2026';
 
 /**
  * Alphabetical by team. A championship order would be more flattering and
@@ -84,7 +84,7 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Fernando Alonso',
         status: 'out-of-contract',
-        note: 'His deal ends with this season and he has set no deadline for deciding. He says he stays at Aston Martin in some role either way.',
+        note: 'His deal ends with this season. In Madrid he said there would be no news on 2027 "anytime soon", and that he stays at Aston Martin in some role either way.',
       },
     ],
   },
@@ -144,7 +144,7 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Esteban Ocon',
         status: 'out-of-contract',
-        note: 'Haas can extend him for a third year but has opened the seat to four other drivers instead.',
+        note: 'Haas can extend him for a third year but has run four other drivers against him. At Baku on 23 September, Ocon called himself a free agent for 2027 and said talks with Haas were ongoing.',
       },
     ],
   },
@@ -154,7 +154,7 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Lando Norris',
         status: 'signed',
-        note: 'Under contract past 2027 on the long-term deal he signed in 2025.',
+        note: 'Extended on 29 August 2026 to at least the end of 2030, with an option beyond that.',
       },
       {
         driver: 'Oscar Piastri',
@@ -169,12 +169,12 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'George Russell',
         status: 'expected',
-        note: 'His October 2025 extension is understood to run past 2026, but Mercedes has only ever announced him for this season.',
+        note: 'Mercedes has told PlanetF1 its line-up stays for 2027, but has made no formal announcement.',
       },
       {
         driver: 'Kimi Antonelli',
         status: 'expected',
-        note: 'Extended at the same time as Russell, and announced in the same words: 2026 only.',
+        note: 'Covered by the same statement as Russell, and by the same lack of a formal announcement.',
       },
     ],
   },
@@ -184,12 +184,12 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Liam Lawson',
         status: 'expected',
-        note: 'No 2027 deal. Red Bull is leaning towards keeping both of its current juniors.',
+        note: 'No 2027 deal announced. The New Zealand Herald reported on 19 September that Red Bull will keep all four of its current drivers.',
       },
       {
         driver: 'Arvid Lindblad',
         status: 'expected',
-        note: 'No 2027 deal. The pressure on both seats is Nikola Tsolov, who leads Formula 2.',
+        note: 'No 2027 deal announced. The same report sends Nikola Tsolov, who leads Formula 2, to Super Formula in Japan rather than into this seat.',
       },
     ],
   },
@@ -203,8 +203,8 @@ export const LINE_UP_2027: TeamLineUp[] = [
       },
       {
         driver: 'Isack Hadjar',
-        status: 'expected',
-        note: 'No 2027 deal signed. Red Bull has said an extension is close.',
+        status: 'signed',
+        note: 'Extended on 23 September 2026, the week he returned from his wrist injury in Baku.',
       },
     ],
   },
@@ -228,34 +228,38 @@ export const LINE_UP_2027: TeamLineUp[] = [
 /**
  * The drivers Haas is choosing between for the seat Ocon currently holds.
  *
- * Ordered as Ayao Komatsu framed it on 4 September 2026: the incumbent first,
- * then the four being measured against him. `claim` is why the driver is in
- * the room, which is the only part of this that stays true whoever wins.
+ * Ordered by where the contest stands rather than alphabetically, because the
+ * page numbers them and a number that means nothing is worse than no number.
+ * Komatsu named all five on 4 September 2026; the order below is how reporting
+ * ranked them after the Portimão test, with the incumbent second because Haas
+ * still holds his option. `claim` is why the driver is in the room, which is
+ * the only part of this that stays true whoever wins.
  */
 export const HAAS_2027_CONTENDERS = [
   {
+    driver: 'Rafael Camara',
+    claim:
+      'Ferrari academy, and second in Formula 2 with three rounds to go, seven points behind Nikola Tsolov. Brazilian reports make him the quickest of the candidates who drove the Haas at Portimão, though the team has not published the times. Signing him would give Haas two Ferrari juniors.',
+  },
+  {
     driver: 'Esteban Ocon',
     claim:
-      'Holds the seat, has won a Grand Prix, and knows the team. Ollie Bearman has beaten him on both Saturdays and Sundays this season.',
-  },
-  {
-    driver: 'Ryo Hirakawa',
-    claim:
-      'Seven Friday practice runs for Haas already, a world endurance title, and Toyota behind him. Toyota is a Haas partner.',
-  },
-  {
-    driver: 'Leonardo Fornaroli',
-    claim:
-      "The 2025 Formula 2 champion and McLaren's reserve. A letter of intent exists that would let Haas take him on loan.",
-  },
-  {
-    driver: 'Rafael Camara',
-    claim: 'Ferrari academy, third in Formula 2, and Haas runs Ferrari power.',
+      'Holds the seat, has won a Grand Prix, and knows the team. At Baku on 23 September, he called himself a free agent for 2027 and said talks with Haas were ongoing.',
   },
   {
     driver: 'Jack Doohan',
     claim:
-      'The Haas reserve, with 2025 races for Alpine behind him and a private test of his own.',
+      'The Haas reserve, with 2025 races for Alpine behind him. He completed his own test at Jerez in September, his first Formula 1 running since Alpine dropped him, and the last of the runs Haas said it wanted before deciding.',
+  },
+  {
+    driver: 'Leonardo Fornaroli',
+    claim:
+      "The 2025 Formula 2 champion and McLaren's reserve, and the driver Camara was measured against at Portimão. A letter of intent exists that would let Haas take him on loan.",
+  },
+  {
+    driver: 'Ryo Hirakawa',
+    claim:
+      'Seven Friday practice runs for Haas already, a world endurance title, and Toyota, a Haas partner, behind him. The paddock rates his chances as slim.',
   },
 ] as const;
 

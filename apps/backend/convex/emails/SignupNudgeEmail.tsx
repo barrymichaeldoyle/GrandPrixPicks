@@ -19,6 +19,7 @@ export type SignupNudgeEmailProps = {
   raceName: string | null;
   raceUrl: string;
   settingsUrl: string;
+  unsubscribeUrl?: string;
   logoUrl: string;
 };
 
@@ -26,6 +27,7 @@ export function SignupNudgeEmail({
   raceName = 'Australian Grand Prix',
   raceUrl = 'https://grandprixpicks.com/races/australia-2026',
   settingsUrl = 'https://grandprixpicks.com/settings',
+  unsubscribeUrl,
   logoUrl = 'https://grandprixpicks.com/logo-email.png',
 }: SignupNudgeEmailProps) {
   return (
@@ -95,6 +97,14 @@ export function SignupNudgeEmail({
             <Link href={settingsUrl} style={footerLink}>
               Manage notification preferences
             </Link>
+            {unsubscribeUrl ? (
+              <>
+                {' · '}
+                <Link href={unsubscribeUrl} style={footerLink}>
+                  Unsubscribe
+                </Link>
+              </>
+            ) : null}
           </Text>
         </Container>
       </Body>
@@ -190,5 +200,16 @@ const footerLink = {
   textDecoration: 'underline',
 };
 
-// Default export required by React Email dev server preview
-export default SignupNudgeEmail;
+// The React Email dev server (`pnpm --filter @grandprixpicks/backend email:dev`)
+// renders the default export, so it supplies its own sample props.
+export default function SignupNudgePreview() {
+  return (
+    <SignupNudgeEmail
+      raceName="Azerbaijan Grand Prix"
+      raceUrl="https://grandprixpicks.com/races/azerbaijan-2026"
+      settingsUrl="https://grandprixpicks.com/settings"
+      unsubscribeUrl="https://grandprixpicks.com/settings"
+      logoUrl="https://grandprixpicks.com/logo-email.png"
+    />
+  );
+}

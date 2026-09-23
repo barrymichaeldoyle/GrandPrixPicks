@@ -56,9 +56,10 @@ const GUIDE_META: readonly GuideMeta[] = [
   {
     slug: 'f1-2027-haas-second-seat',
     publishedAt: '2026-09-09',
+    updatedAt: '2026-09-21',
     title: 'The 2027 Haas seat: five drivers in contention',
     metaTitle:
-      '2027 Haas Seat: The Five Candidates to Partner Bearman | Grand Prix Picks',
+      '2027 Haas Seat: Five Candidates to Partner Bearman | Grand Prix Picks',
     metaDescription:
       'Ocon, Doohan, Hirakawa, Rafael Câmara and Leonardo Fornaroli are in contention for Haas’s second 2027 seat. Their records, Haas experience and decision status.',
     summary:
@@ -107,10 +108,12 @@ const GUIDE_META: readonly GuideMeta[] = [
   {
     slug: 'f1-race-weekend-format',
     publishedAt: '2026-08-03',
-    // Sprint weekends added and the prose rewritten on this date. Only ever
-    // set for a substantive revision: the header and `dateModified` both read
-    // it, so touching it for a typo is a freshness claim we did not earn.
-    updatedAt: '2026-09-09',
+    // Fact-checked on this date: six sprint rounds (not seven), one practice
+    // session on a sprint weekend (not two), and FP3 on the morning of
+    // qualifying. Only ever set for a substantive revision: the header and
+    // `dateModified` both read it, so touching it for a typo is a freshness
+    // claim we did not earn.
+    updatedAt: '2026-09-21',
     title: 'What happens across an F1 race weekend',
     metaTitle: 'F1 Race Weekend Format Explained | Grand Prix Picks',
     metaDescription:

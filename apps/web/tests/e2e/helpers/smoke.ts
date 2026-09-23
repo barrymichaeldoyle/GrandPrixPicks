@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 
-import { createE2EClerkIdentity } from './clerk';
+import { createE2EClerkIdentity, signInE2EClerkIdentity } from './clerk';
 import { applyScenario } from './scenarios';
 
 export const PLAYWRIGHT_AUTH_NAMESPACE = 'playwright_auth_primary';
@@ -25,8 +25,14 @@ export async function seedScenarioForAuthenticatedUser(
     primaryDisplayName: clerkIdentity.displayName,
   });
 
-  await page.goto(options.targetPath ?? summary.routes!.webRaceDetail);
-  await expect(page.getByTestId('header-user-authenticated')).toBeVisible();
+  const targetPath = options.targetPath ?? summary.routes!.webRaceDetail;
+  // The storage state produced by auth.setup can outlive its one-minute Clerk
+  // session JWT while earlier public and mobile smoke tests run. Exchange a
+  // fresh sign-in token for each scenario instead of relying on that snapshot.
+  await signInE2EClerkIdentity(page, clerkIdentity, targetPath);
+  await expect(page.getByTestId('header-user-authenticated')).toBeVisible({
+    timeout: 15_000,
+  });
   if (!options.targetPath) {
     await waitForRacePageReady(page);
   }

@@ -62,6 +62,9 @@ export type FeedEvent = {
     outDriverName?: string;
     inDriverCode: string;
     inDriverName: string;
+    /** Added when the feed is read, for the flag beside each name. */
+    outNationality?: string;
+    inNationality?: string;
   }[];
   lineupNote?: string;
   // race_news

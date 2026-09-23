@@ -281,7 +281,28 @@ describe('notification delivery', () => {
       await scheduleReminder(ctx, (await ctx.db.get(raceId))!);
     });
     const first = await t.run((ctx) => ctx.db.get(raceId));
-    expect(first?.reminderJobIds).toHaveLength(2);
+    // Quali locks in 3h, so its own T-24h pass is already past; the race lock
+    // is 48h out and still gets a T-2h push and a T-24h email fan-out.
+    const jobs = await Promise.all(
+      first!.reminderJobIds!.map((id) =>
+        t.run(async (ctx) => {
+          const row = await ctx.db.system.get(id);
+          return {
+            name: row!.name,
+            args: row!.args[0] as Record<string, unknown>,
+          };
+        }),
+      ),
+    );
+    expect(jobs).toHaveLength(3);
+    expect(
+      jobs.filter((j) => j.name === 'push:sendPushRemindersForRace'),
+    ).toHaveLength(2);
+    const emailJobs = jobs.filter(
+      (j) => j.name === 'notifications:sendPredictionReminders',
+    );
+    expect(emailJobs).toHaveLength(1);
+    expect(emailJobs[0].args).toMatchObject({ sessionType: 'race' });
     await t.run(async (ctx) => {
       await scheduleReminder(ctx, (await ctx.db.get(raceId))!);
     });

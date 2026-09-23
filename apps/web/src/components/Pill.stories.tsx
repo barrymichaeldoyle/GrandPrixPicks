@@ -59,7 +59,7 @@ export const AgainstBadge: Story = {
         <code className="w-28 shrink-0 text-xs text-text-muted">Badge</code>
         <Badge variant="locked" />
         <Badge variant="submitted" />
-        <Badge variant="sprint">SPRINT</Badge>
+        <Badge variant="sprint">Sprint</Badge>
       </div>
       <div className="flex items-center gap-3">
         <code className="w-28 shrink-0 text-xs text-text-muted">Pill</code>
@@ -75,7 +75,7 @@ export const AgainstBadge: Story = {
 export const InARow: Story = {
   render: () => (
     <div className="flex max-w-md flex-wrap items-center gap-1 rounded-xl border border-border bg-surface p-3">
-      <Badge variant="sprint">SPRINT</Badge>
+      <Badge variant="sprint">Sprint</Badge>
       <Pill tone="warning" className="gpp-mono">
         02h 14m until lock
       </Pill>

@@ -144,6 +144,19 @@ describe('modal dialog behaviour', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('reads a changed close callback without moving focus', () => {
+    const first = vi.fn();
+    const latest = vi.fn();
+    render(<Dialog onClose={first} />);
+    const last = buttons()[1]!;
+    act(() => last.focus());
+    act(() => root!.render(<Dialog onClose={latest} />));
+    expect(document.activeElement).toBe(last);
+    press('Escape');
+    expect(first).not.toHaveBeenCalled();
+    expect(latest).toHaveBeenCalledTimes(1);
+  });
+
   it('ignores Escape and Tab while suspended, so a stacked dialog owns them', () => {
     const onClose = vi.fn();
     render(<Dialog onClose={onClose} suspended />);

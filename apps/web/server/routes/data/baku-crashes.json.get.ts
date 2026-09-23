@@ -27,7 +27,7 @@ export default function handler() {
   const payload = {
     name: 'Notable crashes at the Baku City Circuit, 2016 to 2025',
     description:
-      'Every crash and collision at the Baku City Circuit that ended in a red flag, a retirement or a stewards collision note, across the nine Formula 1 weekends held there. Each incident carries the drivers involved, the session, the corner where the car stopped, and a citation.',
+      'Every recorded time a car hit a wall, a barrier, another car or something on the track at the Baku City Circuit, across the nine Formula 1 weekends held there. Each incident carries the drivers involved, the session, the corner where the car stopped, and a citation.',
     license: 'https://creativecommons.org/licenses/by/4.0/',
     url: `${siteConfig.url}/f1-2026-azerbaijan-grand-prix-predictions`,
     /*
@@ -45,7 +45,7 @@ export default function handler() {
       note: 'The 2020 race was cancelled. 2016 ran as the European Grand Prix at this circuit. Practice and qualifying for 2018 are not covered: no contemporary session report was found.',
       exhaustive: false,
       inclusion:
-        'Contact with a wall or another car that had a consequence: a red flag, a retirement, a stopped car, or a stewards collision note. Excludes lock-ups and escape-road excursions with no contact, and purely mechanical retirements.',
+        'A car hitting a wall, a barrier, another car or something on the track, recorded in a race report or the FIA race control log. Excludes lock-ups and escape-road excursions with no contact, and purely mechanical retirements.',
       attribution:
         'Corner is where the car stopped, not where the contact began. Where those differ, the note says so.',
     },

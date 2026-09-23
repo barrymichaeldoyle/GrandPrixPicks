@@ -27,9 +27,9 @@ const TONE_CLASSES: Record<PillTone, string> = {
 export type PillSize = 'sm' | 'md' | 'lg';
 
 const SIZE_CLASSES: Record<PillSize, string> = {
-  sm: 'px-1.5 py-0.5 text-xs tracking-label uppercase',
-  md: 'px-2 py-0.5 text-xs tracking-label uppercase',
-  lg: 'px-3 py-1 text-xs tracking-label uppercase',
+  sm: 'px-1.5 py-0.5 text-xs',
+  md: 'px-2 py-0.5 text-xs',
+  lg: 'px-3 py-1 text-xs',
 };
 
 export function Pill({

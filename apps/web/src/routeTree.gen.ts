@@ -16,6 +16,7 @@ import { Route as F12026BahrainGrandPrixPredictionsRouteImport } from './routes/
 import { Route as F12026ItalianGrandPrixPredictionsRouteImport } from './routes/f1-2026-italian-grand-prix-predictions'
 import { Route as F12026MadridGrandPrixPredictionsRouteImport } from './routes/f1-2026-madrid-grand-prix-predictions'
 import { Route as F12026SingaporeGrandPrixPredictionsRouteImport } from './routes/f1-2026-singapore-grand-prix-predictions'
+import { Route as F12026UnitedStatesGrandPrixPredictionsRouteImport } from './routes/f1-2026-united-states-grand-prix-predictions'
 import { Route as F12027CalendarRouteImport } from './routes/f1-2027-calendar'
 import { Route as F12027DriverLineUpRouteImport } from './routes/f1-2027-driver-line-up'
 import { Route as F1PredictionsThisWeekendRouteImport } from './routes/f1-predictions-this-weekend'
@@ -37,6 +38,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TrmnlRouteImport } from './routes/trmnl'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as CircuitsIndexRouteImport } from './routes/circuits/index'
 import { Route as CircuitsCircuitSlugRouteImport } from './routes/circuits/$circuitSlug'
@@ -97,6 +99,12 @@ const F12026SingaporeGrandPrixPredictionsRoute =
   F12026SingaporeGrandPrixPredictionsRouteImport.update({
     id: '/f1-2026-singapore-grand-prix-predictions',
     path: '/f1-2026-singapore-grand-prix-predictions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const F12026UnitedStatesGrandPrixPredictionsRoute =
+  F12026UnitedStatesGrandPrixPredictionsRouteImport.update({
+    id: '/f1-2026-united-states-grand-prix-predictions',
+    path: '/f1-2026-united-states-grand-prix-predictions',
     getParentRoute: () => rootRouteImport,
   } as any)
 const F12027CalendarRoute = F12027CalendarRouteImport.update({
@@ -203,6 +211,11 @@ const SupportRoute = SupportRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrmnlRoute = TrmnlRouteImport.update({
+  id: '/trmnl',
+  path: '/trmnl',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -319,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/f1-2026-italian-grand-prix-predictions': typeof F12026ItalianGrandPrixPredictionsRoute
   '/f1-2026-madrid-grand-prix-predictions': typeof F12026MadridGrandPrixPredictionsRoute
   '/f1-2026-singapore-grand-prix-predictions': typeof F12026SingaporeGrandPrixPredictionsRoute
+  '/f1-2026-united-states-grand-prix-predictions': typeof F12026UnitedStatesGrandPrixPredictionsRoute
   '/f1-2027-calendar': typeof F12027CalendarRoute
   '/f1-2027-driver-line-up': typeof F12027DriverLineUpRoute
   '/f1-predictions-this-weekend': typeof F1PredictionsThisWeekendRoute
@@ -340,6 +354,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/trmnl': typeof TrmnlRoute
   '/circuits/$circuitSlug': typeof CircuitsCircuitSlugRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
   '/guides/$guideSlug': typeof GuidesGuideSlugRoute
@@ -370,6 +385,7 @@ export interface FileRoutesByTo {
   '/f1-2026-italian-grand-prix-predictions': typeof F12026ItalianGrandPrixPredictionsRoute
   '/f1-2026-madrid-grand-prix-predictions': typeof F12026MadridGrandPrixPredictionsRoute
   '/f1-2026-singapore-grand-prix-predictions': typeof F12026SingaporeGrandPrixPredictionsRoute
+  '/f1-2026-united-states-grand-prix-predictions': typeof F12026UnitedStatesGrandPrixPredictionsRoute
   '/f1-2027-calendar': typeof F12027CalendarRoute
   '/f1-2027-driver-line-up': typeof F12027DriverLineUpRoute
   '/f1-predictions-this-weekend': typeof F1PredictionsThisWeekendRoute
@@ -390,6 +406,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/trmnl': typeof TrmnlRoute
   '/circuits/$circuitSlug': typeof CircuitsCircuitSlugRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
   '/guides/$guideSlug': typeof GuidesGuideSlugRoute
@@ -421,6 +438,7 @@ export interface FileRoutesById {
   '/f1-2026-italian-grand-prix-predictions': typeof F12026ItalianGrandPrixPredictionsRoute
   '/f1-2026-madrid-grand-prix-predictions': typeof F12026MadridGrandPrixPredictionsRoute
   '/f1-2026-singapore-grand-prix-predictions': typeof F12026SingaporeGrandPrixPredictionsRoute
+  '/f1-2026-united-states-grand-prix-predictions': typeof F12026UnitedStatesGrandPrixPredictionsRoute
   '/f1-2027-calendar': typeof F12027CalendarRoute
   '/f1-2027-driver-line-up': typeof F12027DriverLineUpRoute
   '/f1-predictions-this-weekend': typeof F1PredictionsThisWeekendRoute
@@ -442,6 +460,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/trmnl': typeof TrmnlRoute
   '/circuits/$circuitSlug': typeof CircuitsCircuitSlugRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
   '/guides/$guideSlug': typeof GuidesGuideSlugRoute
@@ -474,6 +493,7 @@ export interface FileRouteTypes {
     | '/f1-2026-italian-grand-prix-predictions'
     | '/f1-2026-madrid-grand-prix-predictions'
     | '/f1-2026-singapore-grand-prix-predictions'
+    | '/f1-2026-united-states-grand-prix-predictions'
     | '/f1-2027-calendar'
     | '/f1-2027-driver-line-up'
     | '/f1-predictions-this-weekend'
@@ -495,6 +515,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/support'
     | '/terms'
+    | '/trmnl'
     | '/circuits/$circuitSlug'
     | '/feed/$feedEventId'
     | '/guides/$guideSlug'
@@ -525,6 +546,7 @@ export interface FileRouteTypes {
     | '/f1-2026-italian-grand-prix-predictions'
     | '/f1-2026-madrid-grand-prix-predictions'
     | '/f1-2026-singapore-grand-prix-predictions'
+    | '/f1-2026-united-states-grand-prix-predictions'
     | '/f1-2027-calendar'
     | '/f1-2027-driver-line-up'
     | '/f1-predictions-this-weekend'
@@ -545,6 +567,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/support'
     | '/terms'
+    | '/trmnl'
     | '/circuits/$circuitSlug'
     | '/feed/$feedEventId'
     | '/guides/$guideSlug'
@@ -575,6 +598,7 @@ export interface FileRouteTypes {
     | '/f1-2026-italian-grand-prix-predictions'
     | '/f1-2026-madrid-grand-prix-predictions'
     | '/f1-2026-singapore-grand-prix-predictions'
+    | '/f1-2026-united-states-grand-prix-predictions'
     | '/f1-2027-calendar'
     | '/f1-2027-driver-line-up'
     | '/f1-predictions-this-weekend'
@@ -596,6 +620,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/support'
     | '/terms'
+    | '/trmnl'
     | '/circuits/$circuitSlug'
     | '/feed/$feedEventId'
     | '/guides/$guideSlug'
@@ -627,6 +652,7 @@ export interface RootRouteChildren {
   F12026ItalianGrandPrixPredictionsRoute: typeof F12026ItalianGrandPrixPredictionsRoute
   F12026MadridGrandPrixPredictionsRoute: typeof F12026MadridGrandPrixPredictionsRoute
   F12026SingaporeGrandPrixPredictionsRoute: typeof F12026SingaporeGrandPrixPredictionsRoute
+  F12026UnitedStatesGrandPrixPredictionsRoute: typeof F12026UnitedStatesGrandPrixPredictionsRoute
   F12027CalendarRoute: typeof F12027CalendarRoute
   F12027DriverLineUpRoute: typeof F12027DriverLineUpRoute
   F1PredictionsThisWeekendRoute: typeof F1PredictionsThisWeekendRoute
@@ -648,6 +674,7 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
+  TrmnlRoute: typeof TrmnlRoute
   CircuitsCircuitSlugRoute: typeof CircuitsCircuitSlugRoute
   GuidesGuideSlugRoute: typeof GuidesGuideSlugRoute
   LeaguesSlugRoute: typeof LeaguesSlugRouteWithChildren
@@ -715,6 +742,13 @@ declare module '@tanstack/react-router' {
       path: '/f1-2026-singapore-grand-prix-predictions'
       fullPath: '/f1-2026-singapore-grand-prix-predictions'
       preLoaderRoute: typeof F12026SingaporeGrandPrixPredictionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/f1-2026-united-states-grand-prix-predictions': {
+      id: '/f1-2026-united-states-grand-prix-predictions'
+      path: '/f1-2026-united-states-grand-prix-predictions'
+      fullPath: '/f1-2026-united-states-grand-prix-predictions'
+      preLoaderRoute: typeof F12026UnitedStatesGrandPrixPredictionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/f1-2027-calendar': {
@@ -862,6 +896,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trmnl': {
+      id: '/trmnl'
+      path: '/trmnl'
+      fullPath: '/trmnl'
+      preLoaderRoute: typeof TrmnlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -1064,6 +1105,8 @@ const rootRouteChildren: RootRouteChildren = {
   F12026MadridGrandPrixPredictionsRoute: F12026MadridGrandPrixPredictionsRoute,
   F12026SingaporeGrandPrixPredictionsRoute:
     F12026SingaporeGrandPrixPredictionsRoute,
+  F12026UnitedStatesGrandPrixPredictionsRoute:
+    F12026UnitedStatesGrandPrixPredictionsRoute,
   F12027CalendarRoute: F12027CalendarRoute,
   F12027DriverLineUpRoute: F12027DriverLineUpRoute,
   F1PredictionsThisWeekendRoute: F1PredictionsThisWeekendRoute,
@@ -1085,6 +1128,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
+  TrmnlRoute: TrmnlRoute,
   CircuitsCircuitSlugRoute: CircuitsCircuitSlugRoute,
   GuidesGuideSlugRoute: GuidesGuideSlugRoute,
   LeaguesSlugRoute: LeaguesSlugRouteWithChildren,

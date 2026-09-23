@@ -166,17 +166,18 @@ const F1_DRIVERS_2026 = [
 
   // Racing Bulls
   //
-  // Lawson's row says Red Bull Racing because `drivers.team` is the CURRENT
-  // team, and from round 12 that is where he races. The eleven rounds he drove
-  // for Racing Bulls are not lost: they live in `driverTeamStints`, which is
-  // what the constructors' championship reads.
+  // `drivers.team` is the CURRENT team. Lawson raced for Red Bull in rounds 12
+  // to 14 and is back at Racing Bulls from round 15; those three Red Bull
+  // rounds live in `driverTeamStints`, which is what the constructors'
+  // championship reads. Tsunoda is on reserve duty from round 15 and keeps
+  // Racing Bulls, the team he last raced for.
   {
     code: 'LAW',
     givenName: 'Liam',
     familyName: 'Lawson',
     displayName: 'Liam Lawson',
     number: 30,
-    team: 'Red Bull Racing',
+    team: 'Racing Bulls',
     nationality: 'NZ',
   },
   {
@@ -1042,6 +1043,7 @@ export const applyLineup = internalAction({
  */
 const LINEUP_CHANGE_NOTES: Record<number, string | undefined> = {
   12: HADJAR_DUTCH_GP_LINEUP_NOTE,
+  15: 'Isack Hadjar has recovered from his wrist injury and returns alongside Max Verstappen at Red Bull. Liam Lawson goes back to Racing Bulls next to Arvid Lindblad, and Yuki Tsunoda returns to reserve duty.',
 };
 
 /**

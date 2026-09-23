@@ -92,26 +92,35 @@ const RACE_WRITEUPS = {
     venueName: 'Singapore',
     label: 'Singapore predictions',
     summary:
-      'Singapore’s first sprint weekend, the single practice session before competitive running, and what matters at Marina Bay.',
+      'Singapore’s first sprint weekend, the single practice session before competitive running, and racing in the heat at Marina Bay.',
     cta: 'Read the Singapore predictions',
   },
   'azerbaijan-2026': {
     to: '/f1-2026-azerbaijan-grand-prix-predictions',
-    reviewedAt: '2026-09-08',
+    reviewedAt: '2026-09-21',
     venueName: 'Baku',
     label: 'Baku predictions',
     summary:
-      'Why Baku races on Saturday in 2026, where the lap is won and lost, and the qualifying session that set a Formula 1 red-flag record.',
+      'Why Baku races on Saturday in 2026, its 2.2 km flat-out run and old-town corners, and the qualifying session that set a Formula 1 red-flag record.',
     cta: 'Read the Baku predictions',
+  },
+  'usa-2026': {
+    to: '/f1-2026-united-states-grand-prix-predictions',
+    reviewedAt: '2026-09-21',
+    venueName: 'Austin',
+    label: 'Austin predictions',
+    summary:
+      'Austin returns to a standard weekend, Ferrari and Mercedes bring new parts, and Verstappen won from pole last year.',
+    cta: 'Read the Austin predictions',
   },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
-    reviewedAt: '2026-09-12',
+    reviewedAt: '2026-09-21',
     venueName: 'Madrid',
-    label: 'Madrid GP predictions',
+    label: 'Madrid results',
     summary:
-      'Norris on pole for the first race at the Madring, Stroll starting from the back, and what practice showed in Madrid.',
-    cta: 'Read the Madrid predictions',
+      'How Antonelli won the first race at the Madring, how the field picked it, and why a Virtual Safety Car decided it.',
+    cta: 'Read the Madrid results',
   },
 } as const satisfies Record<string, RaceWriteup>;
 

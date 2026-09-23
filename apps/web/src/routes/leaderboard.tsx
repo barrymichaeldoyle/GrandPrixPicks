@@ -10,8 +10,7 @@ import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { AnimatePresence, m } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { ViewTransition, useDeferredValue, useEffect, useState } from 'react';
 
 import { RaceFlag } from '@/components/RaceFlag';
 import { RaceWeekendSelect } from '@/components/RaceWeekendSelect';
@@ -147,7 +146,9 @@ function LeaderboardPage() {
   // paint instead of popping in (and shifting the row) once Clerk boots.
   const { isSignedIn } = useViewerSession();
   const queryClient = useQueryClient();
-  const search = Route.useSearch();
+  // Router search is an external store. Defer its display so React can
+  // commit filter changes in a transition and activate ViewTransition.
+  const search = useDeferredValue(Route.useSearch());
   const navigate = Route.useNavigate();
   const { data: viewer } = useQuery(
     convexQuery(api.users.me, isSignedIn ? {} : 'skip'),
@@ -438,15 +439,8 @@ function LeaderboardPage() {
           actions={
             isSignedIn && headerViewerEntry ? (
               <div className="min-h-14">
-                <AnimatePresence mode="wait">
-                  <m.div
-                    key={activeViewKey}
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.96 }}
-                    transition={{ duration: 0.2 }}
-                    className="inline-flex items-center gap-3 rounded-lg bg-accent-muted px-3 py-2"
-                  >
+                <ViewTransition default="none" update="leaderboard-change">
+                  <div className="inline-flex items-center gap-3 rounded-lg bg-accent-muted px-3 py-2">
                     <span className="gpp-mono flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-semibold text-text-on-accent">
                       {headerViewerEntry.rank}
                     </span>
@@ -461,8 +455,8 @@ function LeaderboardPage() {
                         {headerViewerEntry.points} pts
                       </div>
                     </div>
-                  </m.div>
-                </AnimatePresence>
+                  </div>
+                </ViewTransition>
               </div>
             ) : undefined
           }
@@ -557,29 +551,32 @@ function LeaderboardPage() {
           </div>
         </div>
 
-        {/* Content */}
-        {timeScope === 'weekend' ? (
-          <WeekendContent
-            key={activeViewKey}
-            defaultRace={selectedRace}
-            scope={scope}
-            sessionScope={sessionScope}
-            isSignedIn={isSignedIn}
-            activeData={activeWeekendData}
-          />
-        ) : (
-          <SeasonContent
-            key={activeViewKey}
-            scope={scope}
-            seasonEntries={seasonEntries}
-            seasonHasMore={seasonHasMore}
-            isLoadingMore={isLoadingMore}
-            activeTotalCount={activeTotalCount ?? 0}
-            loadMoreSeason={() => void loadMoreSeason()}
-            seasonCombinedFollowing={stickySeasonCombinedFollowing}
-          />
-        )}
-
+        {/* Deferred filter state activates this boundary without delaying navigation. */}
+        <ViewTransition default="none" update="leaderboard-change">
+          <div>
+            {timeScope === 'weekend' ? (
+              <WeekendContent
+                key={activeViewKey}
+                defaultRace={selectedRace}
+                scope={scope}
+                sessionScope={sessionScope}
+                isSignedIn={isSignedIn}
+                activeData={activeWeekendData}
+              />
+            ) : (
+              <SeasonContent
+                key={activeViewKey}
+                scope={scope}
+                seasonEntries={seasonEntries}
+                seasonHasMore={seasonHasMore}
+                isLoadingMore={isLoadingMore}
+                activeTotalCount={activeTotalCount ?? 0}
+                loadMoreSeason={() => void loadMoreSeason()}
+                seasonCombinedFollowing={stickySeasonCombinedFollowing}
+              />
+            )}
+          </div>
+        </ViewTransition>
         <LeaderboardExplainer />
       </div>
     </AppPageLayout>

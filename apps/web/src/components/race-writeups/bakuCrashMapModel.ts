@@ -158,6 +158,37 @@ export function orderedForList(
   );
 }
 
+/**
+ * The incidents shown before the archive folds, and what to call them.
+ *
+ * The best-known ones when the filter leaves enough of them to fill the
+ * preview, otherwise the newest: a heading of "Best known" over a row picked
+ * for its date would be wrong. `rest` keeps the newest-first order, without
+ * the previewed rows.
+ */
+export function previewIncidents(
+  crashes: readonly BakuCrash[],
+  bestKnown: readonly string[],
+  count: number,
+): {
+  kind: 'best-known' | 'latest';
+  preview: readonly BakuCrash[];
+  rest: readonly BakuCrash[];
+} {
+  const listed = orderedForList(crashes);
+  const famous = bestKnown
+    .map((id) => listed.find((crash) => crash.id === id))
+    .filter((crash): crash is BakuCrash => crash !== undefined);
+  const kind = famous.length >= count ? 'best-known' : 'latest';
+  const preview = (kind === 'best-known' ? famous : listed).slice(0, count);
+  const shown = new Set(preview.map((crash) => crash.id));
+  return {
+    kind,
+    preview,
+    rest: listed.filter((crash) => !shown.has(crash.id)),
+  };
+}
+
 export function sessionLabel(session: BakuSession): string {
   if (session === 'SprintQualifying') {
     return 'Sprint Qualifying';
@@ -364,4 +395,83 @@ export function placeMarkers(
     const scale = MAX_DISPLACEMENT / drift;
     return { ...marker, x: anchor.x + dx * scale, y: anchor.y + dy * scale };
   });
+}
+
+/**
+ * How many rows of a ranked list to show under a cap without splitting a tie.
+ *
+ * A fixed cap of six cut the driver list between Räikkönen and Verstappen,
+ * both on four, so one of them silently fell below the fold for having a
+ * later surname. The cut moves to the nearest place the count changes:
+ * forward to take in the whole tie when that costs at most `slack` extra
+ * rows, otherwise back to where the tie begins.
+ *
+ * `counts` must already be sorted high to low, as the ranked lists are.
+ */
+export function rowsBeforeTie(
+  counts: readonly number[],
+  limit: number,
+  slack = 3,
+): number {
+  if (counts.length <= limit) {
+    return counts.length;
+  }
+  const tied = counts[limit - 1];
+  if (counts[limit] !== tied) {
+    return limit;
+  }
+  let end = limit;
+  while (end < counts.length && counts[end] === tied) {
+    end += 1;
+  }
+  if (end - limit <= slack) {
+    return end;
+  }
+  let start = limit - 1;
+  while (start > 0 && counts[start - 1] === tied) {
+    start -= 1;
+  }
+  return start > 0 ? start : end;
+}
+
+/**
+ * The corners the map labels with their count: every corner holding one of
+ * the two highest counts, in the current filter. Two counts rather than two
+ * corners, so a tie for second is labelled whole rather than cut.
+ */
+export function calloutCorners(
+  ranked: readonly { corner: number; count: number }[],
+): ReadonlySet<number> {
+  const top = [...new Set(ranked.map((entry) => entry.count))].slice(0, 2);
+  return new Set(
+    ranked
+      .filter((entry) => top.includes(entry.count) && entry.count > 1)
+      .map((entry) => entry.corner),
+  );
+}
+
+/**
+ * The radius, in viewBox units, of a marker's invisible tap target.
+ *
+ * As large as the space around the marker allows: half the distance to its
+ * nearest neighbour, capped at `HIT_RADIUS_MAX`, and never smaller than the
+ * dot plus a margin. A lone corner like Turn 1 or Turn 15 gets a target a
+ * thumb can find on a phone, where the map is drawn at about a third of its
+ * viewBox size; the castle section, where corners sit a few units apart,
+ * keeps targets that do not swallow their neighbours.
+ */
+export const HIT_RADIUS_MAX = 64;
+
+export function hitRadius(
+  marker: PlacedMarker,
+  all: readonly PlacedMarker[],
+): number {
+  const nearest = Math.min(
+    Infinity,
+    ...all
+      .filter((other) => other.corner !== marker.corner)
+      .map((other) => Math.hypot(other.x - marker.x, other.y - marker.y)),
+  );
+  const room = nearest / 2;
+  return Math.max(marker.radius + 10, Math.min(HIT_RADIUS_MAX, room));
 }

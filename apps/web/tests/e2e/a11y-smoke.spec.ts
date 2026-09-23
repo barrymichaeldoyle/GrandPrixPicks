@@ -53,12 +53,12 @@ const PAGES = [
   {
     path: '/f1-2026-azerbaijan-grand-prix-predictions',
     name: 'crash map',
-    crashModal: true,
+    crashSelection: true,
   },
 ];
 
 test.describe('[public] a11y smoke', () => {
-  for (const { path, name, charts, crashModal } of PAGES) {
+  for (const { path, name, charts, crashSelection } of PAGES) {
     test(`${name} has no WCAG A/AA violations`, async ({ page }) => {
       await page.goto(path);
       // Axe reads the composed document, so it has to run against the page as
@@ -73,13 +73,13 @@ test.describe('[public] a11y smoke', () => {
       const main = page.locator('main');
       await expect(main).toBeVisible();
       await waitForHydration(main);
-      if (crashModal) {
+      if (crashSelection) {
         await expectNoA11yViolations(page);
         /*
-         * The drill-down is scanned open as well. Its content does not exist
-         * in the closed state, so a page-level pass says nothing about the
-         * dialog's labelling or about what the focus trap leaves reachable
-         * behind it.
+         * The drill-down is scanned open as well. It lists a corner's
+         * incidents in place under the map, and that content does not exist
+         * until something is selected, so a page-level pass says nothing
+         * about its labelling or the pressed state on the row that opened it.
          */
         /*
          * Scoped to a list row rather than taken with `.first()`: the map's
@@ -93,7 +93,8 @@ test.describe('[public] a11y smoke', () => {
           .first();
         await cornerRow.scrollIntoViewIfNeeded();
         await cornerRow.click();
-        await expect(page.getByRole('dialog')).toBeVisible();
+        await expect(cornerRow).toHaveAttribute('aria-pressed', 'true');
+        await expect(page.getByRole('button', { name: 'Clear' })).toBeVisible();
         await expectNoA11yViolations(page);
         return;
       }

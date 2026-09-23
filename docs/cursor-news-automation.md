@@ -1,10 +1,24 @@
 # Cursor news worker setup
 
+**Currently disabled (2026-09-17).** The scheduled Automation was burning Cursor
+usage on a 15-minute cadence year-round, spinning up a Cloud Agent on every run
+even though most runs found nothing queued. `NEWS_WORKER_SECRET` has been
+removed from the prod Convex deployment, so even if the Automation on
+cursor.com is still scheduled, its claim/submit calls fail. Pause or delete the
+Automation itself on cursor.com too — removing the secret is a backstop, not a
+substitute. RSS discovery (`newsPipeline:pollDue` / `queueBatch`, both Convex
+crons, no Cursor cost) is left running, so `newsCandidates` keeps filling in
+the background for ad hoc review: news is currently reviewed and published by
+asking Claude directly (see `publish-race-news`) rather than through this
+worker. To bring the Automation back, regenerate `NEWS_WORKER_SECRET`, set it
+on both the Convex deployment and the Cursor environment, and re-enable the
+schedule below.
+
 The app discovers approved RSS entries in Convex. A Cursor Automation can prepare proposals, but it cannot publish. Every proposal waits for a reviewer in Admin → News. Cursor's [Automations documentation](https://prod.cursor.com/help/ai-features/automations) describes scheduled Cloud Agent runs and where to create one.
 
 1. Set `NEWS_RSS_ALLOWED_HOSTS` on the intended Convex deployment to a comma-separated list of exact, approved feed hostnames (for example `www.formula1.com,example.org`). Then add an HTTPS RSS feed on one of those hosts in Admin → News. Only enabled, allowlisted sources are polled. The adapter accepts article links on that source's host or its subdomains, retains excerpts of at most 500 characters, and does not fetch article bodies or images.
 2. Generate a random secret of at least 32 characters. Set `NEWS_WORKER_SECRET` on the intended Convex deployment, then add the same value as a secret in the Cursor Cloud Agent environment. Never place it in the prompt, repository, or an `EXPO_PUBLIC_` variable.
-3. Create a scheduled Automation at `cursor.com/automations/new` with this repository attached. Give it access to the environment secret and the deployment's `CONVEX_SITE_URL`. A 15-minute schedule is sufficient; no work is done when claim returns `null`. Configure no automatic PR or publishing step for this task.
+3. Create a scheduled Automation at `cursor.com/automations/new` with this repository attached. Give it access to the environment secret and the deployment's `CONVEX_SITE_URL`. Use an **hourly** schedule: every run spins up a Cloud Agent and burns usage even when claim returns `null`, which is most runs outside a race week, so a 15-minute cadence billed 24/7 for same-day review latency it doesn't need. Configure no automatic PR or publishing step for this task.
 4. Use the prompt below. The agent sends `Authorization: Bearer $NEWS_WORKER_SECRET` and `Content-Type: application/json` on every request. It POSTs `{}` to `$CONVEX_SITE_URL/news-worker/claim`. On success it POSTs the JSON object described below to `/news-worker/submit`; on failure it POSTs `{ "batchId": "..." }` to `/news-worker/fail`.
 
 Exact automation prompt:

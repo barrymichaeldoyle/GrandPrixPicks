@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { BAKU_CORNERS } from './bakuCircuitGeometry';
-import { BAKU_CRASHES, BAKU_DRIVERS } from './bakuCrashes';
+import { BAKU_BEST_KNOWN, BAKU_CRASHES, BAKU_DRIVERS } from './bakuCrashes';
 
 /**
  * Invariants for the hand-maintained crash archive.
@@ -113,5 +113,14 @@ describe('baku crash data', () => {
         `${crash.id} source shape`,
       ).toBe(true);
     }
+  });
+
+  it('names only incidents the archive holds as best known', () => {
+    // A renamed id would drop a famous crash from the preview without a sound.
+    const ids = new Set(BAKU_CRASHES.map((crash) => crash.id));
+    for (const id of BAKU_BEST_KNOWN) {
+      expect(ids.has(id), id).toBe(true);
+    }
+    expect(new Set(BAKU_BEST_KNOWN).size).toBe(BAKU_BEST_KNOWN.length);
   });
 });

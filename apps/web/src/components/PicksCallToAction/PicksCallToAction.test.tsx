@@ -60,9 +60,14 @@ const weekend = vi.hoisted<{
     | undefined;
 }>(() => ({ race: undefined }));
 
-vi.mock('@/integrations/convex/query', () => ({
-  useQuery: (_query: unknown, args: unknown) =>
-    args === 'skip' ? undefined : weekend.race,
+vi.mock('@tanstack/react-query', () => ({
+  useQuery: (options: { enabled?: boolean }) => ({
+    data: options.enabled === false ? undefined : weekend.race,
+  }),
+}));
+
+vi.mock('@/lib/routeQuery', () => ({
+  routeQuery: () => ({}),
 }));
 
 vi.mock('@convex-generated/api', () => ({
@@ -104,6 +109,28 @@ describe('picks call to action', () => {
     root = createRoot(container);
     act(() => root!.render(<PicksCallToAction {...props} />));
     return container!;
+  }
+
+  /**
+   * Clicks a link and reports whether the component prevented the default.
+   * A click nobody prevents makes jsdom try to follow the href, which it cannot
+   * and logs as "Not implemented: navigation to another Document". So a
+   * document listener, which runs after React's root listener, reads the
+   * verdict and then cancels the navigation itself.
+   */
+  function clickLink(link: Element, init: MouseEventInit = {}) {
+    let prevented = false;
+    function settle(event: Event) {
+      prevented = event.defaultPrevented;
+      event.preventDefault();
+    }
+    document.addEventListener('click', settle, { once: true });
+    act(() => {
+      link.dispatchEvent(
+        new MouseEvent('click', { bubbles: true, cancelable: true, ...init }),
+      );
+    });
+    return { prevented };
   }
 
   function hrefs() {
@@ -251,17 +278,10 @@ describe('picks call to action', () => {
     const cta = el.querySelector('a[href="/f1-predictions-this-weekend"]');
 
     // Cmd-click is "open this in a tab", not "start picking here".
-    const event = new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-      metaKey: true,
-    });
-    act(() => {
-      cta!.dispatchEvent(event);
-    });
+    const { prevented } = clickLink(cta!, { metaKey: true });
 
     expect(el.querySelector('[data-testid="picks-overlay"]')).toBeNull();
-    expect(event.defaultPrevented).toBe(false);
+    expect(prevented).toBe(false);
   });
 
   it('stays a link once the weekend can take no more picks', () => {
@@ -280,13 +300,10 @@ describe('picks call to action', () => {
     const el = render({ placement: 'guide' });
     const cta = el.querySelector('a[href="/f1-predictions-this-weekend"]');
 
-    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
-    act(() => {
-      cta!.dispatchEvent(event);
-    });
+    const { prevented } = clickLink(cta!);
 
     expect(el.querySelector('[data-testid="picks-overlay"]')).toBeNull();
-    expect(event.defaultPrevented).toBe(false);
+    expect(prevented).toBe(false);
   });
 
   it('names the viewer’s existing picks instead of asking again', () => {

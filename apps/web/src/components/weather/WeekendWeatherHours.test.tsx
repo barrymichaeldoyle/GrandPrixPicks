@@ -161,9 +161,11 @@ describe('WeekendWeatherHours', () => {
       />,
     );
 
-    expect(html).toContain('row-span-2 sm:row-span-1');
-    expect(html).toContain('col-start-2');
-    expect(html).not.toContain('col-span-2');
+    expect(html).toContain('row-[1/span_2] sm:row-[1]');
+    // Below `sm` the forecast fills the right-hand columns of row two, never
+    // column one, which would put it under the session name.
+    expect(html).toContain('col-[2] row-[2]');
+    expect(html).not.toMatch(/col-\[1\] row-\[2\]/);
   });
 });
 

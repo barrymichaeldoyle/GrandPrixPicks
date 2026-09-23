@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { internalMutation, internalQuery } from './_generated/server';
+import { internalMutation, internalQuery, query } from './_generated/server';
 import { safeHttpUrl } from './lib/newsRss';
 
 /**
@@ -144,5 +144,40 @@ export const retract = internalMutation({
     }
     await ctx.db.patch(row._id, { active: false, updatedAt: Date.now() });
     return null;
+  },
+});
+
+/**
+ * The newest live race-independent news, newest first, for surfaces with no
+ * race to hang news on: the TRMNL plugin's off-season screen. Public, like the
+ * feed cards the same rows publish.
+ *
+ * Creation order is publish order (`publishedAt` never moves on a
+ * correction), so the built-in index serves it. A retracted row stays in the
+ * table, hence reading a few past `limit`.
+ */
+export const listRecent = query({
+  args: { limit: v.optional(v.number()) },
+  returns: v.array(
+    v.object({
+      headline: v.string(),
+      sourceName: v.string(),
+      publishedAt: v.number(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    const limit = Math.min(Math.max(args.limit ?? 5, 1), 20);
+    const rows = await ctx.db
+      .query('globalNews')
+      .order('desc')
+      .take(limit + 20);
+    return rows
+      .filter((row) => row.active)
+      .slice(0, limit)
+      .map((row) => ({
+        headline: row.headline,
+        sourceName: row.sourceName,
+        publishedAt: row.publishedAt,
+      }));
   },
 });

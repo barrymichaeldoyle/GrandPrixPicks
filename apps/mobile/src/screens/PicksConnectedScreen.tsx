@@ -24,6 +24,12 @@ import { RaceRecapCard } from '../components/home/RaceRecapCard';
 import { WeekendPicksCard } from '../components/home/WeekendPicksCard';
 import { SignedOutPicksNotice } from '../components/picks/SignedOutPicksNotice';
 import { DraggableTop5 } from '../components/predict/DraggableTop5';
+import { H2HDuelPicker } from '../components/predict/H2HDuelPicker';
+import {
+  DUEL_CONFIRM_HOLD_MS,
+  H2HDuelQuestion,
+  type H2HDuelMatchup,
+} from '../components/predict/H2HDuelQuestion';
 import { H2HMatchupGrid } from '../components/predict/H2HMatchupGrid';
 import {
   competitiveSessions,
@@ -289,7 +295,10 @@ function PredictForRace({
       : 'skip',
   );
   const sheetCompetitive: Partial<
-    Record<SessionType, Array<{ position: number; code: string; displayName: string }>>
+    Record<
+      SessionType,
+      Array<{ position: number; code: string; displayName: string }>
+    >
   > = {
     sprint_quali: sprintQualiResult?.enrichedClassification,
     sprint: sprintResult?.enrichedClassification,
@@ -401,6 +410,10 @@ function PredictForRace({
     setEmbeddedH2HMatchupId(undefined);
   }
 
+  const topFivePositions = toTopFivePositions(
+    predictionsBySession[selectedSession] ?? [],
+  );
+
   if (embedded) {
     const sessionH2H = h2hPredictions?.[selectedSession] ?? {};
     const h2hComplete =
@@ -470,10 +483,12 @@ function PredictForRace({
         ) : null}
         {embeddedPicker === 'h2h' ? (
           <PickEditorModal
-            title="Team-mate picks"
+            fillBody={embeddedH2HMatchupId !== undefined}
+            {...h2hEditorTitle(matchups, embeddedH2HMatchupId, selectedSession)}
             onClose={closeEmbeddedPicker}
           >
             <H2HEditor
+              topFivePositions={topFivePositions}
               cascadeMode={!hasAnyH2H}
               existingPicks={sessionH2H}
               matchups={matchups}
@@ -608,6 +623,7 @@ function PredictForRace({
                   race={race}
                   selectedSession={selectedSession}
                   sessionIsLocked={selectedSessionIsLocked}
+                  topFivePositions={topFivePositions}
                   onSubmit={saveH2H}
                 />
               )
@@ -1351,12 +1367,31 @@ function Top5Readonly({
 // H2H section
 // ─────────────────────────────────────────────────────────────────────────
 
-type Matchup = {
-  _id: string;
-  team: string;
-  driver1: { _id: string; code: string };
-  driver2: { _id: string; code: string };
-};
+type Matchup = H2HDuelMatchup;
+
+/** Top 5 slot (1-5) per driver, so a duel can show what you already called. */
+function toTopFivePositions(
+  picks: ReadonlyArray<string>,
+): Record<string, number> {
+  return Object.fromEntries(picks.map((id, index) => [id, index + 1]));
+}
+
+/** The editor's title: the team for a single battle, as web's takeover does. */
+function h2hEditorTitle(
+  matchups: ReadonlyArray<Matchup>,
+  visibleMatchupId: string | undefined,
+  session: SessionType,
+): { title: string; subtitle?: string } {
+  const matchup = visibleMatchupId
+    ? matchups.find((m) => m._id === visibleMatchupId)
+    : undefined;
+  return matchup
+    ? {
+        title: displayTeamName(matchup.team),
+        subtitle: `${SESSION_LABELS[session]} only`,
+      }
+    : { title: 'Team-mate picks' };
+}
 
 function H2HSection({
   race,
@@ -1365,6 +1400,7 @@ function H2HSection({
   cascadeMode,
   existingPicks,
   sessionIsLocked,
+  topFivePositions,
   onSubmit,
 }: {
   race: RaceDoc;
@@ -1373,6 +1409,7 @@ function H2HSection({
   cascadeMode: boolean;
   existingPicks: Record<string, string>;
   sessionIsLocked: boolean;
+  topFivePositions: Record<string, number>;
   onSubmit: (
     picks: Record<string, string>,
     sessionType: SessionType | undefined,
@@ -1419,8 +1456,13 @@ function H2HSection({
         }
       />
       {editing ? (
-        <PickEditorModal title="Head to Head" onClose={() => setEditing(false)}>
+        <PickEditorModal
+          fillBody={editingMatchup !== undefined}
+          {...h2hEditorTitle(matchups, editingMatchup, selectedSession)}
+          onClose={() => setEditing(false)}
+        >
           <H2HEditor
+            topFivePositions={topFivePositions}
             visibleMatchupId={editingMatchup}
             cascadeMode={cascadeMode}
             existingPicks={existingPicks}
@@ -1439,6 +1481,7 @@ function H2HSection({
 
 function H2HEditor({
   visibleMatchupId,
+  topFivePositions,
   race,
   matchups,
   selectedSession,
@@ -1449,6 +1492,7 @@ function H2HEditor({
   onSubmit,
 }: {
   visibleMatchupId?: string;
+  topFivePositions?: Record<string, number>;
   race: RaceDoc;
   matchups: ReadonlyArray<Matchup>;
   selectedSession: SessionType;
@@ -1471,7 +1515,29 @@ function H2HEditor({
   const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [draftHydrated, setDraftHydrated] = useState(false);
+  /** Single-battle edit: the pick is the save, then the takeover closes. */
+  const [duelStatus, setDuelStatus] = useState<'idle' | 'saving' | 'saved'>(
+    'idle',
+  );
+  const [saveFailed, setSaveFailed] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hydratedRef = useRef<string | null>(null);
+  const visibleMatchup = visibleMatchupId
+    ? matchups.find((m) => m._id === visibleMatchupId)
+    : undefined;
+  // First entry steps through the battles one at a time; a saved card is
+  // edited on the full grid, where scanning beats stepping. Same split as web.
+  const useDuelSequence = Object.keys(existingPicks).length === 0;
+
+  useEffect(
+    () => () => {
+      if (closeTimerRef.current !== null) {
+        clearTimeout(closeTimerRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     captureAnalyticsEvent('h2h_editor_opened', {
@@ -1502,6 +1568,7 @@ function H2HEditor({
         setRestoredDraftAt(null);
       }
       hydratedRef.current = key;
+      setDraftHydrated(true);
     })();
     return () => {
       cancelled = true;
@@ -1539,26 +1606,39 @@ function H2HEditor({
     save: () => void handleSave(),
   });
 
-  async function handleSave() {
-    if (!canSave || isSubmitting) {
+  async function handleSave(
+    picks: Record<string, string> = selections,
+    options?: { singleDuel?: boolean },
+  ) {
+    const picksComplete = Object.keys(picks).length === matchups.length;
+    if (!picksComplete || sessionIsLocked || isSubmitting) {
       return;
     }
     setIsSubmitting(true);
     try {
       if (!isSignedIn) {
         await patchConnectedDraft(race.slug, draftSession, {
-          h2hByMatchup: selections,
+          h2hByMatchup: picks,
         });
-        await onSubmit(selections, cascadeMode ? undefined : selectedSession);
+        await onSubmit(picks, cascadeMode ? undefined : selectedSession);
         onCancel();
         return;
       }
-      await onSubmit(selections, cascadeMode ? undefined : selectedSession);
+      if (options?.singleDuel) {
+        setDuelStatus('saving');
+      }
+      await onSubmit(picks, cascadeMode ? undefined : selectedSession);
       // Only clear the H2H portion of the draft — preserve any in-progress Top 5.
       await patchConnectedDraft(race.slug, draftSession, { h2hByMatchup: {} });
       setIsDirty(false);
       setRestoredDraftAt(null);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      if (options?.singleDuel) {
+        // Hold on "Saved" long enough to watch the pick land, as web does.
+        setDuelStatus('saved');
+        closeTimerRef.current = setTimeout(onCancel, DUEL_CONFIRM_HOLD_MS);
+        return;
+      }
       showToast(
         cascadeMode
           ? '🏁 H2H locked in for the weekend'
@@ -1567,6 +1647,8 @@ function H2HEditor({
       );
       onCancel();
     } catch (error) {
+      setDuelStatus('idle');
+      setSaveFailed(true);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast(
         error instanceof Error ? error.message : 'Save failed',
@@ -1577,6 +1659,23 @@ function H2HEditor({
     }
   }
 
+  function selectMatchup(matchupId: string, driverId: string) {
+    markInteraction();
+    setIsDirty(true);
+    setSelections((prev) => {
+      const next = { ...prev, [matchupId]: driverId };
+      if (
+        Object.keys(prev).length < matchups.length &&
+        Object.keys(next).length === matchups.length
+      ) {
+        captureAnalyticsEvent('h2h_picks_completed', {
+          scope: cascadeMode ? 'cascade' : 'session',
+        });
+      }
+      return next;
+    });
+  }
+
   async function handleDiscardDraft() {
     await patchConnectedDraft(race.slug, draftSession, { h2hByMatchup: {} });
     setSelections({ ...existingPicks });
@@ -1585,7 +1684,7 @@ function H2HEditor({
   }
 
   return (
-    <View className="mt-1 gap-3.5">
+    <View className={`mt-1 gap-3.5 ${visibleMatchup ? 'flex-1' : ''}`}>
       {restoredDraftAt ? (
         <View className="flex-row items-center justify-between gap-3">
           <Text className="text-muted flex-1 text-xs">
@@ -1603,49 +1702,80 @@ function H2HEditor({
         </View>
       ) : null}
 
-      <H2HMatchupGrid
-        matchups={
-          matchups.filter(
-            (m) => !visibleMatchupId || m._id === visibleMatchupId,
-          ) as Array<Matchup>
-        }
-        mode={sessionIsLocked ? 'readonly' : 'interactive'}
-        onSelect={(matchupId, driverId) => {
-          markInteraction();
-          setIsDirty(true);
-          setSelections((prev) => {
-            const next = { ...prev, [matchupId]: driverId };
-            if (
-              Object.keys(prev).length < matchups.length &&
-              Object.keys(next).length === matchups.length
-            ) {
-              captureAnalyticsEvent('h2h_picks_completed', {
-                scope: cascadeMode ? 'cascade' : 'session',
-              });
+      {visibleMatchup ? (
+        <View className="flex-1 pb-4">
+          <H2HDuelQuestion
+            disabled={sessionIsLocked || duelStatus !== 'idle'}
+            matchup={visibleMatchup}
+            onPick={(driverId) => {
+              void Haptics.selectionAsync();
+              const next = { ...selections, [visibleMatchup._id]: driverId };
+              setIsDirty(true);
+              setSelections(next);
+              void handleSave(next, { singleDuel: true });
+            }}
+            selectedDriverId={selections[visibleMatchup._id]}
+            status={
+              duelStatus === 'saved' ? (
+                <View className="flex-row items-center gap-1.5">
+                  <Ionicons color={colors.accent} name="checkmark" size={14} />
+                  <Text className="text-sm text-accent">Saved</Text>
+                </View>
+              ) : duelStatus === 'saving' ? (
+                'Saving…'
+              ) : sessionIsLocked ? (
+                'Session locked'
+              ) : (
+                'Tap a driver to save this battle.'
+              )
             }
-            return next;
-          });
-        }}
-        selections={selections}
-      />
+            topFivePositions={topFivePositions}
+            variant="takeover"
+          />
+        </View>
+      ) : useDuelSequence ? (
+        <H2HDuelPicker
+          disabled={sessionIsLocked}
+          draftHydrated={draftHydrated}
+          matchups={matchups}
+          onSelect={selectMatchup}
+          selections={selections}
+          topFivePositions={topFivePositions}
+        />
+      ) : (
+        <H2HMatchupGrid
+          matchups={matchups}
+          mode={sessionIsLocked ? 'readonly' : 'interactive'}
+          onSelect={selectMatchup}
+          selections={selections}
+        />
+      )}
 
-      <PrimaryButton
-        disabled={!canSave || isSubmitting}
-        label={
-          isSubmitting
-            ? 'Saving…'
-            : sessionIsLocked
-              ? 'Session locked'
-              : !isComplete
-                ? `Pick ${matchups.length - Object.keys(selections).length} more`
-                : cascadeMode
-                  ? 'Save weekend H2H'
-                  : `Save ${SESSION_LABELS_SHORT[selectedSession]} H2H`
-        }
-        onPress={() => {
-          void handleSave();
-        }}
-      />
+      {/* The sequence shows no Save button until every battle is called: a
+          disabled "Pick 11 more" under the first duel only restated the
+          counter. A signed-in first entry saves itself on the last pick, so
+          this is the signed-out save and the fallback if that write fails. */}
+      {visibleMatchup ||
+      (useDuelSequence &&
+        (!isComplete || (isSignedIn && !saveFailed))) ? null : (
+        <PrimaryButton
+          disabled={!canSave || isSubmitting}
+          label={
+            isSubmitting
+              ? 'Saving…'
+              : sessionIsLocked
+                ? 'Session locked'
+                : !isComplete
+                  ? `Pick ${matchups.length - Object.keys(selections).length} more`
+                  : cascadeMode
+                    ? 'Save weekend H2H'
+                    : `Save ${SESSION_LABELS_SHORT[selectedSession]} H2H`
+          }
+          onPress={() => {
+            void handleSave();
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -1731,14 +1861,19 @@ function NotAvailableState() {
 
 function PickEditorModal({
   title,
+  subtitle,
   onClose,
   children,
   scrollEnabled = true,
+  fillBody = false,
 }: {
   title: string;
+  subtitle?: string;
   onClose: () => void;
   children: React.ReactNode;
   scrollEnabled?: boolean;
+  /** Stretch the body to the screen, for a single battle that owns it. */
+  fillBody?: boolean;
 }) {
   return (
     <Modal
@@ -1757,9 +1892,14 @@ function PickEditorModal({
             style={{ flex: 1, backgroundColor: colors.page }}
           >
             <View className="flex-row items-center justify-between px-4 py-2">
-              <Text className="text-foreground text-xl font-semibold">
-                {title}
-              </Text>
+              <View className="flex-1">
+                <Text className="text-foreground text-xl font-semibold">
+                  {title}
+                </Text>
+                {subtitle ? (
+                  <Text className="text-muted text-xs">{subtitle}</Text>
+                ) : null}
+              </View>
               <Pressable
                 accessibilityRole="button"
                 onPress={onClose}
@@ -1770,7 +1910,11 @@ function PickEditorModal({
             </View>
             <ScrollView
               scrollEnabled={scrollEnabled}
-              contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+              contentContainerStyle={{
+                padding: 16,
+                paddingBottom: 40,
+                flexGrow: fillBody ? 1 : undefined,
+              }}
             >
               {children}
             </ScrollView>

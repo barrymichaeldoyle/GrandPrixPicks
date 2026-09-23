@@ -213,7 +213,7 @@ Current scope:
 - opens the returned public race route
 - verifies the seeded page renders
 - verifies dev time controls are available in development
-- authenticates once up front for auth-only browser smoke flows, then reuses stored session state
+- establishes an authenticated setup state, then signs in again for each seeded authenticated scenario so the flow does not depend on a possibly expired stored Clerk session
 
 Run it from the repo root:
 

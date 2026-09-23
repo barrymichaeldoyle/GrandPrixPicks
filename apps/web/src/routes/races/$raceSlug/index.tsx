@@ -25,6 +25,7 @@ import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
 import { racePageWriteupHeadOptions } from '@/lib/raceWriteupSeo';
 import { getCircuitSeoFacts } from '@/lib/circuitSeoFacts';
+import { isSyntheticRaceSlug } from '@grandprixpicks/shared/syntheticRaces';
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import {
   breadcrumbSchema,
@@ -367,7 +368,7 @@ function raceDescription(
       .filter((entry) => entry.position <= 3)
       .sort((a, b) => a.position - b.position);
     if (podium.length === 3) {
-      return `${podium[0].displayName} won the ${race.season} ${race.name} ahead of ${podium[1].displayName} and ${podium[2].displayName}. Full classification, and how Grand Prix Picks players scored their top 5.`;
+      return `${podium[0].displayName} won the ${race.season} ${race.name} ahead of ${podium[1].displayName} and ${podium[2].displayName}. Full classification and how players scored.`;
     }
     return `Full classification and top 5 finishers for the ${race.season} ${race.name}, with qualifying results and how Grand Prix Picks players scored their predictions.`;
   }
@@ -657,7 +658,12 @@ function RaceDetailPage() {
   }
   const currentRace = race;
 
-  const isNextRace = Boolean(nextRace && nextRace._id === currentRace._id);
+  // A scenario fixture is never the next calendar race, but it takes picks
+  // when opened on purpose, as the backend allows (`isRaceAcceptingPredictions`).
+  // Without this every e2e picks test met "Not Yet Open".
+  const isNextRace =
+    Boolean(nextRace && nextRace._id === currentRace._id) ||
+    isSyntheticRaceSlug(currentRace.slug);
   const isPredictable = currentRace.status === 'upcoming' && isNextRace;
 
   return (

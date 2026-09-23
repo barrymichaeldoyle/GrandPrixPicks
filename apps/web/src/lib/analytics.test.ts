@@ -50,6 +50,7 @@ describe('pageViewProperties', () => {
       utm_source: 'bci',
       utm_medium: 'sponsorship',
       utm_campaign: 'conference',
+      utm_content: null,
     });
   });
 

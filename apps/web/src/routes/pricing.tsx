@@ -166,7 +166,7 @@ function PricingPage() {
         <section className="reveal-up rounded-2xl border border-border bg-surface/95 p-6 sm:p-8">
           {isEarlyBirdActive() ? (
             <Pill tone="success" size="lg" className="mb-4">
-              EARLY BIRD 50% OFF
+              Early bird 50% off
             </Pill>
           ) : null}
           <h2 className="mb-1 text-xl font-semibold text-text">

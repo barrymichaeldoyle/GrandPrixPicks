@@ -4,15 +4,18 @@ import type { FunctionReturnType } from 'convex/server';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { Flag } from '@/components/Flag';
-import { CircuitStatStrip } from '@/components/race-writeups/CircuitStatStrip';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
-import { RaceSignalsSection } from '@/components/race-writeups/RaceSignalsSection';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
+import { RaceWriteupNextRound } from '@/components/race-writeups/RaceWriteupNextRound';
+import { RaceWriteupOfficialResult } from '@/components/race-writeups/RaceWriteupOfficialResult';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
-import { RaceWriteupSection } from '@/components/race-writeups/RaceWriteupSection';
+import {
+  RaceWriteupFigure as Figure,
+  RaceWriteupSection,
+} from '@/components/race-writeups/RaceWriteupSection';
 import { RaceWriteupTrackMap } from '@/components/race-writeups/RaceWriteupTrackMap';
 import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { SessionConsensusSections } from '@/components/SessionConsensus';
@@ -49,7 +52,6 @@ const RACE_SLUG = 'madrid-2026';
  * The circuit section's heading, declared once because two places use it:
  * the section itself and the hero link that scrolls to it.
  */
-const SIGNALS_HEADING = 'What to watch in practice';
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/spain';
 const CORNER_SOURCE =
   'https://www.the-race.com/formula-1/madrid-f1-track-spanish-gp-standout-corner-la-monumental-our-verdict/';
@@ -61,12 +63,8 @@ const MADRID_ATTENDANCE_SOURCE =
   'https://www.madring.com/notas-prensa/madring-ya-esta-listo';
 const WILLIAMS_UPGRADE_SOURCE =
   'https://cadenaser.com/nacional/2026/09/09/carlos-sainz-tengo-ganas-de-probar-el-madring-que-diria-que-es-parecido-a-baku-y-a-yeda-cadena-ser/';
-const WEATHER_SOURCE =
-  'https://www.formula1.com/en/latest/article/what-is-the-weather-forecast-for-the-2026-spanish-grand-prix.5TA3WMRX4zHfd8MWH0KjtI';
 const TEST_SOURCE =
   'https://www.grandprix.com/news/madring-praise-red-flags-first-formula-3-test-2026.html';
-const FILMING_SOURCE =
-  'https://www.madring.com/en/press-releases/ferrari-estrena-madring';
 const TYRE_SOURCE =
   'https://press.pirelli.com/the-madring-makes-its-world-championship-debut-with-the-challenge-of-the-monumental/';
 const F3_OFFICIAL_SOURCE =
@@ -91,8 +89,6 @@ const LAYOUT_SOURCE =
   'https://www.the-race.com/formula-1/madrid-f1-circuit-layout-revealed/';
 const SAINZ_SOURCE =
   'https://www.planetf1.com/news/carlos-sainz-lands-new-role-ahead-of-key-f1-2026-arrival';
-const HAMILTON_SOURCE =
-  'https://www.motorsportweek.com/2026/07/17/lewis-hamilton-ferrari-madrid-f1-test/';
 const MONZA_RESULT_SOURCE =
   'https://www.formula1.com/en/latest/article/antonelli-beats-russell-to-italian-grand-prix-win-with-stunning-comeback-drive.15WtFEBT5JEe4drdeO88t2';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
@@ -100,8 +96,17 @@ const FP1_SOURCE =
   'https://www.motorsport.com/f1/news/f1-spanish-gp-fp1-report/10854498/';
 const FP2_SOURCE =
   'https://www.pitdebrief.com/post/f1-2026-spanish-gp-fp2-report/';
-const OVERTAKING_SOURCE =
-  'https://as.com/motor/formula_1/es-imposible-adelantar-f202609-n/';
+/** The post-race sources: what happened, then the classification it produced. */
+/**
+ * The official result, for the winning margin: Formula 1's race report says
+ * 4.2s, the classification 4.351s, and the page follows the classification.
+ */
+const OFFICIAL_RESULT_SOURCE =
+  'https://www.formula1.com/en/results/2026/races/1294/spain/race-result';
+const RACE_REPORT_SOURCE =
+  'https://www.formula1.com/en/latest/article/antonelli-clinches-victory-over-verstappen-and-norris-in-spanish-gp.644ZZfPzRPEaUh2JBHcB9';
+const FINAL_CLASSIFICATION_SOURCE =
+  'https://www.gpfans.com/en/f1-news/1090243/f1-spanish-grand-prix-2026-results-final-classification-all-penalties-applied-at-madring/';
 const QUALIFYING_SOURCE =
   'https://www.skysports.com/f1/news/12040/13584719/spanish-gp-lando-norris-beats-kimi-antonelli-to-first-pole-position-at-madring-after-thrilling-qualifying-finale';
 const NORRIS_FINE_SOURCE =
@@ -126,39 +131,71 @@ type StandingsDriver = Championship['drivers'][number];
  * to stop. Six questions this page can answer beat eight where two belong to
  * another page.
  */
-const FAQS = [
-  {
-    question: 'When is the 2026 Spanish Grand Prix in Madrid?',
-    answer:
-      'The Spanish Grand Prix runs from 11 to 13 September 2026 at the Madring in Madrid. Qualifying is on Saturday and the 57-lap Grand Prix is on Sunday.',
-  },
-  {
-    question:
-      'Is the Madrid Grand Prix the same race as the Spanish Grand Prix?',
-    answer:
-      'Yes. Madrid Grand Prix is the common shorthand for the 2026 Spanish Grand Prix at the Madring. It is separate from the Barcelona-Catalunya Grand Prix, which was held in June.',
-  },
-  {
-    question: 'Has Formula 1 raced at the Madring before?',
-    answer:
-      'No. This is the circuit’s debut. Madrid last held a Grand Prix at Jarama in 1981.',
-  },
-  {
-    question: 'Is the Madring ready for the Spanish Grand Prix?',
-    answer:
-      'The circuit was signed off by the FIA for Formula 1 on 23 June 2026, and Formula 3 completed a two-day test on it in August. Around 300 metres of cable was stolen from a tunnel section on Sunday 30 August and Spanish police are investigating, but the race schedule is unchanged.',
-  },
-  {
-    question: 'What did the Formula 3 test show about the Madring?',
-    answer:
-      'Formula 3 ran at the Madring on 24 and 25 August and the test produced 19 red flags, 11 of them cars in the barriers. Ugo Ugochukwu set the fastest lap at 1:49.034. The test highlighted several difficult corners, though Formula 3 lap times cannot tell us how the Formula 1 teams will compare.',
-  },
-  {
-    question: 'How likely is a safety car at the Madring?',
-    answer:
-      'There is no Formula 1 race history here to base a probability on. Barriers line much of the lap, and the Formula 3 test had frequent stoppages. Safety cars are a possibility, but that test does not tell us how often they will be needed in a Grand Prix.',
-  },
-] as const;
+function faqs(finished: boolean) {
+  return [
+    // Only on the archive: before Sunday the honest answer is that nobody
+    // knows. The FAQ schema is built from this same list, so the two describe
+    // the same page in every phase.
+    ...(finished
+      ? [
+          {
+            question: 'Who won the 2026 Spanish Grand Prix?',
+            answer:
+              'Kimi Antonelli, ahead of Max Verstappen and Lando Norris. Norris started from pole and led until a Virtual Safety Car let Antonelli pit cheaply and a slow tyre change dropped Norris to fifth.',
+          },
+        ]
+      : []),
+    {
+      question: finished
+        ? 'When was the 2026 Spanish Grand Prix in Madrid?'
+        : 'When is the 2026 Spanish Grand Prix in Madrid?',
+      answer: finished
+        ? 'The Spanish Grand Prix ran from 11 to 13 September 2026 at the Madring in Madrid, over 57 laps.'
+        : 'The Spanish Grand Prix runs from 11 to 13 September 2026 at the Madring in Madrid. Qualifying is on Saturday and the 57-lap Grand Prix is on Sunday.',
+    },
+    {
+      question:
+        'Is the Madrid Grand Prix the same race as the Spanish Grand Prix?',
+      answer:
+        'Yes. Madrid Grand Prix is the common shorthand for the 2026 Spanish Grand Prix at the Madring. It is separate from the Barcelona-Catalunya Grand Prix, which was held in June.',
+    },
+    {
+      question: finished
+        ? 'Had Formula 1 raced at the Madring before 2026?'
+        : 'Has Formula 1 raced at the Madring before?',
+      answer: finished
+        ? 'No. The 2026 Spanish Grand Prix was the circuit’s debut. Madrid’s previous Grand Prix was at Jarama in 1981.'
+        : 'No. This is the circuit’s debut. Madrid last held a Grand Prix at Jarama in 1981.',
+    },
+    // Whether the circuit would be ready stopped being a question once the
+    // race ran, so the archive drops it rather than answering it in the past.
+    ...(finished
+      ? []
+      : [
+          {
+            question: 'Is the Madring ready for the Spanish Grand Prix?',
+            answer:
+              'The circuit was signed off by the FIA for Formula 1 on 23 June 2026, and Formula 3 completed a two-day test on it in August. Around 300 metres of cable was stolen from a tunnel section on Sunday 30 August and Spanish police are investigating, but the race schedule is unchanged.',
+          },
+        ]),
+    {
+      question: 'What did the Formula 3 test show about the Madring?',
+      answer:
+        'Formula 3 ran at the Madring on 24 and 25 August and the test produced 19 red flags, 11 of them cars in the barriers. Ugo Ugochukwu set the fastest lap at 1:49.034.',
+    },
+    finished
+      ? {
+          question: 'Was there a safety car in the 2026 Spanish Grand Prix?',
+          answer:
+            'One Virtual Safety Car, when Lance Stroll stopped his Aston Martin at Turn 20 with a brake problem. Mercedes and Red Bull pitted Antonelli, Russell and Verstappen under it, and it ended before Norris could do the same.',
+        }
+      : {
+          question: 'How likely is a safety car at the Madring?',
+          answer:
+            'There is no Formula 1 race history here to base a probability on. Barriers line much of the lap, and the Formula 3 test had frequent stoppages. Safety cars are a possibility, but that test does not tell us how often they will be needed in a Grand Prix.',
+        },
+  ];
+}
 
 export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
   component: MadridGrandPrixPredictionsPage,
@@ -173,6 +210,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
       season,
       practice,
       consensus,
+      top5,
       nextRace,
     ] = await Promise.all([
       context.queryClient.ensureQueryData(
@@ -184,7 +222,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
         routeQuery(api.f1Standings.getF1Championship, {}),
       ),
       context.queryClient.ensureQueryData(
-        routeQuery(api.weather.getByRaceSlug, {
+        routeQuery(api.weather.getForWriteup, {
           raceSlug: RACE_SLUG,
           now: weatherNow,
         }),
@@ -212,6 +250,14 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
           raceSlug: RACE_SLUG,
         }),
       ),
+      // The official top five per session, for the archive. Keyed on the slug
+      // and empty until results publish, so it joins this wave for the same
+      // reason the consensus does: it has to be in the SSR HTML.
+      context.queryClient.ensureQueryData(
+        routeQuery(api.results.getEnrichedTop5BySessionForRaceSlug, {
+          raceSlug: RACE_SLUG,
+        }),
+      ),
       // Read only once this weekend is done, but keyed on nothing, so it
       // costs this wave no round trip it was not already making.
       context.queryClient.ensureQueryData(
@@ -230,6 +276,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
       season,
       practice,
       consensus,
+      top5,
       nextRace,
     };
   },
@@ -251,7 +298,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
       eventAlternateName: '2026 Madrid Grand Prix',
       breadcrumbName: 'Spanish Grand Prix predictions',
       race: loaderData?.race,
-      faqs: FAQS,
+      faqs: faqs(loaderData?.race?.status === 'finished'),
     }),
 });
 
@@ -265,6 +312,7 @@ function MadridGrandPrixPredictionsPage() {
     season,
     practice,
     consensus,
+    top5,
     nextRace,
   } = Route.useLoaderData();
   const phase = getRaceWriteupPhase(race, weatherNow);
@@ -275,10 +323,22 @@ function MadridGrandPrixPredictionsPage() {
   // picking their race Top 5 on Saturday evening can see what the field did
   // with qualifying, which is the half of the game their own entry cannot
   // show them.
-  const consensusSessions = (['quali', 'race'] as const).flatMap((session) => {
-    const sessionConsensus = consensus[session];
-    return sessionConsensus ? [{ session, consensus: sessionConsensus }] : [];
-  });
+  const archiveSessions = (['quali', 'race'] as const).map((session) => ({
+    session,
+    classification: top5[session] ?? [],
+    consensus: consensus[session] ?? null,
+  }));
+  const consensusSessions = archiveSessions.flatMap((entry) =>
+    entry.consensus
+      ? [
+          {
+            session: entry.session,
+            consensus: entry.consensus,
+            classification: entry.classification,
+          },
+        ]
+      : [],
+  );
   // Read off the standings rather than hard-coded, so a seat change during the
   // season cannot leave this section naming a driver at their old team.
   const spanishDrivers = championship.drivers.filter(
@@ -297,10 +357,8 @@ function MadridGrandPrixPredictionsPage() {
           layout: <ExternalSource href={LAYOUT_SOURCE}>The Race</ExternalSource>
           . F3 test:{' '}
           <ExternalSource href={TEST_SOURCE}>Grandprix.com</ExternalSource>.
-          Ferrari filming:{' '}
-          <ExternalSource href={FILMING_SOURCE}>Madring</ExternalSource>. Tyres:{' '}
-          <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>. F3 test
-          format:{' '}
+          Tyres: <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>. F3
+          test format:{' '}
           <ExternalSource href={F3_OFFICIAL_SOURCE}>
             FIA Formula 3
           </ExternalSource>
@@ -308,36 +366,40 @@ function MadridGrandPrixPredictionsPage() {
           <ExternalSource href={RED_FLAG_SOURCE}>PlanetF1</ExternalSource>. Test
           times:{' '}
           <ExternalSource href={LAP_TIME_SOURCE}>Pit Debrief</ExternalSource>.
-          Cable theft:{' '}
-          <ExternalSource href={THEFT_SOURCE}>Grandprix.com</ExternalSource>.
-          Construction and homologation:{' '}
-          <ExternalSource href={BUILD_SOURCE}>
-            RacingCircuits.info
-          </ExternalSource>
-          . Ambassador role:{' '}
+          Ambassador role:{' '}
           <ExternalSource href={SAINZ_SOURCE}>PlanetF1</ExternalSource>.
-          Hamilton on the lap:{' '}
-          <ExternalSource href={HAMILTON_SOURCE}>
-            Motorsport Week
-          </ExternalSource>
-          . Friday overtaking assessment:{' '}
-          <ExternalSource href={OVERTAKING_SOURCE}>AS</ExternalSource>.
-          Qualifying:{' '}
-          <ExternalSource href={QUALIFYING_SOURCE}>Sky Sports</ExternalSource>.
-          Pit-lane fine:{' '}
-          <ExternalSource href={NORRIS_FINE_SOURCE}>FIA</ExternalSource>.
-          Stroll&rsquo;s grid penalty:{' '}
-          <ExternalSource href={STROLL_PENALTY_SOURCE}>
-            Formula 1
-          </ExternalSource>
-          .
+          {/* The sections these support render only while the weekend is
+              live, so an archive listing them cited facts it no longer
+              shows. */}
+          {isLive ? (
+            <>
+              {' '}
+              Cable theft:{' '}
+              <ExternalSource href={THEFT_SOURCE}>Grandprix.com</ExternalSource>
+              . Construction and homologation:{' '}
+              <ExternalSource href={BUILD_SOURCE}>
+                RacingCircuits.info
+              </ExternalSource>
+              . Qualifying:{' '}
+              <ExternalSource href={QUALIFYING_SOURCE}>
+                Sky Sports
+              </ExternalSource>
+              . Pit-lane fine:{' '}
+              <ExternalSource href={NORRIS_FINE_SOURCE}>FIA</ExternalSource>.
+              Stroll&rsquo;s grid penalty:{' '}
+              <ExternalSource href={STROLL_PENALTY_SOURCE}>
+                Formula 1
+              </ExternalSource>
+              .
+            </>
+          ) : null}
         </>
       }
     >
       {/* No secondary action. The hero's second link was the heading of
-          "What to watch in practice", and on this page that section is the
-          driest thing in it. `SIGNALS_HEADING` still exists because the
-          section itself uses it. */}
+          "What to watch in practice", the driest section on the page, and
+          that section came off on 2026-09-21: its figures moved into the
+          lap section's prose. */}
       <RaceWriteupHero
         flagCode="ES"
         eyebrow={`11–13 Sep · Madring · Round ${race.round}`}
@@ -346,6 +408,7 @@ function MadridGrandPrixPredictionsPage() {
           phase,
           'The Spanish Grand Prix',
           'Norris is on pole for the first Spanish Grand Prix at the Madring, 0.011 seconds ahead of Antonelli. The race is on Sunday.',
+          'Antonelli won the first Grand Prix at the Madring, after a Virtual Safety Car and a slow McLaren stop cost pole-sitter Norris the lead.',
         )}
         phase={phase}
         raceSlug={RACE_SLUG}
@@ -360,6 +423,19 @@ function MadridGrandPrixPredictionsPage() {
         }}
       />
 
+      {/* The result leads a finished page: a reader arriving after Sunday
+          came for the classification, then how the field picked it and why
+          the two differ. */}
+      {phase === 'finished' ? (
+        <>
+          <RaceWriteupOfficialResult
+            sessions={archiveSessions}
+            venueName="Madrid"
+          />
+          <SessionConsensusSections sessions={consensusSessions} />
+          <RaceReport />
+        </>
+      ) : null}
       <FormulaThreeTest />
       {/* What changed this week, then what the cars did, then what the field
           made of it. All three date from this weekend, and all three used to
@@ -383,10 +459,11 @@ function MadridGrandPrixPredictionsPage() {
           locks and it is still the best thing on the page once the race is
           done, so the gate it needs is "has anything locked", which is the
           question the empty list already answers. */}
-      <SessionConsensusSections sessions={consensusSessions} />
+      {phase === 'finished' ? null : (
+        <SessionConsensusSections sessions={consensusSessions} />
+      )}
       <TrackMap />
       <LaMonumental />
-      <WatchTable />
       <TyreChoice />
       {/* The build and the theft answer "will this happen at all", which
           stops being a question the moment the race runs. The F3 test and
@@ -406,7 +483,14 @@ function MadridGrandPrixPredictionsPage() {
         </>
       ) : null}
 
-      <RaceFaqSection faqs={FAQS} />
+      <RaceFaqSection faqs={faqs(phase === 'finished')} />
+
+      {/* At the end, where a reader who has finished with this weekend looks
+          for the next one. It sat between the race story and the preview
+          material, a one-line section breaking the page in two. */}
+      {phase === 'finished' ? (
+        <RaceWriteupNextRound nextRace={nextRace} />
+      ) : null}
 
       <RaceWriteupFinish
         isLive={isLive}
@@ -416,7 +500,7 @@ function MadridGrandPrixPredictionsPage() {
         season={race.season}
         raceSlug={RACE_SLUG}
         venueName="Madrid"
-        nextRace={nextRace}
+        nextRace={phase === 'finished' ? undefined : nextRace}
       />
     </RaceWriteupPage>
   );
@@ -503,28 +587,18 @@ function FormulaThreeTest() {
       id="f3-test"
       heading="What Formula 3 testing showed"
       aside={<WriteUpNewsPhoto {...FORMULA_THREE_WRITEUP_IMAGE} />}
-      extra={
-        <CircuitStatStrip
-          stats={[
-            ['19', 'Red flags'],
-            ['11', 'Into the barriers'],
-            ['24–25', 'August, two days'],
-            [
-              '1:49.034',
-              <>
-                <Flag code="US" size="xs" />
-                Fastest: Ugochukwu
-              </>,
-            ],
-          ]}
-        />
-      }
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         Formula 3 tested at the Madring on 24 and 25 August. The two days
-        produced 19 red flags, including 11 crashes into the barriers.{' '}
+        produced <Figure>19 red flags</Figure>, including{' '}
+        <Figure>11 crashes</Figure> into the barriers.{' '}
         <ExternalSource href={RED_FLAG_SOURCE}>
           PlanetF1&rsquo;s test report
+        </ExternalSource>
+        . Ugo Ugochukwu set the fastest lap, a <Figure>1:49.034</Figure> on the
+        second morning.{' '}
+        <ExternalSource href={LAP_TIME_SOURCE}>
+          Pit Debrief on the test times
         </ExternalSource>
         .
       </p>
@@ -546,9 +620,9 @@ function FormulaThreeTest() {
         .
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        Sainz was more cautious when asked about the crashes at Monza. He said
-        it was too early to judge how Formula 1 cars would handle the circuit
-        from the Formula 3 test alone.{' '}
+        Speaking at the Italian Grand Prix, Sainz was more cautious. He said it
+        was too early to judge how Formula 1 cars would handle the circuit from
+        the Formula 3 test alone.{' '}
         <ExternalSource href={SAINZ_LABEL_SOURCE}>
           Sainz on the Formula 3 comparison
         </ExternalSource>
@@ -616,6 +690,50 @@ const CORNERS = [
 ] as const;
 
 /**
+ * What decided the race, on the finished page only, between the result and
+ * the next round. The Monza archive's block, for the same reason: a reader can
+ * see the classification and the player consensus disagree, and this says why.
+ * The last paragraph is the part no other site can write.
+ */
+function RaceReport() {
+  return (
+    <RaceWriteupSection id="race-report" heading="What decided the race">
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Norris led from pole while Antonelli twice went off track trying to pass
+        him in the opening laps. Hamilton was out after seven laps, when Ferrari
+        retired his car due to a brake problem.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Stroll then stopped at Turn 20, also with brake trouble, and the Virtual
+        Safety Car let Mercedes and Red Bull pit Antonelli, Russell and
+        Verstappen. The VSC ended before Norris could stop, and a slow tyre
+        change held him for seven seconds, so he rejoined fifth. Leclerc stayed
+        out until lap 48 hoping for a Safety Car, and Antonelli led from there
+        to beat Verstappen by 4.351 seconds, with Norris a further 0.738 seconds
+        back.{' '}
+        <ExternalSource href={OFFICIAL_RESULT_SOURCE}>
+          Read the official result
+        </ExternalSource>
+        . His championship lead grew to 81 points.{' '}
+        <ExternalSource href={RACE_REPORT_SOURCE}>
+          Read the F1 race report
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        The classification above is final. The one penalty applied after the
+        flag was five seconds for Gasly, for speeding in the pit lane, and he
+        stayed 12th.{' '}
+        <ExternalSource href={FINAL_CLASSIFICATION_SOURCE}>
+          Read the final classification
+        </ExternalSource>
+        .
+      </p>
+    </RaceWriteupSection>
+  );
+}
+
+/**
  * The corner numbers the rest of the page uses, drawn once.
  *
  * Three sections name turns by number (the F3 crash corners, La Monumental,
@@ -651,7 +769,12 @@ function TrackMap() {
       }
     >
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        Sector 1 is the long run from Turn 1 to Turn 5. Sector 2 carries the
+        The Madring has <Figure>22 corners</Figure>, and the Grand Prix is{' '}
+        <Figure>57 laps</Figure>.{' '}
+        <ExternalSource href={F1_EVENT_SOURCE}>
+          Formula 1&rsquo;s circuit guide
+        </ExternalSource>
+        . Sector 1 is the long run from Turn 1 to Turn 5. Sector 2 carries the
         banking at Turn 12. Sector 3 is the tight section through the exhibition
         halls.
       </p>
@@ -686,48 +809,12 @@ function LaMonumental() {
         .
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        Teams will need enough ground clearance to keep the floor from scraping
-        through the banking. Raising the ride height can help, but may reduce
+        Teams need enough ground clearance to keep the floor from scraping
+        through the banking. Raising the ride height helps there, but can cost
         aerodynamic performance elsewhere on the lap. If the plank underneath
         the car wears beyond the permitted limit, the car can be disqualified.
       </p>
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        Practice will show how well each team manages that compromise,
-        particularly on longer runs with more fuel on board.
-      </p>
     </RaceWriteupSection>
-  );
-}
-
-/** Practice observations; keep untested overtaking prospects conditional. */
-function WatchTable() {
-  return (
-    <RaceSignalsSection
-      heading={SIGNALS_HEADING}
-      stats={[
-        ['5.416', 'km circuit'],
-        ['22', 'corners'],
-        ['57', 'race laps'],
-        ['24%', 'banking at Turn 12 (13.5°)'],
-      ]}
-      signals={[
-        [
-          'Learning the circuit',
-          'Teams need to check their simulations against real running',
-          'Ferrari has driven here on demonstration tyres, but Friday is the first chance for every team to test its race setup. Consistent laps will be more useful than an early headline time.',
-        ],
-        [
-          'The final sector',
-          'Watch for lock-ups and wheelspin around the exhibition halls',
-          'The closely spaced corners leave little time to recover from a mistake. Drivers need confidence on the brakes and good traction on the exits.',
-        ],
-        [
-          'Overtaking',
-          'Qualifying position looks especially important',
-          'Drivers found it difficult to follow and pass during their long runs in FP2. Russell said overtaking was very tough, while Leclerc found it difficult even with a large pace advantage.',
-        ],
-      ]}
-    />
   );
 }
 
@@ -740,28 +827,26 @@ function TyreChoice() {
       aside={<WriteUpNewsPhoto {...PIRELLI_MEDIUM_WRITEUP_IMAGE} />}
     >
       <p className="gpp-reading-copy mt-7 text-text-muted">
-        Pirelli expects Madrid to be one of the five most demanding circuits for
-        the tyres. Cornering forces should be similar to Barcelona and
-        Silverstone, while La Monumental is expected to produce the highest
-        vertical load of the season.{' '}
+        Before the race, Pirelli rated Madrid one of the five most demanding
+        circuits of the season for the tyres, with cornering forces similar to
+        Barcelona and Silverstone and the highest vertical load of the year at
+        La Monumental.{' '}
         <ExternalSource href={TYRE_SOURCE}>
           Pirelli&rsquo;s Madrid preview
         </ExternalSource>
         .
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        The smooth asphalt offers relatively little grip. It has been cleaned
-        with high-pressure water jets to remove dust and oily residues. Teams
-        may save sets of the Hard tyre for Sunday if practice shows the softer
-        compounds wearing out quickly.
+        Pirelli described the new asphalt as smooth, with relatively little
+        grip, after it was cleaned with high-pressure water jets to remove dust
+        and oily residues.
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        Formula 1&rsquo;s forecast, published on 9 September, expects a dry
-        weekend with air temperatures reaching 30°C on Friday, 31°C on Saturday
-        and 32°C on Sunday. It also flags the heat index for monitoring over the
-        weekend.{' '}
-        <ExternalSource href={WEATHER_SOURCE}>
-          Formula 1&rsquo;s weather forecast
+        The race start split the field three ways. The front row started on
+        Mediums, Verstappen and Hamilton on Softs, and Leclerc, Russell, Piastri
+        and Lawson on Hards.{' '}
+        <ExternalSource href={RACE_REPORT_SOURCE}>
+          Formula 1&rsquo;s race report
         </ExternalSource>
         .
       </p>
@@ -787,16 +872,12 @@ function MonzaRecap() {
         .
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        Monza rewards straight-line speed. Madrid&rsquo;s 22 corners will ask
-        different things of the cars, so the order could change again this
-        weekend.{' '}
         <Link
           to="/f1-2026-italian-grand-prix-predictions"
           className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
         >
           Monza results and predictions
         </Link>
-        .
       </p>
     </RaceWriteupSection>
   );
@@ -811,15 +892,19 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
   return (
     <RaceWriteupSection
       id="spanish-drivers"
-      heading="Villeneuve won the last Grand Prix held in Madrid"
+      heading="Villeneuve won Madrid’s previous Grand Prix, in 1981"
       aside={
         <>
           <div className="border border-border bg-surface">
-            <div className="border-b border-border px-4 py-3">
+            {/* The positions are championship places, read live from the
+                standings. Unlabelled, "P16" beside prose saying Sainz retired
+                in this race read as his finishing position. */}
+            <div className="flex items-baseline justify-between gap-3 border-b border-border px-4 py-3">
               <h3 className="font-title flex items-center gap-2 font-medium text-text">
                 <Flag code="ES" size="sm" />
                 Spanish drivers
               </h3>
+              <span className="text-xs text-text-muted">Championship</span>
             </div>
             <ul aria-label="Spanish drivers on the 2026 grid">
               {drivers.map((driver) => (
@@ -879,9 +964,8 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
         A home race for Sainz and Alonso
       </h3>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        Formula 1 has not been back to Madrid in the 45 years since. Barcelona
-        held the Spanish Grand Prix from 1991 until last season and now runs as
-        the{' '}
+        Formula 1 did not return to Madrid for 45 years. Barcelona held the
+        Spanish Grand Prix from 1991 until last season and now runs as the{' '}
         <Link
           to="/races/$raceSlug"
           params={{ raceSlug: 'spain-2026' }}
@@ -892,9 +976,9 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
         , so Spain has two rounds in 2026.
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        Organisers announced on 9 September that the debut is sold out. They
-        expect a total attendance of nearly 350,000 across the three days, with
-        more than 60% of the audience coming from Spain.{' '}
+        Organisers announced on 9 September that the debut had sold out, and
+        expected a total attendance of nearly 350,000 across the three days,
+        with more than 60% of the audience coming from Spain.{' '}
         <ExternalSource href={MADRID_ATTENDANCE_SOURCE}>
           Madring&rsquo;s attendance announcement
         </ExternalSource>
@@ -910,11 +994,20 @@ function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
         .
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        Sainz expects a difficult weekend for Williams. He said on Wednesday
-        that the team&rsquo;s next upgrade is due at Baku and that scoring
-        points in Madrid would be a challenge.{' '}
+        Sainz expected a difficult weekend for Williams. He said on the
+        Wednesday that the team&rsquo;s next upgrade was due at Baku and that
+        scoring points in Madrid would be a challenge.{' '}
         <ExternalSource href={WILLIAMS_UPGRADE_SOURCE}>
           Sainz on Williams&rsquo; prospects
+        </ExternalSource>
+        . Neither home driver scored. The stewards gave Sainz a five-second
+        penalty for squeezing Alonso into the wall at Turn 5.{' '}
+        <ExternalSource href={RACE_REPORT_SOURCE}>
+          Formula 1&rsquo;s race report
+        </ExternalSource>
+        . Sainz retired on lap 46 and Alonso finished 17th.{' '}
+        <ExternalSource href={FINAL_CLASSIFICATION_SOURCE}>
+          The final classification
         </ExternalSource>
         .
       </p>

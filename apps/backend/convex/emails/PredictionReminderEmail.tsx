@@ -29,6 +29,7 @@ export type PredictionReminderProps = {
   timeUntilLock: string;
   raceUrl: string;
   settingsUrl: string;
+  unsubscribeUrl?: string;
   logoUrl: string;
   sessions: Array<SessionScheduleItem>;
   round: number;
@@ -40,6 +41,7 @@ export function PredictionReminderEmail({
   timeUntilLock = '24 hours',
   raceUrl = 'https://grandprixpicks.com/races/australia-2026',
   settingsUrl = 'https://grandprixpicks.com/settings',
+  unsubscribeUrl,
   logoUrl = 'https://grandprixpicks.com/logo-email.png',
   sessions = [
     {
@@ -70,7 +72,7 @@ export function PredictionReminderEmail({
         `}</style>
       </Head>
       <Preview>
-        {raceName} predictions lock in {timeUntilLock}. Submit your picks!
+        {raceName} predictions lock in {timeUntilLock}.
       </Preview>
       <Body style={body}>
         <Container style={container}>
@@ -110,7 +112,7 @@ export function PredictionReminderEmail({
               <strong style={{ color: email.text, whiteSpace: 'nowrap' }}>
                 {timeUntilLock}
               </strong>
-              . Don&apos;t miss your chance to earn points!
+              .
             </Text>
 
             {/* Race info card (like RaceCard) */}
@@ -167,6 +169,14 @@ export function PredictionReminderEmail({
             <Link href={settingsUrl} style={footerLink}>
               Manage notification preferences
             </Link>
+            {unsubscribeUrl ? (
+              <>
+                {' · '}
+                <Link href={unsubscribeUrl} style={footerLink}>
+                  Unsubscribe
+                </Link>
+              </>
+            ) : null}
           </Text>
         </Container>
       </Body>
@@ -346,5 +356,33 @@ const footerLink = {
   textDecoration: 'underline',
 };
 
-// Default export required by React Email dev server preview
-export default PredictionReminderEmail;
+// The React Email dev server (`pnpm --filter @grandprixpicks/backend email:dev`)
+// renders the default export, so it supplies its own sample props.
+export default function PredictionReminderPreview() {
+  return (
+    <PredictionReminderEmail
+      raceName="Azerbaijan Grand Prix"
+      timeUntilLock="24 hours"
+      raceUrl="https://grandprixpicks.com/races/azerbaijan-2026"
+      settingsUrl="https://grandprixpicks.com/settings"
+      unsubscribeUrl="https://grandprixpicks.com/settings"
+      logoUrl="https://grandprixpicks.com/logo-email.png"
+      round={17}
+      countryCode="az"
+      sessions={[
+        {
+          label: 'Qualifying',
+          date: 'Sat, 26 Sep',
+          time: '12:00 UTC',
+          isSprint: false,
+        },
+        {
+          label: 'Race',
+          date: 'Sun, 27 Sep',
+          time: '11:00 UTC',
+          isSprint: false,
+        },
+      ]}
+    />
+  );
+}

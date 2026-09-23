@@ -327,7 +327,7 @@ function CompactSummaryCard({
             <StatusBadge status={data.raceStatus} isNext={isNextRace} />
           )}
           {hasSubmitted && <Pill tone="success">Picks submitted</Pill>}
-          {data.hasSprint && <Badge variant="sprint">SPRINT</Badge>}
+          {data.hasSprint && <Badge variant="sprint">Sprint</Badge>}
           <Pill>
             <span suppressHydrationWarning>
               {formatMonthDay(data.raceDate)}

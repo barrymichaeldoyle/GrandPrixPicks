@@ -1,8 +1,7 @@
 import type { WeatherTimeToggleProps } from './WeatherTimeToggle';
-import { CalendarClock } from 'lucide-react';
+import { CalendarClock, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
-import { Button } from '@/components/Button/Button';
 import type {
   buildWeatherSessions,
   RaceWeather,
@@ -53,9 +52,9 @@ export function WeekendWeatherDetail({
   const { isStale } = weather;
 
   return (
-    <div className="border-t border-border px-4 py-3">
+    <div className="border-t border-border">
       {(alert || isStale) && (
-        <div className="mb-3">
+        <div className="border-b border-border px-4 py-3">
           {alert && <p className="text-sm leading-6 text-text">{alert}</p>}
           {isStale && (
             <p className={`text-sm text-error ${alert ? 'mt-1' : ''}`}>
@@ -66,21 +65,25 @@ export function WeekendWeatherDetail({
         </div>
       )}
 
-      {/* Full width. The card above it is a five-row table that uses every
-          pixel of the column, and a button sized to its own label left a
-          ragged notch under the last row. Full width is also what keeps it
-          reading as centred under the card's centred heading and attribution
-          without being a third width in the same footer. */}
-      <Button
+      {/* A row of the sheet, not a button on it. A bordered button inside the
+          card's own border read as a box in a box; as a full-bleed row it has
+          the same gutter, height and rule as the sessions above it, and the
+          chevron is what says it goes somewhere. */}
+      <button
         type="button"
-        variant="secondary"
-        size="sm"
-        leftIcon={CalendarClock}
         onClick={() => setHoursOpen(true)}
-        className="w-full"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-text hover:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
       >
-        Hour-by-hour forecast
-      </Button>
+        <CalendarClock
+          className="h-4 w-4 shrink-0 text-text-muted"
+          aria-hidden
+        />
+        <span className="flex-1">Hour-by-hour forecast</span>
+        <ChevronRight
+          className="h-4 w-4 shrink-0 text-text-muted"
+          aria-hidden
+        />
+      </button>
 
       <WeekendWeatherHoursModal
         open={hoursOpen}
@@ -95,10 +98,12 @@ export function WeekendWeatherDetail({
         onTimeViewChange={onTimeViewChange}
       />
 
+      {/* The foot of the sheet mirrors its head: small, left-aligned, under a
+          rule. */}
       <WeatherAttribution
         weather={weather}
         now={now}
-        className="mt-3 text-center"
+        className="border-t border-border px-4 py-2"
       />
     </div>
   );

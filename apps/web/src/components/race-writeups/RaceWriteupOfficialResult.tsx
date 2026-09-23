@@ -1,4 +1,5 @@
 import { DriverBadge } from '@/components/DriverBadge';
+import { RACE_WRITEUP_SECTION_HEADING } from './RaceWriteupSection';
 import type { SessionType } from '@/lib/sessions';
 import { SESSION_LABELS } from '@/lib/sessions';
 
@@ -24,7 +25,7 @@ function ResultTable({ session, classification }: OfficialResultSession) {
         {SESSION_LABELS[session]}
       </h3>
       <div className="mt-2 overflow-x-auto">
-        <table className="w-full min-w-[20rem] border-collapse">
+        <table className="w-full border-collapse">
           <caption className="sr-only">
             Official {SESSION_LABELS[session]} top five
           </caption>
@@ -32,13 +33,13 @@ function ResultTable({ session, classification }: OfficialResultSession) {
             <tr className="border-b border-border">
               <th
                 scope="col"
-                className="w-14 px-3 py-1.5 text-left text-xs font-medium text-text-muted"
+                className="w-14 px-3 py-1.5 text-left text-xs font-semibold tracking-label text-text-muted uppercase"
               >
                 Pos
               </th>
               <th
                 scope="col"
-                className="px-3 py-1.5 text-left text-xs font-medium text-text-muted"
+                className="px-3 py-1.5 text-left text-xs font-semibold tracking-label text-text-muted uppercase"
               >
                 Driver
               </th>
@@ -46,10 +47,7 @@ function ResultTable({ session, classification }: OfficialResultSession) {
           </thead>
           <tbody>
             {classification.map((driver) => (
-              <tr
-                key={driver.driverId}
-                className="border-b border-border last:border-0"
-              >
+              <tr key={driver.driverId}>
                 <th
                   scope="row"
                   className="gpp-mono w-14 px-3 py-1.5 text-left text-xs font-semibold text-text-muted"
@@ -112,16 +110,19 @@ export function RaceWriteupOfficialResult({
   }
 
   return (
-    <div className="mt-10 max-w-3xl border-t border-border pt-6">
-      <h2 className="font-title text-xl font-semibold text-text">
-        How {venueName} finished
-      </h2>
-      <p className="mt-2 text-sm text-text-muted">
+    <div className="max-w-3xl py-8 sm:py-16">
+      <h2 className={RACE_WRITEUP_SECTION_HEADING}>How {venueName} finished</h2>
+      <p className="mt-4 text-sm text-text-muted">
         The official classification, which is what picks are scored against.
       </p>
-      {scored.map((entry) => (
-        <ResultTable key={entry.session} {...entry} />
-      ))}
+      {/* Side by side from `sm`: five rows each, so stacked they were two
+          short tables and a lot of page between the heading and the next
+          block. A sprint weekend's four sessions wrap to two rows of two. */}
+      <div className="sm:grid sm:grid-cols-2 sm:gap-x-8">
+        {scored.map((entry) => (
+          <ResultTable key={entry.session} {...entry} />
+        ))}
+      </div>
     </div>
   );
 }

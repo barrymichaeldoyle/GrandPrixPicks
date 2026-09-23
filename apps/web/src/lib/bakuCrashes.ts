@@ -13,8 +13,13 @@
  * would misplace the circuit's danger. These rows were researched per weekend
  * and every one carries a citation.
  *
- * Inclusion: contact with a wall or another car that had a consequence, being
- * a red flag, a retirement, a stopped car or a steward's collision note.
+ * Inclusion: a car hitting a wall, a barrier, another car or something on the
+ * track, recorded in a race report or the FIA race control log. This is the
+ * rule the rows actually follow. An earlier wording, "that had a consequence,
+ * being a red flag, a retirement, a stopped car or a steward's collision
+ * note", was narrower than the data: fourteen rows are contacts where the car
+ * carried on, and the page and captions repeated the narrow version until
+ * 2026-09-21.
  * Excluded: lock-ups and escape-road excursions with no contact, and purely
  * mechanical retirements. Two researched incidents were dropped for failing
  * this test and the reasons are recorded in
@@ -22,6 +27,11 @@
  *
  * Corner attribution is where the car *stopped*, not where the contact began,
  * and where those differ the note says so.
+ *
+ * `note` is what a reader sees, and it describes the incident. How the corner
+ * or the session was settled when sources disagree goes in `sourcing`, which
+ * is never rendered: "Wikipedia's Turn 7 is wrong" is provenance for the next
+ * editor, not something a fan reading about Baku needs.
  */
 
 /** Session buckets as the map filters them. Sprint sessions fold in. */
@@ -54,7 +64,13 @@ export type BakuCrash = {
    * `medium` = sourced, but the corner is unnamed or sources disagree.
    */
   confidence: 'high' | 'medium';
+  /** Reader-facing: what happened, in plain prose. Rendered on the page. */
   note: string;
+  /**
+   * Editorial only, never rendered: how conflicting sources were resolved,
+   * and any judgement call about inclusion.
+   */
+  sourcing?: string;
   /** Required. An uncited incident does not go in this file. */
   source: string;
 };
@@ -160,7 +176,8 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: null,
     outcome: 'continued',
     confidence: 'medium',
-    note: 'Made contact with the wall and later rejoined. No contemporary report names the corner, so this is listed but not placed on the map.',
+    note: "Made contact with the wall and later rejoined. No report names the corner, so it isn't on the map.",
+    sourcing: 'No contemporary report names the corner.',
     source: 'https://en.wikipedia.org/wiki/2016_European_Grand_Prix',
   },
   {
@@ -185,7 +202,9 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: 11,
     outcome: 'red-flag',
     confidence: 'medium',
-    note: 'Crashed in Q3 after taking the escape road at Turn 15 in both earlier segments, breaking the front suspension and bringing a red flag. Started tenth. Sources disagree on the corner: motorsport.com says Turn 11, Wikipedia Turn 10, another account Turn 9. All three are in the narrow castle-adjacent section; Turn 11 is used here as the most specific attribution.',
+    note: 'Crashed in Q3 after taking the escape road at Turn 15 in both earlier segments, breaking the front suspension and bringing a red flag. Started tenth.',
+    sourcing:
+      'Sources disagree on the corner: motorsport.com says Turn 11, Wikipedia Turn 10, another account Turn 9. All three are in the narrow castle-adjacent section; Turn 11 is used as the most specific attribution.',
     source:
       'https://www.motorsport.com/f1/news/nico-rosberg-on-pole-in-baku-as-lewis-hamilton-crashes-out-of-qualifying/3221175/',
   },
@@ -199,7 +218,7 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: null,
     outcome: 'continued',
     confidence: 'medium',
-    note: "Damaged his front wing against Hulkenberg's rear on the opening lap. Corner not named in any source found, so this is listed but not placed.",
+    note: "Damaged his front wing against Hülkenberg's rear on the opening lap. No report names the corner, so it isn't on the map.",
     source: 'https://en.wikipedia.org/wiki/2016_European_Grand_Prix',
   },
   {
@@ -223,7 +242,9 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: 6,
     outcome: 'red-flag',
     confidence: 'high',
-    note: 'Slid into the wall at the exit of Turn 6 with 3m33s left in Q3, bringing a red flag, and started tenth. He won the race from there. Wikipedia places this in Q1, which cannot be right given he qualified tenth.',
+    note: 'Slid into the wall at the exit of Turn 6 with 3m33s left in Q3, bringing a red flag, and started tenth. He won the race from there.',
+    sourcing:
+      'Wikipedia places this in Q1, which cannot be right given he qualified tenth.',
     source:
       'https://www.formula1.com/en/results/2017/races/966/azerbaijan/qualifying',
   },
@@ -262,7 +283,9 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: 7,
     outcome: 'dnf',
     confidence: 'high',
-    note: "Clipped the inside of Turn 7 while running fifth and broke the front-right suspension, retiring on lap 25. Renault's own race notes give Turn 7; one other account says Turn 15.",
+    note: 'Clipped the inside of Turn 7 while running fifth and broke the front-right suspension, retiring on lap 25.',
+    sourcing:
+      "Renault's own race notes give Turn 7; one other account says Turn 15.",
     source: 'https://www.pitpass.com/59442/Azerbaijan-GP-Race-notes-Renault',
   },
   {
@@ -393,7 +416,9 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: 2,
     outcome: 'red-flag',
     confidence: 'high',
-    note: "Destroyed the car on a loose drain cover between Turns 2 and 3, loosened moments earlier by Leclerc's Ferrari. The session was cancelled and the chassis replaced. Track furniture rather than a wall, and a judgement call for the inclusion rules.",
+    note: "Destroyed the car on a loose drain cover between Turns 2 and 3, loosened moments earlier by Leclerc's Ferrari. The session was cancelled and the chassis replaced.",
+    sourcing:
+      'Track furniture rather than a wall, and a judgement call for the inclusion rules.',
     source: 'https://en.wikipedia.org/wiki/2019_Azerbaijan_Grand_Prix',
   },
   {
@@ -457,6 +482,21 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     confidence: 'high',
     note: 'Ricciardo locked up attempting a move on Kvyat at Turn 3 and went down the escape road; both retired with collision damage.',
     source: 'https://en.wikipedia.org/wiki/2019_Azerbaijan_Grand_Prix',
+  },
+  {
+    id: '2021-fp2-leclerc-t15',
+    year: 2021,
+    event: 'Azerbaijan Grand Prix',
+    session: 'FP2',
+    drivers: ['LEC'],
+    corner: 15,
+    outcome: 'continued',
+    confidence: 'high',
+    note: 'Locked up heavily into Turn 15 and hit the barrier, tearing off the front wing and bringing out a Virtual Safety Car. Pitted for a new nose and finished the session fourth.',
+    sourcing:
+      'Missing from the first research pass; reported by Barry on 2026-09-21 and confirmed against the raw text of the cited Formula 1 report.',
+    source:
+      'https://www.formula1.com/en/latest/article/fp2-perez-heads-red-bull-1-2-in-second-practice-with-hamilton-only-11th.4wbrtBWSsjSsxvXQPU44EI',
   },
   {
     id: '2021-quali-giovinazzi-t15',
@@ -544,7 +584,7 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: 20,
     outcome: 'red-flag',
     confidence: 'high',
-    note: 'Left-rear tyre failure on the main straight while leading with five laps to go. Red flag. Placed at Turn 20 because the failure came on the run out of it; the impact was on the straight itself.',
+    note: 'Left-rear tyre failure on the main straight while leading with five laps to go. Red flag. Shown at Turn 20, the corner before the straight.',
     source: 'https://en.wikipedia.org/wiki/2021_Azerbaijan_Grand_Prix',
   },
   {
@@ -618,7 +658,7 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: 6,
     outcome: 'dnf',
     confidence: 'high',
-    note: 'Clipped the inside wall at Turn 5 and came to a stop at Turn 6. Attributed to Turn 6, where the car stopped. Safety car.',
+    note: 'Clipped the inside wall at Turn 5 and came to a stop at Turn 6. Safety car.',
     source: 'https://en.wikipedia.org/wiki/2023_Azerbaijan_Grand_Prix',
   },
   {
@@ -706,7 +746,9 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: 3,
     outcome: 'dnf',
     confidence: 'high',
-    note: 'Contact on the straight between Turns 2 and 3 while disputing the podium on the penultimate lap; both hit the barrier and retired. Stewards found neither predominantly to blame. Race control logged it as a Turn 2 incident, which is where it originated; the map places it at Turn 3, where the cars ended up.',
+    note: 'Contact on the straight between Turns 2 and 3 while disputing the podium on the penultimate lap; both hit the barrier and retired. Stewards found neither predominantly to blame. Shown at Turn 3, where the cars stopped.',
+    sourcing:
+      'Race control logged it as a Turn 2 incident, which is where it originated.',
     source:
       'https://www.motorsport.com/f1/news/perez-and-sainz-crash-out-on-penultimate-lap-azerbaijan-gp/10654536/',
   },
@@ -720,9 +762,9 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: null,
     outcome: 'dnf',
     confidence: 'medium',
-    note: "Took a hole in the sidepod in first-lap contact with Stroll, ran on with no performance and retired on lap 14, the race's first retirement. Corner not named in any source found.",
+    note: "Took a hole in the sidepod in first-lap contact with Stroll, ran on with no performance and retired on lap 14, the race's first retirement. No report names the corner, so it isn't on the map.",
     source:
-      'https://www.gpfans.com/us/f1-news/1030225/f1-azerbaijan-gp-yuki-tsunoda-rb-out/',
+      'https://www.gpfans.com/en/f1-news/1030224/f1-azerbaijan-gp-yuki-tsunoda-rb-out/',
   },
   {
     id: '2025-quali-albon-t1',
@@ -812,7 +854,9 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: 5,
     outcome: 'continued',
     confidence: 'high',
-    note: "Came together with Colapinto at Turn 5 shortly after both pitted, spinning the Alpine, which recovered. Albon took a ten-second penalty and accepted blame. Formula 1's own race report and race control agree on Turn 5; Wikipedia's Turn 7 is wrong.",
+    note: 'Came together with Colapinto at Turn 5 shortly after both pitted, spinning the Alpine, which recovered. Albon took a ten-second penalty and accepted blame.',
+    sourcing:
+      "Formula 1's own race report and race control agree on Turn 5; Wikipedia's Turn 7 is wrong.",
     source:
       'https://www.formula1.com/en/latest/article/verstappen-claims-dominant-azerbaijan-win-over-russell-and-sainz-after.gT4fbKTwpl3dI79nDmrHS',
   },
@@ -826,7 +870,9 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: 6,
     outcome: 'continued',
     confidence: 'high',
-    note: 'Collided at Turn 6 and both continued; stewards reviewed with no further action. No contemporary report covers it, so the FIA race control log is the citation.',
+    note: 'Collided at Turn 6 and both continued; stewards reviewed with no further action.',
+    sourcing:
+      'No contemporary report covers it, so the FIA race control log is the citation.',
     source: 'openf1:race_control:9904',
   },
   {
@@ -839,8 +885,28 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: 6,
     outcome: 'dnf',
     confidence: 'medium',
-    note: "Jumped the start, dropped to last, then went into the barriers on the opening lap for his first retirement of the season. Formula 1's race report puts the impact at Turn 5; race control logged the recovery vehicle at Turn 6, which is where the car came to rest and where this map places it.",
+    note: 'Jumped the start, dropped to last, then went into the barriers on the opening lap for his first retirement of the season. The car stopped at Turn 6.',
+    sourcing:
+      "Formula 1's race report puts the impact at Turn 5; race control logged the recovery vehicle at Turn 6, which is where the car came to rest.",
     source:
       'https://www.formula1.com/en/latest/article/verstappen-claims-dominant-azerbaijan-win-over-russell-and-sainz-after.gT4fbKTwpl3dI79nDmrHS',
   },
+];
+
+/**
+ * The incidents a fan already associates with Baku, most famous first.
+ *
+ * The map leads with these rather than the newest three: the newest were
+ * minor 2025 contacts, while Vettel into Hamilton sits under a corner no
+ * source names, so without this list it was readable only inside the closed
+ * archive. An editorial call like the archive itself; revise it when a
+ * weekend produces one people will still bring up.
+ */
+export const BAKU_BEST_KNOWN: readonly string[] = [
+  '2017-race-vettel-hamilton',
+  '2018-race-grosjean-sc',
+  '2019-quali-leclerc-t8',
+  '2025-quali-piastri-t3',
+  '2018-race-verstappen-ricciardo',
+  '2021-race-verstappen-straight',
 ];

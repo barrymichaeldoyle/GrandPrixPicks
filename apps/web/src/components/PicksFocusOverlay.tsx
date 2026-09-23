@@ -1,13 +1,26 @@
 import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useEffectEvent } from 'react';
+import { useEffect, useEffectEvent, useLayoutEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useModalDialog } from '@/hooks/useModalDialog';
 
 /** Sentinel key marking the history entry pushed while the overlay is open. */
 const HISTORY_KEY = 'picksFocusOverlay';
+
+/**
+ * How many overlays are open on screen right now.
+ *
+ * Read during the first render of a new overlay to tell a handoff from an
+ * entrance. A picker that loads in stages (a Suspense fallback, then a
+ * loading shell, then the form) is three overlays in a row, each replacing the
+ * last in one commit. Each used to play the fade and rise afresh, so a single
+ * tap on "Make picks" flickered twice before the picker settled. React renders
+ * the replacement while the one it replaces is still mounted, so a non-zero
+ * count here means "already on screen": carry on without an entrance.
+ */
+let openOverlays = 0;
 
 interface PicksFocusOverlayProps {
   open: boolean;
@@ -45,6 +58,23 @@ export function PicksFocusOverlay({
   children,
 }: PicksFocusOverlayProps) {
   const reduceMotion = useReducedMotion();
+  // Only the first open can be a handoff. Once this overlay has closed, the
+  // next open is a real entrance and animates like one.
+  const [isHandoff, setIsHandoff] = useState(() => open && openOverlays > 0);
+  if (!open && isHandoff) {
+    setIsHandoff(false);
+  }
+  const skipEntrance = reduceMotion || isHandoff;
+
+  useLayoutEffect(() => {
+    if (!open) {
+      return;
+    }
+    openOverlays += 1;
+    return () => {
+      openOverlays -= 1;
+    };
+  }, [open]);
   const closeFromHistory = useEffectEvent(() => {
     if (!suspended) {
       onClose();
@@ -114,7 +144,7 @@ export function PicksFocusOverlay({
           key="picks-focus-overlay"
           data-testid="picks-focus-overlay"
           className="fixed inset-0 z-50 flex bg-page sm:items-center sm:justify-center sm:bg-black/60 sm:p-4"
-          initial={{ opacity: 0 }}
+          initial={isHandoff ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }}
@@ -135,7 +165,7 @@ export function PicksFocusOverlay({
             // and a settle back on the way out. The panel is the whole screen
             // on a phone, where anything larger reads as the page itself
             // moving, and a modest scale is all a desktop dialog needs.
-            initial={reduceMotion ? false : { opacity: 0, y: 12, scale: 0.99 }}
+            initial={skipEntrance ? false : { opacity: 0, y: 12, scale: 0.99 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={
               reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.99 }
@@ -145,7 +175,10 @@ export function PicksFocusOverlay({
               ease: [0.16, 1, 0.3, 1],
             }}
           >
-            <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-3 sm:px-6">
+            {/* A div, not a <header>: outside a sectioning element a header
+                is the page's banner landmark, so the dialog announced a second
+                one. The dialog is already named by the h2 below. */}
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-3 sm:px-6">
               <div className="flex min-w-0 items-center gap-2.5">
                 <div className="min-w-0">
                   <h2
@@ -170,7 +203,7 @@ export function PicksFocusOverlay({
               >
                 <X size={20} aria-hidden />
               </button>
-            </header>
+            </div>
             {/* No bottom padding on mobile: a sticky bottom bar (H2H submit) can't
             enter the scroll container's padding, so padding would leave a gap
             under it. Content without its own bar should bring pb-4 sm:pb-0. */}

@@ -1,0 +1,26 @@
+{
+  "timezone": "Africa/Johannesburg",
+  "localDueAt": "2026-09-21T12:45:00+02:00",
+  "dueAt": "2026-09-21T10:45:00.000Z",
+  "assetBaseUrl": "https://a33f4c0e.gpp-social-assets-2026.pages.dev",
+  "posts": [
+    {
+      "service": "twitter",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "bufferPostId": "6ab1099259e51567fcee735c",
+      "status": "scheduled",
+      "automaticPublishing": true,
+      "verified": true,
+      "asset": "baku-race-week-x-v4.png"
+    },
+    {
+      "service": "instagram",
+      "channelId": "6a7050c899afb44349f18cbd",
+      "bufferPostId": "6ab109a8f20905488157800e",
+      "status": "scheduled",
+      "automaticPublishing": true,
+      "verified": true,
+      "asset": "baku-race-week-instagram-v4.png"
+    }
+  ]
+}

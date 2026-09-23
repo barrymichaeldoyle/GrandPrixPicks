@@ -1,0 +1,57 @@
+{% if has_race %}
+{% assign half_horizontal_news_size = "title--small lg:title--base" %}
+{% if news.size > 6 %}{% assign half_horizontal_news_size = "title--small lg:title--small" %}{% endif %}
+{% comment %}
+  Landscape gives the headline or result the remaining column; portrait stacks
+  it below the compact header and lead. The QR code stays at the header's right.
+{% endcomment %}
+<div class="layout layout--row portrait:layout--col layout--stretch gap--large">
+  <div class="flex flex--col gap--small flex-none">
+    <div class="flex flex--row flex--top gap--small w--full">
+      <div class="grow">{% render "race_header", race: race, name_size: "title--small lg:title--base", detail_size: "lg:label--base", flag_size: "h--[24px] w--max-[48px] lg:h--[32px] lg:w--max-[64px]", inline_flag: true, split_dates: true %}</div>
+      <div class="flex-none">{% render "qr", url: race.url %}</div>
+    </div>
+    <div class="flex flex--col gap--small">
+      {% render "lead", lead: lead, size: "value--large lg:value--xlarge" %}
+      {% render "lead_weather", weather: lead.weather %}
+    </div>
+  </div>
+  <div class="grow flex flex--col gap--small">
+    {% if focus == "result" %}
+      {% render "result", result: result, limit: 5, split: false %}
+    {% else %}
+      {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short" %}
+      {% if news.size > 0 %}
+        <div class="grow">
+          {% render "news", news: news, limit: 20, headline_size: half_horizontal_news_size, fill: true %}
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+{% elsif standings %}
+<div class="layout layout--row portrait:layout--col layout--stretch gap--large">
+  <div class="flex flex--col gap--small flex-none">
+    <div class="flex flex--row flex--center-y gap--small w--full">
+      <div class="grow">{% render "standings_header", standings: standings, title_size: "lg:title--large", detail_size: "lg:label--base" %}</div>
+      <div class="flex-none">{% render "qr", url: standings.url %}</div>
+    </div>
+    <div class="flex flex--col gap--small">
+      {% render "leader", standings: standings, value_size: "value--small lg:value--large" %}
+      <span class="label label--small lg:label--base">Constructors: {{ standings.constructors.first.name }}</span>
+    </div>
+  </div>
+  {% comment %}
+    One table: two side by side wrapped every name and ran into the title bar.
+    The constructors' champion is named under the drivers' instead.
+  {% endcomment %}
+  <div class="grow">
+    {% render "standings_table", label: "Drivers", rows: standings.drivers, limit: 5, offset: 0, size: "table--xsmall lg:table--small" %}
+  </div>
+</div>
+{% else %}
+<div class="layout layout--col layout--center">
+  <span class="title">No race scheduled.</span>
+</div>
+{% endif %}
+{% render "title_bar", race: race %}

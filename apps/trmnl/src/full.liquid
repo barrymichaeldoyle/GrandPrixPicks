@@ -1,0 +1,76 @@
+{% if has_race %}
+{% assign full_news_size = "title--base lg:title--large" %}
+{% if news.size > 6 %}{% assign full_news_size = "title--small lg:title--base" %}{% endif %}
+<div class="layout layout--col layout--top layout--stretch-x gap--medium">
+  <div class="flex flex--row flex--center-y gap--medium">
+    <div class="grow">
+      {% render "race_header", race: race, name_size: "title--large portrait:title--small lg:title--xxlarge lg:portrait:title--large", detail_size: "label--base portrait:label--small lg:label--xlarge lg:portrait:label--base", flag_size: "h--[56px] w--max-[112px] lg:h--[96px] lg:w--max-48", compact_details: true %}
+    </div>
+    <div class="flex-none">{% render "qr", url: race.url %}</div>
+  </div>
+  {% comment %}
+    Two columns side by side, stacked in portrait: side by side on a portrait
+    X they squeezed every name and time onto two lines and left the bottom
+    half empty.
+  {% endcomment %}
+  <div class="grid grid--cols-2 portrait:grid--cols-1 gap--large grow">
+    <div class="flex flex--col flex--stretch-x gap--distribute">
+      <div class="flex flex--col flex--center gap--xsmall">
+        {% render "lead", lead: lead, size: "value--large lg:value--xxlarge" %}
+        {% render "lead_weather", weather: lead.weather %}
+      </div>
+      {% comment %}No weather line: each timeline row carries its own forecast.{% endcomment %}
+      {% render "schedule", schedule: schedule, size: "table--small lg:table--large", name: "label" %}
+    </div>
+    <div class="flex flex--col flex--stretch-x gap--small h--full">
+      {% comment %}
+        The focus block takes the column's spare height. TRMNL's overflow
+        script hides news items that do not fit, and a separate spacer would
+        read to it as content.
+      {% endcomment %}
+      <div class="grow {% if news.size == 0 and focus != 'result' and focus != 'grid' %}h--full{% endif %}">
+        {% if focus == "result" %}
+          {% render "result", result: result, limit: 10, split: true %}
+        {% elsif focus == "grid" %}
+          {% render "grid", grid: grid %}
+        {% elsif focus == "news" %}
+          {% render "news", news: news, limit: 20, headline_size: full_news_size, fill: true %}
+        {% elsif news.size == 0 %}
+          {% render "news", news: news, limit: 20, headline_size: full_news_size, fill: true %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% elsif standings %}
+{% comment %}
+  The off-season: 22 drivers in two columns, and all 11 constructors in the
+  third. One headline and the QR code sit beside the heading so neither can
+  be pushed below the screen by the tables. In portrait, constructors follow
+  the drivers.
+{% endcomment %}
+<div class="layout layout--col layout--top layout--stretch-x gap--small">
+  <div class="flex flex--row flex--center-y gap--medium">
+    <div class="grow flex flex--col flex--left flex--stretch-x gap--small">
+      {% render "standings_header", standings: standings, title_size: "lg:title--xlarge", detail_size: "lg:label--large" %}
+      {% render "news", news: news, limit: 1, headline_size: "title--small lg:title--base" %}
+    </div>
+    {% render "qr", url: standings.url %}
+  </div>
+  <div class="grid grid--cols-3 portrait:grid--cols-2 gap--medium grow">
+    <div class="flex flex--col gap--xsmall col--span-2">
+      <span class="title title--small lg:title--base">Drivers</span>
+      <div class="grid grid--cols-2 gap--medium">
+        {% render "standings_table", label: "", rows: standings.drivers, limit: 11, offset: 0, size: "table--xsmall lg:table--small" %}
+        {% render "standings_table", label: "", rows: standings.drivers, limit: 11, offset: 11, size: "table--xsmall lg:table--small" %}
+      </div>
+    </div>
+    {% render "standings_table", label: "Constructors", rows: standings.constructors, limit: 11, offset: 0, size: "table--xsmall lg:table--small" %}
+  </div>
+</div>
+{% else %}
+<div class="layout layout--col layout--center">
+  <span class="title">No race scheduled.</span>
+</div>
+{% endif %}
+{% render "title_bar", race: race %}

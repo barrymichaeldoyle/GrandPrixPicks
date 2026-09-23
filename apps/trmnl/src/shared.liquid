@@ -1,0 +1,309 @@
+{% comment %}
+  Secondary labels are gray only on the 2-bit and 4-bit palettes, the ones
+  with real gray ink. Elsewhere they stay black: a 1-bit screen dithers gray
+  text into speckle (TRMNL's reviewers flag it), and so does every colour
+  palette, which has no gray and no prefix to override it with.
+{% endcomment %}
+
+{% comment %}
+  Reusable blocks for the four layouts. The payload is built by
+  apps/web/src/lib/trmnl/payload.ts and is fully formatted there:
+  times are already in the owner's zone and language, so nothing here does
+  date arithmetic. Liquid computing "time until" would freeze whenever the
+  payload is unchanged, because TRMNL skips the redraw.
+{% endcomment %}
+
+{% comment %}
+  `w--full`: TRMNL's value fitting shrinks the value to its parent's width,
+  and in a centred flex column that parent is otherwise exactly as wide as the
+  text, so a long winner's name never shrank.
+{% endcomment %}
+{% template lead %}
+<div class="flex flex--col gap--xsmall w--full">
+  <span class="title lg:title--large">{{ lead.label }}</span>
+  <span class="value {{ size }}" data-value-fit="true">{{ lead.value }}</span>
+</div>
+{% endtemplate %}
+
+{% comment %}
+  Flag, race name, circuit, then round and dates. The full layout can combine
+  the circuit and round/date line; half screens put the flag beside the name
+  and the details below. The flag is decoration: in grayscale Italy, Ireland
+  and Mexico are the same three stripes, so it can never be the only thing that
+  says which race this is.
+
+  `name_size` is the race name's size, `detail_size` the circuit and round's,
+  and `flag_size` sets the flag's height, matched to the text beside it on OG
+  and X. Its width follows the flag's shape, capped for Qatar, whose file's
+  viewBox is 75:18 and stretches to fit.
+  Widths over 128px use the named scale (`lg:w--max-48` is 192px): the
+  Framework only generates bracketed sizes up to `[128px]`, and a larger one
+  silently does nothing, which squeezed every flag on the X into the OG's cap.
+  `shrink-0` keeps the shape in a narrow column, where flex shrank the width
+  and not the height.
+
+  Nothing is clamped: an ellipsis cut the dates off. The dates never split
+  ("1 – 3 May"): their spaces become non-breaking here, because the Framework's
+  label is a flex container that swallowed the space before a nested no-wrap
+  span, and it has no text no-wrap class.
+
+  The circuit and round are black, not gray: on the X, gray small labels
+  were too faint to read at arm's length, and size alone already sets them
+  below the name.
+
+  Two copies of the flag: the OG's is marked `image-dither`, so TRMNL dithers
+  it to the OG's few inks; the X's is not, so the X prints it as flat grays
+  from its sixteen instead of speckle. `lg:hidden` / `hidden lg:block` pick
+  one per device. The frame is a black
+  box with 2px of padding (`bg--black p--0.5`), so white fields (Japan,
+  Monaco, Poland) keep an edge against the screen. It was an inline border,
+  but TRMNL's rules forbid inline styles, and the Framework has no all-sides
+  border class; 2px is its smallest padding step.
+{% endcomment %}
+{% template race_header %}
+{% if inline_flag %}
+<div class="flex flex--col flex--left gap--none">
+  <div class="flex flex--row flex--left flex--center-y gap--small">
+    {% render "race_flag", race: race, flag_size: flag_size %}
+    <span class="title {{ name_size }}">{{ race.name }}</span>
+  </div>
+  {% if split_dates %}
+    <span class="label label--small {{ detail_size }}">{% if race.circuit %}{{ race.circuit }} · {% endif %}Round&nbsp;{{ race.round }}</span>
+    <span class="label label--small {{ detail_size }}">{{ race.dates | replace: " ", "&nbsp;" | replace: "–", "‑" | replace: "-", "‑" }}</span>
+  {% else %}
+    <span class="label label--small {{ detail_size }}">{% if race.circuit %}{{ race.circuit }} · {% endif %}Round&nbsp;{{ race.round }} · {{ race.dates | replace: " ", "&nbsp;" | replace: "–", "‑" | replace: "-", "‑" }}</span>
+  {% endif %}
+</div>
+{% else %}
+<div class="flex flex--row flex--left flex--center-y gap--medium">
+  {% render "race_flag", race: race, flag_size: flag_size %}
+  <div class="flex flex--col flex--left gap--none">
+    <span class="title {{ name_size }}">{{ race.name }}</span>
+    {% if compact_details %}
+      <span class="label {{ detail_size }}">{% if race.circuit %}{{ race.circuit }} · {% endif %}Round {{ race.round }} · {{ race.dates | replace: " ", "&nbsp;" }}</span>
+    {% else %}
+      {% if race.circuit %}<span class="label label--small {{ detail_size }}">{{ race.circuit }}</span>{% endif %}
+      <span class="label label--small {{ detail_size }}">Round {{ race.round }} · {{ race.dates | replace: " ", "&nbsp;" }}</span>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endtemplate %}
+
+{% template race_flag %}
+{% if race.flag_url %}
+<div class="bg--black p--0.5 shrink-0 flex">
+  <img class="image image-dither lg:hidden shrink-0 w--auto {{ flag_size }}" src="{{ race.flag_url }}" alt="">
+  <img class="image hidden lg:block shrink-0 w--auto {{ flag_size }}" src="{{ race.flag_url }}" alt="">
+</div>
+{% endif %}
+{% endtemplate %}
+
+{% comment %}
+  The weekend timeline. `name` picks the row label: "label" spells it out
+  ("Free Practice 1", "Sprint Qualifying") where there is room, "short"
+  ("FP1", "SQ") where there is not. Each row carries its own forecast.
+{% endcomment %}
+{% template schedule %}
+{% assign schedule_limit = limit | default: 99 %}
+<table class="table {{ size }}">
+  <tbody>
+    {% for row in schedule limit: schedule_limit %}
+    <tr>
+      <td><span class="title title--small lg:title--base">{{ row[name] }}</span></td>
+      <td><span class="label label--small lg:label--base">{{ row.when }}</span></td>
+      <td>
+        {% if row.weather %}
+        <span class="flex flex--row flex--left flex--center-y gap--xsmall">
+          <img class="image w--[22px] h--[22px] lg:w--[32px] lg:h--[32px]" src="{{ row.weather.icon }}" alt="">
+          <span class="label label--small lg:label--base">{{ row.weather.temp }}{% if row.weather.rain != "" %} {{ row.weather.rain }}{% endif %}</span>
+        </span>
+        {% endif %}
+      </td>
+      <td>
+        {% if row.state == "done" %}
+          <span class="label label--small lg:label--base">{{ row.top3 | join: " " }}</span>
+        {% elsif row.next %}
+          <span class="label label--small label--filled">Next</span>
+        {% elsif row.state == "awaiting" %}
+          <span class="label label--small 2bit:label--gray 4bit:label--gray">Awaiting result</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endtemplate %}
+
+
+{% comment %}
+  `headline_size` is always passed. It is not called `size`: liquidjs, which
+  renders the /trmnl page, resolves a missing `size` to 0 where TRMNL's Ruby
+  Liquid falls back to a default, so the page and the device disagreed.
+{% endcomment %}
+{% template news %}
+<div class="flex flex--col gap--xsmall {% if fill or news.size == 0 %}h--full{% endif %} {% if news.size == 0 %}flex--center{% elsif fill %}flex--left flex--center-y{% endif %}" data-overflow="true">
+  {% if news.size == 0 %}<span class="label label--small lg:label--base">No news yet.</span>{% endif %}
+  {% for item in news limit: limit %}
+  <div class="item">
+    <div class="meta"></div>
+    <div class="content">
+      <span class="title {{ headline_size }}" data-clamp="2">{{ item.headline }}</span>
+    </div>
+  </div>
+  {% unless forloop.last %}<div class="divider divider--h"></div>{% endunless %}
+  {% endfor %}
+</div>
+{% endtemplate %}
+
+{% comment %}
+  A session result, up to `limit` rows. `split` lays ten rows out as two
+  columns of five, where one column of ten would not fit. Both are always
+  passed.
+
+  Split by hand, not by TRMNL's overflow engine (`data-overflow-max-cols` on
+  one `.column`), which TRMNL's rules prefer. Tried on 23 September 2026: the
+  engine fills the first column before starting the second, so ten rows came
+  out 7 + 3 on the OG and 9 + 1 on the X, and on a portrait X it clipped the
+  list after eight names. TRMNL's own guide warns the engine is unpredictable
+  on e-ink.
+{% endcomment %}
+{% template result %}
+<div class="flex flex--col gap--small">
+  <span class="title title--small lg:title--large">{{ result.label }}</span>
+  {% if split and result.rows.size > 5 %}
+  <div class="columns">
+    <div class="column">{% render "result_rows", rows: result.rows, limit: 5, offset: 0 %}</div>
+    <div class="column">{% render "result_rows", rows: result.rows, limit: 5, offset: 5 %}</div>
+  </div>
+  {% else %}
+  {% render "result_rows", rows: result.rows, limit: limit, offset: 0 %}
+  {% endif %}
+</div>
+{% endtemplate %}
+
+{% template result_rows %}
+<div class="flex flex--col gap--small">
+  {% for row in rows limit: limit offset: offset %}
+  <div class="item">
+    <div class="meta"><span class="index">{{ row.pos }}</span></div>
+    <div class="content">
+      <span class="title title--small lg:title--large">{{ row.name }}</span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endtemplate %}
+
+{% template grid %}
+<div class="flex flex--col gap--small">
+  <span class="title title--small lg:title--base">Starting grid</span>
+  {% assign half = grid.size | plus: 1 | divided_by: 2 %}
+  <div class="columns">
+    <div class="column">{% render "grid_rows", rows: grid, limit: half, offset: 0 %}</div>
+    <div class="column">{% render "grid_rows", rows: grid, limit: half, offset: half %}</div>
+  </div>
+</div>
+{% endtemplate %}
+
+{% comment %}
+  `lg:portrait:table--small`: stacked under the timeline on a portrait X, the
+  base row height pushed the back of the grid off the screen.
+{% endcomment %}
+{% template grid_rows %}
+<table class="table table--xsmall lg:table--base lg:portrait:table--small">
+  <tbody>
+    {% for row in rows limit: limit offset: offset %}
+    <tr>
+      <td><span class="label label--small">{{ row.pos }}</span></td>
+      <td><span class="title title--small">{{ row.code }}</span></td>
+      <td><span class="label label--small 2bit:label--gray 4bit:label--gray">{{ row.note }}</span></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endtemplate %}
+
+{% comment %}
+  The way from the screen to the site, the same on every layout. `url` is the
+  race's, or the standings' in the off-season. The link is the short /t/ form
+  and carries
+  utm_source=trmnl, utm_medium=qr and the screen phase as utm_content, for
+  PostHog. 3px modules at error-correction level M: about 0.6mm a module on
+  the OG, which a phone reads easily.
+{% endcomment %}
+{% template qr %}
+<div class="flex flex--col flex--center">
+  {{ url | qr_code: 3, "m" }}
+</div>
+{% endtemplate %}
+
+{% comment %}
+  The lead session's own forecast under the lead, worded as the race pages
+  word it ("Partly cloudy · 27°C", "Rain · 23°C · 60%"). Every layout shows
+  it: an icon and a temperature alone read as an orphan, and the timeline rows
+  only carry the compact form.
+{% endcomment %}
+{% template lead_weather %}
+{% if weather %}
+<span class="flex flex--row flex--center flex--center-y gap--xsmall">
+  <img class="image w--[24px] h--[24px] lg:w--[32px] lg:h--[32px]" src="{{ weather.icon }}" alt="">
+  <span class="label label--small lg:label--base">{{ weather.text }}</span>
+</span>
+{% endif %}
+{% endtemplate %}
+
+{% comment %}
+  The off-season screen: the season just run. `standings.title` is "Formula 1
+  2026 Standings" and `standings.detail` "After 23 rounds"; before the
+  season ends (only the /trmnl page shows it then) they say so instead.
+{% endcomment %}
+{% template standings_header %}
+<div class="flex flex--col flex--left gap--none">
+  <span class="title {{ title_size }}">{{ standings.title }}</span>
+  <span class="label label--small {{ detail_size }}">{{ standings.detail }}</span>
+</div>
+{% endtemplate %}
+
+{% comment %}The champion, as the lead: "2026 champion", then the name.{% endcomment %}
+{% template leader %}
+<div class="flex flex--col gap--xsmall w--full">
+  <span class="title lg:title--large">{{ standings.leader_label }}</span>
+  <span class="value {{ value_size }}" data-value-fit="true">{{ standings.drivers.first.name }}</span>
+</div>
+{% endtemplate %}
+
+{% comment %}
+  One championship table, drivers or constructors: position, name, points.
+  `label`, `limit`, `offset` and `size` are always passed. An empty label
+  leaves the second driver column aligned below the shared heading.
+{% endcomment %}
+{% template standings_table %}
+<div class="flex flex--col gap--xsmall">
+  {% if label != "" %}<span class="title title--small lg:title--base">{{ label }}</span>{% endif %}
+  <table class="table {{ size }}">
+    <tbody>
+      {% for row in rows limit: limit offset: offset %}
+      <tr>
+        <td><span class="label label--small">{{ row.pos }}</span></td>
+        <td><span class="title title--small">{{ row.name }}</span></td>
+        <td><span class="label label--small">{{ row.points }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endtemplate %}
+
+{% comment %}
+  The icon is inline, as TRMNL's guide asks: a URL can fail to load when the
+  screen is drawn. Captured inside the template because a rendered template
+  cannot see variables from outside it.
+{% endcomment %}
+{% template title_bar %}
+{%- capture icon -%}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24"><g fill="#000" transform="translate(16 16) skewX(-12) translate(-16 -16)"><rect x="5" y="13" width="6" height="12"/><rect x="14" y="7" width="6" height="18"/><rect x="23" y="16" width="6" height="9"/></g></svg>{%- endcapture -%}
+<div class="title_bar">
+  <img class="image image-stroke" src="data:image/svg+xml;base64,{{ icon | base64_encode }}" alt="">
+  <span class="title">GrandPrixPicks.com</span>
+</div>
+{% endtemplate %}

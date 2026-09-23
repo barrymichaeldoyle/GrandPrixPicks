@@ -24,6 +24,7 @@ export type ResultsEmailShellProps = {
   raceName: string;
   raceUrl: string;
   settingsUrl: string;
+  unsubscribeUrl?: string;
   logoUrl: string;
   round: number;
   countryCode: string | null;
@@ -41,6 +42,7 @@ export function ResultsEmailShell({
   raceName,
   raceUrl,
   settingsUrl,
+  unsubscribeUrl,
   logoUrl,
   round,
   countryCode,
@@ -140,6 +142,14 @@ export function ResultsEmailShell({
             <Link href={settingsUrl} style={footerLink}>
               Manage notification preferences
             </Link>
+            {unsubscribeUrl ? (
+              <>
+                {' · '}
+                <Link href={unsubscribeUrl} style={footerLink}>
+                  Unsubscribe
+                </Link>
+              </>
+            ) : null}
           </Text>
         </Container>
       </Body>

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { RACE_WRITEUP_SECTION_HEADING } from './RaceWriteupSection';
 
 /** Pirelli's 2026 slick range, hardest to softest. */
 const COMPOUNDS = ['C1', 'C2', 'C3', 'C4', 'C5'] as const;
@@ -142,25 +143,23 @@ export function TyreCompoundSection({
   children: ReactNode;
 }) {
   return (
-    <section
-      className={
-        aside
-          ? 'grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]'
-          : 'py-8 sm:py-16'
-      }
-      aria-labelledby="tyre-choice"
-    >
+    <section className="py-8 sm:py-16" aria-labelledby="tyre-choice">
       <div className="max-w-3xl">
-        <h2
-          id="tyre-choice"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
+        <h2 id="tyre-choice" className={RACE_WRITEUP_SECTION_HEADING}>
           {heading}
         </h2>
         <TyreCompoundScale venue={venue} hardest={hardest} />
+        {/* Floated into the analysis the way `RaceWriteupSection` sets a
+            photo, and after the scale rather than beside it, so the five
+            compounds keep the full column and read as one strip. */}
+        {aside ? (
+          <div className="mt-4 lg:float-right lg:-mr-48 lg:mb-4 lg:ml-8 lg:w-96">
+            {aside}
+          </div>
+        ) : null}
         {children}
+        <div className="clear-both" />
       </div>
-      {aside ? <div className="self-start">{aside}</div> : null}
     </section>
   );
 }

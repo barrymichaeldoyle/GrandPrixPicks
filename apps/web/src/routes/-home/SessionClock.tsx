@@ -1,5 +1,6 @@
 import { formatLockCountdown } from '@grandprixpicks/shared/picks';
-import { useEffect, useState } from 'react';
+import { Suspense, use, type ReactNode } from 'react';
+import { browser } from 'react-dom';
 
 import { Flag } from '@/components/Flag';
 import { abbreviateGrandPrix } from '@/lib/display';
@@ -82,57 +83,55 @@ function segmentsFor(msRemaining: number): ClockSegment[] {
   ];
 }
 
-/**
- * The lock instant in the visitor's own timezone, or null until mounted.
- *
- * The date branch has to render something during SSR, and only the circuit's
- * zone is knowable there — the server runs in UTC, so formatting for "the
- * viewer" on the server means formatting for the wrong person and mismatching
- * every hydration. So the first paint is track-local and this swaps in the
- * visitor's zone once there is a browser to ask. Both strings are the same
- * instant at the same width, so the swap costs no layout.
- */
-function useViewerLockDate(lockAt: number | undefined, enabled: boolean) {
-  const [viewerDate, setViewerDate] = useState<{
-    date: string;
-    time: string;
-  } | null>(null);
+type LockDate = NonNullable<ReturnType<typeof formatRaceLocalLockDate>>;
 
-  useEffect(() => {
-    // The viewer timezone is browser-only and intentionally replaces the SSR value.
-    // oxlint-disable-next-line react/set-state-in-effect
-    setViewerDate(
-      enabled && lockAt !== undefined ? formatViewerLockDate(lockAt) : null,
-    );
-  }, [lockAt, enabled]);
-
-  return viewerDate;
+function ViewerLockDate({
+  lockAt,
+  separator,
+  trackDate,
+}: {
+  lockAt: number;
+  separator: string;
+  trackDate: LockDate;
+}) {
+  use(browser());
+  const date = formatViewerLockDate(lockAt) ?? trackDate;
+  return (
+    <>
+      {date.date}
+      {separator}
+      {date.time}
+    </>
+  );
 }
 
-/**
- * The lock instant as `{ date, time }`, or null when the circuit's timezone is
- * unknown. Resolved whichever branch is on screen: far out it is the headline,
- * inside the urgency window it is the line under the digits saying which
- * instant they are counting down to.
- */
-function useLockDateDisplay({
-  locked,
+/** Keep the track-local date in server HTML while hydrating the viewer's zone. */
+function LockDateText({
   lockAt,
-  raceSlug,
+  trackDate,
+  separator = ' · ',
 }: {
-  locked: boolean;
-  lockAt: number | undefined;
-  raceSlug: string;
+  lockAt: number;
+  trackDate: LockDate;
+  separator?: string;
 }) {
-  const trackDate =
-    !locked && lockAt !== undefined
-      ? formatRaceLocalLockDate(lockAt, raceSlug)
-      : null;
-  // Whether we show a date at all stays keyed off the *track* zone, so the
-  // date-vs-digits choice is identical on server and client and nothing
-  // reflows after mount. Only the zone the date is expressed in changes.
-  const viewerDate = useViewerLockDate(lockAt, trackDate !== null);
-  return viewerDate ?? trackDate;
+  return (
+    <Suspense
+      fallback={
+        <>
+          {trackDate.date}
+          {separator}
+          {trackDate.time}
+        </>
+      }
+    >
+      <ViewerLockDate
+        lockAt={lockAt}
+        separator={separator}
+        trackDate={trackDate}
+      />
+    </Suspense>
+  );
 }
 
 export function SessionClock({
@@ -174,7 +173,10 @@ export function SessionClock({
     .filter(Boolean)
     .join(' · ');
   const large = size === 'lg';
-  const lockDate = useLockDateDisplay({ locked, lockAt, raceSlug });
+  const lockDate =
+    !locked && lockAt !== undefined
+      ? formatRaceLocalLockDate(lockAt, raceSlug)
+      : null;
   const farOut = msRemaining > COUNTDOWN_WINDOW_MS;
   const single = segments.length === 1;
 
@@ -299,7 +301,7 @@ export function SessionClock({
             <p
               className={`mt-3 text-text-muted ${large ? 'text-sm' : 'text-xs'}`}
             >
-              {lockDate.date} · {lockDate.time}
+              <LockDateText lockAt={lockAt!} trackDate={lockDate} />
               {farOut ? ' · Picks open now' : ''}
             </p>
           ) : null}
@@ -334,14 +336,22 @@ export function SessionClockChip({
   const countryCode = getCountryCodeForRace({ slug: raceSlug });
   const shortName = abbreviateGrandPrix(raceName);
   const locked = msRemaining <= 0;
-  const lockDate = useLockDateDisplay({ locked, lockAt, raceSlug });
+  const lockDate =
+    !locked && lockAt !== undefined
+      ? formatRaceLocalLockDate(lockAt, raceSlug)
+      : null;
   const showDate = lockDate !== null && msRemaining > COUNTDOWN_WINDOW_MS;
 
-  let detail: string;
+  let detail: ReactNode;
   if (locked) {
     detail = `${sessionLabel} picks are locked`;
   } else if (showDate && lockDate) {
-    detail = `${sessionLabel} locks ${lockDate.date}, ${lockDate.time}`;
+    detail = (
+      <>
+        {sessionLabel} locks{' '}
+        <LockDateText lockAt={lockAt!} trackDate={lockDate} separator=", " />
+      </>
+    );
   } else {
     // One line has room for the countdown or the instant, not both, and inside
     // the window the countdown is the half that earns the space.

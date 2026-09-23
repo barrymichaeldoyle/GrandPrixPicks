@@ -95,7 +95,8 @@ type GuideLiveLink = {
     | '/f1-standings'
     | '/f1-team-mate-battles'
     | '/races'
-    | '/leaderboard';
+    | '/leaderboard'
+    | '/f1-2027-driver-line-up';
   label: string;
   detail: string;
 };
@@ -126,7 +127,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
   // retain the shortlist as dated context, and bump guideMeta.updatedAt.
   'f1-2027-haas-second-seat': {
     status:
-      'As of 9 September 2026, Haas has not announced who will take the second seat for 2027.',
+      'As of 21 September 2026, Haas has not announced who will take the second seat for 2027. Reporting puts Rafael Câmara in front, and Ayao Komatsu says the decision is not imminent.',
     hero: {
       src: '/images/guides/haas-monza-2025.jpg',
       width: 1280,
@@ -145,7 +146,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         heading: 'What Komatsu has said',
         paragraphs: [
           'Writing for the Japanese publication as-web.jp during the Monza weekend, Ayao Komatsu named the five drivers in contention for one 2027 Haas seat.',
-          'Ocon has the seat now and is one of the five. Haas has been comparing the others in private testing. Grandprix.com reports that Hirakawa, Fornaroli and Bearman were within a tenth of a second of each other at Jerez, and that Haas gathered more data at Portimao afterwards. Doohan’s own test is due at Jerez, and Haas has not said the seat has been offered to anyone.',
+          'Ocon has the seat now and is one of the five. Haas has been comparing the others in private testing. Grandprix.com reports that Hirakawa, Fornaroli and Bearman were within a tenth of a second of each other at Jerez, and that Haas gathered more data at Portimao afterwards. Doohan has since completed his own test at Jerez, running alongside Hirakawa and Sho Tsuboi. It was the last of the runs Haas said it wanted before deciding. Asked on 18 September when he would decide, Komatsu said: “I don’t know, not next week, shall I say.” He added that performance comes first, and that a driver’s backing only counts if two candidates are otherwise equal.',
         ],
         sources: [
           {
@@ -156,6 +157,30 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           {
             label: 'SPEEDWEEK: Komatsu’s comments at Monza (5 September)',
             url: 'https://www.speedweek.com/en/a/formula-1/haas-team-principal-ayao-komatsu-these-five-drivers-are-in-the-running-for-2027',
+          },
+          {
+            label:
+              'Grandprix.com: Doohan completes his Jerez test (20 September)',
+            url: 'https://www.grandprix.com/news/doohan-completes-first-haas-test-at-jerez.html',
+          },
+          {
+            label:
+              'Motorsport Week: Komatsu on timing and “performance first” (18 September)',
+            url: 'https://www.motorsportweek.com/2026/09/18/haas-f1-2027-driver-decision/',
+          },
+        ],
+      },
+      {
+        heading: 'Where the contest stands',
+        paragraphs: [
+          'Grandprix.com reported on 17 September 2026 that reporting in Europe and Brazil places Câmara at the front of the queue to partner Bearman, and that neither Haas nor Ferrari has announced an agreement. GPblog puts the move at 90 percent through its paddock sources, and Grande Prêmio suggests he could be announced around his home Grand Prix in São Paulo.',
+          'Câmara’s case rests on a private Haas test at Portimão in late August. Brazilian reports say he produced the strongest comparison of the candidates who drove the car, though Haas has not published the times. Ocon is still formally part of the process, because the five Komatsu named have not been cut.',
+        ],
+        sources: [
+          {
+            label:
+              'Grandprix.com: Câmara moves to the front of the Haas queue (17 September 2026)',
+            url: 'https://www.grandprix.com/news/camara-moves-to-front-of-haas-queue-for-2027-seat.html',
           },
         ],
       },
@@ -248,7 +273,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           sourceUrl:
             'https://commons.wikimedia.org/wiki/File:Ryo_Hirakawa_2024_WEC_Fuji_3.jpg',
           license: 'CC BY-SA 4.0',
-          licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
+          licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
         },
         paragraphs: [
           'Hirakawa became a Haas reserve in April 2025 after testing the VF-24 in Abu Dhabi. He ran four Haas FP1 sessions in 2025: Bahrain, Spain, Mexico City and Abu Dhabi. He also races Toyota’s endurance programme, and Toyota is a Haas partner.',
@@ -273,7 +298,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           sourceUrl:
             'https://commons.wikimedia.org/wiki/File:Rafael_C%C3%A2mara_in_2022.jpg',
           license: 'CC BY-SA 4.0',
-          licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
+          licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
         },
         paragraphs: [
           'Câmara won the 2025 FIA Formula 3 title as a rookie with Trident, with four wins and five pole positions. He is a Ferrari Driver Academy member and moved to Formula 2 with Invicta for 2026. Haas has run him in its private testing.',
@@ -301,7 +326,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           sourceUrl:
             'https://commons.wikimedia.org/wiki/File:FIA_F2_Austria_2025_Nr._1_Fornaroli.jpg',
           license: 'CC BY-SA 4.0',
-          licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
+          licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
         },
         paragraphs: [
           'Fornaroli won the 2024 FIA Formula 3 championship, then the 2025 Formula 2 title with Invicta in his rookie season. Haas has run him in its private testing.',
@@ -320,7 +345,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
       {
         heading: 'When will Haas decide?',
         paragraphs: [
-          'Haas has named no date, and none appears in the reporting linked here. Komatsu’s shortlist leaves the seat open to Ocon and to the four drivers who would replace him. This guide will be updated when Haas confirms its 2027 line-up, and the five names will stay as the shortlist it considered.',
+          'Haas has named no date. Komatsu’s shortlist leaves the seat open to Ocon and to the four drivers who would replace him, and the last test it said it wanted, Doohan at Jerez, ran on 17 September. The only timing anyone has reported is Grande Prêmio’s suggestion of an announcement around Câmara’s home race in São Paulo on 8 November. This guide will be updated when Haas confirms its 2027 line-up, and the five names will stay as the shortlist it considered.',
         ],
         sources: [
           {
@@ -331,6 +356,11 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
       },
     ],
     liveLinks: [
+      {
+        to: '/f1-2027-driver-line-up',
+        label: 'The 2027 F1 driver line-up',
+        detail: 'Every 2027 seat, team by team, and how firm each one is.',
+      },
       {
         to: '/f1-team-mate-battles',
         label: 'F1 teammate head-to-head results',
@@ -386,8 +416,8 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
       {
         heading: 'Two championships, one set of results',
         paragraphs: [
-          'Every point a driver scores counts twice: once towards the drivers championship, and once towards their team constructors total. A team constructors score is the sum of what both of its drivers score, which is why a team with two consistently strong drivers can out-score a team with one exceptional driver and one struggling one.',
-          'This is also why teams sometimes make decisions that look strange from a single driver perspective. Protecting a constructors position is worth real money in prize distribution, and it can outweigh an individual driver interest late in a season.',
+          'Every point a driver scores counts twice: once towards the drivers’ championship, and once towards their team’s constructors’ total. A team’s constructors’ score is the sum of what both of its drivers score, which is why a team with two consistently strong drivers can out-score a team with one exceptional driver and one struggling one.',
+          'This is also why teams sometimes make decisions that look strange from a single driver’s perspective. Protecting a constructors’ position is worth real money in prize distribution, and it can outweigh an individual driver’s interest late in a season.',
         ],
       },
       {
@@ -425,14 +455,14 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         heading: 'Practice',
         paragraphs: [
           'A Grand Prix weekend opens with three practice sessions, two on Friday and one on Saturday morning. Nothing that happens in them affects the grid, and no points are on offer.',
-          'Teams spend the time working through a programme: aerodynamic measurement runs, setup changes compared back to back, and a long run on heavy fuel to see how the tyres hold up over a stint. Final practice, an hour before qualifying, is usually the closest thing to a qualifying simulation.',
+          'Teams spend the time working through a programme: aerodynamic measurement runs, setup changes compared back to back, and a long run on heavy fuel to see how the tyres hold up over a stint. Final practice, on the morning of qualifying, is usually the closest thing to a qualifying simulation.',
           'Fuel loads and engine modes vary from car to car and from run to run, so the practice timing screen rarely shows the real order. The lap times within a single long stint are the part that holds up, because they show how quickly a car is wearing its tyres.',
         ],
       },
       {
         heading: 'Sprint weekends',
         paragraphs: [
-          'Seven rounds of the 2026 season run a sprint. One practice session makes way for sprint qualifying on Friday, which sets the grid for a short race on Saturday morning, and the weekend then picks up its usual shape with qualifying and the Grand Prix.',
+          'Six rounds of the 2026 season run a sprint. Only one practice session is held. Sprint qualifying on Friday sets the grid for a short race on Saturday, and the weekend then picks up its usual shape with qualifying and the Grand Prix.',
           'That gives a sprint weekend four sessions worth predicting instead of two, in the order sprint qualifying, sprint, qualifying, race. The sprint itself pays points to the top eight finishers.',
         ],
       },
@@ -464,7 +494,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         heading: 'Grid penalties',
         paragraphs: [
           'The starting grid is not always the qualifying order. Drivers take grid penalties for going beyond their season allocation of power unit parts, for gearbox changes, or as a sanction for an incident at a previous race, and those are applied after qualifying has run.',
-          'A penalty never changes the qualifying classification. A driver can be third in qualifying and start the race tenth, and both of those are the official result of their session.',
+          'A grid penalty never changes the qualifying classification. A driver can be third in qualifying and start the race tenth, and both of those are the official result of their session.',
         ],
       },
       {

@@ -55,7 +55,7 @@ export function RaceScoreCardHeader({
           {showStatusBadge && (
             <StatusBadge status={data.raceStatus} isNext={isNextRace} />
           )}
-          {data.hasSprint && <Badge variant="sprint">SPRINT</Badge>}
+          {data.hasSprint && <Badge variant="sprint">Sprint</Badge>}
         </div>
         <h3 className="line-clamp-2 text-lg leading-snug font-semibold text-text">
           {data.raceName}

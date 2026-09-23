@@ -11,9 +11,10 @@ import { RaceWriteupNextLinks } from './RaceWriteupNextLinks';
 /**
  * Whether the reader still has something to do here.
  *
- * Only the phases that still take a pick vary by viewer: once picks are locked
- * or the race is scored, the panel says the same thing to everyone, because the
- * fact it is reporting is about the weekend rather than about the reader.
+ * The phases that still take a pick vary by viewer, and so does the finished
+ * one, where a player has scores to see and anyone else has results. While
+ * picks are locked the panel says the same thing to everyone, because the fact
+ * it is reporting is about the weekend rather than about the reader.
  */
 function closingCopy(
   phase: RaceWriteupPhase,
@@ -54,9 +55,17 @@ function closingCopy(
         body: 'Your qualifying and race picks stay available on the race page while results are processed.',
       };
     case 'finished':
+      // By viewer, like the phases above: "how your predictions scored" was
+      // said to every reader, and most readers of a write-up made none.
+      if (viewer.hasPicks) {
+        return {
+          heading: `How your ${venueName} picks scored`,
+          body: 'The race page scores each of your picks, session by session.',
+        };
+      }
       return {
         heading: `${venueName} results`,
-        body: 'See the official Top 5 and how your predictions scored.',
+        body: 'The race page has every session’s result and the team-mate battles.',
       };
     case 'cancelled':
       return {

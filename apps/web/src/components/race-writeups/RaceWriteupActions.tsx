@@ -6,7 +6,7 @@ import {
   type RaceWriteupPhase,
 } from '@/lib/raceWriteupPhase';
 
-import { RACE_SIGNALS_ANCHOR } from './RaceSignalsSection';
+import { RACE_WRITEUP_CIRCUIT_ANCHOR } from './RaceWriteupSection';
 
 type RaceWriteupActionsProps = {
   compact?: boolean;
@@ -16,7 +16,7 @@ type RaceWriteupActionsProps = {
   primaryActionTargetId?: string;
   raceSlug: string;
   /**
-   * The heading of this page's `RaceSignalsSection`, used verbatim as the
+   * The heading of this page's circuit section, used verbatim as the
    * secondary link's text. Passing it rather than composing a label here is
    * what keeps the link and its destination from drifting apart: each write-up
    * declares the heading once and hands the same string to both.
@@ -71,7 +71,7 @@ export function RaceWriteupActions({
       )}
       {!compact && signalsHeading ? (
         <a
-          href={`#${RACE_SIGNALS_ANCHOR}`}
+          href={`#${RACE_WRITEUP_CIRCUIT_ANCHOR}`}
           className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text"
         >
           {signalsHeading}

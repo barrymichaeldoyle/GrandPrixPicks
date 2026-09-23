@@ -138,8 +138,10 @@ restriction is unrelated to these answers: it shows on every combination.
 
 ## Privacy nutrition labels
 
-Declare what is actually collected. The same five types are declared in
-`ios/GrandPrixPicks/PrivacyInfo.xcprivacy`, so keep the two in step:
+Declare what is actually collected. The app's privacy manifest
+(`ios.privacyManifests` in `app.json`) declares only the required-reason APIs;
+its `NSPrivacyCollectedDataTypes` is empty, so these five types are declared in
+App Store Connect alone:
 
 **Declared and published 2026-09-09.** Apple has no "diagnostics" purpose, so
 crash and performance data are filed under App Functionality. Nothing is used
@@ -235,8 +237,9 @@ before the session locks" beats "Picks".
   production environment. See RELEASE.md; a missing value ships as `undefined`
   and nothing fails loudly.
 - Check `pnpm --filter @grandprixpicks/mobile lint` passes. It includes the
-  native asset check, which covers the app icon, the Info.plist keys app.json
-  owns, and the push entitlement for the Release configuration.
+  native asset check, which prebuilds the iOS project and covers the app icon,
+  the privacy manifest, and the push entitlement for the Release
+  configuration.
 - Guideline 5.1.1(v) is covered on both counts: the app is browsable without
   an account, and Settings has a working Delete account that removes the Clerk
   user and its data. Nothing to do here beyond not regressing it.

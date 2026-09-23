@@ -691,6 +691,15 @@ export default defineSchema({
       v.literal('failed'),
     ),
     expectedLockAt: v.optional(v.number()),
+    // Which session's deadline a reminder is about. Absent on summary and
+    // signup rows, and on reminders queued before per-session mail existed.
+    sessionType: v.optional(sessionType),
+    // Bounded retry. `send` and the render action both fail in ways a retry
+    // cannot fix (a missing env var, a template that throws), and the dispatch
+    // cron re-runs every queued row every minute, so without a ceiling one bad
+    // job retries forever and crowds the 100-row window.
+    attempts: v.optional(v.number()),
+    error: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index('by_key', ['key'])
@@ -763,6 +772,19 @@ export default defineSchema({
   })
     .index('by_user', ['userId'])
     .index('by_token', ['token']),
+
+  /**
+   * The `lastmod` this site last told IndexNow about, per URL.
+   *
+   * Only the sweep writes here, and only for pages no publish already pings.
+   * A row means "Bing has been told about this stamp", so a missing row is a
+   * page the sweep has not learned yet rather than a page that never changed.
+   */
+  indexNowSubmissions: defineTable({
+    url: v.string(),
+    lastmod: v.string(),
+    submittedAt: v.number(),
+  }).index('by_url', ['url']),
 
   processedPaddleWebhookEvents: defineTable({
     eventId: v.string(),

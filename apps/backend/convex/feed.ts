@@ -877,6 +877,62 @@ type PickEnrichment = {
   points: number;
 };
 
+/**
+ * A lineup change's seat moves, with each driver's nationality for the flag
+ * beside their name.
+ *
+ * Looked up when the feed is read rather than frozen into the event: a
+ * nationality does not change, and reading it here gives the flags to the
+ * announcements already written without a migration. The event stores codes,
+ * and a code is unique on the grid.
+ */
+async function enrichLineupEvent(
+  ctx: DbCtx,
+  event: RawEvent,
+): Promise<{
+  seatMoves?: Array<
+    NonNullable<RawEvent['seatMoves']>[number] & {
+      outNationality?: string;
+      inNationality?: string;
+    }
+  >;
+}> {
+  if (event.type !== 'lineup_change' || !event.seatMoves) {
+    return {};
+  }
+  const codes = [
+    ...new Set(
+      event.seatMoves.flatMap((move) =>
+        move.outDriverCode
+          ? [move.outDriverCode, move.inDriverCode]
+          : [move.inDriverCode],
+      ),
+    ),
+  ];
+  const drivers = await Promise.all(
+    codes.map((code) =>
+      ctx.db
+        .query('drivers')
+        .withIndex('by_code', (q) => q.eq('code', code))
+        .first(),
+    ),
+  );
+  const nationalityByCode = new Map(
+    drivers.flatMap((driver) =>
+      driver?.nationality ? [[driver.code, driver.nationality] as const] : [],
+    ),
+  );
+  return {
+    seatMoves: event.seatMoves.map((move) => ({
+      ...move,
+      outNationality: move.outDriverCode
+        ? nationalityByCode.get(move.outDriverCode)
+        : undefined,
+      inNationality: nationalityByCode.get(move.inDriverCode),
+    })),
+  };
+}
+
 /** Load picks breakdown + H2H summary for a scored, amended, or locked session event. */
 async function enrichScoreEvent(
   ctx: DbCtx,
@@ -1069,10 +1125,14 @@ export const getUserFeed = query({
     const [enrichedEvents, sessions] = await Promise.all([
       Promise.all(
         events.map(async (event) => {
-          const scoreEnrichment = await enrichScoreEvent(ctx, event);
+          const [scoreEnrichment, lineupEnrichment] = await Promise.all([
+            enrichScoreEvent(ctx, event),
+            enrichLineupEvent(ctx, event),
+          ]);
           return {
             ...event,
             ...scoreEnrichment,
+            ...lineupEnrichment,
           };
         }),
       ),
@@ -1098,10 +1158,14 @@ export async function getPersonalizedFeedPageData(
   const [enrichedEvents, sessions] = await Promise.all([
     Promise.all(
       page.map(async (event) => {
-        const scoreEnrichment = await enrichScoreEvent(ctx, event);
+        const [scoreEnrichment, lineupEnrichment] = await Promise.all([
+          enrichScoreEvent(ctx, event),
+          enrichLineupEvent(ctx, event),
+        ]);
         return {
           ...event,
           ...scoreEnrichment,
+          ...lineupEnrichment,
         };
       }),
     ),
@@ -1162,10 +1226,14 @@ export const getLeagueFeed = query({
     const [enrichedEvents, sessions] = await Promise.all([
       Promise.all(
         page.map(async (event) => {
-          const scoreEnrichment = await enrichScoreEvent(ctx, event);
+          const [scoreEnrichment, lineupEnrichment] = await Promise.all([
+            enrichScoreEvent(ctx, event),
+            enrichLineupEvent(ctx, event),
+          ]);
           return {
             ...event,
             ...scoreEnrichment,
+            ...lineupEnrichment,
           };
         }),
       ),
@@ -1189,8 +1257,9 @@ export const getFeedEvent = query({
       return null;
     }
 
-    const [scoreEnrichment, sessions] = await Promise.all([
+    const [scoreEnrichment, lineupEnrichment, sessions] = await Promise.all([
       enrichScoreEvent(ctx, event),
+      enrichLineupEvent(ctx, event),
       buildSessionHeaders(ctx, [event]),
     ]);
 
@@ -1203,6 +1272,7 @@ export const getFeedEvent = query({
       event: {
         ...event,
         ...scoreEnrichment,
+        ...lineupEnrichment,
       },
       session: sessionKey ? (sessions[sessionKey] ?? null) : null,
     };

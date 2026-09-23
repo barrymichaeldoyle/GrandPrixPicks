@@ -1,0 +1,33 @@
+{
+  "timezone": "Africa/Johannesburg",
+  "localDueAt": "2026-09-22T12:45:00+02:00",
+  "dueAt": "2026-09-22T10:45:00.000Z",
+  "assetBaseUrl": "https://grandprixpicks.com/social/baku-crash-map-2026",
+  "assetSha256Prefix": {
+    "baku-crash-map-2026-x.png": "4e117ba0a134b4ad",
+    "baku-crash-map-2026-instagram.png": "2e74e06c18d508ea"
+  },
+  "posts": [
+    {
+      "service": "twitter",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "bufferPostId": "6ab147e97aee1d76cb264dbf",
+      "status": "scheduled",
+      "automaticPublishing": true,
+      "verified": true,
+      "asset": "baku-crash-map-2026-x.png?v=2"
+    },
+    {
+      "service": "instagram",
+      "channelId": "6a7050c899afb44349f18cbd",
+      "bufferPostId": "6ab147f35d8ba22c02583752",
+      "status": "scheduled",
+      "automaticPublishing": true,
+      "verified": true,
+      "asset": "baku-crash-map-2026-instagram.png?v=2"
+    }
+  ],
+  "revisions": [
+    "2026-09-21: text, image (?v=2) and alt text updated after Leclerc's 2021 FP2 crash was added (58 incidents, Turn 15 on 11) and the incident definition was corrected."
+  ]
+}

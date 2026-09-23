@@ -14,7 +14,14 @@ import { shouldEmailReminder } from './lib/notificationChannels';
 import { getExpoTokensForUser, dispatchPushTargets } from './push';
 const TWENTY_FOUR_HOURS_MS = 86400000;
 const TWO_HOURS_MS = 7200000;
-export const USER_NOTIFICATION_BATCH_SIZE = 100;
+/**
+ * How close to the first lock the signup nudge stops firing. Inside this
+ * window the T-24h deadline reminder already owns the conversation, and two
+ * mails an hour apart read as a mistake.
+ */
+const SIGNUP_NUDGE_LEAD_MS = 25 * 3600000;
+/** Race weekends this nudge waits through before it gives up on a new account. */
+const SIGNUP_NUDGE_MAX_ATTEMPTS = 3;
 const sessionTypeValidator = v.union(
   v.literal('quali'),
   v.literal('sprint_quali'),
@@ -22,74 +29,11 @@ const sessionTypeValidator = v.union(
   v.literal('race'),
 );
 type SessionType = 'quali' | 'sprint_quali' | 'sprint' | 'race';
-export function getIncompleteH2HNudgeEligibility(params: {
-  raceStatus: string;
-  predictionLockAt: number;
-  now: number;
-  requiredSessions: Array<SessionType>;
-  top5Sessions: Set<SessionType>;
-  h2hSessions: Set<SessionType>;
-}):
-  | { eligible: true }
-  | {
-      eligible: false;
-      reason:
-        | 'race_not_upcoming'
-        | 'predictions_locked'
-        | 'top5_incomplete'
-        | 'h2h_complete';
-    } {
-  if (params.raceStatus !== 'upcoming') {
-    return { eligible: false, reason: 'race_not_upcoming' };
-  }
-  if (params.predictionLockAt <= params.now) {
-    return { eligible: false, reason: 'predictions_locked' };
-  }
-
-  const hasCompleteTop5 = params.requiredSessions.every((s) =>
-    params.top5Sessions.has(s),
-  );
-  if (!hasCompleteTop5) {
-    return { eligible: false, reason: 'top5_incomplete' };
-  }
-
-  const hasCompleteH2H = params.requiredSessions.every((s) =>
-    params.h2hSessions.has(s),
-  );
-  if (hasCompleteH2H) {
-    return { eligible: false, reason: 'h2h_complete' };
-  }
-
-  return { eligible: true };
-}
-
-export function getSignupPredictionNudgeEligibility(params: {
-  hasPredictions: boolean;
-  remindersEnabled: boolean;
-  canEmail: boolean;
-  canPush: boolean;
-}):
-  | { eligible: true }
-  | {
-      eligible: false;
-      reason: 'already_predicted' | 'notifications_disabled' | 'no_channel';
-    } {
-  if (params.hasPredictions) {
-    return { eligible: false, reason: 'already_predicted' };
-  }
-  if (!params.remindersEnabled) {
-    return { eligible: false, reason: 'notifications_disabled' };
-  }
-  if (!params.canEmail && !params.canPush) {
-    return { eligible: false, reason: 'no_channel' };
-  }
-  return { eligible: true };
-}
-
 export async function sendPredictionRemindersBatchCore(
   ctx: MutationCtx,
   args: {
     raceId: Id<'races'>;
+    sessionType?: SessionType;
     startAfter?: string;
     recipientCount?: number;
     batchesScheduled?: number;
@@ -98,20 +42,14 @@ export async function sendPredictionRemindersBatchCore(
   await ctx.runMutation(internal.notificationEmails.fanout, {
     raceId: args.raceId,
     kind: 'reminder',
+    sessionType: args.sessionType,
   });
   return null;
 }
 export const sendPredictionReminders = internalMutation({
-  args: { raceId: v.id('races') },
-  returns: v.null(),
-  handler: sendPredictionRemindersBatchCore,
-});
-export const sendPredictionRemindersBatch = internalMutation({
   args: {
     raceId: v.id('races'),
-    startAfter: v.optional(v.string()),
-    recipientCount: v.optional(v.number()),
-    batchesScheduled: v.optional(v.number()),
+    sessionType: v.optional(sessionTypeValidator),
   },
   returns: v.null(),
   handler: sendPredictionRemindersBatchCore,
@@ -129,54 +67,8 @@ export const sendResultEmailsForSession = internalMutation({
     return null;
   },
 });
-export const sendResultEmailsForSessionBatch = internalMutation({
-  args: {
-    raceId: v.id('races'),
-    sessionType: sessionTypeValidator,
-    startAfter: v.optional(v.string()),
-    recipientCount: v.optional(v.number()),
-    batchesScheduled: v.optional(v.number()),
-  },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    if (args.sessionType === 'race') {
-      await ctx.runMutation(internal.notificationEmails.fanout, {
-        raceId: args.raceId,
-        kind: 'summary',
-      });
-    }
-    return null;
-  },
-});
-// Retired: completion nudges now share the missing-picks deadline reminder.
-// Keep old scheduled entry points safe during rollout.
-export const sendIncompleteH2HNudgeForUser = internalMutation({
-  args: { raceId: v.id('races'), userId: v.id('users') },
-  returns: v.null(),
-  handler: async () => null,
-});
-export async function sendH2HRemindersForRaceBatchCore(
-  _ctx: MutationCtx,
-  _args: { raceId: Id<'races'>; startAfter?: string; scheduled?: number },
-) {
-  return null;
-}
-export const sendH2HRemindersForRace = internalMutation({
-  args: { raceId: v.id('races') },
-  returns: v.null(),
-  handler: sendH2HRemindersForRaceBatchCore,
-});
-export const sendH2HRemindersForRaceBatch = internalMutation({
-  args: {
-    raceId: v.id('races'),
-    startAfter: v.optional(v.string()),
-    scheduled: v.optional(v.number()),
-  },
-  returns: v.null(),
-  handler: sendH2HRemindersForRaceBatchCore,
-});
 export const sendSignupPredictionNudgeForUser = internalMutation({
-  args: { userId: v.id('users') },
+  args: { userId: v.id('users'), attempt: v.optional(v.number()) },
   returns: v.null(),
   handler: async (ctx, args) => {
     const user = await ctx.db.get(args.userId);
@@ -184,20 +76,36 @@ export const sendSignupPredictionNudgeForUser = internalMutation({
       return null;
     }
     const now = Date.now();
-    const race = await loadNextUpcomingRace(ctx, now);
-    if (!race) {
-      return null;
-    }
-    const first = sessionLocks(race)[0];
-    if (!first || first.lockAt - now <= 25 * 3600000) {
-      return null;
-    }
     if (
       await ctx.db
         .query('predictions')
         .withIndex('by_user', (q) => q.eq('userId', user._id))
         .first()
     ) {
+      return null;
+    }
+    const race = await loadNextUpcomingRace(ctx, now);
+    if (!race) {
+      return null;
+    }
+    const first = sessionLocks(race)[0];
+    if (!first) {
+      return null;
+    }
+    if (first.lockAt - now <= SIGNUP_NUDGE_LEAD_MS) {
+      // Signing up during a race weekend is the common case, not the edge, and
+      // this used to drop the nudge on the floor: the people most likely to be
+      // here because a race is on were the ones never asked to make a pick.
+      // Wait for the next round instead. `predictionLockAt` is the weekend's
+      // last lock, so once it passes `loadNextUpcomingRace` has moved on.
+      const attempt = (args.attempt ?? 0) + 1;
+      if (attempt < SIGNUP_NUDGE_MAX_ATTEMPTS) {
+        await ctx.scheduler.runAt(
+          race.predictionLockAt + 3600000,
+          internal.notifications.sendSignupPredictionNudgeForUser,
+          { userId: user._id, attempt },
+        );
+      }
       return null;
     }
     const push = await healthyReminderPush(ctx, user, now);
@@ -320,6 +228,19 @@ export async function scheduleReminder(
               expectedLockAt: lock.lockAt,
               version,
             },
+          ),
+        );
+      }
+      // Push gets a T-2h nudge per session; email only ever got the first one.
+      // `shouldEmailReminder` routes to email precisely the people with no
+      // healthy push, so on a sprint weekend the readers who depend on mail
+      // were told about Friday and never about qualifying or the race.
+      if (lock !== first && lock.lockAt - TWENTY_FOUR_HOURS_MS > now) {
+        ids.push(
+          await ctx.scheduler.runAt(
+            lock.lockAt - TWENTY_FOUR_HOURS_MS,
+            internal.notifications.sendPredictionReminders,
+            { raceId: race._id, sessionType: lock.sessionType },
           ),
         );
       }

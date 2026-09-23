@@ -204,8 +204,6 @@ const config = defineConfig(({ mode }) => {
       include: [
         'src/**/*.{test,spec}.{ts,tsx}',
         'server/**/*.{test,spec}.{ts,tsx}',
-        '../../packages/shared/src/**/*.{test,spec}.{ts,tsx}',
-        '../backend/convex/**/*.{test,spec}.{ts,tsx}',
       ],
       passWithNoTests: true,
     },

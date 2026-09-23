@@ -1,7 +1,13 @@
 import * as Sentry from '@sentry/tanstackstart-react';
 import { Loader2 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useEffectEvent,
+  useState,
+} from 'react';
 
 import { errorDiagnosticTags } from '@/components/error/diagnostics';
 import { useBodyScrollLock } from '@/hooks/useModalDialog';
@@ -39,19 +45,25 @@ const CURTAIN_TIMEOUT_MS = 8_000;
  * `gates` means Clerk confirmed but a route never reported its content ready
  * (a Convex read that never resolved, a gate whose owner unmounted holding it).
  * They are different bugs in different files.
+ *
+ * For `gates`, the count alone could not say *which* gate: two events in
+ * September read "Clerk confirmed, one gate pending" and left the dashboard's
+ * seven reads to guess between. `pendingGateNames` names each gate still held,
+ * and a gate whose readiness is several reads lists the ones that had not
+ * answered, so the next report points at a query rather than at a page.
  */
 function reportCurtainTimeout({
   label,
   confirmedSignedIn,
   isLoaded,
   isSignedIn,
-  pendingGates,
+  pendingGateNames,
 }: {
   label: string;
   confirmedSignedIn: boolean;
   isLoaded: boolean;
   isSignedIn: boolean;
-  pendingGates: number;
+  pendingGateNames: string[];
 }) {
   try {
     Sentry.captureMessage('Auth curtain timed out', {
@@ -59,8 +71,18 @@ function reportCurtainTimeout({
       tags: {
         ...errorDiagnosticTags(),
         curtain_waiting_for: confirmedSignedIn ? 'gates' : 'clerk',
+        // A tag as well as an extra, so the issue view can break events down
+        // by which gate held rather than opening them one at a time.
+        curtain_gates: [...pendingGateNames].sort().join(' ') || 'none',
       },
-      extra: { label, confirmedSignedIn, isLoaded, isSignedIn, pendingGates },
+      extra: {
+        label,
+        confirmedSignedIn,
+        isLoaded,
+        isSignedIn,
+        pendingGates: pendingGateNames.length,
+        pendingGateNames,
+      },
     });
   } catch {
     // A report is never worth taking the page down for, least of all on the
@@ -103,10 +125,11 @@ type AuthCurtain = {
   /** The handoff is in progress: page content must stay hidden and inert. */
   active: boolean;
   /**
-   * Hold the curtain up. Returns the release. Callers use
-   * {@link useAuthCurtainGate} rather than this directly.
+   * Hold the curtain up under `name`, the one the timeout report shows.
+   * Returns the release. Callers use {@link useAuthCurtainGate} rather than
+   * this directly.
    */
-  registerGate: () => () => void;
+  registerGate: (name: string) => () => void;
 };
 
 const AuthCurtainContext = createContext<AuthCurtain>({
@@ -128,16 +151,34 @@ export function useAuthCurtain() {
  * finished content instead of onto a guess.
  *
  * Outside a handoff this is inert: no curtain exists, so nothing is held.
+ *
+ * `name` is what a timeout report calls this gate. It may change while the gate
+ * is held (see {@link curtainGateName}): the gate re-registers under the new
+ * name in the same commit, so the count never dips and the curtain never
+ * flickers.
  */
-export function useAuthCurtainGate(ready: boolean) {
+export function useAuthCurtainGate(ready: boolean, name: string) {
   const { registerGate } = useAuthCurtain();
 
   useEffect(() => {
     if (ready) {
       return;
     }
-    return registerGate();
-  }, [ready, registerGate]);
+    return registerGate(name);
+  }, [ready, name, registerGate]);
+}
+
+/**
+ * A gate name that lists which of its reads are still missing, as
+ * `owner(a,b)`. For a gate whose readiness is several reads ANDed together,
+ * where the owner alone would not say which one stalled.
+ */
+export function curtainGateName(
+  owner: string,
+  waiting: Record<string, boolean>,
+): string {
+  const missing = Object.keys(waiting).filter((read) => waiting[read]);
+  return missing.length > 0 ? `${owner}(${missing.join(',')})` : owner;
 }
 
 /**
@@ -167,7 +208,10 @@ export function AuthCurtainHost({
   label: string;
 }>) {
   const { confirmedSignedIn, isLoaded, isSignedIn } = useViewerSession();
-  const [pendingGates, setPendingGates] = useState(0);
+  // One entry per held gate. Objects rather than names so two gates sharing a
+  // name release their own entry, not each other's.
+  const [heldGates, setHeldGates] = useState<readonly { name: string }[]>([]);
+  const pendingGates = heldGates.length;
   const [expired, setExpired] = useState(false);
 
   // Stable by construction rather than by memo hook: React Compiler only runs
@@ -175,9 +219,10 @@ export function AuthCurtainHost({
   // render would re-run every gate's effect each render, incrementing and
   // decrementing the count forever in dev. It closes over nothing but the
   // setter, so a ref is the honest way to say "this never changes".
-  const [registerGate] = useState(() => () => {
-    setPendingGates((count) => count + 1);
-    return () => setPendingGates((count) => count - 1);
+  const [registerGate] = useState(() => (name: string) => {
+    const gate = { name };
+    setHeldGates((held) => [...held, gate]);
+    return () => setHeldGates((held) => held.filter((g) => g !== gate));
   });
 
   const active =
@@ -186,18 +231,15 @@ export function AuthCurtainHost({
     !(isLoaded && !isSignedIn) &&
     (!confirmedSignedIn || pendingGates > 0);
 
-  // What the curtain was still waiting for, for the timeout report. A ref so
-  // reading it cannot restart the timeout that reads it.
-  const stateRef = useRef({
-    confirmedSignedIn,
-    isLoaded,
-    isSignedIn,
-    pendingGates,
+  const reportTimeout = useEffectEvent(() => {
+    reportCurtainTimeout({
+      label,
+      confirmedSignedIn,
+      isLoaded,
+      isSignedIn,
+      pendingGateNames: heldGates.map((gate) => gate.name),
+    });
   });
-  // Written during render on purpose, per the note above: the timeout
-  // must read the latest values without listing them as dependencies.
-  // oxlint-disable-next-line react/refs
-  stateRef.current = { confirmedSignedIn, isLoaded, isSignedIn, pendingGates };
 
   useEffect(() => {
     if (!active) {
@@ -210,11 +252,7 @@ export function AuthCurtainHost({
     }
     const timer = window.setTimeout(() => {
       setExpired(true);
-      // Read through the ref rather than the closure: listing these in the
-      // dependency array would restart the eight seconds every time a gate
-      // registered or released, so a page that flaps a gate would never reach
-      // the ceiling at all — which is the one thing the ceiling exists for.
-      reportCurtainTimeout({ label, ...stateRef.current });
+      reportTimeout();
     }, CURTAIN_TIMEOUT_MS);
     return () => window.clearTimeout(timer);
   }, [active, label]);

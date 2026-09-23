@@ -1,0 +1,24 @@
+{
+  "schedulingType": "automatic",
+  "mode": "customScheduled",
+  "dueAt": "2026-09-21T12:45:00+02:00",
+  "aiAssisted": true,
+  "channelId": "6a7050c899afb44349f18cbd",
+  "text": "Race week in Baku. The Azerbaijan GP is on Saturday this weekend, rather than the usual Sunday.\n\nThursday 24 September: practice begins\nFriday 25 September: qualifying\nSaturday 26 September: race\n\nRace start: 15:00 Baku / 11:00 UTC.",
+  "metadata": {
+    "instagram": {
+      "type": "post",
+      "shouldShareToFeed": true
+    }
+  },
+  "assets": [
+    {
+      "image": {
+        "url": "https://a33f4c0e.gpp-social-assets-2026.pages.dev/baku-race-week-instagram-v4.png",
+        "metadata": {
+          "altText": "Race week Baku poster in chartreuse and charcoal, showing the old city walls and Flame Towers. 24–26 September 2026: Thu 24 Practice, Fri 25 Qualifying, Sat 26 Race. Saturday's race is highlighted. grandprixpicks.com appears at the bottom."
+        }
+      }
+    }
+  ]
+}

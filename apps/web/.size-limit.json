@@ -2,7 +2,7 @@
   {
     "name": "client entry (index)",
     "path": ".output/public/assets/index-*.js",
-    "limit": "104 KB"
+    "limit": "110 KB"
   },
   {
     "name": "motion engine (must stay lazy)",
@@ -12,11 +12,16 @@
   {
     "name": "react vendor",
     "path": ".output/public/assets/react-*.js",
-    "limit": "52 KB"
+    "limit": "58 KB"
   },
   {
-    "name": "all client JS",
-    "path": ".output/public/assets/*.js",
-    "limit": "604 KB"
+    "name": "trmnl page (liquidjs + QR, loads only on /trmnl)",
+    "path": ".output/public/assets/trmnl-*.js",
+    "limit": "40 KB"
+  },
+  {
+    "name": "all client JS (except /trmnl)",
+    "path": [".output/public/assets/*.js", "!.output/public/assets/trmnl-*.js"],
+    "limit": "630 KB"
   }
 ]

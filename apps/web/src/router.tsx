@@ -101,6 +101,19 @@ export function getRouter() {
         if (isStaleChunkError(message)) {
           return null;
         }
+        // The browser's own "the network request never completed" error
+        // (offline, DNS hiccup, a content blocker eating the request) —
+        // nothing server-side to fix, and `ErrorFallback`'s "Try again"
+        // already covers the recovery. Scoped to the server-fn RPC client so
+        // a genuine app-code fetch failure elsewhere still reports.
+        if (
+          message === 'Failed to fetch' &&
+          event.exception?.values?.[0]?.stacktrace?.frames?.some((frame) =>
+            frame.filename?.includes('start-client-core'),
+          )
+        ) {
+          return null;
+        }
         return event;
       },
     });

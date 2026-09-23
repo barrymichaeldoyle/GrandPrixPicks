@@ -21,6 +21,7 @@ import { Button } from '@/components/Button/Button';
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { NoticeCard } from '@/components/NoticeCard';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
+import { picksOverlayHeading } from '@/lib/picksOverlayHeading';
 import { PicksFormActionRow } from '@/components/PicksSaveStatus';
 import { PracticeResultsModal } from '@/components/PracticeResultsModal';
 import { PredictionForm } from '@/components/PredictionForm';
@@ -38,7 +39,10 @@ import { getRaceWriteup } from '@/lib/raceWriteups';
 import type { SessionType } from '@/lib/sessions';
 import type { RaceWeather } from '@/lib/weatherPresentation';
 import { SESSION_LABELS, SESSION_LABELS_SHORT } from '@/lib/sessions';
-import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
+import {
+  curtainGateName,
+  useAuthCurtainGate,
+} from '@/integrations/clerk/auth-curtain';
 import { useNow } from '@/lib/testing/now';
 
 import { DashboardPicksSummary } from './DashboardPicksSummary';
@@ -153,7 +157,7 @@ export function DashboardWeekendPicks({
   );
 }
 
-function DashboardWeekendPicksReady({
+export function DashboardWeekendPicksReady({
   weekend,
   weather,
   initialDrivers,
@@ -161,6 +165,7 @@ function DashboardWeekendPicksReady({
   initialPredictions,
   initialH2H,
   leading,
+  onModalClose,
 }: {
   weekend: CurrentWeekend;
   weather: RaceWeather | null | undefined;
@@ -169,6 +174,8 @@ function DashboardWeekendPicksReady({
   initialPredictions?: MyWeekendPredictions;
   initialH2H?: MyH2HPredictions;
   leading: boolean;
+  /** Render only the picker, initially open, for entry points outside Home. */
+  onModalClose?: () => void;
 }) {
   const now = useNow(1_000, weekend.serverNow);
   const action = getDashboardWeekendAction(weekend.sessions);
@@ -213,10 +220,14 @@ function DashboardWeekendPicksReady({
    * render, so this is only ever held on a handoff, where SSR had no viewer to
    * read as. See `./ssr`.
    */
+  const curtainWaiting = {
+    predictions: myPredictions === undefined,
+    h2h: myH2H === undefined,
+    drivers: liveDrivers === undefined,
+  };
   useAuthCurtainGate(
-    myPredictions !== undefined &&
-      myH2H !== undefined &&
-      liveDrivers !== undefined,
+    Boolean(onModalClose) || !Object.values(curtainWaiting).some(Boolean),
+    curtainGateName('weekendPicks', curtainWaiting),
   );
 
   const existingTop5 = firstWeekendTop5(myPredictions?.predictions);
@@ -235,7 +246,7 @@ function DashboardWeekendPicksReady({
   const [h2hVisited, setH2HVisited] = useState(
     initialStep === 'h2h' || initialStep === 'summary',
   );
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(Boolean(onModalClose));
   const [pickerGeneration, setPickerGeneration] = useState(0);
   const [showResults, setShowResults] = useState(false);
   /**
@@ -297,8 +308,9 @@ function DashboardWeekendPicksReady({
   useEffect(() => {
     if (step === 'summary' && pickerOpen) {
       setPickerOpen(false);
+      onModalClose?.();
     }
-  }, [step, pickerOpen]);
+  }, [step, pickerOpen, onModalClose]);
 
   useEffect(() => {
     return deferUntilAfterLoad(() => void loadH2HForm());
@@ -423,6 +435,95 @@ function DashboardWeekendPicksReady({
   function closePicker() {
     setPickerOpen(false);
     setPickerGeneration((generation) => generation + 1);
+    onModalClose?.();
+  }
+
+  const picker = (
+    <PicksFocusOverlay
+      open={pickerOpen}
+      onClose={closePicker}
+      {...picksOverlayHeading(step === 'h2h' ? 'h2h' : 'top5')}
+    >
+      <div className="pb-4 sm:pb-0">
+        {step === 'h2h' && topFiveComplete ? (
+          <button
+            type="button"
+            className="mb-4 -ml-1 inline-flex items-center gap-0.5 text-xs font-medium text-accent transition-colors hover:text-accent-hover"
+            onClick={goBackToTop5}
+          >
+            <ChevronLeft className="size-3.5" aria-hidden />
+            Back to your Top 5
+          </button>
+        ) : null}
+
+        {step === 'top5' ? (
+          <PredictionForm
+            key={`picker-${pickerGeneration}`}
+            raceId={weekend.race._id}
+            initialDrivers={drivers}
+            hidePicksHeading
+            inlineSaveStatus
+            // Server truth only. Seeding this from the live `topFivePicks`
+            // tells the form its current picks are already saved, so `dirty`
+            // goes false on the fifth tap and the auto-save never fires —
+            // the picks then exist nowhere but this component's state.
+            existingPicks={existingTop5 ?? undefined}
+            enableNavigationBlocker={false}
+            mobileActionFirst
+            onCompletionStateChange={setTopFiveComplete}
+            onPicksChange={setTopFivePicks}
+            renderActionArea={({ complete, saveState, saveNow }) => (
+              <PicksFormActionRow
+                complete={complete}
+                saveState={saveState}
+                primaryLabel="Continue to team-mate picks"
+                showSaveStatus={false}
+                onPrimary={async () => {
+                  // Step 2 unmounts this form, which cancels any debounced
+                  // edit save with it. The first save is immediate and has
+                  // already landed by now; a reorder made just before
+                  // tapping Continue has not.
+                  await saveNow();
+                  continueToH2H();
+                }}
+              />
+            )}
+          />
+        ) : null}
+
+        {step === 'h2h' && h2hVisited ? (
+          matchups === undefined ? (
+            <H2HPickerSkeleton />
+          ) : (
+            <Suspense fallback={<H2HPickerSkeleton />}>
+              <H2HPredictionForm
+                key={`h2h-${pickerGeneration}`}
+                raceId={weekend.race._id}
+                matchups={matchups}
+                existingPicks={existingH2H ?? undefined}
+                entryMethod="top5_handoff"
+                topFivePositions={topFivePositions}
+                onSuccess={closePicker}
+                onExitPrevious={goBackToTop5}
+                renderCardIntro={() => (
+                  <TopFiveStrip
+                    topFivePicks={topFivePicks}
+                    drivers={drivers}
+                    // Editing the Top 5 from step 2 rewinds this overlay
+                    // rather than stacking a second one on top of it.
+                    onEditTopFive={goBackToTop5}
+                  />
+                )}
+              />
+            </Suspense>
+          )
+        ) : null}
+      </div>
+    </PicksFocusOverlay>
+  );
+
+  if (onModalClose) {
+    return picker;
   }
 
   return (
@@ -588,92 +689,7 @@ function DashboardWeekendPicksReady({
           the whole screen: twenty-two drivers and then eleven duels do not fit
           beside a leagues rail, and inline they pushed everything else on the
           dashboard below the fold. */}
-      <PicksFocusOverlay
-        open={pickerOpen}
-        onClose={closePicker}
-        title={step === 'h2h' ? 'Team-mate picks' : 'Your Top 5'}
-        subtitle={
-          step === 'h2h'
-            ? 'Step 2 of 2'
-            : 'Step 1 of 2 · applies to every open session'
-        }
-      >
-        <div className="pb-4 sm:pb-0">
-          {step === 'h2h' && topFiveComplete ? (
-            <button
-              type="button"
-              className="mb-4 -ml-1 inline-flex items-center gap-0.5 text-xs font-medium text-accent transition-colors hover:text-accent-hover"
-              onClick={goBackToTop5}
-            >
-              <ChevronLeft className="size-3.5" aria-hidden />
-              Back to your Top 5
-            </button>
-          ) : null}
-
-          {step === 'top5' ? (
-            <PredictionForm
-              key={`picker-${pickerGeneration}`}
-              raceId={weekend.race._id}
-              initialDrivers={drivers}
-              hidePicksHeading
-              inlineSaveStatus
-              // Server truth only. Seeding this from the live `topFivePicks`
-              // tells the form its current picks are already saved, so `dirty`
-              // goes false on the fifth tap and the auto-save never fires —
-              // the picks then exist nowhere but this component's state.
-              existingPicks={existingTop5 ?? undefined}
-              enableNavigationBlocker={false}
-              mobileActionFirst
-              onCompletionStateChange={setTopFiveComplete}
-              onPicksChange={setTopFivePicks}
-              renderActionArea={({ complete, saveState, saveNow }) => (
-                <PicksFormActionRow
-                  complete={complete}
-                  saveState={saveState}
-                  primaryLabel="Continue to team-mate picks"
-                  showSaveStatus={false}
-                  onPrimary={async () => {
-                    // Step 2 unmounts this form, which cancels any debounced
-                    // edit save with it. The first save is immediate and has
-                    // already landed by now; a reorder made just before
-                    // tapping Continue has not.
-                    await saveNow();
-                    continueToH2H();
-                  }}
-                />
-              )}
-            />
-          ) : null}
-
-          {step === 'h2h' && h2hVisited ? (
-            matchups === undefined ? (
-              <H2HPickerSkeleton />
-            ) : (
-              <Suspense fallback={<H2HPickerSkeleton />}>
-                <H2HPredictionForm
-                  key={`h2h-${pickerGeneration}`}
-                  raceId={weekend.race._id}
-                  matchups={matchups}
-                  existingPicks={existingH2H ?? undefined}
-                  entryMethod="top5_handoff"
-                  topFivePositions={topFivePositions}
-                  onSuccess={closePicker}
-                  onExitPrevious={goBackToTop5}
-                  renderCardIntro={() => (
-                    <TopFiveStrip
-                      topFivePicks={topFivePicks}
-                      drivers={drivers}
-                      // Editing the Top 5 from step 2 rewinds this overlay
-                      // rather than stacking a second one on top of it.
-                      onEditTopFive={goBackToTop5}
-                    />
-                  )}
-                />
-              </Suspense>
-            )
-          ) : null}
-        </div>
-      </PicksFocusOverlay>
+      {picker}
       <PracticeResultsModal
         open={showResults}
         onClose={() => setShowResults(false)}

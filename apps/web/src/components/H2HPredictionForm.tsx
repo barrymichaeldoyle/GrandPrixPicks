@@ -7,10 +7,9 @@ import {
 import { useConvexAuth, useMutation } from 'convex/react';
 import { Check, Save } from 'lucide-react';
 import type { ComponentProps, ReactNode } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 
 import { useAutoSaveOnFirstComplete } from '@/hooks/useAutoSaveOnFirstComplete';
-import { useCallbackRef } from '@/hooks/useCallbackRef';
 import { useClerkRuntimeControl } from '@/integrations/clerk/runtime-control';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import {
@@ -143,8 +142,12 @@ export function H2HPredictionForm({
   const [persistedSignature, setPersistedSignature] = useState(() =>
     JSON.stringify(existingPicks ?? {}),
   );
-  const reportDirtyChange = useCallbackRef(onDirtyChange);
-  const reportSelectionProgress = useCallbackRef(onSelectionProgress);
+  const reportDirtyChange = useEffectEvent((dirty: boolean) =>
+    onDirtyChange?.(dirty),
+  );
+  const reportSelectionProgress = useEffectEvent(
+    (selected: number, total: number) => onSelectionProgress?.(selected, total),
+  );
 
   // Before the paint, not after: eleven duels flipping from blank to answered
   // one frame late is the most visible version of that flash on the page.
@@ -461,15 +464,15 @@ export function H2HPredictionForm({
 
   const hasChanges = selectionsSignature !== persistedSignature;
 
-  // These fire on data changes, not on prop identity. See useCallbackRef: a
-  // caller passing an inline arrow used to re-run them on every parent render.
+  // Effect Events read current callbacks without notifying again just because
+  // a parent supplied a new inline function.
   useEffect(() => {
     reportDirtyChange(hasChanges);
-  }, [hasChanges, reportDirtyChange]);
+  }, [hasChanges]);
 
   useEffect(() => {
     reportSelectionProgress(selectedCount, totalMatchups);
-  }, [reportSelectionProgress, selectedCount, totalMatchups]);
+  }, [selectedCount, totalMatchups]);
 
   useEffect(() => {
     if (!hasHydratedDraft) {

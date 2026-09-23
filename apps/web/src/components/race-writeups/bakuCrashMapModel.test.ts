@@ -4,10 +4,14 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import type { BakuCrash } from '@/lib/bakuCrashes';
-import { BAKU_CRASHES, BAKU_DRIVERS } from '@/lib/bakuCrashes';
+import { BAKU_BEST_KNOWN, BAKU_CRASHES, BAKU_DRIVERS } from '@/lib/bakuCrashes';
 
 import {
   bucketOf,
+  calloutCorners,
+  hitRadius,
+  HIT_RADIUS_MAX,
+  rowsBeforeTie,
   countsByCorner,
   countsByDriver,
   driverCountry,
@@ -18,6 +22,7 @@ import {
   heatStep,
   markerRadius,
   placeMarkers,
+  previewIncidents,
   rankedCorners,
   rankedDrivers,
   unplacedCount,
@@ -294,6 +299,96 @@ describe('baku crash map model', () => {
 
     it('says nothing rather than guessing for an unknown driver', () => {
       expect(driverCountry('ZZZ')).toBeUndefined();
+    });
+  });
+
+  describe('rowsBeforeTie', () => {
+    it('takes in a tie the cap would split, when it is short', () => {
+      // The driver list: six, six, five, then a four-way tie on four.
+      expect(rowsBeforeTie([6, 6, 5, 4, 4, 4, 4, 3, 3], 6)).toBe(7);
+    });
+
+    it('stops where the count changes when the cap already does', () => {
+      expect(rowsBeforeTie([6, 6, 5, 4, 3, 3, 2], 4)).toBe(4);
+    });
+
+    it('backs off to the start of a tie too long to take in', () => {
+      expect(rowsBeforeTie([6, 5, 3, 3, 3, 3, 3, 3, 3, 3], 4)).toBe(2);
+    });
+
+    it('shows everything when the list is within the cap', () => {
+      expect(rowsBeforeTie([3, 2, 1], 6)).toBe(3);
+    });
+  });
+
+  describe('calloutCorners', () => {
+    it('labels every corner on the two highest counts', () => {
+      const ranked = [
+        { corner: 15, count: 4 },
+        { corner: 1, count: 2 },
+        { corner: 2, count: 2 },
+        { corner: 3, count: 1 },
+      ];
+      expect([...calloutCorners(ranked)].sort((a, b) => a - b)).toEqual([
+        1, 2, 15,
+      ]);
+    });
+
+    it('does not label a corner with a single incident', () => {
+      expect([...calloutCorners([{ corner: 3, count: 1 }])]).toEqual([]);
+    });
+  });
+
+  describe('hitRadius', () => {
+    function at(corner: number, x: number, radius = 12) {
+      return { corner, count: 1, x, y: 0, radius };
+    }
+
+    it('gives a lone marker the largest target', () => {
+      const lone = at(1, 0);
+      expect(hitRadius(lone, [lone, at(2, 500)])).toBe(HIT_RADIUS_MAX);
+    });
+
+    it('stops halfway to a close neighbour', () => {
+      const a = at(1, 0);
+      expect(hitRadius(a, [a, at(2, 60)])).toBe(30);
+    });
+
+    it('never drops below the dot plus a margin', () => {
+      const a = at(1, 0, 20);
+      expect(hitRadius(a, [a, at(2, 20)])).toBe(30);
+    });
+  });
+
+  describe('previewIncidents', () => {
+    it('leads with the best-known incidents, in the order declared', () => {
+      const { kind, preview } = previewIncidents(
+        BAKU_CRASHES,
+        BAKU_BEST_KNOWN,
+        3,
+      );
+      expect(kind).toBe('best-known');
+      expect(preview.map((row) => row.id)).toEqual(BAKU_BEST_KNOWN.slice(0, 3));
+    });
+
+    it('never lists a previewed incident again under the fold', () => {
+      const { preview, rest } = previewIncidents(
+        BAKU_CRASHES,
+        BAKU_BEST_KNOWN,
+        3,
+      );
+      expect(preview.length + rest.length).toBe(BAKU_CRASHES.length);
+      const shown = new Set(preview.map((row) => row.id));
+      expect(rest.some((row) => shown.has(row.id))).toBe(false);
+    });
+
+    it('falls back to the newest when a filter leaves too few famous ones', () => {
+      const practice = filterCrashes(BAKU_CRASHES, 'practice');
+      const { kind, preview } = previewIncidents(practice, BAKU_BEST_KNOWN, 3);
+      expect(kind).toBe('latest');
+      expect(preview[0]!.year).toBe(
+        Math.max(...practice.map((row) => row.year)),
+      );
     });
   });
 });

@@ -1,0 +1,38 @@
+{% if has_race %}
+{% comment %}The compact race header keeps the QR code in the upper-right corner.{% endcomment %}
+<div class="layout layout--col layout--top layout--stretch-x gap--small">
+  <div class="flex flex--row flex--center-y gap--small w--full">
+    <div class="grow">{% render "race_header", race: race, name_size: "title--small lg:title--base", detail_size: "lg:label--base", flag_size: "h--[24px] w--max-[48px] lg:h--[32px] lg:w--max-[64px]", inline_flag: true %}</div>
+    <div class="flex-none">{% render "qr", url: race.url %}</div>
+  </div>
+  <div class="grow flex flex--col flex--stretch-x gap--xsmall">
+    <div class="flex-none flex flex--col flex--center gap--xsmall">
+      {% render "lead", lead: lead, size: "value--medium lg:value--large" %}
+      {% render "lead_weather", weather: lead.weather %}
+    </div>
+    {% if news.size > 0 %}
+      <div class="grow flex flex--col flex--left">
+        {% render "news", news: news, limit: 2, headline_size: "title--small lg:title--base", fill: true %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% elsif standings %}
+<div class="layout layout--col layout--top layout--stretch-x gap--small">
+  <div class="flex flex--row flex--center-y gap--small w--full">
+    <div class="grow">{% render "standings_header", standings: standings, title_size: "lg:title--base", detail_size: "lg:label--base" %}</div>
+    <div class="flex-none">{% render "qr", url: standings.url %}</div>
+  </div>
+  <div class="grow flex flex--row portrait:flex--col flex--center-y gap--medium w--full">
+    <div class="grow flex flex--col flex--center gap--xsmall">
+      {% render "leader", standings: standings, value_size: "value--small lg:value--large" %}
+      <span class="label label--small lg:label--base">Constructors: {{ standings.constructors.first.name }}</span>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="layout layout--col layout--center">
+  <span class="title title--small">No race scheduled.</span>
+</div>
+{% endif %}
+{% render "title_bar", race: race %}

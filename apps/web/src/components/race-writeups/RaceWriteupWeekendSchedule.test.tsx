@@ -35,8 +35,8 @@ describe('RaceWriteupWeekendSchedule', () => {
 
     expect(html).toContain('Sprint Qualifying');
     expect(html).toContain('>Sprint</dt>');
-    expect(html).toContain('Fri 9 Oct, 20:30 GMT+8');
-    expect(html).toContain('Sat 10 Oct, 17:00 GMT+8');
+    expect(html).toContain('Fri 9 Oct, 20:30<');
+    expect(html).toContain('Sat 10 Oct, 17:00<');
     expect(html).not.toContain('Practice 2');
     expect(html).not.toContain('Practice 3');
     expect(html).not.toContain('To be confirmed');
@@ -72,7 +72,7 @@ describe('RaceWriteupWeekendSchedule', () => {
       />,
     );
 
-    expect(html).toContain('Sun 13 Sept, 15:00 CEST');
+    expect(html).toContain('Sun 13 Sept, 15:00<');
     // The toggle is in the cached markup, because taking up its width only
     // after hydration would shift the whole card. What is not in the markup is
     // any reader's zone: track time is what the server can honestly render.

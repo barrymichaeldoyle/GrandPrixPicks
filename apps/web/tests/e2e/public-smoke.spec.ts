@@ -10,11 +10,10 @@ test.describe('[public] smoke', () => {
   }) => {
     await page.goto('/');
 
-    await expect(
-      page.getByRole('heading', {
-        name: "Everyone's a strategist on Sunday. Prove it.",
-      }),
-    ).toBeVisible();
+    // The hero's copy changes often, and asserting it word for word kept this
+    // spec red for two weeks after a headline rewrite; that there is one is
+    // the check.
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     const header = page.getByRole('banner');
     await expect(
       header.getByRole('link', { name: 'How it works' }),
@@ -33,7 +32,9 @@ test.describe('[public] smoke', () => {
     // Driver buttons are server-rendered, so they are clickable well before
     // React attaches the draft handlers. Wait for the real thing rather than a
     // fixed sleep — see waitForHydration.
-    await expect(page.getByText('Step 1 of 2')).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Choose your Top 5' }),
+    ).toBeVisible();
     const driverButtons = page.locator(
       'button[data-testid^="driver-"]:not([disabled])',
     );
@@ -48,11 +49,8 @@ test.describe('[public] smoke', () => {
     }
     // Filling the fifth slot no longer swaps the panel on its own: the player
     // gets their finished order to check and moves on when they choose to.
-    await page
-      .getByRole('button', { name: 'Continue to team-mate picks' })
-      .click();
+    await page.getByRole('button', { name: 'Add team-mate picks' }).click();
 
-    await expect(page.getByText('Step 2 of 2')).toBeVisible();
     await expect(
       page.getByRole('heading', { name: 'Pick each team-mate winner' }),
     ).toBeVisible();

@@ -3,6 +3,7 @@ import { ConvexHttpClient } from 'convex/browser';
 
 import { captureServerException, startServerSpan } from '../lib/sentry';
 import { listGuideMeta } from '../../src/lib/guideMeta';
+import { CALENDAR_2027_REVIEWED_AT } from '../../src/lib/calendar2027';
 import { LINE_UP_2027_REVIEWED_AT } from '../../src/lib/lineUp2027';
 import { listRaceWriteups, getRaceWriteup } from '../../src/lib/raceWriteups';
 import { siteConfig } from '../../src/lib/site';
@@ -105,9 +106,12 @@ const staticEntries: SitemapEntry[] = [
   },
   {
     // Reviewed by hand rather than generated, so a weekly changefreq is a
-    // promise we can keep. It becomes the round list once 2027 is ratified.
+    // promise we can keep. `lastmod` comes from the data file's own reviewed
+    // date, so an amended round cannot be edited in without the sitemap
+    // saying so.
     loc: `${siteConfig.url}/f1-2027-calendar`,
     changefreq: 'weekly',
+    lastmod: new Date(CALENDAR_2027_REVIEWED_AT).toISOString(),
     priority: '0.6',
   },
   {

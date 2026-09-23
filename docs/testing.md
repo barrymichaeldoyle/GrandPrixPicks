@@ -51,7 +51,7 @@ Keep browser coverage intentionally small.
 
 Current smoke ownership lives under [apps/web/tests/e2e](/Users/barry/dev/grand-prix-picks/apps/web/tests/e2e).
 The smoke script runs with a single Playwright worker because the suite talks to shared Clerk and Convex test state.
-Authenticated browser tests now use a dedicated Playwright setup project that signs in once and reuses stored session state for the auth and flow projects.
+Authenticated browser tests use a dedicated Playwright setup project, then refresh the Clerk sign-in for each seeded scenario. The stored setup session can expire while earlier suites run, so authenticated helpers do not rely on that session remaining valid.
 
 ## Naming and Style
 

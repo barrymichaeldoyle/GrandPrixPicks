@@ -60,9 +60,14 @@ const weekend = vi.hoisted<{
     | undefined;
 }>(() => ({ race: undefined }));
 
-vi.mock('@/integrations/convex/query', () => ({
-  useQuery: (_query: unknown, args: unknown) =>
-    args === 'skip' ? undefined : weekend.race,
+vi.mock('@tanstack/react-query', () => ({
+  useQuery: (options: { enabled?: boolean }) => ({
+    data: options.enabled === false ? undefined : weekend.race,
+  }),
+}));
+
+vi.mock('@/lib/routeQuery', () => ({
+  routeQuery: () => ({}),
 }));
 
 vi.mock('@convex-generated/api', () => ({

@@ -1,6 +1,7 @@
 # Grand Prix Picks for TRMNL: Product Specification
 
-**Status:** Built, not yet installed on a device or submitted. The polling
+**Status:** Built and installed as a private plugin on Barry's device (22
+September 2026); not yet submitted as a Recipe (section 9). The polling
 endpoint is `apps/web/server/routes/api/trmnl/weekend.get.ts` (logic in
 `apps/web/server/lib/trmnl.ts`), and the Liquid plugin is `apps/trmnl/`.  
 **Product type:** Public TRMNL Recipe. No sign-in, no per-player data.  
@@ -54,20 +55,20 @@ changes across a weekend. That is the gap this plugin occupies.
 
 ### Verified
 
-| Constraint                                   | Detail                                                                                                                                                                        |
-| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Render model                                 | Device requests content on a timer; TRMNL's server generates a PNG. The device never receives a push.                                                                         |
-| Plugins are **pull, not push**               | TRMNL polls us. We cannot initiate.                                                                                                                                           |
-| A Recipe's markup lives **inside TRMNL**     | A Recipe is a private plugin with the Polling strategy, approved for listing: our URL returns JSON, and Liquid templates stored in TRMNL render it.                           |
-| Changes propagate                            | Editing the Recipe's markup updates every install.                                                                                                                            |
-| All four layouts are **required to publish** | `full`, `half_horizontal`, `half_vertical`, `quadrant`.                                                                                                                       |
-| Polling URL interpolation                    | `trmnl.user.time_zone_iana` and `trmnl.user.locale` interpolate into the polling URL, so one endpoint serves every zone.                                                      |
-| **On-demand refresh** (since May 2026)       | TRMNL polls just before the device draws. The plugin's refresh setting is now a floor: 15 minutes by default, 5 on TRMNL+.                                                    |
-| Unchanged data means **no redraw**           | If the polled payload matches the last one, no new screen is generated. A wake without a redraw costs about 20% of one with.                                                  |
-| Built-in `qr_code` Liquid filter             | Renders a scannable SVG in the markup. No image hosting needed.                                                                                                               |
-| `TRMNL_SKIP_DISPLAY` is not for Recipes      | TRMNL asks published Recipes not to hide themselves from a playlist; owners get no indication why.                                                                            |
-| Publishing is a manual review                | Email `team@trmnl.com` with plugin ID, a no-audio install video, and a test login. They screen on ethos ("breeds distraction, not focus") and ask how you will promote TRMNL. |
-| No content retention                         | TRMNL stores only the most recent rendered screen per plugin.                                                                                                                 |
+| Constraint                                   | Detail                                                                                                                                                                                                                                        |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Render model                                 | Device requests content on a timer; TRMNL's server generates a PNG. The device never receives a push.                                                                                                                                         |
+| Plugins are **pull, not push**               | TRMNL polls us. We cannot initiate.                                                                                                                                                                                                           |
+| A Recipe's markup lives **inside TRMNL**     | A Recipe is a private plugin with the Polling strategy, approved for listing: our URL returns JSON, and Liquid templates stored in TRMNL render it.                                                                                           |
+| Changes propagate                            | Editing the Recipe's markup updates every install.                                                                                                                                                                                            |
+| All four layouts are **required to publish** | `full`, `half_horizontal`, `half_vertical`, `quadrant`.                                                                                                                                                                                       |
+| Polling URL interpolation                    | `trmnl.user.time_zone_iana` and `trmnl.user.locale` interpolate into the polling URL, so one endpoint serves every zone.                                                                                                                      |
+| **On-demand refresh** (since May 2026)       | TRMNL polls just before the device draws. The plugin's refresh setting is now a floor: 15 minutes by default, 5 on TRMNL+.                                                                                                                    |
+| Unchanged data means **no redraw**           | If the polled payload matches the last one, no new screen is generated. A wake without a redraw costs about 20% of one with.                                                                                                                  |
+| Built-in `qr_code` Liquid filter             | Renders a scannable SVG in the markup. No image hosting needed.                                                                                                                                                                               |
+| `TRMNL_SKIP_DISPLAY` is not for Recipes      | TRMNL asks published Recipes not to hide themselves from a playlist; owners get no indication why.                                                                                                                                            |
+| Publishing is a manual review                | A Recipe is submitted from the plugin's settings page; Chef lints it and TRMNL's team reviews it, looking for "focus, not distraction" (section 9). Emailing team@trmnl.com with an install video is the route for OAuth Third Party plugins. |
+| No content retention                         | TRMNL stores only the most recent rendered screen per plugin.                                                                                                                                                                                 |
 
 ### What they mean for the design
 
@@ -357,13 +358,124 @@ a layout change, and the plugin's "learn more" link from the TRMNL directory.
 - **SEO:** `noindex` and not in the sitemap: it is mostly rendered screens with
   little prose, per `docs/seo-content-policy.md`.
 
-### Next
+## 9. Installing and publishing
 
-1. Install as a private plugin on Barry's device and live with it through a
-   race weekend. Tune in TRMNL's editor and copy changes back into the repo.
-2. Publish as a Recipe: submit with an install video, get the listing.
+Read from TRMNL's help centre ("Plugin recipes", "Demo data for publishing
+plugins", "Importing and exporting private plugins") and its review team's
+checklist, "A Checklist for Turning a Private Plugin into a Recipe for Others"
+(trmnl.com blog, 27 April 2026), on 22 September 2026. Their UI moves, so
+check before relying on a button's name or place.
 
-## 9. Copy rules for this surface
+### How the plugin is installed today
+
+Barry's device runs it as a private plugin, "Grand Prix Picks"
+(`trmnl.com/plugin_settings/485545`), set up by hand on 22 September 2026:
+
+1. Plugins → Private Plugin → **Add new**. Name "Grand Prix Picks", strategy
+   Polling, verb GET, no headers, polling URL:
+   `https://grandprixpicks.com/api/trmnl/weekend?tz={{ trmnl.user.time_zone_iana }}&locale={{ trmnl.user.locale }}`.
+   Save. Max refresh rate: every 15 minutes (the fastest without TRMNL+).
+2. **Edit Markup**: each tab gets its file from `apps/trmnl/src`: Full,
+   Half horizontal, Half vertical, Quadrant, and Shared (`shared.liquid`,
+   without which every layout fails). Each tab saves on its own.
+
+Things that cost time the first time:
+
+- **Import new** (zip import) appears only on the private plugin list, and
+  that list redirects to the "new plugin" form while the account has no
+  private plugins. The first one has to be made by hand; import is available
+  after that.
+- A new plugin shows "No race scheduled." until its first poll after the
+  markup is saved. TRMNL enforces the plugin's minimum refresh interval even
+  on **Force Refresh**, so the first real screen can be up to 15 minutes
+  away.
+- To debug: **Parse** under the polling URL shows the URL with the owner's
+  zone and language filled in; the plugin's **Timeline** says when it will
+  refresh next and why it skipped; the device's **Logs** show each poll and
+  any Liquid error. "Your variables" in the markup editor lists only
+  `trmnl` until a poll has succeeded with markup in place.
+
+To change the plugin: edit `apps/trmnl/src`, check it on `/trmnl`, commit,
+then copy the changed files into TRMNL's editor. Nothing syncs the repo to
+TRMNL. `trmnlp push` can (Ruby 4 or Docker, and a TRMNL API key).
+
+### Publishing it as a Recipe
+
+A Recipe is a private plugin TRMNL has approved for its directory
+(trmnl.com/recipes). Owners **Install** it, which pulls in every later change
+the author makes, or **Fork** it into an editable copy that no longer
+updates. Forking needs the Developer add-on.
+
+**Before submitting.** TRMNL's reviewers work through a checklist, and three
+items on it are not met yet:
+
+1. **Portrait.** They preview every layout on the OG and the X in landscape,
+   and on the X in portrait, looking for whitespace and content cut off.
+   Nothing here has been rendered in portrait. Add a portrait option to
+   `TRMNL_DEVICES` (`screen--portrait`) so `/trmnl` shows it, then fix
+   what breaks with `portrait:` classes.
+2. **Gray labels on 1-bit screens.** They flag `label--gray` as hard to read
+   on an OG set to the 1-bit palette and ask for `1bit:text--black` beside it.
+   The race header, news sources, weather and "Awaiting result" all use it.
+3. **A way to contact the author.** The `author_bio` form field must give
+   one. Add `email_address` (and optionally `github_url`) to it in
+   `settings.yml`.
+
+Also check:
+
+- **Inline styles.** Chef, TRMNL's automated linter, flags inline `display`,
+  `padding`, `margin`, `background-color`, `color`, `border-radius`,
+  `text-align`, `object-fit` and `font-size`. The templates use only `border`
+  (the flag frame) and `white-space`, which are not on that list, but a
+  reviewer may still comment.
+- **The Description field** on the plugin's settings page. It is the tagline
+  in search results, and it is still TRMNL's placeholder ("Upcoming train
+  departures"). Suggested: "F1 race weekend: times, results, news".
+- **The icon.** The plugin's settings take a PNG or SVG, 512x512
+  recommended. `apps/web/public/trmnl-icon.svg` is the mark to use.
+- **Form fields.** A plugin set up by hand has no `author_bio`. Paste the
+  `custom_fields` block from `settings.yml` into the plugin's Form Fields
+  box, then check its text and links render.
+
+**The Recipe Master is the showcase.** On publishing, the plugin becomes the
+"Recipe Master": every edit to it goes straight to every install, and its
+latest full-screen render is the directory's preview image. So:
+
+- Keep the Master as the demo. Install the published Recipe again for
+  Barry's own device, and test changes on a copy (the clone icon) before
+  editing the Master.
+- Pick the preview with **Featured Image** in the Recipe's settings, on a
+  weekend when the screen is at its best (race morning with the grid, or a
+  finished race). Taking the Master off every playlist freezes its screen.
+  The plugin shows only public data, so there is nothing personal to leak.
+
+**Submitting.**
+
+1. On the plugin's settings page, use the publish option beside
+   "Publish plugin?". Chef runs first; fix what it reports.
+2. Choose **Public** (reviewed, listed in the directory and promoted by
+   TRMNL) or **Unlisted** (no review, a shareable link straight away, not
+   searchable). Unlisted is a good way to give a few testers a link that
+   still receives updates, before going public.
+3. TRMNL's team reviews a Public submission, usually within a day or two, and
+   sends feedback if changes are needed. A plugin in review can be taken back
+   to private and edited.
+4. They ask how the plugin helps other owners and how the author will promote
+   TRMNL. The answer: the only F1 plugin that follows the weekend as it
+   happens (section 2), with no live timing, so it keeps to their "focus, not
+   distraction" rule; promoted in r/GPPicks and on X around race weekends.
+
+**After it is published.**
+
+- A published Recipe cannot be deleted or unlisted without TRMNL's help,
+  and every change reaches every install at once. Change the Master
+  carefully, and keep the payload backward compatible: the Liquid always
+  reads the endpoint's current shape, so a renamed field breaks every
+  screen at the next poll. `v` in the payload exists for this.
+- Link to the listing from `/trmnl`: an install button above the screens.
+- TRMNL pays Recipe authors through its creator fund (since November 2025).
+
+## 10. Copy rules for this surface
 
 `docs/product-voice.md` governs, as everywhere. Things this surface makes
 sharper:
@@ -375,20 +487,20 @@ sharper:
 - No em dashes (`feedback_no_em_dashes`). A URL on screen is dead text, so name
   the source instead; the QR code is the one way off the screen.
 
-## 10. Open
+## 11. Open
 
 - Whether a Liquid template sees `trmnl.system.timestamp_utc` change when the
   payload is otherwise unchanged. Irrelevant while all time logic stays on the
   server; recorded so nobody moves it into Liquid.
 - Temperature is always Celsius. A units form field would fix it for US
   owners.
-- Screens have only been rendered with TRMNL's Liquid library and Framework
-  CSS in a browser, not on a device.
+- Screens have been rendered with TRMNL's Liquid library and Framework CSS in
+  a browser and in TRMNL's own editor, but not yet seen on a device with data.
 - Remote `<img>` in markup appears to load at render time (TRMNL's own starter
   template does it for the title bar icon), but that is not documented for
   polled Recipes.
 
-## 11. Deliberately not doing
+## 12. Deliberately not doing
 
 Recorded so these are not re-litigated.
 

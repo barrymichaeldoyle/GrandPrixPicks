@@ -47,10 +47,10 @@ export type TeamLineUp = {
 };
 
 /** Bumped by hand whenever the seats below are re-checked against reporting. */
-export const LINE_UP_2027_REVIEWED_AT = '2026-09-21';
+export const LINE_UP_2027_REVIEWED_AT = '2026-09-23';
 
 /** For prose. Kept next to the ISO date so the two cannot drift apart. */
-export const LINE_UP_2027_REVIEWED_LABEL = '21 September 2026';
+export const LINE_UP_2027_REVIEWED_LABEL = '23 September 2026';
 
 /**
  * Alphabetical by team. A championship order would be more flattering and
@@ -203,8 +203,8 @@ export const LINE_UP_2027: TeamLineUp[] = [
       },
       {
         driver: 'Isack Hadjar',
-        status: 'expected',
-        note: 'No 2027 deal signed. Red Bull has said an extension is close, and the 19 September report has him staying.',
+        status: 'signed',
+        note: 'Extended on 23 September 2026, the week he returned from his wrist injury in Baku.',
       },
     ],
   },

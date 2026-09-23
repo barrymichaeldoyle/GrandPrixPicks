@@ -764,7 +764,7 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     confidence: 'medium',
     note: "Took a hole in the sidepod in first-lap contact with Stroll, ran on with no performance and retired on lap 14, the race's first retirement. No report names the corner, so it isn't on the map.",
     source:
-      'https://www.gpfans.com/us/f1-news/1030225/f1-azerbaijan-gp-yuki-tsunoda-rb-out/',
+      'https://www.gpfans.com/en/f1-news/1030224/f1-azerbaijan-gp-yuki-tsunoda-rb-out/',
   },
   {
     id: '2025-quali-albon-t1',

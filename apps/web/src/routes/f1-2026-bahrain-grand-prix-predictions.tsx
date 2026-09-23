@@ -56,7 +56,7 @@ const PIRELLI_DATA_SOURCE =
   'https://www.autosport.com/f1/news/how-pirelli-will-deal-with-f1s-unexpected-return-to-sepang/10843289/';
 /** Dromo resurfaced Sepang in 2016 and relaid Turns 7 to 12 in 2023. */
 const SURFACE_SOURCE =
-  'https://www.studiodromo.it/portfolio/sepang-international-circuit/';
+  'https://studiodromo.it/portfolio/sepang-international-circuit/';
 const START_TIME_SOURCE =
   'https://www.news.gp/en/fia-confirms-start-time-for-relocated-bahrain-grand-prix';
 

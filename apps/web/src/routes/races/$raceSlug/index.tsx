@@ -367,7 +367,7 @@ function raceDescription(
       .filter((entry) => entry.position <= 3)
       .sort((a, b) => a.position - b.position);
     if (podium.length === 3) {
-      return `${podium[0].displayName} won the ${race.season} ${race.name} ahead of ${podium[1].displayName} and ${podium[2].displayName}. Full classification, and how Grand Prix Picks players scored their top 5.`;
+      return `${podium[0].displayName} won the ${race.season} ${race.name} ahead of ${podium[1].displayName} and ${podium[2].displayName}. Full classification and how players scored.`;
     }
     return `Full classification and top 5 finishers for the ${race.season} ${race.name}, with qualifying results and how Grand Prix Picks players scored their predictions.`;
   }

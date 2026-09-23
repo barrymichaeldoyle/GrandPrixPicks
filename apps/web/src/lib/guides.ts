@@ -273,7 +273,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           sourceUrl:
             'https://commons.wikimedia.org/wiki/File:Ryo_Hirakawa_2024_WEC_Fuji_3.jpg',
           license: 'CC BY-SA 4.0',
-          licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
+          licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
         },
         paragraphs: [
           'Hirakawa became a Haas reserve in April 2025 after testing the VF-24 in Abu Dhabi. He ran four Haas FP1 sessions in 2025: Bahrain, Spain, Mexico City and Abu Dhabi. He also races Toyota’s endurance programme, and Toyota is a Haas partner.',
@@ -298,7 +298,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           sourceUrl:
             'https://commons.wikimedia.org/wiki/File:Rafael_C%C3%A2mara_in_2022.jpg',
           license: 'CC BY-SA 4.0',
-          licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
+          licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
         },
         paragraphs: [
           'Câmara won the 2025 FIA Formula 3 title as a rookie with Trident, with four wins and five pole positions. He is a Ferrari Driver Academy member and moved to Formula 2 with Invicta for 2026. Haas has run him in its private testing.',
@@ -326,7 +326,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           sourceUrl:
             'https://commons.wikimedia.org/wiki/File:FIA_F2_Austria_2025_Nr._1_Fornaroli.jpg',
           license: 'CC BY-SA 4.0',
-          licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
+          licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
         },
         paragraphs: [
           'Fornaroli won the 2024 FIA Formula 3 championship, then the 2025 Formula 2 title with Invicta in his rookie season. Haas has run him in its private testing.',

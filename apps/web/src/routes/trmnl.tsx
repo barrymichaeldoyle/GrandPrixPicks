@@ -44,12 +44,12 @@ type Orientation = TrmnlScreenConfig['orientation'];
 type Palette = TrmnlScreenConfig['palette'];
 
 /** "published" is the moment's own news; a number is that many samples. */
-type NewsChoice = 'published' | '0' | '1' | '2' | '10';
+type NewsChoice = 'published' | '0' | '1' | '2' | '20';
 
 type TrmnlSearch = {
   scenario?: string;
   /** Sample headlines; absent means the news as published. */
-  news?: 0 | 1 | 2 | 10;
+  news?: 0 | 1 | 2 | 20;
   device?: Device;
   orientation?: Orientation;
   palette?: Palette;
@@ -79,9 +79,9 @@ export const Route = createFileRoute('/trmnl')({
       /^[a-z-]{1,32}$/.test(search.scenario)
         ? search.scenario
         : undefined,
-    // A number, so the URL reads `news=10`: TanStack quotes a string that
+    // A number, so the URL reads `news=20`: TanStack quotes a string that
     // looks like one.
-    news: ([0, 1, 2, 10] as const).find((count) => count === search.news),
+    news: ([0, 1, 2, 20] as const).find((count) => count === search.news),
     device: oneOf<Device>(search.device, ['og', 'x']),
     orientation: oneOf<Orientation>(search.orientation, [
       'landscape',
@@ -122,7 +122,7 @@ const NEWS_OPTIONS: { value: NewsChoice; label: string }[] = [
   { value: '0', label: 'No news' },
   { value: '1', label: '1 headline' },
   { value: '2', label: '2 headlines' },
-  { value: '10', label: '10 headlines' },
+  { value: '20', label: '20 headlines' },
 ];
 
 function TrmnlPage() {
@@ -228,7 +228,7 @@ function TrmnlPage() {
                   news:
                     value === 'published'
                       ? undefined
-                      : (Number(value) as 0 | 1 | 2 | 10),
+                      : (Number(value) as 0 | 1 | 2 | 20),
                 }),
                 replace: true,
               })

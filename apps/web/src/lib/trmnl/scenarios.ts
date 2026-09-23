@@ -129,7 +129,7 @@ const news: TrmnlInput['news'] = [
 
 /**
  * Invented headlines for the `/trmnl` page's news switch, which shows any
- * moment with 0, 1, 2 or 10 of them instead of the news as published.
+ * moment with 0, 1, 2 or 20 of them instead of the news as published.
  */
 const SAMPLE_HEADLINES = [
   'A late gearbox change puts a front runner under investigation',
@@ -142,10 +142,20 @@ const SAMPLE_HEADLINES = [
   'Track limits at the final corner will be monitored closely',
   'A reserve driver takes over a car in first practice',
   'The pit lane speed limit is lowered for safety',
+  'Teams expect a close fight through the final sector',
+  'Pirelli selects its hardest compounds for the weekend',
+  'A late setup change improves balance over one lap',
+  'Race control adds a warning for unsafe releases',
+  'The championship leader loses time in second practice',
+  'A new power unit enters service for the weekend',
+  'Drivers ask for more grip at the final chicane',
+  'The team changes its cooling package for qualifying',
+  'A safety car could shape Sunday’s tyre strategy',
+  'The stewards review a pit lane incident after practice',
 ];
 
 /** The headline counts the news switch offers. */
-export const TRMNL_NEWS_COUNTS = [0, 1, 2, 10] as const;
+export const TRMNL_NEWS_COUNTS = [0, 1, 2, 20] as const;
 export type TrmnlNewsCount = (typeof TRMNL_NEWS_COUNTS)[number];
 
 /**
@@ -156,8 +166,8 @@ export type TrmnlNewsCount = (typeof TRMNL_NEWS_COUNTS)[number];
  * The starting grid arrives as a news item, so an item carrying one is kept
  * (race morning keeps its grid) but its headline is not counted. The samples
  * are published in the half hours before the moment, so they are its newest
- * news. The payload carries at most ten headlines, so ten shows all candidates, as it
- * would on a device.
+ * news. The payload carries at most twenty headlines, so twenty shows all
+ * candidates, as it would on a device.
  */
 export function sampleNewsVariant(
   input: TrmnlInput,
@@ -171,7 +181,7 @@ export function sampleNewsVariant(
     publishedAt: input.now - (index + 1) * 30 * 60 * 1000,
   }));
   // The focus sees the grid too; the headlines are the samples alone, so the
-  // grid's own headline never takes one of the payload's ten places.
+  // grid's own headline never takes one of the payload's twenty places.
   return {
     focus: buildTrmnlPayload({ ...input, news: [...grids, ...samples] }).focus,
     news: buildTrmnlPayload({ ...input, news: samples }).news,

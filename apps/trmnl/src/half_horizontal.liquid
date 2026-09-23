@@ -20,7 +20,7 @@
     {% if focus == "result" %}
       {% render "result", result: result, limit: 5, split: false %}
     {% elsif news.size > 0 %}
-      {% render "news", news: news, limit: 10, headline_size: half_horizontal_news_size, fill: true %}
+      {% render "news", news: news, limit: 20, headline_size: half_horizontal_news_size, fill: true %}
     {% else %}
       {% comment %}
         No news yet: the sessions, which this layout otherwise leaves out,

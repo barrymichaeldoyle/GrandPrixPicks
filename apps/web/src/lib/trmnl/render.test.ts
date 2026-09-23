@@ -113,20 +113,23 @@ describe('TRMNL layouts', () => {
     expect(half).toContain('FP1');
   });
 
-  it('passes ten headline candidates to full-screen overflow layout', () => {
+  it('passes twenty headline candidates to large-screen overflow layouts', () => {
     const buildUp = TRMNL_SCENARIOS.find((s) => s.id === 'build-up')!;
-    const variant = sampleNewsVariant(buildUp.input, 10);
-    expect(variant.news).toHaveLength(10);
+    const variant = sampleNewsVariant(buildUp.input, 20);
+    expect(variant.news).toHaveLength(20);
     expect(variant.focus).toBe('news');
     const full = renderTrmnlMarkup('full', { ...buildUp.payload, ...variant });
-    expect(full.match(/data-clamp="2"/g)).toHaveLength(10);
-    expect(full.match(/class="divider divider--h"/g)).toHaveLength(9);
+    expect(full.match(/data-clamp="2"/g)).toHaveLength(20);
+    expect(full.match(/class="divider divider--h"/g)).toHaveLength(19);
+    expect(full).toContain('h--full flex--left flex--center-y');
     const halfHorizontal = renderTrmnlMarkup('half_horizontal', {
       ...buildUp.payload,
       ...variant,
     });
-    expect(halfHorizontal.match(/data-clamp="2"/g)).toHaveLength(10);
-    expect(halfHorizontal.match(/class="divider divider--h"/g)).toHaveLength(9);
+    expect(halfHorizontal.match(/data-clamp="2"/g)).toHaveLength(20);
+    expect(halfHorizontal.match(/class="divider divider--h"/g)).toHaveLength(
+      19,
+    );
     const halfVertical = renderTrmnlMarkup('half_vertical', {
       ...buildUp.payload,
       ...variant,
@@ -135,12 +138,25 @@ describe('TRMNL layouts', () => {
     expect(halfVertical.match(/class="divider divider--h"/g)).toHaveLength(6);
   });
 
+  it('offers headlines to the quarter layout overflow manager', () => {
+    const buildUp = TRMNL_SCENARIOS.find((s) => s.id === 'build-up')!;
+    const variant = sampleNewsVariant(buildUp.input, 20);
+    const quadrant = renderTrmnlMarkup('quadrant', {
+      ...buildUp.payload,
+      ...variant,
+    });
+    expect(quadrant.match(/data-clamp="2"/g)).toHaveLength(20);
+    expect(quadrant.match(/class="divider divider--h"/g)).toHaveLength(19);
+    expect(quadrant).toContain('title--small lg:title--small');
+    expect(quadrant).toContain('h--full flex--left flex--center-y');
+  });
+
   it('keeps the starting grid when the news is swapped for samples', () => {
     const raceMorning = TRMNL_SCENARIOS.find((s) => s.id === 'race-morning')!;
     for (const count of TRMNL_NEWS_COUNTS) {
       const variant = sampleNewsVariant(raceMorning.input, count);
       expect(variant.focus, `${count}`).toBe('grid');
-      expect(variant.news, `${count}`).toHaveLength(Math.min(count, 10));
+      expect(variant.news, `${count}`).toHaveLength(Math.min(count, 20));
     }
   });
 

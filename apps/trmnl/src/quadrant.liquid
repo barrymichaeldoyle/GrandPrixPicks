@@ -1,4 +1,6 @@
 {% if has_race %}
+{% assign quadrant_news_size = "title--small lg:title--base" %}
+{% if news.size > 3 %}{% assign quadrant_news_size = "title--small lg:title--small" %}{% endif %}
 {% comment %}The compact race header keeps the QR code in the upper-right corner.{% endcomment %}
 <div class="layout layout--col layout--top layout--stretch-x gap--small">
   <div class="flex flex--row flex--center-y gap--small w--full">
@@ -6,10 +8,15 @@
     <div class="flex-none">{% render "qr", url: race.url %}</div>
   </div>
   <div class="grow flex flex--row portrait:flex--col flex--center-y gap--medium w--full">
-    <div class="grow flex flex--col flex--center gap--xsmall">
+    <div class="{% if news.size > 0 %}grow{% else %}w--full{% endif %} flex flex--col flex--center gap--xsmall">
       {% render "lead", lead: lead, size: "value--medium lg:value--large" %}
       {% render "lead_weather", weather: lead.weather %}
     </div>
+    {% if news.size > 0 %}
+      <div class="grow flex flex--col flex--left h--full">
+        {% render "news", news: news, limit: 20, headline_size: quadrant_news_size, fill: true %}
+      </div>
+    {% endif %}
   </div>
 </div>
 {% elsif standings %}

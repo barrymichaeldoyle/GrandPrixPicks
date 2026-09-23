@@ -34,9 +34,9 @@
         {% elsif focus == "grid" %}
           {% render "grid", grid: grid %}
         {% elsif focus == "news" %}
-          {% render "news", news: news, limit: 10, headline_size: full_news_size, fill: true %}
+          {% render "news", news: news, limit: 20, headline_size: full_news_size, fill: true %}
         {% elsif news.size == 0 %}
-          {% render "news", news: news, limit: 10, headline_size: full_news_size, fill: true %}
+          {% render "news", news: news, limit: 20, headline_size: full_news_size, fill: true %}
         {% endif %}
       </div>
     </div>

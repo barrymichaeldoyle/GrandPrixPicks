@@ -335,6 +335,20 @@ describe('buildTrmnlPayload', () => {
     ]);
   });
 
+  it('carries up to twenty news headlines', () => {
+    const headlines = Array.from({ length: 25 }, (_, index) => ({
+      headline: `Headline ${index + 1}`,
+      publishedAt: at('2026-09-06T17:00:00Z') + index,
+    }));
+    const payload = buildTrmnlPayload(
+      input({ now: at('2026-09-06T18:00:00Z'), news: headlines }),
+    );
+
+    expect(payload.news).toHaveLength(20);
+    expect(payload.news[0]?.headline).toBe('Headline 25');
+    expect(payload.news.at(-1)?.headline).toBe('Headline 6');
+  });
+
   it('gives every session in the forecast window its own weather', () => {
     const weather = sampleForecast('Europe/Rome', {
       '2026-09-04': {

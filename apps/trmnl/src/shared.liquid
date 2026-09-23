@@ -26,17 +26,16 @@
 {% endtemplate %}
 
 {% comment %}
-  Flag, race name, circuit, then round and dates, on three lines in every
-  layout. The flag is decoration beside the name: in grayscale Italy, Ireland
+  Flag, race name, circuit, then round and dates. The full layout can combine
+  the circuit and round/date line; smaller layouts keep three lines. The flag
+  is decoration beside the name: in grayscale Italy, Ireland
   and Mexico are the same three stripes, so it can never be the only thing that
   says which race this is.
 
-  `name_size` is the race name's size on large screens (the full layout has
-  room for `lg:title--xlarge`, the halves and quarter wrap it), and
-  `detail_size` the circuit and round's, a step below the name. `flag_size`
-  sets the flag's height, matched in each layout to the
-  height of the three lines beside it (measured on the OG and the X); its width follows the flag's own shape, capped for
-  Qatar, whose file's viewBox is 75:18 and stretches to fit.
+  `name_size` is the race name's size, `detail_size` the circuit and round's,
+  and `flag_size` sets the flag's height, matched to the text beside it on OG
+  and X. Its width follows the flag's shape, capped for Qatar, whose file's
+  viewBox is 75:18 and stretches to fit.
   Widths over 128px use the named scale (`lg:w--max-48` is 192px): the
   Framework only generates bracketed sizes up to `[128px]`, and a larger one
   silently does nothing, which squeezed every flag on the X into the OG's cap.
@@ -52,19 +51,31 @@
   were too faint to read at arm's length, and size alone already sets them
   below the name.
 
-  The 1px border frames the flag itself, so white fields (Japan, Monaco,
-  Poland) keep an edge against the white screen. Border is not among the
-  inline styles TRMNL's Chef linter flags.
+  Two copies of the flag: the OG's is marked `image-dither`, so TRMNL dithers
+  it to the OG's few inks; the X's is not, so the X prints it as flat grays
+  from its sixteen instead of speckle. `lg:hidden` / `hidden lg:block` pick
+  one per device. The frame is a black
+  box with 2px of padding (`bg--black p--0.5`), so white fields (Japan,
+  Monaco, Poland) keep an edge against the screen. It was an inline border,
+  but TRMNL's rules forbid inline styles, and the Framework has no all-sides
+  border class; 2px is its smallest padding step.
 {% endcomment %}
 {% template race_header %}
 <div class="flex flex--row flex--left flex--center-y gap--small">
   {% if race.flag_url %}
-  <img class="image image-dither shrink-0 w--auto {{ flag_size }}" style="border: 1px solid #000" src="{{ race.flag_url }}" alt="">
+  <div class="bg--black p--0.5 shrink-0 flex">
+    <img class="image image-dither lg:hidden shrink-0 w--auto {{ flag_size }}" src="{{ race.flag_url }}" alt="">
+    <img class="image hidden lg:block shrink-0 w--auto {{ flag_size }}" src="{{ race.flag_url }}" alt="">
+  </div>
   {% endif %}
   <div class="flex flex--col flex--left gap--none">
     <span class="title {{ name_size }}">{{ race.name }}</span>
-    {% if race.circuit %}<span class="label label--small {{ detail_size }}">{{ race.circuit }}</span>{% endif %}
-    <span class="label label--small {{ detail_size }}">Round {{ race.round }} · {{ race.dates | replace: " ", "&nbsp;" }}</span>
+    {% if compact_details %}
+      <span class="label {{ detail_size }}">{% if race.circuit %}{{ race.circuit }} · {% endif %}Round {{ race.round }} · {{ race.dates | replace: " ", "&nbsp;" }}</span>
+    {% else %}
+      {% if race.circuit %}<span class="label label--small {{ detail_size }}">{{ race.circuit }}</span>{% endif %}
+      <span class="label label--small {{ detail_size }}">Round {{ race.round }} · {{ race.dates | replace: " ", "&nbsp;" }}</span>
+    {% endif %}
   </div>
 </div>
 {% endtemplate %}
@@ -111,9 +122,11 @@
   Liquid falls back to a default, so the page and the device disagreed.
 {% endcomment %}
 {% template news %}
-<div class="flex flex--col gap--small" data-overflow="true">
+<div class="flex flex--col gap--small {% if news.size == 0 %}h--full flex--center{% endif %}" data-overflow="true">
+  {% if news.size == 0 %}<span class="label label--small lg:label--base">No news yet.</span>{% endif %}
   {% for item in news limit: limit %}
   <div class="item">
+    <div class="meta"></div>
     <div class="content">
       <span class="title {{ headline_size }}" data-clamp="2">{{ item.headline }}</span>
     </div>
@@ -124,8 +137,15 @@
 
 {% comment %}
   A session result, up to `limit` rows. `split` lays ten rows out as two
-  columns of five, for the full layout, where one column of ten would push
-  the QR code off the screen. Both are always passed.
+  columns of five, where one column of ten would not fit. Both are always
+  passed.
+
+  Split by hand, not by TRMNL's overflow engine (`data-overflow-max-cols` on
+  one `.column`), which TRMNL's rules prefer. Tried on 23 September 2026: the
+  engine fills the first column before starting the second, so ten rows came
+  out 7 + 3 on the OG and 9 + 1 on the X, and on a portrait X it clipped the
+  list after eight names. TRMNL's own guide warns the engine is unpredictable
+  on e-ink.
 {% endcomment %}
 {% template result %}
 <div class="flex flex--col gap--small">
@@ -184,16 +204,15 @@
 {% endtemplate %}
 
 {% comment %}
-  The way from the screen to the site, the same on every layout: a short
-  caption over the code. `url` is the race's, or the standings' in the
-  off-season. The link is the short /t/ form and carries
+  The way from the screen to the site, the same on every layout. `url` is the
+  race's, or the standings' in the off-season. The link is the short /t/ form
+  and carries
   utm_source=trmnl, utm_medium=qr and the screen phase as utm_content, for
   PostHog. 3px modules at error-correction level M: about 0.6mm a module on
   the OG, which a phone reads easily.
 {% endcomment %}
 {% template qr %}
-<div class="flex flex--col flex--center gap--xsmall">
-  <span class="label label--small lg:label--base">Read more</span>
+<div class="flex flex--col flex--center">
   {{ url | qr_code: 3, "m" }}
 </div>
 {% endtemplate %}
@@ -255,9 +274,15 @@
 </div>
 {% endtemplate %}
 
+{% comment %}
+  The icon is inline, as TRMNL's guide asks: a URL can fail to load when the
+  screen is drawn. Captured inside the template because a rendered template
+  cannot see variables from outside it.
+{% endcomment %}
 {% template title_bar %}
+{%- capture icon -%}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24"><g fill="#000" transform="translate(16 16) skewX(-12) translate(-16 -16)"><rect x="5" y="13" width="6" height="12"/><rect x="14" y="7" width="6" height="18"/><rect x="23" y="16" width="6" height="9"/></g></svg>{%- endcapture -%}
 <div class="title_bar">
-  <img class="image" src="https://grandprixpicks.com/trmnl-icon.svg" alt="">
+  <img class="image image-stroke" src="data:image/svg+xml;base64,{{ icon | base64_encode }}" alt="">
   <span class="title">GrandPrixPicks.com</span>
 </div>
 {% endtemplate %}

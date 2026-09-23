@@ -18,7 +18,9 @@
   {% else %}
     {% render "schedule", schedule: schedule, size: "table--small lg:table--large", name: "short" %}
     {% comment %}One headline: two overflow into the title bar once the timeline is full.{% endcomment %}
-    {% render "news", news: news, limit: 1, headline_size: "title--small lg:title--large" %}
+    <div class="{% if news.size == 0 %}grow{% endif %}">
+      {% render "news", news: news, limit: 1, headline_size: "title--small lg:title--large" %}
+    </div>
   {% endif %}
 </div>
 {% elsif standings %}
@@ -43,7 +45,4 @@
   <span class="title">No race scheduled.</span>
 </div>
 {% endif %}
-<div class="title_bar">
-  <img class="image" src="https://grandprixpicks.com/trmnl-icon.svg" alt="">
-  <span class="title">GrandPrixPicks.com</span>
-</div>
+{% render "title_bar", race: race %}

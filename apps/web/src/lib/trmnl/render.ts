@@ -254,14 +254,18 @@ function grays(levels: number): number[][] {
  * its JS dithers. Without this every flag showed in full colour on a 1-bit
  * or grayscale screen. Floyd-Steinberg to the nearest ink, at the image's
  * size in panel pixels, which is what the device prints; grayscale palettes
- * compare on luminance.
+ * compare on luminance. An image not marked `image-dither` is only snapped to
+ * the nearest gray, with no error diffusion, on grayscale palettes: that is
+ * how the X's flag is drawn, as flat grays rather than speckle. Colour
+ * palettes leave unmarked images alone. Images from another origin (TRMNL's
+ * weather icons) cannot be read and are left as they are.
  *
  * A string rather than a function's `toString()`, because a bundler may
  * rewrite a function's source (helper calls, renamed globals) and this runs
  * inside the screen's own document. The render tests evaluate this string.
  */
 export const DITHER_SOURCE = `
-function ditherPixels(px, w, h, inks, gray) {
+function ditherPixels(px, w, h, inks, gray, diffuse) {
   var buf = new Float32Array(w * h * 3);
   for (var i = 0; i < w * h; i++) {
     var r = px[i * 4], g = px[i * 4 + 1], b = px[i * 4 + 2], a = px[i * 4 + 3] / 255;
@@ -285,18 +289,22 @@ function ditherPixels(px, w, h, inks, gray) {
       var er = buf[k] - best[0], eg = buf[k + 1] - best[1], eb = buf[k + 2] - best[2];
       var o = (y * w + x) * 4;
       px[o] = best[0]; px[o + 1] = best[1]; px[o + 2] = best[2]; px[o + 3] = 255;
-      spread(x + 1, y, er, eg, eb, 7 / 16);
-      spread(x - 1, y + 1, er, eg, eb, 3 / 16);
-      spread(x, y + 1, er, eg, eb, 5 / 16);
-      spread(x + 1, y + 1, er, eg, eb, 1 / 16);
+      if (diffuse !== false) {
+        spread(x + 1, y, er, eg, eb, 7 / 16);
+        spread(x - 1, y + 1, er, eg, eb, 3 / 16);
+        spread(x, y + 1, er, eg, eb, 5 / 16);
+        spread(x + 1, y + 1, er, eg, eb, 1 / 16);
+      }
     }
   }
   return px;
 }
 function ditherScreenImages(inks, gray) {
-  var images = document.querySelectorAll('img.image-dither');
+  var images = document.querySelectorAll('.screen img');
   for (var i = 0; i < images.length; i++) {
     var img = images[i];
+    var solidGray = !img.classList.contains('image-dither');
+    if (solidGray && !gray) continue;
     if (img.dataset.dithered || !img.complete || !img.naturalWidth) continue;
     // Panel pixels: the X's screen is scaled up by the Framework, and the
     // flag's 1px frame is a border, not part of the image.
@@ -309,10 +317,10 @@ function ditherScreenImages(inks, gray) {
       var ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, w, h);
       var data = ctx.getImageData(0, 0, w, h);
-      ditherPixels(data.data, w, h, inks, gray);
+      ditherPixels(data.data, w, h, inks, gray, !solidGray);
       ctx.putImageData(data, 0, 0);
       img.dataset.dithered = '1';
-      img.style.imageRendering = 'pixelated';
+      if (!solidGray) img.style.imageRendering = 'pixelated';
       img.src = canvas.toDataURL();
     } catch (e) {
       /* An image the canvas cannot read stays as it is. */

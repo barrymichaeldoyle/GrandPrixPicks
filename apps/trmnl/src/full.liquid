@@ -1,6 +1,11 @@
 {% if has_race %}
 <div class="layout layout--col layout--top layout--stretch-x gap--medium">
-  {% render "race_header", race: race, name_size: "lg:title--xlarge", detail_size: "lg:label--large", flag_size: "h--[56px] w--max-[112px] lg:h--[96px] lg:w--max-48" %}
+  <div class="flex flex--row flex--center-y gap--medium">
+    <div class="grow">
+      {% render "race_header", race: race, name_size: "title--large portrait:title--small lg:title--xxlarge lg:portrait:title--large", detail_size: "label--base portrait:label--small lg:label--xlarge lg:portrait:label--base", flag_size: "h--[56px] w--max-[112px] lg:h--[96px] lg:w--max-48", compact_details: true %}
+    </div>
+    <div class="flex-none">{% render "qr", url: race.url %}</div>
+  </div>
   {% comment %}
     Two columns side by side, stacked in portrait: side by side on a portrait
     X they squeezed every name and time onto two lines and left the bottom
@@ -8,44 +13,30 @@
   {% endcomment %}
   <div class="grid grid--cols-2 portrait:grid--cols-1 gap--large grow">
     <div class="flex flex--col flex--stretch-x gap--small">
-      {% comment %}
-        On race morning the grid fills the right column, so the code sits
-        beside the lead instead; under the timeline it overflowed the OG.
-      {% endcomment %}
-      {% if focus == "grid" %}
-      <div class="flex flex--row flex--center-y gap--medium">
-        <div class="grow flex flex--col flex--center gap--xsmall">
-          {% render "lead", lead: lead, size: "value--large lg:value--xxlarge" %}
-          {% render "lead_weather", weather: lead.weather %}
-        </div>
-        {% render "qr", url: race.url %}
-      </div>
-      {% else %}
       <div class="flex flex--col flex--center gap--xsmall">
         {% render "lead", lead: lead, size: "value--large lg:value--xxlarge" %}
         {% render "lead_weather", weather: lead.weather %}
       </div>
-      {% endif %}
       {% comment %}No weather line: each timeline row carries its own forecast.{% endcomment %}
       {% render "schedule", schedule: schedule, size: "table--small lg:table--large", name: "label" %}
     </div>
     <div class="flex flex--col flex--stretch-x gap--small h--full">
       {% comment %}
-        The focus block takes the column's spare height and the QR code sits
-        under it at the bottom. The spare height has to belong to the block
-        itself: TRMNL's overflow script hides news items that do not fit, and
-        a separate spacer would read to it as content.
+        The focus block takes the column's spare height. TRMNL's overflow
+        script hides news items that do not fit, and a separate spacer would
+        read to it as content.
       {% endcomment %}
-      <div class="grow">
+      <div class="grow {% if news.size == 0 and focus != 'result' and focus != 'grid' %}h--full{% endif %}">
         {% if focus == "result" %}
           {% render "result", result: result, limit: 10, split: true %}
         {% elsif focus == "grid" %}
           {% render "grid", grid: grid %}
         {% elsif focus == "news" %}
           {% render "news", news: news, limit: 4, headline_size: "title--base lg:title--xlarge" %}
+        {% elsif news.size == 0 %}
+          {% render "news", news: news, limit: 4, headline_size: "title--base lg:title--xlarge" %}
         {% endif %}
       </div>
-      {% unless focus == "grid" %}{% render "qr", url: race.url %}{% endunless %}
     </div>
   </div>
 </div>

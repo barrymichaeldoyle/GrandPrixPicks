@@ -8,7 +8,11 @@ import {
   trmnlScreenDocument,
   trmnlScreenProfile,
 } from './render';
-import { TRMNL_SCENARIOS } from './scenarios';
+import {
+  sampleNewsVariant,
+  TRMNL_NEWS_COUNTS,
+  TRMNL_SCENARIOS,
+} from './scenarios';
 
 describe('TRMNL layouts', () => {
   for (const scenario of TRMNL_SCENARIOS) {
@@ -42,7 +46,29 @@ describe('TRMNL layouts', () => {
           html.includes('class="qr-code"'),
           `${scenario.id} at ${layout.id}`,
         ).toBe(scenario.payload.has_race || !!scenario.payload.standings);
+        expect(html).not.toContain('Read more');
       }
+    }
+  });
+
+  it('places one QR in the full-screen race header beside two lines of text', () => {
+    const friday = TRMNL_SCENARIOS.find((s) => s.id === 'friday')!;
+    const full = renderTrmnlMarkup('full', friday.payload);
+    expect(full).toContain('Autodromo Nazionale Monza · Round 16');
+    expect(full).toContain(
+      'title--large portrait:title--small lg:title--xxlarge',
+    );
+    expect(full).toContain(
+      'label--base portrait:label--small lg:label--xlarge',
+    );
+    expect(full.indexOf('class="qr-code"')).toBeLessThan(
+      full.indexOf('data-clamp="2"'),
+    );
+    for (const scenario of TRMNL_SCENARIOS.filter((s) => s.payload.has_race)) {
+      expect(
+        renderTrmnlMarkup('full', scenario.payload).match(/class="qr-code"/g),
+        scenario.id,
+      ).toHaveLength(1);
     }
   });
 
@@ -68,6 +94,49 @@ describe('TRMNL layouts', () => {
     const half = renderTrmnlMarkup('half_vertical', friday.payload);
     expect(half).toContain('Rain forecast for qualifying');
     expect(half).not.toContain('Sample weather service');
+  });
+
+  it('says there is no news, or shows the sessions where it has room', () => {
+    const buildUp = TRMNL_SCENARIOS.find((s) => s.id === 'build-up')!;
+    const empty = {
+      ...buildUp.payload,
+      ...sampleNewsVariant(buildUp.input, 0),
+    };
+    for (const layout of ['full', 'half_vertical'] as const) {
+      const html = renderTrmnlMarkup(layout, empty);
+      expect(html).toContain('No news yet.');
+      expect(html).toContain('class="qr-code"');
+    }
+    // Half, top or bottom has no timeline of its own, so it shows that.
+    const half = renderTrmnlMarkup('half_horizontal', empty);
+    expect(half).not.toContain('No news yet.');
+    expect(half).toContain('FP1');
+  });
+
+  it('caps ten sample headlines at six in the payload and four on screen', () => {
+    const buildUp = TRMNL_SCENARIOS.find((s) => s.id === 'build-up')!;
+    const variant = sampleNewsVariant(buildUp.input, 10);
+    expect(variant.news).toHaveLength(6);
+    expect(variant.focus).toBe('news');
+    const full = renderTrmnlMarkup('full', { ...buildUp.payload, ...variant });
+    expect(full.match(/data-clamp="2"/g)).toHaveLength(4);
+  });
+
+  it('keeps the starting grid when the news is swapped for samples', () => {
+    const raceMorning = TRMNL_SCENARIOS.find((s) => s.id === 'race-morning')!;
+    for (const count of TRMNL_NEWS_COUNTS) {
+      const variant = sampleNewsVariant(raceMorning.input, count);
+      expect(variant.focus, `${count}`).toBe('grid');
+      expect(variant.news, `${count}`).toHaveLength(Math.min(count, 6));
+    }
+  });
+
+  it('keeps a separate undithered flag for the X', () => {
+    const friday = TRMNL_SCENARIOS.find((s) => s.id === 'friday')!;
+    const html = renderTrmnlMarkup('full', friday.payload);
+    expect(html).toContain('image-dither lg:hidden');
+    expect(html).toContain('class="image hidden lg:block');
+    expect(html).not.toContain('image-gray-x');
   });
 
   it('says there is no race when the off-season has no standings', () => {
@@ -142,6 +211,7 @@ describe('the preview dithers images to the palette', () => {
     h: number,
     inks: number[][],
     gray: boolean,
+    diffuse?: boolean,
   ) => Uint8ClampedArray;
 
   function solid(rgb: number[], count: number) {
@@ -175,6 +245,19 @@ describe('the preview dithers images to the palette', () => {
     }
     expect(white / 256).toBeGreaterThan(0.4);
     expect(white / 256).toBeLessThan(0.6);
+  });
+
+  it('quantizes the X flag without diffusion speckle', () => {
+    const inks = Array.from({ length: 16 }, (_, i) => {
+      const gray = i * 17;
+      return [gray, gray, gray];
+    });
+    const out = ditherPixels(solid([0, 146, 70], 64), 8, 8, inks, true, false);
+    const colours = new Set<string>();
+    for (let i = 0; i < out.length; i += 4) {
+      colours.add(`${out[i]},${out[i + 1]},${out[i + 2]}`);
+    }
+    expect(colours.size).toBe(1);
   });
 
   it('runs on every palette but full colour', () => {

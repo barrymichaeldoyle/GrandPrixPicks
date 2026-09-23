@@ -4,10 +4,16 @@ import { createServerFn } from '@tanstack/react-start';
 import { convexHttp } from '@/integrations/convex/client';
 import { withRetry } from '@/lib/retry';
 
-import type { TrmnlPayload } from './payload';
+import type { TrmnlInput, TrmnlPayload } from './payload';
 import { buildTrmnlPayload } from './payload';
 import { pickReplay, replayWeekend, TRMNL_MOMENTS } from './replay';
-import { SAMPLE_OFF_SEASON_NEWS, TRMNL_SCENARIOS } from './scenarios';
+import type { TrmnlNewsCount } from './scenarios';
+import {
+  SAMPLE_OFF_SEASON_NEWS,
+  sampleNewsVariant,
+  TRMNL_NEWS_COUNTS,
+  TRMNL_SCENARIOS,
+} from './scenarios';
 import type { TrmnlWeekendData } from './weekendData';
 import { loadTrmnlOffSeason, loadTrmnlWeekend } from './weekendData';
 
@@ -18,7 +24,29 @@ export type TrmnlPageScenario = {
   /** What the screen is showing, e.g. "Azerbaijan Grand Prix, live now." */
   caption: string;
   payload: TrmnlPayload;
+  /**
+   * The screen with 0, 1, 2 or 10 sample headlines instead of its news, for
+   * the page's news switch: only the fields news changes.
+   */
+  news: Record<`${TrmnlNewsCount}`, Pick<TrmnlPayload, 'news' | 'focus'>>;
 };
+
+/** A tab, built from the input its screen comes from. */
+function pageScenario(
+  meta: Pick<TrmnlPageScenario, 'id' | 'label' | 'caption'>,
+  input: TrmnlInput,
+): TrmnlPageScenario {
+  return {
+    ...meta,
+    payload: buildTrmnlPayload(input),
+    news: Object.fromEntries(
+      TRMNL_NEWS_COUNTS.map((count) => [
+        String(count),
+        sampleNewsVariant(input, count),
+      ]),
+    ) as TrmnlPageScenario['news'],
+  };
+}
 
 const ZONE = 'Europe/London';
 const LOCALE = 'en-GB';
@@ -84,26 +112,30 @@ export const fetchTrmnlPageScenarios = createServerFn({
     const weekend = pick && weekends.get(pick.race.slug);
     if (!pick || !weekend) {
       const sample = TRMNL_SCENARIOS.find((s) => s.id === moment.id);
-      return {
+      return pageScenario(
+        {
+          id: moment.id,
+          label: moment.label,
+          caption: `${sample?.moment ?? moment.label}. No weekend has reached this yet, so this is a sample with invented results and news.`,
+        },
+        (sample ?? TRMNL_SCENARIOS[0]).input,
+      );
+    }
+    return pageScenario(
+      {
         id: moment.id,
         label: moment.label,
-        caption: `${sample?.moment ?? moment.label}. No weekend has reached this yet, so this is a sample with invented results and news.`,
-        payload: (sample ?? TRMNL_SCENARIOS[0]).payload,
-      };
-    }
-    return {
-      id: moment.id,
-      label: moment.label,
-      caption: pick.live
-        ? `${pick.race.name}, live now.`
-        : `${pick.race.name}, as it stood on ${whenFormat.format(pick.at)}.`,
-      payload: buildTrmnlPayload({
+        caption: pick.live
+          ? `${pick.race.name}, live now.`
+          : `${pick.race.name}, as it stood on ${whenFormat.format(pick.at)}.`,
+      },
+      {
         now: pick.at,
         timeZone: ZONE,
         locale: LOCALE,
         ...replayWeekend(weekend, pick.at),
-      }),
-    };
+      },
+    );
   });
 
   scenarios.push(await offSeasonScenario(season, now));
@@ -123,14 +155,16 @@ async function offSeasonScenario(
   );
   const real = (standings?.drivers.length ?? 0) > 0;
   const sample = TRMNL_SCENARIOS.find((s) => s.id === 'off-season');
-  return {
-    id: 'off-season',
-    label: 'Off-season',
-    caption: real
-      ? `After the last race of the season: the ${season} standings as they are today, with sample news.`
-      : 'After the last race of the season. A sample, with invented standings and news.',
-    payload: real
-      ? buildTrmnlPayload({
+  return pageScenario(
+    {
+      id: 'off-season',
+      label: 'Off-season',
+      caption: real
+        ? `After the last race of the season: the ${season} standings as they are today, with sample news.`
+        : 'After the last race of the season. A sample, with invented standings and news.',
+    },
+    real
+      ? {
           now,
           timeZone: ZONE,
           locale: LOCALE,
@@ -140,7 +174,7 @@ async function offSeasonScenario(
           weather: null,
           standings,
           news: SAMPLE_OFF_SEASON_NEWS,
-        })
-      : (sample ?? TRMNL_SCENARIOS[0]).payload,
-  };
+        }
+      : (sample ?? TRMNL_SCENARIOS[0]).input,
+  );
 }

@@ -39,15 +39,17 @@ import { TrmnlFeedback } from './-trmnl/TrmnlFeedback';
  * directory, and the place to check a layout change.
  */
 
-type View = TrmnlLayout | 'all';
-
 type Device = TrmnlScreenConfig['device'];
 type Orientation = TrmnlScreenConfig['orientation'];
 type Palette = TrmnlScreenConfig['palette'];
 
+/** "published" is the moment's own news; a number is that many samples. */
+type NewsChoice = 'published' | '0' | '1' | '2' | '10';
+
 type TrmnlSearch = {
   scenario?: string;
-  size?: View;
+  /** Sample headlines; absent means the news as published. */
+  news?: 0 | 1 | 2 | 10;
   device?: Device;
   orientation?: Orientation;
   palette?: Palette;
@@ -65,14 +67,6 @@ function oneOf<T extends string>(value: unknown, allowed: readonly T[]) {
   return allowed.includes(value as T) ? (value as T) : undefined;
 }
 
-const VIEW_IDS = new Set<string>([
-  'full',
-  'half_horizontal',
-  'half_vertical',
-  'quadrant',
-  'all',
-] satisfies View[]);
-
 export const Route = createFileRoute('/trmnl')({
   loader: async () => {
     // A minute at the edge: the build-up tab is live data.
@@ -85,10 +79,9 @@ export const Route = createFileRoute('/trmnl')({
       /^[a-z-]{1,32}$/.test(search.scenario)
         ? search.scenario
         : undefined,
-    size:
-      typeof search.size === 'string' && VIEW_IDS.has(search.size)
-        ? (search.size as View)
-        : undefined,
+    // A number, so the URL reads `news=10`: TanStack quotes a string that
+    // looks like one.
+    news: ([0, 1, 2, 10] as const).find((count) => count === search.news),
     device: oneOf<Device>(search.device, ['og', 'x']),
     orientation: oneOf<Orientation>(search.orientation, [
       'landscape',
@@ -124,22 +117,35 @@ const ORIENTATION_OPTIONS: { value: Orientation; label: string }[] = [
   { value: 'portrait', label: 'Portrait' },
 ];
 
-const VIEW_OPTIONS: { value: View; label: string }[] = [
-  ...TRMNL_LAYOUTS.map((l) => ({ value: l.id, label: l.label })),
-  { value: 'all', label: 'All sizes' },
+const NEWS_OPTIONS: { value: NewsChoice; label: string }[] = [
+  { value: 'published', label: 'News as published' },
+  { value: '0', label: 'No news' },
+  { value: '1', label: '1 headline' },
+  { value: '2', label: '2 headlines' },
+  { value: '10', label: '10 headlines' },
 ];
 
 function TrmnlPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const { scenarios } = Route.useLoaderData();
-  const scenario =
+  const moment =
     scenarios.find((s) => s.id === search.scenario) ?? scenarios[0];
+  const newsChoice: NewsChoice =
+    search.news === undefined ? 'published' : `${search.news}`;
+  // Swap in the sample headlines and the focus they lead to; everything else
+  // is the moment as it is.
+  const scenario =
+    newsChoice === 'published'
+      ? moment
+      : {
+          ...moment,
+          payload: { ...moment.payload, ...moment.news[newsChoice] },
+        };
   const scenarioOptions = scenarios.map((s) => ({
     value: s.id,
     label: s.label,
   }));
-  const view = search.size ?? 'full';
   const device = search.device ?? 'og';
   const config: TrmnlScreenConfig = {
     device,
@@ -214,45 +220,99 @@ function TrmnlPage() {
             ariaLabel="Moment of the weekend"
           />
           <TabSwitch
-            value={view}
+            value={newsChoice}
             onChange={(value) =>
               navigate({
-                search: (prev) => ({ ...prev, size: value }),
+                search: (prev) => ({
+                  ...prev,
+                  news:
+                    value === 'published'
+                      ? undefined
+                      : (Number(value) as 0 | 1 | 2 | 10),
+                }),
                 replace: true,
               })
             }
-            options={VIEW_OPTIONS}
+            options={NEWS_OPTIONS}
             className="flex flex-wrap gap-1 rounded-lg bg-surface-muted/40 p-1"
-            ariaLabel="Screen size"
+            ariaLabel="News"
           />
         </div>
 
         {/* Two lines reserved, so a longer caption never moves the screen. */}
         <p className="mt-6 min-h-10 text-sm text-text-muted">
           {deviceProfile.label}, {deviceProfile.width}×{deviceProfile.height}.{' '}
-          {scenario.caption} Times in UK time.
+          {moment.caption}
+          {newsChoice === 'published' ? '' : ' Headlines are samples.'} Times in
+          UK time.
         </p>
 
-        {view === 'all' ? (
-          <div className="mt-3 grid gap-6 sm:grid-cols-2">
-            {TRMNL_LAYOUTS.map((layout) => (
-              <figure key={layout.id} className="flex flex-col gap-2">
-                <TrmnlScreen
-                  scenario={scenario}
-                  layout={layout.id}
-                  config={config}
-                />
-                <figcaption className="text-sm text-text-muted">
-                  {layout.label}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-3">
-            <TrmnlScreen scenario={scenario} layout={view} config={config} />
-          </div>
-        )}
+        <div className="mt-3 grid gap-6 sm:grid-cols-2">
+          {TRMNL_LAYOUTS.map((layout) => (
+            <figure key={layout.id} className="flex flex-col gap-2">
+              <TrmnlScreen
+                scenario={scenario}
+                layout={layout.id}
+                config={config}
+              />
+              <figcaption className="text-sm text-text-muted">
+                {layout.label}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+
+        <section
+          aria-labelledby="trmnl-data-spec"
+          className="mt-8 border-t border-border pt-6"
+        >
+          <h2 id="trmnl-data-spec" className="text-xl font-semibold text-text">
+            What the plugin shows
+          </h2>
+          <dl className="mt-4 grid gap-x-8 gap-y-4 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="font-semibold text-text">Weekend</dt>
+              <dd className="mt-1 text-text-muted">
+                The current or next race, its circuit, round and session times
+                in the device owner’s time zone. A race result stays up for 36
+                hours.
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-text">Weather</dt>
+              <dd className="mt-1 text-text-muted">
+                Session forecasts appear when current weather data is available.
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-text">Results and grid</dt>
+              <dd className="mt-1 text-text-muted">
+                Practice shows the top three. Qualifying shows the top five;
+                sprint and race results show the top ten. The confirmed grid
+                appears when it is published.
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-text">News</dt>
+              <dd className="mt-1 text-text-muted">
+                Published weekend headlines appear as space allows. The QR code
+                opens the weekend write-up when available, or the race page.
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-text">Between seasons</dt>
+              <dd className="mt-1 text-text-muted">
+                The full screen shows 22 drivers and 11 constructors from the
+                championship standings.
+              </dd>
+            </div>
+          </dl>
+          <p className="mt-5 text-sm text-text-muted">
+            The preview replays earlier weekend moments. Headline counts other
+            than “News as published” use sample headlines. Before the season
+            ends, the off-season tab uses current standings and sample news.
+          </p>
+        </section>
 
         <TrmnlFeedback />
 
@@ -290,7 +350,7 @@ function PayloadDetails({
 }
 
 /**
- * The layouts point the icon and flags at production, which is right for
+ * The layouts point the flags at production, which is right for
  * TRMNL. Here they are served from wherever this page is, so a preview deploy
  * or `pnpm dev` shows assets that production does not have yet.
  */
@@ -299,9 +359,7 @@ function withLocalAssets(html: string): string {
     return html;
   }
   const origin = window.location.origin;
-  return html
-    .replaceAll(`${siteConfig.url}/flags/`, `${origin}/flags/`)
-    .replaceAll(`${siteConfig.url}/trmnl-icon.svg`, `${origin}/trmnl-icon.svg`);
+  return html.replaceAll(`${siteConfig.url}/flags/`, `${origin}/flags/`);
 }
 
 /** Flags already inlined, by URL, so a tab change never refetches one. */

@@ -96,7 +96,7 @@ changes across a weekend. That is the gap this plugin occupies.
 
 **Every screen described here is rendered, live, at
 [grandprixpicks.com/trmnl](https://grandprixpicks.com/trmnl)**, for each
-sample moment of a weekend and each size (section 8). That page is built from
+sample moment of a weekend, at every size at once (section 8). That page is built from
 the same Liquid files and payload builder the plugin uses, so when this
 section and the page disagree, the page is right and this section is the bug.
 
@@ -134,25 +134,27 @@ at all does the screen say "No race scheduled.".
 - **Quadrant:** the title, then the champion and the constructors' champion
   beside the QR code.
 
-**Race header (every layout):** the race flag beside three lines: the race
-name, the circuit, then "Round 16 · 4 – 6 Sept". The flag follows race
-identity (`raceCountries.ts`) and the circuit follows the venue
+**Race header:** the race flag beside the race name and weekend details. The
+full landscape layout combines circuit, round and dates on one line, with a
+larger race name above it. Portrait full screens use smaller type and allow
+the details to wrap beside the flag and QR. The smaller layouts keep those
+details on two lines. The flag follows race identity (`raceCountries.ts`) and
+the circuit follows the venue
 (`circuits.ts`), so the 2026 Bahrain round flies Bahrain's flag over "Sepang
 International Circuit". Circuit facts beyond the name (length, laps) are not
 in the repo and are not shown.
 
-Round and dates always sit on their own line, so nothing wraps mid-way and
-leaves a stray separator, and nothing is clamped: an ellipsis once cut the
-dates off. The dates never split ("1 – 3 May"): their spaces become
+Nothing is clamped: an ellipsis once cut the dates off. The dates never split
+("1 – 3 May"): their spaces become
 non-breaking in the template, because the Framework's label is a flex container
 that swallowed the space before a nested no-wrap span.
 
-The circuit and round lines are black: gray small labels were too faint to
-read on the X. On the X they are `label--large` beside the larger race names
-(full, half-vertical) and `label--base` beside `title--base` (half-horizontal,
-quarter), always a step below the name (`detail_size`).
+The circuit and round text is black: gray small labels were too faint to
+read on the X. In the full layout it is `label--base` on OG and
+`label--xlarge` on X beneath a larger title. The other layouts keep their
+smaller type.
 
-Every flag in a layout stands the same height, matched to the three lines
+Every flag in a layout stands the same height, matched to the text
 beside it on each device: on the OG 56px, or 36px on the half-horizontal,
 whose 200px-high slot overflowed at 48px; on
 the X 96px on the full layout, 88px on the half-vertical and 68px on the
@@ -166,11 +168,18 @@ that squeezed every X flag into the OG's 112px cap. A render test now rejects
 any bracketed size over 128px in the templates. The flag is `shrink-0`, and
 in the half-horizontal the header and QR code are `flex-none`:
 `layout--stretch` gives every child of the row an equal third, which left the
-header too narrow for a wide flag. A 1px border frames
-the image itself, so white fields (Japan, Monaco, Poland) keep an edge against
+header too narrow for a wide flag. A 2px black frame surrounds
+the image, so white fields (Japan, Monaco, Poland) keep an edge against
 the white screen. In 2-bit grayscale most flags stay recognisable, but
 tricolours that differ only by hue (Italy, Mexico, Ireland) come out alike, so
 the flag is never the only thing naming the race.
+The flag is two images of the same file, one per device (`lg:hidden` /
+`hidden lg:block`). The OG's is marked `image-dither`, so TRMNL dithers it to
+the OG's few inks. The X's is a plain `image`: its 16-gray panel draws flat
+grays, and dithering made small emblems and flat stripes look noisy. There is
+no Framework class for "don't dither", so no mark is the whole instruction; an
+invented class for it (`image-gray-x`) was removed on 23 September 2026
+because TRMNL would have ignored it.
 
 The lead is a session name in title weight over the value in large type
 ("Free Practice 3" / "Sat 11:30"). The name was grey label text at first, which
@@ -193,26 +202,29 @@ or night comes from the session's local start at the track (18:00 or later is
 night), never from the code's `_night` suffix: beyond a couple of days MET
 forecasts in 6-hour periods, and a 16:00 race in Baku drew a moon.
 
-**Full:** the race header across the top. Left column: the lead and the
+**Full:** the race header and QR code across the top. Left column: the lead and the
 weekend timeline (sessions with local times, weather, each one's top three,
 and a filled "Next" marker on the first session that has not started). Right
 column: the grid on race morning, otherwise whichever is newer of the latest
-session result ("Race result", "Qualifying result") and up to four headlines,
-with the QR code at the bottom. The focus block owns the column's spare
+session result ("Race result", "Qualifying result") and up to four headlines.
+The focus block owns the column's spare
 height: TRMNL's overflow script hides news items that do not fit, and a
 separate spacer read to it as content and hid most of them. On race morning
-the grid fills the right column and the QR code moves beside the lead.
+the grid fills the right column while the QR code stays in the header.
+When there is no news to show, a short empty message is centred in the right
+column.
 
 **Half horizontal:** the race header, lead and the lead's weather, beside the
-latest result or two headlines, then the QR code.
+latest result or two headlines, then the QR code. With no news it shows the
+timeline in its short form instead of an empty message: this layout has no
+timeline otherwise.
 
 **Half vertical:** the race header, then the lead and its weather beside the
 QR code, then the race result once it lands, otherwise the timeline and one
 headline (two overflowed into the title bar once the timeline was full).
 
 **Quadrant:** the race header, then the lead and its weather beside the QR
-code. The title bar carries the short race name ("Italian GP") and
-"GrandPrixPicks.com".
+code. Like every layout, its title bar reads "GrandPrixPicks.com".
 
 **The lead's weather** is the lead session's own forecast (`lead.weather`),
 under the lead on every layout, worded as the race pages word it
@@ -222,7 +234,16 @@ keep the compact form (icon, "23°", "60%").
 
 **Results** carry the top ten for a race or sprint and the top five for a
 qualifying session (`RESULT_ROWS`). The full layout and the half-vertical show
-ten as two columns of five; the half-horizontal shows five.
+ten as two columns of five; the half-horizontal shows five. The columns are
+split by hand, although TRMNL's rules ask for their overflow engine (one
+`.column` with `data-overflow-max-cols`). Tried on 23 September 2026, the engine
+filled the first column before starting the second: ten rows came out 7 + 3
+on the OG and 9 + 1 on the X, and a portrait X clipped the list after eight.
+
+**Long values fit by width only.** TRMNL's guide says a text value also needs
+`data-value-fit-max-height`, but their script says the opposite: without it
+fitting is width-only, and a height check wrongly shrinks text to the minimum
+size. So the lead has none.
 
 **Long values fit.** The lead value carries `data-value-fit="true"` (an
 earlier `data-fit-value` was the wrong name and did nothing), and its wrapper
@@ -264,8 +285,13 @@ Notes on news:
 TRMNL, and their publishing linter (Chef) flags inline `padding`, `margin`,
 `color`, `font-size`, `display` and similar. Only the 2-bit-safe shades
 (`black`, `white`, `gray-30`, `gray-55`) are used, and the icon is a black
-mark on transparent (`apps/web/public/trmnl-icon.svg`), because the site
-favicon's chartreuse bars vanish in grayscale.
+mark on transparent, because the site favicon's chartreuse bars vanish in
+grayscale. It is inline in the `title_bar` template, base64-encoded with
+`base64_encode`, as TRMNL's guide asks, so drawing a screen never fetches it.
+`apps/web/public/trmnl-icon.svg` is the same mark as a file, for the directory
+listing. The flag's frame is a black box with 2px of padding
+(`bg--black p--0.5`) rather than an inline border: TRMNL's rules allow no
+inline styles, and the Framework has no all-sides border class.
 
 Timing Sheet Minimal (`project_timing_sheet_minimal`) suits e-ink as it is:
 flat, shadowless, no livery colour. Every livery-coloured competitor turns to
@@ -273,9 +299,8 @@ grey mush on the device.
 
 ## 7. QR code and tracking
 
-Every layout carries the QR code, captioned "Read more" above it: the same
-short caption at every size, chosen by Barry over a longer label that only fit
-the full layout. The title bar reads "GrandPrixPicks.com" (display casing, per
+Every layout carries the QR code without a caption. The title bar reads
+"GrandPrixPicks.com" (display casing, per
 `feedback_brand_url_casing`), so the address is on screen without repeating it
 under the code.
 
@@ -328,11 +353,17 @@ short links in `server/lib/socialRedirect.ts`. `pageViewProperties` in
 ### The screens page: `/trmnl`
 
 `apps/web/src/routes/trmnl.tsx` shows every screen, for each sample moment of
-a weekend and each size, on any screen, with the payload behind it. Three
-switches pick the screen: the device (`?device=og|x`), the orientation
-(`?orientation=landscape|portrait`) and the palette (`?palette=`, one of
-`1bit`, `2bit`, `4bit`, `color-4bwry`, `color-7a`, `color-full`; the default
-is each device's own, 2-bit on the OG and 4-bit on the X). It is the place to check
+a weekend, with all four sizes side by side, on any screen, with the payload
+behind it. Three switches pick the screen: the device (`?device=og|x`), the
+orientation (`?orientation=landscape|portrait`) and the palette (`?palette=`,
+one of `1bit`, `2bit`, `4bit`, `color-4bwry`, `color-7a`, `color-full`; the
+default is each device's own, 2-bit on the OG and 4-bit on the X). A fourth,
+`?news=`, shows any moment with 0, 1, 2 or 10 sample headlines instead of the
+news as published (`sampleNewsVariant` in `scenarios.ts`; the server builds
+each moment's variants, since news can change the focus block too). The
+payload carries at most six headlines, so 10 shows the overflow as a device
+would. There was a size switch as well; showing every size at once replaced
+it. It is the place to check
 a layout change, and the plugin's "learn more" link from the TRMNL directory.
 
 - **The screens are the site's real weekends.** Each moment (build-up,
@@ -361,7 +392,10 @@ a layout change, and the plugin's "learn more" link from the TRMNL directory.
 - **Samples** (`TRMNL_SCENARIOS` in `scenarios.ts`) remain for any moment no
   weekend has reached yet (the sprint before the first
   sprint weekend), and for the render and parity tests. Sample news uses
-  invented headlines, and the page says when it is showing a sample.
+  invented headlines, and the page says when it is showing a sample. The news
+  switch covers the empty state and overflow for every moment; the full
+  layout renders at most four headlines and keeps the QR code in the header
+  above them.
 - **Feedback** (`routes/-trmnl/TrmnlFeedback.tsx`) sits under the screens:
   one box, sent through `support.submitRequest` with category `trmnl`, so it
   reaches the support inbox. Sending needs an account, deliberately: someone
@@ -405,11 +439,13 @@ a layout change, and the plugin's "learn more" link from the TRMNL directory.
   extensions (`{% template %}` and `qr_code`). Half and quarter layouts are
   shown inside their mashup beside "Another plugin" slots, with TRMNL's
   Framework CSS and JS loaded from trmnl.com in a sandboxed iframe.
-- **Palettes include the platform's dithering.** `image-dither` only marks an
-  image: TRMNL's renderer dithers it to the device's inks, and the Framework
-  CSS and JS do not, so the flags showed in full colour on every palette. The
-  preview document runs `DITHER_SOURCE` (Floyd-Steinberg to the palette's
-  nearest ink, at the image's size in panel pixels; none on full colour).
+- **Palettes include the platform's image treatment.** `image-dither` only
+  marks an image: TRMNL's renderer dithers it to the device's inks, and the
+  Framework CSS and JS do not, so the OG flags showed in full colour on every
+  palette. The preview document runs `DITHER_SOURCE` (Floyd-Steinberg to the
+  palette's nearest ink, at the image's size in panel pixels; none on full
+  colour). An image without `image-dither` (the X's flag) is only snapped to
+  the nearest gray, with no diffusion, on grayscale palettes.
   The sandboxed frame cannot read pixels from another origin, so
   `TrmnlScreen` inlines the flag as a `data:` URI first and holds the screen
   back until it has.

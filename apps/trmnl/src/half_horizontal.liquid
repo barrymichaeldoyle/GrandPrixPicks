@@ -26,6 +26,10 @@
     {% elsif news.size > 0 %}
       {% render "news", news: news, limit: 2, headline_size: "title--small lg:title--large" %}
     {% else %}
+      {% comment %}
+        No news yet: the sessions, which this layout otherwise leaves out,
+        rather than an empty state.
+      {% endcomment %}
       {% render "schedule", schedule: schedule, size: "table--xsmall", name: "short" %}
     {% endif %}
   </div>

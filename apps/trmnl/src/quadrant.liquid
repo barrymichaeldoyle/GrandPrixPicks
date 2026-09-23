@@ -5,7 +5,7 @@
 {% endcomment %}
 <div class="layout layout--col layout--top layout--stretch-x gap--small">
   {% render "race_header", race: race, name_size: "lg:title--base", detail_size: "lg:label--base", flag_size: "h--[56px] w--max-[112px] lg:h--[68px] lg:w--max-36" %}
-  <div class="flex flex--row portrait:flex--col flex--center-y gap--medium w--full">
+  <div class="grow flex flex--row portrait:flex--col flex--center-y gap--medium w--full">
     <div class="grow flex flex--col flex--center gap--xsmall">
       {% render "lead", lead: lead, size: "value--medium lg:value--large" %}
       {% render "lead_weather", weather: lead.weather %}
@@ -16,7 +16,7 @@
 {% elsif standings %}
 <div class="layout layout--col layout--top layout--stretch-x gap--small">
   {% render "standings_header", standings: standings, title_size: "lg:title--base", detail_size: "lg:label--base" %}
-  <div class="flex flex--row portrait:flex--col flex--center-y gap--medium w--full">
+  <div class="grow flex flex--row portrait:flex--col flex--center-y gap--medium w--full">
     <div class="grow flex flex--col flex--center gap--xsmall">
       {% render "leader", standings: standings, value_size: "value--small lg:value--large" %}
       <span class="label label--small lg:label--base">Constructors: {{ standings.constructors.first.name }}</span>

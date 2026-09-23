@@ -19,6 +19,8 @@ export type TrmnlScenario = {
   label: string;
   /** What moment of the weekend this is, for the page caption. */
   moment: string;
+  /** What the payload was built from, so the page can vary its news. */
+  input: TrmnlInput;
   payload: TrmnlPayload;
 };
 
@@ -124,6 +126,57 @@ const news: TrmnlInput['news'] = [
     publishedAt: at('2026-09-03T09:00:00Z'),
   },
 ];
+
+/**
+ * Invented headlines for the `/trmnl` page's news switch, which shows any
+ * moment with 0, 1, 2 or 10 of them instead of the news as published.
+ */
+const SAMPLE_HEADLINES = [
+  'A late gearbox change puts a front runner under investigation',
+  'Teams bring revised floors and rear wings for the weekend',
+  'A weather shift could change qualifying conditions',
+  'The stewards review an impeding incident from final practice',
+  'Two drivers receive new power unit parts before the weekend',
+  'A revised tyre selection changes the long-run picture',
+  'A team confirms its line-up for next season',
+  'Track limits at the final corner will be monitored closely',
+  'A reserve driver takes over a car in first practice',
+  'The pit lane speed limit is lowered for safety',
+];
+
+/** The headline counts the news switch offers. */
+export const TRMNL_NEWS_COUNTS = [0, 1, 2, 10] as const;
+export type TrmnlNewsCount = (typeof TRMNL_NEWS_COUNTS)[number];
+
+/**
+ * What a screen shows with `count` sample headlines in place of its news: the
+ * headlines, and the block the large layouts give their spare room to, since
+ * news can change it.
+ *
+ * The starting grid arrives as a news item, so an item carrying one is kept
+ * (race morning keeps its grid) but its headline is not counted. The samples
+ * are published in the half hours before the moment, so they are its newest
+ * news. The payload carries at most six headlines, so ten shows as six, as it
+ * would on a device.
+ */
+export function sampleNewsVariant(
+  input: TrmnlInput,
+  count: TrmnlNewsCount,
+): Pick<TrmnlPayload, 'news' | 'focus'> {
+  const grids = input.news.filter(
+    (item) => (item.startingGrid?.length ?? 0) > 0,
+  );
+  const samples = SAMPLE_HEADLINES.slice(0, count).map((headline, index) => ({
+    headline,
+    publishedAt: input.now - (index + 1) * 30 * 60 * 1000,
+  }));
+  // The focus sees the grid too; the headlines are the samples alone, so the
+  // grid's own headline never takes one of the payload's six places.
+  return {
+    focus: buildTrmnlPayload({ ...input, news: [...grids, ...samples] }).focus,
+    news: buildTrmnlPayload({ ...input, news: samples }).news,
+  };
+}
 
 const gridNews: TrmnlInput['news'][number] = {
   headline: 'Starting grid confirmed',
@@ -296,12 +349,8 @@ function scenario(
   moment: string,
   input: Partial<TrmnlInput> & { now: number },
 ): TrmnlScenario {
-  return {
-    id,
-    label,
-    moment,
-    payload: buildTrmnlPayload({ ...base, ...input }),
-  };
+  const full: TrmnlInput = { ...base, ...input };
+  return { id, label, moment, input: full, payload: buildTrmnlPayload(full) };
 }
 
 export const TRMNL_SCENARIOS: readonly TrmnlScenario[] = [

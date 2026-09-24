@@ -3,29 +3,38 @@
 {% if news.size > 6 %}{% assign half_horizontal_news_size = "title--small lg:title--small" %}{% endif %}
 {% comment %}
   Landscape gives the headline or result the remaining column; portrait stacks
-  it below the compact header and lead. The QR code stays at the header's right.
+  it below the compact header and lead. The QR code sits beside the lead so
+  the forecast stays above the title bar on the short OG half.
 {% endcomment %}
-<div class="layout layout--row portrait:layout--col layout--stretch gap--large">
-  <div class="flex flex--col gap--small flex-none">
-    <div class="flex flex--row flex--top gap--small w--full">
-      <div class="grow">{% render "race_header", race: race, name_size: "title--small lg:title--base", detail_size: "lg:label--base", flag_size: "h--[24px] w--max-[48px] lg:h--[32px] lg:w--max-[64px]", inline_flag: true, split_dates: true %}</div>
+<div class="layout layout--row portrait:layout--col layout--top layout--stretch-x gap--large">
+  <div class="flex flex--col flex--stretch-x gap--small flex-none portrait:w--full">
+    {% render "race_header", race: race, name_size: "title--small lg:title--base", detail_size: "lg:label--base", flag_size: "h--[24px] w--max-[48px] lg:h--[32px] lg:w--max-[64px]", inline_flag: true, split_dates: true %}
+    <div class="flex flex--row flex--center-y gap--small w--full">
+      <div class="grow flex flex--col gap--xsmall">
+        {% render "lead", lead: lead, size: "value--medium portrait:value--large lg:value--xlarge" %}
+        {% render "lead_weather", weather: lead.weather %}
+      </div>
       <div class="flex-none">{% render "qr", url: race.url %}</div>
     </div>
-    <div class="flex flex--col gap--small">
-      {% render "lead", lead: lead, size: "value--large lg:value--xlarge" %}
-      {% render "lead_weather", weather: lead.weather %}
-    </div>
   </div>
-  <div class="grow flex flex--col gap--small">
+  <div class="grow flex flex--col flex--stretch-x gap--small portrait:w--full">
     {% if focus == "result" %}
-      {% render "result", result: result, limit: 5, split: false %}
+      {% render "result", result: result, limit: 5, split: false, compact: true %}
     {% else %}
-      {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short" %}
+      <div class="portrait:hidden">
+        {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short" %}
+      </div>
+      <div class="hidden portrait:block lg:portrait:hidden">
+        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--xsmall", name: "short" %}
+      </div>
+      <div class="hidden lg:portrait:block">
+        {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short" %}
+      </div>
       {% if news.size > 0 %}
-        <div class="grow lg:hidden">
-          {% render "news", news: news, limit: 2, headline_size: half_horizontal_news_size, fill: true %}
+        <div class="grow portrait:hidden lg:hidden">
+          {% render "news", news: news, limit: 1, headline_size: half_horizontal_news_size, fill: true %}
         </div>
-        <div class="grow hidden lg:block">
+        <div class="grow hidden lg:block lg:portrait:hidden">
           {% render "news", news: news, limit: 4, headline_size: half_horizontal_news_size, fill: true %}
         </div>
       {% endif %}
@@ -33,7 +42,7 @@
   </div>
 </div>
 {% elsif standings %}
-<div class="layout layout--row portrait:layout--col layout--stretch gap--large">
+<div class="layout layout--row portrait:layout--col layout--top layout--stretch-x gap--large">
   <div class="flex flex--col gap--small flex-none">
     <div class="flex flex--row flex--center-y gap--small w--full">
       <div class="grow">{% render "standings_header", standings: standings, title_size: "lg:title--large", detail_size: "lg:label--base" %}</div>

@@ -102,13 +102,18 @@
 {% comment %}
   The weekend timeline. `name` picks the row label: "label" spells it out
   ("Free Practice 1", "Sprint Qualifying") where there is room, "short"
-  ("FP1", "SQ") where there is not. Each row carries its own forecast.
+  ("FP1", "SQ") where there is not. `tail` shows the last `limit` rows so the
+  narrow layouts keep qualifying and the race. Each row carries its forecast.
 {% endcomment %}
 {% template schedule %}
 {% assign schedule_limit = limit | default: 99 %}
-<table class="table {{ size }}">
+{% assign schedule_offset = 0 %}
+{% if tail and schedule.size > schedule_limit %}
+  {% assign schedule_offset = schedule.size | minus: schedule_limit %}
+{% endif %}
+<table class="table w--full {{ size }}">
   <tbody>
-    {% for row in schedule limit: schedule_limit %}
+    {% for row in schedule limit: schedule_limit offset: schedule_offset %}
     <tr>
       <td><span class="title title--small lg:title--base">{{ row[name] }}</span></td>
       <td><span class="label label--small lg:label--base">{{ row.when }}</span></td>
@@ -170,14 +175,14 @@
 {% endcomment %}
 {% template result %}
 <div class="flex flex--col gap--small">
-  <span class="title title--small lg:title--large">{{ result.label }}</span>
+  <span class="title title--small {% if compact %}lg:title--base{% else %}lg:title--large{% endif %}">{{ result.label }}</span>
   {% if split and result.rows.size > 5 %}
   <div class="columns">
-    <div class="column">{% render "result_rows", rows: result.rows, limit: 5, offset: 0 %}</div>
-    <div class="column">{% render "result_rows", rows: result.rows, limit: 5, offset: 5 %}</div>
+    <div class="column">{% render "result_rows", rows: result.rows, limit: 5, offset: 0, compact: compact %}</div>
+    <div class="column">{% render "result_rows", rows: result.rows, limit: 5, offset: 5, compact: compact %}</div>
   </div>
   {% else %}
-  {% render "result_rows", rows: result.rows, limit: limit, offset: 0 %}
+  {% render "result_rows", rows: result.rows, limit: limit, offset: 0, compact: compact %}
   {% endif %}
 </div>
 {% endtemplate %}
@@ -188,7 +193,7 @@
   <div class="item">
     <div class="meta"><span class="index">{{ row.pos }}</span></div>
     <div class="content">
-      <span class="title title--small lg:title--large">{{ row.name }}</span>
+      <span class="title title--small {% if compact %}lg:title--base{% else %}lg:title--large{% endif %}">{{ row.name }}</span>
     </div>
   </div>
   {% endfor %}
@@ -207,11 +212,11 @@
 {% endtemplate %}
 
 {% comment %}
-  `lg:portrait:table--small`: stacked under the timeline on a portrait X, the
-  base row height pushed the back of the grid off the screen.
+  `lg:portrait:table--xsmall`: stacked under the timeline on a portrait X,
+  eleven rows per column need the same compact height as the OG.
 {% endcomment %}
 {% template grid_rows %}
-<table class="table table--xsmall lg:table--base lg:portrait:table--small">
+<table class="table table--xsmall lg:table--base lg:portrait:table--xsmall">
   <tbody>
     {% for row in rows limit: limit offset: offset %}
     <tr>

@@ -2,9 +2,13 @@
 {% assign half_vertical_news_size = "title--small lg:title--base" %}
 {% if news.size > 3 %}{% assign half_vertical_news_size = "title--small lg:title--small" %}{% endif %}
 <div class="layout layout--col layout--top layout--stretch-x gap--medium">
-  <div class="flex flex--row flex--center-y gap--medium w--full">
+  <div class="flex flex--row flex--center-y gap--medium w--full portrait:hidden">
     <div class="grow">{% render "race_header", race: race, name_size: "lg:title--large", detail_size: "lg:label--large", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true %}</div>
     <div class="flex-none">{% render "qr", url: race.url %}</div>
+  </div>
+  <div class="hidden portrait:block w--full">
+    {% render "race_header", race: race, name_size: "lg:title--large", detail_size: "lg:label--large", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true %}
+    {% render "qr", url: race.url %}
   </div>
   <div class="flex flex--row flex--center-y gap--medium">
     <div class="grow flex flex--col flex--center gap--xsmall">
@@ -20,19 +24,35 @@
     <div class="portrait:hidden">{% render "result", result: result, limit: 10, split: true %}</div>
     <div class="hidden portrait:block">{% render "result", result: result, limit: 10, split: false %}</div>
   {% else %}
-    {% render "schedule", schedule: schedule, limit: 4, size: "table--small lg:table--base", name: "short" %}
-    {% comment %}Offer the available headlines to overflow management; it keeps the ones that fit.{% endcomment %}
-    <div class="grow">
-      {% render "news", news: news, limit: 7, headline_size: half_vertical_news_size, fill: true %}
+    {% comment %}
+      The landscape OG has room for three schedule rows and one headline.
+      More rows start below the title bar before overflow management can
+      hide them. The taller portrait slot and the X can carry more.
+    {% endcomment %}
+    <div class="portrait:hidden lg:hidden">
+      {% render "schedule", schedule: schedule, limit: 3, tail: true, size: "table--small", name: "short" %}
+      {% if news.size > 0 %}{% render "news", news: news, limit: 1, headline_size: half_vertical_news_size %}{% endif %}
+    </div>
+    <div class="hidden portrait:block lg:portrait:hidden">
+      {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--small", name: "short" %}
+      {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
+    </div>
+    <div class="hidden lg:block">
+      {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--base", name: "short" %}
+      {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
     </div>
   {% endif %}
 </div>
 {% elsif standings %}
 <div class="layout layout--col layout--top layout--stretch-x gap--medium">
-  <div class="flex flex--row flex--center-y gap--medium">
+  <div class="flex flex--row flex--center-y gap--medium portrait:hidden">
     <div class="grow">
       {% render "standings_header", standings: standings, title_size: "lg:title--large", detail_size: "lg:label--large" %}
     </div>
+    {% render "qr", url: standings.url %}
+  </div>
+  <div class="hidden portrait:block">
+    {% render "standings_header", standings: standings, title_size: "lg:title--large", detail_size: "lg:label--large" %}
     {% render "qr", url: standings.url %}
   </div>
   {% render "standings_table", label: "Drivers", rows: standings.drivers, limit: 10, offset: 0, size: "table--xsmall lg:table--base lg:portrait:table--small" %}

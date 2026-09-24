@@ -1,18 +1,29 @@
 {% if has_race %}
-{% comment %}The compact race header keeps the QR code in the upper-right corner.{% endcomment %}
-<div class="layout layout--col layout--top layout--stretch-x gap--small">
-  <div class="flex flex--row flex--center-y gap--small w--full">
+{% comment %}The narrow portrait quarter stacks the QR below the race header.{% endcomment %}
+<div class="layout layout--col layout--top layout--stretch-x gap--none">
+  <div class="flex flex--row flex--center-y gap--small w--full portrait:hidden">
     <div class="grow">{% render "race_header", race: race, name_size: "title--small lg:title--base", detail_size: "lg:label--base", flag_size: "h--[24px] w--max-[48px] lg:h--[32px] lg:w--max-[64px]", inline_flag: true %}</div>
     <div class="flex-none">{% render "qr", url: race.url %}</div>
   </div>
+  <div class="hidden portrait:block w--full">
+    {% render "race_header", race: race, name_size: "title--small lg:title--base", detail_size: "lg:label--base", flag_size: "h--[24px] w--max-[48px] lg:h--[32px] lg:w--max-[64px]", inline_flag: true %}
+    {% render "qr", url: race.url %}
+  </div>
   <div class="grow flex flex--col flex--stretch-x gap--xsmall">
-    <div class="flex-none flex flex--col flex--center gap--xsmall">
-      {% render "lead", lead: lead, size: "value--medium lg:value--large" %}
+    <div class="flex-none flex flex--col flex--center gap--none">
+      {% render "lead", lead: lead, size: "value--small portrait:value--medium lg:value--large" %}
       {% render "lead_weather", weather: lead.weather %}
     </div>
     {% if news.size > 0 %}
-      <div class="grow flex flex--col flex--left">
-        {% render "news", news: news, limit: 2, headline_size: "title--small lg:title--base", fill: true %}
+      {% comment %}The OG landscape quarter ends after the lead; its title bar would cut a headline in half.{% endcomment %}
+      <div class="hidden portrait:block lg:portrait:hidden">
+        {% render "news", news: news, limit: 1, headline_size: "title--small" %}
+      </div>
+      <div class="hidden lg:block lg:portrait:hidden">
+        {% render "news", news: news, limit: 1, headline_size: "title--small lg:title--base" %}
+      </div>
+      <div class="hidden lg:portrait:block">
+        {% render "news", news: news, limit: 2, headline_size: "title--small lg:title--base" %}
       </div>
     {% endif %}
   </div>
@@ -25,7 +36,7 @@
   </div>
   <div class="grow flex flex--row portrait:flex--col flex--center-y gap--medium w--full">
     <div class="grow flex flex--col flex--center gap--xsmall">
-      {% render "leader", standings: standings, value_size: "value--small lg:value--large" %}
+      {% render "leader", standings: standings, value_size: "value--small lg:value--medium" %}
       <span class="label label--small lg:label--base">Constructors: {{ standings.constructors.first.name }}</span>
     </div>
   </div>

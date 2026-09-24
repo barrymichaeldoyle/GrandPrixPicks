@@ -124,13 +124,14 @@ then) it keeps the title, reads "After round 16 of 23" and names the
 at all does the screen say "No race scheduled.".
 
 - **Full:** all 22 drivers in two columns, all 11 constructors in a third,
-  and one news item beside the QR code in the heading. In portrait the
-  constructors follow the drivers.
+  and one news item beside the QR code in the landscape heading. In portrait
+  the news follows the heading and the constructors follow the drivers.
 - **Half horizontal:** the champion (a fitted value) and the constructors'
   champion, beside the drivers' top five. Two tables side by side wrapped
   every name and ran into the title bar.
-- **Half vertical:** the title beside the QR code, then the drivers' top ten;
-  the constructors' ten join them only on the tall portrait half.
+- **Half vertical:** the title beside the QR code in landscape, stacked above
+  it in portrait, then the drivers' top ten. The constructors' ten join them
+  only on the tall portrait half.
 - **Quadrant:** the title, then the champion and the constructors' champion
   beside the QR code.
 
@@ -207,8 +208,8 @@ weekend timeline (sessions with local times, weather, each one's top three,
 and a filled "Next" marker on the first session that has not started). Right
 column: the grid on race morning, otherwise whichever is newer of the latest
 session result ("Race result", "Qualifying result") and the headlines. It
-offers seven headlines on the OG and twelve on the X to avoid clipping the last
-item; more than six headlines steps the type down once. A horizontal divider
+offers seven headlines on the OG, eleven on the X in landscape, and ten on the
+X in portrait; more than six headlines steps the type down once. A horizontal divider
 separates each adjacent headline.
 The focus block owns the column's spare
 height: TRMNL's overflow script hides news items that do not fit, and a
@@ -218,19 +219,25 @@ the grid fills the right column while the QR code stays in the header.
 When there is no news to show, a short empty message is centred in the right
 column.
 
-**Half horizontal:** the compact race header and QR code sit above the lead
-and its weather. Beside them, it shows the latest result or, before results,
-the short weekend schedule followed by two headlines on the OG or four on the
-X. This keeps the session times visible while making room for current news.
+**Half horizontal:** the compact race header sits above the lead and its
+weather, with the QR code beside the lead. Beside them, it shows the latest
+result or, before results, the short weekend schedule followed by one headline
+on the OG or four on the X. In portrait the schedule uses the available height
+without news: the OG shows the last four sessions, including qualifying and
+the race, while the X shows five. Result names use a smaller size on the X so
+all five remain above the title bar.
 
 **Half vertical:** the compact race header and QR code sit above the lead and
-its weather. Before results, it shows the first four upcoming sessions and
-up to seven headlines after the timeline, with dividers between headlines.
+its weather, and stack in portrait so the race name stays clear. Before
+results, the landscape OG shows the last three sessions and one headline;
+portrait OG and X show the last four sessions and up to three headlines.
+Keeping the tail of the schedule preserves the qualifying and race times in
+the narrow view.
 
 **Quadrant:** the compact race header and QR code sit above the lead and its
-weather. The lead stays primary; up to two headlines sit below it when there is
-room. TRMNL's overflow manager hides a headline if it does not fit, and a
-divider separates two visible items. Like every layout, its title bar reads
+weather, and stack in portrait. The OG landscape quarter ends with the lead
+and weather; one headline fits in OG portrait and X landscape, and two in X
+portrait. A divider separates two headlines. Like every layout, its title bar reads
 "GrandPrixPicks.com".
 
 **The lead's weather** is the lead session's own forecast (`lead.weather`),
@@ -553,12 +560,11 @@ items on it were not met at first, and were fixed on 23 September 2026:
    and time and left half the screen empty. The half-vertical shows one column
    of ten results in portrait instead of two of five (`portrait:hidden` /
    `hidden portrait:block`), and the race-morning grid drops to its smallest
-   rows on a portrait X (`lg:portrait:table--small`), where the base size
-   pushed P8 onwards off the screen. The half-horizontal's three columns
-   become two rows in portrait (`portrait:layout--col`): the header and lead
-   beside the QR code, then the news or result full width, because at 480px
-   three columns truncated every headline and clipped the winner's name. The
-   quarter puts its QR code under the lead in portrait (`portrait:flex--col`). The grid children are plain flex
+   rows on a portrait X (`lg:portrait:table--xsmall`), so all 22 grid positions
+   fit. The half-horizontal's columns stack in portrait
+   (`portrait:layout--col`): the header above the lead, the QR code beside
+   the lead, then the schedule or result full width. The quarter puts its QR
+   code below the race header in portrait. The grid children are plain flex
    columns: the Framework's `column` class is positioned by the `columns`
    engine and clipped its content inside a grid.
 2. **Gray labels on 1-bit screens.** They flag `label--gray` as hard to read on

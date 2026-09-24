@@ -14,7 +14,7 @@
     half empty.
   {% endcomment %}
   <div class="grid grid--cols-2 portrait:grid--cols-1 gap--large grow">
-    <div class="flex flex--col flex--stretch-x gap--distribute">
+    <div class="flex flex--col flex--stretch-x gap--large">
       <div class="flex flex--col flex--center gap--xsmall">
         {% render "lead", lead: lead, size: "value--large lg:value--xxlarge" %}
         {% render "lead_weather", weather: lead.weather %}
@@ -41,8 +41,11 @@
           <div class="grow lg:hidden">
             {% render "news", news: news, limit: 7, headline_size: full_news_size, fill: true %}
           </div>
-          <div class="grow hidden lg:block">
-            {% render "news", news: news, limit: 12, headline_size: full_news_size, fill: true %}
+          <div class="grow hidden lg:block lg:portrait:hidden">
+            {% render "news", news: news, limit: 11, headline_size: full_news_size, fill: true %}
+          </div>
+          <div class="grow hidden lg:portrait:block">
+            {% render "news", news: news, limit: 10, headline_size: full_news_size, fill: true %}
           </div>
         {% elsif news.size == 0 %}
           {% render "news", news: news, limit: 1, headline_size: full_news_size, fill: true %}
@@ -59,12 +62,19 @@
   the drivers.
 {% endcomment %}
 <div class="layout layout--col layout--top layout--stretch-x gap--small">
-  <div class="flex flex--row flex--center-y gap--medium">
+  <div class="flex flex--row flex--center-y gap--medium portrait:hidden">
     <div class="grow flex flex--col flex--left flex--stretch-x gap--small">
       {% render "standings_header", standings: standings, title_size: "lg:title--xlarge", detail_size: "lg:label--large" %}
       {% render "news", news: news, limit: 1, headline_size: "title--small lg:title--base" %}
     </div>
     {% render "qr", url: standings.url %}
+  </div>
+  <div class="hidden portrait:block">
+    <div class="flex flex--row flex--center-y gap--small">
+      <div class="grow">{% render "standings_header", standings: standings, title_size: "lg:title--xlarge", detail_size: "lg:label--large" %}</div>
+      <div class="flex-none">{% render "qr", url: standings.url %}</div>
+    </div>
+    {% if news.size > 0 %}{% render "news", news: news, limit: 1, headline_size: "title--small lg:title--base" %}{% endif %}
   </div>
   <div class="grid grid--cols-3 portrait:grid--cols-2 gap--medium grow">
     <div class="flex flex--col gap--xsmall col--span-2">

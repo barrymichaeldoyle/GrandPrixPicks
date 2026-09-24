@@ -102,11 +102,12 @@ describe('TRMNL layouts', () => {
       ...buildUp.payload,
       ...sampleNewsVariant(buildUp.input, 0),
     };
-    for (const layout of ['full', 'half_vertical'] as const) {
-      const html = renderTrmnlMarkup(layout, empty);
-      expect(html).toContain('No news yet.');
-      expect(html).toContain('class="qr-code"');
-    }
+    const full = renderTrmnlMarkup('full', empty);
+    expect(full).toContain('No news yet.');
+    expect(full).toContain('class="qr-code"');
+    const halfVertical = renderTrmnlMarkup('half_vertical', empty);
+    expect(halfVertical).not.toContain('No news yet.');
+    expect(halfVertical).toContain('class="qr-code"');
     // Half, top or bottom has no timeline of its own, so it shows that.
     const half = renderTrmnlMarkup('half_horizontal', empty);
     expect(half).not.toContain('No news yet.');
@@ -119,10 +120,10 @@ describe('TRMNL layouts', () => {
     expect(variant.news).toHaveLength(20);
     expect(variant.focus).toBe('news');
     const full = renderTrmnlMarkup('full', { ...buildUp.payload, ...variant });
-    expect(full.match(/data-clamp="2"/g)).toHaveLength(19);
-    expect(full.match(/class="divider divider--h"/g)).toHaveLength(17);
+    expect(full.match(/data-clamp="2"/g)).toHaveLength(28);
+    expect(full.match(/class="divider divider--h"/g)).toHaveLength(25);
     expect(full).toContain('class="grow lg:hidden"');
-    expect(full).toContain('class="grow hidden lg:block"');
+    expect(full).toContain('class="grow hidden lg:block lg:portrait:hidden"');
     expect(full).toContain('h--full flex--left flex--center-y');
     expect(full).toContain('Free Practice 1');
     expect(full).toContain('Race');
@@ -130,8 +131,8 @@ describe('TRMNL layouts', () => {
       ...buildUp.payload,
       ...variant,
     });
-    expect(halfHorizontal.match(/data-clamp="2"/g)).toHaveLength(6);
-    expect(halfHorizontal.match(/class="divider divider--h"/g)).toHaveLength(4);
+    expect(halfHorizontal.match(/data-clamp="2"/g)).toHaveLength(5);
+    expect(halfHorizontal.match(/class="divider divider--h"/g)).toHaveLength(3);
     expect(halfHorizontal).toContain('FP1');
     expect(halfHorizontal).toContain('Race');
     const halfVertical = renderTrmnlMarkup('half_vertical', {
@@ -139,8 +140,8 @@ describe('TRMNL layouts', () => {
       ...variant,
     });
     expect(halfVertical.match(/data-clamp="2"/g)).toHaveLength(7);
-    expect(halfVertical.match(/class="divider divider--h"/g)).toHaveLength(6);
-    expect(halfVertical).toContain('FP1');
+    expect(halfVertical.match(/class="divider divider--h"/g)).toHaveLength(4);
+    expect(halfVertical).toContain('Race');
     expect(halfVertical).toContain('Quali');
   });
 
@@ -151,9 +152,9 @@ describe('TRMNL layouts', () => {
       ...buildUp.payload,
       ...variant,
     });
-    expect(quadrant.match(/data-clamp="2"/g)).toHaveLength(2);
+    expect(quadrant.match(/data-clamp="2"/g)).toHaveLength(4);
     expect(quadrant.match(/class="divider divider--h"/g)).toHaveLength(1);
-    expect(quadrant).toContain('h--full flex--left flex--center-y');
+    expect(quadrant).toContain('flex--col flex--stretch-x gap--xsmall');
     expect(quadrant).toContain(buildUp.payload.lead!.value);
     expect(quadrant.indexOf(buildUp.payload.lead!.value)).toBeLessThan(
       quadrant.indexOf(variant.news[0]!.headline),

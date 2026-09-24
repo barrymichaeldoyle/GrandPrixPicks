@@ -1,6 +1,6 @@
 import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
 import type { QueryCtx } from './_generated/server';
@@ -918,7 +918,7 @@ export const submitH2HPredictions = mutation({
     const nextRace = await loadNextUpcomingRace(ctx, now);
 
     if (!isRaceAcceptingPredictions(race, nextRace, now)) {
-      throw new Error(
+      throw new ConvexError(
         'H2H predictions are only open for the next upcoming race',
       );
     }

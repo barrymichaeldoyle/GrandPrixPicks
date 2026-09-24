@@ -1,3 +1,5 @@
+import { ConvexError } from 'convex/values';
+
 interface UserFacingErrorDetails {
   message: string;
   isGenericFallback: boolean;
@@ -11,7 +13,14 @@ export function toUserFacingErrorDetails(
   error: unknown,
   fallbackMessage: string,
 ): UserFacingErrorDetails {
-  const message = error instanceof Error ? error.message : String(error ?? '');
+  // An expected rejection arrives as a ConvexError. Its data holds the plain
+  // server message, without the stack trace the client adds to `message`.
+  const message =
+    error instanceof ConvexError && typeof error.data === 'string'
+      ? error.data
+      : error instanceof Error
+        ? error.message
+        : String(error ?? '');
 
   // Auth
   if (message.includes('Not authenticated')) {

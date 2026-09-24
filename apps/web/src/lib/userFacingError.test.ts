@@ -1,3 +1,4 @@
+import { ConvexError } from 'convex/values';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -52,6 +53,29 @@ describe('toUserFacingMessage', () => {
     expect(
       toUserFacingMessage(wrapped('All sessions are locked'), FALLBACK_MESSAGE),
     ).toBe("Every session this weekend is locked. You can't change picks now.");
+  });
+
+  it('maps race window rejections sent as ConvexError', () => {
+    // The mapping must read `data`, not the wrapped `message` from the client.
+    function convexError(serverMessage: string) {
+      const error = new ConvexError(serverMessage);
+      error.message =
+        '[CONVEX M(h2h:submitH2HPredictions)] Server Error\nRequest ID: 5f3c';
+      return error;
+    }
+
+    expect(
+      toUserFacingMessage(
+        convexError('H2H predictions are only open for the next upcoming race'),
+        FALLBACK_MESSAGE,
+      ),
+    ).toBe('Team-mate picks are only open for the next race.');
+    expect(
+      toUserFacingMessage(
+        convexError('Predictions are only open for the next upcoming race'),
+        FALLBACK_MESSAGE,
+      ),
+    ).toBe('Predictions are only open for the next upcoming race.');
   });
 
   it('maps network failures and uses the caller fallback for server noise', () => {

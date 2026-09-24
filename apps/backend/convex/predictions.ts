@@ -1,4 +1,4 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 
 import type { Id } from './_generated/dataModel';
 import type { QueryCtx } from './_generated/server';
@@ -430,7 +430,9 @@ export const submitPrediction = mutation({
     const nextRace = await loadNextUpcomingRace(ctx, now);
 
     if (!isRaceAcceptingPredictions(race, nextRace, now)) {
-      throw new Error('Predictions are only open for the next upcoming race');
+      throw new ConvexError(
+        'Predictions are only open for the next upcoming race',
+      );
     }
 
     assertFiveUnique(args.picks.map((id) => id));
@@ -532,7 +534,9 @@ export const randomizePredictions = mutation({
     const nextRace = await loadNextUpcomingRace(ctx, now);
 
     if (!isRaceAcceptingPredictions(race, nextRace, now)) {
-      throw new Error('Predictions are only open for the next upcoming race');
+      throw new ConvexError(
+        'Predictions are only open for the next upcoming race',
+      );
     }
 
     const drivers = await ctx.db.query('drivers').withIndex('by_code').take(30);

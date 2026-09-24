@@ -9,15 +9,17 @@
     {% render "race_header", race: race, name_size: "title--small lg:title--base", detail_size: "lg:label--base", flag_size: "h--[24px] w--max-[48px] lg:h--[32px] lg:w--max-[64px]", inline_flag: true %}
     {% render "qr", url: race.url %}
   </div>
-  <div class="grow flex flex--col flex--stretch-x gap--xsmall">
+  <div class="grow flex flex--col flex--stretch-x gap--auto">
     <div class="flex-none flex flex--col flex--center gap--none">
       {% render "lead", lead: lead, size: "value--small portrait:value--medium lg:value--large" %}
       {% render "lead_weather", weather: lead.weather %}
     </div>
     {% if news.size > 0 %}
-      {% comment %}The OG landscape quarter ends after the lead; its title bar would cut a headline in half.{% endcomment %}
-      <div class="hidden portrait:block lg:portrait:hidden">
+      <div class="portrait:hidden lg:hidden">
         {% render "news", news: news, limit: 1, headline_size: "title--small" %}
+      </div>
+      <div class="hidden portrait:block lg:portrait:hidden">
+        {% render "news", news: news, limit: 1, headline_size: "title--small", clamp: 3 %}
       </div>
       <div class="hidden lg:block lg:portrait:hidden">
         {% render "news", news: news, limit: 1, headline_size: "title--small lg:title--base" %}

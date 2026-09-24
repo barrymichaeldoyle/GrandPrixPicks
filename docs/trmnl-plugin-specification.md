@@ -235,9 +235,10 @@ Keeping the tail of the schedule preserves the qualifying and race times in
 the narrow view.
 
 **Quadrant:** the compact race header and QR code sit above the lead and its
-weather, and stack in portrait. The OG landscape quarter ends with the lead
-and weather; one headline fits in OG portrait and X landscape, and two in X
-portrait. A divider separates two headlines. Like every layout, its title bar reads
+weather, and stack in portrait. One headline fits on the OG and X in
+landscape and the OG in portrait; two fit on the X in portrait. The OG
+portrait headline may take three lines. The lead and news share the available
+space evenly. A divider separates two headlines. Like every layout, its title bar reads
 "GrandPrixPicks.com".
 
 **The lead's weather** is the lead session's own forecast (`lead.weather`),
@@ -321,8 +322,8 @@ under the code.
 The code encodes a short link, `grandprixpicks.com/t/<race>/<phase>` (phase
 `b`, `w` or `r`). A QR code grows with its payload: the full destination with
 four UTM parameters is about 140 characters and drew a 147px code that pushed
-the grid heading off the screen, while the short link draws 87px at 3px per
-module (about 0.6mm on the OG, comfortably scannable). Error correction is
+the grid heading off the screen, while the short link draws 58px at 2px per
+module (about 0.4mm on the OG). Error correction is
 level M; TRMNL's filter defaults to H, which is for printed codes that get
 scuffed.
 

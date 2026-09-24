@@ -153,8 +153,9 @@ describe('TRMNL layouts', () => {
       ...variant,
     });
     expect(quadrant.match(/data-clamp="2"/g)).toHaveLength(4);
+    expect(quadrant.match(/data-clamp="3"/g)).toHaveLength(1);
     expect(quadrant.match(/class="divider divider--h"/g)).toHaveLength(1);
-    expect(quadrant).toContain('flex--col flex--stretch-x gap--xsmall');
+    expect(quadrant).toContain('flex--col flex--stretch-x gap--auto');
     expect(quadrant).toContain(buildUp.payload.lead!.value);
     expect(quadrant.indexOf(buildUp.payload.lead!.value)).toBeLessThan(
       quadrant.indexOf(variant.news[0]!.headline),

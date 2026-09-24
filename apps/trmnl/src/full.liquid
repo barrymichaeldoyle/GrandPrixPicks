@@ -14,7 +14,7 @@
     half empty.
   {% endcomment %}
   <div class="grid grid--cols-2 portrait:grid--cols-1 gap--large grow">
-    <div class="flex flex--col flex--stretch-x gap--large">
+    <div class="flex flex--col flex--stretch-x gap--auto">
       <div class="flex flex--col flex--center gap--xsmall">
         {% render "lead", lead: lead, size: "value--large lg:value--xxlarge" %}
         {% render "lead_weather", weather: lead.weather %}
@@ -28,7 +28,7 @@
         script hides news items that do not fit, and a separate spacer would
         read to it as content.
       {% endcomment %}
-      <div class="grow {% if news.size == 0 and focus != 'result' and focus != 'grid' %}h--full{% endif %}">
+      <div class="grow {% if focus == 'result' %}flex flex--col flex--stretch-x flex--center-y h--full{% elsif news.size == 0 and focus != 'grid' %}h--full{% endif %}">
         {% if focus == "result" %}
           {% render "result", result: result, limit: 10, split: true %}
         {% elsif focus == "grid" %}
@@ -77,14 +77,16 @@
     {% if news.size > 0 %}{% render "news", news: news, limit: 1, headline_size: "title--small lg:title--base" %}{% endif %}
   </div>
   <div class="grid grid--cols-3 portrait:grid--cols-2 gap--medium grow">
-    <div class="flex flex--col gap--xsmall col--span-2">
+    <div class="flex flex--col flex--stretch-x flex--center-y gap--xsmall col--span-2">
       <span class="title title--small lg:title--base">Drivers</span>
       <div class="grid grid--cols-2 gap--medium">
         {% render "standings_table", label: "", rows: standings.drivers, limit: 11, offset: 0, size: "table--xsmall lg:table--small" %}
         {% render "standings_table", label: "", rows: standings.drivers, limit: 11, offset: 11, size: "table--xsmall lg:table--small" %}
       </div>
     </div>
-    {% render "standings_table", label: "Constructors", rows: standings.constructors, limit: 11, offset: 0, size: "table--xsmall lg:table--small" %}
+    <div class="flex flex--col flex--stretch-x flex--center-y h--full">
+      {% render "standings_table", label: "Constructors", rows: standings.constructors, limit: 11, offset: 0, size: "table--xsmall lg:table--small" %}
+    </div>
   </div>
 </div>
 {% else %}

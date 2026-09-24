@@ -153,7 +153,7 @@
   <div class="item">
     <div class="meta"></div>
     <div class="content">
-      <span class="title {{ headline_size }}" data-clamp="2">{{ item.headline }}</span>
+      <span class="title {{ headline_size }}" data-clamp="{{ clamp | default: 2 }}">{{ item.headline }}</span>
     </div>
   </div>
   {% unless forloop.last %}<div class="divider divider--h"></div>{% endunless %}
@@ -234,12 +234,12 @@
   race's, or the standings' in the off-season. The link is the short /t/ form
   and carries
   utm_source=trmnl, utm_medium=qr and the screen phase as utm_content, for
-  PostHog. 3px modules at error-correction level M: about 0.6mm a module on
-  the OG, which a phone reads easily.
+  PostHog. 2px modules at error-correction level M leave room for content
+  in the smaller layouts.
 {% endcomment %}
 {% template qr %}
 <div class="flex flex--col flex--center">
-  {{ url | qr_code: 3, "m" }}
+  {{ url | qr_code: 2, "m" }}
 </div>
 {% endtemplate %}
 

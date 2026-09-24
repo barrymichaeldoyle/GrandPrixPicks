@@ -17,7 +17,7 @@
       <div class="flex-none">{% render "qr", url: race.url %}</div>
     </div>
   </div>
-  <div class="grow flex flex--col flex--stretch-x gap--small portrait:w--full">
+  <div class="grow flex flex--col flex--stretch-x gap--auto h--full portrait:h--auto portrait:w--full">
     {% if focus == "result" %}
       {% render "result", result: result, limit: 5, split: false, compact: true %}
     {% else %}
@@ -57,7 +57,7 @@
     One table: two side by side wrapped every name and ran into the title bar.
     The constructors' champion is named under the drivers' instead.
   {% endcomment %}
-  <div class="grow">
+  <div class="grow flex flex--col flex--stretch-x flex--center-y h--full portrait:h--auto">
     {% render "standings_table", label: "Drivers", rows: standings.drivers, limit: 5, offset: 0, size: "table--xsmall lg:table--small" %}
   </div>
 </div>

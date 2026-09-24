@@ -1,6 +1,8 @@
 {% if has_race %}
 {% assign half_vertical_news_size = "title--small lg:title--base" %}
 {% if news.size > 3 %}{% assign half_vertical_news_size = "title--small lg:title--small" %}{% endif %}
+{% assign half_vertical_body_center = "" %}
+{% if news.size == 0 %}{% assign half_vertical_body_center = "flex--center-y" %}{% endif %}
 <div class="layout layout--col layout--top layout--stretch-x gap--medium">
   <div class="flex flex--row flex--center-y gap--medium w--full portrait:hidden">
     <div class="grow">{% render "race_header", race: race, name_size: "lg:title--large", detail_size: "lg:label--large", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true %}</div>
@@ -21,25 +23,33 @@
       Two columns of five in landscape; one column of ten in portrait, where
       the half is tall and narrow and two columns wrapped every name.
     {% endcomment %}
-    <div class="portrait:hidden">{% render "result", result: result, limit: 10, split: true %}</div>
-    <div class="hidden portrait:block">{% render "result", result: result, limit: 10, split: false %}</div>
+    <div class="grow flex flex--col flex--stretch-x flex--center-y portrait:hidden">{% render "result", result: result, limit: 10, split: true %}</div>
+    <div class="grow hidden portrait:block">
+      <div class="flex flex--col flex--stretch-x flex--center-y h--full">{% render "result", result: result, limit: 10, split: false %}</div>
+    </div>
   {% else %}
     {% comment %}
       The landscape OG has room for three schedule rows and one headline.
       More rows start below the title bar before overflow management can
       hide them. The taller portrait slot and the X can carry more.
     {% endcomment %}
-    <div class="portrait:hidden lg:hidden">
-      {% render "schedule", schedule: schedule, limit: 3, tail: true, size: "table--small", name: "short" %}
-      {% if news.size > 0 %}{% render "news", news: news, limit: 1, headline_size: half_vertical_news_size %}{% endif %}
+    <div class="grow portrait:hidden lg:hidden">
+      <div class="flex flex--col flex--stretch-x gap--auto h--full {{ half_vertical_body_center }}">
+        {% render "schedule", schedule: schedule, limit: 3, tail: true, size: "table--small", name: "short" %}
+        {% if news.size > 0 %}{% render "news", news: news, limit: 1, headline_size: half_vertical_news_size %}{% endif %}
+      </div>
     </div>
-    <div class="hidden portrait:block lg:portrait:hidden">
-      {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--small", name: "short" %}
-      {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
+    <div class="grow hidden portrait:block lg:portrait:hidden">
+      <div class="flex flex--col flex--stretch-x gap--auto h--full {{ half_vertical_body_center }}">
+        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--small", name: "short" %}
+        {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
+      </div>
     </div>
-    <div class="hidden lg:block">
-      {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--base", name: "short" %}
-      {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
+    <div class="grow hidden lg:block">
+      <div class="flex flex--col flex--stretch-x gap--auto h--full {{ half_vertical_body_center }}">
+        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--base", name: "short" %}
+        {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
+      </div>
     </div>
   {% endif %}
 </div>
@@ -55,13 +65,15 @@
     {% render "standings_header", standings: standings, title_size: "lg:title--large", detail_size: "lg:label--large" %}
     {% render "qr", url: standings.url %}
   </div>
-  {% render "standings_table", label: "Drivers", rows: standings.drivers, limit: 10, offset: 0, size: "table--xsmall lg:table--base lg:portrait:table--small" %}
-  {% comment %}
-    The constructors only fit under the drivers on the tall portrait half,
-    and on a portrait X only at the smaller row height.
-  {% endcomment %}
-  <div class="hidden portrait:block">
-    {% render "standings_table", label: "Constructors", rows: standings.constructors, limit: 10, offset: 0, size: "table--xsmall lg:table--base lg:portrait:table--small" %}
+  <div class="grow flex flex--col flex--stretch-x gap--auto">
+    {% render "standings_table", label: "Drivers", rows: standings.drivers, limit: 10, offset: 0, size: "table--small portrait:table--xsmall lg:table--large lg:portrait:table--small" %}
+    {% comment %}
+      The constructors only fit under the drivers on the tall portrait half,
+      and on a portrait X only at the smaller row height.
+    {% endcomment %}
+    <div class="hidden portrait:block">
+      {% render "standings_table", label: "Constructors", rows: standings.constructors, limit: 10, offset: 0, size: "table--small portrait:table--xsmall lg:table--large lg:portrait:table--small" %}
+    </div>
   </div>
 </div>
 {% else %}

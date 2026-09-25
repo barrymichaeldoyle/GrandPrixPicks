@@ -15,6 +15,10 @@ function score(id: string, race = 'r1', session = 'race') {
   };
 }
 
+function lineup(id: string) {
+  return { _id: id, type: 'lineup_change', raceSlug: 'azerbaijan-2026' };
+}
+
 describe('groupFeedEvents', () => {
   it('folds a run of news into one block', () => {
     // The point of the change: two adjacent cards each repeated the eyebrow,
@@ -48,8 +52,15 @@ describe('groupFeedEvents', () => {
     expect(groups).toEqual([{ kind: 'news', events: [news('a')] }]);
   });
 
-  it('keeps anything else standalone', () => {
-    const groups = groupFeedEvents([{ _id: 'l', type: 'lineup_change' }]);
+  it('keeps a grid change in the adjacent news run without reordering', () => {
+    const groups = groupFeedEvents([news('a'), lineup('l'), news('b')]);
+    expect(groups).toEqual([
+      { kind: 'news', events: [news('a'), lineup('l'), news('b')] },
+    ]);
+  });
+
+  it('keeps unrelated activity standalone', () => {
+    const groups = groupFeedEvents([{ _id: 'l', type: 'other_activity' }]);
     expect(groups[0]).toMatchObject({ kind: 'standalone' });
   });
 });

@@ -63,6 +63,7 @@ export type FeedEvent = {
   newsCategory?: 'pick_related' | 'general';
   newsSourceName?: string;
   newsSourceUrl?: string;
+  newsTeam?: string;
   newsDrivers?: Array<{
     code: string;
     displayName: string;

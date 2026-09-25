@@ -29,7 +29,7 @@ export type FeedGroup<T> =
  * wherever it lands in the page, so they collect into one block even when other
  * events fall between them.
  *
- * News groups by adjacency. The feed's order carries meaning for news, and a
+ * News and line-up changes group by adjacency. The feed's order carries meaning, and a
  * keyed group would lift a Friday item up beside a Sunday one to sit under a
  * shared heading, silently reordering the weekend. A run is only a run while
  * nothing interrupts it.
@@ -57,7 +57,7 @@ export function groupFeedEvents<T extends Groupable>(
       continue;
     }
 
-    if (event.type === 'race_news') {
+    if (event.type === 'race_news' || event.type === 'lineup_change') {
       const previous = groups.at(-1);
       if (previous?.kind === 'news') {
         previous.events.push(event);

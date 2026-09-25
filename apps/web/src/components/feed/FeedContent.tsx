@@ -17,7 +17,6 @@ import { SessionGroup } from '@/components/FeedItem/SessionGroup';
 import { FeedEmptyState } from '@/components/FeedItem/states';
 import { InlineLoader } from '@/components/InlineLoader';
 import { FollowButton } from '@/components/FollowButton';
-import { LiveClassificationCard } from './LiveClassificationCard';
 
 type FeedPage = NonNullable<
   FunctionReturnType<typeof api.feed.getPersonalizedFeed>
@@ -253,7 +252,6 @@ export function FeedContent({
   function withInterleaved(body: ReactNode, placed: Set<string> = new Set()) {
     return (
       <>
-        <LiveClassificationCard />
         {(interleaved ?? [])
           .filter((block) => !placed.has(blockKey(block)))
           .map((block) => (

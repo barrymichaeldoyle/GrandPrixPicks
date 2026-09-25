@@ -55,18 +55,20 @@ export function FeedItem({
         // so it must not draw a second border inside it.
         grouped && event.type === 'race_news'
           ? ''
-          : event.type === 'race_news'
-            ? // No padding either way: the news card draws a team bar down
-              // its own left edge, and padding out here would inset the bar
-              // from the card's edge and stop it running the full height.
-              `border border-border/80 bg-surface ${radiusClass} ${borderClass}`
-            : `border border-border/80 bg-surface p-2.5 ${radiusClass} ${borderClass}`
+          : grouped && event.type === 'lineup_change'
+            ? 'p-2.5'
+            : event.type === 'race_news'
+              ? // No padding either way: the news card draws a team bar down
+                // its own left edge, and padding out here would inset the bar
+                // from the card's edge and stop it running the full height.
+                `border border-border/80 bg-surface ${radiusClass} ${borderClass}`
+              : `border border-border/80 bg-surface p-2.5 ${radiusClass} ${borderClass}`
       }
     >
       {event.type === 'practice_published' ? (
         <PracticePublishedItem event={event} />
       ) : event.type === 'lineup_change' ? (
-        <LineupChangeItem event={event} />
+        <LineupChangeItem event={event} grouped={grouped} />
       ) : event.type === 'race_news' ? (
         <RaceNewsItem
           event={event}

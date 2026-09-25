@@ -8,7 +8,7 @@ import type { FeedNewsLink } from './RaceNewsItem';
 import type { FeedEvent } from './types';
 
 /**
- * A run of consecutive weekend-news cards, presented as one block.
+ * A run of consecutive news and grid-change cards, presented as one block.
  *
  * Two news items in a row each carried a "Weekend news" eyebrow, a REVISIT row
  * and the same link to the scoring policy. Repeated, those stop being labels
@@ -40,9 +40,12 @@ export function NewsGroup({
     return null;
   }
 
-  const sameWeekend = events.every(
-    (event) => event.raceId && event.raceId === events[0].raceId,
-  );
+  // Line-up changes carry the race slug but no race ID. Use the shared slug
+  // first so they can inherit the same weekend heading as race news.
+  const weekendKey = events[0].raceSlug ?? events[0].raceId;
+  const sameWeekend =
+    !!weekendKey &&
+    events.every((event) => (event.raceSlug ?? event.raceId) === weekendKey);
   const raceName = sameWeekend ? events[0].raceName : undefined;
   // Same flag the session cards fly, from the same slug. The race name alone is
   // a line of small mono text at the far end of a header row; the flag is what

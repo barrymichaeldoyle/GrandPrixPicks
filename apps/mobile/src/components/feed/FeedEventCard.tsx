@@ -7,16 +7,16 @@ import { useState } from 'react';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
 import { useQuery } from '../../integrations/convex/query';
-import { getTeamColor } from '../../lib/teamColors';
 import { colors } from '../../theme/tokens';
 import { Pressable, Text, View } from '../../tw';
-import { FlagImage, NationalityFlag } from '../ui/FlagImage';
+import { FlagImage } from '../ui/FlagImage';
 import { Avatar } from '../ui/Avatar';
 import { Card } from '../ui/Card';
 import { formatRelativeTime } from './helpers';
 import { NewsGroupCard } from './NewsGroupCard';
 import { PracticePublishedCard } from './practice-published-card';
 import { H2HPicksDialog } from './H2HPicksDialog';
+import { LineupChangeCard } from './lineup-change-card';
 import { EmptySlot, PickSlot } from './PickSlot';
 import type { FeedEvent } from './types';
 
@@ -218,76 +218,6 @@ function SimpleEventCard({
     <Card>
       <EventHeader event={event} />
       <Text className="text-muted text-sm leading-5">{description}</Text>
-    </Card>
-  );
-}
-
-/**
- * A mid-season driver swap. The one card with no author, so it leads with a
- * label where the others lead with an avatar: the site is talking, not
- * somebody the reader follows.
- *
- * Seats rather than drivers, because that is what changes for the player. A
- * duel pick backs one side of a garage, so naming the seat is what lets a
- * reader find their own picks in the news.
- */
-function LineupChangeCard({ event }: { event: FeedEvent }) {
-  const moves = event.seatMoves ?? [];
-  return (
-    <Card>
-      <View className="gap-0.5">
-        <Text className="text-xs font-medium text-accent">Grid change</Text>
-        <Text className="text-foreground text-sm font-bold">
-          {event.raceName
-            ? `New line-up from the ${event.raceName}`
-            : 'The line-up has changed'}
-        </Text>
-        <Text className="text-muted text-xs">
-          {formatRelativeTime(event.createdAt)}
-        </Text>
-      </View>
-
-      <View className="gap-1.5 pt-1">
-        {moves.map((move) => (
-          <View
-            key={`${move.team}-${move.inDriverCode}`}
-            className="flex-row items-center gap-2.5"
-          >
-            <View
-              className="h-8 w-[3px] rounded-full"
-              style={{ backgroundColor: getTeamColor(move.team) }}
-            />
-            <View className="flex-1 gap-0.5">
-              <Text className="text-muted text-xs">{move.team}</Text>
-              {/* A row of views rather than nested Text, because a flag is an
-                  image and cannot sit inside a Text run. */}
-              <View className="flex-row flex-wrap items-center gap-1.5">
-                {move.outDriverName ? (
-                  <>
-                    {move.outNationality ? (
-                      <NationalityFlag code={move.outNationality} />
-                    ) : null}
-                    <Text className="text-muted text-sm line-through">
-                      {move.outDriverName}
-                    </Text>
-                    <Text className="text-muted text-sm">to</Text>
-                  </>
-                ) : null}
-                {move.inNationality ? (
-                  <NationalityFlag code={move.inNationality} />
-                ) : null}
-                <Text className="text-foreground text-sm font-bold">
-                  {move.inDriverName}
-                </Text>
-              </View>
-            </View>
-          </View>
-        ))}
-      </View>
-
-      {event.lineupNote ? (
-        <Text className="text-muted text-sm leading-5">{event.lineupNote}</Text>
-      ) : null}
     </Card>
   );
 }

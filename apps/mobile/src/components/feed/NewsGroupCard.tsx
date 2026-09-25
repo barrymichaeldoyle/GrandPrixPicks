@@ -10,6 +10,7 @@ import { SlantedStripe } from '../ui/SlantedStripe';
 import { Numeral } from '../ui/Numeral';
 import type { FeedEvent } from './types';
 import { formatRelativeTime } from './helpers';
+import { LineupChangeCard } from './lineup-change-card';
 
 const SITE_URL = 'https://grandprixpicks.com';
 const GRID_COLLAPSED_ROWS = 10;
@@ -133,7 +134,7 @@ function RaceNewsCard({
   grouped?: boolean;
   reverse?: boolean;
 }) {
-  const team = event.newsDrivers?.[0]?.team ?? null;
+  const team = event.newsTeam ?? event.newsDrivers?.[0]?.team ?? null;
   const teamColour = team ? getTeamColor(team) : colors.accent;
 
   return (
@@ -201,9 +202,10 @@ export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
   if (events.length === 0) {
     return null;
   }
-  const sameWeekend = events.every(
-    (event) => event.raceId && event.raceId === events[0].raceId,
-  );
+  const weekendKey = events[0].raceSlug ?? events[0].raceId;
+  const sameWeekend =
+    !!weekendKey &&
+    events.every((event) => (event.raceSlug ?? event.raceId) === weekendKey);
   const raceName = sameWeekend ? events[0].raceName : undefined;
   const raceSlug = sameWeekend ? events[0].raceSlug : undefined;
 
@@ -223,14 +225,18 @@ export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
           </View>
         ) : null}
       </View>
-      {events.map((event, index) => (
-        <RaceNewsCard
-          event={event}
-          grouped
-          key={event._id}
-          reverse={index % 2 === 0}
-        />
-      ))}
+      {events.map((event, index) =>
+        event.type === 'lineup_change' ? (
+          <LineupChangeCard event={event} grouped key={event._id} />
+        ) : (
+          <RaceNewsCard
+            event={event}
+            grouped
+            key={event._id}
+            reverse={index % 2 === 0}
+          />
+        ),
+      )}
       {events.some(newsMentionsGridPenalty) ? (
         <View className="border-t border-border px-3 py-2">
           <ScoringPolicyNote />

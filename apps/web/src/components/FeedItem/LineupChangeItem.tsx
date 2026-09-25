@@ -20,22 +20,30 @@ import type { FeedEvent } from './types';
  * so when the person in that seat changes the pick moves with them, and the
  * card says which seat so the reader can find their own picks in it.
  */
-export function LineupChangeItem({ event }: { event: FeedEvent }) {
+export function LineupChangeItem({
+  event,
+  grouped = false,
+}: {
+  event: FeedEvent;
+  grouped?: boolean;
+}) {
   const moves = event.seatMoves ?? [];
 
   return (
     <>
-      <div className="flex items-start justify-between gap-3">
-        <p className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-accent">
-          Grid change
-        </p>
-      </div>
+      {grouped ? null : (
+        <div className="flex items-start justify-between gap-3">
+          <p className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-accent">
+            Grid change
+          </p>
+        </div>
+      )}
 
       {/* Below the row, not inside it: sharing the eyebrow's column meant
           being laid out ~90px narrower than the card and wrapping that much
           early, under a button with nothing beside it. Same fix as
           `RaceNewsItem`. */}
-      <p className="mt-1 text-sm font-semibold text-text">
+      <p className={`${grouped ? '' : 'mt-1'} text-sm font-semibold text-text`}>
         {event.raceName
           ? `New line-up from the ${event.raceName}`
           : 'The line-up has changed'}

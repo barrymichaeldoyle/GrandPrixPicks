@@ -14,6 +14,7 @@ import { SuggestedFollowsCard } from '@/components/dashboard/SuggestedFollowsCar
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { AdSlot } from '@/components/AdSlot';
 import { FeedContent } from '@/components/feed/FeedContent';
+import { LiveClassificationCard } from '@/components/feed/LiveClassificationCard';
 import { useFeedOffersFollows } from '@/components/feed/followSuggestions';
 import { sessionGroupKey } from '@/components/feed/groupFeedEvents';
 import {
@@ -367,6 +368,9 @@ export function DashboardPage({
 
         {centerReady ? (
           <>
+            {/* A running session is newer than the completed practice results,
+                so its live order leads them until the final sheet publishes. */}
+            <LiveClassificationCard />
             {/* Under the picks: practice informs the pick above it but scores
                 nothing, so it must not lead. Keyed by race so the disclosure
                 state cannot carry over when the weekend advances. */}

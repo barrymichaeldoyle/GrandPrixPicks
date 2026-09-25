@@ -18,7 +18,7 @@
  */
 
 const FINISH_CATEGORY = 'SessionStatus';
-const FINISH_MESSAGE = /FINISH/;
+const FINISH_MESSAGE = 'SESSION FINISHED';
 const CHEQUERED_FLAG = 'CHEQUERED';
 
 /** "WILL BE INVESTIGATED AFTER THE RACE" / "... AFTER THE SESSION". */
@@ -115,21 +115,28 @@ export function parseRaceControlMessages(value: unknown): RaceControlMessage[] {
 /**
  * When the session ended, in ms epoch, or undefined while it is still running.
  *
- * Takes the latest matching message rather than the first: qualifying emits a
- * SessionStatus per segment, so the first "finished" is the end of Q1.
+ * Qualifying emits a finish for each of its three segments. The latest finish
+ * after Q1 or Q2 is not the end of the session, even if the position feed or
+ * session_result already contains a plausible classification.
  */
 export function findSessionFinishedAt(
   messages: ReadonlyArray<RaceControlMessage>,
+  sessionType: 'quali' | 'sprint_quali' | 'sprint' | 'race',
 ): number | undefined {
   const finishes = messages.filter(
     (row) =>
       row.category === FINISH_CATEGORY &&
-      FINISH_MESSAGE.test((row.message ?? '').toUpperCase()),
+      (row.message ?? '').toUpperCase() === FINISH_MESSAGE,
   );
   const chequered = messages.filter((row) => row.flag === CHEQUERED_FLAG);
-  const candidates = (finishes.length > 0 ? finishes : chequered).map((row) =>
-    Date.parse(row.date),
-  );
+  const endSignals = finishes.length > 0 ? finishes : chequered;
+  if (
+    (sessionType === 'quali' || sessionType === 'sprint_quali') &&
+    endSignals.length < 3
+  ) {
+    return undefined;
+  }
+  const candidates = endSignals.map((row) => Date.parse(row.date));
   return candidates.length > 0 ? Math.max(...candidates) : undefined;
 }
 

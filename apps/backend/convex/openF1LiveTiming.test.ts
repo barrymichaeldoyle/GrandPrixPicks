@@ -31,34 +31,87 @@ describe('findSessionFinishedAt', () => {
   it('takes the last SessionStatus, not the first', () => {
     // Qualifying emits one per segment; the first is the end of Q1, and
     // publishing on it would score a third of the session.
-    const finished = findSessionFinishedAt([
-      message('2026-09-05T14:18:00+00:00', 'SESSION FINISHED', {
-        category: 'SessionStatus',
-      }),
-      message('2026-09-05T14:42:00+00:00', 'SESSION FINISHED', {
-        category: 'SessionStatus',
-      }),
-      message(FLAG, 'SESSION FINISHED', { category: 'SessionStatus' }),
-    ]);
+    const finished = findSessionFinishedAt(
+      [
+        message('2026-09-05T14:18:00+00:00', 'SESSION FINISHED', {
+          category: 'SessionStatus',
+        }),
+        message('2026-09-05T14:42:00+00:00', 'SESSION FINISHED', {
+          category: 'SessionStatus',
+        }),
+        message(FLAG, 'SESSION FINISHED', { category: 'SessionStatus' }),
+      ],
+      'quali',
+    );
     expect(finished).toBe(FLAG_MS);
+  });
+
+  it.each(['quali', 'sprint_quali'] as const)(
+    'does not finish %s after Q1/SQ1 or Q2/SQ2',
+    (sessionType) => {
+      const segmentFinishes = [
+        message('2026-09-05T14:18:00+00:00', 'SESSION FINISHED', {
+          category: 'SessionStatus',
+        }),
+        message('2026-09-05T14:42:00+00:00', 'SESSION FINISHED', {
+          category: 'SessionStatus',
+        }),
+        message('2026-09-05T14:42:01+00:00', 'CHEQUERED FLAG', {
+          flag: 'CHEQUERED',
+        }),
+      ];
+      expect(
+        findSessionFinishedAt(segmentFinishes.slice(0, 1), sessionType),
+      ).toBeUndefined();
+      expect(
+        findSessionFinishedAt(segmentFinishes, sessionType),
+      ).toBeUndefined();
+      expect(
+        findSessionFinishedAt(
+          [
+            ...segmentFinishes,
+            message(FLAG, 'SESSION FINISHED', { category: 'SessionStatus' }),
+          ],
+          sessionType,
+        ),
+      ).toBe(FLAG_MS);
+    },
+  );
+
+  it('waits for three chequered flags when qualifying has no SessionStatus', () => {
+    const flags = [
+      message('2026-09-05T14:18:00+00:00', 'CHEQUERED FLAG', {
+        flag: 'CHEQUERED',
+      }),
+      message('2026-09-05T14:42:00+00:00', 'CHEQUERED FLAG', {
+        flag: 'CHEQUERED',
+      }),
+      message(FLAG, 'CHEQUERED FLAG', { flag: 'CHEQUERED' }),
+    ];
+    expect(findSessionFinishedAt(flags.slice(0, 2), 'quali')).toBeUndefined();
+    expect(findSessionFinishedAt(flags, 'quali')).toBe(FLAG_MS);
   });
 
   it('falls back to the chequered flag when no SessionStatus arrives', () => {
     expect(
-      findSessionFinishedAt([
-        message(FLAG, 'CHEQUERED FLAG', {
-          category: 'Flag',
-          flag: 'CHEQUERED',
-        }),
-      ]),
+      findSessionFinishedAt(
+        [
+          message(FLAG, 'CHEQUERED FLAG', {
+            category: 'Flag',
+            flag: 'CHEQUERED',
+          }),
+        ],
+        'race',
+      ),
     ).toBe(FLAG_MS);
   });
 
   it('is undefined while the session is still running', () => {
     expect(
-      findSessionFinishedAt([
-        message('2026-09-05T14:30:00+00:00', 'GREEN LIGHT - PIT EXIT OPEN'),
-      ]),
+      findSessionFinishedAt(
+        [message('2026-09-05T14:30:00+00:00', 'GREEN LIGHT - PIT EXIT OPEN')],
+        'race',
+      ),
     ).toBeUndefined();
   });
 });
@@ -244,7 +297,7 @@ describe('race control regressions from the 2026 season', () => {
           'FIA STEWARDS: Q1 INCIDENT INVOLVING CARS 12 (ANT) AND 30 (LAW) NO FURTHER ACTION',
       },
     ]);
-    const finishedAt = findSessionFinishedAt(messages);
+    const finishedAt = findSessionFinishedAt(messages, 'quali');
     const order = [10, 63, 81, 16, 44, 3, 12, 43, 1, 41];
     const pending = findPendingInvestigations(messages, finishedAt);
     expect(evaluateLiveTimingGate({ order, pending }).provisional).toBe(false);
@@ -284,7 +337,7 @@ describe('race control regressions from the 2026 season', () => {
           'FIA STEWARDS: 10 SECOND TIME PENALTY FOR CAR 27 (HUL) - CAUSING A COLLISION',
       },
     ]);
-    const finishedAt = findSessionFinishedAt(messages);
+    const finishedAt = findSessionFinishedAt(messages, 'race');
     const order = [12, 44, 6, 81, 30, 41, 10, 23, 31, 11, 27];
     const pending = findPendingInvestigations(messages, finishedAt);
     // HAD is what does the blocking: he is P3 in the live order and still

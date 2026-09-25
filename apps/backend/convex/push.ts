@@ -429,6 +429,8 @@ export const sendPushResultsForSession = internalMutation({
   args: {
     raceId: v.id('races'),
     sessionType: sessionTypeValidator,
+    amendmentAt: v.optional(v.number()),
+    amendmentNote: v.optional(v.string()),
     cursor: v.optional(v.union(v.string(), v.null())),
     queued: v.optional(v.number()),
   },
@@ -445,9 +447,26 @@ export const sendPushResultsForSession = internalMutation({
     });
 
     const targets = emptyPushTargets();
+    const isAmendment =
+      args.amendmentAt !== undefined && args.amendmentNote !== undefined;
     for (const user of page.page) {
       if (!wantsPushResults(user)) {
         continue;
+      }
+      if (isAmendment) {
+        const originalNotice = await ctx.db
+          .query('inAppNotifications')
+          .withIndex('by_user_type_raceId_and_sessionType', (q) =>
+            q
+              .eq('userId', user._id)
+              .eq('type', 'results_published')
+              .eq('raceId', race._id)
+              .eq('sessionType', args.sessionType),
+          )
+          .first();
+        if (!originalNotice) {
+          continue;
+        }
       }
       const [top5, h2h] = await Promise.all([
         ctx.db
@@ -476,8 +495,12 @@ export const sendPushResultsForSession = internalMutation({
     }
 
     const sessionLabel = SESSION_LABELS_FULL[args.sessionType];
-    const title = `🏁 ${race.name}: ${sessionLabel} results`;
-    const body = `Your session score is ready.`;
+    const title = isAmendment
+      ? `🏁 ${race.name}: ${sessionLabel} results corrected`
+      : `🏁 ${race.name}: ${sessionLabel} results`;
+    const body = isAmendment
+      ? args.amendmentNote!
+      : `Your session score is ready.`;
     // Matches the results email: "See how you scored" is a standings question,
     // so it opens the weekend leaderboard for this round rather than the race
     // page. `time`/`raceId` scope it on web; mobile's push router maps the
@@ -492,7 +515,9 @@ export const sendPushResultsForSession = internalMutation({
         body,
         url,
         category: 'results',
-        eventKey: `results:${race._id}:${args.sessionType}`,
+        eventKey: isAmendment
+          ? `results_amended:${race._id}:${args.sessionType}:${args.amendmentAt}`
+          : `results:${race._id}:${args.sessionType}`,
         raceId: race._id,
         sessionType: args.sessionType,
       });
@@ -502,6 +527,8 @@ export const sendPushResultsForSession = internalMutation({
       await ctx.scheduler.runAfter(0, internal.push.sendPushResultsForSession, {
         raceId: args.raceId,
         sessionType: args.sessionType,
+        amendmentAt: args.amendmentAt,
+        amendmentNote: args.amendmentNote,
         cursor: page.continueCursor,
         queued,
       });

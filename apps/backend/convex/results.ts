@@ -233,6 +233,8 @@ export async function publishResultsCore(
     // completes, everyone who predicted the session gets a results_amended
     // notification. Republishing without a note is a silent correction.
     amendmentNote?: string;
+    /** Notify about a correction without resurfacing score cards in the feed. */
+    suppressFeedAmendment?: boolean;
     // Admin publishes must follow the weekend session order (quali before
     // race, etc.) — entering them out of order is a pain to undo. Emergency
     // internal mutations skip this so they can fix exactly that mistake.
@@ -372,6 +374,7 @@ export async function publishResultsCore(
     season,
     resultId,
     suppressNotifications,
+    suppressFeedAmendment: args.suppressFeedAmendment,
   });
 
   await ctx.scheduler.runAfter(0, internal.results.scoreH2HForSession, {
@@ -926,6 +929,7 @@ export const emergencyPublishResults = internalMutation({
     dnfDriverIds: v.optional(v.array(v.id('drivers'))),
     suppressNotifications: v.optional(v.boolean()),
     amendmentNote: v.optional(v.string()),
+    suppressFeedAmendment: v.optional(v.boolean()),
     // Same escape hatch as the admin form's "Stop auto-reconciling", which the
     // CLI had no way to reach. An amendment that lands before the official
     // feed catches up needs it: without a pause the next reconciliation pass
@@ -939,6 +943,43 @@ export const emergencyPublishResults = internalMutation({
       ...rest,
       ...(pauseRecheck ? { recheckSchedule: 'pause' as const } : {}),
     });
+  },
+});
+
+/**
+ * Remove a mistaken operational amendment from public result surfaces after
+ * its correction notices have been sent. The already delivered in-app/push
+ * records retain their explanation; scores and classification stay intact.
+ */
+export const emergencyClearOperationalAmendment = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+    expectedAmendmentNote: v.string(),
+  },
+  returns: v.object({ cleared: v.boolean() }),
+  handler: async (ctx, args) => {
+    const result = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )
+      .unique();
+    if (!result) {
+      throw new Error('Result not found');
+    }
+    if (result.amendmentNote !== args.expectedAmendmentNote) {
+      throw new Error('Result amendment note changed; review before clearing');
+    }
+    if (result.amendmentNotificationPending) {
+      throw new Error('Amendment notifications are still pending');
+    }
+    await ctx.db.patch(result._id, {
+      amendedAt: undefined,
+      amendmentNote: undefined,
+      amendmentNotificationPending: undefined,
+    });
+    return { cleared: true };
   },
 });
 
@@ -1218,6 +1259,7 @@ export const scoreTopFiveForSession = internalMutation({
     season: v.number(),
     resultId: v.id('results'),
     suppressNotifications: v.optional(v.boolean()),
+    suppressFeedAmendment: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     let hasPredictions = false;
@@ -1243,6 +1285,7 @@ export const scoreTopFiveForSession = internalMutation({
         season: args.season,
         resultId: args.resultId,
         suppressNotifications: args.suppressNotifications ?? false,
+        suppressFeedAmendment: args.suppressFeedAmendment,
       });
       batch = [];
     }
@@ -1254,6 +1297,7 @@ export const scoreTopFiveForSession = internalMutation({
         raceId: args.raceId,
         sessionType: args.sessionType,
         suppressNotifications: args.suppressNotifications ?? false,
+        suppressFeedAmendment: args.suppressFeedAmendment,
       });
       return;
     }
@@ -1267,6 +1311,7 @@ export const scoreTopFiveForSession = internalMutation({
         season: args.season,
         resultId: args.resultId,
         suppressNotifications: args.suppressNotifications ?? false,
+        suppressFeedAmendment: args.suppressFeedAmendment,
       });
     }
   },
@@ -1281,6 +1326,7 @@ export const scoreTopFiveBatch = internalMutation({
     season: v.number(),
     resultId: v.id('results'),
     suppressNotifications: v.optional(v.boolean()),
+    suppressFeedAmendment: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -1345,6 +1391,7 @@ export const scoreTopFiveBatch = internalMutation({
       raceId: args.raceId,
       sessionType: args.sessionType,
       suppressNotifications: args.suppressNotifications ?? false,
+      suppressFeedAmendment: args.suppressFeedAmendment,
     });
   },
 });
@@ -1608,6 +1655,7 @@ export const checkScoringComplete = internalMutation({
     raceId: v.id('races'),
     sessionType: sessionTypeValidator,
     suppressNotifications: v.optional(v.boolean()),
+    suppressFeedAmendment: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     // Check if all predictions for this session have been scored
@@ -1643,9 +1691,10 @@ export const checkScoringComplete = internalMutation({
       // Write activity feed events for this session's scores. On an official
       // amendment the note travels with it so players whose points moved get a
       // "results amended" event rather than a silent points change.
-      const pendingAmendmentNote = result.amendmentNotificationPending
-        ? result.amendmentNote
-        : undefined;
+      const pendingAmendmentNote =
+        result.amendmentNotificationPending && !args.suppressFeedAmendment
+          ? result.amendmentNote
+          : undefined;
       await ctx.scheduler.runAfter(0, internal.feed.writeFeedEventsForSession, {
         raceId: args.raceId,
         sessionType: args.sessionType,
@@ -1703,6 +1752,16 @@ export const checkScoringComplete = internalMutation({
           {
             raceId: args.raceId,
             sessionType: args.sessionType,
+            amendmentNote: result.amendmentNote,
+          },
+        );
+        await ctx.scheduler.runAfter(
+          0,
+          internal.push.sendPushResultsForSession,
+          {
+            raceId: args.raceId,
+            sessionType: args.sessionType,
+            amendmentAt: result.amendedAt ?? Date.now(),
             amendmentNote: result.amendmentNote,
           },
         );

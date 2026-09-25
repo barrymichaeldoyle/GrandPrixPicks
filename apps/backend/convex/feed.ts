@@ -1430,3 +1430,46 @@ export const deleteFeedEventsForSession = internalMutation({
     }
   },
 });
+
+/**
+ * Undo feed resurfacing from a correction while retaining its current scores.
+ * The original score cards return to their publication date; in-app and push
+ * amendment notices are separate records and are not touched.
+ */
+export const restoreScoreFeedEventsForSession = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+  },
+  returns: v.object({ restored: v.number() }),
+  handler: async (ctx, args) => {
+    const result = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )
+      .unique();
+    if (!result) {
+      throw new Error('Result not found');
+    }
+
+    let restored = 0;
+    for await (const event of ctx.db
+      .query('feedEvents')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )) {
+      if (event.type !== 'results_amended') {
+        continue;
+      }
+      await ctx.db.patch(event._id, {
+        type: 'score_published',
+        previousPoints: undefined,
+        amendmentNote: undefined,
+        createdAt: result.publishedAt,
+      });
+      restored += 1;
+    }
+    return { restored };
+  },
+});

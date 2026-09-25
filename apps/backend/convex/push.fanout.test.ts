@@ -154,6 +154,58 @@ describe('notification delivery', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].userId).toBe(userId);
   });
+  it('queues a distinct correction push without duplicating the original result push', async () => {
+    const t = setup();
+    const {
+      raceId,
+      userIds: [userId, lateUserId],
+    } = await seed(t, 2);
+    await t.run(async (ctx) => {
+      for (const id of [userId, lateUserId]) {
+        await ctx.db.insert('predictions', {
+          raceId,
+          userId: id,
+          sessionType: 'quali',
+          picks: [],
+          submittedAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+      }
+      await ctx.db.insert('inAppNotifications', {
+        userId,
+        type: 'results_published',
+        raceId,
+        sessionType: 'quali',
+        raceName: 'Test Grand Prix',
+        raceSlug: 'test-2026',
+        createdAt: Date.now(),
+      });
+    });
+    await t.mutation(internal.push.sendPushResultsForSession, {
+      raceId,
+      sessionType: 'quali',
+    });
+    await t.mutation(internal.push.sendPushResultsForSession, {
+      raceId,
+      sessionType: 'quali',
+      amendmentAt: 123,
+      amendmentNote: 'Scores now use the completed qualifying order.',
+    });
+    const rows = await t.run((ctx) =>
+      ctx.db.query('notificationDeliveries').collect(),
+    );
+    expect(rows).toHaveLength(3);
+    const corrections = rows.filter((row) =>
+      row.eventKey.startsWith('results_amended:'),
+    );
+    expect(corrections).toHaveLength(1);
+    expect(corrections[0].userId).toBe(userId);
+    expect(corrections[0].eventKey).toBe(`results_amended:${raceId}:quali:123`);
+    expect(corrections[0].title).toContain('results corrected');
+    expect(corrections[0].body).toBe(
+      'Scores now use the completed qualifying order.',
+    );
+  });
   it('transfers a token to the authenticated account and cancels queued work for its previous owner', async () => {
     const t = setup();
     const { raceId, userIds } = await seed(t, 2);

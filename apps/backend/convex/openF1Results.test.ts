@@ -1,7 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import type { Id } from './_generated/dataModel';
 
 import {
   buildSessionDiscoveryUrl,
+  fetchOfficialClassification,
   getFallbackWindow,
   isLiveSessionRestriction,
   isMissingSessionResults,
@@ -9,6 +12,8 @@ import {
   parseOpenF1Results,
   parseOpenF1Sessions,
 } from './openF1Results';
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe('OpenF1 fallback timing', () => {
   it('starts two minutes after the earliest plausible end, and stops two hours after the scheduled one', () => {
@@ -48,6 +53,67 @@ describe('OpenF1 fallback timing', () => {
 });
 
 describe('OpenF1 response validation', () => {
+  it('does not publish a plausible qualifying result after Q2', async () => {
+    const start = Date.UTC(2026, 8, 25, 13);
+    const drivers = [1, 2, 3, 4, 5];
+    const fetchMock = vi.fn(async (input: URL | string) => {
+      const url = new URL(String(input));
+      if (url.pathname === '/v1/sessions') {
+        return Response.json([
+          {
+            session_key: 123,
+            session_name: 'Qualifying',
+            date_start: new Date(start).toISOString(),
+          },
+        ]);
+      }
+      if (url.pathname === '/v1/session_result') {
+        return Response.json(
+          drivers.map((driver_number, index) => ({
+            driver_number,
+            position: index + 1,
+            dnf: false,
+            dns: false,
+            dsq: false,
+          })),
+        );
+      }
+      if (url.pathname === '/v1/race_control') {
+        return Response.json(
+          [18, 42].map((minute) => ({
+            date: new Date(start + minute * 60_000).toISOString(),
+            category: 'SessionStatus',
+            flag: null,
+            message: 'SESSION FINISHED',
+          })),
+        );
+      }
+      throw new Error(`Unexpected OpenF1 request: ${url.pathname}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      fetchOfficialClassification({
+        season: 2026,
+        sessionType: 'quali',
+        sessionStartAt: start,
+        raceName: 'Test Grand Prix',
+        driverByNumber: new Map(
+          drivers.map((number) => [
+            number,
+            `driver-${number}` as Id<'drivers'>,
+          ]),
+        ),
+        requireSessionFinished: true,
+      }),
+    ).rejects.toThrow('has not reported the session as over');
+    expect(
+      fetchMock.mock.calls.some(([input]) =>
+        String(input).includes('/v1/race_control'),
+      ),
+    ).toBe(true);
+  });
+
   it('accepts session metadata and sorts a complete classification', () => {
     expect(
       parseOpenF1Sessions([

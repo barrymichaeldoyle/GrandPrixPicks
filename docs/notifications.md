@@ -14,7 +14,7 @@ The backend selects recipients and creates durable delivery records. Mobile and 
 | Weekend summary                             | Covered by session results                                    | One participant summary after race scoring, with Top 5 and H2H totals |
 | Session locked                              | Separately selectable; off by default                         | None                                                                  |
 | Selected news                               | Explicit opt-in, one selected story per user per 24h          | None                                                                  |
-| Official score amendments                   | Existing in-app notice                                        | Included in the totals if the summary has not sent yet                |
+| Score corrections                           | In-app and results push only to original notice recipients    | No separate email; included in an unsent weekend summary              |
 
 Selected news respects quiet hours (22:00–08:00 in the user's saved timezone, UTC if unavailable). Users can turn quiet hours off. Deadline reminders and results are not delayed by this setting. Mobile foreground pushes do not play sounds or show banners; the notification list remains available.
 

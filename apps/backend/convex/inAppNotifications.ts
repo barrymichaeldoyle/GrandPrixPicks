@@ -281,7 +281,7 @@ export const createResultsNotification = internalMutation({
 });
 
 /**
- * Notify everyone who predicted a session that its results were officially
+ * Notify players who received the original result notice that its results were
  * amended (e.g. a stewards' decision changed the classification). Scheduled
  * from results.checkScoringComplete after rescoring finishes, so the points
  * on the notification are the corrected ones. Upserts one notification per
@@ -306,6 +306,20 @@ export const notifyResultsAmended = internalMutation({
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
       )) {
+      const originalNotice = await ctx.db
+        .query('inAppNotifications')
+        .withIndex('by_user_type_raceId_and_sessionType', (q) =>
+          q
+            .eq('userId', prediction.userId)
+            .eq('type', 'results_published')
+            .eq('raceId', args.raceId)
+            .eq('sessionType', args.sessionType),
+        )
+        .first();
+      if (!originalNotice) {
+        continue;
+      }
+
       const score = await ctx.db
         .query('scores')
         .withIndex('by_user_race_session', (q) =>

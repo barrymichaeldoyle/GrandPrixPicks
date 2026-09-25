@@ -74,7 +74,7 @@ async function get(path: string, key: number) {
   throw new Error(`could not fetch ${path} for ${key}`);
 }
 
-async function evaluate(key: number) {
+async function evaluate(key: number, sessionType: 'quali' | 'race') {
   const resultRaw = await get('session_result', key);
   const posRaw = await get('position', key);
   const rcRaw = await get('race_control', key);
@@ -89,7 +89,7 @@ async function evaluate(key: number) {
     .map((r) => r.driver_number);
 
   const messages = parseRaceControlMessages(rcRaw);
-  const finishedAt = findSessionFinishedAt(messages);
+  const finishedAt = findSessionFinishedAt(messages, sessionType);
   if (finishedAt === undefined) {
     return null;
   }
@@ -127,8 +127,11 @@ describe.skipIf(!ENABLED)('live gate against the real 2026 season', () => {
       top5Wrong: 0,
       fullWrong: 0,
     };
-    for (const key of [...RACES, ...QUALI]) {
-      const outcome = await evaluate(key);
+    for (const [key, sessionType] of [
+      ...RACES.map((key) => [key, 'race'] as const),
+      ...QUALI.map((key) => [key, 'quali'] as const),
+    ]) {
+      const outcome = await evaluate(key, sessionType);
       if (!outcome) {
         continue;
       }

@@ -526,6 +526,8 @@ export async function fetchOfficialClassification(args: {
   sessionStartAt: number;
   raceName: string;
   driverByNumber: Map<number, Id<'drivers'>>;
+  /** Automatic publication must wait for the whole session to finish. */
+  requireSessionFinished?: boolean;
 }): Promise<OfficialClassification> {
   const sessionsUrl = buildSessionDiscoveryUrl(
     args.season,
@@ -543,6 +545,16 @@ export async function fetchOfficialClassification(args: {
   const resultsUrl = new URL('https://api.openf1.org/v1/session_result');
   resultsUrl.searchParams.set('session_key', String(session.session_key));
   const rows = parseOpenF1Results(await fetchJson(resultsUrl));
+  if (args.requireSessionFinished) {
+    const raceControlUrl = new URL('https://api.openf1.org/v1/race_control');
+    raceControlUrl.searchParams.set('session_key', String(session.session_key));
+    const messages = parseRaceControlMessages(await fetchJson(raceControlUrl));
+    if (findSessionFinishedAt(messages, args.sessionType) === undefined) {
+      throw new Error(
+        'OpenF1 race control has not reported the session as over',
+      );
+    }
+  }
   const unmapped = rows
     .map((row) => row.driver_number)
     .filter((number) => !args.driverByNumber.has(number));
@@ -625,7 +637,7 @@ export async function fetchLiveTimingClassification(args: {
   const raceControlUrl = new URL('https://api.openf1.org/v1/race_control');
   raceControlUrl.searchParams.set('session_key', String(session.session_key));
   const messages = parseRaceControlMessages(await fetchJson(raceControlUrl));
-  const finishedAt = findSessionFinishedAt(messages);
+  const finishedAt = findSessionFinishedAt(messages, args.sessionType);
   if (finishedAt === undefined) {
     throw new Error('OpenF1 race control has not reported the session as over');
   }
@@ -859,6 +871,7 @@ export const pollDueResults = internalAction({
           sessionStartAt: task.sessionStartAt,
           raceName: task.raceName,
           driverByNumber,
+          requireSessionFinished: true,
         });
         openF1SessionKey = official.openF1SessionKey;
         const { classification, dnfDriverIds, driverStatuses } = official;
@@ -1368,6 +1381,7 @@ export const adminFetchResultsNow = action({
         sessionStartAt: task.sessionStartAt,
         raceName: task.raceName,
         driverByNumber,
+        requireSessionFinished: true,
       });
       openF1SessionKey = official.openF1SessionKey;
       const { classification, dnfDriverIds, driverStatuses } = official;

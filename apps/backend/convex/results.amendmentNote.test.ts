@@ -242,3 +242,129 @@ describe('emergencyReviseAmendmentNote', () => {
     ).rejects.toThrow('No result found');
   });
 });
+
+describe('restoreScoreFeedEventsForSession', () => {
+  it('removes amendment cards without changing the result or in-app notice', async () => {
+    const t = convexTest(schema, modules);
+    const seeded = await seedAmendedRace(t);
+
+    expect(
+      await t.mutation(internal.feed.restoreScoreFeedEventsForSession, {
+        raceId: seeded.raceId,
+        sessionType: 'race',
+      }),
+    ).toEqual({ restored: 1 });
+
+    const state = await t.run(async (ctx) => ({
+      amendedEvent: await ctx.db.get(seeded.amendedEventId),
+      publishedEvent: await ctx.db.get(seeded.publishedEventId),
+      result: await ctx.db.get(seeded.resultId),
+      notification: await ctx.db.get(seeded.notificationId),
+    }));
+    expect(state.amendedEvent).toMatchObject({
+      type: 'score_published',
+      points: 12,
+      createdAt: PUBLISHED_AT,
+    });
+    expect(state.amendedEvent?.previousPoints).toBeUndefined();
+    expect(state.amendedEvent?.amendmentNote).toBeUndefined();
+    expect(state.publishedEvent?.createdAt).toBe(PUBLISHED_AT);
+    expect(state.result?.amendmentNote).toBe(ORIGINAL_NOTE);
+    expect(state.notification?.amendmentNote).toBe(ORIGINAL_NOTE);
+    expect(
+      await t.mutation(internal.feed.restoreScoreFeedEventsForSession, {
+        raceId: seeded.raceId,
+        sessionType: 'race',
+      }),
+    ).toEqual({ restored: 0 });
+  });
+});
+
+describe('emergencyClearOperationalAmendment', () => {
+  it('removes the public result marker and keeps the correction notice', async () => {
+    const t = convexTest(schema, modules);
+    const seeded = await seedAmendedRace(t);
+
+    expect(
+      await t.mutation(internal.results.emergencyClearOperationalAmendment, {
+        raceId: seeded.raceId,
+        sessionType: 'race',
+        expectedAmendmentNote: ORIGINAL_NOTE,
+      }),
+    ).toEqual({ cleared: true });
+
+    const state = await t.run(async (ctx) => ({
+      result: await ctx.db.get(seeded.resultId),
+      notification: await ctx.db.get(seeded.notificationId),
+    }));
+    expect(state.result?.amendedAt).toBeUndefined();
+    expect(state.result?.amendmentNote).toBeUndefined();
+    expect(state.result?.scoringStatus).toBe('complete');
+    expect(state.notification?.amendmentNote).toBe(ORIGINAL_NOTE);
+  });
+});
+
+describe('notifyResultsAmended recipients', () => {
+  it('only notifies players with an original result notice', async () => {
+    const t = convexTest(schema, modules);
+    const { raceId, originalUserId, lateUserId } = await t.run(async (ctx) => {
+      const raceId = await ctx.db.insert('races', {
+        season: 2026,
+        round: 1,
+        name: 'Test Grand Prix',
+        slug: 'test-2026',
+        status: 'locked',
+        qualiLockAt: 100,
+        predictionLockAt: 200,
+        raceStartAt: 200,
+        createdAt: 100,
+        updatedAt: 100,
+      });
+      const originalUserId = await ctx.db.insert('users', {
+        clerkUserId: 'original',
+        createdAt: 100,
+        updatedAt: 100,
+      });
+      const lateUserId = await ctx.db.insert('users', {
+        clerkUserId: 'late',
+        createdAt: 100,
+        updatedAt: 100,
+      });
+      for (const userId of [originalUserId, lateUserId]) {
+        await ctx.db.insert('predictions', {
+          raceId,
+          userId,
+          sessionType: 'quali',
+          picks: [],
+          submittedAt: 100,
+          updatedAt: 100,
+        });
+      }
+      await ctx.db.insert('inAppNotifications', {
+        userId: originalUserId,
+        type: 'results_published',
+        raceId,
+        sessionType: 'quali',
+        raceName: 'Test Grand Prix',
+        raceSlug: 'test-2026',
+        createdAt: 100,
+      });
+      return { raceId, originalUserId, lateUserId };
+    });
+
+    await t.mutation(internal.inAppNotifications.notifyResultsAmended, {
+      raceId,
+      sessionType: 'quali',
+      amendmentNote: 'Scores now use the completed session order.',
+    });
+    const notices = await t.run((ctx) =>
+      ctx.db.query('inAppNotifications').collect(),
+    );
+    expect(
+      notices
+        .filter((notice) => notice.type === 'results_amended')
+        .map((notice) => notice.userId),
+    ).toEqual([originalUserId]);
+    expect(lateUserId).not.toBe(originalUserId);
+  });
+});

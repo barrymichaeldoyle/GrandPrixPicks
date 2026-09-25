@@ -12,7 +12,7 @@ import { friendGameLink } from '@/lib/navigation';
  */
 export function FriendGameLink({ linkClassName }: { linkClassName: string }) {
   return (
-    <p>
+    <p className="leading-snug">
       Also playing:{' '}
       {/* Underlined, unlike the footer's other links. Those sit in nav columns
           where position marks them as links; this one is a word inside a

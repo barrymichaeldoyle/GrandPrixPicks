@@ -14,18 +14,17 @@ import { FriendGameLink } from '@/components/FriendGameLink';
  * Eight wrapped small-print links at 44px each would be a footer several
  * hundred pixels tall on a phone, dwarfing the content above it, and these are
  * rarely-tapped legal destinations rather than anything on the primary path.
- * The links were 18px, which failed both bars; `py-2` clears the accessibility
- * minimum with room to spare while keeping the small-print look.
+ * The links were 18px, which failed both bars; `py-1.5` gives each one a 24px
+ * target while keeping the small-print look.
  *
  * That padding is not gated on `pointer-coarse`. It was, and the effect was to
  * meet 2.5.8 on phones and miss it everywhere else: the success criterion is
  * about pointer targets, not touch targets, so a mouse user reading the rail at
  * 18px tall rows failed the same check a thumb passed. `inline-flex` comes
- * along for the ride because vertical padding on an inline `<a>` paints without
- * changing the line box it is measured in.
+ * Each link is a 24px flex item, so wrapped rows keep a consistent height.
  */
 const linkClass =
-  'inline-flex items-center rounded-sm py-2 transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none';
+  'inline-flex items-center rounded-sm py-1.5 leading-none transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none';
 
 /**
  * Small print for the signed-in rail: one wrapped run of links with the
@@ -57,7 +56,7 @@ export function RailFooterLinks() {
         aria-label="Site information"
         // Taller rows on touch need the wrap gap opened up too, so two stacked
         // rows of links do not present adjacent hit areas with nothing between.
-        className="flex flex-wrap gap-x-2.5 gap-y-1 pointer-coarse:gap-x-4 pointer-coarse:gap-y-0"
+        className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pointer-coarse:gap-x-4 pointer-coarse:gap-y-0"
       >
         {railFooterLinks.map((link) => (
           <Link key={link.to} to={link.to} className={linkClass}>
@@ -65,7 +64,7 @@ export function RailFooterLinks() {
           </Link>
         ))}
         <PrivacyChoicesButton className={linkClass} />
-        <span>
+        <span className="inline-flex min-h-6 items-center leading-none whitespace-nowrap">
           © {year} {siteConfig.title}
         </span>
       </nav>

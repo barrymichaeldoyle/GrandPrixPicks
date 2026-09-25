@@ -66,7 +66,9 @@ type WeatherPeriod = {
   precipitationAmountMm: number;
   precipitationProbability?: number;
   thunderProbability?: number;
+  windSpeedMps?: number;
   maxWindGustMps?: number;
+  windDirectionDegrees?: number;
   sessions: WeatherSession[];
 };
 
@@ -82,6 +84,9 @@ export type WeatherWindowSummary = {
   precipitationAmountMm: number;
   precipitationProbability?: number;
   thunderProbability?: number;
+  windSpeedMps?: number;
+  windGustMps?: number;
+  windDirectionDegrees?: number;
 };
 
 type RaceSchedule = {
@@ -171,19 +176,30 @@ function mostSignificantCondition(hours: WeatherHour[]): string {
  * estimate of the right quantity, and it never reports a figure outside the
  * range the provider actually published for the hours around the session.
  */
-function temperatureAt(hours: WeatherHour[], at: number): number | null {
+function interpolatedAt(
+  hours: WeatherHour[],
+  at: number,
+  read: (hour: WeatherHour) => number,
+): number | null {
   const sorted = [...hours].sort((a, b) => a.at - b.at);
   const before = sorted.filter((hour) => hour.at <= at).at(-1);
   const after = sorted.find((hour) => hour.at >= at);
   if (!before) {
-    return after?.temperatureC ?? null;
+    return after ? read(after) : null;
   }
   if (!after || after.at === before.at) {
-    return before.temperatureC;
+    return read(before);
   }
   const progress = (at - before.at) / (after.at - before.at);
+  return read(before) + progress * (read(after) - read(before));
+}
+
+/** The reading closest to a moment, for values that cannot be averaged. */
+function nearestHour(hours: WeatherHour[], at: number): WeatherHour | null {
   return (
-    before.temperatureC + progress * (after.temperatureC - before.temperatureC)
+    [...hours].sort(
+      (a, b) => Math.abs(a.at - at) - Math.abs(b.at - at) || a.at - b.at,
+    )[0] ?? null
   );
 }
 
@@ -195,9 +211,27 @@ function summarizeWeatherHours(
   if (hours.length === 0) {
     return null;
   }
+  // Sustained wind is an instantaneous reading like the temperature, so it is
+  // read at the same moment. Gusts are the worst the session runs through, and
+  // a bearing cannot be interpolated (the mean of 350° and 10° is not 180°), so
+  // it comes from the reading nearest that moment.
   const interpolated = temperature
-    ? temperatureAt(temperature.from, temperature.at)
+    ? interpolatedAt(
+        temperature.from,
+        temperature.at,
+        (hour) => hour.temperatureC,
+      )
     : null;
+  const interpolatedWind = temperature
+    ? interpolatedAt(
+        temperature.from,
+        temperature.at,
+        (hour) => hour.windSpeedMps,
+      )
+    : null;
+  const bearingHour = temperature
+    ? nearestHour(temperature.from, temperature.at)
+    : nearestHour(hours, hours[0]!.at);
   return {
     temperatureC: round(
       interpolated ?? average(hours.map((hour) => hour.temperatureC)),
@@ -213,6 +247,10 @@ function summarizeWeatherHours(
     thunderProbability: maxDefined(
       hours.map((hour) => hour.thunderProbability),
     ),
+    windSpeedMps:
+      interpolatedWind ?? average(hours.map((hour) => hour.windSpeedMps)),
+    windGustMps: maxDefined(hours.map((hour) => hour.windGustMps)),
+    windDirectionDegrees: bearingHour?.windDirectionDegrees,
   };
 }
 
@@ -254,6 +292,48 @@ export function conditionLabel(code: string): string {
   }
   return 'Changeable';
 }
+
+const COMPASS_POINTS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
+
+/**
+ * The eight-point compass direction a wind blows *from*, which is how the
+ * provider reports it and how a forecast is read: "a northerly" comes from the
+ * north.
+ */
+export function windCompassPoint(degrees: number): string {
+  const normalized = ((degrees % 360) + 360) % 360;
+  return COMPASS_POINTS[Math.round(normalized / 45) % 8]!;
+}
+
+/** The provider speaks metres per second; a forecast is read in km/h. */
+export function windKmh(mps: number): number {
+  return Math.round(mps * 3.6);
+}
+
+/**
+ * Sustained wind with its direction, e.g. "NE 16 km/h". Null when the
+ * forecast carries no wind for the window.
+ */
+export function windFigure(wind: {
+  windSpeedMps?: number;
+  windDirectionDegrees?: number;
+}): string | null {
+  if (wind.windSpeedMps == null) {
+    return null;
+  }
+  const direction =
+    wind.windDirectionDegrees == null
+      ? ''
+      : `${windCompassPoint(wind.windDirectionDegrees)} `;
+  return `${direction}${windKmh(wind.windSpeedMps)} km/h`;
+}
+
+/**
+ * Gusts at or above this reach the one-line forecast. Below it they are not
+ * something anyone picks differently on, the same reasoning that drops a rain
+ * chance under 20%.
+ */
+const GUSTS_WORTH_MENTIONING_KMH = 40;
 
 export function buildWeatherSessions(race: RaceSchedule): WeatherSession[] {
   return SESSION_DEFINITIONS.flatMap(([key, label, field, durationMinutes]) => {
@@ -319,7 +399,10 @@ export function buildWeatherTimeline(
         thunderProbability: maxDefined(
           hours.map((hour) => hour.thunderProbability),
         ),
+        windSpeedMps: average(hours.map((hour) => hour.windSpeedMps)),
         maxWindGustMps: maxDefined(hours.map((hour) => hour.windGustMps)),
+        windDirectionDegrees: nearestHour(hours, (startsAt + endsAt) / 2)
+          ?.windDirectionDegrees,
         sessions: sessions.filter(
           (session) => session.startsAt < endsAt && session.endsAt > startsAt,
         ),
@@ -505,11 +588,13 @@ export function weatherForSession(
 }
 
 /**
- * One line of forecast: what it is, how warm, and how likely rain is.
+ * One line of forecast: what it is, how warm, how likely rain is, and how
+ * hard the wind gusts.
  *
  * The chance is dropped below 20%, where it is not a fact anyone picks
  * differently on, and loses its trailing "rain" whenever the condition has
- * already said the word.
+ * already said the word. Gusts are dropped below
+ * `GUSTS_WORTH_MENTIONING_KMH` for the same reason.
  */
 export function sessionWeatherLine(summary: WeatherWindowSummary): string {
   const label = conditionLabel(summary.conditionCode);
@@ -526,6 +611,13 @@ export function sessionWeatherLine(summary: WeatherWindowSummary): string {
     parts.push(`${Math.round(probability)}%${wet ? '' : ' rain'}`);
   } else if (probability == null && summary.precipitationAmountMm > 0) {
     parts.push(`${summary.precipitationAmountMm.toFixed(1)} mm`);
+  }
+
+  if (
+    summary.windGustMps != null &&
+    windKmh(summary.windGustMps) >= GUSTS_WORTH_MENTIONING_KMH
+  ) {
+    parts.push(`Gusts ${windKmh(summary.windGustMps)} km/h`);
   }
 
   return parts.join(' · ');

@@ -410,7 +410,7 @@ describe('SEO head metadata', () => {
       qualiLockAt: 2_000,
       predictionLockAt: 3_000,
     };
-    function title (
+    function title(
       items: { key: string; startingGrid?: { position: number }[] }[],
     ) {
       return head({

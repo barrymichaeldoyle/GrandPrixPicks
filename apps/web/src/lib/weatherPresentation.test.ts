@@ -8,6 +8,8 @@ import {
   sessionWeatherLine,
   summarizeSessionWindow,
   weatherForSession,
+  windCompassPoint,
+  windFigure,
   type WeatherForecast,
 } from './weatherPresentation';
 
@@ -238,5 +240,62 @@ describe('session weather line', () => {
     };
     expect(weatherForSession(forecast(), race, 'fp1')?.session.key).toBe('fp1');
     expect(weatherForSession(forecast(), race, 'fp2')).toBeNull();
+  });
+});
+
+describe('wind', () => {
+  const race = buildWeatherSessions({ raceStartAt: raceAt })[0]!;
+
+  function gusting(windGustMps: number): Partial<WeatherForecast> {
+    return {
+      hours: forecast().hours.map((hour) => ({
+        ...hour,
+        windSpeedMps: 4.4,
+        windGustMps,
+        windDirectionDegrees: 350,
+      })),
+    };
+  }
+
+  it('reads the direction the wind blows from on an eight-point compass', () => {
+    expect(windCompassPoint(0)).toBe('N');
+    expect(windCompassPoint(350)).toBe('N');
+    expect(windCompassPoint(44)).toBe('NE');
+    expect(windCompassPoint(200)).toBe('S');
+    expect(windCompassPoint(-90)).toBe('W');
+  });
+
+  it('gives sustained wind in km/h with its direction', () => {
+    const summary = summarizeSessionWindow(forecast(gusting(6)), race);
+
+    expect(summary && windFigure(summary)).toBe('N 16 km/h');
+    expect(windFigure({ windSpeedMps: 4.4 })).toBe('16 km/h');
+  });
+
+  it('reports the strongest gust the session runs through', () => {
+    const hours = forecast(gusting(6)).hours.map((entry) =>
+      entry.at === raceAt + hour ? { ...entry, windGustMps: 12 } : entry,
+    );
+    const summary = summarizeSessionWindow(forecast({ hours }), race);
+
+    expect(summary?.windGustMps).toBe(12);
+  });
+
+  it('puts gusts on the one-line forecast only once they are strong', () => {
+    const quiet = summarizeSessionWindow(forecast(gusting(10.8)), race);
+    const strong = summarizeSessionWindow(forecast(gusting(12)), race);
+
+    expect(quiet && sessionWeatherLine(quiet)).toBe('Clear · 21°C');
+    expect(strong && sessionWeatherLine(strong)).toBe(
+      'Clear · 21°C · Gusts 43 km/h',
+    );
+  });
+
+  it('carries wind onto the hour-by-hour periods', () => {
+    const timeline = buildWeatherTimeline(forecast(gusting(12)), [race]);
+    const period = timeline[0]!.periods[0]!;
+
+    expect(windFigure(period)).toBe('N 16 km/h');
+    expect(period.maxWindGustMps).toBe(12);
   });
 });

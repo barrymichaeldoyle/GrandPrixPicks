@@ -180,12 +180,16 @@ export function RaceCard({
               emphasis. It sits in the corner beside the race it belongs to,
               so "locks in" needs no session name. */}
           {isPredictable && msUntilLock > 0 && (
-            <p
-              className="gpp-mono shrink-0 text-xs whitespace-nowrap text-text-muted"
-              suppressHydrationWarning
-            >
+            <p className="gpp-mono shrink-0 text-xs whitespace-nowrap text-text-muted">
               locks in
-              <strong className="ml-1.5 font-medium text-text">
+              {/* The flag goes on the element that owns the ticking text: React
+                  applies it one level deep, so on the <p> it covered only
+                  "locks in", and a second passing between the server render
+                  and hydration threw a mismatch. */}
+              <strong
+                className="ml-1.5 font-medium text-text"
+                suppressHydrationWarning
+              >
                 {formatLockCountdown(msUntilLock)}
               </strong>
             </p>

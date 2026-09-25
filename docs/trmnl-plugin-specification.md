@@ -243,9 +243,10 @@ space evenly. A divider separates two headlines. Like every layout, its title ba
 
 **The lead's weather** is the lead session's own forecast (`lead.weather`),
 under the lead on every layout, worded as the race pages word it
-(`sessionWeatherLine`: "Partly cloudy · 27°C", "Rain · 23°C · 60%") beside
-its icon. An icon and a temperature alone read as an orphan. Timeline rows
-keep the compact form (icon, "23°", "60%").
+(`sessionWeatherLine`: "Partly cloudy · 27°C", "Rain · 23°C · 60%", and
+"Clear · 24°C · Gusts 43 km/h" once gusts reach 40 km/h) beside its icon.
+An icon and a temperature alone read as an orphan. Timeline rows keep the
+compact form (icon, "23°", "60%").
 
 **Results** carry the top ten for a race or sprint and the top five for a
 qualifying session (`RESULT_ROWS`). The full layout and the half-vertical show

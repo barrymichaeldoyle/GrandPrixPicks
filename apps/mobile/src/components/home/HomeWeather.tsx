@@ -2,7 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { Linking } from 'react-native';
 import { api } from '../../integrations/convex/api';
 import { useQuery } from '../../integrations/convex/query';
-import { bucketWeatherNow, pickForecastHour } from '../../lib/weatherNow';
+import {
+  bucketWeatherNow,
+  pickForecastHour,
+  windLabel,
+} from '../../lib/weatherNow';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { colors } from '../../theme/tokens';
 import { Pressable, Text, View } from '../../tw';
@@ -46,6 +50,7 @@ export function HomeWeather({
           {hour.precipitationProbability !== undefined
             ? ` · ${Math.round(hour.precipitationProbability)}% rain`
             : ''}
+          {` · ${windLabel(hour)}`}
         </Text>
       </View>
       <Pressable

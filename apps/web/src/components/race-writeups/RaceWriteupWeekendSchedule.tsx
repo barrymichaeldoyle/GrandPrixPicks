@@ -1,4 +1,4 @@
-import { Droplet } from 'lucide-react';
+import { Droplet, Wind } from 'lucide-react';
 
 import { WeatherTimeToggle } from '@/components/weather/WeatherTimeToggle';
 
@@ -12,6 +12,9 @@ import {
   forecastAlert,
   nextWeatherSession,
   summarizeSessionWindow,
+  windCompassPoint,
+  windFigure,
+  windKmh,
   type RaceWeather,
   type WeatherWindowSummary,
 } from '@/lib/weatherPresentation';
@@ -83,6 +86,22 @@ function rainFigure(summary: WeatherWindowSummary): string | null {
   return summary.precipitationAmountMm > 0
     ? `${summary.precipitationAmountMm.toFixed(1)} mm`
     : null;
+}
+
+/** Spoken form of the wind cell, which carries the gusts the cell leaves out. */
+function windDescription(summary: WeatherWindowSummary): string | null {
+  if (summary.windSpeedMps == null) {
+    return null;
+  }
+  const direction =
+    summary.windDirectionDegrees == null
+      ? ''
+      : ` from ${windCompassPoint(summary.windDirectionDegrees)}`;
+  const gusts =
+    summary.windGustMps == null
+      ? ''
+      : `, gusts ${windKmh(summary.windGustMps)} km/h`;
+  return `Wind${direction} ${windKmh(summary.windSpeedMps)} km/h${gusts}`;
 }
 
 /**
@@ -194,7 +213,7 @@ export function RaceWriteupWeekendSchedule({
       <dl
         className={`grid gap-x-3 ${
           forecast
-            ? 'grid-cols-[minmax(0,1fr)_auto_auto] sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]'
+            ? 'grid-cols-[minmax(0,1fr)_auto_auto] sm:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto]'
             : 'grid-cols-[auto_minmax(0,1fr)] sm:grid-cols-[6.5rem_1fr]'
         }`}
       >
@@ -208,6 +227,7 @@ export function RaceWriteupWeekendSchedule({
               : null;
           const isNext = Boolean(session && session.key === nextSession?.key);
           const rain = summary ? rainFigure(summary) : null;
+          const wind = summary ? windFigure(summary) : null;
           return (
             <div
               key={label}
@@ -227,7 +247,7 @@ export function RaceWriteupWeekendSchedule({
               }`}
             >
               <dt
-                className={`col-[1] text-sm ${summary ? 'row-[1/span_2] sm:row-[1]' : 'row-[1]'} ${isNext ? 'font-medium text-text' : 'text-text-muted'}`}
+                className={`col-[1] text-sm ${summary ? 'row-[1/span_3] sm:row-[1]' : 'row-[1]'} ${isNext ? 'font-medium text-text' : 'text-text-muted'}`}
               >
                 {/* The row that matters carries the stripe, a surface step and
                     the heavier weight. It used to be an accent fill with accent
@@ -268,11 +288,35 @@ export function RaceWriteupWeekendSchedule({
                         {summary.temperatureC}°C
                       </span>
                     </dd>
+                    {/* Sustained wind and where it comes from. On a phone it
+                        takes a line of its own under the temperature and
+                        rain: three figures abreast pushed a long session name
+                        into them at 320px. Gusts are in the spoken form and
+                        the hour-by-hour forecast. */}
+                    <dd className="col-[2/span_2] row-[3] flex items-center justify-end gap-1 text-sm text-text-muted sm:col-[4] sm:row-[1]">
+                      {wind ? (
+                        <>
+                          <Wind
+                            className="h-3.5 w-3.5 shrink-0 text-text-muted"
+                            aria-hidden
+                          />
+                          <span className="sr-only">
+                            {windDescription(summary)}
+                          </span>
+                          <span
+                            className="gpp-mono whitespace-nowrap"
+                            aria-hidden
+                          >
+                            {wind}
+                          </span>
+                        </>
+                      ) : null}
+                    </dd>
                     {/* Rain is the figure that changes a pick, so a wet
                         session is the one lit in the column, and a dry one
                         stays quiet. */}
                     <dd
-                      className={`col-[3] row-[2] flex items-center justify-end gap-1 text-sm sm:col-[4] sm:row-[1] ${
+                      className={`col-[3] row-[2] flex items-center justify-end gap-1 text-sm sm:col-[5] sm:row-[1] ${
                         rain ? 'text-text' : 'text-text-muted'
                       }`}
                     >
@@ -294,7 +338,7 @@ export function RaceWriteupWeekendSchedule({
                   // A session with no forecast keeps a dash across the
                   // forecast columns on a wide card, and drops them on a
                   // phone rather than spend a second line on it.
-                  <dd className="hidden text-right sm:col-[3/span_2] sm:row-[1] sm:block">
+                  <dd className="hidden text-right sm:col-[3/span_3] sm:row-[1] sm:block">
                     <span className="sr-only">
                       {timestamp !== undefined &&
                       now !== undefined &&

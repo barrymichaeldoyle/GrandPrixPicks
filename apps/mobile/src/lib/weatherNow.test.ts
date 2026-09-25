@@ -4,6 +4,7 @@ import {
   bucketWeatherNow,
   pickForecastHour,
   WEATHER_NOW_BUCKET_MS,
+  windLabel,
 } from './weatherNow';
 
 describe('bucketWeatherNow', () => {
@@ -46,5 +47,20 @@ describe('pickForecastHour', () => {
 
   it('returns undefined when there are no hours', () => {
     expect(pickForecastHour([], Date.UTC(2026, 8, 6, 13))).toBeUndefined();
+  });
+});
+
+describe('windLabel', () => {
+  it('gives the direction the wind blows from and km/h', () => {
+    expect(windLabel({ windSpeedMps: 4.4, windDirectionDegrees: 350 })).toBe(
+      'N 16 km/h',
+    );
+    expect(windLabel({ windSpeedMps: 12, windDirectionDegrees: 225 })).toBe(
+      'SW 43 km/h',
+    );
+  });
+
+  it('leaves the direction off when the forecast has none', () => {
+    expect(windLabel({ windSpeedMps: 4.4 })).toBe('16 km/h');
   });
 });

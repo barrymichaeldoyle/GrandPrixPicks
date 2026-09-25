@@ -1,0 +1,128 @@
+{
+  "reviewedAt": "2026-09-25",
+  "raceSlug": "azerbaijan-2026",
+  "note": "Source-reviewed publication plan. No push campaign is selected by these actions.",
+  "actions": [
+    {
+      "function": "raceNews:retract",
+      "args": { "raceSlug": "azerbaijan-2026", "key": "baku-weather-forecast" },
+      "reason": "The static no-rain forecast conflicts with the live FP3 rain forecast on the race page."
+    },
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "aston-martin-baku-engine-penalties",
+        "headline": "Alonso and Stroll take Baku grid penalties",
+        "body": "Aston Martin has fitted additional power unit components to both cars. The FIA gave Fernando Alonso a 25-place grid penalty and Lance Stroll a 20-place penalty for Saturday's race. Their qualifying classification is unaffected.",
+        "category": "pick_related",
+        "affectsSessions": ["race"],
+        "driverCodes": ["ALO", "STR"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/alonso-and-stroll-set-for-grid-penalties-at-azerbaijan-gp-after-taking-new-engine-components.2uOl7HZHamxmaUqjOxejAF",
+        "sourcePublishedAt": 1790244540000
+      }
+    },
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "mclaren-baku-sidepods",
+        "headline": "McLaren's Baku upgrade loses practice time",
+        "body": "Floorboard problems on the upgraded McLaren cost Norris and Piastri running in FP1. Both returned with a temporary fix in FP2, finishing sixth and eighth, around 1.5 seconds behind Russell. The team says it still needs to tune the new package.",
+        "category": "general",
+        "affectsSessions": [],
+        "driverCodes": ["NOR", "PIA"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/were-miles-off-norris-left-with-knife-in-the-heart-feeling-after-mclarens-low-key-start-in-azerbaijan.1KBbZUzdb2ZOT3rrKzMESc.1KBbZUzdb2ZOT3rrKzMESc",
+        "sourcePublishedAt": 1790259300000
+      }
+    },
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "antonelli-baku-hydraulics-recovery",
+        "headline": "Antonelli recovers to second after hydraulic trouble",
+        "body": "A hydraulic issue ended Antonelli's FP1 after 25 minutes. Mercedes changed his power unit as a precaution, costing him the first half of FP2, but he returned to set the second-fastest time behind Russell.",
+        "category": "general",
+        "affectsSessions": [],
+        "driverCodes": ["ANT"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/feel-like-it-was-a-good-recovery-antonelli-and-mercedes-reflect-on-practice-running-in-azerbaijan.c0c4kn5SnpEwnolbCZye1.c0c4kn5SnpEwnolbCZye1",
+        "sourcePublishedAt": 1790263620000
+      }
+    },
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "lindblad-baku-fp2-crash",
+        "headline": "Lindblad crashes at the castle in FP2",
+        "body": "Lindblad clipped the wall in Baku's castle section, bringing out a red flag and badly damaging the right side of his Racing Bulls car. He had finished eighth in FP1 but lost most of his FP2 running.",
+        "category": "general",
+        "affectsSessions": [],
+        "driverCodes": ["LIN"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/contrasting-fortunes-for-racing-bulls-as-lawson-returns-and-lindblad-crashes.1tNORb78fI7GQw9qzR7KZn.1tNORb78fI7GQw9qzR7KZn",
+        "sourcePublishedAt": 1790269080000
+      }
+    },
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "audi-baku-upgrade-first-running",
+        "headline": "Audi's 14-part upgrade gets its first Baku runs",
+        "body": "Audi introduced a broad aerodynamic package covering its wings, floor and engine cover. Bortoleto ran it alone in FP1 for a comparison with Hülkenberg's older car; team principal Mattia Binotto said the early data matched expectations. The drivers finished 14th and 15th in FP2.",
+        "category": "general",
+        "affectsSessions": [],
+        "driverCodes": ["BOR", "HUL"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/the-package-is-delivering-as-expected-audi-reflect-on-new-upgrade-package-after-practice-in-azerbaijan.5U8qcauiyASv8Je72XQF3c.5U8qcauiyASv8Je72XQF3c",
+        "sourcePublishedAt": 1790268000000
+      }
+    },
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "ocon-haas-2027-free-agent",
+        "headline": "Haas expects a 2027 driver decision within weeks",
+        "body": "Haas team principal Ayao Komatsu says the team has not decided whether to retain Esteban Ocon for 2027. He expects a decision within the next couple of weeks after an internal review.",
+        "category": "general",
+        "affectsSessions": [],
+        "driverCodes": ["OCO"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/within-the-next-couple-of-weeks-komatsu-reveals-timeline-for-haas-2027-driver-line-up-decision.3BCkQ2eO3S0dCAynRFkTgA",
+        "sourcePublishedAt": 1790253300000
+      }
+    },
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "hamilton-baku-fp2-reprimand",
+        "headline": "Hamilton reprimanded for impeding Lawson in FP2",
+        "body": "The stewards found that Hamilton unnecessarily impeded Lawson on a flying lap during FP2 and gave him a driving reprimand, his second of the season. The decision carries no grid penalty.",
+        "category": "general",
+        "affectsSessions": [],
+        "driverCodes": ["HAM", "LAW"],
+        "sourceName": "FIA",
+        "sourceUrl": "https://www.fia.com/system/files/decision-document/2026_azerbaijan_grand_prix_-_infringement_-_car_44_-_impeding_car_30.pdf",
+        "sourcePublishedAt": 1790265900000
+      }
+    },
+    {
+      "function": "globalNews:publish",
+      "args": {
+        "key": "cadillac-technical-leadership-2026-09",
+        "headline": "Cadillac names three technical leaders",
+        "body": "Cadillac has appointed Craig Skinner as chief development engineer, Eric Blandin as head of aerodynamics and Tim Lean as chief engineer for aerodynamic modelling and simulation. The three will join over the coming months.",
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/cadillac-recruit-technical-leaders-from-red-bull-and-ferrari-as-part-of-long-term-development.5bNqxMySRCCuU69CY5Es7w",
+        "sourcePublishedAt": 1790265300000
+      }
+    }
+  ]
+}

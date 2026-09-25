@@ -146,7 +146,7 @@ describe('WeekendWeatherHours', () => {
     expect(html).not.toContain('Already run');
   });
 
-  it('stacks the forecast under the start time so the session name can centre against both', () => {
+  it('keeps weather below the session and time until the card is wide enough', () => {
     const now = Date.UTC(2026, 8, 4, 13, 22);
     const html = renderToStaticMarkup(
       <RaceWriteupWeekendSchedule
@@ -161,13 +161,12 @@ describe('WeekendWeatherHours', () => {
       />,
     );
 
-    expect(html).toContain('row-[1/span_3] sm:row-[1]');
-    // Below `sm` the forecast fills the right-hand columns of rows two and
-    // three (wind on a line of its own), never column one, which would put it
-    // under the session name.
-    expect(html).toContain('col-[2] row-[2]');
-    expect(html).toContain('col-[2/span_2] row-[3]');
-    expect(html).not.toMatch(/col-\[1\] row-\[[23]\]/);
+    expect(html).toContain('class="@container rounded-sm');
+    expect(html).toContain('row-[1] text-sm');
+    expect(html).toContain('col-[3] @min-[600px]:col-[2]');
+    expect(html).toContain('col-[1] row-[2]');
+    expect(html).toContain('@min-[320px]:row-[2]');
+    expect(html).toContain('@min-[600px]:row-[1]');
   });
 });
 

@@ -186,7 +186,7 @@ export function RaceWriteupWeekendSchedule({
     // subject. `WeekendScheduleList` on the dashboard is named the same way.
     <section
       aria-label={forecast ? 'Schedule and forecast' : 'Weekend schedule'}
-      className="rounded-sm border border-border bg-surface"
+      className="@container rounded-sm border border-border bg-surface"
     >
       {/* The column head, in the timing-sheet sense: what unit the figures
           below are in, and the control that changes it. The zone label and the
@@ -207,13 +207,13 @@ export function RaceWriteupWeekendSchedule({
         ) : null}
       </div>
       {/* One grid for the whole list, and each row a subgrid of it, so a
-          column is as wide as its widest cell on *any* row. Each row used to be
-          its own grid, sized to its own contents: a wet session's longer
-          figures pushed its start time left of every dry row's. */}
+          column is as wide as its widest cell on *any* row. The hero's narrow
+          sidebar needs two lines even on a wide viewport; switch to five
+          columns only when the card itself has room for them. */}
       <dl
         className={`grid gap-x-3 ${
           forecast
-            ? 'grid-cols-[minmax(0,1fr)_auto_auto] sm:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto]'
+            ? 'grid-cols-[minmax(0,1fr)_auto_auto] @min-[600px]:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto]'
             : 'grid-cols-[auto_minmax(0,1fr)] sm:grid-cols-[6.5rem_1fr]'
         }`}
       >
@@ -242,12 +242,12 @@ export function RaceWriteupWeekendSchedule({
               // sat low against the session name and start time. With one line
               // of similar text in each cell, centring aligns all three and
               // does not depend on what the third one happens to contain.
-              className={`col-span-full grid grid-cols-subgrid items-center gap-y-0.5 border-b border-border/60 px-4 py-2 last:border-b-0 sm:py-2.5 ${
+              className={`col-span-full grid grid-cols-subgrid items-center gap-y-1 border-b border-border/60 px-4 py-2 last:border-b-0 @min-[600px]:gap-y-0 @min-[600px]:py-2.5 ${
                 isNext ? 'gpp-stripe bg-surface-elevated' : ''
               }`}
             >
               <dt
-                className={`col-[1] text-sm ${summary ? 'row-[1/span_3] sm:row-[1]' : 'row-[1]'} ${isNext ? 'font-medium text-text' : 'text-text-muted'}`}
+                className={`${forecast ? 'col-[1/span_2] @min-[600px]:col-[1]' : 'col-[1]'} row-[1] text-sm ${isNext ? 'font-medium text-text' : 'text-text-muted'}`}
               >
                 {/* The row that matters carries the stripe, a surface step and
                     the heavier weight. It used to be an accent fill with accent
@@ -260,11 +260,11 @@ export function RaceWriteupWeekendSchedule({
                 ) : null}
                 {label}
               </dt>
-              {/* Below `sm` the time sits over the forecast in the right-hand
-                  columns, so the session name centres against both lines. */}
+              {/* The first line pairs the session with its time. Below it,
+                  the three weather figures get their own aligned columns. */}
               <dd
                 className={`gpp-mono row-[1] text-right text-sm whitespace-nowrap text-text ${
-                  forecast ? 'col-[2/span_2] sm:col-[2]' : ''
+                  forecast ? 'col-[3] @min-[600px]:col-[2]' : 'col-[2]'
                 }`}
               >
                 {forecast
@@ -274,7 +274,7 @@ export function RaceWriteupWeekendSchedule({
               {forecast &&
                 (summary ? (
                   <>
-                    <dd className="col-[2] row-[2] flex items-center justify-end gap-1.5 sm:col-[3] sm:row-[1]">
+                    <dd className="col-[1] row-[2] flex items-center gap-1.5 @min-[600px]:col-[3] @min-[600px]:row-[1] @min-[600px]:justify-end">
                       <WeatherIcon
                         conditionCode={summary.conditionCode}
                         className="h-4 w-4 shrink-0 text-text-muted"
@@ -288,12 +288,9 @@ export function RaceWriteupWeekendSchedule({
                         {summary.temperatureC}°C
                       </span>
                     </dd>
-                    {/* Sustained wind and where it comes from. On a phone it
-                        takes a line of its own under the temperature and
-                        rain: three figures abreast pushed a long session name
-                        into them at 320px. Gusts are in the spoken form and
-                        the hour-by-hour forecast. */}
-                    <dd className="col-[2/span_2] row-[3] flex items-center justify-end gap-1 text-sm text-text-muted sm:col-[4] sm:row-[1]">
+                    {/* Sustained wind and where it comes from. Gusts are in
+                        the spoken form and the hour-by-hour forecast. */}
+                    <dd className="col-[1/span_3] row-[3] flex items-center gap-1 text-sm text-text-muted @min-[320px]:col-[2] @min-[320px]:row-[2] @min-[320px]:justify-end @min-[600px]:col-[4] @min-[600px]:row-[1]">
                       {wind ? (
                         <>
                           <Wind
@@ -316,7 +313,7 @@ export function RaceWriteupWeekendSchedule({
                         session is the one lit in the column, and a dry one
                         stays quiet. */}
                     <dd
-                      className={`col-[3] row-[2] flex items-center justify-end gap-1 text-sm sm:col-[5] sm:row-[1] ${
+                      className={`col-[3] row-[2] flex items-center justify-end gap-1 text-sm @min-[600px]:col-[5] @min-[600px]:row-[1] ${
                         rain ? 'text-text' : 'text-text-muted'
                       }`}
                     >
@@ -338,7 +335,7 @@ export function RaceWriteupWeekendSchedule({
                   // A session with no forecast keeps a dash across the
                   // forecast columns on a wide card, and drops them on a
                   // phone rather than spend a second line on it.
-                  <dd className="hidden text-right sm:col-[3/span_3] sm:row-[1] sm:block">
+                  <dd className="hidden text-right @min-[600px]:col-[3/span_3] @min-[600px]:row-[1] @min-[600px]:block">
                     <span className="sr-only">
                       {timestamp !== undefined &&
                       now !== undefined &&

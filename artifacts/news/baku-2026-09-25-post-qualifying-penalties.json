@@ -1,0 +1,99 @@
+{
+  "reviewedAt": "2026-09-25",
+  "raceSlug": "azerbaijan-2026",
+  "note": "Two post-qualifying steward decisions missing from the published batch, and the provisional grid corrected in place to include them. Order matters: the grid's newsKey links need both penalty items active first. sourcePublishedAt is omitted because the article date lines could not be read from this environment; add it from the articles before publishing if possible. No push campaign is selected by these actions.",
+  "actions": [
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "sainz-baku-grid-penalty",
+        "headline": "Sainz drops five places for a yellow flag breach",
+        "body": "The stewards gave Carlos Sainz a five-place grid penalty for failing to slow sufficiently under yellow flags in qualifying. He qualified ninth and starts 14th; his qualifying result is unaffected.",
+        "category": "pick_related",
+        "affectsSessions": ["race"],
+        "driverCodes": ["SAI"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/sainz-hit-with-five-place-grid-penalty-for-azerbaijan-gp-after-yellow-flag-breach-in-qualifying.1gS7cC7mRmvBvIrJGRH6Bb"
+      }
+    },
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "perez-baku-grid-penalty",
+        "headline": "Perez gets a three-place penalty for impeding Piastri",
+        "body": "The stewards found Sergio Perez impeded Oscar Piastri through Turns 18 to 20 in qualifying after two warnings that Piastri was approaching, and gave him a three-place grid penalty. He starts 20th, ahead of only the two Aston Martins.",
+        "category": "pick_related",
+        "affectsSessions": ["race"],
+        "driverCodes": ["PER"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/perez-handed-penalty-for-azerbaijan-grand-prix-after-qualifying-infringement.zuQBKGcAcuTO1vc7esCSP"
+      }
+    },
+    {
+      "function": "raceNews:publish",
+      "reason": "Correct the provisional grid in place: Sainz 9th -> 14th (Colapinto, Bearman, Lawson, Albon and Ocon each move up one) and Perez behind Bottas. Order cross-checked against The Race's grid with four penalties. driverCodes dropped per the skill: a grid belongs to no one driver.",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "baku-2026-provisional-grid",
+        "headline": "Provisional Baku grid: Russell on pole",
+        "body": "Russell heads the provisional grid ahead of Leclerc and Piastri. Sainz, Perez, Alonso and Stroll start behind where they qualified after penalties. The FIA can still amend the order before Saturday’s race.",
+        "category": "pick_related",
+        "affectsSessions": ["race"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/russell-charges-to-pole-position-as-antonelli-suffers-shock-exit-in-qualifying-for-azerbaijan-gp.6vFe7216mR8JZuWE4QIB4w",
+        "sourcePublishedAt": 1790342400000,
+        "startingGrid": [
+          { "position": 1, "code": "RUS" },
+          { "position": 2, "code": "LEC" },
+          { "position": 3, "code": "PIA" },
+          { "position": 4, "code": "HAD" },
+          { "position": 5, "code": "NOR" },
+          { "position": 6, "code": "HAM" },
+          { "position": 7, "code": "GAS" },
+          { "position": 8, "code": "VER" },
+          { "position": 9, "code": "COL" },
+          { "position": 10, "code": "BEA" },
+          { "position": 11, "code": "LAW" },
+          { "position": 12, "code": "ALB" },
+          { "position": 13, "code": "OCO" },
+          {
+            "position": 14,
+            "code": "SAI",
+            "note": "5-place penalty",
+            "newsKey": "sainz-baku-grid-penalty"
+          },
+          { "position": 15, "code": "LIN" },
+          {
+            "position": 16,
+            "code": "ANT",
+            "note": "Q1 wall contact",
+            "newsKey": "baku-2026-qualifying"
+          },
+          { "position": 17, "code": "BOR" },
+          { "position": 18, "code": "HUL" },
+          { "position": 19, "code": "BOT" },
+          {
+            "position": 20,
+            "code": "PER",
+            "note": "3-place penalty",
+            "newsKey": "perez-baku-grid-penalty"
+          },
+          {
+            "position": 21,
+            "code": "ALO",
+            "note": "Power unit penalty",
+            "newsKey": "aston-martin-baku-engine-penalties"
+          },
+          {
+            "position": 22,
+            "code": "STR",
+            "note": "Power unit penalty",
+            "newsKey": "aston-martin-baku-engine-penalties"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -24,6 +24,10 @@ import { newsMentionsGridPenalty } from '@/lib/newsGridPenalty';
  * Same `StartingGridTable`, same `compact` mode the feed and the write-up
  * grid card use: one component, so a correction to the grid cannot read
  * differently depending on which surface a player is looking at.
+ *
+ * The feed below leaves this race's grid cards out (`gridRaceSlug` on
+ * `FeedContent`), so this card is the grid's only home on the dashboard and
+ * carries the story's body as well as its headline.
  */
 export function DashboardStartingGridCard({ raceSlug }: { raceSlug: string }) {
   const news = useQuery(api.raceNews.list, { raceSlug });
@@ -63,6 +67,11 @@ export function DashboardStartingGridCard({ raceSlug }: { raceSlug: string }) {
       <p className="px-4 text-sm font-semibold text-text">
         {gridItem.headline}
       </p>
+      {gridItem.body ? (
+        <p className="gpp-reading-copy mt-2 px-4 text-sm text-text-muted">
+          {gridItem.body}
+        </p>
+      ) : null}
       <div className="px-2 pb-3 sm:px-3">
         <StartingGridTable entries={gridItem.startingGrid} compact />
       </div>

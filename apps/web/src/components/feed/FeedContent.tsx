@@ -153,6 +153,7 @@ function blockKey(block: InterleavedBlock): string {
 export function FeedContent({
   initialPage,
   interleaved = null,
+  gridRaceSlug = null,
 }: {
   /**
    * The top of the feed as the server read it, so the section renders with rows
@@ -177,6 +178,12 @@ export function FeedContent({
    * here".
    */
   interleaved?: InterleavedBlock[] | null;
+  /**
+   * The race whose starting grid the page already shows above this stream
+   * (`DashboardStartingGridCard`). Its grid news cards are left out here, the
+   * same way practice is: one grid on the page, not the same 22 rows twice.
+   */
+  gridRaceSlug?: string | null;
 } = {}) {
   const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
     Array(MAX_EXTRA_PAGES).fill(null),
@@ -392,8 +399,16 @@ export function FeedContent({
   // The feed card is a different component (race-named heading, a padded
   // list, "View full results") and stacking it under the highlights card
   // was the same FP1 classification twice, in two vibes.
+  // The same goes for this weekend's grid, which has its own card above.
   const allEvents = mergedEvents.filter(
-    (event) => event.type !== 'practice_published',
+    (event) =>
+      event.type !== 'practice_published' &&
+      !(
+        event.type === 'race_news' &&
+        gridRaceSlug !== null &&
+        event.raceSlug === gridRaceSlug &&
+        (event.newsStartingGrid?.length ?? 0) > 0
+      ),
   );
   const groups = groupFeedEvents(allEvents);
 

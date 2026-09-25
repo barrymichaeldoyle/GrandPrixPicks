@@ -380,6 +380,7 @@ export function DashboardPage({
                 /feed page rendered the same component and has been removed. */}
             <FeedContent
               initialPage={initialDashboard?.feedPreview}
+              gridRaceSlug={currentWeekend?.race.slug ?? null}
               /* Both of these are page positions that are really positions in
                  this stream. The picks card sits under the result of the race
                  just run for the length of the results-first window, with

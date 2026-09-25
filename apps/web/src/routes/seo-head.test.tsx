@@ -410,12 +410,13 @@ describe('SEO head metadata', () => {
       qualiLockAt: 2_000,
       predictionLockAt: 3_000,
     };
-    const title = (
+    function title (
       items: { key: string; startingGrid?: { position: number }[] }[],
-    ) =>
-      head({
+    ) {
+      return head({
         loaderData: { race, weatherNow: 2_500, news: { items } },
       }).meta?.find((tag) => tag.title)?.title;
+    }
 
     expect(title([])).toBe(
       '2026 Azerbaijan Grand Prix Predictions & Picks | Baku',

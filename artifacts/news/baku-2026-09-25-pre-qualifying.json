@@ -1,0 +1,21 @@
+{
+  "reviewedAt": "2026-09-25T11:50:00Z",
+  "note": "Qualifying-day check against the public Baku page and Formula 1's FP3 report. The app already covers the Aston Martin engine penalties; this is a separate FP3 incident. No push campaign is selected.",
+  "actions": [
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "stroll-baku-fp3-wall-contact",
+        "headline": "Stroll damages Aston Martin in FP3",
+        "body": "Lance Stroll clipped the inside wall at Turn 1 in final practice, damaging a wheel and pulling off behind the barrier. His session ended early ahead of Friday's qualifying.",
+        "category": "general",
+        "affectsSessions": [],
+        "driverCodes": ["STR"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/fp3-verstappen-beats-russell-and-hamilton-in-final-practice-for-azerbaijan-gp.4BuODmX7lLpgRKnIK4oMXg",
+        "sourcePublishedAt": 1790329740000
+      }
+    }
+  ]
+}

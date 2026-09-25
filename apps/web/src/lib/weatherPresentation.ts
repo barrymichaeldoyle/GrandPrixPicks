@@ -333,7 +333,7 @@ export function windFigure(wind: {
  * something anyone picks differently on, the same reasoning that drops a rain
  * chance under 20%.
  */
-export const GUSTS_WORTH_MENTIONING_KMH = 40;
+const GUSTS_WORTH_MENTIONING_KMH = 40;
 
 export function buildWeatherSessions(race: RaceSchedule): WeatherSession[] {
   return SESSION_DEFINITIONS.flatMap(([key, label, field, durationMinutes]) => {

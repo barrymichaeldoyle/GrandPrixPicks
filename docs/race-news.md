@@ -61,7 +61,7 @@ weekend card flag the item on the Race tab and leave Qualifying alone, which is
 | `driverCodes`             | Optional. Colours the card with the first driver's team         |
 | `sourceName`, `sourceUrl` | Attribution, same standard as the write-up pages                |
 | `sourcePublishedAt`       | Optional. When the source published it, shown on the write-up   |
-| `startingGrid`            | Optional. The confirmed grid, on the item that announces it     |
+| `startingGrid`            | Optional. The full sourced grid, on the item that announces it  |
 | `active`                  | Retraction without deletion, so a mistake leaves a trail        |
 
 ### What `driverCodes` actually does
@@ -175,6 +175,12 @@ resolved rows, exactly as `newsDrivers` does.
 or a code the roster does not know, and reports `gridPositions` on a dry run.
 That is the whole point of the validation: a grid one row short renders as a
 perfectly tidy table, and the row that is missing is somebody's pick.
+
+If the FIA has yet to publish its provisional grid document, a full grid may be
+published from the qualifying classification and documented penalties only when
+an official Formula 1 report confirms the resulting order. Label the headline
+and write-up snippet **provisional**. Check the FIA grid and subsequent steward
+decisions before the race, then correct the same news key in place if needed.
 
 The two surfaces differ in one respect only. The write-up shows every place,
 because it is a public page, the grid is what the reader searched for, and a

@@ -1,0 +1,116 @@
+{
+  "reviewedAt": "2026-09-25T14:00:00Z",
+  "raceSlug": "azerbaijan-2026",
+  "note": "FIA document 43 and the Formula 1 qualifying report checked. The grid is provisional until an FIA starting-grid document and outstanding steward decisions are checked. No push campaign is selected.",
+  "actions": [
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "aston-martin-baku-engine-penalties",
+        "headline": "Alonso and Stroll take Baku grid penalties",
+        "body": "Aston Martin fitted extra power unit components to both cars. Alonso’s penalties now total 30 grid places after another energy store was fitted in FP3, while Stroll’s total is 20. Both are set for the back row in Saturday’s race; their qualifying results are unaffected.",
+        "category": "pick_related",
+        "affectsSessions": ["race"],
+        "driverCodes": ["ALO", "STR"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/alonso-and-stroll-set-for-grid-penalties-at-azerbaijan-gp-after-taking-new-engine-components.2uOl7HZHamxmaUqjOxejAF",
+        "sourcePublishedAt": 1790244540000
+      },
+      "reason": "Formula 1 updated its report after the FIA gave Alonso another five-place penalty in document 34."
+    },
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "antonelli-baku-hydraulics-recovery",
+        "headline": "Antonelli recovers to second after hydraulic trouble",
+        "body": "A hydraulic problem ended Antonelli’s FP1 early. Mercedes fitted a new power unit after fire damage, costing him the first half of FP2. He returned to set the second-fastest time behind Russell.",
+        "category": "general",
+        "affectsSessions": [],
+        "driverCodes": ["ANT"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/feel-like-it-was-a-good-recovery-antonelli-and-mercedes-reflect-on-practice-running-in-azerbaijan.c0c4kn5SnpEwnolbCZye1.c0c4kn5SnpEwnolbCZye1",
+        "sourcePublishedAt": 1790263620000
+      },
+      "reason": "The cited source says the replacement was due to fire damage, not a precaution."
+    },
+    {
+      "function": "raceNews:retract",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "leclerc-baku-grid-penalty"
+      },
+      "reason": "A pre-weekend report about a possible Baku engine change is stale after Leclerc qualified P2; no new Ferrari penalty appears in the current FIA decisions."
+    },
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "baku-2026-qualifying",
+        "headline": "Russell takes Baku pole; Antonelli qualifies 16th",
+        "body": "George Russell took pole for the Azerbaijan Grand Prix in 1:42.526, 0.837 seconds ahead of Charles Leclerc, with Oscar Piastri third. Championship leader Kimi Antonelli clipped the wall at Turn 1 in Q1 and qualified 16th. Isack Hadjar was fourth on his return to Red Bull.",
+        "category": "pick_related",
+        "affectsSessions": ["race"],
+        "driverCodes": ["RUS", "ANT"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/russell-charges-to-pole-position-as-antonelli-suffers-shock-exit-in-qualifying-for-azerbaijan-gp.6vFe7216mR8JZuWE4QIB4w",
+        "sourcePublishedAt": 1790342400000
+      }
+    },
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "baku-2026-provisional-grid",
+        "headline": "Provisional Baku grid: Russell on pole",
+        "body": "Russell heads the provisional grid ahead of Leclerc and Piastri. Alonso and Stroll are set for the back row after power unit penalties, moving Perez and Bottas to P19 and P20. The FIA can still amend the order before Saturday’s race.",
+        "category": "pick_related",
+        "affectsSessions": ["race"],
+        "driverCodes": ["RUS"],
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/russell-charges-to-pole-position-as-antonelli-suffers-shock-exit-in-qualifying-for-azerbaijan-gp.6vFe7216mR8JZuWE4QIB4w",
+        "sourcePublishedAt": 1790342400000,
+        "startingGrid": [
+          { "position": 1, "code": "RUS" },
+          { "position": 2, "code": "LEC" },
+          { "position": 3, "code": "PIA" },
+          { "position": 4, "code": "HAD" },
+          { "position": 5, "code": "NOR" },
+          { "position": 6, "code": "HAM" },
+          { "position": 7, "code": "GAS" },
+          { "position": 8, "code": "VER" },
+          { "position": 9, "code": "SAI" },
+          { "position": 10, "code": "COL" },
+          { "position": 11, "code": "BEA" },
+          { "position": 12, "code": "LAW" },
+          { "position": 13, "code": "ALB" },
+          { "position": 14, "code": "OCO" },
+          { "position": 15, "code": "LIN" },
+          {
+            "position": 16,
+            "code": "ANT",
+            "note": "Q1 wall contact",
+            "newsKey": "baku-2026-qualifying"
+          },
+          { "position": 17, "code": "BOR" },
+          { "position": 18, "code": "HUL" },
+          { "position": 19, "code": "PER" },
+          { "position": 20, "code": "BOT" },
+          {
+            "position": 21,
+            "code": "ALO",
+            "note": "Power unit penalty",
+            "newsKey": "aston-martin-baku-engine-penalties"
+          },
+          {
+            "position": 22,
+            "code": "STR",
+            "note": "Power unit penalty",
+            "newsKey": "aston-martin-baku-engine-penalties"
+          }
+        ]
+      }
+    }
+  ]
+}

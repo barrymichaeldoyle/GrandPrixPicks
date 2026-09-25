@@ -72,9 +72,13 @@ const MADRID_RESULT_SOURCE =
  * race-weekend impressions and no clicks.
  */
 const RACE_WEEKEND_TITLE =
-  'Azerbaijan GP 2026: Starting Grid, Start Time & Picks';
+  'Azerbaijan GP 2026: Provisional Grid, Start Time & Picks';
 const RACE_WEEKEND_DESCRIPTION =
-  'The confirmed starting grid for the 2026 Azerbaijan Grand Prix in Baku, and the 15:00 Saturday race start. Race picks stay open until lights out.';
+  'The provisional starting grid for the 2026 Azerbaijan Grand Prix in Baku, with Russell on pole and the race starting at 15:00 on Saturday.';
+const QUALIFYING_TITLE =
+  'Russell on Pole at Baku | 2026 Azerbaijan GP Start Time';
+const QUALIFYING_DESCRIPTION =
+  'Russell took Baku pole in 1:42.526, ahead of Leclerc and Piastri. The 2026 Azerbaijan Grand Prix starts at 15:00 Baku time on Saturday.';
 
 const FAQS = [
   {
@@ -133,6 +137,9 @@ export const Route = createFileRoute(
     return { race, championship, weather, weatherNow, news, season, practice };
   },
   head: ({ loaderData }) => {
+    const qualifyingPublished = loaderData?.news?.items.some(
+      (item) => item.key === 'baku-2026-qualifying',
+    );
     const snippet =
       loaderData?.race && loaderData.news
         ? raceWeekendSnippet({
@@ -143,16 +150,26 @@ export const Route = createFileRoute(
             ),
           })
         : false;
+    const qualifyingSnippet =
+      !snippet &&
+      qualifyingPublished &&
+      loaderData?.race &&
+      getRaceWriteupPhase(loaderData.race, loaderData.weatherNow) ===
+        'race-picks';
     return raceWriteupPageHead({
       path: PATH,
       raceSlug: RACE_SLUG,
       title: snippet
         ? RACE_WEEKEND_TITLE
-        : '2026 Azerbaijan Grand Prix Predictions & Picks | Baku',
+        : qualifyingSnippet
+          ? QUALIFYING_TITLE
+          : '2026 Azerbaijan Grand Prix Predictions & Picks | Baku',
       description: {
         live: snippet
           ? RACE_WEEKEND_DESCRIPTION
-          : 'Make your 2026 Azerbaijan Grand Prix predictions. Baku races on Saturday this year, with practice starting Thursday. Pick a top 5 for every session.',
+          : qualifyingSnippet
+            ? QUALIFYING_DESCRIPTION
+            : 'Make your 2026 Azerbaijan Grand Prix predictions. Baku races on Saturday this year, with practice starting Thursday. Pick a top 5 for every session.',
         finished:
           '2026 Azerbaijan Grand Prix predictions, scored against the official Baku classification. See your Top 5 and team-mate picks alongside the results.',
         cancelled: 'The 2026 Azerbaijan Grand Prix was called off.',
@@ -174,6 +191,9 @@ function AzerbaijanGrandPrixPredictionsPage() {
     Route.useLoaderData();
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
+  const qualifyingPublished = news.items.some(
+    (item) => item.key === 'baku-2026-qualifying',
+  );
 
   return (
     <RaceWriteupPage
@@ -203,7 +223,9 @@ function AzerbaijanGrandPrixPredictionsPage() {
         summary={raceWriteupHeroSummary(
           phase,
           'The Azerbaijan Grand Prix',
-          'The Grand Prix moved to Saturday this year, so practice starts on Thursday and qualifying is on Friday.',
+          phase === 'race-picks' && qualifyingPublished
+            ? 'Russell took pole ahead of Leclerc and Piastri. The race starts at 15:00 Baku time on Saturday.'
+            : 'The Grand Prix moved to Saturday this year, so practice starts on Thursday and qualifying is on Friday.',
         )}
         phase={phase}
         raceSlug={RACE_SLUG}

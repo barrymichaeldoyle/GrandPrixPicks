@@ -385,6 +385,52 @@ describe('SEO head metadata', () => {
     ).toMatch(/^2026 Spanish Grand Prix predictions at the Madring/);
   });
 
+  it('only promises Baku qualifying and grid details after they are published', async () => {
+    const { Route: bakuRoute } =
+      await import('./f1-2026-azerbaijan-grand-prix-predictions');
+    const { head } = bakuRoute as unknown as {
+      head: (args: {
+        loaderData: {
+          race: {
+            status: 'upcoming';
+            raceStartAt: number;
+            qualiLockAt: number;
+            predictionLockAt: number;
+          };
+          weatherNow: number;
+          news: {
+            items: { key: string; startingGrid?: { position: number }[] }[];
+          };
+        };
+      }) => HeadResult;
+    };
+    const race = {
+      status: 'upcoming' as const,
+      raceStartAt: 3_000,
+      qualiLockAt: 2_000,
+      predictionLockAt: 3_000,
+    };
+    const title = (
+      items: { key: string; startingGrid?: { position: number }[] }[],
+    ) =>
+      head({
+        loaderData: { race, weatherNow: 2_500, news: { items } },
+      }).meta?.find((tag) => tag.title)?.title;
+
+    expect(title([])).toBe(
+      '2026 Azerbaijan Grand Prix Predictions & Picks | Baku',
+    );
+    expect(title([{ key: 'baku-2026-qualifying' }])).toBe(
+      'Russell on Pole at Baku | 2026 Azerbaijan GP Start Time',
+    );
+    expect(
+      title([
+        { key: 'baku-2026-qualifying' },
+        { key: 'baku-2026-provisional-grid', startingGrid: [{ position: 1 }] },
+      ]),
+    ).toBe('Azerbaijan GP 2026: Provisional Grid, Start Time & Picks');
+  });
+
   it('hands a written-up race page to its write-up canonical', async () => {
     const { Route: raceRoute } = await import('./races/$raceSlug/index');
     const { head } = raceRoute as unknown as {

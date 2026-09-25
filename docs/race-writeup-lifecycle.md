@@ -79,7 +79,8 @@ publish a house qualifying order.
 Record the official qualifying classification and starting-grid changes. Keep
 qualifying classification and starting position distinct when penalties apply.
 
-Publish the starting grid as a `raceNews` item as soon as it is confirmed. On
+Publish the starting grid as a `raceNews` item as soon as a full sourced order
+is available, labelling it provisional until the FIA confirms it. On
 the Baku write-up it also switches the search snippet: between qualifying lock
 and lights out, with a grid on the page, `raceWeekendSnippet` swaps the preview
 title for one that leads with the grid and the start time. Monza kept its

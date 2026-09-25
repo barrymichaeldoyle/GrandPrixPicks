@@ -10,7 +10,11 @@ import * as WebBrowser from 'expo-web-browser';
 import { api } from '../../integrations/convex/api';
 import { useQuery } from '../../integrations/convex/query';
 import { getCountryCodeForRaceSlug } from '../../lib/raceFlags';
-import { bucketWeatherNow, pickForecastHour } from '../../lib/weatherNow';
+import {
+  bucketWeatherNow,
+  pickForecastHour,
+  windLabel,
+} from '../../lib/weatherNow';
 import { getRaceWriteup } from '../../lib/raceWriteups';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { colors } from '../../theme/tokens';
@@ -441,7 +445,7 @@ function ForecastRow({
         {weather.isStale ? 'Forecast (last available)' : 'Forecast'}
       </Text>
       <Text className="text-foreground ml-auto text-xs">
-        {`${forecastLabel(hour.conditionCode)} · ${Math.round(hour.temperatureC)}°C`}
+        {`${forecastLabel(hour.conditionCode)} · ${Math.round(hour.temperatureC)}°C · ${windLabel(hour)}`}
       </Text>
     </View>
   );

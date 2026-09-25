@@ -3,6 +3,8 @@ import {
   buildWeatherTimeline,
   conditionLabel,
   localDateKey,
+  windFigure,
+  windKmh,
   type RaceWeather,
   type WeatherTimelineDay,
 } from '@/lib/weatherPresentation';
@@ -122,7 +124,7 @@ export function WeekendWeatherHours({
                 return (
                   <li
                     key={period.startsAt}
-                    className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-3 py-3 sm:grid-cols-[9rem_minmax(0,1fr)_4rem_8rem] ${highlighted ? 'bg-surface-hover' : 'bg-surface'}`}
+                    className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-3 py-3 sm:grid-cols-[9rem_minmax(0,1fr)_4rem_10rem] ${highlighted ? 'bg-surface-hover' : 'bg-surface'}`}
                   >
                     <div className="min-w-0">
                       <time
@@ -151,11 +153,20 @@ export function WeekendWeatherHours({
                       {period.temperatureC}°C
                     </p>
                     <p className="col-start-2 row-start-2 text-right text-xs text-text-muted sm:col-start-4 sm:row-start-1">
-                      {period.precipitationProbability != null
-                        ? `${Math.round(period.precipitationProbability)}% chance of rain`
-                        : period.precipitationAmountMm > 0
-                          ? `${period.precipitationAmountMm.toFixed(1)} mm rain`
-                          : 'Dry'}
+                      <span className="block">
+                        {period.precipitationProbability != null
+                          ? `${Math.round(period.precipitationProbability)}% chance of rain`
+                          : period.precipitationAmountMm > 0
+                            ? `${period.precipitationAmountMm.toFixed(1)} mm rain`
+                            : 'Dry'}
+                      </span>
+                      {period.windSpeedMps != null && (
+                        <span className="gpp-mono mt-0.5 block whitespace-nowrap">
+                          {windFigure(period)}
+                          {period.maxWindGustMps != null &&
+                            ` · gusts ${windKmh(period.maxWindGustMps)}`}
+                        </span>
+                      )}
                     </p>
                   </li>
                 );

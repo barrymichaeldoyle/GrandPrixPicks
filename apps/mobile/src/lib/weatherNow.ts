@@ -47,3 +47,22 @@ export function pickForecastHour<T extends ForecastHour>(
     Math.abs(hour.at - startAt) < Math.abs(best.at - startAt) ? hour : best,
   );
 }
+
+const COMPASS_POINTS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
+
+/**
+ * Sustained wind for a forecast hour, e.g. "NE 16 km/h": the eight-point
+ * direction it blows from, and the provider's m/s in km/h. Web formats it the
+ * same way (`windFigure` in weatherPresentation).
+ */
+export function windLabel(hour: {
+  windSpeedMps: number;
+  windDirectionDegrees?: number;
+}): string {
+  const speed = `${Math.round(hour.windSpeedMps * 3.6)} km/h`;
+  if (hour.windDirectionDegrees === undefined) {
+    return speed;
+  }
+  const normalized = ((hour.windDirectionDegrees % 360) + 360) % 360;
+  return `${COMPASS_POINTS[Math.round(normalized / 45) % 8]} ${speed}`;
+}

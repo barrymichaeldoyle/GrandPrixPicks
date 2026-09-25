@@ -213,7 +213,7 @@ export function RaceWriteupWeekendSchedule({
       <dl
         className={`grid gap-x-3 ${
           forecast
-            ? 'grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto]'
+            ? 'grid-cols-[minmax(0,1fr)_auto_auto] sm:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto]'
             : 'grid-cols-[auto_minmax(0,1fr)] sm:grid-cols-[6.5rem_1fr]'
         }`}
       >
@@ -247,7 +247,7 @@ export function RaceWriteupWeekendSchedule({
               }`}
             >
               <dt
-                className={`col-[1] text-sm ${summary ? 'row-[1/span_2] sm:row-[1]' : 'row-[1]'} ${isNext ? 'font-medium text-text' : 'text-text-muted'}`}
+                className={`col-[1] text-sm ${summary ? 'row-[1/span_3] sm:row-[1]' : 'row-[1]'} ${isNext ? 'font-medium text-text' : 'text-text-muted'}`}
               >
                 {/* The row that matters carries the stripe, a surface step and
                     the heavier weight. It used to be an accent fill with accent
@@ -264,7 +264,7 @@ export function RaceWriteupWeekendSchedule({
                   columns, so the session name centres against both lines. */}
               <dd
                 className={`gpp-mono row-[1] text-right text-sm whitespace-nowrap text-text ${
-                  forecast ? 'col-[2/span_3] sm:col-[2]' : ''
+                  forecast ? 'col-[2/span_2] sm:col-[2]' : ''
                 }`}
               >
                 {forecast
@@ -288,10 +288,12 @@ export function RaceWriteupWeekendSchedule({
                         {summary.temperatureC}°C
                       </span>
                     </dd>
-                    {/* Sustained wind and where it comes from. Gusts are in
-                        the spoken form and the hour-by-hour forecast: on a
-                        phone this row has no room for a second figure. */}
-                    <dd className="col-[3] row-[2] flex items-center justify-end gap-1 text-sm text-text-muted sm:col-[4] sm:row-[1]">
+                    {/* Sustained wind and where it comes from. On a phone it
+                        takes a line of its own under the temperature and
+                        rain: three figures abreast pushed a long session name
+                        into them at 320px. Gusts are in the spoken form and
+                        the hour-by-hour forecast. */}
+                    <dd className="col-[2/span_2] row-[3] flex items-center justify-end gap-1 text-sm text-text-muted sm:col-[4] sm:row-[1]">
                       {wind ? (
                         <>
                           <Wind
@@ -314,7 +316,7 @@ export function RaceWriteupWeekendSchedule({
                         session is the one lit in the column, and a dry one
                         stays quiet. */}
                     <dd
-                      className={`col-[4] row-[2] flex items-center justify-end gap-1 text-sm sm:col-[5] sm:row-[1] ${
+                      className={`col-[3] row-[2] flex items-center justify-end gap-1 text-sm sm:col-[5] sm:row-[1] ${
                         rain ? 'text-text' : 'text-text-muted'
                       }`}
                     >

@@ -124,7 +124,7 @@ export function WeekendWeatherHours({
                 return (
                   <li
                     key={period.startsAt}
-                    className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-3 py-3 sm:grid-cols-[9rem_minmax(0,1fr)_4rem_10rem] ${highlighted ? 'bg-surface-hover' : 'bg-surface'}`}
+                    className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-3 py-3 sm:grid-cols-[9rem_minmax(0,1fr)_4rem_12rem] ${highlighted ? 'bg-surface-hover' : 'bg-surface'}`}
                   >
                     <div className="min-w-0">
                       <time
@@ -161,10 +161,20 @@ export function WeekendWeatherHours({
                             : 'Dry'}
                       </span>
                       {period.windSpeedMps != null && (
-                        <span className="gpp-mono mt-0.5 block whitespace-nowrap">
-                          {windFigure(period)}
-                          {period.maxWindGustMps != null &&
-                            ` · gusts ${windKmh(period.maxWindGustMps)}`}
+                        // Two nowrap runs, so a narrow column breaks between
+                        // the wind and the gusts rather than inside either.
+                        <span className="gpp-mono mt-0.5 block">
+                          <span className="whitespace-nowrap">
+                            {windFigure(period)}
+                          </span>
+                          {period.maxWindGustMps != null && (
+                            <>
+                              {' · '}
+                              <span className="whitespace-nowrap">
+                                gusts {windKmh(period.maxWindGustMps)} km/h
+                              </span>
+                            </>
+                          )}
                         </span>
                       )}
                     </p>

@@ -74,6 +74,7 @@ export type FeedEvent = {
   newsAffectsSessions?: string[];
   newsSourceName?: string;
   newsSourceUrl?: string;
+  newsTeam?: string;
   newsDrivers?: {
     code: string;
     displayName: string;

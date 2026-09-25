@@ -289,13 +289,14 @@ describe('private news pipeline', () => {
       .mutation(api.newsPipeline.reviewProposal, {
         proposalId,
         decision: 'publish',
+        team: 'Cadillac',
       });
-    expect(
-      await t.run((ctx) => ctx.db.query('globalNews').collect()),
-    ).toHaveLength(1);
-    expect(
-      await t.run((ctx) => ctx.db.query('feedEvents').collect()),
-    ).toHaveLength(1);
+    const stories = await t.run((ctx) => ctx.db.query('globalNews').collect());
+    expect(stories).toHaveLength(1);
+    expect(stories[0].team).toBe('Cadillac');
+    const events = await t.run((ctx) => ctx.db.query('feedEvents').collect());
+    expect(events).toHaveLength(1);
+    expect(events[0].newsTeam).toBe('Cadillac');
   });
   it('rejects unsafe proposals and dead-letters an expired third claim', async () => {
     const t = convexTest(schema, modules);

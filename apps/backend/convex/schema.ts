@@ -911,6 +911,8 @@ export default defineSchema({
     newsAffectsSessions: v.optional(v.array(sessionType)),
     newsSourceName: v.optional(v.string()),
     newsSourceUrl: v.optional(v.string()),
+    // Explicit team for stories with no driver, such as a team appointment.
+    newsTeam: v.optional(v.string()),
     /**
      * The drivers the item is about, resolved at publish time, so the feed can
      * draw a badge without a roster read per event. Denormalised exactly like
@@ -1158,6 +1160,7 @@ export default defineSchema({
     key: v.string(),
     headline: v.string(),
     body: v.string(),
+    team: v.optional(v.string()),
     sourceName: v.string(),
     sourceUrl: v.string(),
     sourcePublishedAt: v.optional(v.number()),

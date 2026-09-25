@@ -1,4 +1,5 @@
 import { v } from 'convex/values';
+import { teams } from '@grandprixpicks/shared/tokens';
 import { internalMutation, internalQuery, query } from './_generated/server';
 import { safeHttpUrl } from './lib/newsRss';
 
@@ -15,6 +16,7 @@ const globalNewsListResultValidator = v.object({
       key: v.string(),
       headline: v.string(),
       body: v.string(),
+      team: v.optional(v.string()),
       sourceName: v.string(),
       sourceUrl: v.string(),
       active: v.boolean(),
@@ -46,6 +48,7 @@ export const listForOperators = internalQuery({
         key: row.key,
         headline: row.headline,
         body: row.body,
+        team: row.team,
         sourceName: row.sourceName,
         sourceUrl: row.sourceUrl,
         active: row.active,
@@ -63,6 +66,7 @@ export const publish = internalMutation({
     key: v.string(),
     headline: v.string(),
     body: v.string(),
+    team: v.optional(v.string()),
     sourceName: v.string(),
     sourceUrl: v.string(),
     sourcePublishedAt: v.optional(v.number()),
@@ -76,7 +80,8 @@ export const publish = internalMutation({
       args.headline.length > 180 ||
       args.body.length < 10 ||
       args.body.length > 1000 ||
-      /<[^>]*>|&lt;|&#\d+;/i.test(`${args.headline} ${args.body}`)
+      /<[^>]*>|&lt;|&#\d+;/i.test(`${args.headline} ${args.body}`) ||
+      (args.team !== undefined && !Object.hasOwn(teams, args.team))
     ) {
       throw new Error('Invalid news.');
     }
@@ -85,6 +90,7 @@ export const publish = internalMutation({
       .query('globalNews')
       .withIndex('by_key', (q) => q.eq('key', args.key))
       .unique();
+    const team = args.team ?? existing?.team;
     const card = {
       type: 'race_news' as const,
       newsKey: args.key,
@@ -94,6 +100,7 @@ export const publish = internalMutation({
       newsAffectsSessions: [],
       newsSourceName: args.sourceName,
       newsSourceUrl: args.sourceUrl,
+      newsTeam: team,
     };
     let feedEventId = existing?.feedEventId;
     const feed = feedEventId ? await ctx.db.get(feedEventId) : null;
@@ -111,6 +118,7 @@ export const publish = internalMutation({
     if (existing) {
       await ctx.db.patch(existing._id, {
         ...args,
+        team,
         feedEventId,
         active: true,
         updatedAt: now,
@@ -119,6 +127,7 @@ export const publish = internalMutation({
     }
     return await ctx.db.insert('globalNews', {
       ...args,
+      team,
       feedEventId,
       active: true,
       publishedAt: now,

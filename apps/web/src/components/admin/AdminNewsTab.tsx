@@ -1,5 +1,6 @@
 import { api } from '@convex-generated/api';
 import type { Doc, Id } from '@convex-generated/dataModel';
+import { teams } from '@grandprixpicks/shared/tokens';
 import { useMutation } from 'convex/react';
 import { useState } from 'react';
 import { useQuery } from '@/integrations/convex/query';
@@ -189,6 +190,7 @@ function ProposalCard({
   const [body, setBody] = useState(proposal.body);
   const [category, setCategory] = useState<Category>(proposal.category);
   const [raceSlug, setRaceSlug] = useState(proposal.raceSlug ?? '');
+  const [team, setTeam] = useState('');
   const [sessions, setSessions] = useState<Session[]>(proposal.affectsSessions);
   const [feedSelected, setFeedSelected] = useState(true);
   const [writeUpSelected, setWriteUpSelected] = useState(true);
@@ -210,6 +212,7 @@ function ProposalCard({
         body,
         category,
         raceSlug: raceSlug || undefined,
+        team: !raceSlug && team ? team : undefined,
         affectsSessions: sessions,
         feedSelected,
         writeUpSelected,
@@ -314,6 +317,23 @@ function ProposalCard({
           />
         </label>
       </div>
+      {!raceSlug && (
+        <label className="mt-3 block text-sm">
+          Team
+          <select
+            className="ml-2 rounded bg-slate-800 p-2"
+            value={team}
+            onChange={(event) => setTeam(event.target.value)}
+          >
+            <option value="">None</option>
+            {Object.keys(teams).map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       {category === 'pick_related' && (
         <fieldset className="mt-3 flex flex-wrap gap-3 text-sm">
           <legend>Affected sessions</legend>

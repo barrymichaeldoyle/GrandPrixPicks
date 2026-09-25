@@ -120,4 +120,43 @@ describe('race-independent news', () => {
       1,
     );
   });
+
+  it('keeps a reviewed team colour on correction without duplicating the feed card', async () => {
+    const t = convexTest(schema, modules);
+    rateLimiter.register(t);
+    const input = {
+      key: 'williams-test',
+      headline: 'Williams completes a test',
+      body: 'The team completed a test session.',
+      team: 'Williams',
+      sourceName: 'Formula 1',
+      sourceUrl: 'https://example.com/williams',
+    };
+    await expect(
+      t.mutation(internal.globalNews.publish, {
+        ...input,
+        team: 'Unknown team',
+      }),
+    ).rejects.toThrow(/Invalid news/);
+
+    await t.mutation(internal.globalNews.publish, input);
+    await t.mutation(internal.globalNews.publish, {
+      key: input.key,
+      headline: 'Williams completes its test',
+      body: input.body,
+      sourceName: input.sourceName,
+      sourceUrl: input.sourceUrl,
+    });
+    const records = await t.query(internal.globalNews.listForOperators, {});
+    expect(records.items[0]).toMatchObject({
+      key: input.key,
+      team: 'Williams',
+    });
+    const events = await t.run((ctx) => ctx.db.query('feedEvents').collect());
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      newsHeadline: 'Williams completes its test',
+      newsTeam: 'Williams',
+    });
+  });
 });

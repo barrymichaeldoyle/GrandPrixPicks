@@ -1,0 +1,30 @@
+{
+  "reviewedAt": "2026-09-25",
+  "note": "Correct two existing general feed cards in place after the team-attribution code deploys. No push campaign is selected.",
+  "actions": [
+    {
+      "function": "globalNews:publish",
+      "args": {
+        "key": "jamie-chadwick-williams-f1-test-2026",
+        "headline": "Jamie Chadwick completes first Williams F1 test",
+        "body": "Chadwick drove 32 laps at Portimão in Williams' 2025 F1 car. She is the second woman to drive one of the team's cars, following Susie Wolff in 2015. Williams said her feedback will help prepare for Portugal's return to the calendar in 2027.",
+        "team": "Williams",
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/williams-ambassador-chadwick-completes-maiden-f1-test-at-portimao.1pE6f57MGOKMCnFoVJeUxU",
+        "sourcePublishedAt": 1790255520000
+      }
+    },
+    {
+      "function": "globalNews:publish",
+      "args": {
+        "key": "cadillac-technical-leadership-2026-09",
+        "headline": "Cadillac names three technical leaders",
+        "body": "Cadillac has appointed Craig Skinner as chief development engineer, Eric Blandin as head of aerodynamics and Tim Lean as chief engineer for aerodynamic modelling and simulation. The three will join over the coming months.",
+        "team": "Cadillac",
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/cadillac-recruit-technical-leaders-from-red-bull-and-ferrari-as-part-of-long-term-development.5bNqxMySRCCuU69CY5Es7w",
+        "sourcePublishedAt": 1790265300000
+      }
+    }
+  ]
+}

@@ -86,6 +86,12 @@ Two things that look like bugs and are not:
 prompted about more than once, so publishing is an upsert rather than an insert.
 Without it, three runs put three Antonelli items in the feed.
 
+Race-independent stories published through `globalNews:publish` can set an
+optional `team` to colour their feed card when no driver belongs to the story.
+Use the canonical team name from `packages/shared/src/tokens.ts`; leave it
+unset for stories about the calendar or Formula 1 as a whole. Corrections keep
+the existing team when `team` is omitted.
+
 ## Commands
 
 ```bash

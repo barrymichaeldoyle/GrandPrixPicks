@@ -70,7 +70,7 @@ export function RaceNewsItem({
   // and `LineupChangeItem` use, so a run of news reads as a Williams story
   // then a Mercedes one rather than two grey blocks. With the badges gone it is
   // the only thing saying whose story this is before the headline.
-  const team = event.newsDrivers?.[0]?.team ?? null;
+  const team = event.newsTeam ?? event.newsDrivers?.[0]?.team ?? null;
   const teamColour = hasGrid
     ? null
     : (team && TEAM_COLORS[team]) || 'var(--accent)';

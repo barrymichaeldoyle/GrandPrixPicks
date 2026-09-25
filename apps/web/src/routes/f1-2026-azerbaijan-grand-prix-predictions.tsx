@@ -47,7 +47,7 @@ const PROSE_REVIEWED_AT = lastReviewedAt(PROSE_REVIEWED);
 
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/azerbaijan';
 const SATURDAY_SOURCE =
-  'https://www.formula1.com/en/latest/article/formula-1-confirms-2026-pre-season-testing-dates-and-issues-calendar-update.5VKfdqe7JcdsCJcEnQE0xw';
+  'https://www.formula1.com/en/latest/article/its-race-week-5-storylines-we%27re-excited-about-ahead-of-the-2026-azerbaijan-grand-prix.6l5UWWsSVJdtKOpR8KDSzZ';
 const TYRE_SOURCE =
   'https://press.pirelli.com/tyre-compound-selections-for-baku-sepang-and-singapore/';
 const FORM_SOURCE =
@@ -80,7 +80,7 @@ const FAQS = [
   {
     question: 'Why is the 2026 Azerbaijan Grand Prix on a Saturday?',
     answer:
-      'Formula 1 and the FIA moved the race from Sunday 27 September to Saturday 26 September at the promoter’s request, to accommodate a national day. Every session moved one day earlier, so practice starts on Thursday and qualifying is on Friday.',
+      'Formula 1 and the FIA moved the race from Sunday 27 September to Saturday 26 September to avoid Azerbaijan’s Remembrance Day. Every session moved one day earlier, so practice starts on Thursday and qualifying is on Friday.',
   },
   {
     question: 'When is the 2026 Azerbaijan Grand Prix?',

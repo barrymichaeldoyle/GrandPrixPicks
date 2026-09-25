@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-05T00:00:00.000Z",
+  "generatedAt": "2026-09-25T20:36:30Z",
   "title": "Design System: Grand Prix Picks",
   "extensions": {
     "colorMeta": {
@@ -34,6 +34,81 @@
           "#5c5d63"
         ]
       },
+      "surface-elevated": {
+        "role": "neutral",
+        "displayName": "Surface Elevated",
+        "canonical": "#212226",
+        "tonalRamp": [
+          "#0c0d0f",
+          "#101113",
+          "#191a1d",
+          "#212226",
+          "#292a2e",
+          "#2c2d31",
+          "#3a3b41",
+          "#5c5d63"
+        ]
+      },
+      "surface-hover": {
+        "role": "neutral",
+        "displayName": "Surface Hover",
+        "canonical": "#292a2e",
+        "tonalRamp": [
+          "#0c0d0f",
+          "#101113",
+          "#191a1d",
+          "#212226",
+          "#292a2e",
+          "#2c2d31",
+          "#3a3b41",
+          "#5c5d63"
+        ]
+      },
+      "surface-sunken": {
+        "role": "neutral",
+        "displayName": "Surface Sunken",
+        "canonical": "#0c0d0f",
+        "tonalRamp": [
+          "#0c0d0f",
+          "#101113",
+          "#191a1d",
+          "#212226",
+          "#292a2e",
+          "#2c2d31",
+          "#3a3b41",
+          "#5c5d63"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border",
+        "canonical": "#2c2d31",
+        "tonalRamp": [
+          "#0c0d0f",
+          "#101113",
+          "#191a1d",
+          "#212226",
+          "#292a2e",
+          "#2c2d31",
+          "#3a3b41",
+          "#5c5d63"
+        ]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Border Strong",
+        "canonical": "#3a3b41",
+        "tonalRamp": [
+          "#0c0d0f",
+          "#101113",
+          "#191a1d",
+          "#212226",
+          "#292a2e",
+          "#2c2d31",
+          "#3a3b41",
+          "#5c5d63"
+        ]
+      },
       "text": {
         "role": "neutral",
         "displayName": "Ink",
@@ -49,10 +124,100 @@
           "#f2f2f0"
         ]
       },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Text Muted",
+        "canonical": "#a7a8ad",
+        "tonalRamp": [
+          "#5c5d63",
+          "#71727a",
+          "#8b8c92",
+          "#a7a8ad",
+          "#c2c3c6",
+          "#d8d8d9",
+          "#e8e8e7",
+          "#f2f2f0"
+        ]
+      },
+      "text-disabled": {
+        "role": "neutral",
+        "displayName": "Text Disabled",
+        "canonical": "#5c5d63",
+        "tonalRamp": [
+          "#5c5d63",
+          "#71727a",
+          "#8b8c92",
+          "#a7a8ad",
+          "#c2c3c6",
+          "#d8d8d9",
+          "#e8e8e7",
+          "#f2f2f0"
+        ]
+      },
+      "text-on-accent": {
+        "role": "neutral",
+        "displayName": "Ink on Accent",
+        "canonical": "#101113",
+        "tonalRamp": [
+          "#0c0d0f",
+          "#101113",
+          "#191a1d",
+          "#212226",
+          "#292a2e",
+          "#2c2d31",
+          "#3a3b41",
+          "#5c5d63"
+        ]
+      },
       "accent": {
         "role": "primary",
         "displayName": "Pit Lane Chartreuse",
         "canonical": "oklch(93.8% 0.209 121)",
+        "tonalRamp": [
+          "#040f00",
+          "#192d00",
+          "#344d00",
+          "#506f00",
+          "#6f9200",
+          "#91b600",
+          "#b5db2a",
+          "#daff67"
+        ]
+      },
+      "accent-hover": {
+        "role": "primary",
+        "displayName": "Accent Hover",
+        "canonical": "#e2ff6e",
+        "tonalRamp": [
+          "#040f00",
+          "#192d00",
+          "#344d00",
+          "#506f00",
+          "#6f9200",
+          "#91b600",
+          "#b5db2a",
+          "#daff67"
+        ]
+      },
+      "accent-press": {
+        "role": "primary",
+        "displayName": "Accent Press",
+        "canonical": "#b8e035",
+        "tonalRamp": [
+          "#040f00",
+          "#192d00",
+          "#344d00",
+          "#506f00",
+          "#6f9200",
+          "#91b600",
+          "#b5db2a",
+          "#daff67"
+        ]
+      },
+      "accent-muted": {
+        "role": "primary",
+        "displayName": "Accent Muted",
+        "canonical": "#2a3316",
         "tonalRamp": [
           "#040f00",
           "#192d00",
@@ -94,21 +259,6 @@
           "#7aff88"
         ]
       },
-      "result-top5": {
-        "role": "tertiary",
-        "displayName": "Sector Yellow",
-        "canonical": "#ffe600",
-        "tonalRamp": [
-          "#1b0400",
-          "#382000",
-          "#583f00",
-          "#796000",
-          "#9c8200",
-          "#bea600",
-          "#e2cb00",
-          "#fff159"
-        ]
-      },
       "result-miss": {
         "role": "tertiary",
         "displayName": "Miss Red",
@@ -124,10 +274,70 @@
           "#ffb2ac"
         ]
       },
+      "delta-up": {
+        "role": "tertiary",
+        "displayName": "Delta Up",
+        "canonical": "#4ade80",
+        "tonalRamp": [
+          "#001800",
+          "#003900",
+          "#005c00",
+          "#008000",
+          "#00a500",
+          "#00ca24",
+          "#41ef5b",
+          "#7aff88"
+        ]
+      },
+      "delta-down": {
+        "role": "tertiary",
+        "displayName": "Delta Down",
+        "canonical": "#f87171",
+        "tonalRamp": [
+          "#490404",
+          "#7e0606",
+          "#b40909",
+          "#e90c0c",
+          "#f53838",
+          "#f86d6d",
+          "#faa3a3",
+          "#fdd8d8"
+        ]
+      },
+      "delta-flat": {
+        "role": "tertiary",
+        "displayName": "Delta Flat",
+        "canonical": "#5c5d63",
+        "tonalRamp": [
+          "#252528",
+          "#404145",
+          "#5b5c62",
+          "#76777f",
+          "#93949a",
+          "#b0b0b5",
+          "#cdcdd0",
+          "#eaeaeb"
+        ]
+      },
       "sprint": {
         "role": "secondary",
         "displayName": "Sprint Violet",
         "canonical": "#c084fc",
+        "tonalRamp": [
+          "#1c003b",
+          "#38005f",
+          "#581c85",
+          "#793fac",
+          "#9c60d5",
+          "#bf86f8",
+          "#e3acff",
+          "#ffd3ff"
+        ]
+      },
+      "sprint-text": {
+        "role": "secondary",
+        "displayName": "Sprint Text",
+        "canonical": "#d8b4fe",
         "tonalRamp": [
           "#1c003b",
           "#38005f",
@@ -154,6 +364,36 @@
           "#ffea90"
         ]
       },
+      "podium-silver": {
+        "role": "tertiary",
+        "displayName": "Podium Silver",
+        "canonical": "#a1a1aa",
+        "tonalRamp": [
+          "#242428",
+          "#3f3f46",
+          "#5a5a63",
+          "#747481",
+          "#91919c",
+          "#afafb6",
+          "#ccccd1",
+          "#eaeaec"
+        ]
+      },
+      "podium-bronze": {
+        "role": "tertiary",
+        "displayName": "Podium Bronze",
+        "canonical": "#b07a44",
+        "tonalRamp": [
+          "#372615",
+          "#604225",
+          "#885e35",
+          "#b17a44",
+          "#c59668",
+          "#d4b291",
+          "#e4cfb9",
+          "#f4ebe2"
+        ]
+      },
       "error": {
         "role": "tertiary",
         "displayName": "Instructive Amber",
@@ -168,6 +408,126 @@
           "#d6ad00",
           "#facc15"
         ]
+      },
+      "error-muted": {
+        "role": "tertiary",
+        "displayName": "Error Muted",
+        "canonical": "#3a3416",
+        "tonalRamp": [
+          "#1a1400",
+          "#332900",
+          "#4d3e00",
+          "#6b5600",
+          "#8c7100",
+          "#b08e00",
+          "#d6ad00",
+          "#facc15"
+        ]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Success",
+        "canonical": "#4ade80",
+        "tonalRamp": [
+          "#001800",
+          "#003900",
+          "#005c00",
+          "#008000",
+          "#00a500",
+          "#00ca24",
+          "#41ef5b",
+          "#7aff88"
+        ]
+      },
+      "success-muted": {
+        "role": "tertiary",
+        "displayName": "Success Muted",
+        "canonical": "#16321f",
+        "tonalRamp": [
+          "#001800",
+          "#003900",
+          "#005c00",
+          "#008000",
+          "#00a500",
+          "#00ca24",
+          "#41ef5b",
+          "#7aff88"
+        ]
+      },
+      "email-page": {
+        "role": "neutral",
+        "displayName": "Email Page",
+        "canonical": "#f4f4f2",
+        "tonalRamp": [
+          "#292923",
+          "#48483d",
+          "#666656",
+          "#858570",
+          "#9f9f8e",
+          "#b9b9ac",
+          "#d3d3cb",
+          "#ecece9"
+        ]
+      },
+      "email-surface": {
+        "role": "neutral",
+        "displayName": "Email Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#262626",
+          "#424242",
+          "#5e5e5e",
+          "#7a7a7a",
+          "#969696",
+          "#b2b2b2",
+          "#cfcfcf",
+          "#ebebeb"
+        ]
+      },
+      "email-border": {
+        "role": "neutral",
+        "displayName": "Email Border",
+        "canonical": "#e3e3e0",
+        "tonalRamp": [
+          "#282824",
+          "#46463f",
+          "#63635a",
+          "#818174",
+          "#9c9c91",
+          "#b6b6af",
+          "#d1d1cc",
+          "#ececea"
+        ]
+      },
+      "email-text-muted": {
+        "role": "neutral",
+        "displayName": "Email Text Muted",
+        "canonical": "#62636a",
+        "tonalRamp": [
+          "#5c5d63",
+          "#71727a",
+          "#8b8c92",
+          "#a7a8ad",
+          "#c2c3c6",
+          "#d8d8d9",
+          "#e8e8e7",
+          "#f2f2f0"
+        ]
+      },
+      "email-sprint": {
+        "role": "secondary",
+        "displayName": "Email Sprint",
+        "canonical": "#6d28d9",
+        "tonalRamp": [
+          "#1c003b",
+          "#38005f",
+          "#581c85",
+          "#793fac",
+          "#9c60d5",
+          "#bf86f8",
+          "#e3acff",
+          "#ffd3ff"
+        ]
       }
     },
     "typographyMeta": {
@@ -175,7 +535,10 @@
         "displayName": "Display",
         "purpose": "Page heroes and race names. Weight 300, because light-on-dark reads bolder."
       },
-      "headline": { "displayName": "Headline", "purpose": "Section headings." },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings."
+      },
       "title": {
         "displayName": "Title",
         "purpose": "Card and panel headings."
@@ -205,7 +568,11 @@
         "value": "150ms",
         "purpose": "Colour transitions on hover and press."
       },
-      { "name": "dur", "value": "180ms", "purpose": "Default state change." },
+      {
+        "name": "dur",
+        "value": "180ms",
+        "purpose": "Default state change."
+      },
       {
         "name": "dur-slow",
         "value": "200ms",
@@ -218,10 +585,22 @@
       }
     ],
     "breakpoints": [
-      { "name": "xs", "value": "360px" },
-      { "name": "sm", "value": "640px" },
-      { "name": "nav", "value": "844px" },
-      { "name": "page-max", "value": "1280px" }
+      {
+        "name": "xs",
+        "value": "360px"
+      },
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "nav",
+        "value": "844px"
+      },
+      {
+        "name": "page-max",
+        "value": "1280px"
+      }
     ],
     "density": [
       {
@@ -234,7 +613,11 @@
         "value": "44px",
         "purpose": "Touch target minimum; compact controls grow to this on pointer: coarse."
       },
-      { "name": "nav-height", "value": "64px", "purpose": "Desktop header." },
+      {
+        "name": "nav-height",
+        "value": "64px",
+        "purpose": "Desktop header."
+      },
       {
         "name": "mobile-nav-height",
         "value": "60px",
@@ -353,7 +736,7 @@
   ],
   "narrative": {
     "northStar": "The Timing Sheet",
-    "overview": "The FIA timing sheet is the reference object: monospace figures in columns, sector colours with fixed meanings, hairline rules, and nothing on the page that is not a fact. It is a document designed to be read at a glance by someone who is busy, in the dark, and about to run out of time. That is also the person using this product, on a phone, minutes before the lights go out.\n\nThe whole system follows from three refusals. There are no shadows: depth is a lighter surface plus a 1px hairline, and the shadow-* scale is mapped to none so a stray utility compiles to nothing. Backgrounds are flat colour: no gradients, grain, glow, or grid. And colour is never decoration: one accent for what needs action, four fixed hues for scoring outcomes, team livery confined to 3px. Personality does not come from ornament. It comes from the two-speed density (generous page chrome, compact data rows), from type that runs one weight step lighter than usual because light-on-dark reads bolder, and from a single skewed accent stripe pinned to whatever matters most on the screen.\n\nThe system is dark-only, and that is a decision about the use scene rather than a category default: this is watched alongside a race, often at night, usually on a phone. The one exception is transactional email, which is light because Outlook drops dark backgrounds outright and Gmail force-inverts what it keeps, so a dark shell would render as a different email for a large share of readers.",
+    "overview": "**Creative North Star: \"The Timing Sheet\"**\n\nThe FIA timing sheet is the reference object: monospace figures in columns, sector colours with fixed meanings, hairline rules, and nothing on the page that is not a fact. It is a document designed to be read at a glance by someone who is busy, in the dark, and about to run out of time. That is also the person using this product, on a phone, minutes before the lights go out.\n\nThe whole system follows from three refusals. There are no shadows: depth is a lighter surface plus a 1px hairline, and the `shadow-*` scale is mapped to `none` so a stray utility compiles to nothing. Backgrounds are flat colour: no gradients, grain, glow, or grid. And colour is never decoration: one accent for what needs action, four fixed hues for scoring outcomes, team livery confined to 3px. Personality does not come from ornament. It comes from the two-speed density (generous page chrome, compact data rows), from type that runs one weight step lighter than usual because light-on-dark reads bolder, and from a single skewed accent stripe pinned to whatever matters most on the screen.\n\nThe system is dark-only, and that is a decision about the use scene rather than a category default: this is watched alongside a race, often at night, usually on a phone. The one exception is transactional email, which is light because Outlook drops dark backgrounds outright and Gmail force-inverts what it keeps, so a dark shell would render as a different email for a large share of readers.",
     "keyCharacteristics": [
       "Flat by construction. No shadows anywhere, enforced by a lint ratchet.",
       "Warm near-black base on an even four-step surface ramp; never pure black.",
@@ -367,12 +750,12 @@
     "rules": [
       {
         "name": "The One Voice Rule",
-        "body": "There is exactly one accent. It marks action and identity, nothing else. If two things on a screen are chartreuse and only one of them is the thing to do, the accent has failed. A global a { color: var(--accent) } was removed for precisely this reason: it lit all 29 player names on the leaderboard and buried the one row that mattered.",
+        "body": "There is exactly one accent. It marks action and identity, nothing else. If two things on a screen are chartreuse and only one of them is the thing to do, the accent has failed. A global `a { color: var(--accent) }` was removed for precisely this reason: it lit all 29 player names on the leaderboard and buried the one row that mattered.",
         "section": "colors"
       },
       {
         "name": "The Fixed Meaning Rule",
-        "body": "Every hue outside the neutral ramp has one job. The four scoring bands mean scoring bands; reuse them elsewhere only where the sector-colour reading genuinely holds, never as a general status palette. A red in this system means 'you got this wrong', an amber means 'attention', and neither is ever swapped for the other.",
+        "body": "Every hue outside the neutral ramp has one job. The four scoring bands mean scoring bands; reuse them elsewhere only where the sector-colour reading genuinely holds, never as a general status palette. A red in this system means \"you got this wrong\", an amber means \"attention\", and neither is ever swapped for the other.",
         "section": "colors"
       },
       {
@@ -382,12 +765,12 @@
       },
       {
         "name": "The Two Palette Rule",
-        "body": "Colour comes from the design tokens, never from Tailwind's stock palette. Two palettes is how the app once shipped share cards in colours it had abandoned, and how a destructive class matching no token sat on the cancelled-race badge rendering nothing at all. apps/web/scripts/check-design-tokens.mjs enforces this as a downward-only ratchet.",
+        "body": "Colour comes from the design tokens, never from Tailwind's stock palette. Two palettes is how the app once shipped share cards in colours it had abandoned, and how a `destructive` class matching no token sat on the cancelled-race badge rendering nothing at all. `apps/web/scripts/check-design-tokens.mjs` enforces this as a downward-only ratchet.",
         "section": "colors"
       },
       {
         "name": "The Compare-In-Mono Rule",
-        "body": "Anything a person compares is monospace with tabular-nums: lap times, points, positions, deltas, race numbers, countdown digits. Digits then line up down a column, which is the entire reason the timing sheet works. Numbers are always numerals, never spelled out. Corollary: mono is for measurement, never a costume for 'technical'.",
+        "body": "Anything a person compares is monospace with `tabular-nums`: lap times, points, positions, deltas, race numbers, countdown digits. Digits then line up down a column, which is the entire reason the timing sheet works. Numbers are always numerals, never spelled out. Corollary: mono is for measurement, never a costume for \"technical\".",
         "section": "typography"
       },
       {
@@ -397,47 +780,47 @@
       },
       {
         "name": "The Uppercase Rule",
-        "body": "Uppercase appears in exactly one form: the tracked micro label (.gpp-label, 12px, 0.12em). Headings and buttons are sentence case, always. The label does three jobs and no others: it opens a card, it heads a column, and it sits above a section heading as an eyebrow. The eyebrow is a deliberate part of this system, not a generic habit: on a timing sheet the column head names what the figures below are, and that is exactly what it does here. It carries the accent when the section is a step in the flow and muted ink when it is not.",
+        "body": "Uppercase appears in exactly one form: the tracked micro label (`.gpp-label`, 12px, 0.12em). Headings and buttons are sentence case, always. The label does three jobs and no others: it opens a card, it heads a column, and it sits above a section heading as an eyebrow (`F1 PREDICTION GAME`, `HOW SCORING WORKS`, `STEP 1 OF 2`). The eyebrow is a deliberate part of this system, not a generic habit: on a timing sheet the column head names what the figures below are, and that is exactly what it does here. It carries the accent when the section is a step in the flow and muted ink when it is not.",
         "section": "typography"
       },
       {
         "name": "The No Shadow Rule",
-        "body": "Not softened, not 'subtle', not on hover. Zero. If something needs to come forward, it takes the next surface step and keeps its hairline. Enforced by the elevation lint ratchet, which catches shadow-* utilities and raw box-shadow in inline styles.",
+        "body": "Not softened, not \"subtle\", not on hover. Zero. If something needs to come forward, it takes the next surface step and keeps its hairline. Enforced by the `elevation` lint ratchet, which catches `shadow-*` utilities and raw `box-shadow` in inline styles.",
         "section": "elevation"
       },
       {
         "name": "The Flat Fill Rule",
-        "body": "Backgrounds are flat colour. No gradients, textures, noise, or glow. This is the rule most likely to be broken by someone reaching for 'just a subtle gradient', which is exactly how the previous design accumulated an atmosphere field, a grain overlay, and three separate grid backgrounds. Enforced by the flat lint ratchet. If photography is ever introduced it goes inside a 4px-radius container as content, never behind the page.",
+        "body": "Backgrounds are flat colour. No gradients, textures, noise, or glow. This is the rule most likely to be broken by someone reaching for \"just a subtle gradient\", which is exactly how the previous design accumulated an atmosphere field, a grain overlay, and three separate grid backgrounds. Enforced by the `flat` lint ratchet. If photography is ever introduced it goes inside a 4px-radius container as content, never behind the page.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "Do put every figure a person compares in IBM Plex Mono with tabular-nums: times, points, positions, deltas, race numbers.",
-      "Do convey depth with the next surface step plus a 1px hairline. The ramp is even, so one step means the same everywhere.",
-      "Do ration the accent. Audit test: on any screen, count the chartreuse elements. If more than one is not the action, the current user, or the active state, remove some.",
-      "Do use a dashed hairline for empty or awaiting-input containers, and a solid one once filled.",
-      "Do keep team colour to the 3px bar or the 5px dot, and nothing else.",
-      "Do use amber for errors, warnings, and destructive intent. Errors here are instructive, not alarming.",
-      "Do label movement instead of animating it. A leaderboard position change is up-2 / down-1 / dash, never a transition.",
-      "Do pull every value from packages/shared/src/tokens.ts. It is the only place they are authored, and both CSS layers are generated from it (pnpm generate-tokens).",
-      "Do grow compact controls to 44px on pointer: coarse, keyed off the input device rather than the viewport.",
-      "Do render every flag at 4:3, cropped to fill, with the 10% inset outline."
+      "**Do** put every figure a person compares in IBM Plex Mono with `tabular-nums`: times, points, positions, deltas, race numbers.",
+      "**Do** convey depth with the next surface step plus a 1px hairline. The ramp is even, so one step means the same everywhere.",
+      "**Do** ration the accent. Audit test: on any screen, count the chartreuse elements. If more than one is not the action, the current user, or the active state, remove some.",
+      "**Do** use a dashed hairline for empty or awaiting-input containers, and a solid one once filled.",
+      "**Do** keep team colour to the 3px bar or the 5px dot, and nothing else.",
+      "**Do** use amber for errors, warnings, and destructive intent. Errors here are instructive, not alarming.",
+      "**Do** label movement instead of animating it. A leaderboard position change is `▲2` / `▼1` / `–`, never a transition.",
+      "**Do** pull every value from `packages/shared/src/tokens.ts`. It is the only place they are authored, and both CSS layers are generated from it (`pnpm generate-tokens`).",
+      "**Do** grow compact controls to 44px on `pointer: coarse`, keyed off the input device rather than the viewport.",
+      "**Do** render every flag at 4:3, cropped to fill, with the 10% inset outline."
     ],
     "donts": [
-      "Don't add a shadow. Not on hover, not 'subtle', not anywhere. The scale is mapped to none and the lint ratchet will catch it.",
-      "Don't put a gradient, texture, noise, or glow behind anything. Flat colour only.",
-      "Don't reach for Tailwind's stock palette (bg-slate-900, text-red-500). Use a token. The one accepted exception is /admin, which is internal operator tooling with its own visual language and is explicitly exempt from the ratchet; do not let its slate-and-teal leak into a player-facing surface.",
-      "Don't use red for an error or a warning. Red means a scoring miss. Amber means attention.",
-      "Don't put the accent on body text, on links by default, or on a large fill other than a primary button.",
-      "Don't nest a card inside a card. Use a hairline divider or a surface step.",
-      "Don't set anything in uppercase except the tracked micro label. Headings and buttons stay sentence case, including when the label directly above them is uppercase.",
-      "Don't introduce a second display typeface. The display face is the UI face; personality comes from weight and tracking.",
-      "Don't animate anything outside hover, selection, drag, and the one-time row entrance fade. In particular, leaderboard positions never move.",
-      "Don't put a thick coloured border on the left or right edge of a card, list item, or callout. Above 1px, colour belongs on a bottom or top edge (the nav underline, the mobile bar tab, the 8px scoring-band rule) where it reads as a column marker rather than a tab.",
-      "Don't write a raw a { color: ... } or any other unlayered base rule. Unlayered CSS beats all layered CSS regardless of specificity and will silently override every Tailwind utility; wrap base styles in @layer base.",
-      "Don't move scrolling into an inner element. The document is the scroll container.",
-      "Don't use a dark shell for transactional email. Email is the one light surface, and the accent there is a background only, never ink: chartreuse on white is about 1.4:1.",
-      "Don't redefine a token in styles.css or in a component. Edit tokens.ts and regenerate, or web and mobile drift apart."
+      "**Don't** add a shadow. Not on hover, not \"subtle\", not anywhere. The scale is mapped to `none` and the lint ratchet will catch it.",
+      "**Don't** put a gradient, texture, noise, or glow behind anything. Flat colour only.",
+      "**Don't** reach for Tailwind's stock palette (`bg-slate-900`, `text-red-500`). Use a token. The one accepted exception is `/admin`, which is internal operator tooling with its own visual language and is explicitly exempt from the ratchet; do not let its slate-and-teal leak into a player-facing surface.",
+      "**Don't** use red for an error or a warning. Red means a scoring miss. Amber means attention.",
+      "**Don't** put the accent on body text, on links by default, or on a large fill other than a primary button.",
+      "**Don't** nest a card inside a card. Use a hairline divider or a surface step.",
+      "**Don't** set anything in uppercase except the tracked micro label. Headings and buttons stay sentence case, including when the label directly above them is uppercase.",
+      "**Don't** introduce a second display typeface. The display face is the UI face; personality comes from weight and tracking.",
+      "**Don't** animate anything outside hover, selection, drag, and the one-time row entrance fade. In particular, leaderboard positions never move.",
+      "**Don't** put a thick coloured border on the left or right edge of a card, list item, or callout. Above 1px, colour belongs on a bottom or top edge (the nav underline, the mobile bar tab, the 8px scoring-band rule) where it reads as a column marker rather than a tab.",
+      "**Don't** write a raw `a { color: … }` or any other unlayered base rule. Unlayered CSS beats all layered CSS regardless of specificity and will silently override every Tailwind utility; wrap base styles in `@layer base`.",
+      "**Don't** move scrolling into an inner element. The document is the scroll container.",
+      "**Don't** use a dark shell for transactional email. Email is the one light surface, and the accent there is a background only, never ink: chartreuse on white is about 1.4:1.",
+      "**Don't** redefine a token in `styles.css` or in a component. Edit `tokens.ts` and regenerate, or web and mobile drift apart."
     ]
   }
 }

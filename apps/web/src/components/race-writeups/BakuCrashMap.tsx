@@ -182,14 +182,15 @@ export function BakuCrashMap() {
         id={headingId}
         className="font-title text-2xl font-medium text-text sm:text-3xl"
       >
-        Every notable crash at Baku since 2016
+        Notable Baku crashes, 2016–2025
       </h2>
       <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
-        In nine weekends, cars hit a wall, a barrier, another car or something
-        on the track {BAKU_CRASHES.length} times. Each one comes from a race
-        report or the FIA race control log and is placed at the corner where the
-        car stopped. Turns 3 and 15 have taken the most, 11 each, and Turn 3
-        takes them in groups: three in the 2021 qualifying hour alone.
+        Across nine completed weekends, cars hit a wall, a barrier, another car
+        or something on the track {BAKU_CRASHES.length} times. Each one comes
+        from a race report or the FIA race control log and is placed at the
+        corner where the car stopped. Turns 3 and 15 have taken the most, 11
+        each, and Turn 3 takes them in groups: three in the 2021 qualifying hour
+        alone.
       </p>
 
       <div className="mt-6">

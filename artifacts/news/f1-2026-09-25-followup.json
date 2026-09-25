@@ -1,0 +1,41 @@
+{
+  "reviewedAt": "2026-09-25",
+  "note": "Additional sourced stories found during final news scan. No push campaign is selected by these actions.",
+  "actions": [
+    {
+      "function": "raceNews:publish",
+      "args": {
+        "raceSlug": "azerbaijan-2026",
+        "key": "red-bull-baku-final-major-upgrade",
+        "headline": "Baku likely brings Red Bull's last major 2026 upgrade",
+        "body": "Red Bull team principal Laurent Mekies says the Baku package is likely the team's last significant upgrade this season. Most development resources have moved to the 2027 car, though the team is still chasing its first win of 2026.",
+        "category": "general",
+        "affectsSessions": [],
+        "driverCodes": ["VER", "HAD"],
+        "sourceName": "FIA",
+        "sourceUrl": "https://www.fia.com/news/f1-2026-azerbaijan-grand-prix-thursday-press-conference-transcript"
+      }
+    },
+    {
+      "function": "globalNews:publish",
+      "args": {
+        "key": "jamie-chadwick-williams-f1-test-2026",
+        "headline": "Jamie Chadwick completes first Williams F1 test",
+        "body": "Chadwick drove 32 laps at Portimão in Williams' 2025 F1 car. She is the second woman to drive one of the team's cars, following Susie Wolff in 2015. Williams said her feedback will help prepare for Portugal's return to the calendar in 2027.",
+        "sourceName": "Formula 1",
+        "sourceUrl": "https://www.formula1.com/en/latest/article/williams-ambassador-chadwick-completes-maiden-f1-test-at-portimao.1pE6f57MGOKMCnFoVJeUxU",
+        "sourcePublishedAt": 1790255520000
+      }
+    },
+    {
+      "function": "globalNews:publish",
+      "args": {
+        "key": "imola-f1-2026-finale-contingency",
+        "headline": "Imola prepares as a possible 2026 finale venue",
+        "body": "Haas team principal Ayao Komatsu said Imola is preparing in case Formula 1 needs a replacement season finale. Qatar and Abu Dhabi remain the planned final rounds. Audi team principal Mattia Binotto said mid-October is the latest practical point for a decision.",
+        "sourceName": "FIA",
+        "sourceUrl": "https://www.fia.com/news/f1-2026-azerbaijan-grand-prix-thursday-press-conference-transcript"
+      }
+    }
+  ]
+}

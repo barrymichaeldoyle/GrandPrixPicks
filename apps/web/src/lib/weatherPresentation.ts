@@ -89,6 +89,8 @@ export type WeatherWindowSummary = {
   windDirectionDegrees?: number;
 };
 
+export type MeasurementUnits = 'metric' | 'imperial';
+
 type RaceSchedule = {
   fp1StartAt?: number;
   fp2StartAt?: number;
@@ -310,14 +312,33 @@ export function windKmh(mps: number): number {
   return Math.round(mps * 3.6);
 }
 
+export function temperatureFigure(
+  temperatureC: number,
+  units: MeasurementUnits = 'metric',
+): string {
+  if (units === 'imperial') {
+    return `${Math.round((temperatureC * 9) / 5 + 32)}°F`;
+  }
+  return `${temperatureC}°C`;
+}
+
+function windSpeedFigure(mps: number, units: MeasurementUnits): string {
+  return units === 'imperial'
+    ? `${Math.round(mps * 2.236936)} mph`
+    : `${windKmh(mps)} km/h`;
+}
+
 /**
  * Sustained wind with its direction, e.g. "NE 16 km/h". Null when the
  * forecast carries no wind for the window.
  */
-export function windFigure(wind: {
-  windSpeedMps?: number;
-  windDirectionDegrees?: number;
-}): string | null {
+export function windFigure(
+  wind: {
+    windSpeedMps?: number;
+    windDirectionDegrees?: number;
+  },
+  units: MeasurementUnits = 'metric',
+): string | null {
   if (wind.windSpeedMps == null) {
     return null;
   }
@@ -325,7 +346,7 @@ export function windFigure(wind: {
     wind.windDirectionDegrees == null
       ? ''
       : `${windCompassPoint(wind.windDirectionDegrees)} `;
-  return `${direction}${windKmh(wind.windSpeedMps)} km/h`;
+  return `${direction}${windSpeedFigure(wind.windSpeedMps, units)}`;
 }
 
 /**
@@ -594,11 +615,19 @@ export function weatherForSession(
  * The chance is dropped below 20%, where it is not a fact anyone picks
  * differently on, and loses its trailing "rain" whenever the condition has
  * already said the word. Gusts are dropped below
- * `GUSTS_WORTH_MENTIONING_KMH` for the same reason.
+ * `GUSTS_WORTH_MENTIONING_KMH` for the same reason. `wind` adds the sustained
+ * wind ahead of the gusts ("Clear · 21°C · NE 16 km/h"), for surfaces with no
+ * other place to show it.
  */
-export function sessionWeatherLine(summary: WeatherWindowSummary): string {
+export function sessionWeatherLine(
+  summary: WeatherWindowSummary,
+  {
+    wind = false,
+    units = 'metric',
+  }: { wind?: boolean; units?: MeasurementUnits } = {},
+): string {
   const label = conditionLabel(summary.conditionCode);
-  const parts = [label, `${summary.temperatureC}°C`];
+  const parts = [label, temperatureFigure(summary.temperatureC, units)];
 
   const probability = summary.precipitationProbability;
   if (probability != null && probability >= 20) {
@@ -610,14 +639,23 @@ export function sessionWeatherLine(summary: WeatherWindowSummary): string {
       normalized.includes('snow');
     parts.push(`${Math.round(probability)}%${wet ? '' : ' rain'}`);
   } else if (probability == null && summary.precipitationAmountMm > 0) {
-    parts.push(`${summary.precipitationAmountMm.toFixed(1)} mm`);
+    parts.push(
+      units === 'imperial'
+        ? `${(summary.precipitationAmountMm / 25.4).toFixed(2)} in`
+        : `${summary.precipitationAmountMm.toFixed(1)} mm`,
+    );
+  }
+
+  const sustained = wind ? windFigure(summary, units) : null;
+  if (sustained) {
+    parts.push(sustained);
   }
 
   if (
     summary.windGustMps != null &&
     windKmh(summary.windGustMps) >= GUSTS_WORTH_MENTIONING_KMH
   ) {
-    parts.push(`Gusts ${windKmh(summary.windGustMps)} km/h`);
+    parts.push(`Gusts ${windSpeedFigure(summary.windGustMps, units)}`);
   }
 
   return parts.join(' · ');

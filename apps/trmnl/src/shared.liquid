@@ -20,7 +20,7 @@
 {% endcomment %}
 {% template lead %}
 <div class="flex flex--col gap--xsmall w--full">
-  <span class="title lg:title--large">{{ lead.label }}</span>
+  <span class="title {{ label_size | default: 'lg:title--large' }}">{{ lead.label }}</span>
   <span class="value {{ size }}" data-value-fit="true">{{ lead.value }}</span>
 </div>
 {% endtemplate %}
@@ -100,10 +100,10 @@
 {% endtemplate %}
 
 {% comment %}
-  The weekend timeline. `name` picks the row label: "label" spells it out
-  ("Free Practice 1", "Sprint Qualifying") where there is room, "short"
-  ("FP1", "SQ") where there is not. `tail` shows the last `limit` rows so the
-  narrow layouts keep qualifying and the race. Each row carries its forecast.
+  The weekend timeline. `name` picks the row label ("FP1", "Quali"); `short`
+  uses the narrow-layout labels ("FP1", "SQ"). `tail` shows the last `limit` rows so the
+  narrow layouts keep qualifying and the race. Each row carries its forecast:
+  temperature, rain chance when it is worth mentioning, and session rainfall.
 {% endcomment %}
 {% template schedule %}
 {% assign schedule_limit = limit | default: 99 %}
@@ -111,20 +111,46 @@
 {% if tail and schedule.size > schedule_limit %}
   {% assign schedule_offset = schedule.size | minus: schedule_limit %}
 {% endif %}
+{% assign schedule_has_rain = false %}
+{% for row in schedule limit: schedule_limit offset: schedule_offset %}
+  {% if row.weather and row.weather.rain != "" %}{% assign schedule_has_rain = true %}{% endif %}
+{% endfor %}
 <table class="table w--full {{ size }}">
   <tbody>
     {% for row in schedule limit: schedule_limit offset: schedule_offset %}
     <tr>
       <td><span class="title title--small lg:title--base">{{ row[name] }}</span></td>
-      <td><span class="label label--small lg:label--base">{{ row.when }}</span></td>
+      <td>
+        {% if aligned %}
+        <span class="flex flex--row flex--left flex--center-y gap--xsmall">
+          <span class="label label--base lg:label--large w--[32px] lg:w--[40px] shrink-0">{{ row.weekday }}</span>
+          <span class="label label--base lg:label--large">{{ row.time }}</span>
+        </span>
+        {% else %}
+        <span class="label label--base lg:label--large">{{ row.when }}</span>
+        {% endif %}
+      </td>
+      {% if aligned %}
+      {% comment %}
+        One column per forecast value, so the table lines them up: a narrower
+        temperature ("31°C") moved the icon and rainfall on its own row.
+      {% endcomment %}
+      <td>{% if row.weather %}<span class="label label--small lg:label--base">{{ row.weather.temp }}</span>{% endif %}</td>
+      <td>{% if row.weather %}<img class="image w--[22px] h--[22px] lg:w--[32px] lg:h--[32px]" src="{{ row.weather.icon }}" alt="">{% endif %}</td>
+      {% if schedule_has_rain %}<td>{% if row.weather and row.weather.rain != "" %}<span class="label label--small lg:label--base">{{ row.weather.rain }}</span>{% endif %}</td>{% endif %}
+      <td>{% if row.weather %}<span class="label label--small lg:label--base">{{ row.weather.rainAmount }}</span>{% endif %}</td>
+      {% else %}
       <td>
         {% if row.weather %}
-        <span class="flex flex--row flex--left flex--center-y gap--xsmall">
+        <span class="flex flex--row flex--left flex--center-y gap--medium">
+          <span class="label label--small lg:label--base">{{ row.weather.temp }}</span>
           <img class="image w--[22px] h--[22px] lg:w--[32px] lg:h--[32px]" src="{{ row.weather.icon }}" alt="">
-          <span class="label label--small lg:label--base">{{ row.weather.temp }}{% if row.weather.rain != "" %} {{ row.weather.rain }}{% endif %}</span>
+          {% if row.weather.rain != "" %}<span class="label label--small lg:label--base">{{ row.weather.rain }}</span>{% endif %}
+          <span class="label label--small lg:label--base">{{ row.weather.rainAmount }}</span>
         </span>
         {% endif %}
       </td>
+      {% endif %}
       <td>
         {% if row.state == "done" %}
           <span class="label label--small lg:label--base">{{ row.top3 | join: " " }}</span>
@@ -148,7 +174,7 @@
 {% endcomment %}
 {% template news %}
 <div class="flex flex--col gap--xsmall {% if fill or news.size == 0 %}h--full{% endif %} {% if news.size == 0 %}flex--center{% elsif fill %}flex--left flex--center-y{% endif %}" data-overflow="true">
-  {% if news.size == 0 %}<span class="label label--small lg:label--base">No news yet.</span>{% endif %}
+  {% if news.size == 0 %}<span class="label label--small {{ empty_size | default: 'lg:label--base' }}">No news yet.</span>{% endif %}
   {% for item in news limit: limit %}
   <div class="item">
     <div class="meta"></div>
@@ -238,23 +264,54 @@
   in the smaller layouts.
 {% endcomment %}
 {% template qr %}
+{% if size_class %}
+  {% capture qr_class %}class="qr-code {{ size_class }}"{% endcapture %}
+{% else %}
+  {% assign qr_class = 'class="qr-code"' %}
+{% endif %}
+{% capture qr_markup %}{{ url | qr_code: 2, "m" }}{% endcapture %}
 <div class="flex flex--col flex--center">
-  {{ url | qr_code: 2, "m" }}
+  {{ qr_markup | replace: 'class="qr-code"', qr_class }}
 </div>
 {% endtemplate %}
 
 {% comment %}
-  The lead session's own forecast under the lead, worded as the race pages
-  word it ("Partly cloudy · 27°C", "Rain · 23°C · 60%"). Every layout shows
-  it: an icon and a temperature alone read as an orphan, and the timeline rows
-  only carry the compact form.
+  The lead session's own forecast under the lead. Sustained wind sits beside
+  its own icon; the condition icon and summary stay together. With
+  `temp_first`, dots separate the temperature, condition and wind, and the
+  wind icon matches the condition icon's size. Every layout
+  shows it, and the timeline rows carry the compact forecast.
 {% endcomment %}
 {% template lead_weather %}
 {% if weather %}
+{% if temp_first %}
+<span class="flex flex--row flex--center flex--center-y gap--small">
+  <span class="label label--small {{ text_size }}">{{ weather.temp }}</span>
+  <span class="label label--small {{ text_size }}" aria-hidden="true">·</span>
+  <span class="flex flex--row flex--center-y gap--xsmall">
+    <img class="image w--[24px] h--[24px] lg:w--[32px] lg:h--[32px]" src="{{ weather.icon }}" alt="">
+    <span class="label label--small {{ text_size }}">{{ weather.condition }}</span>
+  </span>
+  {% if weather.wind != "" %}
+  <span class="label label--small {{ text_size }}" aria-hidden="true">·</span>
+  <span class="flex flex--row flex--center-y gap--xsmall">
+    <svg class="w--[24px] h--[24px] lg:w--[32px] lg:h--[32px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#000" stroke-linecap="round" stroke-width="2"><path d="M3 7h12a3 3 0 1 0-3-3"/><path d="M2 12h17a3 3 0 1 1-3 3"/><path d="M4 17h7a2 2 0 1 1-2 2"/></g></svg>
+    <span class="label label--small {{ text_size }}">{{ weather.wind }}</span>
+  </span>
+  {% endif %}
+</span>
+{% else %}
 <span class="flex flex--row flex--center flex--center-y gap--xsmall">
   <img class="image w--[24px] h--[24px] lg:w--[32px] lg:h--[32px]" src="{{ weather.icon }}" alt="">
-  <span class="label label--small lg:label--base">{{ weather.text }}</span>
+  <span class="label label--small {{ text_size | default: 'lg:label--base' }}">{{ weather.text }}</span>
+  {% if weather.wind != "" %}
+  <span class="flex flex--row flex--center-y gap--xsmall">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g fill="none" stroke="#000" stroke-linecap="round" stroke-width="2"><path d="M3 7h12a3 3 0 1 0-3-3"/><path d="M2 12h17a3 3 0 1 1-3 3"/><path d="M4 17h7a2 2 0 1 1-2 2"/></g></svg>
+    <span class="label label--small {{ text_size | default: 'lg:label--base' }}">{{ weather.wind }}</span>
+  </span>
+  {% endif %}
 </span>
+{% endif %}
 {% endif %}
 {% endtemplate %}
 
@@ -293,6 +350,27 @@
         <td><span class="label label--small">{{ row.pos }}</span></td>
         <td><span class="title title--small">{{ row.name }}</span></td>
         <td><span class="label label--small">{{ row.points }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endtemplate %}
+
+{% comment %}
+  The drivers' championship in the full screen's news column, while the
+  build-up has no headlines. Sized to match the timeline beside it.
+{% endcomment %}
+{% template championship %}
+<div class="flex flex--col flex--left gap--small w--full">
+  <span class="title title--small lg:title--base">Drivers' Championship</span>
+  <table class="table w--full {{ size | default: 'table--small lg:table--large' }}">
+    <tbody>
+      {% for row in rows limit: limit %}
+      <tr>
+        <td><span class="label label--small lg:label--base w--[24px] lg:w--[40px]">{{ row.pos }}</span></td>
+        <td class="w--full"><span class="title title--small lg:title--base">{{ row.name }}</span></td>
+        <td class="text--right"><span class="label label--small lg:label--base">{{ row.points }}</span></td>
       </tr>
       {% endfor %}
     </tbody>

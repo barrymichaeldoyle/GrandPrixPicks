@@ -43,7 +43,7 @@ describe('TRMNL layouts', () => {
       for (const layout of TRMNL_LAYOUTS) {
         const html = renderTrmnlMarkup(layout.id, scenario.payload);
         expect(
-          html.includes('class="qr-code"'),
+          html.includes('class="qr-code'),
           `${scenario.id} at ${layout.id}`,
         ).toBe(scenario.payload.has_race || !!scenario.payload.standings);
         expect(html).not.toContain('Read more');
@@ -56,17 +56,17 @@ describe('TRMNL layouts', () => {
     const full = renderTrmnlMarkup('full', friday.payload);
     expect(full).toContain('Autodromo Nazionale Monza · Round 16');
     expect(full).toContain(
-      'title--large portrait:title--small lg:title--xxlarge',
+      'title--large portrait:title--small lg:text--xxxlarge',
     );
     expect(full).toContain(
       'label--base portrait:label--small lg:label--xlarge',
     );
-    expect(full.indexOf('class="qr-code"')).toBeLessThan(
+    expect(full.indexOf('class="qr-code w--[56px]')).toBeLessThan(
       full.indexOf('data-clamp="2"'),
     );
     for (const scenario of TRMNL_SCENARIOS.filter((s) => s.payload.has_race)) {
       expect(
-        renderTrmnlMarkup('full', scenario.payload).match(/class="qr-code"/g),
+        renderTrmnlMarkup('full', scenario.payload).match(/class="qr-code/g),
         scenario.id,
       ).toHaveLength(1);
     }
@@ -104,7 +104,7 @@ describe('TRMNL layouts', () => {
     };
     const full = renderTrmnlMarkup('full', empty);
     expect(full).toContain('No news yet.');
-    expect(full).toContain('class="qr-code"');
+    expect(full).toContain('class="qr-code w--[56px]');
     const halfVertical = renderTrmnlMarkup('half_vertical', empty);
     expect(halfVertical).not.toContain('No news yet.');
     expect(halfVertical).toContain('class="qr-code"');
@@ -112,6 +112,25 @@ describe('TRMNL layouts', () => {
     const half = renderTrmnlMarkup('half_horizontal', empty);
     expect(half).not.toContain('No news yet.');
     expect(half).toContain('FP1');
+  });
+
+  it('shows the drivers championship in place of an empty news column', () => {
+    const buildUp = TRMNL_SCENARIOS.find((s) => s.id === 'build-up')!;
+    const offSeason = TRMNL_SCENARIOS.find((s) => s.id === 'off-season')!;
+    const input = { ...buildUp.input, standings: offSeason.input.standings };
+    const empty = {
+      ...buildUp.payload,
+      ...sampleNewsVariant(input, 0),
+    };
+    expect(empty.focus).toBe('standings');
+    const full = renderTrmnlMarkup('full', empty);
+    expect(full).toContain("Drivers' Championship");
+    expect(full).toContain(empty.standings!.drivers[9]!.name);
+    expect(full).not.toContain('No news yet.');
+    // Only the full screen has a news column to fill.
+    expect(renderTrmnlMarkup('half_vertical', empty)).not.toContain(
+      "Drivers' Championship",
+    );
   });
 
   it('passes twenty headline candidates to large-screen overflow layouts', () => {
@@ -125,7 +144,7 @@ describe('TRMNL layouts', () => {
     expect(full).toContain('class="grow lg:hidden"');
     expect(full).toContain('class="grow hidden lg:block lg:portrait:hidden"');
     expect(full).toContain('h--full flex--left flex--center-y');
-    expect(full).toContain('Free Practice 1');
+    expect(full).toContain('FP1');
     expect(full).toContain('Race');
     const halfHorizontal = renderTrmnlMarkup('half_horizontal', {
       ...buildUp.payload,

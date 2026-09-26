@@ -150,4 +150,22 @@ describe('replayWeekend', () => {
     expect(Object.keys(sunday.results).sort()).toEqual(['quali', 'race']);
     expect(sunday.news).toHaveLength(1);
   });
+
+  it("keeps today's standings only while the weekend has scored nothing", () => {
+    const standings = {
+      season: 2026,
+      roundsScored: 15,
+      roundsTotal: 23,
+      drivers: [
+        { position: 1, code: 'NOR', displayName: 'Lando Norris', points: 200 },
+      ],
+      constructors: [],
+    };
+    const buildUp = monza.fp1StartAt - 24 * HOUR;
+    expect(
+      replayWeekend({ ...data, results: {}, standings }, buildUp).standings,
+    ).toBe(standings);
+    // Monza's race is in today's table, which the build-up had not seen.
+    expect(replayWeekend({ ...data, standings }, buildUp).standings).toBe(null);
+  });
 });

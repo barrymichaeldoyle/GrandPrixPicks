@@ -164,5 +164,8 @@ export function replayWeekend(
     }),
     news: data.news.filter((item) => item.publishedAt <= at),
     weather: data.weather,
+    // Today's table, so only while this weekend has scored no points: after
+    // that it counts results the replayed moment had not seen.
+    standings: data.results.race || data.results.sprint ? null : data.standings,
   };
 }

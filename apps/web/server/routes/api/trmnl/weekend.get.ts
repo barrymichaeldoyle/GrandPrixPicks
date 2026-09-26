@@ -6,6 +6,7 @@ import {
   buildTrmnlPayload,
   selectTrmnlRace,
 } from '../../../../src/lib/trmnl/payload';
+import type { MeasurementUnits } from '../../../../src/lib/weatherPresentation';
 import {
   loadTrmnlOffSeason,
   loadTrmnlWeekend,
@@ -18,8 +19,8 @@ type RouteEvent = {
 function validPollingQuery(params: URLSearchParams): boolean {
   const keys = [...params.keys()];
   if (
-    keys.length > 2 ||
-    keys.some((key) => key !== 'tz' && key !== 'locale') ||
+    keys.length > 3 ||
+    keys.some((key) => key !== 'tz' && key !== 'locale' && key !== 'units') ||
     new Set(keys).size !== keys.length
   ) {
     return false;
@@ -27,7 +28,11 @@ function validPollingQuery(params: URLSearchParams): boolean {
 
   const timeZone = params.get('tz');
   const locale = params.get('locale');
+  const units = params.get('units')?.toLowerCase();
   if ((timeZone?.length ?? 0) > 64 || (locale?.length ?? 0) > 35) {
+    return false;
+  }
+  if (units && units !== 'metric' && units !== 'imperial') {
     return false;
   }
 
@@ -49,9 +54,9 @@ function validPollingQuery(params: URLSearchParams): boolean {
  * (`apps/trmnl`, spec in `docs/trmnl-plugin-specification.md`).
  *
  * Public and viewer-free: everything here is on the site already. TRMNL
- * interpolates the device owner's zone and language into the query string
- * (`?tz={{ trmnl.user.time_zone_iana }}&locale={{ trmnl.user.locale }}`), so
- * one URL serves every install and the edge can cache per zone.
+ * interpolates the device owner's zone, language, and unit preference into
+ * the query string, so one URL serves every install and the edge can cache
+ * per preference.
  *
  * On failure this answers 503 rather than an empty payload. TRMNL keeps the
  * last good screen when a poll fails, and yesterday's weekend is a better
@@ -84,10 +89,15 @@ export default async function handler(event: RouteEvent) {
           {},
         );
         const race = selectTrmnlRace(races, now);
+        const units: MeasurementUnits =
+          url.searchParams.get('units')?.toLowerCase() === 'imperial'
+            ? 'imperial'
+            : 'metric';
         const base = {
           now,
           timeZone: url.searchParams.get('tz'),
           locale: url.searchParams.get('locale'),
+          units,
         };
 
         if (!race) {

@@ -291,6 +291,16 @@ describe('wind', () => {
     );
   });
 
+  it('adds the sustained wind ahead of the gusts when asked', () => {
+    const strong = summarizeSessionWindow(forecast(gusting(12)), race);
+    const sustained = strong && windFigure(strong);
+
+    expect(sustained).not.toBe(null);
+    expect(strong && sessionWeatherLine(strong, { wind: true })).toBe(
+      `Clear · 21°C · ${sustained} · Gusts 43 km/h`,
+    );
+  });
+
   it('carries wind onto the hour-by-hour periods', () => {
     const timeline = buildWeatherTimeline(forecast(gusting(12)), [race]);
     const period = timeline[0]!.periods[0]!;

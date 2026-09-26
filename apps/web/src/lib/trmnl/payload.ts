@@ -11,12 +11,18 @@ import {
   SESSION_LABELS_SHORT,
 } from '@/lib/sessions';
 import { siteConfig } from '@/lib/site';
-import type { WeatherForecast } from '@/lib/weatherPresentation';
+import type {
+  MeasurementUnits,
+  WeatherForecast,
+} from '@/lib/weatherPresentation';
 import {
   buildWeatherSessions,
+  conditionLabel,
   normalizeConditionCode,
   sessionWeatherLine,
   summarizeSessionWindow,
+  temperatureFigure,
+  windFigure,
 } from '@/lib/weatherPresentation';
 
 /**
@@ -122,7 +128,7 @@ type NewsItem = {
 };
 
 /**
- * The season's championship tables, for the off-season screen. Shaped like
+ * The season's championship tables. Shaped like
  * `f1Standings.getF1Championship`, of which this is a subset.
  */
 type ChampionshipInput = {
@@ -147,14 +153,17 @@ export type TrmnlInput = {
   now: number;
   timeZone: string | null;
   locale: string | null;
+  units?: MeasurementUnits;
   race: RaceForTrmnl | null;
   news: NewsItem[];
   results: Partial<Record<SessionType, ResultRow[]>>;
   practice: PracticeSummary[];
   weather: { isStale: boolean; forecast: WeatherForecast } | null;
   /**
-   * Read only when there is no race: the season just run, shown through the
-   * off-season. Its `news` is then the site's race-independent news.
+   * The season's championship. With no race, the season just run, shown
+   * through the off-season (its `news` is then the site's race-independent
+   * news). With a race, it fills the build-up's news column until the first
+   * headline.
    */
   standings?: ChampionshipInput | null;
 };
@@ -163,13 +172,19 @@ export type TrmnlInput = {
 type SessionWeather = {
   /** One of TRMNL's own weather icons, served from trmnl.com. */
   icon: string;
-  /** "24°" */
+  /** "24°C" or "75°F". */
   temp: string;
   /** "60%", or empty when rain is unlikely enough not to mention. */
   rain: string;
+  /** Session-total precipitation in the selected units, or "Dry". */
+  rainAmount: string;
+  /** "NE 16 km/h" or "NE 10 mph" (`windFigure`). */
+  wind: string;
+  /** Short condition label, shown beside the icon in the full layout. */
+  condition: string;
   /**
-   * The whole forecast as the race pages word it, e.g. "Partly cloudy ·
-   * 27°C" or "Rain · 23°C · 60%" (`sessionWeatherLine`), for the lead.
+   * The forecast summary for the lead. Sustained wind is separate so the
+   * template can pair it with a wind icon; notable gusts remain in this text.
    */
   text: string;
 };
@@ -179,6 +194,9 @@ type ScheduleRow = {
   label: string;
   short: string;
   when: string;
+  /** Split weekday and clock fields for aligned full-screen schedule columns. */
+  weekday: string;
+  time: string;
   /**
    * `done` has a result and `awaiting` has started without one. `no_result`
    * is a practice session whose result never arrived.
@@ -220,14 +238,17 @@ export type TrmnlPayload = {
   } | null;
   schedule: ScheduleRow[];
   /** Which block the larger layouts give their spare space to. */
-  focus: 'result' | 'grid' | 'news' | 'schedule';
+  focus: 'result' | 'grid' | 'news' | 'standings' | 'schedule';
   result: {
     label: string;
     rows: { pos: number; code: string; name: string }[];
   } | null;
   grid: { pos: number; code: string; name: string; note: string }[];
   news: { headline: string }[];
-  /** The off-season screen: set only when `has_race` is false. */
+  /**
+   * The off-season screen when `has_race` is false. With a race, set only
+   * when `focus` is "standings".
+   */
   standings: {
     /** The season heading shown on the off-season screen. */
     title: string;
@@ -292,7 +313,12 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
   }
 
   const sessions = getSessionsForWeekend(!!race.hasSprint);
-  const timeline = buildTimeline(input, race, format.when);
+  const timeline = buildTimeline(
+    input,
+    race,
+    format.scheduleWhen,
+    format.scheduleParts,
+  );
   const lastResulted = [...sessions]
     .reverse()
     .find((session) => (input.results[session]?.length ?? 0) > 0);
@@ -326,6 +352,21 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
       }
     : null;
 
+  const focus = chooseFocus({
+    hasRaceResult: raceResult.length > 0,
+    hasGrid: grid.length > 0,
+    latestNewsAt: newsByRecency[0]?.publishedAt,
+    latestResultStartedAt: lastResulted
+      ? sessionStartAt(race, lastResulted)
+      : undefined,
+  });
+  // A build-up with nothing to report shows the championship instead of an
+  // empty news column. Not before the season's first race: no table yet.
+  const standings =
+    focus === 'schedule' && (input.standings?.roundsScored ?? 0) > 0
+      ? buildStandings(input.standings ?? null)
+      : null;
+
   return {
     v: TRMNL_PAYLOAD_VERSION,
     has_race: true,
@@ -343,18 +384,11 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
     schedule: markNext(timeline, now).map(
       ({ startAt: _startAt, ...row }) => row,
     ),
-    focus: chooseFocus({
-      hasRaceResult: raceResult.length > 0,
-      hasGrid: grid.length > 0,
-      latestNewsAt: newsByRecency[0]?.publishedAt,
-      latestResultStartedAt: lastResulted
-        ? sessionStartAt(race, lastResulted)
-        : undefined,
-    }),
+    focus: standings ? 'standings' : focus,
     result,
     grid,
     news: formatNews(input.news),
-    standings: null,
+    standings,
   };
 }
 
@@ -420,7 +454,17 @@ function buildLead(
   }
   const next = timeline.find((row) => row.startAt > now);
   if (next && next.key !== 'race') {
-    return { label: next.label, value: next.when, weather: next.weather };
+    const practiceLabel =
+      FREE_PRACTICE_FULL_LABELS[
+        next.key as keyof typeof FREE_PRACTICE_FULL_LABELS
+      ];
+    return {
+      label: practiceLabel ?? SESSION_LABELS_FULL[next.key as SessionType],
+      // Not the row's time: the timeline stays weekday-only, the lead gains a
+      // date when the session is more than six days off.
+      value: when(next.startAt),
+      weather: next.weather,
+    };
   }
   // The race is next, or under way without a result. The start time stays
   // true before, during and after the race, so nothing here goes stale.
@@ -549,6 +593,7 @@ function buildTimeline(
   input: TrmnlInput,
   race: RaceForTrmnl,
   when: (at: number) => string,
+  scheduleParts: (at: number) => { weekday: string; time: string },
 ): TimelineRow[] {
   const practiceByType = new Map(
     input.practice.map((summary) => [summary.sessionType, summary]),
@@ -574,6 +619,7 @@ function buildTimeline(
       label: FREE_PRACTICE_LABELS[type],
       short: type.toUpperCase(),
       when: when(at),
+      ...scheduleParts(at),
       state:
         top3.length === 0 && input.now >= at + PRACTICE_RESULT_WAIT_MS
           ? 'no_result'
@@ -592,9 +638,13 @@ function buildTimeline(
     rows.push({
       startAt: at,
       key: session,
-      label: SESSION_LABELS_FULL[session],
+      label:
+        session === 'sprint_quali'
+          ? 'Sprint Quali'
+          : SESSION_LABELS_SHORT[session],
       short: SESSION_LABELS_SHORT[session],
       when: when(at),
+      ...scheduleParts(at),
       state: rowState(top3.length > 0, at, input.now),
       next: false,
       top3,
@@ -616,15 +666,20 @@ function rowState(
   return startAt <= now ? 'awaiting' : 'upcoming';
 }
 
-/**
- * TRMNL's names on this screen spell practice out in full; the timeline has
- * the room, and "FP1" is left for the narrow layouts (`short`).
- */
+/** Compact practice labels for the full weekend schedule. */
 const FREE_PRACTICE_LABELS: Record<keyof typeof PRACTICE_LABELS, string> = {
-  fp1: 'Free Practice 1',
-  fp2: 'Free Practice 2',
-  fp3: 'Free Practice 3',
+  fp1: 'FP1',
+  fp2: 'FP2',
+  fp3: 'FP3',
 };
+
+/** Full practice labels for the featured upcoming session. */
+const FREE_PRACTICE_FULL_LABELS: Record<keyof typeof PRACTICE_LABELS, string> =
+  {
+    fp1: 'Free Practice 1',
+    fp2: 'Free Practice 2',
+    fp3: 'Free Practice 3',
+  };
 
 /**
  * Each session's own forecast, keyed like the timeline rows (`fp1`,
@@ -641,6 +696,7 @@ function sessionForecasts(
   if (!weather || weather.isStale) {
     return forecasts;
   }
+  const units = input.units ?? 'metric';
   for (const session of buildWeatherSessions(race)) {
     const summary = summarizeSessionWindow(weather.forecast, session);
     if (!summary) {
@@ -652,15 +708,38 @@ function sessionForecasts(
         summary.conditionCode,
         isAfterDark(session.startsAt, weather.forecast.timeZone),
       ),
-      temp: `${summary.temperatureC}°`,
+      temp: temperatureFigure(summary.temperatureC, units),
       rain:
         rain !== undefined && rain >= RAIN_WORTH_MENTIONING
           ? `${Math.round(rain)}%`
           : '',
-      text: sessionWeatherLine(summary),
+      rainAmount: precipitationFigure(
+        summary.precipitationAmountMm,
+        units,
+        rain !== undefined && rain >= RAIN_WORTH_MENTIONING,
+      ),
+      wind: windFigure(summary, units) ?? '',
+      condition: conditionLabel(summary.conditionCode),
+      text: sessionWeatherLine(summary, { units }),
     });
   }
   return forecasts;
+}
+
+function precipitationFigure(
+  amountMm: number,
+  units: MeasurementUnits,
+  meaningfulRainChance: boolean,
+): string {
+  if (amountMm > 0) {
+    return units === 'imperial'
+      ? `${(amountMm / 25.4).toFixed(2)} in`
+      : `${amountMm.toFixed(1)} mm`;
+  }
+  if (meaningfulRainChance) {
+    return units === 'imperial' ? '0.00 in' : '0.0 mm';
+  }
+  return 'Dry';
 }
 
 /**
@@ -767,6 +846,10 @@ function makeFormatter(
     hour: 'numeric',
     minute: '2-digit',
   });
+  const weekday = new Intl.DateTimeFormat(lang, {
+    ...zoneOptions,
+    weekday: 'short',
+  });
   const far = new Intl.DateTimeFormat(lang, {
     ...zoneOptions,
     weekday: 'short',
@@ -787,10 +870,36 @@ function makeFormatter(
         Math.abs(at - now) <= WEEKDAY_ONLY_WITHIN_MS ? near : far;
       return plainSpaces(formatter.format(new Date(at)));
     },
+    scheduleWhen(at: number): string {
+      return plainSpaces(near.format(new Date(at)));
+    },
+    scheduleParts(at: number): { weekday: string; time: string } {
+      const date = new Date(at);
+      return {
+        weekday: weekday.format(date),
+        time: plainSpaces(timeWithoutWeekday(near, date)),
+      };
+    },
     range(from: number, to: number): string {
       return plainSpaces(days.formatRange(new Date(from), new Date(to)));
     },
   };
+}
+
+/**
+ * The time as the weekday format writes it, less the weekday. A time-only
+ * formatter would disagree with the lead: en-GB writes "Fri 05:30" but a bare
+ * "5:30".
+ */
+function timeWithoutWeekday(format: Intl.DateTimeFormat, date: Date): string {
+  const parts = format.formatToParts(date).filter((p) => p.type !== 'weekday');
+  while (parts[0]?.type === 'literal') {
+    parts.shift();
+  }
+  while (parts.at(-1)?.type === 'literal') {
+    parts.pop();
+  }
+  return parts.map((p) => p.value).join('');
 }
 
 /**

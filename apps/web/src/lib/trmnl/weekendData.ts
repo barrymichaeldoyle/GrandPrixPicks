@@ -8,7 +8,7 @@ type Race = NonNullable<TrmnlInput['race']>;
 /** Everything the payload builder needs about one race, as the site has it now. */
 export type TrmnlWeekendData = Pick<
   TrmnlInput,
-  'race' | 'news' | 'results' | 'practice' | 'weather'
+  'race' | 'news' | 'results' | 'practice' | 'weather' | 'standings'
 > & { race: Race };
 
 /**
@@ -28,7 +28,7 @@ export async function loadTrmnlWeekend(
   now: number,
   weather: 'live' | 'writeup' = 'live',
 ): Promise<TrmnlWeekendData> {
-  const [news, top5, practice, forecast, raceResult, sprintResult] =
+  const [news, top5, practice, forecast, raceResult, sprintResult, standings] =
     await Promise.all([
       convex.query(api.raceNews.list, { raceSlug: race.slug }),
       convex.query(api.results.getEnrichedTop5BySessionForRaceSlug, {
@@ -50,6 +50,9 @@ export async function loadTrmnlWeekend(
             sessionType: 'sprint',
           })
         : null,
+      convex.query(api.f1Standings.getF1Championship, {
+        season: race.season,
+      }),
     ]);
 
   return {
@@ -62,6 +65,7 @@ export async function loadTrmnlWeekend(
     },
     practice: practice?.sessions ?? [],
     weather: forecast,
+    standings,
   };
 }
 

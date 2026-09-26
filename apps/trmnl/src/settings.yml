@@ -7,12 +7,20 @@ strategy: polling
 # polls just before the device draws, never more often than this. 15 is the
 # fastest a free account allows; TRMNL+ devices can go to 5.
 refresh_interval: 15
-polling_url: https://grandprixpicks.com/api/trmnl/weekend?tz={{ trmnl.user.time_zone_iana }}&locale={{ trmnl.user.locale }}
+polling_url: https://grandprixpicks.com/api/trmnl/weekend?tz={{ trmnl.user.time_zone_iana }}&locale={{ trmnl.user.locale }}&units=##{{ units }}
 polling_verb: GET
 polling_headers: ''
 no_screen_padding: 'no'
 dark_mode: 'no'
 custom_fields:
+  - keyname: units
+    field_type: select
+    name: Units
+    description: Choose metric or imperial units for weather.
+    options:
+      - Metric
+      - Imperial
+    default: Metric
   - keyname: about
     field_type: author_bio
     name: About This Plugin

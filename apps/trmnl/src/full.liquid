@@ -4,9 +4,9 @@
 <div class="layout layout--col layout--top layout--stretch-x gap--medium">
   <div class="flex flex--row flex--center-y gap--medium">
     <div class="grow">
-      {% render "race_header", race: race, name_size: "title--large portrait:title--small lg:title--xxlarge lg:portrait:title--large", detail_size: "label--base portrait:label--small lg:label--xlarge lg:portrait:label--base", flag_size: "h--[56px] w--max-[112px] lg:h--[96px] lg:w--max-48", compact_details: true %}
+      {% render "race_header", race: race, name_size: "title--large portrait:title--small lg:text--xxxlarge lg:portrait:text--large", detail_size: "label--base portrait:label--small lg:label--xlarge lg:portrait:label--base", flag_size: "h--[56px] w--max-[112px] lg:h--[96px] lg:w--max-48", compact_details: true %}
     </div>
-    <div class="flex-none">{% render "qr", url: race.url %}</div>
+    <div class="flex-none">{% render "qr", url: race.url, size_class: "w--[56px] h--[56px] lg:w--[96px] lg:h--[96px]" %}</div>
   </div>
   {% comment %}
     Two columns side by side, stacked in portrait: side by side on a portrait
@@ -16,11 +16,29 @@
   <div class="grid grid--cols-2 portrait:grid--cols-1 gap--large grow">
     <div class="flex flex--col flex--stretch-x gap--auto">
       <div class="flex flex--col flex--center gap--xsmall">
-        {% render "lead", lead: lead, size: "value--large lg:value--xxlarge" %}
-        {% render "lead_weather", weather: lead.weather %}
+        {% render "lead", lead: lead, size: "value--large lg:value--xxlarge", label_size: "lg:text--mega" %}
+        {% render "lead_weather", weather: lead.weather, text_size: "lg:label--xlarge", temp_first: true %}
+      </div>
+      {% comment %}
+        A whole number of squares scaled to the column, so the band never ends
+        on a cut square. An odd count puts a black square in both top corners;
+        the height follows the width so the squares stay square. Portrait's
+        full-width column takes more of them, or the band grows to 58px on an X.
+      {% endcomment %}
+      <div class="w--full portrait:hidden" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 376 16" width="100%" style="display: block; height: auto;" shape-rendering="crispEdges" role="presentation">
+          <defs><pattern id="schedule-checker" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#000"/><rect x="8" width="8" height="8" fill="#fff"/><rect y="8" width="8" height="8" fill="#fff"/><rect x="8" y="8" width="8" height="8" fill="#000"/></pattern></defs>
+          <rect width="376" height="16" fill="url(#schedule-checker)"/>
+        </svg>
+      </div>
+      <div class="w--full hidden portrait:block" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 472 16" width="100%" style="display: block; height: auto;" shape-rendering="crispEdges" role="presentation">
+          <defs><pattern id="schedule-checker-portrait" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#000"/><rect x="8" width="8" height="8" fill="#fff"/><rect y="8" width="8" height="8" fill="#fff"/><rect x="8" y="8" width="8" height="8" fill="#000"/></pattern></defs>
+          <rect width="472" height="16" fill="url(#schedule-checker-portrait)"/>
+        </svg>
       </div>
       {% comment %}No weather line: each timeline row carries its own forecast.{% endcomment %}
-      {% render "schedule", schedule: schedule, size: "table--small lg:table--large", name: "label" %}
+      {% render "schedule", schedule: schedule, size: "table--small lg:table--large", name: "label", aligned: true %}
     </div>
     <div class="flex flex--col flex--stretch-x gap--small h--full">
       {% comment %}
@@ -28,9 +46,13 @@
         script hides news items that do not fit, and a separate spacer would
         read to it as content.
       {% endcomment %}
-      <div class="grow {% if focus == 'result' %}flex flex--col flex--stretch-x flex--center-y h--full{% elsif news.size == 0 and focus != 'grid' %}h--full{% endif %}">
+      <div class="grow {% if focus == 'result' or focus == 'standings' %}flex flex--col flex--stretch-x flex--center-y h--full{% elsif news.size == 0 and focus != 'grid' %}h--full{% endif %}">
         {% if focus == "result" %}
           {% render "result", result: result, limit: 10, split: true %}
+        {% elsif focus == "standings" %}
+          {% comment %}Stacked under the timeline in portrait, where ten rows do not fit.{% endcomment %}
+          <div class="portrait:hidden">{% render "championship", rows: standings.drivers, limit: 10, size: "table--xsmall lg:table--large" %}</div>
+          <div class="hidden portrait:block">{% render "championship", rows: standings.drivers, limit: 5, size: "table--xsmall lg:table--base" %}</div>
         {% elsif focus == "grid" %}
           {% render "grid", grid: grid %}
         {% elsif focus == "news" %}
@@ -39,16 +61,16 @@
             left the last two-line item partly under the title bar on the OG.
           {% endcomment %}
           <div class="grow lg:hidden">
-            {% render "news", news: news, limit: 7, headline_size: full_news_size, fill: true %}
+            {% render "news", news: news, limit: 7, headline_size: full_news_size, fill: true, empty_size: "lg:label--large" %}
           </div>
           <div class="grow hidden lg:block lg:portrait:hidden">
-            {% render "news", news: news, limit: 11, headline_size: full_news_size, fill: true %}
+            {% render "news", news: news, limit: 11, headline_size: full_news_size, fill: true, empty_size: "lg:label--large" %}
           </div>
           <div class="grow hidden lg:portrait:block">
-            {% render "news", news: news, limit: 10, headline_size: full_news_size, fill: true %}
+            {% render "news", news: news, limit: 10, headline_size: full_news_size, fill: true, empty_size: "lg:label--large" %}
           </div>
         {% elsif news.size == 0 %}
-          {% render "news", news: news, limit: 1, headline_size: full_news_size, fill: true %}
+          {% render "news", news: news, limit: 1, headline_size: full_news_size, fill: true, empty_size: "lg:label--large" %}
         {% endif %}
       </div>
     </div>

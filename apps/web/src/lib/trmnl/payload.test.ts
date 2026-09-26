@@ -105,13 +105,26 @@ describe('buildTrmnlPayload', () => {
     });
   });
 
-  it('adds the date when the session is more than six days out', () => {
+  it('keeps the schedule time compact but adds a date to the distant lead', () => {
     const payload = buildTrmnlPayload(
       input({ now: at('2026-08-25T08:00:00Z') }),
     );
     expect(payload.lead).toMatchObject({
       label: 'Free Practice 1',
       value: 'Fri 4 Sept, 13:30',
+    });
+    expect(payload.schedule[0]?.when).toBe('Fri 13:30');
+  });
+
+  it('writes a timeline time the way the lead writes it', () => {
+    // en-GB pads the hour beside a weekday ("Sat 06:30") but not on its own.
+    const payload = buildTrmnlPayload(
+      input({ now: at('2026-09-05T08:00:00Z'), timeZone: 'America/New_York' }),
+    );
+    expect(payload.lead?.value).toBe('Sat 06:30');
+    expect(payload.schedule.find((row) => row.short === 'FP3')).toMatchObject({
+      weekday: 'Sat',
+      time: '06:30',
     });
   });
 
@@ -309,6 +322,50 @@ describe('buildTrmnlPayload', () => {
     expect(afterRace.grid).toEqual([]);
   });
 
+  it('fills a build-up with no news with the drivers championship', () => {
+    const standings = {
+      season: 2026,
+      roundsScored: 15,
+      roundsTotal: 23,
+      drivers: [
+        {
+          position: 1,
+          code: 'LEC',
+          displayName: 'Charles Leclerc',
+          points: 223,
+        },
+      ],
+      constructors: [{ position: 1, team: 'Ferrari', points: 390 }],
+    };
+    const buildUp = input({ now: at('2026-09-01T09:00:00Z'), standings });
+
+    const empty = buildTrmnlPayload(buildUp);
+    expect(empty.focus).toBe('standings');
+    expect(empty.standings?.drivers).toEqual([
+      { pos: 1, code: 'LEC', name: 'Charles Leclerc', points: 223 },
+    ]);
+
+    const withNews = buildTrmnlPayload({
+      ...buildUp,
+      news: [
+        {
+          headline: 'Upgrades arrive',
+          publishedAt: at('2026-09-01T08:00:00Z'),
+        },
+      ],
+    });
+    expect(withNews.focus).toBe('news');
+    expect(withNews.standings).toBe(null);
+
+    // Before the season's first race there is no table to show.
+    const roundOne = buildTrmnlPayload({
+      ...buildUp,
+      standings: { ...standings, roundsScored: 0 },
+    });
+    expect(roundOne.focus).toBe('schedule');
+    expect(roundOne.standings).toBe(null);
+  });
+
   it('focuses whichever is newer, a session result or the news', () => {
     function news(publishedAt: string) {
       return [
@@ -370,14 +427,20 @@ describe('buildTrmnlPayload', () => {
     );
     expect(byRow.FP1).toEqual({
       icon: 'https://trmnl.com/images/plugins/weather/wi-day-sunny-overcast.svg',
-      temp: '26°',
+      condition: 'Fair',
+      temp: '26°C',
       rain: '',
+      rainAmount: 'Dry',
+      wind: 'NE 11 km/h',
       text: 'Fair · 26°C',
     });
     expect(byRow.Quali).toEqual({
       icon: 'https://trmnl.com/images/plugins/weather/wi-rain.svg',
-      temp: '23°',
+      condition: 'Rain',
+      temp: '23°C',
       rain: '60%',
+      rainAmount: '2.4 mm',
+      wind: 'NE 11 km/h',
       text: 'Rain · 23°C · 60%',
     });
     // Sunday is outside this forecast, so the race row says nothing.
@@ -395,9 +458,9 @@ describe('buildTrmnlPayload', () => {
     expect(stale.schedule.every((row) => row.weather === null)).toBe(true);
   });
 
-  it('spells practice out in full and keeps FP1 for narrow layouts', () => {
+  it('uses compact practice labels in the full schedule', () => {
     const [fp1] = buildTrmnlPayload(input()).schedule;
-    expect([fp1.label, fp1.short]).toEqual(['Free Practice 1', 'FP1']);
+    expect([fp1.label, fp1.short]).toEqual(['FP1', 'FP1']);
   });
 
   it('says there is no race when the season is over', () => {

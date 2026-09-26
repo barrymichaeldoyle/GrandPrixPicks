@@ -172,7 +172,7 @@ export type TrmnlNewsCount = (typeof TRMNL_NEWS_COUNTS)[number];
 export function sampleNewsVariant(
   input: TrmnlInput,
   count: TrmnlNewsCount,
-): Pick<TrmnlPayload, 'news' | 'focus'> {
+): Pick<TrmnlPayload, 'news' | 'focus' | 'standings'> {
   const grids = input.news.filter(
     (item) => (item.startingGrid?.length ?? 0) > 0,
   );
@@ -182,8 +182,14 @@ export function sampleNewsVariant(
   }));
   // The focus sees the grid too; the headlines are the samples alone, so the
   // grid's own headline never takes one of the payload's twenty places.
+  // Standings travel with the focus: with no headlines they fill the column.
+  const { focus, standings } = buildTrmnlPayload({
+    ...input,
+    news: [...grids, ...samples],
+  });
   return {
-    focus: buildTrmnlPayload({ ...input, news: [...grids, ...samples] }).focus,
+    focus,
+    standings,
     news: buildTrmnlPayload({ ...input, news: samples }).news,
   };
 }
@@ -288,6 +294,7 @@ export function sampleForecast(
       precipitationAmountMm: day.precipitationProbability >= 50 ? 1.2 : 0,
       precipitationProbability: day.precipitationProbability,
       windSpeedMps: 3,
+      windDirectionDegrees: 45,
     });
   }
   return {

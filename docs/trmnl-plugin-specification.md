@@ -123,6 +123,13 @@ then) it keeps the title, reads "After round 16 of 23" and names the
 "Championship leader" rather than a champion. Only when no round is scored
 at all does the screen say "No race scheduled.".
 
+**A build-up with nothing to report** (no headline, result or grid yet) gets
+the same championship in `standings`, and `focus` is `"standings"`
+(`buildTrmnlPayload`). Not before the season's first race, which has no table.
+`loadTrmnlWeekend` reads it for the race's season. The `/trmnl` page's replays
+keep it only while the replayed weekend has scored no points, since today's
+table would count results that moment had not seen (`replayWeekend`).
+
 - **Full:** all 22 drivers in two columns, all 11 constructors in a third,
   and one news item beside the QR code in the landscape heading. In portrait
   the news follows the heading and the constructors follow the drivers.
@@ -186,14 +193,16 @@ The lead is a session name in title weight over the value in large type
 ("Free Practice 3" / "Sat 11:30"). The name was grey label text at first, which
 left a big time with nothing saying what it was for.
 
-**Session names** are spelled out where there is room ("Free Practice 1",
-"Sprint Qualifying"): the full layout's timeline and the lead. The half-vertical
-timeline uses the short form ("FP1", "SQ"). "Free Practice" is this surface's
-wording; the rest of the site says "Practice 1".
+**Session names** are compact in the full layout's timeline ("FP1", "Quali",
+"Sprint Quali"). The featured lead keeps the full name ("Free Practice 1").
+The half-vertical timeline uses the shorter form ("FP1", "SQ"). "Free Practice"
+is this surface's wording; the rest of the site says "Practice 1".
 
 **Weather is per session.** Each timeline row carries its own forecast: one of
-TRMNL's weather icons, the temperature, and the chance of rain when it is 20%
-or more (the race pages' cut-off). It comes from the same per-session window
+TRMNL's weather icons, the temperature, the chance of rain when it is 20%
+or more (the race pages' cut-off), and the session's accumulated rain. The
+user's Metric / Imperial setting selects °C, km/h and mm, or °F, mph and in.
+It comes from the same per-session window
 the race pages use (`buildWeatherSessions` and `summarizeSessionWindow` in
 `weatherPresentation.ts`). A stale forecast shows nothing anywhere, and a
 session beyond the forecast window shows nothing on its row. Icons are TRMNL's
@@ -216,8 +225,17 @@ height: TRMNL's overflow script hides news items that do not fit, and a
 separate spacer read to it as content and hid most of them. When headlines fit,
 the list is centred vertically in the column. On race morning
 the grid fills the right column while the QR code stays in the header.
-When there is no news to show, a short empty message is centred in the right
-column.
+When there is no news, result or grid yet, the right column shows the top ten
+of the Drivers' Championship (`championship` in `shared.liquid`), five in
+portrait where it stacks under the timeline. Only before the season's first
+race does it fall back to a short empty message.
+
+The divider between the lead and the timeline is a checkered band with a whole
+number of squares (47, or 59 in portrait), scaled to the column so it never
+ends on a cut square and has a black square in both top corners. The lead's
+forecast reads temperature, condition and wind with dots between them, each
+icon beside its own value. In the timeline, temperature, icon, rain chance and
+rainfall are separate table columns, so they line up whatever their widths.
 
 **Half horizontal:** the compact race header sits above the lead and its
 weather, with the QR code beside the lead. Beside them, it shows the latest
@@ -243,10 +261,12 @@ space evenly. A divider separates two headlines. Like every layout, its title ba
 
 **The lead's weather** is the lead session's own forecast (`lead.weather`),
 under the lead on every layout, worded as the race pages word it
-(`sessionWeatherLine`: "Partly cloudy · 27°C", "Rain · 23°C · 60%", and
-"Clear · 24°C · Gusts 43 km/h" once gusts reach 40 km/h) beside its icon.
-An icon and a temperature alone read as an orphan. Timeline rows keep the
-compact form (icon, "23°", "60%").
+plus the sustained wind (`sessionWeatherLine` with `wind`: "Partly cloudy ·
+27°C · NE 16 km/h", "Rain · 23°C · 60% · SW 22 km/h", and "Clear · 24°C · N
+25 km/h · Gusts 43 km/h" once gusts reach 40 km/h) beside its icon. An icon and
+a temperature alone read as an orphan. Timeline rows keep the compact form
+("23°C", icon, "60%", "2.4 mm" in Metric or "0.09 in" in Imperial); a
+zero-rain forecast reads "Dry" unless a meaningful rain chance remains.
 
 **Results** carry the top ten for a race or sprint and the top five for a
 qualifying session (`RESULT_ROWS`). The full layout and the half-vertical show
@@ -651,8 +671,6 @@ sharper:
 - Whether a Liquid template sees `trmnl.system.timestamp_utc` change when the
   payload is otherwise unchanged. Irrelevant while all time logic stays on the
   server; recorded so nobody moves it into Liquid.
-- Temperature is always Celsius. A units form field would fix it for US
-  owners.
 - Screens have been rendered with TRMNL's Liquid library and Framework CSS in
   a browser and in TRMNL's own editor, but not yet seen on a device with data.
 - Remote `<img>` in markup appears to load at render time (TRMNL's own starter
@@ -671,7 +689,9 @@ Recorded so these are not re-litigated.
 - **Live data.** No timing tower, no live running order during practice,
   qualifying or the race. The cadence cannot support it, a stale order is worse
   than none, and TRMNL screens against distraction.
-- **Driver and constructor standings.** Four plugins already do this. We would
-  be the fifth table.
+- **Standings as the plugin's purpose.** Four plugins already do this. We would
+  be the fifth table. The championship appears only where there is nothing
+  weekend-specific to show: the off-season, and a build-up before its first
+  headline.
 - **A push-driven plugin.** Not available for published plugins.
 - **Rendering through satori.** Wrong contract. Section 3.

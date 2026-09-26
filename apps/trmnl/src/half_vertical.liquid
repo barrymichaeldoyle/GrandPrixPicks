@@ -9,8 +9,10 @@
     <div class="flex-none">{% render "qr", url: race.url %}</div>
   </div>
   <div class="hidden portrait:block w--full">
-    {% render "race_header", race: race, name_size: "lg:title--large", detail_size: "lg:label--large", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true %}
-    {% render "qr", url: race.url %}
+    <div class="flex flex--row flex--center-y gap--small w--full">
+      <div class="grow">{% render "race_header", race: race, name_size: "lg:title--large", detail_size: "lg:label--large", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true %}</div>
+      <div class="flex-none">{% render "qr", url: race.url %}</div>
+    </div>
   </div>
   <div class="flex flex--row flex--center-y gap--medium">
     <div class="grow flex flex--col flex--center gap--xsmall">

@@ -28,7 +28,10 @@ export type TrmnlPageScenario = {
    * The screen with 0, 1, 2 or 20 sample headlines instead of its news, for
    * the page's news switch: only the fields news changes.
    */
-  news: Record<`${TrmnlNewsCount}`, Pick<TrmnlPayload, 'news' | 'focus'>>;
+  news: Record<
+    `${TrmnlNewsCount}`,
+    Pick<TrmnlPayload, 'news' | 'focus' | 'standings'>
+  >;
 };
 
 /** A tab, built from the input its screen comes from. */

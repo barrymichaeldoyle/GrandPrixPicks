@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 
 import { convexTest } from 'convex-test';
+import { ConvexError } from 'convex/values';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { api, internal } from './_generated/api';
@@ -77,9 +78,46 @@ describe('linking a grid row to the story behind it', () => {
   it('refuses a key this weekend has no item for', async () => {
     // The same loudness as an unknown driver code: a row whose link goes
     // nowhere looks exactly like every other row until somebody taps it.
-    await expect(
-      t.mutation(internal.raceNews.publish, gridItem('no-such-story')),
-    ).rejects.toThrow(/no-such-story/);
+    await t.mutation(internal.raceNews.publish, penalty);
+    const error = await t
+      .mutation(internal.raceNews.publish, gridItem('no-such-story'))
+      .catch((caught: unknown) => caught);
+
+    // An operator mistake, not a fault: a ConvexError stays out of Sentry.
+    expect(error).toBeInstanceOf(ConvexError);
+    expect((error as ConvexError<{ code: string }>).data).toMatchObject({
+      code: 'GRID_NEWS_KEY_MISSING',
+      missing: [
+        {
+          position: 2,
+          code: 'PIA',
+          newsKey: 'no-such-story',
+          reason: 'unpublished',
+        },
+      ],
+      activeKeys: [penalty.key],
+    });
+    expect((error as ConvexError<{ message: string }>).data.message).toMatch(
+      /P2 PIA -> "no-such-story"/,
+    );
+  });
+
+  it('reports missing links on a dry run instead of throwing', async () => {
+    const preview = await t.mutation(internal.raceNews.publish, {
+      ...gridItem('no-such-story'),
+      dryRun: true,
+    });
+    expect(preview).toMatchObject({
+      dryRun: true,
+      missingNewsKeys: [
+        {
+          position: 2,
+          code: 'PIA',
+          newsKey: 'no-such-story',
+          reason: 'unpublished',
+        },
+      ],
+    });
   });
 
   it('refuses a key that was retracted', async () => {
@@ -90,7 +128,7 @@ describe('linking a grid row to the story behind it', () => {
     });
     await expect(
       t.mutation(internal.raceNews.publish, gridItem(penalty.key)),
-    ).rejects.toThrow(/No active news item/);
+    ).rejects.toThrow(/Retracted on italy-2026/);
   });
 
   it('refuses a grid that points at itself', async () => {

@@ -187,6 +187,10 @@ the rest a tap away. Both read the one record, so a correction fixes both.
   the first one found by code would have captioned his grid slot with the tow
   he was giving Russell. Publishing refuses a key with no active item, and
   refuses the grid pointing at itself, so publish the stories before the grid.
+  The dry run lists any such row in `missingNewsKeys` (with its position, code
+  and whether the key is `unpublished` or `retracted`); it must be empty before
+  the real call. When applying a reviewed artifact, run its actions one at a
+  time in file order, never in parallel.
   A `newsKey` needs a `note`, because the note is what the reader clicks: that
   also covers a driver who is where qualifying left them and the story is why
   qualifying went badly, e.g.

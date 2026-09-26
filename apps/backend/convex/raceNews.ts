@@ -1,4 +1,4 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import {
@@ -512,9 +512,10 @@ export const publish = internalMutation({
     const driverCodes = resolved?.codes;
     const grid = await resolveGridForPublish(
       ctx,
-      race._id,
+      race,
       args.key,
       args.startingGrid,
+      { dryRun },
     );
 
     const existing = await newsByKey(ctx, race._id, args.key);
@@ -559,6 +560,9 @@ export const publish = internalMutation({
         affectsSessions: args.affectsSessions,
         driverCodes,
         gridPositions: grid?.resolved.length,
+        // Must be empty before the real run: each entry is a row linking to a
+        // story that is not live on this race yet.
+        missingNewsKeys: grid?.missingNewsKeys,
       };
     }
 
@@ -797,37 +801,23 @@ async function resolveDriverCodes(
 }
 
 /**
- * Check a grid before it is written, and resolve it for the feed snapshot.
- *
- * Both halves come back: the normalised rows to store (codes uppercased, the
- * way `resolveDriverCodes` normalises a badge code) and the resolved rows the
- * feed event freezes. Doing it once here is what stops the stored grid and the
- * feed's copy of it disagreeing about who is on it.
+ * The grid rows whose `newsKey` is not an active item on this race, plus the
+ * keys that are, for the error message.
  */
-/**
- * Refuse a grid that points at a story this weekend does not have.
- *
- * The same loudness as an unknown driver code, and for the same reason: a row
- * whose link goes nowhere looks exactly like every other row until somebody
- * taps it. Checked against active items only, so retracting a penalty story
- * cannot leave the grid quietly linking to it.
- */
-async function assertGridNewsKeysExist(
+async function findMissingGridNewsKeys(
   ctx: MutationCtx,
-  raceId: Id<'races'>,
+  race: { _id: Id<'races'>; slug: string },
   ownKey: string,
   entries: StartingGridEntry[],
-) {
-  const wanted = new Set(
-    entries.flatMap((entry) => (entry.newsKey ? [entry.newsKey] : [])),
-  );
-  if (wanted.size === 0) {
-    return;
+): Promise<{ missing: MissingGridNewsKey[]; activeKeys: string[] }> {
+  const linked = entries.filter((entry) => entry.newsKey);
+  if (linked.length === 0) {
+    return { missing: [], activeKeys: [] };
   }
 
   // The grid explaining itself would be a row linking to the page it is on.
-  if (wanted.has(ownKey)) {
-    throw new Error(
+  if (linked.some((entry) => entry.newsKey === ownKey)) {
+    throw new ConvexError(
       `A grid row points at "${ownKey}", which is the item carrying the grid. ` +
         'Point it at the story that explains the row.',
     );
@@ -835,28 +825,102 @@ async function assertGridNewsKeysExist(
 
   const published = await ctx.db
     .query('raceNews')
-    .withIndex('by_race', (q) => q.eq('raceId', raceId))
+    .withIndex('by_race', (q) => q.eq('raceId', race._id))
     .take(MAX_NEWS_PER_RACE);
-  const live = new Set(
-    published.filter((row) => row.active).map((row) => row.key),
-  );
-  const missing = [...wanted].filter((key) => !live.has(key));
-  if (missing.length > 0) {
-    throw new Error(
-      `No active news item on this race for: ${missing.join(', ')}. ` +
-        'Publish the story before the grid that links to it, and check the key ' +
-        'with raceNews:list.',
-    );
-  }
+  const activeByKey = new Map(published.map((row) => [row.key, row.active]));
+  const missing = linked.flatMap((entry) => {
+    const newsKey = entry.newsKey as string;
+    const active = activeByKey.get(newsKey);
+    if (active === true) {
+      return [];
+    }
+    return [
+      {
+        position: entry.position,
+        code: entry.code.toUpperCase(),
+        newsKey,
+        // The fixes differ: a retracted story needs republishing, an
+        // unpublished key is a wrong order or a typo.
+        reason:
+          active === false ? ('retracted' as const) : ('unpublished' as const),
+      },
+    ];
+  });
+  const activeKeys = published
+    .filter((row) => row.active)
+    .map((row) => row.key);
+  return { missing, activeKeys };
 }
 
+type MissingGridNewsKey = {
+  position: number;
+  code: string;
+  newsKey: string;
+  reason: 'unpublished' | 'retracted';
+};
+
+/**
+ * Refuse a grid that points at a story this weekend does not have.
+ *
+ * The same loudness as an unknown driver code, and for the same reason: a row
+ * whose link goes nowhere looks exactly like every other row until somebody
+ * taps it. Checked against active items only, so retracting a penalty story
+ * cannot leave the grid quietly linking to it.
+ *
+ * A `ConvexError`, because this is an operator mistake with a clear fix, not a
+ * fault: a plain `Error` reaches Sentry as an uncaught production failure.
+ */
+function missingGridNewsKeysError(
+  race: { slug: string },
+  missing: MissingGridNewsKey[],
+  activeKeys: string[],
+) {
+  function describe(reason: MissingGridNewsKey['reason']) {
+    return missing
+      .filter((row) => row.reason === reason)
+      .map((row) => `P${row.position} ${row.code} -> "${row.newsKey}"`)
+      .join(', ');
+  }
+  const unpublished = describe('unpublished');
+  const retracted = describe('retracted');
+  const message = [
+    unpublished &&
+      `No active news item on ${race.slug} for ${unpublished}. ` +
+        'Publish that story first (or fix the key), then re-run the grid.',
+    retracted &&
+      `Retracted on ${race.slug}: ${retracted}. Republish the story or drop the link.`,
+    `Active keys: ${activeKeys.length > 0 ? activeKeys.join(', ') : 'none'}.`,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return new ConvexError({
+    code: 'GRID_NEWS_KEY_MISSING',
+    message,
+    missing,
+    activeKeys,
+  });
+}
+
+/**
+ * Check a grid before it is written, and resolve it for the feed snapshot.
+ *
+ * Both halves come back: the normalised rows to store (codes uppercased, the
+ * way `resolveDriverCodes` normalises a badge code) and the resolved rows the
+ * feed event freezes. Doing it once here is what stops the stored grid and the
+ * feed's copy of it disagreeing about who is on it.
+ */
 async function resolveGridForPublish(
   ctx: MutationCtx,
-  raceId: Id<'races'>,
+  race: { _id: Id<'races'>; slug: string },
   ownKey: string,
   entries: StartingGridEntry[] | undefined,
+  { dryRun }: { dryRun: boolean },
 ): Promise<
-  | { stored: StartingGridEntry[]; resolved: ResolvedStartingGridEntry[] }
+  | {
+      stored: StartingGridEntry[];
+      resolved: ResolvedStartingGridEntry[];
+      missingNewsKeys: MissingGridNewsKey[];
+    }
   | undefined
 > {
   if (entries === undefined) {
@@ -877,7 +941,13 @@ async function resolveGridForPublish(
   const byCode = new Map(
     (resolved?.drivers ?? []).map((driver) => [driver.code, driver]),
   );
-  await assertGridNewsKeysExist(ctx, raceId, ownKey, entries);
+  // A dry run reports every missing link alongside the rest of the preview,
+  // so the order problem shows up before the real call does.
+  const { missing: missingNewsKeys, activeKeys } =
+    await findMissingGridNewsKeys(ctx, race, ownKey, entries);
+  if (missingNewsKeys.length > 0 && !dryRun) {
+    throw missingGridNewsKeysError(race, missingNewsKeys, activeKeys);
+  }
 
   const stored = sortStartingGrid(
     entries.map((entry) => ({
@@ -891,6 +961,7 @@ async function resolveGridForPublish(
   return {
     stored,
     resolved: resolveStartingGrid(stored, (code) => byCode.get(code)),
+    missingNewsKeys,
   };
 }
 

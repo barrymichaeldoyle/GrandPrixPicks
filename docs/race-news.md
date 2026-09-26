@@ -206,7 +206,10 @@ entry points at it and the write-up turns the note into a link to that card.
 the first one found by code would have captioned his grid slot with the tow he
 was giving Russell. Publishing validates the key against the weekend's active
 items and refuses an unknown one, a retracted one, or the grid pointing at
-itself.
+itself. The refusal is a `ConvexError` (`code: GRID_NEWS_KEY_MISSING`), since it
+is an operator mistake rather than a fault, and names each row, whether its key
+is unpublished or retracted, and the keys that are active. A dry run does not
+refuse: it lists the same rows in `missingNewsKeys`.
 
 **Only the key is stored.** The headline the reader sees is resolved from the
 item at render, so correcting a penalty story corrects the grid caption with

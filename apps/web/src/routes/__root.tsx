@@ -195,6 +195,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-title', content: 'GP Picks' },
       { name: 'apple-mobile-web-app-status-bar-style', content: 'black' },
+      {
+        name: 'impact-site-verification',
+        value: 'ca925316-4b05-4163-b426-9c17e386389a',
+      },
 
       // Open Graph / Twitter Card
       // NOTE: og:title, og:description, og:image (and twitter: equivalents)

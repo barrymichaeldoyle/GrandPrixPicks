@@ -1,0 +1,23 @@
+{
+  "schedulingType": "automatic",
+  "mode": "shareNow",
+  "aiAssisted": true,
+  "channelId": "6a7050c899afb44349f18cbd",
+  "text": "Russell and Leclerc share the front row in Baku, with Piastri and Hadjar on row two.\n\nThe provisional Azerbaijan GP starting grid, with penalties applied. Subject to change.\n\nSource: Formula 1.\n\n#AzerbaijanGP #F1",
+  "assets": [
+    {
+      "image": {
+        "url": "https://c9c1ec1e.gpp-social-assets-2026.pages.dev/baku-starting-grid-instagram.png",
+        "metadata": {
+          "altText": "Grand Prix Picks graphic showing Baku's provisional starting grid for 26 September 2026 in lime and charcoal, with an illustration of the old city and Flame Towers. Grid: 1 Russell, 2 Leclerc, 3 Piastri, 4 Hadjar, 5 Norris, 6 Hamilton, 7 Gasly, 8 Verstappen, 9 Colapinto, 10 Bearman, 11 Lawson, 12 Albon, 13 Ocon, 14 Sainz, 15 Lindblad, 16 Antonelli, 17 Bortoleto, 18 Hulkenberg, 19 Bottas, 20 Perez, 21 Alonso, 22 Stroll. Source: Formula 1. Subject to change."
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "instagram": {
+      "type": "post",
+      "shouldShareToFeed": true
+    }
+  }
+}

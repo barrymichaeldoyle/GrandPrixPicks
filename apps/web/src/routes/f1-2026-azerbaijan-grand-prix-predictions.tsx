@@ -5,8 +5,10 @@ import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { BakuCrashMap } from '@/components/race-writeups/BakuCrashMap';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
-import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
+import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
+import { RaceWriteupNextRound } from '@/components/race-writeups/RaceWriteupNextRound';
+import { RaceWriteupOfficialResult } from '@/components/race-writeups/RaceWriteupOfficialResult';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
 import {
   RACE_WRITEUP_CIRCUIT_ANCHOR,
@@ -14,6 +16,7 @@ import {
   RaceWriteupSection,
 } from '@/components/race-writeups/RaceWriteupSection';
 import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
+import { SessionConsensusSections } from '@/components/SessionConsensus';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
@@ -67,6 +70,18 @@ const MADRID_RESULT_SOURCE =
   'https://www.formula1.com/en/latest/article/antonelli-clinches-victory-over-verstappen-and-norris-in-spanish-gp.644ZZfPzRPEaUh2JBHcB9';
 
 /**
+ * The official classification, for the winning margin: the race report says
+ * "one tenth", the classification says 0.196s, and a number on this page
+ * follows the classification.
+ */
+const OFFICIAL_RESULT_SOURCE =
+  'https://www.formula1.com/en/results/2026/races/1295/azerbaijan/race-result';
+const RACE_REPORT_SOURCE =
+  'https://www.formula1.com/en/latest/article/russell-narrowly-holds-off-verstappen-to-take-victory-over-the-line-in-chaotic-azerbaijan-gp.5J4lgNh82JDL2GM302irF0';
+const COLAPINTO_PENALTY_SOURCE =
+  'https://www.planetf1.com/news/fia-franco-colapinto-penalty-azerbaijan-grand-prix';
+
+/**
  * The race-weekend snippet (see `raceWeekendSnippet`), a trial on this page
  * before it goes into the shared builder: Monza's preview title took 483
  * race-weekend impressions and no clicks.
@@ -105,36 +120,71 @@ export const Route = createFileRoute(
   loader: async ({ context }) => {
     await setRaceDataCacheHeaders();
     const weatherNow = Date.now();
-    const [race, championship, weather, news, season, practice] =
-      await Promise.all([
-        context.queryClient.ensureQueryData(
-          routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.f1Standings.getF1Championship, {}),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.weather.getForWriteup, {
-            raceSlug: RACE_SLUG,
-            now: weatherNow,
-          }),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.raceNews.list, { raceSlug: RACE_SLUG }),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.races.listCurrentSeason, {}),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.practiceResults.getPracticeResultsForRaceSlug, {
-            raceSlug: RACE_SLUG,
-          }),
-        ),
-      ]);
+    const [
+      race,
+      championship,
+      weather,
+      news,
+      season,
+      practice,
+      consensus,
+      top5,
+      nextRace,
+    ] = await Promise.all([
+      context.queryClient.ensureQueryData(
+        routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
+      ),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.f1Standings.getF1Championship, {}),
+      ),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.weather.getForWriteup, {
+          raceSlug: RACE_SLUG,
+          now: weatherNow,
+        }),
+      ),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.raceNews.list, { raceSlug: RACE_SLUG }),
+      ),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.races.listCurrentSeason, {}),
+      ),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.practiceResults.getPracticeResultsForRaceSlug, {
+          raceSlug: RACE_SLUG,
+        }),
+      ),
+      // Both are keyed on the slug and empty until a session locks or
+      // results publish, so they have to be in the SSR HTML.
+      context.queryClient.ensureQueryData(
+        routeQuery(api.consensus.getWeekendConsensusForRaceSlug, {
+          raceSlug: RACE_SLUG,
+        }),
+      ),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.results.getEnrichedTop5BySessionForRaceSlug, {
+          raceSlug: RACE_SLUG,
+        }),
+      ),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.races.getNextRace, {}),
+      ),
+    ]);
     if (!race) {
       throw notFound();
     }
-    return { race, championship, weather, weatherNow, news, season, practice };
+    return {
+      race,
+      championship,
+      weather,
+      weatherNow,
+      news,
+      season,
+      practice,
+      consensus,
+      top5,
+      nextRace,
+    };
   },
   head: ({ loaderData }) => {
     const qualifyingPublished = loaderData?.news?.items.some(
@@ -187,10 +237,36 @@ export const Route = createFileRoute(
 });
 
 function AzerbaijanGrandPrixPredictionsPage() {
-  const { race, championship, weather, weatherNow, news, season, practice } =
-    Route.useLoaderData();
+  const {
+    race,
+    championship,
+    weather,
+    weatherNow,
+    news,
+    season,
+    practice,
+    consensus,
+    top5,
+    nextRace,
+  } = Route.useLoaderData();
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
+  const archiveSessions = (['quali', 'race'] as const).map((session) => ({
+    session,
+    classification: top5[session] ?? [],
+    consensus: consensus[session] ?? null,
+  }));
+  const consensusSessions = archiveSessions.flatMap((entry) =>
+    entry.consensus
+      ? [
+          {
+            session: entry.session,
+            consensus: entry.consensus,
+            classification: entry.classification,
+          },
+        ]
+      : [],
+  );
   const qualifyingPublished = news.items.some(
     (item) => item.key === 'baku-2026-qualifying',
   );
@@ -240,6 +316,19 @@ function AzerbaijanGrandPrixPredictionsPage() {
         }}
       />
 
+      {/* The result leads a finished page: a reader arriving after the race
+          came for the classification, then how the field picked it. */}
+      {phase === 'finished' ? (
+        <>
+          <RaceWriteupOfficialResult
+            sessions={archiveSessions}
+            venueName="Baku"
+          />
+          <SessionConsensusSections sessions={consensusSessions} />
+          <RaceReport />
+        </>
+      ) : null}
+
       {/* This weekend's news and practice lead the page while it is live: they
           are what changes between visits. Both render nothing until they have
           an item or a session. */}
@@ -270,13 +359,55 @@ function AzerbaijanGrandPrixPredictionsPage() {
 
       <RaceFaqSection faqs={FAQS} />
 
-      <RaceWriteupClosingPanel
+      {phase === 'finished' ? (
+        <RaceWriteupNextRound nextRace={nextRace} />
+      ) : null}
+
+      <RaceWriteupFinish
+        isLive={isLive}
         phase={phase}
         raceId={race._id}
+        round={race.round}
+        season={race.season}
         raceSlug={RACE_SLUG}
         venueName="Baku"
+        nextRace={phase === 'finished' ? undefined : nextRace}
       />
     </RaceWriteupPage>
+  );
+}
+
+/**
+ * What decided the race, on the finished page only. Every figure is from the
+ * official classification; the incident is from the race report and the
+ * stewards' decision.
+ */
+function RaceReport() {
+  return (
+    <RaceWriteupSection id="race-report" heading="What decided the race">
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Russell converted pole into the win and beat Verstappen by{' '}
+        <Figure>0.196 seconds</Figure>, with Hadjar a further 10.5 seconds back
+        in third for a Red Bull double podium.{' '}
+        <ExternalSource href={OFFICIAL_RESULT_SOURCE}>
+          The official race result
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Albon&rsquo;s error brought out the Safety Car. On the restart Colapinto
+        locked up and took out his Alpine team-mate Gasly and Norris, and the
+        stewards gave him a five-place grid penalty for the next race.{' '}
+        <ExternalSource href={RACE_REPORT_SOURCE}>
+          Read the F1 race report
+        </ExternalSource>{' '}
+        and{' '}
+        <ExternalSource href={COLAPINTO_PENALTY_SOURCE}>
+          the penalty decision
+        </ExternalSource>
+        .
+      </p>
+    </RaceWriteupSection>
   );
 }
 

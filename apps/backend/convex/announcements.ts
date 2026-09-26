@@ -1,5 +1,5 @@
 import { sanitizeInternalPath } from '@grandprixpicks/shared/internalPath';
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 
 import { mutation, query } from './_generated/server';
 import { getViewer, requireAdmin } from './lib/auth';
@@ -64,10 +64,10 @@ export const adminSetAnnouncement = mutation({
 
     const message = args.message.trim();
     if (message.length === 0) {
-      throw new Error('Announcement message cannot be empty');
+      throw new ConvexError('Announcement message cannot be empty');
     }
     if (message.length > MAX_ANNOUNCEMENT_LENGTH) {
-      throw new Error(
+      throw new ConvexError(
         `Announcement message must be at most ${MAX_ANNOUNCEMENT_LENGTH} characters`,
       );
     }
@@ -77,20 +77,20 @@ export const adminSetAnnouncement = mutation({
     const linkPath =
       rawLinkPath === undefined ? undefined : sanitizeInternalPath(rawLinkPath);
     if (rawLinkPath !== undefined && linkPath === undefined) {
-      throw new Error('Announcement link must be an internal path');
+      throw new ConvexError('Announcement link must be an internal path');
     }
     const linkLabel = args.linkLabel?.trim() || undefined;
 
     const now = Date.now();
     if (args.expiresAt !== undefined && args.expiresAt <= now) {
-      throw new Error('Auto-hide time must be in the future');
+      throw new ConvexError('Auto-hide time must be in the future');
     }
     if (
       args.startsAt !== undefined &&
       args.expiresAt !== undefined &&
       args.expiresAt <= args.startsAt
     ) {
-      throw new Error('Auto-hide time must be after the show-from time');
+      throw new ConvexError('Auto-hide time must be after the show-from time');
     }
 
     const existing = await ctx.db.query('announcements').first();

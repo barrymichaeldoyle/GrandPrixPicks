@@ -1,5 +1,6 @@
 import { api } from '@convex-generated/api';
 import { useMutation } from 'convex/react';
+import { ConvexError } from 'convex/values';
 import { useQuery } from '@/integrations/convex/query';
 import { useState } from 'react';
 
@@ -85,9 +86,10 @@ export function AdminBannerTab() {
       setExpiresAtInput(null);
     } catch (err) {
       console.error('Failed to publish announcement:', err);
+      // Validation failures arrive as a ConvexError whose data is the reason.
       setError(
-        err instanceof Error && err.message.includes('Auto-hide')
-          ? 'Check the schedule: the auto-hide time must be in the future and after the show-from time.'
+        err instanceof ConvexError && typeof err.data === 'string'
+          ? `${err.data}.`
           : 'Failed to publish. Try again.',
       );
     } finally {

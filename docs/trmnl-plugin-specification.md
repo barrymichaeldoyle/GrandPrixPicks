@@ -225,10 +225,12 @@ height: TRMNL's overflow script hides news items that do not fit, and a
 separate spacer read to it as content and hid most of them. When headlines fit,
 the list is centred vertically in the column. On race morning
 the grid fills the right column while the QR code stays in the header.
-When there is no news, result or grid yet, the right column shows the top ten
-of the Drivers' Championship (`championship` in `shared.liquid`), five in
-portrait where it stacks under the timeline. Only before the season's first
-race does it fall back to a short empty message.
+When there is no news, result or grid yet, the right column shows the whole
+Drivers' Championship by three-letter code (`championship` in `shared.liquid`):
+two columns, or four in portrait where it stacks under the timeline. That is
+every driver who has started a race, 23 in 2026 after the mid-season line-up
+change, so the payload carries up to 26. Only before the season's first race
+does it fall back to a short empty message.
 
 The divider between the lead and the timeline is a checkered band with a whole
 number of squares (47, or 59 in portrait), scaled to the column so it never
@@ -237,8 +239,21 @@ forecast reads temperature, condition and wind with dots between them, each
 icon beside its own value. In the timeline, temperature, icon, rain chance and
 rainfall are separate table columns, so they line up whatever their widths.
 
+**Every layout** shares the lead forecast (`lead_weather`): temperature · icon
+and condition · rain chance, when worth mentioning · wind, and in the quarter,
+which has no timeline, the session's rainfall. It is two groups, so a narrow
+slot breaks between them instead of leaving a dot at the end of a line. The
+timeline's weather columns are shared too, and only upcoming sessions carry
+them: once a session has run, its row shows the top three (or "Awaiting
+result") across those columns, since a past forecast says nothing and carrying
+both crushed the narrow layouts. Every row keeps the weather icon's height, so
+the timeline's rhythm does not change as sessions finish. Race dates keep their en dash and
+never break inside the range; where the header is two lines, it splits as the
+circuit, then "Round 16 · 2 – 4 Oct", so no line starts or ends on a dot.
+
 **Half horizontal:** the compact race header sits above the lead and its
-weather, with the QR code beside the lead. Beside them, it shows the latest
+weather, with the QR code beside the lead, the whole block centred vertically
+in the slot. Beside them, it shows the latest
 result or, before results, the short weekend schedule followed by one headline
 on the OG or four on the X. In portrait the schedule uses the available height
 without news: the OG shows the last four sessions, including qualifying and
@@ -246,14 +261,19 @@ the race, while the X shows five. Result names use a smaller size on the X so
 all five remain above the title bar.
 
 **Half vertical:** the compact race header and QR code sit above the lead and
-its weather, and stack in portrait so the race name stays clear. Before
-results, the landscape OG shows the last three sessions and one headline;
-portrait OG and X show the last four sessions and up to three headlines.
+its weather; on the portrait OG the QR code drops below the header, which
+wrapped the race name to three lines beside it. Before results, the landscape
+OG shows the last three sessions and one headline, or all five with no
+headline; the X shows all five and up to three headlines; the portrait OG
+shows the last four, without the rainfall column, which crushed the others.
 Keeping the tail of the schedule preserves the qualifying and race times in
-the narrow view.
+the narrow view. With no headline, or with a result in focus, the lead and
+what follows it are centred together as one block. Headlines stay at the base
+size on the X: the slot never shows more than three.
 
 **Quadrant:** the compact race header and QR code sit above the lead and its
-weather, and stack in portrait. One headline fits on the OG and X in
+weather, and stack in portrait. Its forecast adds the session's rainfall
+unless it is "Dry", which only repeated the condition. One headline fits on the OG and X in
 landscape and the OG in portrait; two fit on the X in portrait. The OG
 portrait headline may take three lines. The lead and news share the available
 space evenly. A divider separates two headlines. Like every layout, its title bar reads

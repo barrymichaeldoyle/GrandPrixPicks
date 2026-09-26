@@ -399,8 +399,11 @@ function formatNews(news: NewsItem[]): TrmnlPayload['news'] {
     .map((item) => ({ headline: item.headline }));
 }
 
-/** Full-screen standings carry the complete 22-driver, 11-team grid. */
-const DRIVER_STANDINGS_ROWS = 22;
+/**
+ * Full-screen standings carry every driver and team. More drivers than seats
+ * once a line-up changes mid-season: 23 in 2026.
+ */
+const DRIVER_STANDINGS_ROWS = 26;
 const CONSTRUCTOR_STANDINGS_ROWS = 11;
 
 /**

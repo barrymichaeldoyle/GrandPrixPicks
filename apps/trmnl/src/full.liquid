@@ -17,7 +17,7 @@
     <div class="flex flex--col flex--stretch-x gap--auto">
       <div class="flex flex--col flex--center gap--xsmall">
         {% render "lead", lead: lead, size: "value--large lg:value--xxlarge", label_size: "lg:text--mega" %}
-        {% render "lead_weather", weather: lead.weather, text_size: "lg:label--xlarge", temp_first: true %}
+        {% render "lead_weather", weather: lead.weather, text_size: "lg:label--xlarge" %}
       </div>
       {% comment %}
         A whole number of squares scaled to the column, so the band never ends
@@ -50,9 +50,9 @@
         {% if focus == "result" %}
           {% render "result", result: result, limit: 10, split: true %}
         {% elsif focus == "standings" %}
-          {% comment %}Stacked under the timeline in portrait, where ten rows do not fit.{% endcomment %}
-          <div class="portrait:hidden">{% render "championship", rows: standings.drivers, limit: 10, size: "table--xsmall lg:table--large" %}</div>
-          <div class="hidden portrait:block">{% render "championship", rows: standings.drivers, limit: 5, size: "table--xsmall lg:table--base" %}</div>
+          {% comment %}Stacked under the timeline in portrait, where the full width takes four columns.{% endcomment %}
+          <div class="portrait:hidden">{% render "championship", rows: standings.drivers, cols: 2, size: "table--xsmall lg:table--base" %}</div>
+          <div class="hidden portrait:block">{% render "championship", rows: standings.drivers, cols: 4, size: "table--xsmall lg:table--small" %}</div>
         {% elsif focus == "grid" %}
           {% render "grid", grid: grid %}
         {% elsif focus == "news" %}
@@ -102,12 +102,13 @@
     <div class="flex flex--col flex--stretch-x flex--center-y gap--xsmall col--span-2">
       <span class="title title--small lg:title--base">Drivers</span>
       <div class="grid grid--cols-2 gap--medium">
-        {% render "standings_table", label: "", rows: standings.drivers, limit: 11, offset: 0, size: "table--xsmall lg:table--small" %}
-        {% render "standings_table", label: "", rows: standings.drivers, limit: 11, offset: 11, size: "table--xsmall lg:table--small" %}
+        {% assign drivers_half = standings.drivers.size | plus: 1 | divided_by: 2 %}
+        {% render "standings_table", label: "", rows: standings.drivers, limit: drivers_half, offset: 0, size: "table--xsmall lg:table--base lg:portrait:table--small" %}
+        {% render "standings_table", label: "", rows: standings.drivers, limit: drivers_half, offset: drivers_half, size: "table--xsmall lg:table--base lg:portrait:table--small" %}
       </div>
     </div>
     <div class="flex flex--col flex--stretch-x flex--center-y h--full">
-      {% render "standings_table", label: "Constructors", rows: standings.constructors, limit: 11, offset: 0, size: "table--xsmall lg:table--small" %}
+      {% render "standings_table", label: "Constructors", rows: standings.constructors, limit: 11, offset: 0, size: "table--xsmall lg:table--base lg:portrait:table--small" %}
     </div>
   </div>
 </div>

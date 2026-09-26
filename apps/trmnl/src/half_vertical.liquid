@@ -1,23 +1,28 @@
 {% if has_race %}
 {% assign half_vertical_news_size = "title--small lg:title--base" %}
-{% if news.size > 3 %}{% assign half_vertical_news_size = "title--small lg:title--small" %}{% endif %}
 {% assign half_vertical_body_center = "" %}
-{% if news.size == 0 %}{% assign half_vertical_body_center = "flex--center-y" %}{% endif %}
+{% if news.size == 0 or focus == "result" %}{% assign half_vertical_body_center = "flex--center-y" %}{% endif %}
 <div class="layout layout--col layout--top layout--stretch-x gap--medium">
   <div class="flex flex--row flex--center-y gap--medium w--full portrait:hidden">
-    <div class="grow">{% render "race_header", race: race, name_size: "lg:title--large", detail_size: "lg:label--large", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true %}</div>
+    <div class="grow">{% render "race_header", race: race, name_size: "title--small lg:title--large lg:portrait:title--base", detail_size: "lg:label--large lg:portrait:label--base", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true, split_dates: true %}</div>
     <div class="flex-none">{% render "qr", url: race.url %}</div>
   </div>
   <div class="hidden portrait:block w--full">
-    <div class="flex flex--row flex--center-y gap--small w--full">
-      <div class="grow">{% render "race_header", race: race, name_size: "lg:title--large", detail_size: "lg:label--large", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true %}</div>
+    {% comment %}The portrait OG is too narrow for the name beside the QR code: it wrapped to three lines.{% endcomment %}
+    <div class="flex flex--col flex--left gap--small lg:flex--row lg:flex--center-y w--full">
+      <div class="grow">{% render "race_header", race: race, name_size: "title--small lg:title--large lg:portrait:title--base", detail_size: "lg:label--large lg:portrait:label--base", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true, split_dates: true %}</div>
       <div class="flex-none">{% render "qr", url: race.url %}</div>
     </div>
   </div>
+  {% comment %}
+    The lead and what follows it are one block: with no headlines it is
+    centred as a whole, so the lead and timeline do not float apart.
+  {% endcomment %}
+  <div class="grow flex flex--col flex--stretch-x gap--medium {{ half_vertical_body_center }}">
   <div class="flex flex--row flex--center-y gap--medium">
     <div class="grow flex flex--col flex--center gap--xsmall">
       {% render "lead", lead: lead, size: "value--large lg:value--large" %}
-      {% render "lead_weather", weather: lead.weather %}
+      {% render "lead_weather", weather: lead.weather, stack: "portrait:", unstack: "lg:portrait:" %}
     </div>
   </div>
   {% if focus == "result" %}
@@ -25,35 +30,40 @@
       Two columns of five in landscape; one column of ten in portrait, where
       the half is tall and narrow and two columns wrapped every name.
     {% endcomment %}
-    <div class="grow flex flex--col flex--stretch-x flex--center-y portrait:hidden">{% render "result", result: result, limit: 10, split: true %}</div>
-    <div class="grow hidden portrait:block">
-      <div class="flex flex--col flex--stretch-x flex--center-y h--full">{% render "result", result: result, limit: 10, split: false %}</div>
-    </div>
+    <div class="flex flex--col flex--stretch-x portrait:hidden">{% render "result", result: result, limit: 10, split: true %}</div>
+    <div class="hidden portrait:block">{% render "result", result: result, limit: 10, split: false %}</div>
   {% else %}
     {% comment %}
-      The landscape OG has room for three schedule rows and one headline.
+      The landscape OG has room for three schedule rows and one headline, or
+      all five rows when there is no headline.
       More rows start below the title bar before overflow management can
       hide them. The taller portrait slot and the X can carry more.
     {% endcomment %}
-    <div class="grow portrait:hidden lg:hidden">
+    <div class="{% if news.size > 0 %}grow {% endif %}portrait:hidden lg:hidden">
       <div class="flex flex--col flex--stretch-x gap--auto h--full {{ half_vertical_body_center }}">
-        {% render "schedule", schedule: schedule, limit: 3, tail: true, size: "table--small", name: "short" %}
+        {% if news.size > 0 %}
+          {% render "schedule", schedule: schedule, limit: 3, tail: true, size: "table--small", name: "short" %}
+        {% else %}
+          {% render "schedule", schedule: schedule, limit: 5, size: "table--small", name: "short" %}
+        {% endif %}
         {% if news.size > 0 %}{% render "news", news: news, limit: 1, headline_size: half_vertical_news_size %}{% endif %}
       </div>
     </div>
-    <div class="grow hidden portrait:block lg:portrait:hidden">
+    <div class="{% if news.size > 0 %}grow {% endif %}hidden portrait:block lg:portrait:hidden">
       <div class="flex flex--col flex--stretch-x gap--auto h--full {{ half_vertical_body_center }}">
-        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--small", name: "short" %}
+        {% comment %}Four rows even without news: the fifth, with its Next badge, crushed the columns together.{% endcomment %}
+        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--small", name: "short", no_rainfall: true %}
         {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
       </div>
     </div>
-    <div class="grow hidden lg:block">
+    <div class="{% if news.size > 0 %}grow {% endif %}hidden lg:block">
       <div class="flex flex--col flex--stretch-x gap--auto h--full {{ half_vertical_body_center }}">
-        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--base", name: "short" %}
+        {% render "schedule", schedule: schedule, limit: 5, tail: true, size: "table--base", name: "short" %}
         {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
       </div>
     </div>
   {% endif %}
+  </div>
 </div>
 {% elsif standings %}
 <div class="layout layout--col layout--top layout--stretch-x gap--medium">

@@ -54,7 +54,12 @@ describe('TRMNL layouts', () => {
   it('places one QR in the full-screen race header beside two lines of text', () => {
     const friday = TRMNL_SCENARIOS.find((s) => s.id === 'friday')!;
     const full = renderTrmnlMarkup('full', friday.payload);
-    expect(full).toContain('Autodromo Nazionale Monza · Round 16');
+    // One line in landscape; in portrait the separator goes and the round
+    // and dates drop below the circuit.
+    expect(full).toContain(
+      'Autodromo Nazionale Monza<span class="portrait:hidden">&nbsp;·&nbsp;</span>',
+    );
+    expect(full).toContain('>Round 16 · ');
     expect(full).toContain(
       'title--large portrait:title--small lg:text--xxxlarge',
     );
@@ -125,7 +130,7 @@ describe('TRMNL layouts', () => {
     expect(empty.focus).toBe('standings');
     const full = renderTrmnlMarkup('full', empty);
     expect(full).toContain("Drivers' Championship");
-    expect(full).toContain(empty.standings!.drivers[9]!.name);
+    expect(full).toContain(`>${empty.standings!.drivers.at(-1)!.code}<`);
     expect(full).not.toContain('No news yet.');
     // Only the full screen has a news column to fill.
     expect(renderTrmnlMarkup('half_vertical', empty)).not.toContain(

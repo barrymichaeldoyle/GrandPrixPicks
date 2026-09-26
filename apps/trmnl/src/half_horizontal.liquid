@@ -6,11 +6,12 @@
   it below the compact header and lead. The QR code sits beside the lead so
   the forecast stays above the title bar on the short OG half.
 {% endcomment %}
-<div class="layout layout--row portrait:layout--col layout--top layout--stretch-x gap--large">
+<div class="layout layout--row portrait:layout--col layout--center-y layout--stretch-x gap--large">
   <div class="flex flex--col flex--stretch-x gap--small flex-none portrait:w--full">
     {% render "race_header", race: race, name_size: "title--small lg:title--base", detail_size: "lg:label--base", flag_size: "h--[24px] w--max-[48px] lg:h--[32px] lg:w--max-[64px]", inline_flag: true, split_dates: true %}
-    <div class="flex flex--row flex--center-y gap--small w--full">
-      <div class="grow flex flex--col gap--xsmall">
+    {% comment %}`gap--medium`: a winner's name ran into the QR code.{% endcomment %}
+    <div class="flex flex--row flex--center-y gap--medium w--full">
+      <div class="grow flex flex--col flex--center gap--xsmall">
         {% render "lead", lead: lead, size: "value--medium portrait:value--large lg:value--xlarge" %}
         {% render "lead_weather", weather: lead.weather %}
       </div>

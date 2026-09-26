@@ -5,6 +5,7 @@ import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query
 import { ErrorFallback } from './components/error/ErrorFallback';
 import * as TanstackQuery from './integrations/tanstack-query/root-provider';
 import { deferUntilAfterLoad } from './lib/deferUntilAfterLoad';
+import { classifyNetworkFailureEvent } from './lib/networkFailureEvent';
 import {
   isReloadingForStaleChunk,
   isStaleChunkError,
@@ -101,18 +102,18 @@ export function getRouter() {
         if (isStaleChunkError(message)) {
           return null;
         }
-        // The browser's own "the network request never completed" error
-        // (offline, DNS hiccup, a content blocker eating the request) —
-        // nothing server-side to fix, and `ErrorFallback`'s "Try again"
-        // already covers the recovery. Scoped to the server-fn RPC client so
-        // a genuine app-code fetch failure elsewhere still reports.
-        if (
-          message === 'Failed to fetch' &&
-          event.exception?.values?.[0]?.stacktrace?.frames?.some((frame) =>
-            frame.filename?.includes('start-client-core'),
-          )
-        ) {
+        // The browser's own "the network request never completed" error.
+        // See `networkFailureEvent.ts` for why this reads the exception and
+        // capture context rather than frame filenames.
+        const networkFailure = classifyNetworkFailureEvent(
+          event,
+          navigator.onLine,
+        );
+        if (networkFailure === 'drop') {
           return null;
+        }
+        if (networkFailure === 'downgrade') {
+          event.level = 'warning';
         }
         return event;
       },

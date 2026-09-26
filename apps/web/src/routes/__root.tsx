@@ -36,10 +36,10 @@ import {
   useAuthCurtain,
 } from '@/integrations/clerk/auth-curtain';
 import {
-  fetchInitialAuth,
   InitialAuthProvider,
   type InitialAuth,
 } from '@/integrations/clerk/initial-auth';
+import { loadInitialAuth } from '@/integrations/clerk/load-initial-auth';
 import { isClerkFreeRoute } from '@/integrations/clerk/clerk-free-routes';
 import { preloadClerkRuntime } from '@/integrations/clerk/preload';
 import {
@@ -277,11 +277,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   // The current weekend goes in the same payload because the footer preview
   // has to be in the SSR HTML: a client-only Convex read would leave crawlers
   // (and `check:orphans`) looking at a page whose loudest chrome link never
-  // made it into the document. Failure is swallowed so a Convex blip cannot
-  // 500 every route on the site.
+  // made it into the document. Both halves swallow failure, so a Convex blip
+  // or a dropped auth request cannot take down every route on the site.
   loader: async ({ context }): Promise<RootLoaderData> => {
     const [initialAuth, weekendRace] = await Promise.all([
-      fetchInitialAuth(),
+      loadInitialAuth(),
       loadWeekendRace(context.queryClient),
     ]);
     return { initialAuth, weekendRace };

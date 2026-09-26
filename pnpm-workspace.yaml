@@ -5,7 +5,7 @@ packages:
 # Router declarations import React types. Resolve them from the consuming app
 # instead of hoisted React 19.2 types while web uses React 19.3.
 packageExtensions:
-  '@tanstack/react-router@1.170.36':
+  '@tanstack/react-router@1.170.39':
     peerDependencies:
       '@types/react': ^19.0.0
     peerDependenciesMeta:
@@ -35,7 +35,7 @@ auditConfig:
     - GHSA-528h-pc64-c93x
 
 catalog:
-  convex: 1.45.0
+  convex: 1.46.0
   typescript: 7.0.2
 
 minimumReleaseAgeExclude:

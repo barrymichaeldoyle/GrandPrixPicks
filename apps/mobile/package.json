@@ -94,7 +94,7 @@
     "@expo/plist": "0.8.1",
     "@types/react": "19.2.18",
     "typescript": "catalog:",
-    "vitest": "5.0.1"
+    "vitest": "5.0.2"
   },
   "version": "1.0.0"
 }

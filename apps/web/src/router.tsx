@@ -71,7 +71,6 @@ export function getRouter() {
       tracesSampleRate: Number(
         import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE ?? '0.2',
       ),
-      sendDefaultPii: true,
       // Google's ad and consent scripts throw from their own code (an `int64`
       // parse inside AdSense's RUM beacon, GRAND-PRIX-PICKS-2M). Nothing we
       // ship is in the stack, so nothing here can fix it.

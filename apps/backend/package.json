@@ -23,25 +23,25 @@
     "test:ci": "vitest run --reporter=dot"
   },
   "dependencies": {
-    "@convex-dev/rate-limiter": "^0.3.2",
+    "@convex-dev/rate-limiter": "^0.4.0",
     "@convex-dev/resend": "0.2.8",
     "@grandprixpicks/shared": "workspace:*",
     "convex": "catalog:",
     "dotenv-cli": "11.0.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "react-email": "6.9.5",
+    "react-email": "6.11.0",
     "saxes": "6.0.0",
     "web-push": "3.6.7"
   },
   "devDependencies": {
     "@edge-runtime/vm": "5.0.0",
-    "@react-email/ui": "6.9.5",
+    "@react-email/ui": "6.11.0",
     "@types/react": "19.2.18",
     "@types/web-push": "3.6.4",
-    "convex-test": "0.0.58",
+    "convex-test": "0.0.60",
     "typescript": "catalog:",
-    "vite": "8.3.0",
-    "vitest": "5.0.1"
+    "vite": "8.3.1",
+    "vitest": "5.0.2"
   }
 }

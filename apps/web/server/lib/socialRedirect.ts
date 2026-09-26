@@ -70,12 +70,15 @@ export function withUtmContent(campaign: string, requestUrl: string) {
  * would be cached by browsers so hard that changing a campaign later could not
  * reach people who had already followed the link.
  */
-export function socialRedirect(location: string) {
+export function socialRedirect(
+  location: string,
+  { maxAge = 3600 }: { maxAge?: number } = {},
+) {
   return new Response(null, {
     status: 302,
     headers: {
       location,
-      'cache-control': 'public, max-age=3600',
+      'cache-control': `public, max-age=${maxAge}`,
     },
   });
 }

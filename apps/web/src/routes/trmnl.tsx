@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 import { PageHeader } from '@/components/PageHeader';
 import { TabSwitch } from '@/components/TabSwitch';
@@ -322,6 +322,10 @@ function TrmnlPage() {
   );
 }
 
+function subscribeNever() {
+  return () => {};
+}
+
 /**
  * The payload behind the screen, as JSON. Client-only: the sample payloads
  * are built where the page runs, and a server and a browser can format the
@@ -333,8 +337,11 @@ function PayloadDetails({
 }: {
   payload: TrmnlPageScenario['payload'];
 }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useSyncExternalStore(
+    subscribeNever,
+    () => true,
+    () => false,
+  );
   return (
     <details className="mt-8 border-t border-border pt-4">
       <summary className="cursor-pointer text-sm font-semibold text-text">

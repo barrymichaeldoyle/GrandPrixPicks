@@ -557,7 +557,11 @@ Barry's device runs it as a private plugin, "Grand Prix Picks"
 
 1. Plugins → Private Plugin → **Add new**. Name "Grand Prix Picks", strategy
    Polling, verb GET, no headers, polling URL:
-   `https://grandprixpicks.com/api/trmnl/weekend?tz={{ trmnl.user.time_zone_iana }}&locale={{ trmnl.user.locale }}`.
+   `https://grandprixpicks.com/api/trmnl/weekend?tz={{ trmnl.user.time_zone_iana }}&locale={{ trmnl.user.locale }}&units={{ units }}`.
+   A form field goes into the URL as plain `{{ keyname }}`: an earlier
+   `##{{ units }}` would have sent `##Metric`, which the endpoint rejects
+   with a 400, freezing every device on its last screen. **Parse** shows the
+   URL as TRMNL will call it (`units=Metric`).
    Save. Max refresh rate: every 15 minutes (the fastest without TRMNL+).
 2. **Edit Markup**: each tab gets its file from `apps/trmnl/src`: Full,
    Half horizontal, Half vertical, Quadrant, and Shared (`shared.liquid`,
@@ -581,7 +585,11 @@ Things that cost time the first time:
 
 To change the plugin: edit `apps/trmnl/src`, check it on `/trmnl`, commit,
 then copy the changed files into TRMNL's editor. Nothing syncs the repo to
-TRMNL. `trmnlp push` can (Ruby 4 or Docker, and a TRMNL API key).
+TRMNL. `trmnlp push` can (Ruby 4 or Docker, and a TRMNL API key). By hand:
+`pbcopy < file`, click into the tab's code, select all, paste, ⌘S; the
+editor is CodeMirror 6, so a SHA-256 of `.cm-content`'s `cmView.view` document
+against the file confirms the paste. Last synced from the repo on 26 September
+2026, with the `units` form field.
 
 ### Publishing it as a Recipe
 

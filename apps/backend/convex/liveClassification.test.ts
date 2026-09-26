@@ -1,9 +1,9 @@
 /// <reference types="vite/client" />
 
 import { convexTest } from 'convex-test';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { api } from './_generated/api';
+import { api, internal } from './_generated/api';
 import { bestLapOrder } from './liveClassification';
 import schema from './schema';
 
@@ -112,5 +112,80 @@ describe('liveClassification.current', () => {
     });
 
     expect(await t.query(api.liveClassification.current, {})).toBeNull();
+  });
+});
+
+describe('liveClassification.refresh', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  async function seedQualifyingUnderway(t: ReturnType<typeof convexTest>) {
+    const qualiStartAt = Date.now() - 2 * 60_000;
+    await t.run(async (ctx) => {
+      await ctx.db.insert('races', {
+        season: 2026,
+        round: 17,
+        name: 'Azerbaijan Grand Prix',
+        slug: 'azerbaijan-2026',
+        raceStartAt: Date.now() + 24 * HOUR,
+        predictionLockAt: qualiStartAt,
+        qualiStartAt,
+        status: 'upcoming',
+        createdAt: 0,
+        updatedAt: 0,
+      });
+    });
+    return qualiStartAt;
+  }
+
+  function stubOpenF1(qualiStartAt: number, laps: Response) {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: URL | string) => {
+        const url = new URL(String(input));
+        if (url.pathname === '/v1/sessions') {
+          return Response.json([
+            {
+              session_key: 9001,
+              session_name: 'Qualifying',
+              date_start: new Date(qualiStartAt).toISOString(),
+            },
+          ]);
+        }
+        if (url.pathname === '/v1/laps') {
+          return laps;
+        }
+        if (url.pathname === '/v1/drivers') {
+          return Response.json([]);
+        }
+        throw new Error(`Unexpected OpenF1 request: ${url.pathname}`);
+      }),
+    );
+  }
+
+  it('waits quietly while OpenF1 has no laps for the session yet', async () => {
+    const t = convexTest(schema, modules);
+    const qualiStartAt = await seedQualifyingUnderway(t);
+    stubOpenF1(
+      qualiStartAt,
+      Response.json({ detail: 'No results found.' }, { status: 404 }),
+    );
+
+    await expect(
+      t.action(internal.liveClassification.refresh, {}),
+    ).resolves.toBeNull();
+    const rows = await t.run((ctx) =>
+      ctx.db.query('liveClassifications').collect(),
+    );
+    expect(rows).toEqual([]);
+  });
+
+  it('still fails on a real OpenF1 outage', async () => {
+    const t = convexTest(schema, modules);
+    const qualiStartAt = await seedQualifyingUnderway(t);
+    stubOpenF1(qualiStartAt, new Response('upstream down', { status: 500 }));
+
+    await expect(
+      t.action(internal.liveClassification.refresh, {}),
+    ).rejects.toThrow(/HTTP 500/);
   });
 });

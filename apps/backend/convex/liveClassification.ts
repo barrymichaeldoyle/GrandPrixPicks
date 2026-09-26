@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
-import type { QueryCtx } from './_generated/server';
+import type { ActionCtx, QueryCtx } from './_generated/server';
 import {
   internalAction,
   internalMutation,
@@ -12,6 +12,7 @@ import {
 import {
   buildSessionDiscoveryUrl,
   fetchJson,
+  isMissingSessionResults,
   parseOpenF1Sessions,
 } from './openF1Results';
 
@@ -155,59 +156,85 @@ export const refresh = internalAction({
   args: {},
   returns: v.null(),
   handler: async (ctx): Promise<null> => {
-    const task = await ctx.runQuery(internal.liveClassification.activeTask, {
-      now: Date.now(),
-    });
+    const task: ActiveTask | null = await ctx.runQuery(
+      internal.liveClassification.activeTask,
+      { now: Date.now() },
+    );
     if (!task) {
       return null;
     }
-    const sessions = parseOpenF1Sessions(
-      await fetchJson(buildSessionDiscoveryUrl(task.season, task.startAt)),
-    );
-    const session = sessions.find((item) =>
-      names[task.sessionType as TimedSession].includes(item.session_name),
-    );
-    if (!session) {
-      return null;
-    }
-    const lapsUrl = new URL('https://api.openf1.org/v1/laps');
-    lapsUrl.searchParams.set('session_key', String(session.session_key));
-    const driversUrl = new URL('https://api.openf1.org/v1/drivers');
-    driversUrl.searchParams.set('session_key', String(session.session_key));
-    const [order, rawDrivers] = await Promise.all([
-      fetchJson(lapsUrl).then(bestLapOrder),
-      fetchJson(driversUrl),
-    ]);
-    const drivers = new Map<
-      number,
-      { code: string; displayName: string; team: string | null }
-    >();
-    if (Array.isArray(rawDrivers)) {
-      for (const row of rawDrivers) {
-        if (record(row) && typeof row.driver_number === 'number') {
-          drivers.set(row.driver_number, {
-            code:
-              typeof row.name_acronym === 'string' ? row.name_acronym : '???',
-            displayName:
-              typeof row.full_name === 'string' ? row.full_name : 'Unknown',
-            team: typeof row.team_name === 'string' ? row.team_name : null,
-          });
-        }
+    try {
+      return await refreshTask(ctx, task);
+    } catch (error) {
+      // For the first minutes of a session OpenF1 knows it but has no laps
+      // yet, and answers 404 "No results found." rather than []. That is "no
+      // data yet": the next tick picks it up. Anything else is a real failure.
+      if (isMissingSessionResults(error)) {
+        console.info(
+          `Live classification: no OpenF1 data yet for ${task.raceSlug} ${task.sessionType}`,
+        );
+        return null;
       }
+      throw error;
     }
-    await ctx.runMutation(internal.liveClassification.write, {
-      raceId: task.raceId as Id<'races'>,
-      raceName: task.raceName,
-      raceSlug: task.raceSlug,
-      sessionType: task.sessionType,
-      entries: order.flatMap((entry, index) => {
-        const driver = drivers.get(entry.driverNumber);
-        return driver ? [{ ...entry, ...driver, position: index + 1 }] : [];
-      }),
-    });
-    return null;
   },
 });
+
+interface ActiveTask {
+  raceId: Id<'races'>;
+  raceName: string;
+  raceSlug: string;
+  season: number;
+  sessionType: TimedSession;
+  startAt: number;
+}
+
+async function refreshTask(ctx: ActionCtx, task: ActiveTask): Promise<null> {
+  const sessions = parseOpenF1Sessions(
+    await fetchJson(buildSessionDiscoveryUrl(task.season, task.startAt)),
+  );
+  const session = sessions.find((item) =>
+    names[task.sessionType].includes(item.session_name),
+  );
+  if (!session) {
+    return null;
+  }
+  const lapsUrl = new URL('https://api.openf1.org/v1/laps');
+  lapsUrl.searchParams.set('session_key', String(session.session_key));
+  const driversUrl = new URL('https://api.openf1.org/v1/drivers');
+  driversUrl.searchParams.set('session_key', String(session.session_key));
+  const [order, rawDrivers] = await Promise.all([
+    fetchJson(lapsUrl).then(bestLapOrder),
+    fetchJson(driversUrl),
+  ]);
+  const drivers = new Map<
+    number,
+    { code: string; displayName: string; team: string | null }
+  >();
+  if (Array.isArray(rawDrivers)) {
+    for (const row of rawDrivers) {
+      if (record(row) && typeof row.driver_number === 'number') {
+        drivers.set(row.driver_number, {
+          code: typeof row.name_acronym === 'string' ? row.name_acronym : '???',
+          displayName:
+            typeof row.full_name === 'string' ? row.full_name : 'Unknown',
+          team: typeof row.team_name === 'string' ? row.team_name : null,
+        });
+      }
+    }
+  }
+  await ctx.runMutation(internal.liveClassification.write, {
+    raceId: task.raceId,
+    raceName: task.raceName,
+    raceSlug: task.raceSlug,
+    sessionType: task.sessionType,
+    entries: order.flatMap((entry, index) => {
+      const driver = drivers.get(entry.driverNumber);
+      return driver ? [{ ...entry, ...driver, position: index + 1 }] : [];
+    }),
+  });
+  return null;
+}
 
 /**
  * Whether the session's own results are out.

@@ -29,13 +29,14 @@
       <div class="grow">
         <div class="lg:hidden portrait:hidden">{% render "news", news: news, limit: 3, headline_size: "title--small" %}</div>
         <div class="hidden portrait:block lg:portrait:hidden">{% render "news", news: news, limit: 3, headline_size: "title--small" %}</div>
-        <div class="hidden lg:block lg:portrait:hidden">{% render "news", news: news, limit: 6, headline_size: "lg:title--base" %}</div>
+        {% comment %}Four on the X: six two-line headlines pushed the "Next race" strip off the screen.{% endcomment %}
+        <div class="hidden lg:block lg:portrait:hidden">{% render "news", news: news, limit: 4, headline_size: "lg:title--base" %}</div>
         <div class="hidden lg:portrait:block">{% render "news", news: news, limit: 3, headline_size: "lg:title--base" %}</div>
       </div>
       {% endif %}
       {% if next_race %}{% render "next_race", next_race: next_race %}{% endif %}
     </div>
-    <div class="flex flex--col flex--stretch-x">
+    <div class="flex flex--col flex--stretch-x flex--center-y h--full portrait:h--auto">
       <div class="portrait:hidden">{% render "classification", result: result, size: "table--xsmall lg:table--base" %}</div>
       <div class="hidden portrait:block">{% render "classification", result: result, size: "table--xsmall lg:table--small" %}</div>
     </div>

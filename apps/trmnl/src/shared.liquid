@@ -54,10 +54,8 @@
   were too faint to read at arm's length, and size alone already sets them
   below the name.
 
-  Two copies of the flag: the OG's is marked `image-dither`, so TRMNL dithers
-  it to the OG's few inks; the X's is not, so the X prints it as flat grays
-  from its sixteen instead of speckle. `lg:hidden` / `hidden lg:block` pick
-  one per device. The frame is a black
+  Both device variants use `image-dither` for TRMNL's palette conversion.
+  `lg:hidden` / `hidden lg:block` pick one per device. The frame is a black
   box with 2px of padding (`bg--black p--0.5`), so white fields (Japan,
   Monaco, Poland) keep an edge against the screen. It was an inline border,
   but TRMNL's rules forbid inline styles, and the Framework has no all-sides
@@ -100,14 +98,12 @@
 
 {% template race_flag %}
 {% comment %}
-  Dither the OG flag to its limited palette. The X uses undithered grayscale
-  to keep flat stripes and small emblems clear. The missing X dither class
-  is intentional; the platform still renders it in the device's palette.
+  Dither flags on both OG and X to the target device's palette.
 {% endcomment %}
 {% if race.flag_url %}
 <div class="bg--black p--0.5 shrink-0 flex">
   <img class="image image-dither lg:hidden shrink-0 w--auto {{ flag_size }}" src="{{ race.flag_url }}" alt="">
-  <img class="image hidden lg:block shrink-0 w--auto {{ flag_size }}" src="{{ race.flag_url }}" alt="">
+  <img class="image image-dither hidden lg:block shrink-0 w--auto {{ flag_size }}" src="{{ race.flag_url }}" alt="">
 </div>
 {% endif %}
 {% endtemplate %}

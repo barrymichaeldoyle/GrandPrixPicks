@@ -181,13 +181,9 @@ the image, so white fields (Japan, Monaco, Poland) keep an edge against
 the white screen. In 2-bit grayscale most flags stay recognisable, but
 tricolours that differ only by hue (Italy, Mexico, Ireland) come out alike, so
 the flag is never the only thing naming the race.
-The flag is two images of the same file, one per device (`lg:hidden` /
-`hidden lg:block`). The OG's is marked `image-dither`, so TRMNL dithers it to
-the OG's few inks. The X's is a plain `image`: its 16-gray panel draws flat
-grays, and dithering made small emblems and flat stripes look noisy. There is
-no Framework class for "don't dither", so no mark is the whole instruction; an
-invented class for it (`image-gray-x`) was removed on 23 September 2026
-because TRMNL would have ignored it.
+Both device variants of the flag use `image-dither`, so TRMNL converts the
+colored source to the target device's palette. This applies to the main
+race flag and the next-race flag on the finished screen.
 
 The lead is a session name in title weight over the value in large type
 ("Free Practice 3" / "Sat 11:30"). The name was grey label text at first, which
@@ -540,7 +536,7 @@ a layout change, and the plugin's "learn more" link from the TRMNL directory.
   Framework CSS and JS do not, so the OG flags showed in full colour on every
   palette. The preview document runs `DITHER_SOURCE` (Floyd-Steinberg to the
   palette's nearest ink, at the image's size in panel pixels; none on full
-  colour). An image without `image-dither` (the X's flag) is only snapped to
+  colour). An image without `image-dither` is only snapped to
   the nearest gray, with no diffusion, on grayscale palettes.
   The sandboxed frame cannot read pixels from another origin, so
   `TrmnlScreen` inlines the flag as a `data:` URI first and holds the screen
@@ -661,8 +657,8 @@ Also check:
   the checker SVGs use Framework `block h--auto` classes. Three hints may
   still appear: `checker` needs no arguments because it is static; Shared
   defines partials while each view supplies its own `layout` container; and
-  monochrome SVG icons and the X's undithered flag intentionally omit
-  `image-dither`. The OG flag is dithered. These choices are documented beside
+  monochrome SVG icons intentionally omit `image-dither`. Flags on both OG
+  and X are dithered. These choices are documented beside
   the markup for the human reviewer.
 - **The Description field** on the plugin's settings page is the tagline in
   search results, capped at 35 characters. It is set: "F1 weekend: times,

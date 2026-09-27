@@ -195,11 +195,11 @@ describe('TRMNL layouts', () => {
     }
   });
 
-  it('keeps a separate undithered flag for the X', () => {
+  it('dithers flags on both OG and X', () => {
     const friday = TRMNL_SCENARIOS.find((s) => s.id === 'friday')!;
     const html = renderTrmnlMarkup('full', friday.payload);
     expect(html).toContain('image-dither lg:hidden');
-    expect(html).toContain('class="image hidden lg:block');
+    expect(html).toContain('class="image image-dither hidden lg:block');
     expect(html).not.toContain('image-gray-x');
   });
 
@@ -327,7 +327,7 @@ describe('the preview dithers images to the palette', () => {
     expect(white / 256).toBeLessThan(0.6);
   });
 
-  it('quantizes the X flag without diffusion speckle', () => {
+  it('quantizes unmarked images without diffusion speckle', () => {
     const inks = Array.from({ length: 16 }, (_, i) => {
       const gray = i * 17;
       return [gray, gray, gray];

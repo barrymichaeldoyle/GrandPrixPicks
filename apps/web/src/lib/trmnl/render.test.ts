@@ -15,6 +15,51 @@ import {
 } from './scenarios';
 
 describe('TRMNL layouts', () => {
+  it('falls back to news for missing or unknown focus', () => {
+    const friday = TRMNL_SCENARIOS.find((s) => s.id === 'friday')!;
+    const populated = {
+      ...friday.payload,
+      ...sampleNewsVariant(friday.input, 2),
+    };
+    for (const focus of [undefined, null, '', 'unknown']) {
+      const payload = { ...populated, focus } as unknown as typeof populated;
+      expect(renderTrmnlMarkup('full', payload)).toContain(
+        populated.news[0]!.headline,
+      );
+    }
+  });
+
+  it('omits empty standings leader and constructor labels', () => {
+    const offSeason = TRMNL_SCENARIOS.find((s) => s.id === 'off-season')!;
+    const payload = {
+      ...offSeason.payload,
+      standings: {
+        ...offSeason.payload.standings!,
+        drivers: [],
+        constructors: [],
+      },
+    };
+    for (const layout of ['half_horizontal', 'quadrant'] as const) {
+      const html = renderTrmnlMarkup(layout, payload);
+      expect(html).not.toContain('Constructors:');
+      expect(html).not.toContain(payload.standings.leader_label);
+    }
+  });
+
+  it('renders every layout with missing schedule and news', () => {
+    const friday = TRMNL_SCENARIOS.find((s) => s.id === 'friday')!;
+    const payload = {
+      ...friday.payload,
+      focus: null,
+      schedule: null,
+      news: null,
+    } as unknown as typeof friday.payload;
+    for (const layout of TRMNL_LAYOUTS) {
+      expect(() => renderTrmnlMarkup(layout.id, payload)).not.toThrow();
+    }
+    expect(renderTrmnlMarkup('full', payload)).toContain('No news yet.');
+  });
+
   for (const scenario of TRMNL_SCENARIOS) {
     for (const layout of TRMNL_LAYOUTS) {
       it(`renders ${scenario.id} at ${layout.id}`, () => {

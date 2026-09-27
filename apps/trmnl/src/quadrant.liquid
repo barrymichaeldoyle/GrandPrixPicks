@@ -39,7 +39,9 @@
   <div class="grow flex flex--row portrait:flex--col flex--center-y gap--medium w--full">
     <div class="grow flex flex--col flex--center gap--xsmall">
       {% render "leader", standings: standings, value_size: "value--small lg:value--medium" %}
-      <span class="label label--small lg:label--base">Constructors: {{ standings.constructors.first.name }}</span>
+      {% if standings.constructors.first.name != blank %}
+      <span class="label label--small lg:label--base w--full" data-clamp="1">Constructors: {{ standings.constructors.first.name }}</span>
+      {% endif %}
     </div>
   </div>
 </div>

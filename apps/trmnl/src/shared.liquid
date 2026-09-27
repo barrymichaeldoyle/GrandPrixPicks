@@ -1,4 +1,15 @@
 {% comment %}
+  The polling endpoint supplies arrays and a valid focus. Keep older or
+  incomplete payloads usable as well; unknown focus falls back to news.
+{% endcomment %}
+{% unless schedule %}{% assign schedule = "" | split: "," %}{% endunless %}
+{% unless news %}{% assign news = "" | split: "," %}{% endunless %}
+{% case focus %}
+  {% when "news", "result", "standings", "grid", "schedule" %}
+  {% else %}{% assign focus = "news" %}
+{% endcase %}
+
+{% comment %}
   Secondary labels are gray only on the 2-bit and 4-bit palettes, the ones
   with real gray ink. Elsewhere they stay black: a 1-bit screen dithers gray
   text into speckle (TRMNL's reviewers flag it), and so does every colour
@@ -115,6 +126,7 @@
   (`no_rainfall` drops the last two where the slot is too narrow).
 {% endcomment %}
 {% template schedule %}
+{% if schedule and schedule.size > 0 %}
 {% assign schedule_limit = limit | default: 99 %}
 {% assign schedule_offset = 0 %}
 {% if tail and schedule.size > schedule_limit %}
@@ -177,6 +189,7 @@
     {% endfor %}
   </tbody>
 </table>
+{% endif %}
 {% endtemplate %}
 
 
@@ -355,10 +368,12 @@
 
 {% comment %}The champion, as the lead: "2026 champion", then the name.{% endcomment %}
 {% template leader %}
+{% if standings.drivers.first.name != blank %}
 <div class="flex flex--col gap--xsmall w--full">
   <span class="title lg:title--large">{{ standings.leader_label }}</span>
   <span class="value {{ value_size }}" data-value-fit="true">{{ standings.drivers.first.name }}</span>
 </div>
+{% endif %}
 {% endtemplate %}
 
 {% comment %}
@@ -367,6 +382,7 @@
   leaves the second driver column aligned below the shared heading.
 {% endcomment %}
 {% template standings_table %}
+{% if rows and rows.size > 0 %}
 <div class="flex flex--col gap--xsmall">
   {% if label != "" %}<span class="title title--small lg:title--base w--full">{{ label }}</span>{% endif %}
   <table class="table {{ size }}">
@@ -381,6 +397,7 @@
     </tbody>
   </table>
 </div>
+{% endif %}
 {% endtemplate %}
 
 {% comment %}

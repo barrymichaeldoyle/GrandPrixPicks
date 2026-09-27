@@ -96,6 +96,17 @@ export function MoreScreen() {
             />
             <View className="ml-[30px] h-px bg-border" />
             <LinkRow
+              icon="logo-discord"
+              label="Discord"
+              onPress={() =>
+                void WebBrowser.openBrowserAsync(
+                  'https://discord.gg/c7YHSNE4Te',
+                )
+              }
+              subtitle="Bugs, ideas, and the Android beta"
+            />
+            <View className="ml-[30px] h-px bg-border" />
+            <LinkRow
               icon="shield-checkmark-outline"
               label="Privacy policy"
               onPress={() => openOnWeb('/privacy')}

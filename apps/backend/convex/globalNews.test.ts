@@ -7,6 +7,13 @@ import schema from './schema';
 
 const modules = import.meta.glob('./**/*.ts');
 
+async function discordPostJobs(t: ReturnType<typeof convexTest>) {
+  const jobs = await t.run((ctx) =>
+    ctx.db.system.query('_scheduled_functions').collect(),
+  );
+  return jobs.filter((job) => job.name.includes('discord'));
+}
+
 describe('race-independent news', () => {
   it('publishes, corrects, selects and retracts one global feed card', async () => {
     const t = convexTest(schema, modules);
@@ -38,6 +45,7 @@ describe('race-independent news', () => {
     const id = await t.mutation(internal.globalNews.publish, input);
     const first = await t.run((ctx) => ctx.db.get(id));
     expect(first).toBeTruthy();
+    expect(await discordPostJobs(t)).toHaveLength(1);
     await t.mutation(internal.globalNews.publish, {
       ...input,
       headline: 'An updated announcement',
@@ -50,6 +58,9 @@ describe('race-independent news', () => {
       newsHeadline: 'An updated announcement',
     });
     expect(events[0]._id).toBe(first?.feedEventId);
+    // The correction patched the existing card, so it must not schedule a
+    // second Discord post.
+    expect(await discordPostJobs(t)).toHaveLength(1);
     const selection = await t.mutation(internal.newsNotifications.select, {
       key: input.key,
       storyKey: input.key,

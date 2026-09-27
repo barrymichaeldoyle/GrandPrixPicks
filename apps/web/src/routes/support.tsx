@@ -11,7 +11,7 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 import { Button } from '@/components/Button/Button';
 import { SignInActionButton } from '@/integrations/clerk/SignInActionButton';
 import { PageHeader } from '@/components/PageHeader';
-import { pageMeta } from '@/lib/site';
+import { pageMeta, siteConfig } from '@/lib/site';
 
 export const Route = createFileRoute('/support')({
   component: SupportPage,
@@ -274,6 +274,19 @@ function SupportPage() {
             </div>
           )}
         </form>
+
+        <p className="reveal-up reveal-delay-2 mt-4 text-sm text-text-muted">
+          Bugs and ideas also go in{' '}
+          <a
+            href={siteConfig.social.discord.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-text underline decoration-border-strong underline-offset-4"
+          >
+            Discord
+          </a>
+          .
+        </p>
       </div>
     </div>
   );

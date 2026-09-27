@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { teams } from '@grandprixpicks/shared/tokens';
+import { internal } from './_generated/api';
 import { internalMutation, internalQuery, query } from './_generated/server';
 import { insertFeedEvent } from './lib/feedSort';
 import { safeHttpUrl } from './lib/newsRss';
@@ -111,6 +112,11 @@ export const publish = internalMutation({
       feedEventId = await insertFeedEvent(ctx, {
         ...card,
         createdAt: now,
+      });
+      await ctx.scheduler.runAfter(0, internal.discord.postNews, {
+        headline: args.headline,
+        sourceName: args.sourceName,
+        feedEventId,
       });
     }
     if (!feedEventId) {

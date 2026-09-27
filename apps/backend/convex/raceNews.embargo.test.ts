@@ -42,6 +42,13 @@ async function feedNews(t: ReturnType<typeof convexTest>) {
   );
 }
 
+async function discordPostJobs(t: ReturnType<typeof convexTest>) {
+  const jobs = await t.run(async (ctx) =>
+    ctx.db.system.query('_scheduled_functions').collect(),
+  );
+  return jobs.filter((job) => job.name.includes('discord'));
+}
+
 describe('embargoed race news', () => {
   it('shows on the write-up page while the feed card waits', async () => {
     // The whole point of the field: a later round earns its SEO the day the
@@ -61,6 +68,7 @@ describe('embargoed race news', () => {
     });
     expect(published.items).toMatchObject([{ key: 'held-item' }]);
     expect(await feedNews(t)).toEqual([]);
+    expect(await discordPostJobs(t)).toEqual([]);
   });
 
   it('releases the card, once, when the embargo lifts', async () => {
@@ -80,6 +88,8 @@ describe('embargoed race news', () => {
       return race!._id;
     });
 
+    expect(await discordPostJobs(t)).toEqual([]);
+
     expect(
       await t.mutation(internal.raceNews.releaseToFeed, {
         raceId,
@@ -87,6 +97,7 @@ describe('embargoed race news', () => {
       }),
     ).toMatchObject({ action: 'released' });
     expect(await feedNews(t)).toHaveLength(1);
+    expect(await discordPostJobs(t)).toHaveLength(1);
 
     // Idempotent: a missed release run by hand after the scheduled one must not
     // post the story twice.
@@ -97,6 +108,7 @@ describe('embargoed race news', () => {
       }),
     ).toMatchObject({ action: 'already_in_feed' });
     expect(await feedNews(t)).toHaveLength(1);
+    expect(await discordPostJobs(t)).toHaveLength(1);
   });
 
   it('never releases an item retracted during its embargo', async () => {
@@ -127,6 +139,7 @@ describe('embargoed race news', () => {
       }),
     ).toMatchObject({ action: 'retracted' });
     expect(await feedNews(t)).toEqual([]);
+    expect(await discordPostJobs(t)).toEqual([]);
   });
 
   it('posts to the feed immediately without an embargo, as it always has', async () => {
@@ -137,6 +150,7 @@ describe('embargoed race news', () => {
       affectsSessions: ['race'],
     });
     expect(await feedNews(t)).toHaveLength(1);
+    expect(await discordPostJobs(t)).toHaveLength(1);
   });
 
   it('leaves a card that is already out alone when an edit carries an embargo', async () => {
@@ -158,5 +172,8 @@ describe('embargoed race news', () => {
     const events = await feedNews(t);
     expect(events).toHaveLength(1);
     expect(events[0]).toMatchObject({ newsHeadline: 'Corrected headline' });
+    // The republish patched the existing card rather than inserting a new
+    // one, so it must not schedule a second Discord post.
+    expect(await discordPostJobs(t)).toHaveLength(1);
   });
 });

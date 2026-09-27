@@ -25,6 +25,10 @@ export const siteConfig = {
       name: 'r/GPPicks',
       url: 'https://www.reddit.com/r/GPPicks/',
     },
+    discord: {
+      name: 'Discord',
+      url: 'https://discord.gg/c7YHSNE4Te',
+    },
     instagram: {
       // Display casing only, to match the X handle. Instagram usernames are
       // case-insensitive, so the URL stays lowercase — that is the canonical

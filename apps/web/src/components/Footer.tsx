@@ -50,6 +50,19 @@ function RedditIcon({ className }: { className?: string }) {
   );
 }
 
+function DiscordIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="currentColor"
+    >
+      <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.211.375-.445.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.036 19.736 19.736 0 0 0-4.885 1.49.07.07 0 0 0-.032.027C.533 9.09-.32 13.579.099 18.021a.082.082 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026 13.83 13.83 0 0 0 1.226-1.963.074.074 0 0 0-.041-.104 13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.834 19.834 0 0 0 6.001-2.981.077.077 0 0 0 .032-.055c.5-5.094-.838-9.546-3.549-13.502a.06.06 0 0 0-.031-.028ZM8.02 15.278c-1.182 0-2.157-1.069-2.157-2.38 0-1.312.956-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.956 2.38-2.157 2.38Zm7.975 0c-1.183 0-2.157-1.069-2.157-2.38 0-1.312.955-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.947 2.38-2.157 2.38Z" />
+    </svg>
+  );
+}
+
 function InstagramIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -83,6 +96,13 @@ const socialLinks = [
     label: siteConfig.social.reddit.name,
     ariaLabel: `Join Grand Prix Picks on Reddit at ${siteConfig.social.reddit.name}`,
     icon: <RedditIcon className="h-4 w-4" />,
+  },
+  {
+    key: 'discord',
+    href: siteConfig.social.discord.url,
+    label: siteConfig.social.discord.name,
+    ariaLabel: `Join the Grand Prix Picks Discord`,
+    icon: <DiscordIcon className="h-4 w-4" />,
   },
   {
     key: 'instagram',

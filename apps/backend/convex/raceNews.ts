@@ -1023,12 +1023,17 @@ async function syncFeedEvent(
     return;
   }
 
-  await insertFeedEvent(ctx, {
+  const feedEventId = await insertFeedEvent(ctx, {
     type: 'race_news',
     raceId: race._id,
     newsKey: args.key,
     ...shared,
     createdAt: now,
+  });
+  await ctx.scheduler.runAfter(0, internal.discord.postNews, {
+    headline: args.headline,
+    sourceName: args.sourceName,
+    feedEventId,
   });
 }
 

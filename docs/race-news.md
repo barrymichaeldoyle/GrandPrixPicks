@@ -292,6 +292,11 @@ existing feed event rather than posting a second one, exactly as
 the classification. "Ten places minimum" becoming "confirmed back of grid" is an
 edit, not news.
 
+**A feed card also posts to Discord #news, once.** The moment a card is first
+created — not on a correction — `discord.postNews` fires from a scheduled
+action, gated on `DISCORD_NEWS_WEBHOOK_URL` (unset in dev). See
+`docs/discord-server-setup.md`.
+
 **A later round's news can wait its turn.** `feedVisibleAt` (ms epoch) holds the
 feed card until a moment you choose, while the write-up page shows the item the
 instant it is published. That split is the whole feature: a Madrid story is

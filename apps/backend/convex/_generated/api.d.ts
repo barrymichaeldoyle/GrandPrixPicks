@@ -13,6 +13,7 @@ import type * as billing from "../billing.js";
 import type * as consensus from "../consensus.js";
 import type * as creatorPolls from "../creatorPolls.js";
 import type * as crons from "../crons.js";
+import type * as discord from "../discord.js";
 import type * as drivers from "../drivers.js";
 import type * as emails_PredictionReminderEmail from "../emails/PredictionReminderEmail.js";
 import type * as emails_SignupNudgeEmail from "../emails/SignupNudgeEmail.js";
@@ -98,6 +99,7 @@ declare const fullApi: ApiFromModules<{
   consensus: typeof consensus;
   creatorPolls: typeof creatorPolls;
   crons: typeof crons;
+  discord: typeof discord;
   drivers: typeof drivers;
   "emails/PredictionReminderEmail": typeof emails_PredictionReminderEmail;
   "emails/SignupNudgeEmail": typeof emails_SignupNudgeEmail;

@@ -92,7 +92,10 @@ npx convex run --prod raceNews:publish '{
 The dry run echoes `sourcePublished` back as a date. Read it: a timestamp that
 is well-formed and wrong is the one mistake nothing else catches.
 
-**3. Publish.** The same call without `dryRun`.
+**3. Publish.** The same call without `dryRun`. A first publish (not a
+correction of an existing key) posts to the Discord #news channel
+immediately — the dry run is the last chance to catch a mistake, not the
+publish itself.
 
 **4. Report what happened.** The return says `created`, `updated` or
 `republished`. Say which, and say which sessions it affects.

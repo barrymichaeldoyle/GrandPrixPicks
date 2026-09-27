@@ -368,8 +368,8 @@ TRMNL, and their publishing linter (Chef) flags inline `padding`, `margin`,
 mark on transparent, because the site favicon's chartreuse bars vanish in
 grayscale. It is inline in the `title_bar` template, base64-encoded with
 `base64_encode`, as TRMNL's guide asks, so drawing a screen never fetches it.
-`apps/web/public/trmnl-icon.svg` is the same mark as a file, for the directory
-listing. The flag's frame is a black box with 2px of padding
+`apps/web/public/trmnl-icon.svg` is the same mark as a file. The directory
+listing uses the colour icon instead (see "The icon" below). The flag's frame is a black box with 2px of padding
 (`bg--black p--0.5`) rather than an inline border: TRMNL's rules allow no
 inline styles, and the Framework has no all-sides border class.
 
@@ -676,9 +676,14 @@ Also check:
   results, news" (the first draft, "F1 race weekend: times, results, news",
   was 37).
 - **The icon.** The plugin's settings take a PNG or SVG, 512x512
-  recommended. Uploaded 27 September 2026: `apps/web/public/trmnl-icon-512.png`,
-  the bar mark from `trmnl-icon.svg` in black on a white rounded tile, as it
-  sits in the title bar. The bare black mark vanished on TRMNL's dark UI.
+  recommended. Since 27 September 2026 it is
+  `apps/web/public/logo-storefront.png`, the brand mark in
+  colour (chartreuse bars on the dark tile), the same raster as the app store
+  listings. The directory is a colour web page, so the icon carries the brand;
+  only the on-device title-bar logo has to survive e-ink, and that is inline
+  in the template, not this upload. The first upload, on 27 September 2026,
+  was the black mark on a white tile (`trmnl-icon-512.png`); the bare black
+  mark before it vanished on TRMNL's dark UI. The dark tile works on both.
 - **The overview.** "Public recipe overview" needs 100 useful words to appear
   in search. Set 27 September 2026 (170 words). It describes the screen and
   never mentions picks.

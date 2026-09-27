@@ -8,6 +8,13 @@ import schema from './schema';
 
 const modules = import.meta.glob('./**/*.ts');
 
+async function discordPostJobs(t: ReturnType<typeof convexTest>) {
+  const jobs = await t.run((ctx) =>
+    ctx.db.system.query('_scheduled_functions').collect(),
+  );
+  return jobs.filter((job) => job.name.includes('discord'));
+}
+
 describe('race news access boundary', () => {
   it('publishes general weekend news without a pick indicator and corrects one feed card', async () => {
     const t = convexTest(schema, modules);
@@ -87,6 +94,7 @@ describe('race news access boundary', () => {
     expect(
       (await t.query(api.raceNews.list, { raceSlug: item.raceSlug })).items,
     ).toHaveLength(0);
+    expect(await discordPostJobs(t)).toHaveLength(1);
     await t.mutation(internal.raceNews.publish, {
       ...item,
       feedSelected: false,
@@ -98,6 +106,41 @@ describe('race news access boundary', () => {
     expect(
       (await t.query(api.raceNews.list, { raceSlug: item.raceSlug })).items,
     ).toHaveLength(1);
+    // Deselecting removes the feed card rather than creating one, so no
+    // second post is scheduled.
+    expect(await discordPostJobs(t)).toHaveLength(1);
+  });
+
+  it('does not schedule a Discord post for a dry run', async () => {
+    const t = convexTest(schema, modules);
+    await t.run((ctx) =>
+      ctx.db.insert('races', {
+        season: 2026,
+        round: 1,
+        name: 'Test Grand Prix',
+        slug: 'test-2026',
+        raceStartAt: Date.now() + 86400000,
+        predictionLockAt: Date.now() + 86400000,
+        status: 'upcoming',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      }),
+    );
+    await t.mutation(internal.raceNews.publish, {
+      raceSlug: 'test-2026',
+      key: 'dry-run-item',
+      headline: 'Dry run headline',
+      body: 'Should not be written.',
+      category: 'general' as const,
+      affectsSessions: [],
+      sourceName: 'Team',
+      sourceUrl: 'https://example.com/dry-run',
+      dryRun: true,
+    });
+    expect(
+      await t.run((ctx) => ctx.db.query('feedEvents').collect()),
+    ).toHaveLength(0);
+    expect(await discordPostJobs(t)).toEqual([]);
   });
   it('removes retracted news from the public API but preserves the operator audit trail', async () => {
     const t = convexTest(schema, modules);

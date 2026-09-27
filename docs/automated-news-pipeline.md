@@ -42,6 +42,10 @@ and feed event, not inferred later from prose or a mutable session list.
   mutation has a dry run, correction/upsert, retraction and delayed feed release.
   It writes one authorless `race_news` event into `feedEvents`. Web write-ups
   read `raceNews`; web and mobile feeds read `feedEvents`.
+- A feed card, race or global, also posts once to Discord #news via
+  `discord.postNews`, scheduled from the mutation that first inserts it. A
+  correction patches the existing card and does not repost. See
+  `docs/race-news.md` and `docs/discord-server-setup.md`.
 - Current `affectsSessions` is required and non-empty. This is a **legacy
   limitation to change**, not the future editorial rule. Preserve its meaning
   for pick-related stories and weekend-card indicators; make it empty or absent

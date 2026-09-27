@@ -36,6 +36,7 @@ import type * as lib_calendarRaces from "../lib/calendarRaces.js";
 import type * as lib_classificationDiff from "../lib/classificationDiff.js";
 import type * as lib_email from "../lib/email.js";
 import type * as lib_entitlements from "../lib/entitlements.js";
+import type * as lib_feedSort from "../lib/feedSort.js";
 import type * as lib_followCounts from "../lib/followCounts.js";
 import type * as lib_italy2026MonzaNewsCopy from "../lib/italy2026MonzaNewsCopy.js";
 import type * as lib_leaderboard from "../lib/leaderboard.js";
@@ -119,6 +120,7 @@ declare const fullApi: ApiFromModules<{
   "lib/classificationDiff": typeof lib_classificationDiff;
   "lib/email": typeof lib_email;
   "lib/entitlements": typeof lib_entitlements;
+  "lib/feedSort": typeof lib_feedSort;
   "lib/followCounts": typeof lib_followCounts;
   "lib/italy2026MonzaNewsCopy": typeof lib_italy2026MonzaNewsCopy;
   "lib/leaderboard": typeof lib_leaderboard;

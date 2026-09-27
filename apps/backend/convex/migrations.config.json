@@ -38,5 +38,9 @@
   {
     "name": "raceScheduleMigrations:correctSingapore2026SprintSchedule",
     "args": {}
+  },
+  {
+    "name": "feed:backfillFeedSort",
+    "args": {}
   }
 ]

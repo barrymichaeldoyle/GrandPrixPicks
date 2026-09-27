@@ -62,7 +62,7 @@ authorization boundaries and focused tests. Implement incrementally:
    minimum `pick_related` and `general`. Let a sourced, reviewed general item
    publish to the feed with no `affectsSessions`. Retain `(raceId, key)`
    idempotency, corrections, retraction, source date, `feedVisibleAt` and the
-   feed's arrival-time ordering. Decide explicitly whether a genuinely
+   feed's ordering (race weekend, then arrival time; see `docs/race-news.md`). Decide explicitly whether a genuinely
    race-independent item needs an optional `raceId` or a separate publication
    shape; do not assign it to the nearest weekend just to satisfy a schema.
    Existing manual/CLI publishing must keep working during migration.

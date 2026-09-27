@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import { internalMutation, type MutationCtx } from './_generated/server';
+import { feedSortFor } from './lib/feedSort';
 import {
   ANTONELLI_MONZA_PENALTY_BODY,
   ANTONELLI_MONZA_PU_SPEC_BODY,
@@ -375,7 +376,7 @@ export const syncMadrid2026LateNews = internalMutation({
         key: 'leclerc-madrid-delta-reprimand',
         publishedAt: 1789278695712,
         headline: 'Ferrari reprimanded for giving Leclerc the wrong delta',
-        body: 'Leclerc exceeded the required delta time between Safety Car lines after his final Q3 lap. Stewards cleared him personally, finding he followed the time shown on his dashboard, and ruled Ferrari alone at fault for a calculation error in the delta it supplied him. Ferrari received a reprimand and Leclerc keeps his grid position.',
+        body: 'Leclerc went over the required delta time between Safety Car lines after his final Q3 lap, because Ferrari gave him the wrong figure. The stewards cleared Leclerc and reprimanded Ferrari, and he keeps his grid position.',
         driverCodes: ['LEC'],
       },
       {
@@ -430,7 +431,13 @@ export const syncMadrid2026LateNews = internalMutation({
         throw new Error(`Madrid feed event ${item.key} was not published`);
       }
       if (feed.createdAt !== item.publishedAt) {
-        await ctx.db.patch(feed._id, { createdAt: item.publishedAt });
+        await ctx.db.patch(feed._id, {
+          createdAt: item.publishedAt,
+          feedSort: await feedSortFor(ctx, {
+            raceId: race._id,
+            createdAt: item.publishedAt,
+          }),
+        });
       }
     }
     return { synced: items.length };

@@ -118,6 +118,16 @@ is well-formed and wrong is the one mistake nothing else catches.
   The section already ends with the scoring-policy note and every card links
   "How these are scored", so the instruction is both redundant and the weakest
   sentence on the card. State the fact and let it do the work.
+- **Write for the reader, never to vouch for the source.** The card already
+  shows the source name and links it. A body that says "Sky Sport reports",
+  "the team confirmed he would not participate", "the same clock time the other
+  sources give" or quotes the stewards' legal wording ("wholly or
+  predominantly to blame") is making a case to the editor that the item is
+  sourced, and a reader sees that as the site defending itself. Checking the
+  source is the editor's job and belongs in the run's report, not on the card.
+  State the fact plainly: "Colapinto drops five places for the collision".
+  Name another outlet in the body only when the fact is theirs alone and not
+  confirmed, and then attribute the claim, not the checking.
 - **One story per key, one source per card.** A new fact the item's `sourceUrl`
   does not support is a new item with its own source, not a fourth sentence on
   an existing body. It usually has a narrower `affectsSessions` too: Antonelli's

@@ -15,6 +15,7 @@ import {
   parseOpenF1Sessions,
 } from './openF1Results';
 import { getViewer } from './lib/auth';
+import { insertFeedEvent } from './lib/feedSort';
 
 const MINUTE = 60_000;
 const PRACTICE_DURATION = 60 * MINUTE;
@@ -406,7 +407,7 @@ async function ensurePracticeFeedEvent(
   if (events.some((event) => event.practiceSessionType === sessionType)) {
     return;
   }
-  await ctx.db.insert('feedEvents', {
+  await insertFeedEvent(ctx, {
     type: 'practice_published',
     raceId,
     raceName: race.name,

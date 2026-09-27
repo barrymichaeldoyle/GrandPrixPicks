@@ -7,6 +7,7 @@ import {
   getSessionLockAt,
   isSessionLockedAt,
 } from './feed';
+import { formatFeedSort } from './lib/feedSort';
 
 const MAX_FEED_SIZE = 40;
 const FEED_SCAN_BATCH_SIZE = MAX_FEED_SIZE;
@@ -18,7 +19,13 @@ type FeedEvent = {
   userId: Id<'users'>;
   streakCount?: number;
   createdAt: number;
+  feedSort: string;
 };
+
+/** Every event in these tests shares one weekend, so only time orders them. */
+function sortKey(createdAt: number): string {
+  return formatFeedSort({ season: 2026, round: 1 }, createdAt);
+}
 
 function userId(id: string): Id<'users'> {
   return id as Id<'users'>;
@@ -40,6 +47,7 @@ function makeEvent(
     userId: userId(owner),
     streakCount: type === 'streak_milestone' ? 5 : undefined,
     createdAt,
+    feedSort: sortKey(createdAt),
   };
 }
 
@@ -63,14 +71,16 @@ function makeCtx(pagesByCreatedAt: Record<string, FeedEvent[]>) {
           (
             _indexName: string,
             cb?: (q: {
-              lte: (_field: string, value: number) => unknown;
+              lte: (_field: string, value: string) => unknown;
             }) => unknown,
           ) => {
             queryRangeState.current = null;
             if (cb) {
               cb({
-                lte: (_field: string, value: number) => {
-                  queryRangeState.current = value;
+                lte: (_field: string, value: string) => {
+                  queryRangeState.current = Number(
+                    value.slice(value.indexOf(':') + 1),
+                  );
                   return null;
                 },
               });
@@ -116,22 +126,20 @@ function makePersonalizedFeedCtx({
           (
             _indexName: string,
             cb?: (q: {
-              lte: (_field: string, value: number) => unknown;
+              lte: (_field: string, value: string) => unknown;
             }) => unknown,
           ) => {
-            let createdAtUpperBound: number | null = null;
+            let upperBound: string | null = null;
             cb?.({
-              lte: (_field: string, value: number) => {
-                createdAtUpperBound = value;
+              lte: (_field: string, value: string) => {
+                upperBound = value;
                 return null;
               },
             });
             const filtered =
-              createdAtUpperBound === null
+              upperBound === null
                 ? events
-                : events.filter(
-                    (event) => event.createdAt <= createdAtUpperBound!,
-                  );
+                : events.filter((event) => event.feedSort <= upperBound!);
             return {
               order: vi.fn(() => ({
                 take: vi.fn(async (numItems: number) =>
@@ -182,8 +190,8 @@ describe('buildFilteredFeedPage', () => {
     expect(firstPage.page).toHaveLength(MAX_FEED_SIZE);
     expect(firstPage.nextCursor).toBe(
       JSON.stringify({
-        createdAt: 1_000,
-        seenEventIdsAtCreatedAt: Array.from(
+        feedSort: sortKey(1_000),
+        seenEventIdsAtKey: Array.from(
           { length: MAX_FEED_SIZE },
           (_, index) => `page1-${index}`,
         ),
@@ -228,8 +236,8 @@ describe('buildFilteredFeedPage', () => {
     expect(result.hasMore).toBe(true);
     expect(result.nextCursor).toBe(
       JSON.stringify({
-        createdAt: 9_801,
-        seenEventIdsAtCreatedAt: ['event-199'],
+        feedSort: sortKey(9_801),
+        seenEventIdsAtKey: ['event-199'],
       }),
     );
     expect(take).toHaveBeenCalledTimes(1);
@@ -304,8 +312,8 @@ describe('buildFilteredFeedPage', () => {
     expect(result.hasMore).toBe(true);
     expect(result.nextCursor).toBe(
       JSON.stringify({
-        createdAt: 19_801,
-        seenEventIdsAtCreatedAt: ['other-199'],
+        feedSort: sortKey(19_801),
+        seenEventIdsAtKey: ['other-199'],
       }),
     );
   });

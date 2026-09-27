@@ -6,6 +6,12 @@ import type { Doc, Id } from './_generated/dataModel';
 import type { DatabaseReader, MutationCtx } from './_generated/server';
 import { internalMutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
+import {
+  feedSortFor,
+  feedSortWeekend,
+  formatFeedSort,
+  insertFeedEvent,
+} from './lib/feedSort';
 import { loadConstructorPoints } from './f1Standings';
 import { sortByConstructorStanding } from './lib/teammateBattles';
 import { toUserIdentity } from './lib/userIdentity';
@@ -120,7 +126,7 @@ async function backfillScorePublishedFeedEventsForRace(
         });
         updated++;
       } else {
-        await ctx.db.insert('feedEvents', {
+        await insertFeedEvent(ctx, {
           type: 'score_published',
           userId: score.userId,
           ...toUserIdentity(user),
@@ -185,7 +191,7 @@ export const writeFeedEventsForSessionLock = internalMutation({
         continue;
       }
 
-      await ctx.db.insert('feedEvents', {
+      await insertFeedEvent(ctx, {
         type: 'session_locked',
         userId: prediction.userId,
         ...toUserIdentity(user),
@@ -255,11 +261,15 @@ export const writeFeedEventsForSession = internalMutation({
                 previousPoints: existing.points,
                 amendmentNote: args.amendmentNote,
                 createdAt: now,
+                feedSort: await feedSortFor(ctx, {
+                  raceId: args.raceId,
+                  createdAt: now,
+                }),
               }
             : {}),
         });
       } else {
-        await ctx.db.insert('feedEvents', {
+        await insertFeedEvent(ctx, {
           type: 'score_published',
           userId: score.userId,
           ...toUserIdentity(user),
@@ -362,7 +372,7 @@ export const writeLineupChangeFeedEvent = internalMutation({
       )
       .unique();
 
-    await ctx.db.insert('feedEvents', {
+    await insertFeedEvent(ctx, {
       type: 'lineup_change',
       season: args.season,
       round: args.round,
@@ -458,7 +468,7 @@ export const writeStreakEventsForRaceSession = internalMutation({
         continue;
       }
 
-      await ctx.db.insert('feedEvents', {
+      await insertFeedEvent(ctx, {
         type: 'streak_milestone',
         userId: score.userId,
         ...toUserIdentity(user),
@@ -542,20 +552,23 @@ type RawEvent = {
     newsKey?: string;
   }>;
   createdAt: number;
+  feedSort?: string;
 };
 
 /**
- * Build one page of feed by scanning the global feed chronologically and filtering
- * to the relevant social graph in memory.
+ * Build one page of feed by scanning the global feed in feed order and
+ * filtering to the relevant social graph in memory.
+ *
+ * Feed order is race weekend first, then arrival time: see `lib/feedSort.ts`.
  *
  * We intentionally do not query each followee/member separately and merge the
  * results. That older shape silently truncated at fixed graph sizes, and the
  * first attempted fix turned into one query per source, which can blow past
  * Convex limits for large leagues or power users.
  *
- * Using the global `feedEvents.by_created` index keeps the query budget bounded,
- * and using Convex's opaque pagination cursor avoids dropping same-timestamp
- * events across pages.
+ * Using the global `feedEvents.by_feed_sort` index keeps the query budget
+ * bounded, and the cursor carries the ids already seen at its key so events
+ * sharing a key are never dropped or repeated across pages.
  */
 export async function buildFilteredFeedPage(
   ctx: DbCtx,
@@ -566,19 +579,19 @@ export async function buildFilteredFeedPage(
   const events: RawEvent[] = [];
   const queryLimit =
     FEED_SCAN_BATCH_SIZE * MAX_FEED_SCAN_BATCHES +
-    parsedCursor.seenEventIdsAtCreatedAt.size;
+    parsedCursor.seenEventIdsAtKey.size;
 
   const scanned = (
-    parsedCursor.createdAt === null
+    parsedCursor.feedSort === null
       ? await ctx.db
           .query('feedEvents')
-          .withIndex('by_created')
+          .withIndex('by_feed_sort')
           .order('desc')
           .take(queryLimit)
       : await ctx.db
           .query('feedEvents')
-          .withIndex('by_created', (q) =>
-            q.lte('createdAt', parsedCursor.createdAt!),
+          .withIndex('by_feed_sort', (q) =>
+            q.lte('feedSort', parsedCursor.feedSort!),
           )
           .order('desc')
           .take(queryLimit)
@@ -589,9 +602,9 @@ export async function buildFilteredFeedPage(
   for (let index = 0; index < scanned.length; index += 1) {
     const event = scanned[index]!;
     if (
-      parsedCursor.createdAt !== null &&
-      event.createdAt === parsedCursor.createdAt &&
-      parsedCursor.seenEventIdsAtCreatedAt.has(String(event._id))
+      parsedCursor.feedSort !== null &&
+      event.feedSort === parsedCursor.feedSort &&
+      parsedCursor.seenEventIdsAtKey.has(String(event._id))
     ) {
       continue;
     }
@@ -613,7 +626,7 @@ export async function buildFilteredFeedPage(
 
     events.push(event);
     if (events.length === MAX_FEED_SIZE) {
-      const nextCursor = makeFeedCursor(scanned, index, event.createdAt);
+      const nextCursor = makeFeedCursor(scanned, index, event.feedSort);
       return {
         page: events,
         hasMore: index < scanned.length - 1 || scanned.length === queryLimit,
@@ -628,59 +641,62 @@ export async function buildFilteredFeedPage(
     hasMore,
     nextCursor:
       hasMore && lastScannedEvent
-        ? makeFeedCursor(
-            scanned,
-            scanned.length - 1,
-            lastScannedEvent.createdAt,
-          )
+        ? makeFeedCursor(scanned, scanned.length - 1, lastScannedEvent.feedSort)
         : null,
   };
 }
 
 type FeedCursor = {
-  createdAt: number | null;
-  seenEventIdsAtCreatedAt: Set<string>;
+  feedSort: string | null;
+  seenEventIdsAtKey: Set<string>;
 };
 
+/**
+ * A cursor from before feed order was keyed by weekend carried `createdAt`
+ * instead, and parses as the top of the feed. The client asks for page two
+ * again and gets the right one.
+ */
 function parseFeedCursor(cursor: string | null): FeedCursor {
   if (!cursor) {
-    return { createdAt: null, seenEventIdsAtCreatedAt: new Set() };
+    return { feedSort: null, seenEventIdsAtKey: new Set() };
   }
 
   try {
     const parsed = JSON.parse(cursor) as {
-      createdAt?: number;
-      seenEventIdsAtCreatedAt?: string[];
+      feedSort?: string;
+      seenEventIdsAtKey?: string[];
     };
     if (
-      typeof parsed.createdAt !== 'number' ||
-      !Array.isArray(parsed.seenEventIdsAtCreatedAt)
+      typeof parsed.feedSort !== 'string' ||
+      !Array.isArray(parsed.seenEventIdsAtKey)
     ) {
-      return { createdAt: null, seenEventIdsAtCreatedAt: new Set() };
+      return { feedSort: null, seenEventIdsAtKey: new Set() };
     }
     return {
-      createdAt: parsed.createdAt,
-      seenEventIdsAtCreatedAt: new Set(parsed.seenEventIdsAtCreatedAt),
+      feedSort: parsed.feedSort,
+      seenEventIdsAtKey: new Set(parsed.seenEventIdsAtKey),
     };
   } catch {
-    return { createdAt: null, seenEventIdsAtCreatedAt: new Set() };
+    return { feedSort: null, seenEventIdsAtKey: new Set() };
   }
 }
 
+/**
+ * An event with no key yet (written before the backfill ran) pages as the
+ * bottom of the feed, which is where the index puts it.
+ */
 function makeFeedCursor(
   scanned: RawEvent[],
   inclusiveIndex: number,
-  createdAt: number,
+  feedSort: string | undefined,
 ) {
-  const seenEventIdsAtCreatedAt = scanned
+  const key = feedSort ?? '';
+  const seenEventIdsAtKey = scanned
     .slice(0, inclusiveIndex + 1)
-    .filter((event) => event.createdAt === createdAt)
+    .filter((event) => (event.feedSort ?? '') === key)
     .map((event) => String(event._id));
 
-  return JSON.stringify({
-    createdAt,
-    seenEventIdsAtCreatedAt,
-  });
+  return JSON.stringify({ feedSort: key, seenEventIdsAtKey });
 }
 
 type SessionHeaderDriver = {
@@ -1335,7 +1351,7 @@ export const backfillSessionLockFeedEvents = internalMutation({
         continue;
       }
 
-      await ctx.db.insert('feedEvents', {
+      await insertFeedEvent(ctx, {
         type: 'session_locked',
         userId: prediction.userId,
         ...toUserIdentity(user),
@@ -1467,9 +1483,62 @@ export const restoreScoreFeedEventsForSession = internalMutation({
         previousPoints: undefined,
         amendmentNote: undefined,
         createdAt: result.publishedAt,
+        feedSort: await feedSortFor(ctx, {
+          raceId: args.raceId,
+          createdAt: result.publishedAt,
+        }),
       });
       restored += 1;
     }
     return { restored };
+  },
+});
+
+/**
+ * Give every stored event the key the feed is now ordered by. Idempotent: an
+ * event whose key is already right is left alone, so this runs on every deploy.
+ *
+ * Walks the table in arrival order, because an event about no race takes the
+ * weekend that was at the top of the feed when it arrived, which is the latest
+ * weekend of anything that arrived before it.
+ */
+export const backfillFeedSort = internalMutation({
+  args: {},
+  returns: v.object({ scanned: v.number(), patched: v.number() }),
+  handler: async (ctx) => {
+    const races = new Map<Id<'races'>, Doc<'races'> | null>();
+    let topWeekend = '0000-00';
+    let scanned = 0;
+    let patched = 0;
+    for await (const event of ctx.db
+      .query('feedEvents')
+      .withIndex('by_created')
+      .order('asc')) {
+      scanned += 1;
+      let race: Doc<'races'> | null = null;
+      if (event.raceId !== undefined) {
+        if (!races.has(event.raceId)) {
+          races.set(event.raceId, await ctx.db.get(event.raceId));
+        }
+        race = races.get(event.raceId) ?? null;
+      }
+      const feedSort = race
+        ? formatFeedSort(race, event.createdAt)
+        : event.season !== undefined && event.round !== undefined
+          ? formatFeedSort(
+              { season: event.season, round: event.round },
+              event.createdAt,
+            )
+          : `${topWeekend}:${String(event.createdAt).padStart(13, '0')}`;
+      const weekend = feedSortWeekend(feedSort);
+      if (weekend > topWeekend) {
+        topWeekend = weekend;
+      }
+      if (event.feedSort !== feedSort) {
+        await ctx.db.patch(event._id, { feedSort });
+        patched += 1;
+      }
+    }
+    return { scanned, patched };
   },
 });

@@ -32,7 +32,10 @@ export type FeedGroup<T> =
  * News and line-up changes group by adjacency. The feed's order carries meaning, and a
  * keyed group would lift a Friday item up beside a Sunday one to sit under a
  * shared heading, silently reordering the weekend. A run is only a run while
- * nothing interrupts it.
+ * nothing interrupts it, and a different race interrupts it: the block flies
+ * one race's flag, and a Baku story sitting under Sepang's is a Baku story
+ * the reader files under the wrong weekend. An item that names no race joins
+ * whichever run it lands in.
  */
 export function groupFeedEvents<T extends Groupable>(
   events: T[],
@@ -59,7 +62,14 @@ export function groupFeedEvents<T extends Groupable>(
 
     if (event.type === 'race_news' || event.type === 'lineup_change') {
       const previous = groups.at(-1);
-      if (previous?.kind === 'news') {
+      const runRaceId =
+        previous?.kind === 'news'
+          ? previous.events.find((item) => item.raceId)?.raceId
+          : undefined;
+      if (
+        previous?.kind === 'news' &&
+        (!event.raceId || !runRaceId || event.raceId === runRaceId)
+      ) {
         previous.events.push(event);
       } else {
         groups.push({ kind: 'news', events: [event] });
@@ -99,4 +109,24 @@ export function weekendStarts<T extends Groupable>(
     open = raceId;
     return starts;
   });
+}
+
+/**
+ * Newest first, in the order the server pages the feed: race weekend, then
+ * arrival time (`feedSort`, written by the backend's `lib/feedSort.ts`). For
+ * merging loaded pages back together without undoing that order.
+ *
+ * An event without a key, written before the backend backfilled one, sorts
+ * below every event that has one, as it does on the server.
+ */
+export function compareFeedOrder(
+  a: { feedSort?: string; createdAt: number },
+  b: { feedSort?: string; createdAt: number },
+): number {
+  const aKey = a.feedSort ?? '';
+  const bKey = b.feedSort ?? '';
+  if (aKey !== bKey) {
+    return aKey < bKey ? 1 : -1;
+  }
+  return b.createdAt - a.createdAt;
 }

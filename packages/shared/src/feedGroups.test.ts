@@ -47,6 +47,19 @@ describe('groupFeedEvents', () => {
     expect((groups[0] as { events: { _id: string }[] }).events).toHaveLength(2);
   });
 
+  it('starts a new news block when the race changes', () => {
+    const sepang = { ...news('a'), raceId: 'sepang' };
+    const baku = { ...news('b'), raceId: 'baku' };
+    const unraced = news('c');
+    const groups = groupFeedEvents([sepang, unraced, baku]);
+
+    expect(groups).toEqual([
+      { kind: 'news', events: [sepang, unraced] },
+      { kind: 'news', events: [baku] },
+    ]);
+    expect(weekendStarts(groups)).toEqual([false, true]);
+  });
+
   it('leaves a lone news item as its own block', () => {
     const groups = groupFeedEvents([news('a')]);
     expect(groups).toEqual([{ kind: 'news', events: [news('a')] }]);

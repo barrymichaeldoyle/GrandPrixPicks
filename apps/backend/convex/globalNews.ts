@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { teams } from '@grandprixpicks/shared/tokens';
 import { internalMutation, internalQuery, query } from './_generated/server';
+import { insertFeedEvent } from './lib/feedSort';
 import { safeHttpUrl } from './lib/newsRss';
 
 /**
@@ -107,7 +108,7 @@ export const publish = internalMutation({
     if (feed) {
       await ctx.db.patch(feed._id, card);
     } else {
-      feedEventId = await ctx.db.insert('feedEvents', {
+      feedEventId = await insertFeedEvent(ctx, {
         ...card,
         createdAt: now,
       });

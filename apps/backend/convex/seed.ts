@@ -14,6 +14,7 @@ import {
   type MutationCtx,
 } from './_generated/server';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
+import { insertFeedEvent } from './lib/feedSort';
 import { computeFollowCountsForUser } from './lib/followCounts';
 import { HADJAR_DUTCH_GP_LINEUP_NOTE } from './lib/italy2026MonzaNewsCopy';
 import { successorPick } from './lib/lineups';
@@ -6709,7 +6710,7 @@ export const seedFeedEvents = internalMutation({
           q.eq('raceId', score.raceId).eq('sessionType', score.sessionType),
         )
         .unique();
-      await ctx.db.insert('feedEvents', {
+      await insertFeedEvent(ctx, {
         type: 'score_published',
         userId: score.userId,
         username: user.username,

@@ -249,9 +249,19 @@ became true. Backdating a Thursday story found on Saturday would file it under
 cards the reader has already scrolled past. This is the same reasoning that
 freezes `createdAt` on an edit.
 
-**Ordering stays on `publishedAt` everywhere**, including the write-up page.
-Sorting one surface by a field that most older items do not have would shuffle a
-weekend into an order that is neither chronology nor arrival.
+**Ordering never uses `sourcePublishedAt`**, on the write-up page or anywhere
+else. Sorting one surface by a field that most older items do not have would
+shuffle a weekend into an order that is neither chronology nor arrival.
+
+**The feed orders by weekend, then arrival.** Every feed event carries
+`feedSort` (`2026-15:1790442838858`), written by `insertFeedEvent` in
+`apps/backend/convex/lib/feedSort.ts`, and the feed pages by it. A Baku story
+published after the Sepang news started lands at the top of the Baku block,
+below every Sepang card, rather than between two Sepang cards with a chequered
+split (`WeekendSplit`) either side of it. The card still shows when it arrived.
+`groupFeedEvents` (`packages/shared/src/feedGroups.ts`) ends a news run when the
+race changes, so a late story never sits under the next weekend's flag. A story
+about no race joins the weekend at the top of the feed when it arrives.
 
 Set it from the source's own date line. Milliseconds, not seconds — publishing
 refuses a seconds-epoch value and hands back the corrected number, because

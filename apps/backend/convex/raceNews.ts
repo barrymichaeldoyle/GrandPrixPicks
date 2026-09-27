@@ -9,6 +9,7 @@ import {
   type ResolvedStartingGridEntry,
   type StartingGridEntry,
 } from './lib/raceNewsStartingGrid';
+import { insertFeedEvent } from './lib/feedSort';
 import { raceNewsWriteUpImageValidator } from './lib/raceNewsWriteUpImage';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
@@ -1022,7 +1023,7 @@ async function syncFeedEvent(
     return;
   }
 
-  await ctx.db.insert('feedEvents', {
+  await insertFeedEvent(ctx, {
     type: 'race_news',
     raceId: race._id,
     newsKey: args.key,

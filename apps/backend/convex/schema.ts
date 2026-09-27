@@ -941,8 +941,12 @@ export default defineSchema({
      */
     newsStartingGrid: v.optional(resolvedStartingGridValidator),
     createdAt: v.number(),
+    // What the feed is ordered by: race weekend, then `createdAt`. Written by
+    // `insertFeedEvent` in `lib/feedSort.ts`; see there for why.
+    feedSort: v.optional(v.string()),
   })
     .index('by_created', ['createdAt'])
+    .index('by_feed_sort', ['feedSort'])
     // Lets the seeder ask "has this round's lineup change already been
     // announced?" without scanning the feed, which is what makes re-running
     // applyLineup safe.

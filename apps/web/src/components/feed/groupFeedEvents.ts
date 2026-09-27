@@ -1,4 +1,5 @@
 export {
+  compareFeedOrder,
   groupFeedEvents,
   sessionGroupKey,
   weekendStarts,

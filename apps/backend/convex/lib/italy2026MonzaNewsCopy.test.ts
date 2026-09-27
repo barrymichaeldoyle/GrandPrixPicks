@@ -27,9 +27,12 @@ describe('italy2026MonzaNewsCopy', () => {
 
   it('drops the reported lap-time gain from the Ferrari body', () => {
     expect(FERRARI_ENGINE_UPGRADE_BODY).toBe(
-      'Ferrari will run its ADUO2 power unit in both cars at Monza without grid penalties. Motorsport.com reports a gain of about 15 horsepower. Leclerc and Hamilton also get a more efficient rear wing and other Monza-specific changes.',
+      'Ferrari will run its ADUO2 power unit in both cars at Monza without grid penalties. The gain is estimated at about 15 horsepower. Leclerc and Hamilton also get a more efficient rear wing and other Monza-specific changes.',
     );
     expect(FERRARI_ENGINE_UPGRADE_BODY).not.toMatch(/two tenths per lap/);
+    // The card already names its source. Saying so again in the body reads
+    // as making a case to the editor rather than telling the reader.
+    expect(FERRARI_ENGINE_UPGRADE_BODY).not.toMatch(/Motorsport\.com/);
   });
 
   it('keeps Hadjar and Iwasa as separate race and FP1 stories', () => {

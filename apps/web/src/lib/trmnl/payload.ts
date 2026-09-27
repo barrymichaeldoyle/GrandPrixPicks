@@ -63,12 +63,14 @@ export const TRMNL_RESULT_HOLD_MS = 36 * 60 * 60 * 1000;
 
 const NEWS_LIMIT = 20;
 /**
- * Result rows the payload carries per session. The race and the sprint go to
- * ten, the points places a fan reads; the qualifying top five is the pick
- * game's own measure. Each layout shows as many as it has room for.
+ * Result rows the payload carries per session. The race carries the whole
+ * classification, which the full screen shows once the weekend is over; the
+ * sprint goes to ten, the points places a fan reads; the qualifying top five
+ * is the pick game's own measure. Each layout shows as many as it has room
+ * for.
  */
 const RESULT_ROWS: Record<SessionType, number> = {
-  race: 10,
+  race: 30,
   sprint: 10,
   quali: 5,
   sprint_quali: 5,
@@ -114,7 +116,13 @@ type RaceForTrmnl = Pick<
   | 'predictionLockAt'
 >;
 
-type ResultRow = { position: number; code: string; displayName: string };
+type ResultRow = {
+  position: number;
+  code: string;
+  displayName: string;
+  /** Set only for a driver who is not a ranked finisher: dnf, dns or dsq. */
+  status?: string | null;
+};
 
 type NewsItem = {
   headline: string;
@@ -159,6 +167,11 @@ export type TrmnlInput = {
   results: Partial<Record<SessionType, ResultRow[]>>;
   practice: PracticeSummary[];
   weather: { isStale: boolean; forecast: WeatherForecast } | null;
+  /**
+   * The round after `race`, for the "Next race" strip once the race result
+   * is in. `selectTrmnlNextRace` picks it. Null after the season's last race.
+   */
+  nextRace?: RaceForTrmnl | null;
   /**
    * The season's championship. With no race, the season just run, shown
    * through the off-season (its `news` is then the site's race-independent
@@ -241,7 +254,20 @@ export type TrmnlPayload = {
   focus: 'result' | 'grid' | 'news' | 'standings' | 'schedule';
   result: {
     label: string;
-    rows: { pos: number; code: string; name: string }[];
+    /** `status` is "DNF", "DNS" or "DSQ" for a driver who did not finish, else "". */
+    rows: { pos: number; code: string; name: string; status: string }[];
+  } | null;
+  /**
+   * The race result is in: the weekend is over. The full screen drops the
+   * timeline for the whole classification, the news and `next_race`.
+   */
+  race_finished: boolean;
+  /** Set when `race_finished`, unless this was the season's last race. */
+  next_race: {
+    name: string;
+    flag_url: string | null;
+    round: number;
+    dates: string;
   } | null;
   grid: { pos: number; code: string; name: string; note: string }[];
   news: { headline: string }[];
@@ -293,6 +319,22 @@ export function selectTrmnlRace<T extends RaceForTrmnl>(
   );
 }
 
+/** The round after `race` in the season, skipping cancelled ones. */
+export function selectTrmnlNextRace<T extends RaceForTrmnl>(
+  races: T[],
+  race: RaceForTrmnl,
+): T | null {
+  return (
+    races
+      .filter(
+        (candidate) =>
+          candidate.status !== 'cancelled' &&
+          candidate.raceStartAt > race.raceStartAt,
+      )
+      .sort((a, b) => a.raceStartAt - b.raceStartAt)[0] ?? null
+  );
+}
+
 export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
   const { race, now } = input;
   const format = makeFormatter(input.timeZone, input.locale, now);
@@ -306,6 +348,8 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
       schedule: [],
       focus: 'news',
       result: null,
+      race_finished: false,
+      next_race: null,
       grid: [],
       news: formatNews(input.news),
       standings: buildStandings(input.standings ?? null),
@@ -348,9 +392,12 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
             pos: row.position,
             code: row.code,
             name: row.displayName,
+            status: row.status ? row.status.toUpperCase() : '',
           })),
       }
     : null;
+  const raceFinished = raceResult.length > 0;
+  const nextRace = raceFinished ? (input.nextRace ?? null) : null;
 
   const focus = chooseFocus({
     hasRaceResult: raceResult.length > 0,
@@ -386,6 +433,15 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
     ),
     focus: standings ? 'standings' : focus,
     result,
+    race_finished: raceFinished,
+    next_race: nextRace
+      ? {
+          name: nextRace.name,
+          flag_url: flagUrl(nextRace.slug),
+          round: nextRace.round,
+          dates: format.range(weekendStartAt(nextRace), nextRace.raceStartAt),
+        }
+      : null,
     grid,
     news: formatNews(input.news),
     standings,

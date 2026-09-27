@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { TrmnlInput } from './payload';
 import {
   buildTrmnlPayload,
+  selectTrmnlNextRace,
   resolveTrmnlLanding,
   selectTrmnlRace,
   TRMNL_RESULT_HOLD_MS,
@@ -225,8 +226,8 @@ describe('buildTrmnlPayload', () => {
     expect(payload.result?.rows).toHaveLength(6);
   });
 
-  it('carries the top ten for a race or sprint and five for qualifying', () => {
-    const field = Array.from({ length: 20 }, (_, index) => ({
+  it('carries the whole race and the qualifying top five', () => {
+    const field = Array.from({ length: 22 }, (_, index) => ({
       position: index + 1,
       code: `D${index + 1}`,
       displayName: `Driver ${index + 1}`,
@@ -234,7 +235,7 @@ describe('buildTrmnlPayload', () => {
     const now = at('2026-09-06T17:00:00Z');
     expect(
       buildTrmnlPayload(input({ now, results: { race: field } })).result?.rows,
-    ).toHaveLength(10);
+    ).toHaveLength(22);
     expect(
       buildTrmnlPayload(
         input({ now: at('2026-09-05T18:00:00Z'), results: { quali: field } }),
@@ -364,6 +365,68 @@ describe('buildTrmnlPayload', () => {
     });
     expect(roundOne.focus).toBe('schedule');
     expect(roundOne.standings).toBe(null);
+  });
+
+  it('marks the weekend finished and names the next round once the race is in', () => {
+    const next = {
+      ...race,
+      slug: 'azerbaijan-2026',
+      name: 'Azerbaijan Grand Prix',
+      round: 17,
+      fp1StartAt: at('2026-09-18T08:30:00Z'),
+      fp2StartAt: at('2026-09-18T12:00:00Z'),
+      fp3StartAt: at('2026-09-19T08:30:00Z'),
+      qualiStartAt: at('2026-09-19T12:00:00Z'),
+      raceStartAt: at('2026-09-20T11:00:00Z'),
+    };
+    const retired = [
+      ...podium,
+      {
+        position: podium.length + 1,
+        code: 'STR',
+        displayName: 'Lance Stroll',
+        status: 'dnf',
+      },
+    ];
+    const finished = buildTrmnlPayload(
+      input({
+        now: at('2026-09-06T17:00:00Z'),
+        results: { race: retired },
+        nextRace: next,
+      }),
+    );
+    expect(finished.race_finished).toBe(true);
+    expect(finished.result?.rows.at(-1)).toMatchObject({ status: 'DNF' });
+    expect(finished.result?.rows[0]).toMatchObject({ status: '' });
+    expect(finished.next_race).toMatchObject({
+      name: 'Azerbaijan Grand Prix',
+      round: 17,
+      dates: '18 – 20 Sept',
+    });
+
+    // Before the race result, there is no next race to show yet.
+    const saturday = buildTrmnlPayload(
+      input({ now: at('2026-09-05T18:00:00Z'), nextRace: next }),
+    );
+    expect(saturday.race_finished).toBe(false);
+    expect(saturday.next_race).toBe(null);
+  });
+
+  it('picks the next round, skipping a cancelled one', () => {
+    function later(slug: string, days: number, status = 'upcoming') {
+      return {
+        ...race,
+        slug,
+        status: status as typeof race.status,
+        raceStartAt: race.raceStartAt + days * 24 * HOUR,
+      };
+    }
+    const cancelled = later('cancelled-2026', 7, 'cancelled');
+    const next = later('azerbaijan-2026', 14);
+    expect(selectTrmnlNextRace([next, race, cancelled], race)?.slug).toBe(
+      'azerbaijan-2026',
+    );
+    expect(selectTrmnlNextRace([race], race)).toBe(null);
   });
 
   it('focuses whichever is newer, a session result or the news', () => {

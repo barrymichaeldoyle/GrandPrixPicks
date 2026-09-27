@@ -73,6 +73,22 @@ const miami: NonNullable<TrmnlInput['race']> = {
   predictionLockAt: at('2026-05-03T20:00:00Z'),
 };
 
+/** The round after Monza, for the finished screen's "Next race" strip. */
+const baku: NonNullable<TrmnlInput['race']> = {
+  ...monza,
+  _id: 'sample-baku' as NonNullable<TrmnlInput['race']>['_id'],
+  slug: 'azerbaijan-2026',
+  name: 'Azerbaijan Grand Prix',
+  round: 17,
+  fp1StartAt: at('2026-09-18T08:30:00Z'),
+  fp2StartAt: at('2026-09-18T12:00:00Z'),
+  fp3StartAt: at('2026-09-19T08:30:00Z'),
+  qualiStartAt: at('2026-09-19T12:00:00Z'),
+  qualiLockAt: at('2026-09-19T12:00:00Z'),
+  raceStartAt: at('2026-09-20T11:00:00Z'),
+  predictionLockAt: at('2026-09-20T11:00:00Z'),
+};
+
 const GRID_ORDER = [
   ['NOR', 'Lando Norris'],
   ['PIA', 'Oscar Piastri'],
@@ -396,7 +412,14 @@ export const TRMNL_SCENARIOS: readonly TrmnlScenario[] = [
     now: at('2026-09-06T17:00:00Z'),
     news: [gridNews, ...news],
     practice,
-    results: { quali: classification, race: classification },
+    // The last two retired, so the classification shows DNF rows.
+    results: {
+      quali: classification,
+      race: classification.map((row, index) =>
+        index >= classification.length - 2 ? { ...row, status: 'dnf' } : row,
+      ),
+    },
+    nextRace: baku,
   }),
   scenario('sprint', 'Sprint weekend', 'Saturday of a sprint weekend', {
     now: at('2026-05-02T18:00:00Z'),

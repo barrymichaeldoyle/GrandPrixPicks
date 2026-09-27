@@ -212,6 +212,18 @@ describe('TRMNL layouts', () => {
     expect(html).toContain('No race scheduled.');
   });
 
+  it('shows the whole classification, news and next race once the race is in', () => {
+    const finished = TRMNL_SCENARIOS.find((s) => s.id === 'finished')!;
+    const full = renderTrmnlMarkup('full', finished.payload);
+    const rows = finished.payload.result!.rows;
+    expect(full).toContain(`>${rows.at(-1)!.name}<`);
+    expect(full).toContain('>DNF<');
+    expect(full).toContain('Next race');
+    expect(full).toContain(finished.payload.next_race!.name);
+    // The weekend is over: no timeline.
+    expect(full).not.toContain('>Next<');
+  });
+
   it('marks the next session on the timeline', () => {
     const friday = TRMNL_SCENARIOS.find((s) => s.id === 'friday')!;
     expect(renderTrmnlMarkup('full', friday.payload)).toContain('>Next<');

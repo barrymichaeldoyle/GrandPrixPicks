@@ -4,6 +4,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { captureServerException, startServerSpan } from '../../../lib/sentry';
 import {
   buildTrmnlPayload,
+  selectTrmnlNextRace,
   selectTrmnlRace,
 } from '../../../../src/lib/trmnl/payload';
 import type { MeasurementUnits } from '../../../../src/lib/weatherPresentation';
@@ -113,7 +114,11 @@ export default async function handler(event: RouteEvent) {
         }
 
         const weekend = await loadTrmnlWeekend(convex, race, now);
-        return buildTrmnlPayload({ ...base, ...weekend });
+        return buildTrmnlPayload({
+          ...base,
+          ...weekend,
+          nextRace: selectTrmnlNextRace(races, race),
+        });
       },
     );
 

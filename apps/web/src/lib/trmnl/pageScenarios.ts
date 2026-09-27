@@ -5,7 +5,7 @@ import { convexHttp } from '@/integrations/convex/client';
 import { withRetry } from '@/lib/retry';
 
 import type { TrmnlInput, TrmnlPayload } from './payload';
-import { buildTrmnlPayload } from './payload';
+import { buildTrmnlPayload, selectTrmnlNextRace } from './payload';
 import { pickReplay, replayWeekend, TRMNL_MOMENTS } from './replay';
 import type { TrmnlNewsCount } from './scenarios';
 import {
@@ -137,6 +137,7 @@ export const fetchTrmnlPageScenarios = createServerFn({
         timeZone: ZONE,
         locale: LOCALE,
         ...replayWeekend(weekend, pick.at),
+        nextRace: selectTrmnlNextRace(races, pick.race),
       },
     );
   });

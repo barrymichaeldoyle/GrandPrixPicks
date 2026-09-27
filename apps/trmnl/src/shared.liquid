@@ -227,7 +227,7 @@
 <div class="flex flex--col gap--small">
   {% for row in rows limit: limit offset: offset %}
   <div class="item">
-    <div class="meta"><span class="index">{{ row.pos }}</span></div>
+    <div class="meta"><span class="index">{% if row.status != "" %}{{ row.status }}{% else %}{{ row.pos }}{% endif %}</span></div>
     <div class="content">
       <span class="title title--small {% if compact %}lg:title--base{% else %}lg:title--large{% endif %}">{{ row.name }}</span>
     </div>
@@ -410,6 +410,75 @@
       </table>
     </div>
     {% endfor %}
+  </div>
+</div>
+{% endtemplate %}
+
+{% comment %}
+  The checkered band under the full screen's lead.
+{% endcomment %}
+{% template checker %}
+{% comment %}
+  A whole number of squares scaled to the column, so the band never ends
+  on a cut square. An odd count puts a black square in both top corners;
+  the height follows the width so the squares stay square. Portrait's
+  full-width column takes more of them, or the band grows to 58px on an X.
+{% endcomment %}
+<div class="w--full portrait:hidden" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 376 16" width="100%" style="display: block; height: auto;" shape-rendering="crispEdges" role="presentation">
+    <defs><pattern id="schedule-checker" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#000"/><rect x="8" width="8" height="8" fill="#fff"/><rect y="8" width="8" height="8" fill="#fff"/><rect x="8" y="8" width="8" height="8" fill="#000"/></pattern></defs>
+    <rect width="376" height="16" fill="url(#schedule-checker)"/>
+  </svg>
+</div>
+<div class="w--full hidden portrait:block" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 472 16" width="100%" style="display: block; height: auto;" shape-rendering="crispEdges" role="presentation">
+    <defs><pattern id="schedule-checker-portrait" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#000"/><rect x="8" width="8" height="8" fill="#fff"/><rect y="8" width="8" height="8" fill="#fff"/><rect x="8" y="8" width="8" height="8" fill="#000"/></pattern></defs>
+    <rect width="472" height="16" fill="url(#schedule-checker-portrait)"/>
+  </svg>
+</div>
+{% endtemplate %}
+
+{% comment %}
+  The whole race classification once the weekend is over, in two columns. A
+  driver who did not finish shows "DNF", "DNS" or "DSQ" in place of a
+  position, so the tail of the list does not read as finishing places.
+{% endcomment %}
+{% template classification %}
+{% assign per_column = result.rows.size | plus: 1 | divided_by: 2 %}
+<div class="flex flex--col flex--left gap--small w--full">
+  <span class="title lg:title--large">{{ result.label }}</span>
+  <div class="flex flex--row flex--top gap--medium w--full">
+    {% for column in (1..2) %}
+    {% assign column_offset = column | minus: 1 | times: per_column %}
+    {% unless forloop.first %}<div class="w--[1px] self--stretch shrink-0 bg--black"></div>{% endunless %}
+    <div class="grow">
+      <table class="table w--full {{ size }}">
+        <tbody>
+          {% for row in result.rows limit: per_column offset: column_offset %}
+          <tr>
+            <td><span class="label label--small lg:label--base w--[28px] lg:w--[44px]">{% if row.status != "" %}{{ row.status }}{% else %}{{ row.pos }}{% endif %}</span></td>
+            <td class="w--full"><span class="title title--small lg:title--base">{{ row.name }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endtemplate %}
+
+{% comment %}
+  When the next round is on, under the finished weekend's news: its flag,
+  name and dates.
+{% endcomment %}
+{% template next_race %}
+<div class="flex flex--col flex--left gap--xsmall w--full">
+  <span class="label label--small lg:label--base">Next race</span>
+  <div class="flex flex--row flex--left flex--center-y gap--small">
+    {% render "race_flag", race: next_race, flag_size: "h--[20px] w--max-[40px] lg:h--[32px] lg:w--max-[64px]" %}
+    <span class="title title--small lg:title--base">{{ next_race.name }}</span>
+    <span class="label label--small lg:label--base">{{ next_race.dates | replace: " ", "&nbsp;" | replace: "–", "&#8288;–&#8288;" }}</span>
   </div>
 </div>
 {% endtemplate %}

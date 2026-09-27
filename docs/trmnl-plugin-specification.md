@@ -107,7 +107,7 @@ the race document and what has been published; nothing is scheduled.
 | ----------------------------------- | -------------------- | ------------------------- |
 | Before the race is next             | `<Session> <time>`   | Newer of news or result   |
 | Race next or under way, no result   | `Lights out <time>`  | Grid if published         |
-| Race result published, held for 36h | `Race winner <name>` | Race top 5                |
+| Race result published, held for 36h | `Race winner <name>` | Whole classification      |
 | No race left in the season          | The champion         | Both tables, the news     |
 
 The weekend shown is the next race, except that a race holds the screen for
@@ -250,6 +250,18 @@ both crushed the narrow layouts. Every row keeps the weather icon's height, so
 the timeline's rhythm does not change as sessions finish. Race dates keep their en dash and
 never break inside the range; where the header is two lines, it splits as the
 circuit, then "Round 16 · 2 – 4 Oct", so no line starts or ends on a dot.
+
+**Full, once the race result is in** (`race_finished`): the weekend is over,
+so the timeline goes. The left column has the winner, the checkered band, the
+latest headlines (three on the OG, six on the X in landscape, three in
+portrait) and a "Next race" strip with the next round's flag, name and dates
+(`next_race`, from `selectTrmnlNextRace`; absent after the season's last race).
+The right column, or the bottom in portrait, has the whole classification in
+two columns (`classification` in `shared.liquid`). A driver who did not
+finish shows "DNF", "DNS" or "DSQ" in place of a position, here and in the
+halves' top-ten lists, so the tail does not read as finishing places. The
+payload carries the whole race classification; the halves still show their
+top five or ten.
 
 **Half horizontal:** the compact race header sits above the lead and its
 weather, with the QR code beside the lead, the whole block centred vertically
@@ -624,8 +636,8 @@ items on it were not met at first, and were fixed on 23 September 2026:
    palette, which has no gray and no Framework prefix to override it with.
    `/trmnl`'s palette switch shows all six.
 3. **A way to contact the author.** `author_bio` in `settings.yml` now has
-   `email_address` (barry@barrymichaeldoyle.com, a placeholder until Barry
-   picks the address to list).
+   `email_address` (barry@barrymichaeldoyle.com, confirmed as the address to
+   list).
 
 Also check:
 
@@ -639,7 +651,15 @@ Also check:
   results, news" (the first draft, "F1 race weekend: times, results, news",
   was 37).
 - **The icon.** The plugin's settings take a PNG or SVG, 512x512
-  recommended. `apps/web/public/trmnl-icon.svg` is the mark to use.
+  recommended. Uploaded 27 September 2026: `apps/web/public/trmnl-icon-512.png`,
+  the bar mark from `trmnl-icon.svg` in black on a white rounded tile, as it
+  sits in the title bar. The bare black mark vanished on TRMNL's dark UI.
+- **The overview.** "Public recipe overview" needs 100 useful words to appear
+  in search. Set 27 September 2026 (170 words). It describes the screen and
+  never mentions picks.
+- **Units is required.** The `units` select has no value on a plugin made
+  before the field existed, and the browser blocks every save until one is
+  chosen. Parse still fills in the `Metric` default.
 - **Form fields.** A plugin set up by hand has no `author_bio`. Paste the
   `custom_fields` block from `settings.yml` into the plugin's Form Fields
   box, then check its text and links render.
@@ -651,10 +671,16 @@ latest full-screen render is the directory's preview image. So:
 - Keep the Master as the demo. Install the published Recipe again for
   Barry's own device, and test changes on a copy (the clone icon) before
   editing the Master.
-- Pick the preview with **Featured Image** in the Recipe's settings, on a
-  weekend when the screen is at its best (race morning with the grid, or a
-  finished race). Taking the Master off every playlist freezes its screen.
-  The plugin shows only public data, so there is nothing personal to leak.
+- The **Featured Image** is generated from the plugin's current render
+  ("Generate marketplace preview") and then kept. The one set on 27
+  September 2026 is Baku half an hour before qualifying, built from prod:
+  FP1 to FP3 with their top three, qualifying next and the 13 headlines
+  published by then. To make one like it, build the payload with
+  `loadTrmnlWeekend` + `replayWeekend` + `buildTrmnlPayload` for the chosen
+  moment, switch the strategy to Static with that JSON, save (TRMNL renders
+  at once), generate the preview, then switch back to Polling and clear the
+  static data. The plugin shows only public data, so there is nothing
+  personal to leak.
 
 **Submitting.**
 

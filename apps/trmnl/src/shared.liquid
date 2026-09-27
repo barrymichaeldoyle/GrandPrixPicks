@@ -490,7 +490,7 @@
   it, the name. Two short lines, so the column keeps room for another headline.
 {% endcomment %}
 <div class="flex flex--row flex--left flex--center-y gap--small w--full">
-  {% render "race_flag", race: next_race, flag_size: "h--[28px] w--max-[56px] lg:h--[44px] lg:w--max-[88px]" %}
+  {% render "race_flag", race: next_race, flag_size: "h--[28px] w--max-[56px] lg:h--[56px] lg:w--max-[112px] lg:portrait:h--[44px] lg:portrait:w--max-[88px]" %}
   <div class="flex flex--col flex--left gap--none">
     <span class="label label--small lg:label--base">Next race · {{ next_race.dates | replace: " ", "&nbsp;" | replace: "–", "&#8288;–&#8288;" }}</span>
     <span class="title title--small lg:title--large">{{ next_race.name }}</span>

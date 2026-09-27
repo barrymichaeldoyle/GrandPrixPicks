@@ -100,22 +100,18 @@ export const getByRaceSlug = query({
   args: { raceSlug: v.string(), now: v.number() },
   returns: publicWeatherValidator,
   handler: async (ctx, args) => {
-    const forecast = await ctx.db
-      .query('weatherForecasts')
-      .withIndex('by_raceSlug', (q) => q.eq('raceSlug', args.raceSlug))
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', args.raceSlug))
       .unique();
-    if (!forecast) {
-      return null;
-    }
-    // Imported forecasts can retain IDs from another deployment's tables.
-    const raceId = ctx.db.normalizeId('races', forecast.raceId);
-    if (!raceId) {
-      return null;
-    }
-    const race = await ctx.db.get('races', raceId);
     if (!race || !isWeatherEligible(race, args.now)) {
       return null;
     }
+    // Imported forecasts can share a slug while referencing another deployment.
+    const forecast = await ctx.db
+      .query('weatherForecasts')
+      .withIndex('by_raceId', (q) => q.eq('raceId', race._id))
+      .unique();
     return publicWeather(forecast);
   },
 });
@@ -133,20 +129,18 @@ export const getForWriteup = query({
   args: { raceSlug: v.string(), now: v.number() },
   returns: publicWeatherValidator,
   handler: async (ctx, args) => {
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', args.raceSlug))
+      .unique();
+    if (!race) {
+      return null;
+    }
     const forecast = await ctx.db
       .query('weatherForecasts')
-      .withIndex('by_raceSlug', (q) => q.eq('raceSlug', args.raceSlug))
+      .withIndex('by_raceId', (q) => q.eq('raceId', race._id))
       .unique();
     if (!forecast) {
-      return null;
-    }
-    // Imported forecasts can retain IDs from another deployment's tables.
-    const raceId = ctx.db.normalizeId('races', forecast.raceId);
-    if (!raceId) {
-      return null;
-    }
-    const race = await ctx.db.get('races', raceId);
-    if (!race) {
       return null;
     }
     if (isWeatherEligible(race, args.now)) {

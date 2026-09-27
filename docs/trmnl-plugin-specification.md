@@ -657,11 +657,13 @@ items on it were not met at first, and were fixed on 23 September 2026:
 
 Also check:
 
-- **Inline styles.** Chef, TRMNL's automated linter, flags inline `display`,
-  `padding`, `margin`, `background-color`, `color`, `border-radius`,
-  `text-align`, `object-fit` and `font-size`. The templates use only `border`
-  (the flag frame) and `white-space`, which are not on that list, but a
-  reviewer may still comment.
+- **Automated review hints.** The templates have no inline style attributes;
+  the checker SVGs use Framework `block h--auto` classes. Three hints may
+  still appear: `checker` needs no arguments because it is static; Shared
+  defines partials while each view supplies its own `layout` container; and
+  monochrome SVG icons and the X's undithered flag intentionally omit
+  `image-dither`. The OG flag is dithered. These choices are documented beside
+  the markup for the human reviewer.
 - **The Description field** on the plugin's settings page is the tagline in
   search results, capped at 35 characters. It is set: "F1 weekend: times,
   results, news" (the first draft, "F1 race weekend: times, results, news",

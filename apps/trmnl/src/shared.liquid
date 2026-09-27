@@ -11,6 +11,9 @@
   times are already in the owner's zone and language, so nothing here does
   date arithmetic. Liquid computing "time until" would freeze whenever the
   payload is unchanged, because TRMNL skips the redraw.
+  This file defines partials only. Each of the four view files supplies its
+  own layout container; wrapping these definitions in a layout would nest it.
+  Weather and title-bar icons are monochrome SVGs and need no image dithering.
 {% endcomment %}
 
 {% comment %}
@@ -96,6 +99,11 @@
 {% endtemplate %}
 
 {% template race_flag %}
+{% comment %}
+  Dither the OG flag to its limited palette. The X uses undithered grayscale
+  to keep flat stripes and small emblems clear. The missing X dither class
+  is intentional; the platform still renders it in the device's palette.
+{% endcomment %}
 {% if race.flag_url %}
 <div class="bg--black p--0.5 shrink-0 flex">
   <img class="image image-dither lg:hidden shrink-0 w--auto {{ flag_size }}" src="{{ race.flag_url }}" alt="">
@@ -419,19 +427,20 @@
 {% endcomment %}
 {% template checker %}
 {% comment %}
+  This template is entirely static and needs no variables from its caller.
   A whole number of squares scaled to the column, so the band never ends
   on a cut square. An odd count puts a black square in both top corners;
   the height follows the width so the squares stay square. Portrait's
   full-width column takes more of them, or the band grows to 58px on an X.
 {% endcomment %}
 <div class="w--full portrait:hidden" aria-hidden="true">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 376 16" width="100%" style="display: block; height: auto;" shape-rendering="crispEdges" role="presentation">
+  <svg class="block h--auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 376 16" width="100%" shape-rendering="crispEdges" role="presentation">
     <defs><pattern id="schedule-checker" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#000"/><rect x="8" width="8" height="8" fill="#fff"/><rect y="8" width="8" height="8" fill="#fff"/><rect x="8" y="8" width="8" height="8" fill="#000"/></pattern></defs>
     <rect width="376" height="16" fill="url(#schedule-checker)"/>
   </svg>
 </div>
 <div class="w--full hidden portrait:block" aria-hidden="true">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 472 16" width="100%" style="display: block; height: auto;" shape-rendering="crispEdges" role="presentation">
+  <svg class="block h--auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 472 16" width="100%" shape-rendering="crispEdges" role="presentation">
     <defs><pattern id="schedule-checker-portrait" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#000"/><rect x="8" width="8" height="8" fill="#fff"/><rect y="8" width="8" height="8" fill="#fff"/><rect x="8" y="8" width="8" height="8" fill="#000"/></pattern></defs>
     <rect width="472" height="16" fill="url(#schedule-checker-portrait)"/>
   </svg>

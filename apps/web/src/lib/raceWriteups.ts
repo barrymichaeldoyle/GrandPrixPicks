@@ -79,7 +79,7 @@ const RACE_WRITEUPS = {
   },
   'bahrain-2026': {
     to: '/f1-2026-bahrain-grand-prix-predictions',
-    reviewedAt: '2026-09-11',
+    reviewedAt: '2026-09-27',
     venueName: 'Sepang',
     label: 'Sepang predictions',
     summary:

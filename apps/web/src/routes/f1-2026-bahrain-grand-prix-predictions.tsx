@@ -19,6 +19,12 @@ import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSect
 import { SessionConsensusSections } from '@/components/SessionConsensus';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
+import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
+import {
+  SEPANG_OVERTAKE_WRITEUP_IMAGE,
+  SEPANG_PODIUM_WRITEUP_IMAGE,
+  SEPANG_VETTEL_WRITEUP_IMAGE,
+} from '@/lib/bahrain2026WriteUpImages';
 import { lastReviewedAt } from '@/lib/lastReviewed';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { routeQuery } from '@/lib/routeQuery';
@@ -357,6 +363,7 @@ function NoCurrentForm() {
     <RaceWriteupSection
       id="no-current-form"
       heading="The last Formula 1 race here was in 2017"
+      aside={<WriteUpNewsPhoto {...SEPANG_PODIUM_WRITEUP_IMAGE} />}
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         Sepang held the Malaysian Grand Prix from 1999 to 2017. Nine years of
@@ -396,6 +403,7 @@ function Circuit() {
     <RaceWriteupSection
       id={RACE_WRITEUP_CIRCUIT_ANCHOR}
       heading={SIGNALS_HEADING}
+      aside={<WriteUpNewsPhoto {...SEPANG_VETTEL_WRITEUP_IMAGE} />}
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         Sepang is <Figure>5.543 km</Figure> long with{' '}
@@ -433,6 +441,7 @@ function TyreChoice() {
       heading="Sepang gets the middle three tyres"
       venue="Sepang"
       hardest="C2"
+      aside={<WriteUpNewsPhoto {...SEPANG_OVERTAKE_WRITEUP_IMAGE} />}
     >
       <p className="gpp-reading-copy mt-7 text-text-muted">
         Pirelli brings C2, C3 and C4, one step harder than the C3, C4 and C5

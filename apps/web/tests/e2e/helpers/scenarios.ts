@@ -11,6 +11,7 @@ const E2E_COMMAND_TIMEOUT_MS = 120_000;
 type ScenarioSummary = {
   scenario: string | null;
   namespace: string;
+  actor: { username: string | null } | null;
   race: {
     slug: string;
     name: string;

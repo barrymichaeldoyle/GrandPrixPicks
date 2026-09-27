@@ -25,6 +25,13 @@ custom_fields:
     field_type: author_bio
     name: About This Plugin
     category: sports
-    description: The current Formula 1 race weekend. Session times in your time zone, practice and session results as they are published, the confirmed starting grid on race morning, and the news behind them. From Grand Prix Picks.
+    description: >-
+      Follow the Formula 1 race weekend: session times in your time zone,
+      weather forecasts, practice and qualifying results, the confirmed
+      starting grid, race results, and weekend news. Between seasons, see
+      the championship standings. Choose metric or imperial units.
+      No account required.
+      <br/><br/>From GrandPrixPicks.com.
+      <br/><a href="https://github.com/barrymichaeldoyle/GrandPrixPicks/tree/main/apps/trmnl">View source on GitHub</a>
     learn_more_url: https://grandprixpicks.com/trmnl
     email_address: barry@barrymichaeldoyle.com

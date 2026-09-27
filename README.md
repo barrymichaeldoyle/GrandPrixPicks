@@ -37,6 +37,7 @@ pnpm workspace (`apps/*` and `packages/*`):
 - `apps/web`: TanStack Start web app (frontend + SSR server routes + build tooling)
 - `apps/mobile`: Expo / React Native app (also runs on web via Expo)
 - `apps/backend`: Convex backend (schema, queries/mutations, scoring, emails)
+- [`apps/trmnl`](./apps/trmnl/README.md): Formula 1 race weekend plugin for TRMNL displays
 - `packages/shared`: code shared between web and mobile (session types, scoring constants)
 
 See [docs/monorepo.md](./docs/monorepo.md) for the full guide.

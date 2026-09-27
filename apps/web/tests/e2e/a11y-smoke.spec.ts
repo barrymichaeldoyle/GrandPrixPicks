@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import { expectNoA11yViolations } from './helpers/a11y';
 import { waitForHydration } from './helpers/hydration';
+import { applyScenario } from './helpers/scenarios';
 
 /**
  * One pass per distinct layout, not per route.
@@ -60,6 +61,12 @@ const PAGES = [
 test.describe('[public] a11y smoke', () => {
   for (const { path, name, charts, crashSelection } of PAGES) {
     test(`${name} has no WCAG A/AA violations`, async ({ page }) => {
+      if (charts && !process.env.PLAYWRIGHT_BASE_URL) {
+        // A clean dev deployment has no results and therefore no charts.
+        applyScenario('race_finished_scored_standard', {
+          namespace: 'scenario__a11y_smoke__standings',
+        });
+      }
       await page.goto(path);
       // Axe reads the composed document, so it has to run against the page as
       // a reader gets it — after the client has filled in whatever SSR left

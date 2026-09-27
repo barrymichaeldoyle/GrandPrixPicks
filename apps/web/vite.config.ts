@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module';
+import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 
@@ -125,6 +126,23 @@ const config = defineConfig(({ mode }) => {
       'import.meta.env.VITE_SENTRY_DIST': JSON.stringify(sentryDist),
     },
     plugins: [
+      {
+        name: 'trmnl-template-comments',
+        enforce: 'pre',
+        async load(id) {
+          if (!id.endsWith('.liquid?raw')) {
+            return;
+          }
+          // Liquid comments document the device layouts but never render.
+          // Remove them before raw imports embed them in the browser bundle.
+          const source = await readFile(id.slice(0, -4), 'utf8');
+          const markup = source.replace(
+            /{%\s*comment\s*%}[\s\S]*?{%\s*endcomment\s*%}/g,
+            '',
+          );
+          return `export default ${JSON.stringify(markup)}`;
+        },
+      },
       ...(devtools() as PluginOption[]),
       // Skip Nitro and TanStack Start in Vitest to avoid CJS/ESM errors and hanging process
       ...(isVitest

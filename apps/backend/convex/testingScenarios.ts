@@ -627,6 +627,7 @@ async function buildScenarioSummary(
           clerkUserId: primaryUser.clerkUserId,
           email: primaryUser.email ?? null,
           displayName: primaryUser.displayName ?? null,
+          username: primaryUser.username ?? null,
         }
       : null,
     race: race
@@ -786,6 +787,9 @@ async function upsertScenarioUser(
         clerkUserId,
         email,
         displayName: args.displayName,
+        username: args.clerkUserId
+          ? undefined
+          : `${args.namespace}__${args.role}`,
         isAdmin: args.isAdmin,
         createdAt: now,
         updatedAt: now,

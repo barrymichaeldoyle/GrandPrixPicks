@@ -70,14 +70,20 @@ test.describe('[public] seo smoke', () => {
   test('emits noindex and a self canonical on follow-list pages', async ({
     page,
   }) => {
-    await page.goto('/p/barrymichaeldoyle/followers');
+    const summary = applyScenario('race_finished_scored_standard', {
+      namespace: 'scenario__seo_smoke__followers',
+    });
+    expect(summary.actor?.username).toBeTruthy();
+    const path = `/p/${summary.actor!.username}/followers`;
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(200);
     await expect
       .poll(() => page.locator('meta[name="robots"]').getAttribute('content'))
       .toBe('noindex, follow');
     await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       'href',
-      `${SITE_URL}/p/barrymichaeldoyle/followers`,
+      `${SITE_URL}${path}`,
     );
   });
 

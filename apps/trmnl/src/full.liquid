@@ -1,4 +1,4 @@
-{% if has_race %}
+{% if has_race and race %}
 {% assign full_news_size = "title--base lg:title--large" %}
 {% if news.size > 6 %}{% assign full_news_size = "title--small lg:title--base" %}{% endif %}
 <div class="layout layout--col layout--top layout--stretch-x gap--medium">

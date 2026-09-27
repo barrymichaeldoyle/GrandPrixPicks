@@ -1,4 +1,4 @@
-{% if has_race %}
+{% if has_race and race %}
 {% assign half_vertical_news_size = "title--small lg:title--base" %}
 {% assign half_vertical_body_center = "" %}
 {% if news.size == 0 or focus == "result" %}{% assign half_vertical_body_center = "flex--center-y" %}{% endif %}

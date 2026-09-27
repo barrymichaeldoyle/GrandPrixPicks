@@ -438,6 +438,10 @@ async function draw(message) {
   await Promise.all(Array.prototype.map.call(document.images, settled));
   if (document.fonts) await document.fonts.ready;
   if (window.terminalize) await window.terminalize();
+  // terminalize() can rebuild parts of the screen (the overflow pass re-lays
+  // the news column), and a rebuilt <img> is still loading here: the next
+  // race's flag stayed in colour. Wait for those too before dithering.
+  await Promise.all(Array.prototype.map.call(document.images, settled));
   if (message.inks) ditherScreenImages(message.inks, message.gray);
   await Promise.all(Array.prototype.map.call(document.images, settled));
   await new Promise(function (resolve) { requestAnimationFrame(function () { requestAnimationFrame(resolve); }); });

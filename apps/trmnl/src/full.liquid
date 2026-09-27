@@ -22,15 +22,16 @@
   <div class="grid grid--cols-2 portrait:grid--cols-1 gap--large grow">
     <div class="flex flex--col flex--stretch-x gap--medium">
       <div class="flex flex--col flex--center gap--xsmall">
-        {% render "lead", lead: lead, size: "value--large lg:value--xxlarge", label_size: "lg:text--mega" %}
+        {% comment %}"Race winner" a step below the build-up's lead label on the X, for a fifth headline.{% endcomment %}
+        {% render "lead", lead: lead, size: "value--large lg:value--xxlarge", label_size: "lg:title--xlarge" %}
       </div>
       {% render "checker" %}
       {% if news.size > 0 %}
       <div class="grow">
         <div class="lg:hidden portrait:hidden">{% render "news", news: news, limit: 3, headline_size: "title--small" %}</div>
         <div class="hidden portrait:block lg:portrait:hidden">{% render "news", news: news, limit: 3, headline_size: "title--small" %}</div>
-        {% comment %}Four on the X: six two-line headlines pushed the "Next race" strip off the screen.{% endcomment %}
-        <div class="hidden lg:block lg:portrait:hidden">{% render "news", news: news, limit: 4, headline_size: "lg:title--base" %}</div>
+        {% comment %}Five on the X and three on the OG in landscape: any more two-line headlines pushed the next race under the title bar.{% endcomment %}
+        <div class="hidden lg:block lg:portrait:hidden">{% render "news", news: news, limit: 5, headline_size: "lg:title--base" %}</div>
         <div class="hidden lg:portrait:block">{% render "news", news: news, limit: 3, headline_size: "lg:title--base" %}</div>
       </div>
       {% endif %}

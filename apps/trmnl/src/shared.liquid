@@ -476,12 +476,15 @@
   name and dates.
 {% endcomment %}
 {% template next_race %}
-<div class="flex flex--col flex--left gap--xsmall w--full">
-  <span class="label label--small lg:label--base">Next race</span>
-  <div class="flex flex--row flex--left flex--center-y gap--small">
-    {% render "race_flag", race: next_race, flag_size: "h--[20px] w--max-[40px] lg:h--[32px] lg:w--max-[64px]" %}
-    <span class="title title--small lg:title--base">{{ next_race.name }}</span>
-    <span class="label label--small lg:label--base">{{ next_race.dates | replace: " ", "&nbsp;" | replace: "–", "&#8288;–&#8288;" }}</span>
+{% comment %}
+  A small race header: the flag beside "Next race · 2 – 4 Oct" and, under
+  it, the name. Two short lines, so the column keeps room for another headline.
+{% endcomment %}
+<div class="flex flex--row flex--left flex--center-y gap--small w--full">
+  {% render "race_flag", race: next_race, flag_size: "h--[28px] w--max-[56px] lg:h--[44px] lg:w--max-[88px]" %}
+  <div class="flex flex--col flex--left gap--none">
+    <span class="label label--small lg:label--base">Next race · {{ next_race.dates | replace: " ", "&nbsp;" | replace: "–", "&#8288;–&#8288;" }}</span>
+    <span class="title title--small lg:title--large">{{ next_race.name }}</span>
   </div>
 </div>
 {% endtemplate %}

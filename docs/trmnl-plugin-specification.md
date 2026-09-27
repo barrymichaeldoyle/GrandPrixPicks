@@ -253,9 +253,12 @@ circuit, then "Round 16 · 2 – 4 Oct", so no line starts or ends on a dot.
 
 **Full, once the race result is in** (`race_finished`): the weekend is over,
 so the timeline goes. The left column has the winner, the checkered band, the
-latest headlines (three on the OG, six on the X in landscape, three in
-portrait) and a "Next race" strip with the next round's flag, name and dates
-(`next_race`, from `selectTrmnlNextRace`; absent after the season's last race).
+latest headlines (three on the OG, five on the X in landscape, three in
+portrait: more two-line headlines pushed the next race under the title bar;
+"Race winner" is a step smaller than the build-up's lead label on the X to
+make room for the fifth) and the next round as a small race header: its flag
+beside "Next race · 2 – 4 Oct" with the name under it (`next_race`, from
+`selectTrmnlNextRace`; absent after the season's last race).
 The right column, or the bottom in portrait, has the whole classification in
 two columns (`classification` in `shared.liquid`): "P1" and the driver code,
 as the championship reads, and the official gap, the winner's race time

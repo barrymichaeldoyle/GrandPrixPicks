@@ -47,10 +47,10 @@ export type TeamLineUp = {
 };
 
 /** Bumped by hand whenever the seats below are re-checked against reporting. */
-export const LINE_UP_2027_REVIEWED_AT = '2026-09-23';
+export const LINE_UP_2027_REVIEWED_AT = '2026-09-27';
 
 /** For prose. Kept next to the ISO date so the two cannot drift apart. */
-export const LINE_UP_2027_REVIEWED_LABEL = '23 September 2026';
+export const LINE_UP_2027_REVIEWED_LABEL = '27 September 2026';
 
 /**
  * Alphabetical by team. A championship order would be more flattering and
@@ -144,7 +144,7 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Esteban Ocon',
         status: 'out-of-contract',
-        note: 'Haas can extend him for a third year but has run four other drivers against him. At Baku on 23 September, Ocon called himself a free agent for 2027 and said talks with Haas were ongoing.',
+        note: 'Ocon called himself a free agent on 23 September. A day later, Komatsu said Haas had completed its evaluations and expected a decision within two weeks, after discussions with Gene Haas.',
       },
     ],
   },

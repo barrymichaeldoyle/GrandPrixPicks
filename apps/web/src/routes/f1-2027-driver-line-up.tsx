@@ -56,12 +56,12 @@ const FAQS = [
   {
     question: 'Is Rafael Camara driving in F1 in 2027?',
     answer:
-      'Nothing is signed. The Ferrari junior is reported to be the leading candidate to partner Oliver Bearman at Haas, and one Brazilian report suggests an announcement around his home race on 8 November, but neither Haas nor Ferrari has confirmed it.',
+      'No signing has been announced. The Ferrari junior is reported to be the leading candidate to partner Oliver Bearman at Haas, but neither Haas nor Ferrari has confirmed it.',
   },
   {
     question: 'When will Haas announce its 2027 driver line-up?',
     answer:
-      'No date has been set. Jack Doohan has now completed the last of the private tests Haas used to measure the candidates, at Jerez, and Ayao Komatsu said on 18 September 2026 that the decision was "not next week".',
+      'On 24 September 2026, Ayao Komatsu said Haas expected to decide within the next two weeks. The driver evaluations are complete, but the findings still need to be discussed with Gene Haas before a final decision.',
   },
   {
     question: 'Is Fernando Alonso racing in 2027?',
@@ -284,12 +284,18 @@ function F1LineUp2027Page() {
             The contest has narrowed since. Brazilian reports make Rafael Camara
             the quickest of the candidates who drove the 2025 car at Portimão,
             and reporting in Europe and Brazil now puts the Ferrari junior in
-            front, with one outlet suggesting an announcement around his home
-            race on 8 November. Haas has announced nothing. Jack Doohan has
-            since completed his own test at Jerez, the last one Haas said it
-            wanted, and Komatsu said on 18 September that the decision was
-            &ldquo;not next week&rdquo;. The five below are in the order the
-            contest stands today.
+            front. Haas has not announced a signing. On 24 September, Komatsu
+            said the evaluations were complete and he expected a decision within
+            two weeks, after discussing the findings with Gene Haas.{' '}
+            <a
+              className="text-link underline decoration-border underline-offset-4 hover:decoration-current"
+              href="https://www.formula1.com/en/latest/article/within-the-next-couple-of-weeks-komatsu-reveals-timeline-for-haas-2027-driver-line-up-decision.3BCkQ2eO3S0dCAynRFkTgA.3BCkQ2eO3S0dCAynRFkTgA"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Komatsu on the Haas decision timeline
+            </a>
+            .
           </p>
           <ol className="mt-6 border-t border-border">
             {HAAS_2027_CONTENDERS.map((contender, index) => (

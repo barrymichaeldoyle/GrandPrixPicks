@@ -156,6 +156,43 @@ describe('buildTrmnlPayload', () => {
     expect(JSON.stringify(payload)).not.toMatch(/[\u00a0\u2009\u202f]/);
   });
 
+  it.each([
+    ['2026-03-29', '00:30', '02:30'],
+    ['2026-10-25', '01:30', '01:30'],
+  ])(
+    'formats each session across the London DST change on %s',
+    (day, before, after) => {
+      const payload = buildTrmnlPayload(
+        input({
+          now: at(`${day}T00:00:00Z`),
+          timeZone: 'Europe/London',
+          race: {
+            ...race,
+            fp1StartAt: at(`${day}T00:30:00Z`),
+            fp2StartAt: at(`${day}T01:30:00Z`),
+          },
+        }),
+      );
+      expect(payload.schedule.find((row) => row.short === 'FP1')?.time).toBe(
+        before,
+      );
+      expect(payload.schedule.find((row) => row.short === 'FP2')?.time).toBe(
+        after,
+      );
+    },
+  );
+
+  it('keeps session times when weather is missing', () => {
+    const payload = buildTrmnlPayload(input({ weather: null }));
+    expect(payload.schedule).toHaveLength(5);
+    expect(
+      payload.schedule.every(
+        (row) => row.weather === null && row.time.length > 0,
+      ),
+    ).toBe(true);
+    expect(payload.lead?.weather).toBeNull();
+  });
+
   it('names UTC when the zone is missing or unknown', () => {
     for (const timeZone of [null, 'Mars/Olympus']) {
       const payload = buildTrmnlPayload(
@@ -529,6 +566,17 @@ describe('buildTrmnlPayload', () => {
     expect(byRow.Race).toBe(null);
     // The lead carries its own session's forecast for the small layouts.
     expect(payload.lead?.weather).toEqual(byRow.FP3);
+
+    const imperial = buildTrmnlPayload(
+      input({ now: at('2026-09-05T08:00:00Z'), weather, units: 'imperial' }),
+    );
+    expect(
+      imperial.schedule.find((row) => row.short === 'Quali')?.weather,
+    ).toMatchObject({
+      temp: '73°F',
+      rainAmount: '0.09 in',
+      wind: 'NE 7 mph',
+    });
 
     const stale = buildTrmnlPayload(
       input({

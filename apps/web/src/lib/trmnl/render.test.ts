@@ -195,11 +195,11 @@ describe('TRMNL layouts', () => {
     }
   });
 
-  it('dithers flags on both OG and X', () => {
+  it('uses one responsive dithered flag for OG and X', () => {
     const friday = TRMNL_SCENARIOS.find((s) => s.id === 'friday')!;
     const html = renderTrmnlMarkup('full', friday.payload);
-    expect(html).toContain('image-dither lg:hidden');
-    expect(html).toContain('class="image image-dither hidden lg:block');
+    expect(html).toContain('class="image image-dither shrink-0 w--auto');
+    expect(html.match(/<img[^>]+src="[^"]*flags[^"]*"/g)).toHaveLength(1);
     expect(html).not.toContain('image-gray-x');
   });
 

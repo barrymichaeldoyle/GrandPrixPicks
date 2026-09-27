@@ -181,7 +181,7 @@ the image, so white fields (Japan, Monaco, Poland) keep an edge against
 the white screen. In 2-bit grayscale most flags stay recognisable, but
 tricolours that differ only by hue (Italy, Mexico, Ireland) come out alike, so
 the flag is never the only thing naming the race.
-Both device variants of the flag use `image-dither`, so TRMNL converts the
+A single responsive flag image uses `image-dither`, so TRMNL converts the
 colored source to the target device's palette. This applies to the main
 race flag and the next-race flag on the finished screen.
 
@@ -652,6 +652,17 @@ items on it were not met at first, and were fixed on 23 September 2026:
    list).
 
 Also check:
+
+- **Responsive breakpoints.** TRMNL Framework 3.3 uses device size classes,
+  rather than viewport pixel thresholds. The finished view uses two equal
+  columns on OG and a 3:2 split on X, stacking in portrait. A generic 900px
+  tablet is not a reason to add a custom intermediate breakpoint. See the
+  [Framework responsive guide](https://trmnl.com/framework/docs/3.3/responsive).
+- **Date, weather, and units checks.** Payload tests cover London spring and
+  autumn DST transitions, missing and stale weather, partial forecast
+  coverage, and metric/imperial weather conversion. The polling endpoint
+  normalizes units with `toLowerCase()`; both capitalized form labels and
+  lowercase values are accepted.
 
 - **Automated review hints.** The templates have no inline style attributes;
   the checker SVGs use Framework `block h--auto` classes. Two hints may

@@ -220,6 +220,54 @@ export const clearAllScenarios = internalMutation({
   },
 });
 
+/**
+ * Put dev back the way the e2e run found it: every scenario race and player,
+ * plus the league fixtures `testing:createLeagueSmokeFixture` writes under a
+ * `smoke__` namespace. Run by the Playwright global teardown, because the
+ * suite shares the dev deployment with anyone building a feature on it, and a
+ * scenario race left behind is the "next race" on every page they open.
+ *
+ * The signed-in Clerk test user itself stays: auth setup reuses it.
+ */
+export const clearE2EData = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const scenarios = await clearAllScenarioData(ctx);
+
+    const leagues = (await ctx.db.query('leagues').collect()).filter((league) =>
+      league.slug.startsWith('smoke__'),
+    );
+    for (const league of leagues) {
+      for (const member of await ctx.db
+        .query('leagueMembers')
+        .withIndex('by_league', (q) => q.eq('leagueId', league._id))
+        .collect()) {
+        await ctx.db.delete(member._id);
+      }
+      await ctx.db.delete(league._id);
+    }
+
+    const fixtureUsers = (await ctx.db.query('users').collect()).filter(
+      (user) => user.clerkUserId.startsWith('smoke__'),
+    );
+    for (const user of fixtureUsers) {
+      for (const membership of await ctx.db
+        .query('leagueMembers')
+        .withIndex('by_user', (q) => q.eq('userId', user._id))
+        .collect()) {
+        await ctx.db.delete(membership._id);
+      }
+      await ctx.db.delete(user._id);
+    }
+
+    return {
+      ...scenarios,
+      leagues: leagues.length,
+      fixtureUsers: fixtureUsers.length,
+    };
+  },
+});
+
 export const clearScenarioAdmin = mutation({
   args: {
     namespace: v.string(),

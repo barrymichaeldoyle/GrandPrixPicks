@@ -1,3 +1,5 @@
+import { Wind } from 'lucide-react';
+
 import {
   buildWeatherSessions,
   buildWeatherTimeline,
@@ -164,7 +166,8 @@ export function WeekendWeatherHours({
                         // Two nowrap runs, so a narrow column breaks between
                         // the wind and the gusts rather than inside either.
                         <span className="gpp-mono mt-0.5 block">
-                          <span className="whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                            <Wind className="h-3 w-3 shrink-0" aria-hidden />
                             {windFigure(period)}
                           </span>
                           {period.maxWindGustMps != null && (

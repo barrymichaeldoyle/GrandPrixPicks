@@ -356,6 +356,55 @@ export function windFigure(
  */
 const GUSTS_WORTH_MENTIONING_KMH = 40;
 
+/**
+ * The session's forecast in one word, for a row with room for nothing else.
+ *
+ * Checked in the order a pick changes on it: a storm or a wet session first,
+ * then a chance of rain, then wind strong enough to mention, then heat or cold
+ * worth remarking on. Anything that clears all of those is "Dry". The figures
+ * behind the word are one tap away in the hour-by-hour forecast.
+ */
+export function weatherWord(summary: WeatherWindowSummary): string {
+  const normalized = normalizeConditionCode(summary.conditionCode);
+  const probability = summary.precipitationProbability;
+  if (
+    normalized.includes('thunder') ||
+    (summary.thunderProbability ?? 0) >= 30
+  ) {
+    return 'Stormy';
+  }
+  const wetCondition =
+    normalized.includes('rain') ||
+    normalized.includes('sleet') ||
+    normalized.includes('snow');
+  if (
+    wetCondition ||
+    (probability ?? 0) >= 50 ||
+    (probability == null && summary.precipitationAmountMm >= 1)
+  ) {
+    return 'Wet';
+  }
+  if (
+    (probability ?? 0) >= 20 ||
+    (probability == null && summary.precipitationAmountMm > 0)
+  ) {
+    return 'Showers';
+  }
+  if (
+    summary.windGustMps != null &&
+    windKmh(summary.windGustMps) >= GUSTS_WORTH_MENTIONING_KMH
+  ) {
+    return 'Windy';
+  }
+  if (summary.temperatureC >= 32) {
+    return 'Hot';
+  }
+  if (summary.temperatureC <= 12) {
+    return 'Cold';
+  }
+  return 'Dry';
+}
+
 export function buildWeatherSessions(race: RaceSchedule): WeatherSession[] {
   return SESSION_DEFINITIONS.flatMap(([key, label, field, durationMinutes]) => {
     const startsAt = race[field];

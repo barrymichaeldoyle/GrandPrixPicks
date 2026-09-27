@@ -130,3 +130,29 @@ export function compareFeedOrder(
   }
   return b.createdAt - a.createdAt;
 }
+
+/**
+ * The weekend a news block is headed with, as the event that carries it, or
+ * `undefined` when the block has none to claim.
+ *
+ * Only items that name a race have a say. A story about no race in particular
+ * (a possible finale venue, a test drive) sits in whichever weekend it arrived
+ * in, and letting it veto the heading turned a block of Baku news into one
+ * labelled plain "News". Items that do name a race must all name the same one.
+ *
+ * Line-up changes carry the race slug but no race ID, so the slug is compared
+ * first.
+ */
+export function newsRunWeekend<
+  T extends { raceSlug?: string; raceId?: string; raceName?: string },
+>(events: T[]): T | undefined {
+  const raced = events.filter((event) => event.raceSlug ?? event.raceId);
+  const first = raced[0];
+  if (!first) {
+    return undefined;
+  }
+  const key = first.raceSlug ?? first.raceId;
+  return raced.every((event) => (event.raceSlug ?? event.raceId) === key)
+    ? first
+    : undefined;
+}

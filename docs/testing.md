@@ -38,6 +38,13 @@ Use named scenarios instead of hand-editing the dev database.
    - `pnpm scenario -- summary --namespace scenario__race_locked_signed_in_complete_h2h_no_results`
 4. Clear a scenario namespace
    - `pnpm scenario -- clear --namespace scenario__race_locked_signed_in_complete_h2h_no_results`
+5. Clear everything e2e seeded (every scenario, plus the `smoke__` league fixtures)
+   - `pnpm scenario -- clear-e2e`
+
+`pnpm test:e2e` runs `clear-e2e` itself when it finishes
+(`apps/web/tests/e2e/global-teardown.ts`), because the suite shares the dev
+deployment with feature work and a leftover scenario race becomes the "next
+race" everywhere. Set `E2E_KEEP_FIXTURES=1` to keep them for debugging.
 
 The full scenario catalog, matrix, and CI requirements live in [testing-scenarios.md](/Users/barry/dev/grand-prix-picks/docs/testing-scenarios.md).
 

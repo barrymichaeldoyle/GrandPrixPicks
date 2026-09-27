@@ -377,7 +377,7 @@ const inlinedImages = new Map<string, string>();
  * The screens run in sandboxed documents with an opaque origin, where a canvas
  * cannot read an image from this site, and the preview dithers the flag
  * through a canvas (`DITHER_SOURCE` in render.ts). Undefined while it loads;
- * the URL itself if it cannot be fetched, which then shows undithered.
+ * the URL itself if it cannot be fetched, which uses the grayscale CSS fallback.
  */
 function useInlinedImage(url: string | null): string | null | undefined {
   const [, setLoaded] = useState(0);
@@ -459,17 +459,28 @@ function TrmnlScreen({
     ? withLocalAssets(scenario.payload.race.flag_url)
     : null;
   const flag = useInlinedImage(flagUrl);
+  const nextFlagUrl = scenario.payload.next_race?.flag_url
+    ? withLocalAssets(scenario.payload.next_race.flag_url)
+    : null;
+  const nextFlag = useInlinedImage(nextFlagUrl);
   const markup = withLocalAssets(
     trmnlScreenMarkup(layout, scenario.payload, config),
   );
-  // Held back until the flag is inlined, so it is never drawn first in colour
+  // Held back until both flags are inlined, so neither is drawn first in colour
   // and then again dithered.
-  const screen =
-    flag === undefined
-      ? null
-      : flagUrl && flag
-        ? markup.replaceAll(`src="${flagUrl}"`, `src="${flag}"`)
-        : markup;
+  let screen: string | null = markup;
+  if (flag === undefined || nextFlag === undefined) {
+    screen = null;
+  } else {
+    for (const [url, image] of [
+      [flagUrl, flag],
+      [nextFlagUrl, nextFlag],
+    ]) {
+      if (url && image) {
+        screen = screen.replaceAll(`src="${url}"`, `src="${image}"`);
+      }
+    }
+  }
   const { inks, gray } = trmnlPreviewInks(config.palette);
   const inksKey = inks ? JSON.stringify(inks) : '';
   /** Everything that makes this screen look the way it does. */

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '@expo/vector-icons';
+import { newsRunWeekend } from '@grandprixpicks/shared/feedGroups';
 
 import { getTeamColor } from '../../lib/teamColors';
 import { colors } from '../../theme/tokens';
@@ -202,12 +203,9 @@ export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
   if (events.length === 0) {
     return null;
   }
-  const weekendKey = events[0].raceSlug ?? events[0].raceId;
-  const sameWeekend =
-    !!weekendKey &&
-    events.every((event) => (event.raceSlug ?? event.raceId) === weekendKey);
-  const raceName = sameWeekend ? events[0].raceName : undefined;
-  const raceSlug = sameWeekend ? events[0].raceSlug : undefined;
+  const weekend = newsRunWeekend(events);
+  const raceName = weekend?.raceName;
+  const raceSlug = weekend?.raceSlug;
 
   return (
     <View

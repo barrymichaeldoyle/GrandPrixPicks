@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { groupFeedEvents, weekendStarts } from './feedGroups';
+import { groupFeedEvents, newsRunWeekend, weekendStarts } from './feedGroups';
 
 function news(id: string) {
   return { _id: id, type: 'race_news' };
@@ -110,5 +110,26 @@ describe('weekendStarts', () => {
     // Four blocks: Monza's race, the milestone, Monza's quali, Spa. Only Spa
     // opens a weekend.
     expect(weekendStarts(groups)).toEqual([false, false, false, true]);
+  });
+});
+
+describe('newsRunWeekend', () => {
+  const baku = {
+    raceSlug: 'azerbaijan-2026',
+    raceName: 'Azerbaijan Grand Prix',
+  };
+  const sepang = { raceSlug: 'bahrain-2026', raceName: 'Bahrain Grand Prix' };
+  const global = {};
+
+  it('heads a block with its race when stories about no race sit in it', () => {
+    expect(newsRunWeekend([baku, global, global, baku])).toBe(baku);
+  });
+
+  it('claims no weekend when the races disagree', () => {
+    expect(newsRunWeekend([baku, sepang])).toBeUndefined();
+  });
+
+  it('claims no weekend when no story names a race', () => {
+    expect(newsRunWeekend([global, global])).toBeUndefined();
   });
 });

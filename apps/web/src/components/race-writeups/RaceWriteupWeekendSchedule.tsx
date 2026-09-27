@@ -1,5 +1,3 @@
-import { Droplet, Wind } from 'lucide-react';
-
 import { WeatherTimeToggle } from '@/components/weather/WeatherTimeToggle';
 
 import { WeatherIcon } from '@/components/weather/WeatherIcon';
@@ -8,15 +6,12 @@ import { formatSessionClockTime, formatTimeZoneAbbreviation } from '@/lib/date';
 import { useSessionTimeView } from '@/lib/sessionTimeView';
 import {
   buildWeatherSessions,
-  conditionLabel,
   forecastAlert,
   nextWeatherSession,
+  sessionWeatherLine,
   summarizeSessionWindow,
-  windCompassPoint,
-  windFigure,
-  windKmh,
+  weatherWord,
   type RaceWeather,
-  type WeatherWindowSummary,
 } from '@/lib/weatherPresentation';
 
 type ScheduleRace = {
@@ -69,39 +64,6 @@ function formatTrackTimeShort(
     return 'TBC';
   }
   return formatSessionClockTime(timestamp, timeZone);
-}
-
-/**
- * The rain cell: a chance where the model gives one, otherwise an amount.
- *
- * It has its own column rather than trailing the temperature after a dot. As
- * one string, `dry` and `0.4 mm` are different widths, so every figure before
- * them moved with them and a weekend with mixed conditions read as a
- * misaligned table.
- */
-function rainFigure(summary: WeatherWindowSummary): string | null {
-  if (summary.precipitationProbability != null) {
-    return `${Math.round(summary.precipitationProbability)}%`;
-  }
-  return summary.precipitationAmountMm > 0
-    ? `${summary.precipitationAmountMm.toFixed(1)} mm`
-    : null;
-}
-
-/** Spoken form of the wind cell, which carries the gusts the cell leaves out. */
-function windDescription(summary: WeatherWindowSummary): string | null {
-  if (summary.windSpeedMps == null) {
-    return null;
-  }
-  const direction =
-    summary.windDirectionDegrees == null
-      ? ''
-      : ` from ${windCompassPoint(summary.windDirectionDegrees)}`;
-  const gusts =
-    summary.windGustMps == null
-      ? ''
-      : `, gusts ${windKmh(summary.windGustMps)} km/h`;
-  return `Wind${direction} ${windKmh(summary.windSpeedMps)} km/h${gusts}`;
 }
 
 /**
@@ -207,13 +169,14 @@ export function RaceWriteupWeekendSchedule({
         ) : null}
       </div>
       {/* One grid for the whole list, and each row a subgrid of it, so a
-          column is as wide as its widest cell on *any* row. The hero's narrow
-          sidebar needs two lines even on a wide viewport; switch to five
-          columns only when the card itself has room for them. */}
+          column is as wide as its widest cell on *any* row. One line per
+          session: the name, the forecast in a word, the start time. The
+          figures behind the word are in the hour-by-hour forecast below; on
+          the row they wrapped every session onto a second line. */}
       <dl
         className={`grid gap-x-3 ${
           forecast
-            ? 'grid-cols-[minmax(0,1fr)_auto_auto] @min-[600px]:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto]'
+            ? 'grid-cols-[minmax(0,1fr)_auto_auto]'
             : 'grid-cols-[auto_minmax(0,1fr)] sm:grid-cols-[6.5rem_1fr]'
         }`}
       >
@@ -226,8 +189,6 @@ export function RaceWriteupWeekendSchedule({
               ? summarizeSessionWindow(forecast, session)
               : null;
           const isNext = Boolean(session && session.key === nextSession?.key);
-          const rain = summary ? rainFigure(summary) : null;
-          const wind = summary ? windFigure(summary) : null;
           return (
             <div
               key={label}
@@ -236,18 +197,14 @@ export function RaceWriteupWeekendSchedule({
               // 8px wide, the gutter clears it twice over, and the session
               // names are a column that has to stay straight to read as one.
               //
-              // Centred, not baseline-aligned. The forecast cell is a flex box
-              // whose first item is a 16px icon, so its baseline came from the
-              // icon rather than the temperature beside it and the whole cell
-              // sat low against the session name and start time. With one line
-              // of similar text in each cell, centring aligns all three and
-              // does not depend on what the third one happens to contain.
-              className={`col-span-full grid grid-cols-subgrid items-center gap-y-1 border-b border-border/60 px-4 py-2 last:border-b-0 @min-[600px]:gap-y-0 @min-[600px]:py-2.5 ${
+              // Centred, not baseline-aligned: the forecast cell leads with a
+              // 16px icon, and a baseline taken from it sat the cell low.
+              className={`col-span-full grid grid-cols-subgrid items-center border-b border-border/60 px-4 py-2.5 last:border-b-0 ${
                 isNext ? 'gpp-stripe bg-surface-elevated' : ''
               }`}
             >
               <dt
-                className={`${forecast ? 'col-[1/span_2] @min-[600px]:col-[1]' : 'col-[1]'} row-[1] text-sm ${isNext ? 'font-medium text-text' : 'text-text-muted'}`}
+                className={`col-[1] text-sm ${isNext ? 'font-medium text-text' : 'text-text-muted'}`}
               >
                 {/* The row that matters carries the stripe, a surface step and
                     the heavier weight. It used to be an accent fill with accent
@@ -260,82 +217,24 @@ export function RaceWriteupWeekendSchedule({
                 ) : null}
                 {label}
               </dt>
-              {/* The first line pairs the session with its time. Below it,
-                  the three weather figures get their own aligned columns. */}
-              <dd
-                className={`gpp-mono row-[1] text-right text-sm whitespace-nowrap text-text ${
-                  forecast ? 'col-[3] @min-[600px]:col-[2]' : 'col-[2]'
-                }`}
-              >
-                {forecast
-                  ? formatTrackTimeShort(timestamp, activeTimeZone)
-                  : formatTrackTime(timestamp, activeTimeZone)}
-              </dd>
               {forecast &&
                 (summary ? (
-                  <>
-                    <dd className="col-[1] row-[2] flex items-center gap-1.5 @min-[600px]:col-[3] @min-[600px]:row-[1] @min-[600px]:justify-end">
-                      <WeatherIcon
-                        conditionCode={summary.conditionCode}
-                        className="h-4 w-4 shrink-0 text-text-muted"
-                      />
-                      {/* The icon carries the condition for anyone who can
-                          see it, and carries nothing at all otherwise. */}
-                      <span className="sr-only">
-                        {conditionLabel(summary.conditionCode)},{' '}
-                      </span>
-                      <span className="gpp-mono text-sm text-text-muted">
-                        {summary.temperatureC}°C
-                      </span>
-                    </dd>
-                    {/* Sustained wind and where it comes from. Gusts are in
-                        the spoken form and the hour-by-hour forecast. */}
-                    <dd className="col-[1/span_3] row-[3] flex items-center gap-1 text-sm text-text-muted @min-[320px]:col-[2] @min-[320px]:row-[2] @min-[320px]:justify-end @min-[600px]:col-[4] @min-[600px]:row-[1]">
-                      {wind ? (
-                        <>
-                          <Wind
-                            className="h-3.5 w-3.5 shrink-0 text-text-muted"
-                            aria-hidden
-                          />
-                          <span className="sr-only">
-                            {windDescription(summary)}
-                          </span>
-                          <span
-                            className="gpp-mono whitespace-nowrap"
-                            aria-hidden
-                          >
-                            {wind}
-                          </span>
-                        </>
-                      ) : null}
-                    </dd>
-                    {/* Rain is the figure that changes a pick, so a wet
-                        session is the one lit in the column, and a dry one
-                        stays quiet. */}
-                    <dd
-                      className={`col-[3] row-[2] flex items-center justify-end gap-1 text-sm @min-[600px]:col-[5] @min-[600px]:row-[1] ${
-                        rain ? 'text-text' : 'text-text-muted'
-                      }`}
-                    >
-                      {rain ? (
-                        <>
-                          <Droplet
-                            className="h-3.5 w-3.5 shrink-0 text-text-muted"
-                            aria-hidden
-                          />
-                          <span className="sr-only">Rain </span>
-                          <span className="gpp-mono">{rain}</span>
-                        </>
-                      ) : (
-                        'Dry'
-                      )}
-                    </dd>
-                  </>
+                  <dd className="col-[2] flex items-center gap-1.5 text-sm text-text-muted">
+                    <WeatherIcon
+                      conditionCode={summary.conditionCode}
+                      className="h-4 w-4 shrink-0"
+                    />
+                    {/* The word is for the eye; the full line is what a
+                        screen reader hears, since it cannot open the hours
+                        on a glance. */}
+                    <span className="sr-only">
+                      {sessionWeatherLine(summary, { wind: true })}
+                    </span>
+                    <span aria-hidden>{weatherWord(summary)}</span>
+                  </dd>
                 ) : (
-                  // A session with no forecast keeps a dash across the
-                  // forecast columns on a wide card, and drops them on a
-                  // phone rather than spend a second line on it.
-                  <dd className="hidden text-right @min-[600px]:col-[3/span_3] @min-[600px]:row-[1] @min-[600px]:block">
+                  // A session with no forecast keeps a dash in the column.
+                  <dd className="col-[2]">
                     <span className="sr-only">
                       {timestamp !== undefined &&
                       now !== undefined &&
@@ -348,6 +247,15 @@ export function RaceWriteupWeekendSchedule({
                     </span>
                   </dd>
                 ))}
+              <dd
+                className={`gpp-mono text-right text-sm whitespace-nowrap text-text ${
+                  forecast ? 'col-[3]' : 'col-[2]'
+                }`}
+              >
+                {forecast
+                  ? formatTrackTimeShort(timestamp, activeTimeZone)
+                  : formatTrackTime(timestamp, activeTimeZone)}
+              </dd>
             </div>
           );
         })}

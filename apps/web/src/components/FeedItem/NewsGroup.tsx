@@ -1,3 +1,5 @@
+import { newsRunWeekend } from '@grandprixpicks/shared/feedGroups';
+
 import { Flag } from '@/components/Flag';
 import { ScoringPolicyNote } from '@/components/ScoringPolicyNote';
 import { newsListMentionsGridPenalty } from '@/lib/newsGridPenalty';
@@ -40,17 +42,12 @@ export function NewsGroup({
     return null;
   }
 
-  // Line-up changes carry the race slug but no race ID. Use the shared slug
-  // first so they can inherit the same weekend heading as race news.
-  const weekendKey = events[0].raceSlug ?? events[0].raceId;
-  const sameWeekend =
-    !!weekendKey &&
-    events.every((event) => (event.raceSlug ?? event.raceId) === weekendKey);
-  const raceName = sameWeekend ? events[0].raceName : undefined;
+  const weekend = newsRunWeekend(events);
+  const raceName = weekend?.raceName;
   // Same flag the session cards fly, from the same slug. The race name alone is
   // a line of small mono text at the far end of a header row; the flag is what
   // makes the block identifiably Monza's before it is read.
-  const raceSlug = sameWeekend ? events[0].raceSlug : undefined;
+  const raceSlug = weekend?.raceSlug;
   const countryCode = raceSlug
     ? getCountryCodeForRace({ slug: raceSlug })
     : null;

@@ -22,6 +22,9 @@ const browserChannel = process.env.PLAYWRIGHT_BROWSER_CHANNEL;
 
 export default defineConfig({
   testDir: './tests/e2e',
+  // Leaves the shared dev deployment as the run found it. Set
+  // `E2E_KEEP_FIXTURES=1` to keep the seeded scenarios for debugging.
+  globalTeardown: './tests/e2e/global-teardown.ts',
   fullyParallel: false,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [['list'], ['html']] : 'list',

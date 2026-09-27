@@ -19,8 +19,8 @@
     and when the next round is on the left; the whole classification on the
     right.
   {% endcomment %}
-  <div class="grid grid--cols-2 portrait:grid--cols-1 gap--large grow">
-    <div class="flex flex--col flex--stretch-x gap--medium">
+  <div class="grid grid--cols-2 lg:grid--cols-5 portrait:grid--cols-1 lg:portrait:grid--cols-1 gap--large grow">
+    <div class="flex flex--col flex--stretch-x gap--medium lg:col--span-3 lg:portrait:col--span-1">
       <div class="flex flex--col flex--center gap--xsmall">
         {% comment %}"Race winner" a step below the build-up's lead label on the X, for a fifth headline.{% endcomment %}
         {% render "lead", lead: lead, size: "value--large lg:value--xxlarge", label_size: "lg:title--xlarge" %}
@@ -30,14 +30,14 @@
       <div class="grow">
         <div class="lg:hidden portrait:hidden">{% render "news", news: news, limit: 3, headline_size: "title--small" %}</div>
         <div class="hidden portrait:block lg:portrait:hidden">{% render "news", news: news, limit: 3, headline_size: "title--small" %}</div>
-        {% comment %}Five on the X and three on the OG in landscape: any more two-line headlines pushed the next race under the title bar.{% endcomment %}
-        <div class="hidden lg:block lg:portrait:hidden">{% render "news", news: news, limit: 5, headline_size: "lg:title--base" %}</div>
+        {% comment %}The wider news column on the landscape X fits seven headlines above the next race.{% endcomment %}
+        <div class="hidden lg:block lg:portrait:hidden">{% render "news", news: news, limit: 7, headline_size: "lg:title--base" %}</div>
         <div class="hidden lg:portrait:block">{% render "news", news: news, limit: 3, headline_size: "lg:title--base" %}</div>
       </div>
       {% endif %}
       {% if next_race %}{% render "next_race", next_race: next_race %}{% endif %}
     </div>
-    <div class="flex flex--col flex--stretch-x flex--center-y h--full portrait:h--auto">
+    <div class="flex flex--col flex--stretch-x flex--center-y h--full portrait:h--auto lg:col--span-2 lg:portrait:col--span-1">
       <div class="portrait:hidden">{% render "classification", result: result, size: "table--xsmall lg:table--base" %}</div>
       <div class="hidden portrait:block">{% render "classification", result: result, size: "table--xsmall lg:table--small" %}</div>
     </div>

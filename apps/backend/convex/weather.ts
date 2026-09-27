@@ -107,7 +107,12 @@ export const getByRaceSlug = query({
     if (!forecast) {
       return null;
     }
-    const race = await ctx.db.get('races', forecast.raceId);
+    // Imported forecasts can retain IDs from another deployment's tables.
+    const raceId = ctx.db.normalizeId('races', forecast.raceId);
+    if (!raceId) {
+      return null;
+    }
+    const race = await ctx.db.get('races', raceId);
     if (!race || !isWeatherEligible(race, args.now)) {
       return null;
     }
@@ -135,7 +140,12 @@ export const getForWriteup = query({
     if (!forecast) {
       return null;
     }
-    const race = await ctx.db.get('races', forecast.raceId);
+    // Imported forecasts can retain IDs from another deployment's tables.
+    const raceId = ctx.db.normalizeId('races', forecast.raceId);
+    if (!raceId) {
+      return null;
+    }
+    const race = await ctx.db.get('races', raceId);
     if (!race) {
       return null;
     }

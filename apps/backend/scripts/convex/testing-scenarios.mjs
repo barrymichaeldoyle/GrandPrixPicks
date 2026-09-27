@@ -117,6 +117,15 @@ function buildInvocation(parsed) {
     return ['testingScenarios:clearScenario', { namespace: parsed.namespace }];
   }
 
+  if (parsed.command === 'clear-e2e') {
+    // Dev housekeeping only. Prod never holds e2e fixtures, and a sweep by
+    // name prefix is not something to point at real players by accident.
+    if (parsed.prod) {
+      throw new Error('clear-e2e does not run against prod.');
+    }
+    return ['testingScenarios:clearE2EData', {}];
+  }
+
   if (parsed.command === 'apply') {
     if (!parsed.scenario) {
       throw new Error('apply requires a scenario name');
@@ -135,7 +144,7 @@ function buildInvocation(parsed) {
   }
 
   throw new Error(
-    `Unknown command "${parsed.command}". Use list, apply, summary, or clear.`,
+    `Unknown command "${parsed.command}". Use list, apply, summary, clear, or clear-e2e.`,
   );
 }
 

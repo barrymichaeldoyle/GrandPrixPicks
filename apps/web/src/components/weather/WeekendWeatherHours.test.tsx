@@ -146,7 +146,7 @@ describe('WeekendWeatherHours', () => {
     expect(html).not.toContain('Already run');
   });
 
-  it('keeps weather below the session and time until the card is wide enough', () => {
+  it('keeps each session on one line: name, forecast word, start time', () => {
     const now = Date.UTC(2026, 8, 4, 13, 22);
     const html = renderToStaticMarkup(
       <RaceWriteupWeekendSchedule
@@ -162,11 +162,12 @@ describe('WeekendWeatherHours', () => {
     );
 
     expect(html).toContain('class="@container rounded-sm');
-    expect(html).toContain('row-[1] text-sm');
-    expect(html).toContain('col-[3] @min-[600px]:col-[2]');
-    expect(html).toContain('col-[1] row-[2]');
-    expect(html).toContain('@min-[320px]:row-[2]');
-    expect(html).toContain('@min-[600px]:row-[1]');
+    expect(html).toContain('grid-cols-[minmax(0,1fr)_auto_auto]');
+    // No second line: the figures moved to the hour-by-hour forecast.
+    expect(html).not.toContain('row-[2]');
+    expect(html).toMatch(
+      /aria-hidden="true">(Stormy|Wet|Showers|Windy|Hot|Cold|Dry)</,
+    );
   });
 });
 

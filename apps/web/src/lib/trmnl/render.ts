@@ -258,7 +258,7 @@ function grays(levels: number): number[][] {
  * the nearest gray, with no error diffusion, on grayscale palettes: that is
  * how the X's flag is drawn, as flat grays rather than speckle. Colour
  * palettes leave unmarked images alone. Images from another origin (TRMNL's
- * weather icons) cannot be read and are left as they are.
+ * weather icons) fall back to a grayscale filter when their pixels cannot be read.
  *
  * A string rather than a function's `toString()`, because a bundler may
  * rewrite a function's source (helper calls, renamed globals) and this runs
@@ -323,7 +323,8 @@ function ditherScreenImages(inks, gray) {
       if (!solidGray) img.style.imageRendering = 'pixelated';
       img.src = canvas.toDataURL();
     } catch (e) {
-      /* An image the canvas cannot read stays as it is. */
+      // Keep grayscale previews monochrome even if an asset cannot be read.
+      if (gray) img.style.filter = 'grayscale(1)';
     }
   }
 }

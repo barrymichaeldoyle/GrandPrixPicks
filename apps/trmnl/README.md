@@ -53,6 +53,21 @@ For TRMNL's local tooling, see [trmnlp](https://github.com/usetrmnl/trmnlp).
 Run it from this directory so it finds `.trmnlp.yml` and `src/`.
 Check the final result in TRMNL's own preview and on a device as well.
 
+### Local linting
+
+The official `trmnlp` CLI checks plugin markup and settings against TRMNL best
+practices. With Ruby 4.0 or newer installed, run:
+
+```sh
+gem install trmnl_preview
+cd apps/trmnl
+trmnlp lint
+```
+
+The command exits nonzero when it finds issues. It does not publish the plugin.
+TRMNL also runs CHEF during public submission; local linting does not replace
+that check or the human review.
+
 ## Keeping TRMNL in sync
 
 GitHub Sync is not connected yet. The private plugin's markup is currently
@@ -75,11 +90,19 @@ into TRMNL. After an edit made in TRMNL, pull its generated commit before
 making further local changes. GitHub Sync covers the plugin files; it does
 not deploy the website or its polling endpoint.
 
-## Source availability
+## License
 
-The source is public for reference under the repository's
-[existing license](../../LICENSE). It is source-available, not currently
-licensed as open source. A public GitHub repository or a GitHub Sync
-connection does not change those permissions.
+The plugin's original design, Liquid markup, settings, documentation, and
+dedicated rendering and data code are licensed under
+[Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE), matching
+[TRMNL's plugin licensing terms](https://trmnl.com/plugin-license).
+You may share and adapt this work, including commercially, with attribution,
+a link to the license, and an indication of changes.
+
+Suggested attribution: **Formula 1 Race Weekend by Barry Michael Doyle / GrandPrixPicks.com**,
+with a link to [this source directory](https://github.com/barrymichaeldoyle/GrandPrixPicks/tree/main/apps/trmnl).
+The [license file](LICENSE) lists the covered paths. Other parts of the monorepo
+retain the [repository's default license](../../LICENSE); third-party assets,
+dependencies, and data retain their own terms.
 
 For plugin questions, contact [barry@barrymichaeldoyle.com](mailto:barry@barrymichaeldoyle.com).

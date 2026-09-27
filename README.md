@@ -60,9 +60,11 @@ username is closed without review. Read
 
 ## License
 
-This repository is **source-available** for transparency and portfolio/reference
-purposes. It is **not open source**. See [LICENSE](./LICENSE) for usage
-restrictions.
+The repository's default license is **source-available** for transparency and
+portfolio/reference purposes. See [LICENSE](./LICENSE) for usage restrictions.
+
+The [TRMNL plugin and its dedicated code](./apps/trmnl/LICENSE) are licensed
+under **CC BY 4.0**, allowing reuse and adaptation with attribution.
 
 ## Links
 

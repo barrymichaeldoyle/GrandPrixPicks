@@ -654,12 +654,12 @@ items on it were not met at first, and were fixed on 23 September 2026:
 Also check:
 
 - **Automated review hints.** The templates have no inline style attributes;
-  the checker SVGs use Framework `block h--auto` classes. Three hints may
+  the checker SVGs use Framework `block h--auto` classes. Two hints may
   still appear: `checker` needs no arguments because it is static; Shared
-  defines partials while each view supplies its own `layout` container; and
-  monochrome SVG icons intentionally omit `image-dither`. Flags on both OG
-  and X are dithered. These choices are documented beside
-  the markup for the human reviewer.
+  defines partials while each view supplies its own `layout` container.
+  These choices are documented beside the markup for the human reviewer.
+  Every image, including weather icons and the title-bar logo, now uses
+  `image-dither`. The logo also retains `image-stroke`.
 - **The Description field** on the plugin's settings page is the tagline in
   search results, capped at 35 characters. It is set: "F1 weekend: times,
   results, news" (the first draft, "F1 race weekend: times, results, news",

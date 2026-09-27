@@ -56,11 +56,13 @@ Check the final result in TRMNL's own preview and on a device as well.
 ### Local linting
 
 The official `trmnlp` CLI checks plugin markup and settings against TRMNL best
-practices. With Ruby 4.0 or newer installed, run:
+practices. This directory pins Ruby in `.ruby-version`, which mise selects
+automatically. From the repository root, run:
 
 ```sh
-gem install trmnl_preview
 cd apps/trmnl
+mise install
+gem install trmnl_preview
 trmnlp lint
 ```
 

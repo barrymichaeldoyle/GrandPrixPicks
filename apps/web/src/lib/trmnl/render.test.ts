@@ -216,8 +216,12 @@ describe('TRMNL layouts', () => {
     const finished = TRMNL_SCENARIOS.find((s) => s.id === 'finished')!;
     const full = renderTrmnlMarkup('full', finished.payload);
     const rows = finished.payload.result!.rows;
-    expect(full).toContain(`>${rows.at(-1)!.name}<`);
+    expect(full).toContain(`>${rows.at(-1)!.code}<`);
+    expect(full).toContain('>P1<');
     expect(full).toContain('>DNF<');
+    expect(full).toContain('>1:17:32.207<');
+    expect(full).toContain('>+2.873<');
+    expect(full).toContain('>+1 lap<');
     expect(full).toContain('Next race');
     expect(full).toContain(finished.payload.next_race!.name);
     // The weekend is over: no timeline.

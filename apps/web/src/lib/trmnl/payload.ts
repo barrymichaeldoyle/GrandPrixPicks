@@ -122,6 +122,10 @@ type ResultRow = {
   displayName: string;
   /** Set only for a driver who is not a ranked finisher: dnf, dns or dsq. */
   status?: string | null;
+  /** Official timing, race and sprint only (`results.timing`). */
+  gapToLeaderSeconds?: number | null;
+  lapsDown?: number | null;
+  durationSeconds?: number | null;
 };
 
 type NewsItem = {
@@ -255,7 +259,18 @@ export type TrmnlPayload = {
   result: {
     label: string;
     /** `status` is "DNF", "DNS" or "DSQ" for a driver who did not finish, else "". */
-    rows: { pos: number; code: string; name: string; status: string }[];
+    rows: {
+      pos: number;
+      code: string;
+      name: string;
+      status: string;
+      /**
+       * The winner's race time ("1:38:02.143"), everyone else's gap to them
+       * ("+0.196", "+1:04.221", "+1 lap"), or "" when there is none: a
+       * driver who did not finish, or a result without official timing.
+       */
+      gap: string;
+    }[];
   } | null;
   /**
    * The race result is in: the weekend is over. The full screen drops the
@@ -393,6 +408,7 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
             code: row.code,
             name: row.displayName,
             status: row.status ? row.status.toUpperCase() : '',
+            gap: row.status ? '' : formatGap(row),
           })),
       }
     : null;
@@ -446,6 +462,38 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
     news: formatNews(input.news),
     standings,
   };
+}
+
+/**
+ * A classification row's timing as F1's results write it: the winner's race
+ * time, then each finisher's gap to the winner, or laps down.
+ */
+export function formatGap(row: ResultRow): string {
+  if (row.lapsDown) {
+    return `+${row.lapsDown} ${row.lapsDown === 1 ? 'lap' : 'laps'}`;
+  }
+  if (row.position === 1 && row.durationSeconds) {
+    return clockTime(row.durationSeconds);
+  }
+  if (row.gapToLeaderSeconds && row.gapToLeaderSeconds > 0) {
+    return `+${clockTime(row.gapToLeaderSeconds)}`;
+  }
+  return '';
+}
+
+/** 5882.143 → "1:38:02.143"; 64.221 → "1:04.221"; 0.196 → "0.196". */
+function clockTime(seconds: number): string {
+  const millis = Math.round(seconds * 1000);
+  const hours = Math.floor(millis / 3_600_000);
+  const minutes = Math.floor((millis % 3_600_000) / 60_000);
+  const rest = ((millis % 60_000) / 1000).toFixed(3);
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, '0')}:${rest.padStart(6, '0')}`;
+  }
+  if (minutes > 0) {
+    return `${minutes}:${rest.padStart(6, '0')}`;
+  }
+  return rest;
 }
 
 function formatNews(news: NewsItem[]): TrmnlPayload['news'] {

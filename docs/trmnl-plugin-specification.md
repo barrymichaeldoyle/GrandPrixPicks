@@ -257,9 +257,22 @@ latest headlines (three on the OG, six on the X in landscape, three in
 portrait) and a "Next race" strip with the next round's flag, name and dates
 (`next_race`, from `selectTrmnlNextRace`; absent after the season's last race).
 The right column, or the bottom in portrait, has the whole classification in
-two columns (`classification` in `shared.liquid`). A driver who did not
-finish shows "DNF", "DNS" or "DSQ" in place of a position, here and in the
-halves' top-ten lists, so the tail does not read as finishing places. The
+two columns (`classification` in `shared.liquid`): "P1" and the driver code,
+as the championship reads, and the official gap, the winner's race time
+("1:38:02.143") then each finisher's gap to them ("+0.196", "+1:04.221",
+"+1 lap"; `formatGap` in `payload.ts`). A driver who did not finish shows
+"DNF", "DNS" or "DSQ" in place of a position and no gap, here and in the
+halves' top-ten lists, so the tail does not read as finishing places.
+
+The gaps are OpenF1's `session_result` `gap_to_leader`, `duration` and
+`number_of_laps`, kept on the result as `results.timing` (race and sprint,
+keyed by driver so a penalty reorder keeps each gap with its driver). They
+are written by `openF1Results.recordResultTiming`, apart from publishing, so
+they can never change a classification, a score or a notification; the
+automatic poll, the admin fetch and applied rechecks all call it. Results
+from before timing was stored are filled by
+`npx convex run --prod resultsRecheck:backfillTiming '{"season":2026}'`. A
+result with no timing shows no gap rather than a made-up one. The
 payload carries the whole race classification; the halves still show their
 top five or ten.
 

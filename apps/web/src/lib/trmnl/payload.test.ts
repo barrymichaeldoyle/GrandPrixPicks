@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { TrmnlInput } from './payload';
 import {
   buildTrmnlPayload,
+  formatGap,
   selectTrmnlNextRace,
   resolveTrmnlLanding,
   selectTrmnlRace,
@@ -410,6 +411,24 @@ describe('buildTrmnlPayload', () => {
     );
     expect(saturday.race_finished).toBe(false);
     expect(saturday.next_race).toBe(null);
+  });
+
+  it('writes gaps the way F1 results do', () => {
+    const row = { position: 2, code: 'VER', displayName: 'Max Verstappen' };
+    expect(
+      formatGap({
+        ...row,
+        position: 1,
+        gapToLeaderSeconds: 0,
+        durationSeconds: 5882.143,
+      }),
+    ).toBe('1:38:02.143');
+    expect(formatGap({ ...row, gapToLeaderSeconds: 0.196 })).toBe('+0.196');
+    expect(formatGap({ ...row, gapToLeaderSeconds: 64.221 })).toBe('+1:04.221');
+    expect(formatGap({ ...row, lapsDown: 1 })).toBe('+1 lap');
+    expect(formatGap({ ...row, lapsDown: 2 })).toBe('+2 laps');
+    // No official timing yet: nothing rather than a made-up gap.
+    expect(formatGap(row)).toBe('');
   });
 
   it('picks the next round, skipping a cancelled one', () => {

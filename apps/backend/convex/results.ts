@@ -583,10 +583,15 @@ export const getResultForRace = query({
         entry.status,
       ]),
     );
+    // Official gaps, when OpenF1 has sent them (race and sprint). Display only.
+    const timingByDriver = new Map(
+      (result.timing ?? []).map((entry) => [entry.driverId, entry]),
+    );
     const enrichedClassification = await Promise.all(
       result.classification.map(
         async (driverId: Id<'drivers'>, index: number) => {
           const driver = await ctx.db.get(driverId);
+          const timing = timingByDriver.get(driverId);
           return {
             position: index + 1,
             driverId,
@@ -599,6 +604,9 @@ export const getResultForRace = query({
               null,
             nationality: driver?.nationality ?? null,
             status: statusByDriver.get(driverId) ?? null,
+            gapToLeaderSeconds: timing?.gapToLeaderSeconds ?? null,
+            lapsDown: timing?.lapsDown ?? null,
+            durationSeconds: timing?.durationSeconds ?? null,
           };
         },
       ),

@@ -439,9 +439,11 @@
 {% endtemplate %}
 
 {% comment %}
-  The whole race classification once the weekend is over, in two columns. A
-  driver who did not finish shows "DNF", "DNS" or "DSQ" in place of a
-  position, so the tail of the list does not read as finishing places.
+  The whole race classification once the weekend is over, in two columns, by
+  code with "P1" positions, as the championship reads, and the official gap
+  (the winner's race time, then "+0.196", "+1 lap"). A driver who did not
+  finish shows "DNF", "DNS" or "DSQ" in place of a position, so the tail of
+  the list does not read as finishing places.
 {% endcomment %}
 {% template classification %}
 {% assign per_column = result.rows.size | plus: 1 | divided_by: 2 %}
@@ -456,8 +458,9 @@
         <tbody>
           {% for row in result.rows limit: per_column offset: column_offset %}
           <tr>
-            <td><span class="label label--small lg:label--base w--[28px] lg:w--[44px]">{% if row.status != "" %}{{ row.status }}{% else %}{{ row.pos }}{% endif %}</span></td>
-            <td class="w--full"><span class="title title--small lg:title--base">{{ row.name }}</span></td>
+            <td><span class="label label--small lg:label--base w--[28px] lg:w--[44px]">{% if row.status != "" %}{{ row.status }}{% else %}P{{ row.pos }}{% endif %}</span></td>
+            <td class="w--full"><span class="title title--small lg:title--base">{{ row.code }}</span></td>
+            <td class="text--right"><span class="label label--small lg:label--base">{{ row.gap }}</span></td>
           </tr>
           {% endfor %}
         </tbody>

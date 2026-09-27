@@ -113,7 +113,55 @@ type OpenF1Result = {
   dsq: boolean;
   /** False for drivers the official result leaves unranked (given a tail position by us). */
   ranked: boolean;
+  /** Race and sprint only. Qualifying sends arrays here, which are dropped. */
+  gapToLeaderSeconds?: number;
+  lapsDown?: number;
+  laps?: number;
+  durationSeconds?: number;
 };
+
+/**
+ * The display-only timing fields of a `session_result` row. Never fatal: a
+ * shape we do not recognise just leaves the gap out. `gap_to_leader` is
+ * seconds, or "+1 LAP" / "+2 LAPS" for a lapped finisher, or null.
+ */
+export function parseResultTiming(item: Record<string, unknown>): {
+  gapToLeaderSeconds?: number;
+  lapsDown?: number;
+  laps?: number;
+  durationSeconds?: number;
+} {
+  const timing: {
+    gapToLeaderSeconds?: number;
+    lapsDown?: number;
+    laps?: number;
+    durationSeconds?: number;
+  } = {};
+  const gap = item.gap_to_leader;
+  if (typeof gap === 'number' && Number.isFinite(gap) && gap >= 0) {
+    timing.gapToLeaderSeconds = gap;
+  } else if (typeof gap === 'string') {
+    const lapped = /^\+?\s*(\d+)\s*LAPS?$/i.exec(gap.trim());
+    if (lapped) {
+      timing.lapsDown = Number(lapped[1]);
+    }
+  }
+  if (
+    typeof item.number_of_laps === 'number' &&
+    Number.isInteger(item.number_of_laps) &&
+    item.number_of_laps >= 0
+  ) {
+    timing.laps = item.number_of_laps;
+  }
+  if (
+    typeof item.duration === 'number' &&
+    Number.isFinite(item.duration) &&
+    item.duration > 0
+  ) {
+    timing.durationSeconds = item.duration;
+  }
+  return timing;
+}
 
 export function getFallbackWindow(
   sessionType: SessionType,
@@ -205,6 +253,7 @@ export function parseOpenF1Results(value: unknown): OpenF1Result[] {
       dnf: item.dnf,
       dns: item.dns,
       dsq: item.dsq,
+      ...parseResultTiming(item),
     };
   });
 
@@ -489,12 +538,35 @@ export type DriverStatusEntry = {
   status: DriverStatus;
 };
 
+export type ResultTimingEntry = {
+  driverId: Id<'drivers'>;
+  gapToLeaderSeconds?: number;
+  lapsDown?: number;
+  laps?: number;
+  durationSeconds?: number;
+};
+
 export type OfficialClassification = {
   openF1SessionKey: number;
   classification: Array<Id<'drivers'>>;
   dnfDriverIds: Array<Id<'drivers'>>;
   driverStatuses: Array<DriverStatusEntry>;
+  /** Race and sprint gaps, for display. Empty for qualifying. */
+  timing: Array<ResultTimingEntry>;
 };
+
+/** Sessions whose `session_result` carries finishing gaps. */
+const TIMED_SESSIONS: ReadonlySet<SessionType> = new Set(['race', 'sprint']);
+
+export const resultTimingValidator = v.array(
+  v.object({
+    driverId: v.id('drivers'),
+    gapToLeaderSeconds: v.optional(v.number()),
+    lapsDown: v.optional(v.number()),
+    laps: v.optional(v.number()),
+    durationSeconds: v.optional(v.number()),
+  }),
+);
 
 /** DSQ outranks DNF outranks DNS when OpenF1 sets more than one flag. */
 export function toDriverStatus(row: {
@@ -570,6 +642,26 @@ export async function fetchOfficialClassification(args: {
     dnfDriverIds: rows
       .filter((row) => row.dnf || row.dns || row.dsq)
       .map((row) => args.driverByNumber.get(row.driver_number)!),
+    timing: TIMED_SESSIONS.has(args.sessionType)
+      ? rows.map((row) => {
+          const entry: ResultTimingEntry = {
+            driverId: args.driverByNumber.get(row.driver_number)!,
+          };
+          if (row.gapToLeaderSeconds !== undefined) {
+            entry.gapToLeaderSeconds = row.gapToLeaderSeconds;
+          }
+          if (row.lapsDown !== undefined) {
+            entry.lapsDown = row.lapsDown;
+          }
+          if (row.laps !== undefined) {
+            entry.laps = row.laps;
+          }
+          if (row.durationSeconds !== undefined) {
+            entry.durationSeconds = row.durationSeconds;
+          }
+          return entry;
+        })
+      : [],
     // Trust an explicit flag when OpenF1 sets one; fall back to 'nc' when it
     // only tells us the driver has no position.
     driverStatuses: rows.flatMap((row) => {
@@ -797,6 +889,41 @@ export const recordAttempt = internalMutation({
   },
 });
 
+/**
+ * Store a session's official finishing gaps on its result, and nothing else.
+ * Kept apart from publishing so gaps can never change a classification, a
+ * score or a notification (the silent-rescore invariant). A result that is
+ * not there yet, or a session without gaps, is left alone.
+ */
+export const recordResultTiming = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: v.union(
+      v.literal('quali'),
+      v.literal('sprint_quali'),
+      v.literal('sprint'),
+      v.literal('race'),
+    ),
+    timing: resultTimingValidator,
+  },
+  handler: async (ctx, args) => {
+    if (args.timing.length === 0) {
+      return { recorded: false };
+    }
+    const result = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )
+      .unique();
+    if (!result) {
+      return { recorded: false };
+    }
+    await ctx.db.patch('results', result._id, { timing: args.timing });
+    return { recorded: true };
+  },
+});
+
 export const recordOutcome = internalMutation({
   args: {
     raceId: v.id('races'),
@@ -883,6 +1010,11 @@ export const pollDueResults = internalAction({
             dnfDriverIds,
             driverStatuses,
           });
+        await ctx.runMutation(internal.openF1Results.recordResultTiming, {
+          raceId: task.raceId,
+          sessionType: task.sessionType,
+          timing: official.timing,
+        });
         await ctx.runMutation(internal.openF1Results.recordOutcome, {
           raceId: task.raceId,
           sessionType: task.sessionType,
@@ -1393,6 +1525,11 @@ export const adminFetchResultsNow = action({
           dnfDriverIds,
           driverStatuses,
         });
+      await ctx.runMutation(internal.openF1Results.recordResultTiming, {
+        raceId: args.raceId,
+        sessionType: args.sessionType,
+        timing: official.timing,
+      });
       await ctx.runMutation(internal.openF1Results.recordOutcome, {
         raceId: args.raceId,
         sessionType: args.sessionType,

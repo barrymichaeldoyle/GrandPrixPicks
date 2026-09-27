@@ -253,6 +253,25 @@ export default defineSchema({
         }),
       ),
     ),
+    // Official finishing gaps from OpenF1 `session_result`, race and sprint
+    // only, for display. Keyed by driver, so a later reorder (a penalty) keeps
+    // each gap with its driver. Written by `openF1Results.recordResultTiming`,
+    // never by publishing, and never read by scoring.
+    timing: v.optional(
+      v.array(
+        v.object({
+          driverId: v.id('drivers'),
+          /** Seconds behind the winner; 0 for the winner. */
+          gapToLeaderSeconds: v.optional(v.number()),
+          /** Laps behind the winner, for a lapped finisher ("+1 LAP"). */
+          lapsDown: v.optional(v.number()),
+          /** Laps completed. */
+          laps: v.optional(v.number()),
+          /** Race time in seconds, for a driver who finished. */
+          durationSeconds: v.optional(v.number()),
+        }),
+      ),
+    ),
     // Tracks async scoring progress after result publication
     scoringStatus: v.optional(
       v.union(

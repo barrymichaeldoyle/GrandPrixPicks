@@ -416,7 +416,13 @@ export const TRMNL_SCENARIOS: readonly TrmnlScenario[] = [
     results: {
       quali: classification,
       race: classification.map((row, index) =>
-        index >= classification.length - 2 ? { ...row, status: 'dnf' } : row,
+        index >= classification.length - 2
+          ? { ...row, status: 'dnf' }
+          : index === 0
+            ? { ...row, gapToLeaderSeconds: 0, durationSeconds: 4652.207 }
+            : index === classification.length - 3
+              ? { ...row, lapsDown: 1 }
+              : { ...row, gapToLeaderSeconds: index * 2.873 },
       ),
     },
     nextRace: baku,

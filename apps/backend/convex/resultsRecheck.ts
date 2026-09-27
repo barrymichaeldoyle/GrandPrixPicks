@@ -513,6 +513,15 @@ async function reconcileTasks(
           acknowledgedStatuses: options.acknowledgedStatuses,
         },
       );
+      // Gaps are display-only and keyed by driver, so they follow the
+      // official feed even when the order itself needs review.
+      if (options.apply) {
+        await ctx.runMutation(internal.openF1Results.recordResultTiming, {
+          raceId: task.raceId,
+          sessionType: task.sessionType,
+          timing: official.timing,
+        });
+      }
       outcomes.push(outcome);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -623,6 +632,70 @@ export const auditSeason = internalAction({
         (o) => o.status !== 'in_sync' && o.status !== 'missing',
       ),
     };
+  },
+});
+
+/**
+ * Fill in the official finishing gaps (`results.timing`) for race and sprint
+ * results published before gaps were stored, or refresh them. Writes only the
+ * gaps: no classification, score or notification can change.
+ *
+ *   npx convex run --prod resultsRecheck:backfillTiming '{"season":2026}'
+ */
+export const backfillTiming = internalAction({
+  args: {
+    season: v.number(),
+    raceSlug: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const allTasks: RecheckTask[] = await ctx.runQuery(
+      internal.resultsRecheck.getPublishedSessions,
+      { season: args.season },
+    );
+    const tasks = allTasks.filter(
+      (task) =>
+        (task.sessionType === 'race' || task.sessionType === 'sprint') &&
+        (!args.raceSlug || task.raceSlug === args.raceSlug),
+    );
+    const driverByNumber = await loadDriverNumberMap(ctx);
+    const outcomes: Array<{
+      race: string;
+      sessionType: SessionType;
+      drivers: number;
+      error?: string;
+    }> = [];
+    for (const [index, task] of tasks.entries()) {
+      if (index > 0) {
+        await sleep(OPEN_F1_PACING_MS);
+      }
+      try {
+        const official = await fetchOfficialClassification({
+          season: task.season,
+          sessionType: task.sessionType,
+          sessionStartAt: task.sessionStartAt,
+          raceName: task.raceName,
+          driverByNumber,
+        });
+        await ctx.runMutation(internal.openF1Results.recordResultTiming, {
+          raceId: task.raceId,
+          sessionType: task.sessionType,
+          timing: official.timing,
+        });
+        outcomes.push({
+          race: task.raceSlug,
+          sessionType: task.sessionType,
+          drivers: official.timing.length,
+        });
+      } catch (error) {
+        outcomes.push({
+          race: task.raceSlug,
+          sessionType: task.sessionType,
+          drivers: 0,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+    return { checked: outcomes.length, outcomes };
   },
 });
 

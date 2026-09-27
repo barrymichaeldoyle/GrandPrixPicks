@@ -86,4 +86,14 @@ crons.interval(
   {},
 );
 
+// The "Registered players" tile on the TRMNL PostHog dashboard. It charts one
+// point per UTC day, so the snapshot lands just after midnight: a later time
+// would leave today's point, the tile's headline, at zero until it ran.
+crons.cron(
+  'report site totals to PostHog',
+  '5 0 * * *',
+  internal.siteTotals.reportToPostHog,
+  {},
+);
+
 export default crons;

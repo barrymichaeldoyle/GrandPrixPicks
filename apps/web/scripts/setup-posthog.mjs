@@ -3,6 +3,8 @@
 const DEFAULT_HOST = 'https://eu.posthog.com';
 const DASHBOARD_NAME = 'Grand Prix Picks - Product Funnels';
 const TAGS = ['grand-prix-picks', 'product-funnels'];
+const TRMNL_DASHBOARD_NAME = 'Grand Prix Picks - TRMNL';
+const TRMNL_TAGS = ['grand-prix-picks', 'trmnl'];
 
 const funnels = [
   {
@@ -120,6 +122,96 @@ const trends = [
   },
 ];
 
+const SEARCH_REFERRER = '(^|\\.)(google\\.|bing\\.com$|duckduckgo\\.com$)';
+const RACE_PAGE_PATH = '^/(races/|f1-[0-9]{4}-.+-grand-prix-predictions)';
+
+// Mirrored on a TRMNL e-ink screen by the "Dashboards for PostHog" recipe,
+// which shows six tiles a page and a headline number for time-series only.
+// So: six single-line trends. Each point is the trailing seven days, plotted
+// daily, so the recipe's "Last tick" headline is always a full week. Weekly
+// buckets start on Sunday and read as nearly zero early in the week.
+const TRMNL_WINDOW = { interval: 'day', dateFrom: '-8w' };
+
+const trmnlTrends = [
+  {
+    ...TRMNL_WINDOW,
+    name: 'TRMNL: Visitors',
+    description: 'Unique visitors over the trailing seven days.',
+    series: [{ event: '$pageview', name: 'Visitors', math: 'weekly_active' }],
+  },
+  {
+    ...TRMNL_WINDOW,
+    name: 'TRMNL: Search visitors',
+    description:
+      'Unique visitors over the trailing seven days arriving from Google, Bing or DuckDuckGo.',
+    series: [
+      {
+        event: '$pageview',
+        name: 'Search visitors',
+        math: 'weekly_active',
+        propertyRegex: { $referring_domain: SEARCH_REFERRER },
+      },
+    ],
+  },
+  {
+    ...TRMNL_WINDOW,
+    name: 'TRMNL: Race page visitors',
+    description:
+      'Unique visitors over the trailing seven days to race pages and race write-ups.',
+    series: [
+      {
+        event: '$pageview',
+        name: 'Race page visitors',
+        math: 'weekly_active',
+        pathRegex: RACE_PAGE_PATH,
+      },
+    ],
+  },
+  {
+    ...TRMNL_WINDOW,
+    name: 'TRMNL: Picker users',
+    description:
+      'Unique visitors over the trailing seven days who saw the landing page picker.',
+    series: [
+      {
+        event: 'landing_picker_viewed',
+        name: 'Picker users',
+        math: 'weekly_active',
+      },
+    ],
+  },
+  {
+    ...TRMNL_WINDOW,
+    name: 'TRMNL: Predictors',
+    description:
+      'Unique players over the trailing seven days who saved a prediction.',
+    series: [
+      {
+        event: 'prediction_saved',
+        name: 'Predictors',
+        math: 'weekly_active',
+      },
+    ],
+  },
+  {
+    ...TRMNL_WINDOW,
+    name: 'TRMNL: Registered players',
+    description:
+      'Total registered players, from the daily site_totals snapshot the backend sends (apps/backend/convex/siteTotals.ts).',
+    // The snapshot has no person profile, so test-account filters that read
+    // person properties would drop every event.
+    filterTestAccounts: false,
+    series: [
+      {
+        event: 'site_totals',
+        name: 'Registered players',
+        math: 'max',
+        mathProperty: 'users',
+      },
+    ],
+  },
+];
+
 const retentions = [
   {
     name: 'Predictor weekly retention',
@@ -189,15 +281,10 @@ async function findDashboardByName(name) {
   return dashboards.find((dashboard) => dashboard.name === name) ?? null;
 }
 
-async function createDashboard() {
+async function createDashboard({ name, description, tags }) {
   return posthogFetch(`/api/environments/${environmentId}/dashboards/`, {
     method: 'POST',
-    body: JSON.stringify({
-      name: DASHBOARD_NAME,
-      description:
-        'Weekly product decision dashboard for acquisition, activation, prediction completion, social participation, leagues, and verified purchases. Managed by apps/web/scripts/setup-posthog.mjs.',
-      tags: TAGS,
-    }),
+    body: JSON.stringify({ name, description, tags }),
   });
 }
 
@@ -236,6 +323,12 @@ function eventNode(step, order) {
       operator: 'exact',
       type: 'event',
     })),
+    ...Object.entries(step.propertyRegex ?? {}).map(([key, value]) => ({
+      key,
+      value,
+      operator: 'regex',
+      type: 'event',
+    })),
   ];
   return {
     id: step.event,
@@ -249,12 +342,12 @@ function eventNode(step, order) {
   };
 }
 
-function funnelPayload(funnel, dashboardId) {
+function funnelPayload(funnel, dashboardId, tags) {
   const events = funnel.steps.map(eventNode);
   return {
     name: funnel.name,
     description: funnel.description,
-    tags: TAGS,
+    tags,
     dashboards: [dashboardId],
     filters: {
       insight: 'FUNNELS',
@@ -289,13 +382,13 @@ function funnelPayload(funnel, dashboardId) {
   };
 }
 
-function trendPayload(trend, dashboardId) {
+function trendPayload(trend, dashboardId, tags) {
   const interval = trend.interval ?? 'week';
   const dateFrom = trend.dateFrom ?? '-12w';
   return {
     name: trend.name,
     description: trend.description,
-    tags: TAGS,
+    tags,
     dashboards: [dashboardId],
     query: {
       kind: 'InsightVizNode',
@@ -303,29 +396,33 @@ function trendPayload(trend, dashboardId) {
         kind: 'TrendsQuery',
         dateRange: { date_from: dateFrom },
         interval,
-        filterTestAccounts: true,
+        filterTestAccounts: trend.filterTestAccounts ?? true,
         trendsFilter: {
           display: 'ActionsLineGraph',
-          showLegend: true,
+          showLegend: trend.series.length > 1,
         },
-        series: trend.series.map((series) => ({
+        series: trend.series.map((series, order) => ({
           kind: 'EventsNode',
           event: series.event,
           name: series.name,
           custom_name: series.name,
-          math: 'dau',
+          math: series.math ?? 'dau',
+          ...(series.mathProperty
+            ? { math_property: series.mathProperty }
+            : {}),
+          properties: eventNode(series, order).properties,
         })),
       },
     },
   };
 }
 
-function retentionPayload(retention, dashboardId) {
+function retentionPayload(retention, dashboardId, tags) {
   const entity = { id: retention.event, type: 'events' };
   return {
     name: retention.name,
     description: retention.description,
-    tags: TAGS,
+    tags,
     dashboards: [dashboardId],
     query: {
       kind: 'InsightVizNode',
@@ -348,50 +445,64 @@ function retentionPayload(retention, dashboardId) {
   };
 }
 
-function managedInsightPayload(definition, dashboardId) {
+function managedInsightPayload(definition, dashboardId, tags) {
   if ('steps' in definition) {
-    return funnelPayload(definition, dashboardId);
+    return funnelPayload(definition, dashboardId, tags);
   }
   if ('series' in definition) {
-    return trendPayload(definition, dashboardId);
+    return trendPayload(definition, dashboardId, tags);
   }
-  return retentionPayload(definition, dashboardId);
+  return retentionPayload(definition, dashboardId, tags);
 }
 
-async function createInsight(definition, dashboardId) {
+async function createInsight(definition, dashboardId, tags) {
   return posthogFetch(`/api/environments/${environmentId}/insights/`, {
     method: 'POST',
-    body: JSON.stringify(managedInsightPayload(definition, dashboardId)),
+    body: JSON.stringify(managedInsightPayload(definition, dashboardId, tags)),
   });
 }
 
-async function updateInsight(insightId, definition, dashboardId) {
+async function updateInsight(insightId, definition, dashboardId, tags) {
   return posthogFetch(
     `/api/environments/${environmentId}/insights/${insightId}/`,
     {
       method: 'PATCH',
-      body: JSON.stringify(managedInsightPayload(definition, dashboardId)),
+      body: JSON.stringify(
+        managedInsightPayload(definition, dashboardId, tags),
+      ),
     },
   );
 }
 
-async function main() {
-  process.stderr.write(`Using PostHog host ${host}\n`);
+const dashboards = [
+  {
+    name: DASHBOARD_NAME,
+    description:
+      'Weekly product decision dashboard for acquisition, activation, prediction completion, social participation, leagues, and verified purchases. Managed by apps/web/scripts/setup-posthog.mjs.',
+    tags: TAGS,
+    insights: [...funnels, ...trends, ...retentions],
+  },
+  {
+    name: TRMNL_DASHBOARD_NAME,
+    description:
+      'Six weekly numbers for the TRMNL e-ink screen. Managed by apps/web/scripts/setup-posthog.mjs.',
+    tags: TRMNL_TAGS,
+    insights: trmnlTrends,
+  },
+];
 
-  let dashboard = await findDashboardByName(DASHBOARD_NAME);
+async function setUpDashboard(config) {
+  let dashboard = await findDashboardByName(config.name);
   if (!dashboard) {
-    dashboard = await createDashboard();
+    dashboard = await createDashboard(config);
     process.stderr.write(
-      `Created dashboard: ${DASHBOARD_NAME} (${dashboard.id})\n`,
+      `Created dashboard: ${config.name} (${dashboard.id})\n`,
     );
   } else {
-    process.stderr.write(
-      `Found dashboard: ${DASHBOARD_NAME} (${dashboard.id})\n`,
-    );
+    process.stderr.write(`Found dashboard: ${config.name} (${dashboard.id})\n`);
   }
 
-  const managedInsights = [...funnels, ...trends, ...retentions];
-  for (const definition of managedInsights) {
+  for (const definition of config.insights) {
     let existing = await findInsightByName(definition.name);
     for (const legacyName of definition.legacyNames ?? []) {
       existing ??= await findInsightByName(legacyName);
@@ -401,6 +512,7 @@ async function main() {
         existing.id,
         definition,
         dashboard.id,
+        config.tags,
       );
       process.stderr.write(
         `Updated insight: ${updated.name} (${updated.id})\n`,
@@ -408,11 +520,21 @@ async function main() {
       continue;
     }
 
-    const created = await createInsight(definition, dashboard.id);
+    const created = await createInsight(definition, dashboard.id, config.tags);
     process.stderr.write(`Created insight: ${created.name} (${created.id})\n`);
   }
 
-  process.stderr.write('\nPostHog product funnels are set up.\n');
+  process.stderr.write(
+    `${config.name}: ${host}/project/${environmentId}/dashboard/${dashboard.id}\n`,
+  );
+}
+
+async function main() {
+  process.stderr.write(`Using PostHog host ${host}\n`);
+  for (const config of dashboards) {
+    await setUpDashboard(config);
+  }
+  process.stderr.write('\nPostHog dashboards are set up.\n');
 }
 
 main().catch((error) => {

@@ -97,7 +97,7 @@ const RACE_WRITEUPS = {
   },
   'azerbaijan-2026': {
     to: '/f1-2026-azerbaijan-grand-prix-predictions',
-    reviewedAt: '2026-09-25',
+    reviewedAt: '2026-09-28',
     venueName: 'Baku',
     label: 'Baku predictions',
     summary:

@@ -298,6 +298,7 @@ const FLAG_ASSETS = new Set([
   'mc',
   'mx',
   'nl',
+  'nz',
   'pl',
   'ru',
   'se',

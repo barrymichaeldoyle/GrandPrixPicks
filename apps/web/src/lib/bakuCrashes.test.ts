@@ -48,7 +48,7 @@ describe('baku crash data', () => {
   it('covers every weekend the circuit has held, and no cancelled one', () => {
     const years = [...new Set(BAKU_CRASHES.map((crash) => crash.year))].sort();
     expect(years).toEqual([
-      2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025,
+      2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025, 2026,
     ]);
     // 2020 was cancelled; a row for it would mean a fabricated weekend.
     expect(years).not.toContain(2020);

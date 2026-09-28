@@ -2,12 +2,13 @@
   "_meta": {
     "compiled": "2026-09-07",
     "circuit": "Baku City Circuit",
-    "coverage": "All Formula 1 weekends held at Baku, 2016-2025. 2020 was cancelled.",
+    "coverage": "All Formula 1 weekends held at Baku, 2016-2026. 2020 was cancelled.",
     "method": "Wikipedia race reports used as an index, corroborated against formula1.com, motorsport.com, RaceFans, Sky Sports and Crash.net. For 2023-2025, cross-checked against OpenF1 race control in ../raw/.",
-    "inclusion": "Contact with a wall or another car that had a consequence: a red flag, a retirement, a stopped car, or a steward's collision note. Excludes lock-ups and escape-road excursions with no contact, and purely mechanical retirements.",
+    "inclusion": "Contact with a wall, a barrier, another car or something on the track, recorded in a race report or the FIA race control log. Car-to-car contact always counts; a solo wall hit counts only when it did damage, stopped the car, or brought out a red flag, VSC or Safety Car (rule tightened 2026-09-28). Excludes lock-ups and escape-road excursions with no contact, and purely mechanical retirements.",
     "attribution": "Corner resolution. Where a car made contact at one corner and stopped at another, the corner is where it stopped, with the origin in the note.",
     "confidence": "high = corner named by a cited report or race control; medium = corner named by a single source; verify = flagged, needs a second source before publishing.",
-    "verified": "2026-09-07. Every incident checked against a second source. Two dropped, listed under \"dropped\" with reasons."
+    "verified": "2026-09-07. Every incident checked against a second source. Two dropped, listed under \"dropped\" with reasons.",
+    "updated": "2026-09-28: 2026 weekend added from the raw text of the cited reports and OpenF1 race control (meeting 1295); five light wall touches moved to dropped."
   },
   "incidents": [
     {
@@ -25,34 +26,6 @@
       "source": "https://en.wikipedia.org/wiki/2016_European_Grand_Prix"
     },
     {
-      "id": "2016-fp1-hamilton-t3",
-      "year": 2016,
-      "event": "European Grand Prix",
-      "session": "FP1",
-      "drivers": [
-        "HAM"
-      ],
-      "corner": 3,
-      "outcome": "continued",
-      "confidence": "medium",
-      "note": "Touched the barrier at Turn 3.",
-      "source": "https://en.wikipedia.org/wiki/2016_European_Grand_Prix"
-    },
-    {
-      "id": "2016-fp2-gutierrez-t8",
-      "year": 2016,
-      "event": "European Grand Prix",
-      "session": "FP2",
-      "drivers": [
-        "GUT"
-      ],
-      "corner": 8,
-      "outcome": "continued",
-      "confidence": "medium",
-      "note": "Touched the barrier at Turn 8 in the castle section.",
-      "source": "https://en.wikipedia.org/wiki/2016_European_Grand_Prix"
-    },
-    {
       "id": "2016-fp3-perez-t15",
       "year": 2016,
       "event": "European Grand Prix",
@@ -65,20 +38,6 @@
       "confidence": "high",
       "note": "Lost the rear at Turn 15 at the end of the session, in what Formula 1 called a near carbon copy of Ricciardo's crash there on Friday. The gearbox change earned him a five-place grid penalty.",
       "source": "https://www.formula1.com/en/latest/article/perez-facing-baku-grid-drop-after-fp3-crash.IVCSbgBN6AC05Q2wKqu4A"
-    },
-    {
-      "id": "2016-fp3-massa-wall",
-      "year": 2016,
-      "event": "European Grand Prix",
-      "session": "FP3",
-      "drivers": [
-        "MAS"
-      ],
-      "corner": null,
-      "outcome": "continued",
-      "confidence": "medium",
-      "note": "Made contact with the wall and later rejoined. No contemporary report names the corner, so this is listed but not placed on the map.",
-      "source": "https://en.wikipedia.org/wiki/2016_European_Grand_Prix"
     },
     {
       "id": "2016-quali-hamilton",
@@ -528,20 +487,6 @@
       "source": "https://en.wikipedia.org/wiki/2021_Azerbaijan_Grand_Prix"
     },
     {
-      "id": "2022-quali-stroll-t7",
-      "year": 2022,
-      "event": "Azerbaijan Grand Prix",
-      "session": "Qualifying",
-      "drivers": [
-        "STR"
-      ],
-      "corner": 7,
-      "outcome": "continued",
-      "confidence": "high",
-      "note": "Locked up and hit the barrier at low speed at Turn 7, then reversed and carried on.",
-      "source": "https://en.wikipedia.org/wiki/2022_Azerbaijan_Grand_Prix"
-    },
-    {
       "id": "2022-quali-stroll-t2",
       "year": 2022,
       "event": "Azerbaijan Grand Prix",
@@ -553,20 +498,6 @@
       "outcome": "red-flag",
       "confidence": "high",
       "note": "Hit the barrier again moments later at Turn 2 and much harder, breaking the front wing and suspension. Red flag.",
-      "source": "https://en.wikipedia.org/wiki/2022_Azerbaijan_Grand_Prix"
-    },
-    {
-      "id": "2022-quali-vettel-t15",
-      "year": 2022,
-      "event": "Azerbaijan Grand Prix",
-      "session": "Qualifying",
-      "drivers": [
-        "VET"
-      ],
-      "corner": 15,
-      "outcome": "continued",
-      "confidence": "high",
-      "note": "Locked up and hit the barrier at low speed at Turn 15 in Q2. Car undamaged.",
       "source": "https://en.wikipedia.org/wiki/2022_Azerbaijan_Grand_Prix"
     },
     {
@@ -859,6 +790,117 @@
       "confidence": "high",
       "note": "Dived down the inside at Turn 5 and clipped Colapinto's rear left, spinning him. Albon took a ten-second penalty and accepted blame. Race control logged Turn 5, which a contemporary report confirms; Wikipedia's Turn 7 is wrong.",
       "source": "https://formularapida.net/en/albon-accepts-blame-for-colapinto-hit-in-azerbaijan-gp/"
+    },
+    {
+      "id": "2026-fp2-lindblad-t9",
+      "year": 2026,
+      "event": "Azerbaijan Grand Prix",
+      "session": "FP2",
+      "drivers": [
+        "LIN"
+      ],
+      "corner": 9,
+      "outcome": "red-flag",
+      "confidence": "high",
+      "note": "Clipped the jutting Turn 9 wall in the castle section 20 minutes in, damaging the right side of the car.",
+      "sourcing": "Formula 1's report says the Turn 8/9 castle section; Autosport names the Turn 9 wall. Race control's yellows in marshal sectors 10 and 11 agree.",
+      "source": "https://www.autosport.com/f1/news/f1-azerbaijan-gp-fp2-report/10858543/"
+    },
+    {
+      "id": "2026-fp3-stroll-t1",
+      "year": 2026,
+      "event": "Azerbaijan Grand Prix",
+      "session": "FP3",
+      "drivers": [
+        "STR"
+      ],
+      "corner": 1,
+      "outcome": "dnf",
+      "confidence": "medium",
+      "note": "Tagged the wall at Turn 1, damaging the front-left suspension, and parked the car.",
+      "sourcing": "Reports name Turn 1 for the contact but not where he parked.",
+      "source": "https://www.autosport.com/f1/news/f1-azerbaijan-gp-fp3-report-10858801/10858801/"
+    },
+    {
+      "id": "2026-quali-antonelli-t1",
+      "year": 2026,
+      "event": "Azerbaijan Grand Prix",
+      "session": "Qualifying",
+      "drivers": [
+        "ANT"
+      ],
+      "corner": 1,
+      "outcome": "dnf",
+      "confidence": "high",
+      "note": "Hit the inside wall at Turn 1 in Q1 and broke the front-left suspension. His Q1 time put him 16th on the grid.",
+      "sourcing": "No red flag: he tried to limp back and was told to park. Formula 1, Autosport and Sky Sports all name Turn 1.",
+      "source": "https://www.autosport.com/f1/news/f1-azerbaijan-gp-qualifying-report/10858882/"
+    },
+    {
+      "id": "2026-race-albon-t6",
+      "year": 2026,
+      "event": "Azerbaijan Grand Prix",
+      "session": "Race",
+      "lap": 30,
+      "drivers": [
+        "ALB"
+      ],
+      "corner": 6,
+      "outcome": "dnf",
+      "confidence": "medium",
+      "note": "Locked up and went into the barrier, bringing out the first Safety Car. The car stopped at Turn 6.",
+      "sourcing": "Formula 1's report and race control's recovery vehicle put it at Turn 6; Motorsport.com and PlanetF1 have him locking up into Turn 5 and going through the TecPro on the exit. Lap 30 is his own: race control logs the Safety Car on the leader's lap 31.",
+      "source": "https://www.formula1.com/en/latest/article/russell-narrowly-holds-off-verstappen-to-take-victory-over-the-line-in-chaotic-azerbaijan-gp.5J4lgNh82JDL2GM302irF0"
+    },
+    {
+      "id": "2026-race-colapinto-gasly-norris-t1",
+      "year": 2026,
+      "event": "Azerbaijan Grand Prix",
+      "session": "Race",
+      "lap": 36,
+      "drivers": [
+        "COL",
+        "GAS",
+        "NOR"
+      ],
+      "corner": 1,
+      "outcome": "dnf",
+      "confidence": "high",
+      "note": "At the restart, Colapinto locked up into Turn 1 and hit his Alpine team-mate Gasly, who was pushed into Norris. All three retired and the Safety Car came back out. Colapinto took a ten-second penalty.",
+      "sourcing": "Penalty from race control: \"10 second time penalty for car 43 (COL), causing a collision\".",
+      "source": "https://www.formula1.com/en/latest/article/russell-narrowly-holds-off-verstappen-to-take-victory-over-the-line-in-chaotic-azerbaijan-gp.5J4lgNh82JDL2GM302irF0"
+    },
+    {
+      "id": "2026-race-lindblad-lawson-t1",
+      "year": 2026,
+      "event": "Azerbaijan Grand Prix",
+      "session": "Race",
+      "lap": 36,
+      "drivers": [
+        "LIN",
+        "LAW"
+      ],
+      "corner": 1,
+      "outcome": "continued",
+      "confidence": "high",
+      "note": "At the same restart, Lindblad hit the back of his Racing Bulls team-mate Lawson and spun him. Both carried on, and the stewards took no further action.",
+      "sourcing": "Race control names Turn 1 and records the no-further-action decision.",
+      "source": "https://www.formula1.com/en/latest/article/russell-narrowly-holds-off-verstappen-to-take-victory-over-the-line-in-chaotic-azerbaijan-gp.5J4lgNh82JDL2GM302irF0"
+    },
+    {
+      "id": "2026-race-bottas-t15",
+      "year": 2026,
+      "event": "Azerbaijan Grand Prix",
+      "session": "Race",
+      "drivers": [
+        "BOT"
+      ],
+      "corner": 15,
+      "outcome": "dnf",
+      "confidence": "high",
+      "note": "Went nose-first into the barrier at Turn 15 on the final lap, the last retirement of the race.",
+      "sourcing": "Lapped at the time, so no lap is given. Race control names Turn 15.",
+      "source": "https://www.formula1.com/en/latest/article/azerbaijan-lowdown-all-the-key-moments-as-russell-takes-victory-and-baku-puts-on-another-show.7l4pAjByompPX9hC6YkB8F"
     }
   ],
   "dropped": [
@@ -869,6 +911,34 @@
     {
       "id": "2023-race-lap1-t2",
       "reason": "Race control logged a Turn 2 collision on lap 1 and took no further action. No drivers are named in the message and no report was found, so it cannot be attributed to anyone."
+    },
+    {
+      "id": "2016-fp1-hamilton-t3",
+      "reason": "A touch of the barrier with no damage, stop or neutralisation. Removed 2026-09-28 when light wall touches were ruled out."
+    },
+    {
+      "id": "2016-fp2-gutierrez-t8",
+      "reason": "A touch of the barrier with no damage, stop or neutralisation. Removed 2026-09-28 when light wall touches were ruled out."
+    },
+    {
+      "id": "2016-fp3-massa-wall",
+      "reason": "Contact with the wall, then rejoined; no damage or stop reported and no corner named. Removed 2026-09-28 when light wall touches were ruled out."
+    },
+    {
+      "id": "2022-quali-stroll-t7",
+      "reason": "Low-speed touch at Turn 7, reversed and carried on. Removed 2026-09-28 when light wall touches were ruled out; the Turn 2 crash minutes later stays and mentions it."
+    },
+    {
+      "id": "2022-quali-vettel-t15",
+      "reason": "Low-speed touch at Turn 15, car undamaged. Removed 2026-09-28 when light wall touches were ruled out."
+    },
+    {
+      "id": "2026-race-russell-t15",
+      "reason": "Brushed the Turn 15 wall while leading (\"I nibbled the wall\") and went on to win. A light touch with no consequence."
+    },
+    {
+      "id": "2026-race-verstappen-t16",
+      "reason": "Glanced the wall on entry to Turn 16 several times while chasing Russell. Light touches, no single incident."
     }
   ]
 }

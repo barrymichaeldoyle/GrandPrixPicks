@@ -39,7 +39,7 @@ import {
 } from './bakuCrashMapModel';
 
 /**
- * Where the walls have taken cars at Baku, 2016 to 2025.
+ * Where the walls have taken cars at Baku, 2016 to 2026.
  *
  * Built for this one write-up and deliberately not generalised. There is no
  * shared `CrashMap` and no per-circuit route: twenty-three near-identical
@@ -182,15 +182,15 @@ export function BakuCrashMap() {
         id={headingId}
         className="font-title text-2xl font-medium text-text sm:text-3xl"
       >
-        Notable Baku crashes, 2016–2025
+        Notable Baku crashes, 2016–2026
       </h2>
       <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
-        Across nine completed weekends, cars hit a wall, a barrier, another car
-        or something on the track {BAKU_CRASHES.length} times. Each one comes
-        from a race report or the FIA race control log and is placed at the
-        corner where the car stopped. Turns 3 and 15 have taken the most, 11
-        each, and Turn 3 takes them in groups: three in the 2021 qualifying hour
-        alone.
+        Across ten completed weekends, cars hit a wall, a barrier, another car
+        or something on the track {BAKU_CRASHES.length} times, not counting
+        light brushes of the wall. Each one comes from a race report or the FIA
+        race control log and is placed at the corner where the car stopped. Turn
+        15 has taken the most, 11, and Turn 3 is next on 10, taking them in
+        groups: three in the 2021 qualifying hour alone.
       </p>
 
       <div className="mt-6">

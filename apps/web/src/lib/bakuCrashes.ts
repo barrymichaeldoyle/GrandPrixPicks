@@ -1,8 +1,8 @@
 /**
- * Every notable crash at the Baku City Circuit, 2016 to 2025.
+ * Every notable crash at the Baku City Circuit, 2016 to 2026.
  *
  * Hand-maintained repo data, in the manner of `lineUp2027.ts`: this is an
- * archive of nine completed race weekends, so it changes when a person edits
+ * archive of ten completed race weekends, so it changes when a person edits
  * it, roughly once a year, and there is no table, no cron and no runtime feed
  * behind it.
  *
@@ -14,16 +14,18 @@
  * and every one carries a citation.
  *
  * Inclusion: a car hitting a wall, a barrier, another car or something on the
- * track, recorded in a race report or the FIA race control log. This is the
- * rule the rows actually follow. An earlier wording, "that had a consequence,
- * being a red flag, a retirement, a stopped car or a steward's collision
- * note", was narrower than the data: fourteen rows are contacts where the car
- * carried on, and the page and captions repeated the narrow version until
- * 2026-09-21.
+ * track, recorded in a race report or the FIA race control log. Contact
+ * between cars always counts. A car that hits the wall on its own counts only
+ * when it did damage, stopped the car, or brought out a red flag, a Virtual
+ * Safety Car or a Safety Car: a brush of the wall that the driver carried on
+ * from is not a crash. Five such touches were in the archive until 2026-09-28
+ * and were taken out.
  * Excluded: lock-ups and escape-road excursions with no contact, and purely
- * mechanical retirements. Two researched incidents were dropped for failing
- * this test and the reasons are recorded in
- * `artifacts/baku-crash-map/researched-incidents.json`.
+ * mechanical retirements. Researched incidents that fail this test, and the
+ * reasons, are recorded in `artifacts/baku-crash-map/researched-incidents.json`.
+ *
+ * `outcome: 'dnf'` also covers a practice or qualifying car that stopped and
+ * took no further part in the session without a red flag.
  *
  * Corner attribution is where the car *stopped*, not where the contact began,
  * and where those differ the note says so.
@@ -99,6 +101,7 @@ export type BakuDriver = {
 export const BAKU_DRIVERS: Readonly<Record<string, BakuDriver>> = {
   ALB: { name: 'Alexander Albon', country: 'th' },
   ALO: { name: 'Fernando Alonso', country: 'es' },
+  ANT: { name: 'Kimi Antonelli', country: 'it' },
   BEA: { name: 'Oliver Bearman', country: 'gb' },
   BOT: { name: 'Valtteri Bottas', country: 'fi' },
   COL: { name: 'Franco Colapinto', country: 'ar' },
@@ -112,8 +115,10 @@ export const BAKU_DRIVERS: Readonly<Record<string, BakuDriver>> = {
   HUL: { name: 'Nico Hülkenberg', country: 'de' },
   KUB: { name: 'Robert Kubica', country: 'pl' },
   KVY: { name: 'Daniil Kvyat', country: 'ru' },
+  LAW: { name: 'Liam Lawson', country: 'nz' },
   LEC: { name: 'Charles Leclerc', country: 'mc' },
-  MAS: { name: 'Felipe Massa', country: 'br' },
+  LIN: { name: 'Arvid Lindblad', country: 'gb' },
+  NOR: { name: 'Lando Norris', country: 'gb' },
   OCO: { name: 'Esteban Ocon', country: 'fr' },
   PER: { name: 'Sergio Pérez', country: 'mx' },
   PIA: { name: 'Oscar Piastri', country: 'au' },
@@ -132,18 +137,6 @@ export const BAKU_DRIVERS: Readonly<Record<string, BakuDriver>> = {
 
 export const BAKU_CRASHES: readonly BakuCrash[] = [
   {
-    id: '2016-fp1-hamilton-t3',
-    year: 2016,
-    event: 'European Grand Prix',
-    session: 'FP1',
-    drivers: ['HAM'],
-    corner: 3,
-    outcome: 'continued',
-    confidence: 'medium',
-    note: 'Touched the barrier at Turn 3.',
-    source: 'https://en.wikipedia.org/wiki/2016_European_Grand_Prix',
-  },
-  {
     id: '2016-fp1-ricciardo-t15',
     year: 2016,
     event: 'European Grand Prix',
@@ -153,31 +146,6 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     outcome: 'red-flag',
     confidence: 'high',
     note: 'Crashed at the exit of Turn 15 and lost a rear wheel, bringing an 11-minute red flag.',
-    source: 'https://en.wikipedia.org/wiki/2016_European_Grand_Prix',
-  },
-  {
-    id: '2016-fp2-gutierrez-t8',
-    year: 2016,
-    event: 'European Grand Prix',
-    session: 'FP2',
-    drivers: ['GUT'],
-    corner: 8,
-    outcome: 'continued',
-    confidence: 'medium',
-    note: 'Touched the barrier at Turn 8 in the castle section.',
-    source: 'https://en.wikipedia.org/wiki/2016_European_Grand_Prix',
-  },
-  {
-    id: '2016-fp3-massa-wall',
-    year: 2016,
-    event: 'European Grand Prix',
-    session: 'FP3',
-    drivers: ['MAS'],
-    corner: null,
-    outcome: 'continued',
-    confidence: 'medium',
-    note: "Made contact with the wall and later rejoined. No report names the corner, so it isn't on the map.",
-    sourcing: 'No contemporary report names the corner.',
     source: 'https://en.wikipedia.org/wiki/2016_European_Grand_Prix',
   },
   {
@@ -596,31 +564,7 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     corner: 2,
     outcome: 'red-flag',
     confidence: 'high',
-    note: 'Hit the barrier again moments later at Turn 2 and much harder, breaking the front wing and suspension. Red flag.',
-    source: 'https://en.wikipedia.org/wiki/2022_Azerbaijan_Grand_Prix',
-  },
-  {
-    id: '2022-quali-stroll-t7',
-    year: 2022,
-    event: 'Azerbaijan Grand Prix',
-    session: 'Qualifying',
-    drivers: ['STR'],
-    corner: 7,
-    outcome: 'continued',
-    confidence: 'high',
-    note: 'Locked up and hit the barrier at low speed at Turn 7, then reversed and carried on.',
-    source: 'https://en.wikipedia.org/wiki/2022_Azerbaijan_Grand_Prix',
-  },
-  {
-    id: '2022-quali-vettel-t15',
-    year: 2022,
-    event: 'Azerbaijan Grand Prix',
-    session: 'Qualifying',
-    drivers: ['VET'],
-    corner: 15,
-    outcome: 'continued',
-    confidence: 'high',
-    note: 'Locked up and hit the barrier at low speed at Turn 15 in Q2. Car undamaged.',
+    note: 'Hit the barrier hard at Turn 2, minutes after a low-speed touch at Turn 7, breaking the front wing and suspension. Red flag.',
     source: 'https://en.wikipedia.org/wiki/2022_Azerbaijan_Grand_Prix',
   },
   {
@@ -891,6 +835,113 @@ export const BAKU_CRASHES: readonly BakuCrash[] = [
     source:
       'https://www.formula1.com/en/latest/article/verstappen-claims-dominant-azerbaijan-win-over-russell-and-sainz-after.gT4fbKTwpl3dI79nDmrHS',
   },
+  {
+    id: '2026-fp2-lindblad-t9',
+    year: 2026,
+    event: 'Azerbaijan Grand Prix',
+    session: 'FP2',
+    drivers: ['LIN'],
+    corner: 9,
+    outcome: 'red-flag',
+    confidence: 'high',
+    note: 'Clipped the jutting Turn 9 wall in the castle section 20 minutes in, damaging the right side of the car.',
+    sourcing:
+      "Formula 1's report says the Turn 8/9 castle section; Autosport names the Turn 9 wall. Race control's yellows in marshal sectors 10 and 11 agree.",
+    source:
+      'https://www.autosport.com/f1/news/f1-azerbaijan-gp-fp2-report/10858543/',
+  },
+  {
+    id: '2026-fp3-stroll-t1',
+    year: 2026,
+    event: 'Azerbaijan Grand Prix',
+    session: 'FP3',
+    drivers: ['STR'],
+    corner: 1,
+    outcome: 'dnf',
+    confidence: 'medium',
+    note: 'Tagged the wall at Turn 1, damaging the front-left suspension, and parked the car.',
+    sourcing: 'Reports name Turn 1 for the contact but not where he parked.',
+    source:
+      'https://www.autosport.com/f1/news/f1-azerbaijan-gp-fp3-report-10858801/10858801/',
+  },
+  {
+    id: '2026-quali-antonelli-t1',
+    year: 2026,
+    event: 'Azerbaijan Grand Prix',
+    session: 'Qualifying',
+    drivers: ['ANT'],
+    corner: 1,
+    outcome: 'dnf',
+    confidence: 'high',
+    note: 'Hit the inside wall at Turn 1 in Q1 and broke the front-left suspension. His Q1 time put him 16th on the grid.',
+    sourcing:
+      'No red flag: he tried to limp back and was told to park. Formula 1, Autosport and Sky Sports all name Turn 1.',
+    source:
+      'https://www.autosport.com/f1/news/f1-azerbaijan-gp-qualifying-report/10858882/',
+  },
+  {
+    id: '2026-race-albon-t6',
+    year: 2026,
+    event: 'Azerbaijan Grand Prix',
+    session: 'Race',
+    lap: 30,
+    drivers: ['ALB'],
+    corner: 6,
+    outcome: 'dnf',
+    confidence: 'medium',
+    note: 'Locked up and went into the barrier, bringing out the first Safety Car. The car stopped at Turn 6.',
+    sourcing:
+      "Formula 1's report and race control's recovery vehicle put it at Turn 6; Motorsport.com and PlanetF1 have him locking up into Turn 5 and going through the TecPro on the exit. Lap 30 is his own: race control logs the Safety Car on the leader's lap 31.",
+    source:
+      'https://www.formula1.com/en/latest/article/russell-narrowly-holds-off-verstappen-to-take-victory-over-the-line-in-chaotic-azerbaijan-gp.5J4lgNh82JDL2GM302irF0',
+  },
+  {
+    id: '2026-race-colapinto-gasly-norris-t1',
+    year: 2026,
+    event: 'Azerbaijan Grand Prix',
+    session: 'Race',
+    lap: 36,
+    drivers: ['COL', 'GAS', 'NOR'],
+    corner: 1,
+    outcome: 'dnf',
+    confidence: 'high',
+    note: 'At the restart, Colapinto locked up into Turn 1 and hit his Alpine team-mate Gasly, who was pushed into Norris. All three retired and the Safety Car came back out. Colapinto took a ten-second penalty.',
+    sourcing:
+      'Penalty from race control: "10 second time penalty for car 43 (COL), causing a collision".',
+    source:
+      'https://www.formula1.com/en/latest/article/russell-narrowly-holds-off-verstappen-to-take-victory-over-the-line-in-chaotic-azerbaijan-gp.5J4lgNh82JDL2GM302irF0',
+  },
+  {
+    id: '2026-race-lindblad-lawson-t1',
+    year: 2026,
+    event: 'Azerbaijan Grand Prix',
+    session: 'Race',
+    lap: 36,
+    drivers: ['LIN', 'LAW'],
+    corner: 1,
+    outcome: 'continued',
+    confidence: 'high',
+    note: 'At the same restart, Lindblad hit the back of his Racing Bulls team-mate Lawson and spun him. Both carried on, and the stewards took no further action.',
+    sourcing:
+      'Race control names Turn 1 and records the no-further-action decision.',
+    source:
+      'https://www.formula1.com/en/latest/article/russell-narrowly-holds-off-verstappen-to-take-victory-over-the-line-in-chaotic-azerbaijan-gp.5J4lgNh82JDL2GM302irF0',
+  },
+  {
+    id: '2026-race-bottas-t15',
+    year: 2026,
+    event: 'Azerbaijan Grand Prix',
+    session: 'Race',
+    drivers: ['BOT'],
+    corner: 15,
+    outcome: 'dnf',
+    confidence: 'high',
+    note: 'Went nose-first into the barrier at Turn 15 on the final lap, the last retirement of the race.',
+    sourcing:
+      'Lapped at the time, so no lap is given. Race control names Turn 15.',
+    source:
+      'https://www.formula1.com/en/latest/article/azerbaijan-lowdown-all-the-key-moments-as-russell-takes-victory-and-baku-puts-on-another-show.7l4pAjByompPX9hC6YkB8F',
+  },
 ];
 
 /**
@@ -909,4 +960,5 @@ export const BAKU_BEST_KNOWN: readonly string[] = [
   '2025-quali-piastri-t3',
   '2018-race-verstappen-ricciardo',
   '2021-race-verstappen-straight',
+  '2026-race-colapinto-gasly-norris-t1',
 ];

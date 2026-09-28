@@ -347,7 +347,7 @@ so in the method note.
 
 ## Data shape
 
-One hand-checked file, `apps/web/src/lib/baku2026CrashData.ts`, following the
+One hand-checked file, `apps/web/src/lib/bakuCrashes.ts`, following the
 pattern of `lineUp2027.ts`: repo data, no database, no Convex table, no cron.
 This is an archive of three completed seasons. It changes when a human edits
 it, which is roughly once a year.
@@ -948,3 +948,21 @@ filter that leaves fewer than three of them (practice and qualifying today) it
 falls back to the newest three and says **Latest incidents**, so the heading
 always describes how the rows were picked. The archive's "including N with no
 corner named" now counts only the folded rows.
+
+**2026 added, light touches out (2026-09-28).** The 2026 weekend adds seven
+incidents, researched from the raw text of the cited reports and OpenF1 race
+control (meeting 1295): Lindblad at Turn 9 in FP2 (red flag), Stroll at Turn 1
+in FP3, Antonelli at Turn 1 in Q1, and four in the race (Albon at Turn 6, the
+Colapinto, Gasly and Norris restart crash and Lindblad into Lawson at Turn 1,
+Bottas at Turn 15). The restart crash joins `BAKU_BEST_KNOWN`.
+
+At the same time Barry ruled that a light brush of the wall is not a crash.
+Car-to-car contact still always counts; a solo wall hit now needs a
+consequence: damage, a stopped car, or a red flag, VSC or Safety Car. Five rows
+failed that and moved to `dropped` in `researched-incidents.json` (Hamilton,
+Gutiérrez and Massa in 2016, Stroll at Turn 7 and Vettel in 2022), along with
+Russell's and Verstappen's 2026 race brushes, which were never added. The
+archive is 60: Turn 15 leads on 11, Turn 3 has 10, Turn 1 has 8.
+
+A stopped car in practice or qualifying with no red flag (Stroll, Antonelli)
+is recorded as `dnf`; the field is not rendered, only published in the dataset.

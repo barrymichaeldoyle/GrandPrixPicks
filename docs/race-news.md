@@ -119,7 +119,14 @@ npx convex run --prod raceNews:publish '{
 
 # 4. corrections and retraction
 npx convex run --prod raceNews:retract '{"raceSlug":"italy-2026","key":"antonelli-grid-penalty"}'
+
+# 5. filed under the wrong race: move in place (no second Discord post)
+npx convex run --prod raceNews:move '{"fromRaceSlug":"bahrain-2026","toRaceSlug":"azerbaijan-2026","keys":["piastri-baku-lockup"],"dryRun":true}'
 ```
+
+`raceSlug` is the race a story is about, not the next race on the calendar.
+Post-race stories belong to the race that just finished. A Baku story filed
+under Bahrain sat on the Bahrain write-up with a Bahrain label in the feed.
 
 `list` is the step that prevents duplicates. The `key` makes a repeat safe; `list`
 is what stops the agent needing to guess whether it already ran.

@@ -37,6 +37,20 @@ leaves the qualifying classification untouched, so it is `["race"]` and not
 `["quali","race"]` — see `/results-policy`. That field drives what the app tells
 a player, so a careless value misinforms them.
 
+## File it under the race it is about
+
+`raceSlug` is the race the story is about, not the race that is up next.
+Straight after a race, most of the news is about the race that just finished:
+a lock-up that cost a podium, a stewards' decision, a team explaining its pace.
+Those go on that race's slug (`azerbaijan-2026`), even though the next weekend
+(`bahrain-2026`) is the one players are picking. Filed under the next race, a
+Baku story shows up on the Bahrain write-up and gets a Bahrain label in the feed.
+
+A story goes under the next race only when it changes something there: a grid
+penalty handed out in Baku but served at Sepang is Sepang news. When a story is
+really about the finished race but also matters for the next one, file it under
+the finished race.
+
 Still skip: gossip with no named source, stories sourced to another prediction
 site, and anything already covered by an existing key (republish that one).
 
@@ -256,6 +270,15 @@ npx convex run --prod raceNews:retract '{"raceSlug":"italy-2026","key":"..."}'
 
 Retracting deactivates the item and removes its feed event. The record stays, so
 the mistake leaves a trail.
+
+Filed under the wrong race: move it rather than retract and republish. A
+republish is a new feed event, and a new feed event posts to Discord again.
+`move` changes the race in place, retracted items included, and refuses the
+whole call if anything would clash. Dry-run it first.
+
+```bash
+npx convex run --prod raceNews:move '{"fromRaceSlug":"bahrain-2026","toRaceSlug":"azerbaijan-2026","keys":["..."],"dryRun":true}'
+```
 
 ## Careful
 

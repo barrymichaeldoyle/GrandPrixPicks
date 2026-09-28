@@ -9,7 +9,7 @@ import {
   type ResolvedStartingGridEntry,
   type StartingGridEntry,
 } from './lib/raceNewsStartingGrid';
-import { insertFeedEvent } from './lib/feedSort';
+import { feedSortFor, insertFeedEvent } from './lib/feedSort';
 import { raceNewsWriteUpImageValidator } from './lib/raceNewsWriteUpImage';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
@@ -1086,5 +1086,156 @@ export const retract = internalMutation({
       key: args.key,
       headline: existing.headline,
     };
+  },
+});
+
+/**
+ * Move items filed against the wrong race to the race they are about.
+ *
+ * The case this exists for: a post-race story from Baku was filed against
+ * Bahrain because Bahrain was the upcoming weekend when the agent ran. Retract
+ * plus republish would fix the row, but a republish inserts a new feed event,
+ * and a new feed event posts to Discord, so the same story would go out twice.
+ * This changes the race in place instead. The feed event keeps its id and its
+ * `createdAt`, and only `feedSort` is recomputed, so the card moves into its
+ * own weekend's block.
+ *
+ * Retracted items move too, so the audit trail sits on the right race.
+ *
+ * Refuses the whole call, before any write, when the target already has one of
+ * the keys, when an item names a session the target weekend does not run, when
+ * an embargoed release is still scheduled, or when an item carries a starting
+ * grid or is linked from one. Those cases need a person, not a move.
+ *
+ * Run with `dryRun: true` first.
+ *
+ * Run via:
+ *   npx convex run --prod raceNews:move '{
+ *     "fromRaceSlug": "bahrain-2026",
+ *     "toRaceSlug": "azerbaijan-2026",
+ *     "keys": ["piastri-baku-lockup"],
+ *     "dryRun": true
+ *   }'
+ */
+export const move = internalMutation({
+  args: {
+    fromRaceSlug: v.string(),
+    toRaceSlug: v.string(),
+    keys: v.array(v.string()),
+    dryRun: v.optional(v.boolean()),
+  },
+  returns: v.object({
+    action: v.union(v.literal('dry_run'), v.literal('moved')),
+    from: v.string(),
+    to: v.string(),
+    items: v.array(
+      v.object({
+        key: v.string(),
+        headline: v.string(),
+        active: v.boolean(),
+        feedEvent: v.boolean(),
+      }),
+    ),
+  }),
+  handler: async (ctx, args) => {
+    if (args.fromRaceSlug === args.toRaceSlug) {
+      throw new Error('fromRaceSlug and toRaceSlug are the same race.');
+    }
+    if (args.keys.length === 0) {
+      throw new Error('Name at least one key to move.');
+    }
+    const from = await raceBySlug(ctx, args.fromRaceSlug);
+    if (!from) {
+      throw new Error(`No race with slug "${args.fromRaceSlug}".`);
+    }
+    const to = await raceBySlug(ctx, args.toRaceSlug);
+    if (!to) {
+      throw new Error(`No race with slug "${args.toRaceSlug}".`);
+    }
+
+    // Keys linked from a starting grid on the source race: moving one would
+    // leave the grid row pointing at nothing.
+    const gridLinked = new Set<string>();
+    const sourceRows = await ctx.db
+      .query('raceNews')
+      .withIndex('by_race', (q) => q.eq('raceId', from._id))
+      .take(MAX_NEWS_PER_RACE);
+    for (const row of sourceRows) {
+      for (const entry of row.startingGrid ?? []) {
+        if (entry.newsKey !== undefined) {
+          gridLinked.add(entry.newsKey);
+        }
+      }
+    }
+
+    const weekend = sessionsForWeekend(Boolean(to.hasSprint));
+    const planned: {
+      row: Doc<'raceNews'>;
+      event: Doc<'feedEvents'> | null;
+    }[] = [];
+    for (const key of new Set(args.keys)) {
+      const row = await newsByKey(ctx, from._id, key);
+      if (!row) {
+        throw new Error(`${from.name} has no news item with key "${key}".`);
+      }
+      if (await newsByKey(ctx, to._id, key)) {
+        throw new Error(
+          `${to.name} already has a news item with key "${key}".`,
+        );
+      }
+      const offWeekend = row.affectsSessions.filter(
+        (session) => !weekend.includes(session),
+      );
+      if (offWeekend.length > 0) {
+        throw new Error(
+          `"${key}" names ${offWeekend.join(', ')}, which ${to.name} does not run.`,
+        );
+      }
+      if (row.feedReleaseScheduledId) {
+        throw new Error(
+          `"${key}" has a scheduled feed release. Publish it without an embargo, or retract it, before moving.`,
+        );
+      }
+      if (row.startingGrid || gridLinked.has(key)) {
+        throw new Error(
+          `"${key}" carries or is linked from a starting grid. Move it by hand.`,
+        );
+      }
+      planned.push({ row, event: await feedEventForNews(ctx, from._id, key) });
+    }
+
+    const items = planned.map(({ row, event }) => ({
+      key: row.key,
+      headline: row.headline,
+      active: row.active,
+      feedEvent: event !== null,
+    }));
+    if (args.dryRun) {
+      return {
+        action: 'dry_run' as const,
+        from: from.slug,
+        to: to.slug,
+        items,
+      };
+    }
+
+    const now = Date.now();
+    for (const { row, event } of planned) {
+      await ctx.db.patch(row._id, { raceId: to._id, updatedAt: now });
+      if (event) {
+        await ctx.db.patch(event._id, {
+          raceId: to._id,
+          raceName: to.name,
+          raceSlug: to.slug,
+          season: to.season,
+          feedSort: await feedSortFor(ctx, {
+            raceId: to._id,
+            createdAt: event.createdAt,
+          }),
+        });
+      }
+    }
+
+    return { action: 'moved' as const, from: from.slug, to: to.slug, items };
   },
 });

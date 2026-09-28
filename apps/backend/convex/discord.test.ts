@@ -31,7 +31,9 @@ describe('discord.postNews', () => {
   it('posts an embed with the utm link and allowed_mentions cleared', async () => {
     const t = convexTest(schema, modules);
     vi.stubEnv('DISCORD_NEWS_WEBHOOK_URL', 'https://discord.test/webhook');
-    const fetch = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(new Response('{}', { status: 200 }));
     vi.stubGlobal('fetch', fetch);
 
     await t.action(internal.discord.postNews, {
@@ -72,7 +74,10 @@ describe('discord.postNews', () => {
   it('resolves without throwing when fetch itself rejects', async () => {
     const t = convexTest(schema, modules);
     vi.stubEnv('DISCORD_NEWS_WEBHOOK_URL', 'https://discord.test/webhook');
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new Error('network down')),
+    );
 
     await expect(
       t.action(internal.discord.postNews, {

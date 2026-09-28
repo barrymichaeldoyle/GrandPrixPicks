@@ -15,6 +15,7 @@ import {
   RaceWriteupFigure as Figure,
   RaceWriteupSection,
 } from '@/components/race-writeups/RaceWriteupSection';
+import { SepangLapMap } from '@/components/race-writeups/SepangLapMap';
 import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { SessionConsensusSections } from '@/components/SessionConsensus';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
@@ -394,6 +395,15 @@ function NoCurrentForm() {
 }
 
 /**
+ * Only the corners the prose names. Sepang's are known by number, so the names
+ * are the prose's own descriptions.
+ */
+const CORNERS = [
+  ['5–6', 'The long sweep'],
+  ['15', 'The final hairpin'],
+] as const;
+
+/**
  * The circuit's figures, written into the prose in bold rather than set as a
  * four-up strip above four signal rows. The start time is in the hero's
  * schedule card, and the resurfacing is in the section above.
@@ -404,6 +414,11 @@ function Circuit() {
       id={RACE_WRITEUP_CIRCUIT_ANCHOR}
       heading={SIGNALS_HEADING}
       aside={<WriteUpNewsPhoto {...SEPANG_VETTEL_WRITEUP_IMAGE} />}
+      extra={
+        <div className="mt-7 max-w-3xl">
+          <SepangLapMap corners={CORNERS} />
+        </div>
+      }
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         Sepang is <Figure>5.543 km</Figure> long with{' '}

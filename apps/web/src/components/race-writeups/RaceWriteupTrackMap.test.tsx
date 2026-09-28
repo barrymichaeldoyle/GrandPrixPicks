@@ -141,7 +141,26 @@ describe('race write-up track map', () => {
     act(() => enlargeButton().click());
 
     const img = dialog()!.querySelector('img')!;
-    expect(img.className).toContain('min-w-[52rem]');
+    expect(img.parentElement!.className).toContain('min-w-[52rem]');
     expect(img.className).toContain('max-w-none');
+  });
+
+  it('enlarges a drawn map the same way', () => {
+    container = document.createElement('div');
+    document.body.append(container);
+    root = createRoot(container);
+    act(() =>
+      root!.render(
+        <RaceWriteupTrackMap
+          drawing={<svg data-testid="lap" />}
+          corners={CORNERS}
+          circuitName="Sepang"
+        />,
+      ),
+    );
+    act(() => enlargeButton().click());
+
+    const lap = dialog()!.querySelector('[data-testid="lap"]')!;
+    expect(lap.parentElement!.className).toContain('min-w-[52rem]');
   });
 });

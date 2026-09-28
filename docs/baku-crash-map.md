@@ -465,8 +465,9 @@ Placement: after the circuit section (`The Baku City Circuit`),
 before the FAQ. It supports the pick rather than introducing the weekend.
 
 Note that the Baku page currently has **no track map at all**: Monza and Madrid
-use `RaceWriteupTrackMap`, which renders a raster image with a corner legend
-and an enlarge control. This feature is a different component
+use `RaceWriteupTrackMap`, which renders a raster image (or, for Sepang's
+`SepangLapMap`, an SVG drawn from `sepangCircuitGeometry.ts`) with a corner
+legend and an enlarge control. This feature is a different component
 (`BakuCrashMap`, page-scoped), not an extension of that one. It should
 nonetheless borrow two things that component learned the hard way: explicit
 width and height on the map so it does not reflow (worth 0.1 of CLS above the

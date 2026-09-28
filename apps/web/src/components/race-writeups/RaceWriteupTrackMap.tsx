@@ -1,4 +1,5 @@
 import { Maximize2, X } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -16,7 +17,7 @@ import { useModalDialog } from '@/hooks/useModalDialog';
  * are required because these maps sit above the fold on a phone and a reflow
  * here was worth 0.1 of CLS.
  */
-export type RaceWriteupTrackMapProps = {
+type RasterArtwork = {
   /** The largest rendition. Also what the enlarged view loads. */
   src: string;
   srcSet: string;
@@ -24,6 +25,12 @@ export type RaceWriteupTrackMapProps = {
   width: number;
   height: number;
   alt: string;
+};
+
+/** A map drawn as SVG. It labels itself, so it takes no `alt`. */
+type DrawnArtwork = { drawing: ReactNode };
+
+export type RaceWriteupTrackMapProps = (RasterArtwork | DrawnArtwork) & {
   /** Corner numbers as printed on the map, paired with the name in the prose. */
   corners: readonly (readonly [string, string])[];
   /** Names the circuit in the enlarged view's heading, e.g. "Monza". */
@@ -36,17 +43,8 @@ export type RaceWriteupTrackMapProps = {
   controlCorner?: 'top-right' | 'bottom-right';
 };
 
-export function RaceWriteupTrackMap({
-  src,
-  srcSet,
-  sizes,
-  width,
-  height,
-  alt,
-  corners,
-  circuitName,
-  controlCorner = 'top-right',
-}: RaceWriteupTrackMapProps) {
+export function RaceWriteupTrackMap(props: RaceWriteupTrackMapProps) {
+  const { corners, circuitName, controlCorner = 'top-right' } = props;
   const [enlarged, setEnlarged] = useState(false);
 
   return (
@@ -65,21 +63,25 @@ export function RaceWriteupTrackMap({
         only way home. This opens over the page and closes again.
       */}
       <div className="relative">
-        <img
-          src={src}
-          srcSet={srcSet}
-          sizes={sizes}
-          width={width}
-          height={height}
-          // Never the LCP element: the map sits several sections below the
-          // fold on every write-up that carries one, and at 1600px wide it is
-          // the heaviest thing the page can fetch. Eager, it competed with the
-          // hero for the connection on a phone.
-          loading="lazy"
-          decoding="async"
-          className="h-auto w-full rounded-sm"
-          alt={alt}
-        />
+        {'drawing' in props ? (
+          props.drawing
+        ) : (
+          <img
+            src={props.src}
+            srcSet={props.srcSet}
+            sizes={props.sizes}
+            width={props.width}
+            height={props.height}
+            // Never the LCP element: the map sits several sections below the
+            // fold on every write-up that carries one, and at 1600px wide it
+            // is the heaviest thing the page can fetch. Eager, it competed
+            // with the hero for the connection on a phone.
+            loading="lazy"
+            decoding="async"
+            className="h-auto w-full rounded-sm"
+            alt={props.alt}
+          />
+        )}
         <button
           type="button"
           onClick={() => setEnlarged(true)}
@@ -95,8 +97,17 @@ export function RaceWriteupTrackMap({
       <CornerLegend corners={corners} className="mt-3" />
       {enlarged ? (
         <EnlargedMap
-          src={src}
-          alt={alt}
+          artwork={
+            'drawing' in props ? (
+              props.drawing
+            ) : (
+              <img
+                src={props.src}
+                alt={props.alt}
+                className="w-full max-w-none"
+              />
+            )
+          }
           corners={corners}
           circuitName={circuitName}
           onClose={() => setEnlarged(false)}
@@ -127,14 +138,12 @@ function CornerLegend({
 }
 
 function EnlargedMap({
-  src,
-  alt,
+  artwork,
   corners,
   circuitName,
   onClose,
 }: {
-  src: string;
-  alt: string;
+  artwork: ReactNode;
   corners: readonly (readonly [string, string])[];
   circuitName: string;
   onClose: () => void;
@@ -185,11 +194,7 @@ function EnlargedMap({
           anything wider the minimum never binds and the map simply fills.
         */}
         <div className="min-h-0 overflow-auto">
-          <img
-            src={src}
-            alt={alt}
-            className="w-full max-w-none min-w-[52rem]"
-          />
+          <div className="min-w-[52rem]">{artwork}</div>
         </div>
         <CornerLegend
           corners={corners}

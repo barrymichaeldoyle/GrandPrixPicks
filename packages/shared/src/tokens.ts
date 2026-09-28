@@ -143,6 +143,13 @@ export const colors = {
   crashHeat4: '#f2a856',
   crashHeat5: '#ffc278',
 
+  // Timing sectors on a lap map. DATA, like team colours: they are the colours
+  // F1's own circuit graphics use for sectors 1, 2 and 3, matched to the Monza
+  // and Madrid maps, so they stay the same on every lap the site draws.
+  trackSector1: '#e30161',
+  trackSector2: '#f1d225',
+  trackSector3: '#2f6fb4',
+
   // Semantic. Errors are amber and instructive, not red and alarming.
   error: '#facc15',
   errorMuted: '#3a3416',

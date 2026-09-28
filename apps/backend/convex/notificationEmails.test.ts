@@ -7,7 +7,7 @@
 import { beforeEach } from 'vitest';
 import { convexTest } from 'convex-test';
 import { describe, expect, it, vi } from 'vitest';
-import { internal } from './_generated/api';
+import { api, internal } from './_generated/api';
 import schema from './schema';
 const modules = import.meta.glob('./**/*.ts');
 describe('email preference enforcement', () => {
@@ -193,6 +193,129 @@ it('suppresses complaint recipients whether the provider sends a string or an ar
   expect((await t.run((ctx) => ctx.db.get(userId)))?.emailSuppressed).toBe(
     true,
   );
+});
+
+describe('email engagement tracking', () => {
+  async function insertRaceAndJob(kind: 'reminder' | 'summary' | 'signup') {
+    const t = convexTest(schema, modules);
+    const { raceId, jobId } = await t.run(async (ctx) => {
+      const now = Date.now();
+      const userId = await ctx.db.insert('users', {
+        clerkUserId: 'u',
+        email: 'u@example.com',
+        createdAt: now,
+        updatedAt: now,
+      });
+      const raceId = await ctx.db.insert('races', {
+        season: 2026,
+        round: 1,
+        name: 'Test',
+        slug: 'test',
+        status: 'upcoming',
+        predictionLockAt: now + 86400000,
+        raceStartAt: now + 86400000,
+        createdAt: now,
+        updatedAt: now,
+      });
+      const jobId = await ctx.db.insert('notificationEmails', {
+        key: `${kind}:${raceId}:${userId}`,
+        userId,
+        raceId,
+        kind,
+        status: 'accepted',
+        emailId: 'provider-email-1',
+        createdAt: now,
+      });
+      return { raceId, jobId };
+    });
+    return { t, raceId, jobId };
+  }
+
+  function openedEvent() {
+    return {
+      id: 'provider-email-1' as never,
+      event: {
+        type: 'email.opened' as const,
+        created_at: '2026-09-10',
+        data: {
+          created_at: '2026-09-10',
+          email_id: 'provider-email-1',
+          from: 'sender@example.com',
+          to: 'u@example.com',
+          subject: 'Weekend summary',
+          open: {
+            ipAddress: '1.2.3.4',
+            timestamp: '2026-09-10',
+            userAgent: 'test',
+          },
+        },
+      },
+    };
+  }
+
+  function clickedEvent() {
+    return {
+      id: 'provider-email-1' as never,
+      event: {
+        type: 'email.clicked' as const,
+        created_at: '2026-09-10',
+        data: {
+          created_at: '2026-09-10',
+          email_id: 'provider-email-1',
+          from: 'sender@example.com',
+          to: 'u@example.com',
+          subject: 'Weekend summary',
+          click: {
+            ipAddress: '1.2.3.4',
+            timestamp: '2026-09-10',
+            userAgent: 'test',
+            link: 'https://grandprixpicks.com',
+          },
+        },
+      },
+    };
+  }
+
+  it('records the first open and click, and ignores repeats', async () => {
+    const { t, jobId } = await insertRaceAndJob('reminder');
+    await t.mutation(internal.notificationEmails.onEmailEvent, openedEvent());
+    const afterOpen = await t.run((ctx) => ctx.db.get(jobId));
+    expect(afterOpen?.openedAt).toBeTypeOf('number');
+    const openedAt = afterOpen?.openedAt;
+
+    await t.mutation(internal.notificationEmails.onEmailEvent, openedEvent());
+    expect((await t.run((ctx) => ctx.db.get(jobId)))?.openedAt).toBe(openedAt);
+
+    await t.mutation(internal.notificationEmails.onEmailEvent, clickedEvent());
+    expect((await t.run((ctx) => ctx.db.get(jobId)))?.clickedAt).toBeTypeOf(
+      'number',
+    );
+  });
+
+  it('engagementStats requires an admin viewer and counts per kind', async () => {
+    const { t, raceId } = await insertRaceAndJob('reminder');
+    await expect(
+      t.query(api.notificationEmails.engagementStats, { raceId }),
+    ).rejects.toThrow();
+
+    await t.run(async (ctx) => {
+      await ctx.db.insert('users', {
+        clerkUserId: 'admin',
+        isAdmin: true,
+        createdAt: 0,
+        updatedAt: 0,
+      });
+    });
+    const admin = t.withIdentity({ subject: 'admin' });
+    const stats = await admin.query(api.notificationEmails.engagementStats, {
+      raceId,
+    });
+    expect(stats).toMatchObject([
+      { kind: 'reminder', accepted: 1, opened: 0, clicked: 0 },
+      { kind: 'summary', accepted: 0, opened: 0, clicked: 0 },
+      { kind: 'signup', accepted: 0, opened: 0, clicked: 0 },
+    ]);
+  });
 });
 
 beforeEach(() => {

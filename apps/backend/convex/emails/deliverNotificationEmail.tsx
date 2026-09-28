@@ -208,7 +208,7 @@ export const deliver = internalAction({
         );
       }
 
-      await sendEmail(ctx, {
+      const emailId = await sendEmail(ctx, {
         from:
           process.env.EMAIL_FROM ??
           'Grand Prix Picks <noreply@grandprixpicks.com>',
@@ -231,6 +231,12 @@ export const deliver = internalAction({
         ],
         idempotencyKey: args.idempotencyKey,
       });
+      if (args.jobId) {
+        await ctx.runMutation(internal.notificationEmails.recordEmailId, {
+          id: args.jobId,
+          emailId,
+        });
+      }
     } catch (error) {
       // `send` already marked the job `accepted`, because scheduling this
       // action commits with that mutation. Only this side knows the render

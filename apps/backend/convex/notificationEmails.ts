@@ -5,12 +5,13 @@ import { SESSION_LABELS_FULL } from '@grandprixpicks/shared/sessions';
 import { internal } from './_generated/api';
 import type { Doc } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
-import { internalMutation } from './_generated/server';
+import { internalMutation, query } from './_generated/server';
 import type { DeliverPayload } from './emails/deliverNotificationEmail';
 import {
   buildRaceEmailUrl,
   buildWeekendLeaderboardEmailUrl,
 } from './emails/urls';
+import { getViewer, requireAdmin } from './lib/auth';
 import {
   hasStartedWeekend,
   healthyReminderPush,
@@ -348,6 +349,16 @@ export const markDeliveryFailed = internalMutation({
   },
 });
 
+/** Called by the render action right after Resend accepts the send. */
+export const recordEmailId = internalMutation({
+  args: { id: v.id('notificationEmails'), emailId: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { emailId: args.emailId });
+    return null;
+  },
+});
+
 export const unsubscribe = internalMutation({
   args: {
     token: v.string(),
@@ -392,7 +403,72 @@ export const onEmailEvent = internalMutation({
           await ctx.db.patch(user._id, { emailSuppressed: true });
         }
       }
+    } else if (
+      args.event.type === 'email.opened' ||
+      args.event.type === 'email.clicked'
+    ) {
+      const job = await ctx.db
+        .query('notificationEmails')
+        .withIndex('by_emailId', (q) => q.eq('emailId', args.id))
+        .unique();
+      // First touch only: a job can be opened or clicked many times, and the
+      // engagement query only needs "did this happen at all, and how soon."
+      if (job) {
+        if (args.event.type === 'email.opened' && !job.openedAt) {
+          await ctx.db.patch(job._id, { openedAt: Date.now() });
+        }
+        if (args.event.type === 'email.clicked' && !job.clickedAt) {
+          await ctx.db.patch(job._id, { clickedAt: Date.now() });
+        }
+      }
     }
     return null;
+  },
+});
+
+/**
+ * Per-kind open/click engagement for one race's accepted email jobs. Scoped
+ * to a race (not a rolling window) so the read stays bounded by that race's
+ * actual audience instead of the whole table.
+ */
+export const engagementStats = query({
+  args: { raceId: v.id('races') },
+  returns: v.array(
+    v.object({
+      kind,
+      accepted: v.number(),
+      opened: v.number(),
+      clicked: v.number(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    requireAdmin(await getViewer(ctx));
+    const kinds = ['reminder', 'summary', 'signup'] as const;
+    const stats = [];
+    for (const jobKind of kinds) {
+      const jobs = await ctx.db
+        .query('notificationEmails')
+        .withIndex('by_race_and_kind', (q) =>
+          q.eq('raceId', args.raceId).eq('kind', jobKind),
+        )
+        .take(5000);
+      let accepted = 0;
+      let opened = 0;
+      let clicked = 0;
+      for (const job of jobs) {
+        if (job.status !== 'accepted') {
+          continue;
+        }
+        accepted += 1;
+        if (job.openedAt) {
+          opened += 1;
+        }
+        if (job.clickedAt) {
+          clicked += 1;
+        }
+      }
+      stats.push({ kind: jobKind, accepted, opened, clicked });
+    }
+    return stats;
   },
 });

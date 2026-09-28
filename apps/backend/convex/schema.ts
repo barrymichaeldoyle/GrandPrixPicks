@@ -719,11 +719,18 @@ export default defineSchema({
     // job retries forever and crowds the 100-row window.
     attempts: v.optional(v.number()),
     error: v.optional(v.string()),
+    // The Resend component's own id for the accepted send, used to match this
+    // job to the `email.opened` / `email.clicked` events its webhook reports.
+    emailId: v.optional(v.string()),
+    openedAt: v.optional(v.number()),
+    clickedAt: v.optional(v.number()),
     createdAt: v.number(),
   })
     .index('by_key', ['key'])
     .index('by_user', ['userId'])
-    .index('by_status', ['status']),
+    .index('by_status', ['status'])
+    .index('by_emailId', ['emailId'])
+    .index('by_race_and_kind', ['raceId', 'kind']),
   notificationDeliveries: defineTable({
     key: v.string(),
     eventKey: v.string(),

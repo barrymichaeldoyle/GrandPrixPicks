@@ -66,7 +66,7 @@ const FAQS = [
   {
     question: 'Which races are not on the 2027 F1 calendar?',
     answer:
-      'Barcelona-Catalunya and the Dutch Grand Prix at Zandvoort. Madrid keeps the Spanish Grand Prix name on 10 to 12 September.',
+      'Barcelona-Catalunya and the Dutch Grand Prix at Zandvoort. Barcelona shares a slot with Belgium and returns in 2028, 2030 and 2032. Zandvoort held its last Grand Prix in 2026. Madrid keeps the Spanish Grand Prix name on 10 to 12 September.',
   },
   {
     question: 'When is 2027 pre-season testing?',
@@ -247,9 +247,9 @@ function F1Calendar2027Page() {
             Portugal comes back at Portimão in mid-June and Türkiye comes back
             at Istanbul Park at the start of October, both for the first time
             since 2021. Formula 1 has signed Istanbul on a deal that runs to the
-            end of 2031. Barcelona-Catalunya and the Dutch Grand Prix at
-            Zandvoort leave the calendar, and Madrid keeps the Spanish Grand
-            Prix name.
+            end of 2031. The Dutch Grand Prix at Zandvoort has ended.
+            Barcelona-Catalunya now alternates with Spa, so it sits out 2027 and
+            returns in 2028. Madrid keeps the Spanish Grand Prix name.
           </p>
           <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
             The larger change is the sprint. There were six in 2026 and there

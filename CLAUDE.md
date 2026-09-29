@@ -82,6 +82,10 @@ Workspace package names:
 - `pnpm storybook` — Storybook on port 6006
 - `pnpm deploy` / `pnpm deploy:backend` — Cloudflare Pages / Convex prod
   (manual, web-only / backend-only — see Deploys below before reaching for these)
+- `scripts/gpp.mjs` — operator CLI with compact output (`docs/gpp-cli.md`).
+  Reach for it before raw `convex run` or a screenshot: `race [slug] --prod`
+  for weekend state, `news …` for race news, `page <url>` for the SSR text of a
+  page, `usage` for which tool calls cost the most output.
 
 ## Deploys
 

@@ -68,6 +68,7 @@ import type * as notificationEmails from "../notificationEmails.js";
 import type * as notifications from "../notifications.js";
 import type * as openF1LiveTiming from "../openF1LiveTiming.js";
 import type * as openF1Results from "../openF1Results.js";
+import type * as ops from "../ops.js";
 import type * as practiceResults from "../practiceResults.js";
 import type * as predictions from "../predictions.js";
 import type * as push from "../push.js";
@@ -154,6 +155,7 @@ declare const fullApi: ApiFromModules<{
   notifications: typeof notifications;
   openF1LiveTiming: typeof openF1LiveTiming;
   openF1Results: typeof openF1Results;
+  ops: typeof ops;
   practiceResults: typeof practiceResults;
   predictions: typeof predictions;
   push: typeof push;

@@ -77,19 +77,24 @@ news about a team, a circuit or the weather.
 
 ## The loop
 
-Always in this order.
+Always in this order. Every command goes through `scripts/gpp.mjs` (see
+`docs/gpp-cli.md`), which prints one line per item instead of whole documents.
+Drop `--prod` to rehearse against dev.
 
 **1. See what exists.** This is the step that prevents duplicates.
 
 ```bash
-npx convex run --prod raceNews:list '{"raceSlug":"italy-2026"}'
+scripts/gpp.mjs news list italy-2026 --prod          # one line per item
+scripts/gpp.mjs news show italy-2026 <key> --prod    # one item in full
 ```
 
-**2. Rehearse.** Same call you intend to make, plus `"dryRun": true`. It writes
-nothing and tells you whether it would create or update.
+**2. Rehearse.** Write the item to a JSON file in your scratchpad (an array
+for several; they run one at a time in file order), then publish it. Without
+`--apply` it is a dry run: it writes nothing and says whether it would create
+or update.
 
-```bash
-npx convex run --prod raceNews:publish '{
+```json
+{
   "raceSlug": "italy-2026",
   "key": "antonelli-grid-penalty",
   "headline": "Antonelli takes a grid penalty at Monza",
@@ -98,15 +103,19 @@ npx convex run --prod raceNews:publish '{
   "driverCodes": ["ANT"],
   "sourceName": "Formula 1",
   "sourceUrl": "https://www.formula1.com/en/latest/article/...",
-  "sourcePublishedAt": 1788428400000,
-  "dryRun": true
-}'
+  "sourcePublishedAt": "2026-09-03T09:00:00Z"
+}
 ```
 
-The dry run echoes `sourcePublished` back as a date. Read it: a timestamp that
-is well-formed and wrong is the one mistake nothing else catches.
+```bash
+scripts/gpp.mjs news publish $SCRATCH/antonelli.json --prod
+```
 
-**3. Publish.** The same call without `dryRun`. A first publish (not a
+`sourcePublishedAt` and `feedVisibleAt` take an ISO date or ms epoch. The dry
+run echoes the source date back. Read it: a timestamp that is well-formed and
+wrong is the one mistake nothing else catches.
+
+**3. Publish.** The same command plus `--apply`. A first publish (not a
 correction of an existing key) posts to the Discord #news channel
 immediately — the dry run is the last chance to catch a mistake, not the
 publish itself.
@@ -173,11 +182,11 @@ publish itself.
 ## Publishing the starting grid
 
 Saturday evening's grid is news like any other, and it goes out as one item
-with the whole grid attached rather than as a sentence describing it. Pass
-`startingGrid` alongside the usual fields:
+with the whole grid attached rather than as a sentence describing it. Put
+`startingGrid` in the item file alongside the usual fields:
 
-```bash
-npx convex run --prod raceNews:publish '{
+```json
+{
   "raceSlug": "italy-2026",
   "key": "monza-starting-grid",
   "headline": "The Monza grid is set",
@@ -189,9 +198,8 @@ npx convex run --prod raceNews:publish '{
     { "position": 1, "code": "GAS" },
     { "position": 2, "code": "RUS" },
     { "position": 6, "code": "PIA", "note": "3-place penalty" }
-  ],
-  "dryRun": true
-}'
+  ]
+}
 ```
 
 The write-up page renders every place; the feed card opens on the top ten with
@@ -216,8 +224,8 @@ the rest a tap away. Both read the one record, so a correction fixes both.
   refuses the grid pointing at itself, so publish the stories before the grid.
   The dry run lists any such row in `missingNewsKeys` (with its position, code
   and whether the key is `unpublished` or `retracted`); it must be empty before
-  the real call. When applying a reviewed artifact, run its actions one at a
-  time in file order, never in parallel.
+  the real call. Put the stories and the grid in one file, stories first:
+  `news publish` runs them one at a time in file order, never in parallel.
   A `newsKey` needs a `note`, because the note is what the reader clicks: that
   also covers a driver who is where qualifying left them and the story is why
   qualifying went badly, e.g.
@@ -243,17 +251,16 @@ Madrid story above an unlocked Monza session is noise wearing a source link.
 immediately; the feed card waits until the moment you name, which for news about
 the next round is normally the day after the current race finishes.
 
-```bash
-npx convex run --prod raceNews:publish '{
+```json
+{
   "raceSlug": "madrid-2026",
   "key": "hadjar-madrid-return",
   ...
-  "feedVisibleAt": 1788760800000,
-  "dryRun": true
-}'
+  "feedVisibleAt": "2026-09-08T06:00:00Z"
+}
 ```
 
-The dry run echoes `feedVisibleAt` back when the item will be held, and omits it
+The dry run prints `feed held until …` when the item will be held, and nothing
 when the card goes out now, so rehearsing tells you which of the two you are
 about to do. Omit the field entirely for news about the current weekend.
 
@@ -265,7 +272,8 @@ minimum" becoming "confirmed back of grid" is not a second story.
 Wrong item, or one that should never have gone out:
 
 ```bash
-npx convex run --prod raceNews:retract '{"raceSlug":"italy-2026","key":"..."}'
+scripts/gpp.mjs news retract italy-2026 <key> --prod           # shows the item
+scripts/gpp.mjs news retract italy-2026 <key> --prod --apply   # retracts it
 ```
 
 Retracting deactivates the item and removes its feed event. The record stays, so
@@ -274,16 +282,19 @@ the mistake leaves a trail.
 Filed under the wrong race: move it rather than retract and republish. A
 republish is a new feed event, and a new feed event posts to Discord again.
 `move` changes the race in place, retracted items included, and refuses the
-whole call if anything would clash. Dry-run it first.
+whole call if anything would clash. Without `--apply` it is a dry run.
 
 ```bash
-npx convex run --prod raceNews:move '{"fromRaceSlug":"bahrain-2026","toRaceSlug":"azerbaijan-2026","keys":["..."],"dryRun":true}'
+scripts/gpp.mjs news move bahrain-2026 azerbaijan-2026 <key> [<key>...] --prod
 ```
 
 ## Careful
 
-- `--prod` writes to the live feed that players read. Drop the flag to rehearse
-  against dev.
+- `--prod --apply` writes to the live feed that players read. Drop `--prod` to
+  rehearse against dev.
+- `gpp` needs `ops:*` deployed. If it says a function is not on prod yet, the
+  raw `npx convex run --prod raceNews:<fn>` calls take the same JSON (with
+  `"dryRun": true` for a rehearsal and epoch ms for dates).
 - Never invent a fact to fill a field. If the source does not say it, it does not
   go in the body.
 - Do not publish an item whose source is another prediction site.

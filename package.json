@@ -45,6 +45,7 @@
     "convex:migrations:prod": "pnpm --filter @grandprixpicks/backend migrations:prod",
     "scenario": "pnpm --filter @grandprixpicks/backend scenario",
     "start": "pnpm --filter @grandprixpicks/web start",
+    "gpp": "node scripts/gpp.mjs",
     "pp": "pnpm patch-pulse",
     "pp:i": "pnpm patch-pulse -i",
     "test:shared": "pnpm --filter @grandprixpicks/shared test",

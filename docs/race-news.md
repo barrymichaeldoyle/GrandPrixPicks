@@ -94,6 +94,10 @@ the existing team when `team` is omitted.
 
 ## Commands
 
+Day to day, use `scripts/gpp.mjs news list|show|publish|retract|move` (see
+`docs/gpp-cli.md`): it prints one line per item, reads the item from a file,
+and dry-runs unless given `--apply`. These are the functions underneath it.
+
 ```bash
 # 1. what is already published for this weekend
 npx convex run --prod raceNews:list '{"raceSlug":"italy-2026"}'

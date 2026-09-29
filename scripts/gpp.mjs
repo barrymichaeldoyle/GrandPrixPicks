@@ -27,6 +27,7 @@ const HELP = `gpp <command> [args] [--prod] [--json]
   news move <from> <to> <key>...  dry run; --apply to move
   page <url|/path>                SSR text of a page (/path = localhost:3000, --prod = live)
                                   --grep <regex>  only matching lines   --full  no truncation
+  schema [table...]               Convex tables and indexes, or one table's fields (--full keeps comments)
   usage [--days N]                tool-output cost of recent Claude Code sessions here
 
 Flags: --prod targets production Convex. --json prints the raw result.
@@ -530,6 +531,67 @@ async function pageCommand(target, flags) {
 }
 
 // ---------------------------------------------------------------------------
+// schema
+
+function schemaTables() {
+  const lines = readFileSync(
+    path.join(backendDir, 'convex/schema.ts'),
+    'utf8',
+  ).split('\n');
+  const starts = [];
+  lines.forEach((line, i) => {
+    const m = line.match(/^ {2}(\w+): defineTable\(/);
+    if (m) {
+      starts.push({ name: m[1], index: i });
+    }
+  });
+  return starts.map(({ name, index }, n) => {
+    const next = n + 1 < starts.length ? starts[n + 1].index : lines.length - 1;
+    let end = next;
+    // Comments and blanks just above the next table belong to it.
+    while (end > index && /^\s*(\/\/|\/\*|\*|$)/.test(lines[end - 1])) {
+      end--;
+    }
+    let begin = index;
+    while (begin > 0 && /^\s*(\/\/|\/\*|\*)/.test(lines[begin - 1])) {
+      begin--;
+    }
+    return {
+      name,
+      doc: lines.slice(begin, index),
+      body: lines.slice(index, end),
+    };
+  });
+}
+
+function schemaCommand(names, flags) {
+  const tables = schemaTables();
+  if (names.length === 0) {
+    for (const table of tables) {
+      const indexes = table.body
+        .join('\n')
+        .matchAll(/\.(?:index|searchIndex|vectorIndex)\(\s*'(\w+)'/g);
+      console.log(
+        `${table.name}: ${[...indexes].map((m) => m[1]).join(', ') || '-'}`,
+      );
+    }
+    return;
+  }
+  for (const name of names) {
+    const table = tables.find(
+      (t) => t.name.toLowerCase() === name.toLowerCase(),
+    );
+    if (!table) {
+      fail(`no table "${name}". Run \`gpp schema\` for the list.`);
+    }
+    const body = flags.full
+      ? [...table.doc, ...table.body]
+      : table.body.filter((line) => !/^\s*(\/\/|\/\*\*?|\*)/.test(line));
+    console.log(body.join('\n'));
+  }
+}
+
+// ---------------------------------------------------------------------------
 // usage
 
 function resultLength(content) {
@@ -696,6 +758,9 @@ switch (command) {
     break;
   case 'page':
     await pageCommand(sub, flags);
+    break;
+  case 'schema':
+    schemaCommand(positional.slice(1), flags);
     break;
   case 'usage':
     usageCommand(flags);

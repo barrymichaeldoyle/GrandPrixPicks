@@ -20,6 +20,7 @@ scripts/gpp.mjs news publish <file> [--prod] [--apply]
 scripts/gpp.mjs news retract <slug> <key> [--prod] [--apply]
 scripts/gpp.mjs news move <from> <to> <key>... [--prod] [--apply]
 scripts/gpp.mjs page <url|/path> [--prod] [--grep re] [--full]
+scripts/gpp.mjs schema [table...] [--full]
 scripts/gpp.mjs usage [--days N]
 ```
 
@@ -41,6 +42,11 @@ scripts/gpp.mjs usage [--days N]
   layout: use a browser for that. `/path` means `http://localhost:3000` (the
   name Vite always answers, given its `--host ::`), and `--prod` means
   grandprixpicks.com.
+- **`schema`** reads `apps/backend/convex/schema.ts` locally. With no table it
+  prints every table and its index names, one line each; with tables, just
+  their definitions, without comment lines unless given `--full`. `schema.ts`
+  is over 1,200 lines and was read 94 times in the September scan, usually for
+  one table.
 - **`usage`** reads this repo's Claude Code transcripts and ranks tool calls by
   how much output they returned. Re-run it to see whether a change to the
   tooling moved anything. Screenshots are counted but not sized.

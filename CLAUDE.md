@@ -83,9 +83,10 @@ Workspace package names:
 - `pnpm deploy` / `pnpm deploy:backend` — Cloudflare Pages / Convex prod
   (manual, web-only / backend-only — see Deploys below before reaching for these)
 - `scripts/gpp.mjs` — operator CLI with compact output (`docs/gpp-cli.md`).
-  Reach for it before raw `convex run` or a screenshot: `race [slug] --prod`
-  for weekend state, `news …` for race news, `page <url>` for the SSR text of a
-  page, `usage` for which tool calls cost the most output.
+  Reach for it before raw `convex run`, a screenshot or reading `schema.ts`:
+  `race [slug] --prod` for weekend state, `news …` for race news, `page <url>`
+  for the SSR text of a page, `schema [table]` for Convex tables, `usage` for
+  which tool calls cost the most output.
 
 ## Deploys
 
@@ -120,6 +121,9 @@ because it reads like a specification.
   component knows what to update.
 - Product vocabulary is another recurring source of drift. Check the code
   before writing player-facing copy.
+- Before querying PostHog, read `docs/posthog-queries.md`: it has the SQL call
+  shape, the internal-user filter and the event names, so `info execute-sql`
+  (42k characters) and `read-data-schema` can usually be skipped.
 
 ## Guardrails
 
@@ -308,7 +312,9 @@ is one `scoreTopFive()` and no per-session branching in the point math.
 
 ### Database Tables (Convex)
 
-Grouped by area (24 tables):
+The main groups, not the full list (there are over 40 tables). For that, run
+`scripts/gpp.mjs schema` (every table and its indexes) or `scripts/gpp.mjs
+schema <table>` (one table's fields) instead of reading `schema.ts`.
 
 - **Core game**: `users`, `drivers`, `races`, `predictions`, `results`, `scores`,
   `seasonStandings`, `driverTeamStints`
@@ -318,6 +324,9 @@ Grouped by area (24 tables):
 - **Notifications**: `inAppNotifications`, `pushSubscriptions`, `expoPushTokens`
 - **Billing / ops**: `userSeasonPasses`, `processedPaddleWebhookEvents`,
   `announcements`, `supportRequests`
+- **News**: `raceNews`, `globalNews`, plus the `news*` research pipeline
+- **Live and practice results**: `liveClassifications`, `liveSnapshots`,
+  `practiceResults`, `openF1ResultPolls`, `practiceResultPolls`
 
 ## Data Fetching
 

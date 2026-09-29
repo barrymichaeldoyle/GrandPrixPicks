@@ -2,7 +2,7 @@ import { Check, TriangleAlert } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Button } from './Button/Button';
-import type { SaveState } from './PredictionForm';
+import type { SaveState } from './PredictionForm/PredictionForm';
 
 const COPY: Record<SaveState, string> = {
   unsaved: 'Saving your changes',

@@ -6,8 +6,6 @@ import {
   DndContext,
   KeyboardSensor,
   PointerSensor,
-  useDraggable,
-  useDroppable,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
@@ -15,18 +13,14 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { isSyntheticRaceSlug } from '@grandprixpicks/shared/syntheticRaces';
 import { getWebTop5DraftStorageKey } from '@grandprixpicks/shared/picks';
 import { useBlocker } from '@tanstack/react-router';
 import { useConvexAuth, useMutation } from 'convex/react';
 import { useQuery } from '@/integrations/convex/query';
-import { m } from 'framer-motion';
-import { Check, ChevronDown, ChevronUp, X } from 'lucide-react';
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import {
   useEffect,
   useEffectEvent,
@@ -42,13 +36,10 @@ import {
   analyticsEvents,
   analyticsFailureReason,
 } from '@grandprixpicks/shared/analytics';
-import { displayTeamName } from '@/lib/display';
 import {
   clearPendingSubmit,
   clearPredictionDraft,
   hasPendingSubmit,
-  loadPredictionDraft,
-  savePredictionDraft,
   setPendingSubmit,
 } from '@/lib/predictionDrafts';
 import { toUserFacingMessage } from '@/lib/userFacingError';
@@ -56,383 +47,22 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 import { getRaceSessionLockAt } from '@/lib/raceSessions';
 import type { SessionType } from '@/lib/sessions';
 import { useNow } from '@/lib/testing/now';
-import type { RosterDriver } from '@/lib/roster';
-import { isRacing, pickPool, resolvePicks } from '@/lib/roster';
-import { useIsomorphicLayoutEffect } from '@/lib/useIsomorphicLayoutEffect';
-import { Button } from './Button/Button';
-import { ConfirmDialog } from './ConfirmDialog';
-import { DraftRestoredNotice } from './DraftRestoredNotice';
-import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
-import { Flag } from './Flag';
-import { InlineLoader } from './InlineLoader';
-import { PicksSaveStatus } from './PicksSaveStatus';
-import { Tooltip } from './Tooltip';
-
-const DRIVER_SLOT_TOOLTIP = {
-  /** Default stack: picks first, driver pool underneath. */
-  narrowBelow: 'Select from the driver cards below',
-  /** Landing `mobileActionFirst`: driver pool first, picks underneath. */
-  narrowAbove: 'Select from the driver cards above',
-  lg: 'Select from the driver cards to the right',
-};
-
-function driverSlotTooltipCopy({
-  wide,
-  driversAbove,
-}: {
-  wide: boolean;
-  driversAbove: boolean;
-}) {
-  if (wide) {
-    return DRIVER_SLOT_TOOLTIP.lg;
-  }
-  return driversAbove
-    ? DRIVER_SLOT_TOOLTIP.narrowAbove
-    : DRIVER_SLOT_TOOLTIP.narrowBelow;
-}
-
-const DRIVER_POOL_DROPPABLE_ID = 'driver-pool';
-
-function emptySlotId(slotIndex: number) {
-  return `empty-${slotIndex}`;
-}
-
-function parseEmptySlotId(id: string): number | null {
-  if (!id.startsWith('empty-')) {
-    return null;
-  }
-  const n = parseInt(id.slice(6), 10);
-  return Number.isNaN(n) ? null : n;
-}
-
-type Driver = RosterDriver;
-
-/** Left-side badge (number + code) – reused so it can be wrapped as drag handle on mobile. */
-function DriverPickBadge({ driver }: { driver: Driver }) {
-  return (
-    // The team colour is the 3px edge bar on this block, not its fill. The
-    // number and code are data, so they are mono and tabular.
-    <div
-      className="gpp-team-bar flex h-full w-12 shrink-0 items-center justify-center border-r border-border py-1 pl-1 sm:w-14"
-      style={
-        {
-          '--team-colour':
-            (driver.team && TEAM_COLORS[driver.team]) || FALLBACK_TEAM_COLOR,
-        } as React.CSSProperties
-      }
-    >
-      <span className="inline-flex flex-col items-center gap-0.5 leading-none">
-        {driver.number != null && (
-          <span className="gpp-mono text-sm text-text sm:text-base">
-            {driver.number}
-          </span>
-        )}
-        <span className="gpp-mono text-xs text-text-muted">{driver.code}</span>
-      </span>
-    </div>
-  );
-}
-
-/** Sortable pick row using @dnd-kit – whole card draggable, works on touch and desktop. */
-function SortablePickRow({
-  driverId,
-  driver,
-  index,
-  picksLength,
-  moveUp,
-  moveDown,
-  removeDriver,
-}: {
-  driverId: Id<'drivers'>;
-  driver: Driver;
-  index: number;
-  picksLength: number;
-  moveUp: (i: number) => void;
-  moveDown: (i: number) => void;
-  removeDriver: (id: Id<'drivers'>) => void;
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: driverId });
-  const position = index + 1;
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-  return (
-    <m.div
-      ref={setNodeRef}
-      style={style}
-      layout={!isDragging}
-      transition={{
-        layout: { type: 'spring', stiffness: 350, damping: 30 },
-      }}
-      data-testid={`picked-driver-${position}`}
-      className={`relative flex h-14 shrink-0 items-stretch gap-0 border-b border-transparent bg-surface-muted sm:h-16 ${isDragging ? 'z-10 opacity-60' : ''}`}
-    >
-      <div
-        {...attributes}
-        {...listeners}
-        className="flex min-w-0 flex-1 cursor-grab active:cursor-grabbing"
-        style={{ touchAction: 'none' }}
-        // Position first: the P1-P5 column beside the list is aria-hidden, so
-        // this is the only place a screen reader hears where the driver sits.
-        aria-label={`P${position}, ${driver.displayName}. Drag to reorder`}
-      >
-        <DriverPickBadge driver={driver} />
-        <div className="flex min-w-0 flex-1 flex-col justify-center gap-0 px-2 py-1.5 sm:px-3 sm:py-2">
-          <div className="flex items-center gap-2">
-            {driver.nationality && (
-              <Flag code={driver.nationality} size="xs" className="shrink-0" />
-            )}
-            <span className="truncate font-medium text-text">
-              {driver.displayName}
-            </span>
-          </div>
-          {!isRacing(driver) ? (
-            // The driver is no longer in a car for this round, but the pick is
-            // still the player's: it stays in place, in position, and says so,
-            // rather than vanishing and leaving four slots where five were
-            // saved. Swapping it out is then an ordinary edit.
-            <span
-              className="flex min-w-0 items-center gap-1.5 text-xs text-error"
-              data-testid={`pick-not-racing-${driver.code}`}
-            >
-              <span className="truncate">Not racing this round</span>
-            </span>
-          ) : (
-            driver.team && (
-              <span
-                className="flex min-w-0 items-center gap-1.5 text-xs text-text-muted"
-                style={
-                  {
-                    '--team-colour':
-                      TEAM_COLORS[driver.team] || FALLBACK_TEAM_COLOR,
-                  } as CSSProperties
-                }
-              >
-                <span className="gpp-team-dot" aria-hidden />
-                <span className="truncate">{displayTeamName(driver.team)}</span>
-              </span>
-            )
-          )}
-        </div>
-      </div>
-      <div className="flex shrink-0 items-center gap-0.5 border-l border-border/50 py-1 pr-1 pl-1.5 sm:pl-2">
-        <div className="flex flex-col bg-surface-muted/50">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              moveUp(index);
-            }}
-            disabled={index === 0}
-            className="flex h-6 w-6 items-center justify-center transition-colors hover:bg-accent-muted/40 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none disabled:opacity-30"
-            aria-label={`Move ${driver.displayName} up`}
-          >
-            <ChevronUp size={14} className="text-accent" aria-hidden />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              moveDown(index);
-            }}
-            disabled={index >= picksLength - 1}
-            className="flex h-6 w-6 items-center justify-center transition-colors hover:bg-accent-muted/40 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none disabled:opacity-30"
-            aria-label={`Move ${driver.displayName} down`}
-          >
-            <ChevronDown size={14} className="text-accent" aria-hidden />
-          </button>
-        </div>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            removeDriver(driver._id);
-          }}
-          className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-error-muted focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
-          aria-label={`Remove ${driver.displayName}`}
-          data-testid={`remove-pick-${position}`}
-        >
-          <X size={16} className="text-error" aria-hidden />
-        </button>
-      </div>
-    </m.div>
-  );
-}
-
-/** Empty slot that accepts drops from the driver pool (and tap to set insert-at position). */
-function EmptySlotDroppable({
-  slotIndex,
-  driverSlotTooltip,
-}: {
-  slotIndex: number;
-  driverSlotTooltip: string;
-}) {
-  const { setNodeRef, isOver } = useDroppable({ id: emptySlotId(slotIndex) });
-  return (
-    <Tooltip content={driverSlotTooltip}>
-      <div
-        ref={setNodeRef}
-        className={`flex h-14 w-full shrink-0 cursor-default items-center border-b border-dashed border-border bg-surface text-left last:border-b-0 sm:h-16 sm:cursor-help ${isOver ? 'bg-accent-muted/30' : ''}`}
-      >
-        <span className="flex-1 px-2 py-1.5 text-sm text-text-muted sm:px-3 sm:py-2">
-          <span className="sr-only">P{slotIndex + 1}, </span>
-          Select a driver
-        </span>
-      </div>
-    </Tooltip>
-  );
-}
-
-/** "Verstappen" from "Max Verstappen", for the roster that stores no family name. */
-function driverSurname(driver: Driver) {
-  return driver.familyName || driver.displayName.split(' ').slice(1).join(' ');
-}
-
-/** Driver card in the pool – draggable so user can drag to picks list; tap still adds. */
-function DraggableDriverCard({
-  driver,
-  pickedPosition,
-  disabled,
-  onTap,
-}: {
-  driver: Driver;
-  /** 1-5 when this driver is already in the list, otherwise null. */
-  pickedPosition: number | null;
-  disabled: boolean;
-  onTap: () => void;
-}) {
-  const { listeners, setNodeRef } = useDraggable({
-    id: driver._id,
-    disabled,
-  });
-  const picked = pickedPosition !== null;
-  const surname = driverSurname(driver);
-  return (
-    <button
-      ref={setNodeRef}
-      // Drag is pointer-only: dnd-kit's keyboard listener calls preventDefault
-      // on Enter/Space, which blocks native button activation (WCAG 2.1.1).
-      onPointerDown={(event) => {
-        listeners?.onPointerDown?.(event);
-      }}
-      type="button"
-      data-testid={`driver-${driver.code}`}
-      onClick={(e) => {
-        e.stopPropagation();
-        onTap();
-      }}
-      disabled={disabled}
-      /*
-       * No `aria-label` here on purpose. It used to read "Kimi Antonelli" while
-       * the card showed "ANT Antonelli", so the accessible name did not contain
-       * the visible one (WCAG 2.5.3, Label in Name) and a voice-control user
-       * saying "click ANT" hit nothing. The name now comes from the card's own
-       * text, with the state appended below as screen-reader-only.
-       */
-      /*
-       * Team colour is the 3px left bar, not the fill. Twenty-two saturated
-       * tiles in a grid was the loudest surface in the app; confined to a bar
-       * the same twenty-two are still instantly sortable by team, and the
-       * code can sit at full contrast on a neutral surface.
-       *
-       * Hover is a surface step rather than an opacity change — opacity is
-       * never used to signal hover in this system.
-       *
-       * The two reasons a card is disabled have to look different: a driver
-       * already in the list carries the position that took him out of the
-       * pool, while the rest simply grey out once five slots are full. Dimming
-       * both identically made a picked driver read as "unavailable for some
-       * reason" against twenty-one lookalikes.
-       */
-      /*
-       * `@container` is on the button itself so the code/surname layout tracks
-       * *this* cell's width, not the form's. At 5 columns the dashboard rail
-       * leaves ~75px per pill — enough for "ANT" but not "ANT Antonelli" on
-       * one line — so below 7.5rem the surname stacks under the code.
-       */
-      className={`gpp-team-bar @container flex min-h-11 w-full items-center justify-start gap-2 rounded-sm border py-2.5 pr-2 pl-3 text-left transition-colors duration-150 ease-out ${
-        picked
-          ? 'cursor-not-allowed border-accent/40 bg-accent-muted/15'
-          : 'border-border bg-surface-elevated hover:border-border-strong hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface-elevated'
-      }`}
-      style={
-        {
-          '--team-colour':
-            (driver.team && TEAM_COLORS[driver.team]) || FALLBACK_TEAM_COLOR,
-        } as React.CSSProperties
-      }
-    >
-      {/* Corner badge, not in the text flow — stacked surnames used to collide
-          with an inline trailing P#. */}
-      {picked ? (
-        <span className="gpp-mono absolute top-1 right-1.5 text-xs leading-none font-semibold text-accent">
-          P{pickedPosition}
-        </span>
-      ) : null}
-      {/* Narrow: surname under the code. Wide: one baseline row. */}
-      <span className="flex w-full min-w-0 flex-col gap-0.5 @min-[7.5rem]:flex-row @min-[7.5rem]:items-baseline @min-[7.5rem]:gap-2">
-        <span
-          className={`gpp-mono shrink-0 text-xs leading-none sm:text-sm ${
-            picked ? 'text-text-muted' : 'text-text'
-          }`}
-        >
-          {driver.code}
-        </span>
-        {/* Three-letter codes are the broadcast language, but a landing-page
-            visitor may not know all twenty-two. Stack under the code when the
-            pill is too narrow for a side-by-side pair. */}
-        {surname ? (
-          <span className="min-w-0 truncate text-xs leading-none text-text-muted @min-[7.5rem]:flex-1">
-            {surname}
-          </span>
-        ) : null}
-        {/* `shrink-0` so the marker never eats the surname's width: the name is
-            the thing being picked, and it is the one that truncates well. */}
-        {'entryUnconfirmed' in driver && driver.entryUnconfirmed ? (
-          <span className="shrink-0 text-xs leading-none tracking-label text-text-muted uppercase">
-            Unconfirmed
-          </span>
-        ) : null}
-      </span>
-      {/* Appended after the visible text so the accessible name still starts
-          with what is on the card. */}
-      {picked ? (
-        <span className="sr-only">already picked</span>
-      ) : disabled ? (
-        <span className="sr-only">
-          unavailable, five drivers already picked
-        </span>
-      ) : null}
-    </button>
-  );
-}
-
-/** Wrapper that makes the driver grid a drop target (drop a pick here to remove). */
-function DriverPoolDroppable({ children }: { children: React.ReactNode }) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: DRIVER_POOL_DROPPABLE_ID,
-  });
-  return (
-    <div
-      ref={setNodeRef}
-      // Columns follow the form's own width (container), not the viewport —
-      // the dashboard center rail is ~640px wide while the viewport is `lg`,
-      // and viewport breakpoints left a 4-col grid crushed into ~280px.
-      className={`grid grid-cols-2 gap-2 @min-[360px]:grid-cols-3 @min-[480px]:grid-cols-4 @min-[640px]:grid-cols-5 ${isOver ? 'rounded-lg bg-accent-muted/20' : ''}`}
-      data-testid="driver-selection"
-    >
-      {children}
-    </div>
-  );
-}
+import { pickPool, resolvePicks } from '@/lib/roster';
+import { ConfirmDialog } from '../ConfirmDialog';
+import { DraftRestoredNotice } from '../DraftRestoredNotice';
+import { InlineLoader } from '../InlineLoader';
+import { PicksSaveStatus } from '../PicksSaveStatus';
+import {
+  DRIVER_POOL_DROPPABLE_ID,
+  emptySlotId,
+  parseEmptySlotId,
+} from './dndIds';
+import { DriverPoolSection } from './DriverPool';
+import { EmptySlotDroppable, SortablePickRow } from './PickRows';
+import { PicksListHeader } from './PicksListHeader';
+import { SubmitRow } from './SubmitRow';
+import { useDriverSlotTooltip } from './useDriverSlotTooltip';
+import { useTop5Draft } from './useTop5Draft';
 
 interface PredictionFormProps {
   raceId: Id<'races'>;
@@ -509,11 +139,6 @@ interface PredictionFormProps {
   onStartOver?: () => void;
 }
 
-type Top5Draft = {
-  picks: Id<'drivers'>[];
-  updatedAt: string;
-};
-
 /**
  * What the form would tell you about the server if you asked right now. Auto-
  * save is silent, and silence is only trustworthy when there is somewhere to
@@ -579,16 +204,24 @@ export function PredictionForm({
   const topFiveCapturedRef = useRef(false);
   const yourPicksRef = useRef<HTMLDivElement>(null);
 
-  const [picks, setPicks] = useState<Id<'drivers'>[]>(
-    existingPicks ?? initialDraftPicks ?? [],
-  );
+  const {
+    picks,
+    setPicks,
+    restoredDraftAt,
+    setRestoredDraftAt,
+    hasHydratedDraft,
+    hasChanges,
+  } = useTop5Draft({
+    draftKey,
+    existingPicks,
+    initialDraftPicks,
+    suppressDraftRestoredNotice,
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<
     'idle' | 'success' | 'error'
   >('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
-  const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
   const now = useNow();
   // Effect Events read current callbacks without retriggering notifications.
   const reportCompletionState = useEffectEvent((complete: boolean) =>
@@ -651,24 +284,6 @@ export function PredictionForm({
     }
   }
 
-  // Layout, not passive: the draft is the difference between five empty slots
-  // and a filled grid, and a returning visitor should never watch the empty
-  // version paint first. React flushes this re-render before the browser
-  // paints, so the restore, the notice and every completion callback that
-  // cascades off it (up to and including the landing page jumping to step 2)
-  // resolve inside the same frame as hydration.
-  useIsomorphicLayoutEffect(() => {
-    const draft = loadPredictionDraft<Top5Draft>(draftKey);
-    if (draft && draft.picks.length > 0) {
-      setPicks(draft.picks);
-      setRestoredDraftAt(suppressDraftRestoredNotice ? null : draft.updatedAt);
-    } else {
-      setPicks(existingPicks ?? initialDraftPicks ?? []);
-      setRestoredDraftAt(null);
-    }
-    setHasHydratedDraft(true);
-  }, [draftKey, existingPicks, initialDraftPicks, suppressDraftRestoredNotice]);
-
   useLayoutEffect(() => {
     if (hasHydratedDraft) {
       reportCompletionState(picks.length === 5);
@@ -728,54 +343,11 @@ export function PredictionForm({
     setSubmitStatus('idle');
   }
 
-  // Tooltip for empty slot: direction matches the live layout — pool above on
-  // the landing mobile stack, below on the race page, right on lg+.
-  const [driverSlotTooltip, setDriverSlotTooltip] = useState(() =>
-    driverSlotTooltipCopy({
-      wide:
-        typeof window !== 'undefined' &&
-        window.matchMedia('(min-width: 1024px)').matches,
-      driversAbove: mobileActionFirst,
-    }),
-  );
-  useEffect(() => {
-    const mql = window.matchMedia('(min-width: 1024px)');
-    function handler() {
-      setDriverSlotTooltip(
-        driverSlotTooltipCopy({
-          wide: mql.matches,
-          driversAbove: mobileActionFirst,
-        }),
-      );
-    }
-    handler();
-    mql.addEventListener('change', handler);
-    return () => mql.removeEventListener('change', handler);
-  }, [mobileActionFirst]);
-
-  const hasChanges = existingPicks
-    ? JSON.stringify(picks) !== JSON.stringify(existingPicks)
-    : picks.length > 0;
+  const driverSlotTooltip = useDriverSlotTooltip(mobileActionFirst);
 
   useEffect(() => {
     onDirtyChange?.(hasChanges);
   }, [hasChanges, onDirtyChange]);
-
-  useEffect(() => {
-    if (!hasHydratedDraft) {
-      return;
-    }
-
-    if (hasChanges) {
-      savePredictionDraft<Top5Draft>(draftKey, {
-        picks,
-        updatedAt: new Date().toISOString(),
-      });
-      return;
-    }
-
-    clearPredictionDraft(draftKey);
-  }, [draftKey, hasChanges, hasHydratedDraft, picks]);
 
   const blocker = useBlocker({
     shouldBlockFn: () => hasChanges,
@@ -1269,72 +841,12 @@ export function PredictionForm({
             data-testid="your-picks"
             className={`${mobileActionFirst ? 'order-2 scroll-mt-28 @min-[875px]:order-1' : ''} @min-[875px]:w-[min(100%,380px)] @min-[875px]:min-w-0 @min-[875px]:shrink-0 ${hidePicksHeading ? '@min-[875px]:pt-10' : ''}`}
           >
-            {hidePicksHeading ? (
-              // Side by side, the status moves up beside "Select Drivers" (see
-              // the pool's heading) and the column's top padding stands in for
-              // it, so the list starts level with the driver grid.
-              <div className="mb-2 space-y-1 sm:mb-3 @min-[875px]:hidden">
-                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  {pickStatus}
-                  {renderInlineSaveStatus(true)}
-                </div>
-                <div className="flex min-h-5 items-center">
-                  {picks.length < 5 ? (
-                    <p className="text-sm text-text-muted sm:hidden">
-                      Tap drivers to fill your Top 5.
-                    </p>
-                  ) : null}
-                  {picks.length >= 2 ? (
-                    <p className="ml-auto flex shrink-0 items-center gap-1 text-xs text-text-muted sm:hidden">
-                      Reorder: drag or use
-                      <span className="inline-flex items-center">
-                        <span className="sr-only">the up and down buttons</span>
-                        <ChevronUp
-                          size={14}
-                          className="text-accent"
-                          aria-hidden
-                        />
-                        <ChevronDown
-                          size={14}
-                          className="-ml-0.5 text-accent"
-                          aria-hidden
-                        />
-                      </span>
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-            ) : (
-              <div className="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 sm:mb-3">
-                <h3 className="text-lg font-semibold text-text">Your Picks</h3>
-                {/* The status belongs to this list: it counts these slots and
-                    the change it asks for happens here. */}
-                {pickStatus}
-                {picks.length < 5 ? (
-                  <p className="text-sm text-text-muted sm:hidden">
-                    Tap drivers to fill your Top 5.
-                  </p>
-                ) : null}
-                {picks.length >= 2 ? (
-                  <p className="ml-auto flex shrink-0 items-center gap-1 text-xs text-text-muted sm:hidden">
-                    Reorder: drag or use
-                    <span className="inline-flex items-center">
-                      <span className="sr-only">the up and down buttons</span>
-                      <ChevronUp
-                        size={14}
-                        className="text-accent"
-                        aria-hidden
-                      />
-                      <ChevronDown
-                        size={14}
-                        className="-ml-0.5 text-accent"
-                        aria-hidden
-                      />
-                    </span>
-                  </p>
-                ) : null}
-              </div>
-            )}
+            <PicksListHeader
+              hidePicksHeading={hidePicksHeading}
+              pickCount={picks.length}
+              pickStatus={pickStatus}
+              inlineSaveStatus={renderInlineSaveStatus(true)}
+            />
             <div
               className="flex overflow-hidden rounded-xl border border-border bg-surface"
               data-testid="picks-list"
@@ -1406,56 +918,22 @@ export function PredictionForm({
             ) : showSaveWall && renderSaveWall ? (
               renderSaveWall({ lockIn: () => requestSubmit() })
             ) : (
-              <div className="mt-3 flex min-h-11 flex-wrap items-center justify-center gap-3 sm:mt-4 sm:gap-4">
-                <Button
-                  variant="primary"
-                  size="md"
-                  className="w-100 max-w-full"
-                  loading={isSubmitting && !suppressManualSave}
-                  saved={isUnchangedFromSaved}
-                  disabled={
-                    picks.length !== 5 ||
-                    isSubmitting ||
-                    isUnchangedFromSaved ||
-                    isSubmissionBlocked ||
-                    suppressManualSave
-                  }
-                  onClick={() => requestSubmit()}
-                  data-testid="submit-prediction"
-                >
-                  {isUnchangedFromSaved ? (
-                    <>
-                      <Check size={20} className="shrink-0" />
-                      Saved
-                    </>
-                  ) : isSubmitting && !suppressManualSave ? (
-                    'Saving...'
-                  ) : !isAuthenticated ? (
-                    'Sign in to save your picks'
-                  ) : existingPicks && existingPicks.length > 0 ? (
-                    'Save Changes'
-                  ) : (
-                    'Save Predictions'
-                  )}
-                </Button>
-
-                {submitStatus === 'success' && !suppressManualSave && (
-                  <span className="text-sm text-success" aria-live="polite">
-                    Predictions saved. You can edit them until this session
-                    starts.
-                  </span>
-                )}
-
-                {submitStatus === 'error' && (
-                  <span
-                    className="text-sm text-error"
-                    data-testid="submit-error"
-                    aria-live="assertive"
-                  >
-                    {errorMessage}
-                  </span>
-                )}
-              </div>
+              <SubmitRow
+                showSaving={isSubmitting && !suppressManualSave}
+                saved={isUnchangedFromSaved}
+                disabled={
+                  picks.length !== 5 ||
+                  isSubmitting ||
+                  isUnchangedFromSaved ||
+                  isSubmissionBlocked ||
+                  suppressManualSave
+                }
+                isAuthenticated={isAuthenticated}
+                isEdit={Boolean(existingPicks && existingPicks.length > 0)}
+                showSuccess={submitStatus === 'success' && !suppressManualSave}
+                errorMessage={submitStatus === 'error' ? errorMessage : null}
+                onSubmit={() => requestSubmit()}
+              />
             )}
             {submissionBlockedMessage ? (
               <p className="mt-2 text-center text-sm text-warning">
@@ -1469,69 +947,20 @@ export function PredictionForm({
             )}
           </div>
 
-          {/* Available Drivers - selection pool (right column when wide) */}
-          <div
-            className={`${mobileActionFirst ? 'order-1 @min-[875px]:order-2' : ''} @min-[875px]:min-w-0 @min-[875px]:flex-1`}
-          >
-            {/* The label only earns its line in the side-by-side layout, where
-                it names the right-hand column against "Your Picks". Stacked it
-                just repeats the section heading, so it stays sr-only then. */}
-            <div className="mb-0 flex flex-wrap items-baseline gap-x-3 gap-y-1 @min-[875px]:mb-3">
-              <h3 className="text-lg font-semibold text-text">
-                <span className="sr-only @min-[875px]:not-sr-only">
-                  Select Drivers
-                </span>
-              </h3>
-              {hidePicksHeading ? (
-                <div className="hidden items-baseline gap-x-3 @min-[875px]:flex">
+          <DriverPoolSection
+            drivers={driversSortedByTeam}
+            picks={picks}
+            mobileActionFirst={mobileActionFirst}
+            pickStatus={
+              hidePicksHeading ? (
+                <>
                   {renderPickStatus(false)}
                   {renderInlineSaveStatus(false)}
-                </div>
-              ) : null}
-            </div>
-            {mobileActionFirst ? (
-              /* Sentences are inline-block so the line breaks between them
-                 rather than mid-sentence, and stays on one line when it fits. */
-              <p className="mb-3 text-sm text-text-muted @min-[875px]:hidden">
-                <span className="inline-block">
-                  Tap drivers in finishing order.
-                </span>{' '}
-                <span className="inline-block">You can reorder later.</span>
-              </p>
-            ) : null}
-            <DriverPoolDroppable>
-              {driversSortedByTeam.map((driver) => {
-                const pickedIndex = picks.indexOf(driver._id);
-                const isPicked = pickedIndex !== -1;
-                return (
-                  <m.div
-                    key={driver._id}
-                    layout
-                    initial={false}
-                    tabIndex={-1}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 500,
-                      damping: 30,
-                    }}
-                    whileHover={{
-                      scale: isPicked || picks.length >= 5 ? 1 : 1.05,
-                    }}
-                    whileTap={{
-                      scale: isPicked || picks.length >= 5 ? 1 : 0.95,
-                    }}
-                  >
-                    <DraggableDriverCard
-                      driver={driver}
-                      pickedPosition={isPicked ? pickedIndex + 1 : null}
-                      disabled={isPicked || picks.length >= 5}
-                      onTap={() => addDriver(driver._id)}
-                    />
-                  </m.div>
-                );
-              })}
-            </DriverPoolDroppable>
-          </div>
+                </>
+              ) : null
+            }
+            onAddDriver={addDriver}
+          />
         </div>
       </div>
       {enableNavigationBlocker && blocker.status === 'blocked' && (

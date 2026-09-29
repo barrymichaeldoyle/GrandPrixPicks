@@ -115,7 +115,7 @@ Web-specific addition:
 ## Accessibility & Inclusion
 
 Inherits the shared requirements. The web-specific risk concentration is
-`src/components/PredictionForm.tsx`: it is drag-and-drop, it is the core
+`src/components/PredictionForm/`: it is drag-and-drop, it is the core
 interaction, and it is most often used on touch under time pressure. Its
 keyboard and pointer equivalents are a hard requirement, not a progressive
 enhancement.

@@ -173,7 +173,7 @@ routes/                # TanStack Router file-based routes
   admin/               # Admin routes (race management, result publishing)
   terms.tsx, privacy.tsx
 components/            # Shared React components (app-wide)
-  PredictionForm.tsx   # Drag-and-drop top-5 driver picker
+  PredictionForm/      # Drag-and-drop top-5 driver picker (rows, pool, draft hook)
   RaceScoreCard/       # Per-session picks + results card (composed)
   RaceCard.tsx         # Race display card with countdown
   DriverBadge.tsx      # Team-colored driver display

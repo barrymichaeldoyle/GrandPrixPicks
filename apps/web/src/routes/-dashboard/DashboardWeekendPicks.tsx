@@ -24,7 +24,7 @@ import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { picksOverlayHeading } from '@/lib/picksOverlayHeading';
 import { PicksFormActionRow } from '@/components/PicksSaveStatus';
 import { PracticeResultsModal } from '@/components/PracticeResultsModal';
-import { PredictionForm } from '@/components/PredictionForm';
+import { PredictionForm } from '@/components/PredictionForm/PredictionForm';
 import { RaceFlag } from '@/components/RaceFlag';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
 import { WeatherSessionLine } from '@/components/weather/WeatherSessionLine';

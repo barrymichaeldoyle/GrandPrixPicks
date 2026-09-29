@@ -14,7 +14,7 @@ import {
   hasCompletedFollowPrompt,
 } from '@/components/FollowXPrompt';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
-import { PredictionForm } from '@/components/PredictionForm';
+import { PredictionForm } from '@/components/PredictionForm/PredictionForm';
 import { PracticeResultsCard } from '@/components/PracticeResultsCard';
 import {
   PracticeResultsButton,

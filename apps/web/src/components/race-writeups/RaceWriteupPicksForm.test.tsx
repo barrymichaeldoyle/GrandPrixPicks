@@ -45,7 +45,7 @@ vi.mock('@/integrations/convex/query', () => ({
   },
 }));
 
-vi.mock('@/components/PredictionForm', () => ({
+vi.mock('@/components/PredictionForm/PredictionForm', () => ({
   PredictionForm: () => <div data-testid="top-five-form" />,
 }));
 

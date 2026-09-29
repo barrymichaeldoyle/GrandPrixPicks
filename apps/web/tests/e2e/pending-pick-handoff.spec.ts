@@ -89,7 +89,9 @@ test.describe('[public] anonymous pick handoff', () => {
 
     // Server-rendered, so the buttons are clickable well before React attaches
     // the draft handlers that this test is entirely about.
-    await expect(page.getByText('Step 1 of 2')).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Choose your Top 5' }),
+    ).toBeVisible();
     const driverButtons = page.locator(
       'button[data-testid^="driver-"]:not([disabled])',
     );
@@ -98,10 +100,10 @@ test.describe('[public] anonymous pick handoff', () => {
       await driverButtons.first().click();
     }
 
-    await page
-      .getByRole('button', { name: 'Continue to team-mate picks' })
-      .click();
-    await expect(page.getByText('Step 2 of 2')).toBeVisible();
+    await page.getByRole('button', { name: 'Add team-mate picks' }).click();
+    await expect(
+      page.getByRole('heading', { name: 'Pick each team-mate winner' }),
+    ).toBeVisible();
 
     // Every duel, because the save wall is what this test needs and it only
     // appears on a complete card. The picker advances itself, so clicking the

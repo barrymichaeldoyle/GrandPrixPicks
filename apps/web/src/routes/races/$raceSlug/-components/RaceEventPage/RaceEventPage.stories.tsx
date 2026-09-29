@@ -6,7 +6,7 @@ import type { ComponentProps } from 'react';
 import { useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
-import { PredictionForm } from '@/components/PredictionForm';
+import { PredictionForm } from '@/components/PredictionForm/PredictionForm';
 import { RandomizeButton } from '@/components/RandomizeButton';
 import type {
   DriverRef,

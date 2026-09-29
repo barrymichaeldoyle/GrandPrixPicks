@@ -3,7 +3,7 @@ import type { Id } from '@convex-generated/dataModel';
 
 import { InlineLoader } from '@/components/InlineLoader';
 import { H2HPredictionForm } from '@/components/H2HPredictionForm';
-import { PredictionForm } from '@/components/PredictionForm';
+import { PredictionForm } from '@/components/PredictionForm/PredictionForm';
 import { useQuery } from '@/integrations/convex/query';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import type { RaceWriteupPhase } from '@/lib/raceWriteupPhase';

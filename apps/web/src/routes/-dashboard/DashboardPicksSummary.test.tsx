@@ -56,7 +56,7 @@ let top5Form: {
 } = {};
 const saveNow = vi.fn(() => Promise.resolve());
 
-vi.mock('@/components/PredictionForm', () => ({
+vi.mock('@/components/PredictionForm/PredictionForm', () => ({
   PredictionForm: ({
     sessionType,
     onSuccess,

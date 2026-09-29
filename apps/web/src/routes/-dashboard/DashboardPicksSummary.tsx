@@ -9,7 +9,7 @@ import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { H2HPicksBar } from '@/components/H2HPicksBar';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { PicksFormActionRow } from '@/components/PicksSaveStatus';
-import { PredictionForm } from '@/components/PredictionForm';
+import { PredictionForm } from '@/components/PredictionForm/PredictionForm';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
 import { SESSION_LABELS } from '@/lib/sessions';
 

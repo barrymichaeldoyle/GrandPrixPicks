@@ -41,12 +41,11 @@ const FAQS = [
   {
     question: 'Is the 2027 F1 driver line-up confirmed?',
     answer:
-      'Not fully. Most seats are either announced or covered by a contract option, and two drivers on the current grid have nothing for 2027 at all.',
+      'Not fully. Most seats are either announced or covered by a contract option, and one driver on the current grid, Esteban Ocon, has nothing for 2027 at all.',
   },
   {
     question: 'Which 2027 F1 seats are still open?',
-    answer:
-      'Esteban Ocon at Haas and Fernando Alonso at Aston Martin. Both are out of contract at the end of 2026.',
+    answer: 'Esteban Ocon’s at Haas. He is out of contract at the end of 2026.',
   },
   {
     question: 'Who is in contention for Haas’s second seat?',
@@ -66,7 +65,7 @@ const FAQS = [
   {
     question: 'Is Fernando Alonso racing in 2027?',
     answer:
-      'He has not said. His Aston Martin contract ends with this season, and in Madrid he said there would be no news on 2027 "anytime soon". He expects to stay with the team in some role either way.',
+      'Yes. Aston Martin confirmed on 29 September 2026 that he and Lance Stroll have both extended their contracts.',
   },
   {
     question: 'Who is Max Verstappen driving for in 2027?',
@@ -220,8 +219,10 @@ function F1LineUp2027Page() {
           <p className="gpp-reading-copy mt-4 text-text-muted">
             {counts.signed} of the {total} seats have been announced for 2027.
             Another {counts.expected} are covered by a contract or an option the
-            team has not made public. {counts['out-of-contract']} drivers on the
-            current grid have nothing for next year.
+            team has not made public. {counts['out-of-contract']}{' '}
+            {counts['out-of-contract'] === 1 ? 'driver' : 'drivers'} on the
+            current grid {counts['out-of-contract'] === 1 ? 'has' : 'have'}{' '}
+            nothing for next year.
           </p>
         </header>
 

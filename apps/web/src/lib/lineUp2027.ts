@@ -47,10 +47,10 @@ export type TeamLineUp = {
 };
 
 /** Bumped by hand whenever the seats below are re-checked against reporting. */
-export const LINE_UP_2027_REVIEWED_AT = '2026-09-27';
+export const LINE_UP_2027_REVIEWED_AT = '2026-09-29';
 
 /** For prose. Kept next to the ISO date so the two cannot drift apart. */
-export const LINE_UP_2027_REVIEWED_LABEL = '27 September 2026';
+export const LINE_UP_2027_REVIEWED_LABEL = '29 September 2026';
 
 /**
  * Alphabetical by team. A championship order would be more flattering and
@@ -78,13 +78,13 @@ export const LINE_UP_2027: TeamLineUp[] = [
     seats: [
       {
         driver: 'Lance Stroll',
-        status: 'expected',
-        note: 'No 2027 announcement, and no sign the team is looking. His father owns it.',
+        status: 'signed',
+        note: 'Extended his contract on 29 September 2026, the Tuesday of the Bahrain Grand Prix week.',
       },
       {
         driver: 'Fernando Alonso',
-        status: 'out-of-contract',
-        note: 'His deal ends with this season. In Madrid he said there would be no news on 2027 "anytime soon", and that he stays at Aston Martin in some role either way.',
+        status: 'signed',
+        note: 'Confirmed in the same announcement, having extended his contract on 29 September 2026.',
       },
     ],
   },

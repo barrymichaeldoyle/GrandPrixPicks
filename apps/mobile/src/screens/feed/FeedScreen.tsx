@@ -15,7 +15,7 @@ import { WeekendSplit } from '../../components/feed/WeekendSplit';
 import { LiveClassificationCard } from '../../components/feed/live-classification-card';
 import type { SessionHeader } from '../../components/feed/SessionGroupCard';
 import { SessionGroupCard } from '../../components/feed/SessionGroupCard';
-import { PicksConnectedScreen } from '../PicksConnectedScreen';
+import { PicksConnectedScreen } from '../picks/PicksConnectedScreen';
 import { HomeHero } from '../../components/home/HomeHero';
 import { SignedOutHomePanel } from '../../components/home/SignedOutHomePanel';
 import { RaceRecapCard } from '../../components/home/RaceRecapCard';

@@ -219,7 +219,8 @@ Every one of them sat next to a citation, and every one would pass
   WebFetch's summariser and web search returned confident wrong answers: a
   3.365 km Madring, and "this article does not discuss overtaking" about an
   article that does. Fetch the page, strip the tags, search the text for the
-  figure.
+  figure: `scripts/gpp.mjs page <url> --grep '<figure>'` does all three. If it
+  comes back with no body text, the site renders in the browser; read it there.
 - **Verify the whole sentence, not the half you are editing.** Two of the four
   were found only because someone changed a nearby clause and looked up.
 - **Grep the claim across the page before you fix it.** "30 drivers across 10

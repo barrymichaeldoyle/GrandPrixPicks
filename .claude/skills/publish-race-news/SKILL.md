@@ -167,7 +167,10 @@ publish itself.
   first thing a reader wants: "at least 10 places" is the fact, "takes a grid
   penalty" is half a story.
 - **`sourceUrl`** — the primary source. Prefer formula1.com or the team over
-  aggregators. Rejected unless it is a full `http(s)` URL.
+  aggregators. Rejected unless it is a full `http(s)` URL. Check the body
+  against the article's own text, not a summary of it:
+  `scripts/gpp.mjs page <url>` prints the article (`--grep` to find a figure).
+  WebFetch and search summaries have returned confident wrong answers.
 - **`sourcePublishedAt`** — when the **source** published the story, in
   milliseconds. Set it on every item you can. The write-up page shows it beside
   the source name, and that page is read weeks later by somebody who wants to

@@ -63,3 +63,39 @@ describe('lineup change feed events', () => {
     ]);
   });
 });
+
+describe('getFeedEvent signed out', () => {
+  it('returns a news event and hides player activity', async () => {
+    const t = convexTest(schema, modules);
+    const { newsId, scoreId } = await t.run(async (ctx) => {
+      const userId = await ctx.db.insert('users', {
+        clerkUserId: 'player',
+        username: 'player',
+        createdAt: 0,
+        updatedAt: 0,
+      });
+      const newsId = await ctx.db.insert('feedEvents', {
+        type: 'race_news',
+        newsKey: 'grid-penalty',
+        newsHeadline: 'Grid penalty',
+        newsBody: 'A driver takes a grid penalty.',
+        createdAt: 0,
+      });
+      const scoreId = await ctx.db.insert('feedEvents', {
+        type: 'score_published',
+        userId,
+        points: 12,
+        createdAt: 0,
+      });
+      return { newsId, scoreId };
+    });
+
+    const news = await t.query(api.feed.getFeedEvent, { feedEventId: newsId });
+    const score = await t.query(api.feed.getFeedEvent, {
+      feedEventId: scoreId,
+    });
+
+    expect(news?.event.newsHeadline).toBe('Grid penalty');
+    expect(score).toBeNull();
+  });
+});

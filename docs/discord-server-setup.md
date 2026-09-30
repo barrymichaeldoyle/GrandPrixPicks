@@ -164,7 +164,10 @@ items chosen for push.
         `apps/backend/convex/indexNow.ts`.
   - [x] Link:
         `${process.env.APP_URL ?? 'https://grandprixpicks.com'}/feed/${feedEventId}?utm_source=discord&utm_campaign=news`
-        (same fallback as `notificationEmails.ts`).
+        (same fallback as `notificationEmails.ts`). The page
+        (`apps/web/src/routes/feed.$feedEventId.tsx`) opens signed out for a
+        news card, and hands on to the weekend write-up (`getRaceWriteup`),
+        or the race page when that weekend has none.
   - [x] POST one embed: `title` = headline, `url` = link, `footer.text` =
         source name. Always sends `allowed_mentions: { parse: [] }`.
   - [x] Non-2xx or network error: `console.error` and return. Never throws.

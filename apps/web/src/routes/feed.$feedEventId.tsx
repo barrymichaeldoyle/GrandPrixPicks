@@ -2,13 +2,14 @@ import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@/integrations/convex/query';
-import { ArrowLeft, Gauge } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Gauge } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
 import { FeedItem } from '@/components/FeedItem/FeedItem';
 import { SessionGroup } from '@/components/FeedItem/SessionGroup';
 import { FeedItemSkeleton } from '@/components/FeedItem/states';
 import { SignInPrompt } from '@/components/SignInPrompt';
+import { getRaceWriteup } from '@/lib/raceWriteups';
 import { canonicalMeta, noIndexMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/feed/$feedEventId')({
@@ -45,17 +46,17 @@ function FeedEventPage() {
   const { isLoaded, isSignedIn } = useViewerSession();
   const me = useQuery(api.users.me, {});
 
+  // Asked signed out too: the query answers for news, which the Discord #news
+  // posts link here, and returns null for a player's activity.
   const feedEvent = useQuery(
     api.feed.getFeedEvent,
-    isLoaded && isSignedIn
-      ? { feedEventId: feedEventId as Id<'feedEvents'> }
-      : 'skip',
+    isLoaded ? { feedEventId: feedEventId as Id<'feedEvents'> } : 'skip',
   );
 
-  // There is deliberately no public preview: another
+  // There is deliberately no public preview of a player's activity: another
   // player's picks are not ours to show, and the old card's "Go to feed"
   // button pointed at /feed, which redirects to /.
-  if (!isSignedIn) {
+  if (isLoaded && !isSignedIn && feedEvent === null) {
     return (
       <SignInPrompt
         eyebrow="Activity"
@@ -71,14 +72,18 @@ function FeedEventPage() {
     );
   }
 
+  const isNews = feedEvent?.event.type === 'race_news';
+
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-2xl px-4 py-8">
-        <div className="mb-5">
-          <Button asChild variant="text" size="sm" leftIcon={ArrowLeft}>
-            <Link to="/feed">Back to feed</Link>
-          </Button>
-        </div>
+        {isSignedIn && !isNews ? (
+          <div className="mb-5">
+            <Button asChild variant="text" size="sm" leftIcon={ArrowLeft}>
+              <Link to="/feed">Back to feed</Link>
+            </Button>
+          </div>
+        ) : null}
 
         {!isLoaded ? (
           <FeedEventSkeleton />
@@ -105,10 +110,59 @@ function FeedEventPage() {
             ) : (
               <FeedItem event={feedEvent.event} />
             )}
+            {isNews ? (
+              <WeekendLink
+                raceSlug={feedEvent.event.raceSlug}
+                raceName={feedEvent.event.raceName}
+              />
+            ) : null}
           </div>
         )}
       </div>
     </div>
   );
 }
+
+/**
+ * Where a news item hands the reader on: the weekend's write-up, which carries
+ * every story for that race, or the race page when the weekend has none.
+ * Season-wide news belongs to no race, so it gets the feed for a signed-in
+ * reader and nothing otherwise.
+ */
+function WeekendLink({
+  raceSlug,
+  raceName,
+}: {
+  raceSlug?: string;
+  raceName?: string;
+}) {
+  const { isSignedIn } = useViewerSession();
+  const writeup = getRaceWriteup(raceSlug);
+
+  if (writeup) {
+    return (
+      <Button asChild size="sm" rightIcon={ArrowRight}>
+        <Link to={writeup.to}>{writeup.cta}</Link>
+      </Button>
+    );
+  }
+  if (raceSlug && raceName) {
+    return (
+      <Button asChild size="sm" rightIcon={ArrowRight}>
+        <Link to="/races/$raceSlug" params={{ raceSlug }}>
+          See the {raceName} race page
+        </Link>
+      </Button>
+    );
+  }
+  if (isSignedIn) {
+    return (
+      <Button asChild variant="text" size="sm" leftIcon={ArrowLeft}>
+        <Link to="/feed">Back to feed</Link>
+      </Button>
+    );
+  }
+  return null;
+}
+
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';

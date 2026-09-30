@@ -1264,13 +1264,16 @@ export const getLeagueFeed = query({
 export const getFeedEvent = query({
   args: { feedEventId: v.id('feedEvents') },
   handler: async (ctx, args) => {
-    const viewer = await getViewer(ctx);
-    if (!viewer) {
+    const event = await ctx.db.get(args.feedEventId);
+    if (!event || event.type === 'streak_milestone') {
       return null;
     }
 
-    const event = await ctx.db.get(args.feedEventId);
-    if (!event || event.type === 'streak_milestone') {
+    // News is the one event a signed-out reader may open: the Discord #news
+    // post links here. It is public already, since an embargoed item has no
+    // feed event until its release and a retracted one loses it. Everything
+    // else is a player's own activity.
+    if (event.type !== 'race_news' && !(await getViewer(ctx))) {
       return null;
     }
 

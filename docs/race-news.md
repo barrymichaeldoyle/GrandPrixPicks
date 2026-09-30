@@ -308,6 +308,12 @@ created — not on a correction — `discord.postNews` fires from a scheduled
 action, gated on `DISCORD_NEWS_WEBHOOK_URL` (unset in dev). See
 `docs/discord-server-setup.md`.
 
+**A feed card also reaches r/GPPicks, within ten minutes.** The `gpp-news`
+Devvit app polls `/api/news/recent` and posts each card as a link to its
+source, with the summary as a pinned comment. Unlike Discord it follows
+corrections: a new summary edits the comment, a new headline or link reposts,
+and a retraction deletes the post. See `docs/reddit-news-app.md`.
+
 **A later round's news can wait its turn.** `feedVisibleAt` (ms epoch) holds the
 feed card until a moment you choose, while the write-up page shows the item the
 instant it is published. That split is the whole feature: a Madrid story is

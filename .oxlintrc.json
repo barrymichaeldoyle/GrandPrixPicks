@@ -86,6 +86,7 @@
     {
       "files": [
         "apps/web/vite.config.ts",
+        "apps/reddit-news/vite.config.ts",
         "apps/web/server/routes/**/*.ts",
         "apps/web/server/routes/**/*.tsx",
         "apps/web/server/middleware/**/*.ts",

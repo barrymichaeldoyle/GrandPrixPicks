@@ -26,6 +26,8 @@ apps/
   backend/    # Convex backend (schema, queries/mutations, scoring, emails)
   trmnl/      # TRMNL e-ink plugin: Liquid layouts + settings (no package.json;
               # polls apps/web /api/trmnl/weekend; docs/trmnl-plugin-specification.md)
+  reddit-news/ # Devvit app: mirrors news cards into r/GPPicks
+              # (polls apps/web /api/news/recent; docs/reddit-news-app.md)
 packages/
   shared/     # Code shared between web + mobile (e.g. session types, scoring constants)
 convex/       # Root-level _generated only — actual Convex code lives in apps/backend/convex

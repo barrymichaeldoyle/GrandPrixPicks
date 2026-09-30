@@ -169,6 +169,9 @@ overrides:
   # GHSA-jmr9-qjv8-65gv out of the tree: extract-zip 2.0.1 is the newest
   # release, so there is nothing to override it to directly.
   'lighthouse@<13.4.1': 13.4.1
+  # The Devvit CLI (apps/reddit-news) pins image-size 2.0.2 exactly, inside
+  # GHSA-w3rx-r6r6-pgpr and its sibling. Same major, so a patch lift.
+  'image-size@>=0.6.3 <2.0.4': 2.0.4
 
   # Reached only through Convex/Nitro server plumbing; the 7.x line carries
   # the fix, so this is a patch lift rather than a major move.

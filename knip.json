@@ -49,6 +49,10 @@
       "ignoreDependencies": ["expo-updates", "tailwind-merge", "clsx"],
       "ignore": ["src/tw/index.tsx"]
     },
+    "apps/reddit-news": {
+      "entry": ["src/server/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
     "packages/shared": {
       "project": ["src/**/*.{ts,tsx}"]
     }

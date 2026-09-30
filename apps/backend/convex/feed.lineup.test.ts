@@ -99,3 +99,46 @@ describe('getFeedEvent signed out', () => {
     expect(score).toBeNull();
   });
 });
+
+describe('recentNews', () => {
+  it('lists news cards from the window, oldest first, and nothing else', async () => {
+    const t = convexTest(schema, modules);
+    const now = Date.now();
+    const day = 24 * 60 * 60 * 1000;
+    await t.run(async (ctx) => {
+      const news = {
+        type: 'race_news' as const,
+        newsBody: 'Body.',
+        newsSourceName: 'Formula 1',
+        newsSourceUrl: 'https://www.formula1.com/a',
+      };
+      await ctx.db.insert('feedEvents', {
+        ...news,
+        newsKey: 'new',
+        newsHeadline: 'Newer',
+        createdAt: now - day,
+      });
+      await ctx.db.insert('feedEvents', {
+        ...news,
+        newsKey: 'old',
+        newsHeadline: 'Older',
+        createdAt: now - 2 * day,
+      });
+      await ctx.db.insert('feedEvents', {
+        ...news,
+        newsKey: 'stale',
+        newsHeadline: 'Outside the window',
+        createdAt: now - 20 * day,
+      });
+      await ctx.db.insert('feedEvents', {
+        type: 'score_published',
+        points: 12,
+        createdAt: now,
+      });
+    });
+
+    const items = await t.query(api.feed.recentNews, { days: 14 });
+
+    expect(items.map((item) => item.headline)).toEqual(['Older', 'Newer']);
+  });
+});

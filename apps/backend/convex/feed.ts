@@ -1299,6 +1299,50 @@ export const getFeedEvent = query({
   },
 });
 
+/**
+ * The news cards in the feed from the last `days`, oldest first.
+ *
+ * Read by `/api/news/recent`, which the r/GPPicks app polls
+ * (`docs/reddit-news-app.md`). A news item is here only while it has a feed
+ * card, so embargoes, `feedSelected: false` and retractions all apply without
+ * this query knowing about them: the app treats an item that drops off the
+ * list as retracted.
+ */
+export const recentNews = query({
+  args: { days: v.number() },
+  handler: async (ctx, args) => {
+    const days = Math.min(Math.max(args.days, 1), 30);
+    const since = Date.now() - days * 24 * 60 * 60 * 1000;
+    // By time rather than by type: the type index orders by season and round,
+    // and season-wide news has neither. A fortnight of the whole feed is a few
+    // hundred events; the cap only bounds a runaway.
+    const events = await ctx.db
+      .query('feedEvents')
+      .withIndex('by_created', (q) => q.gte('createdAt', since))
+      .take(5000);
+
+    return events
+      .filter(
+        (event) =>
+          event.type === 'race_news' &&
+          event.newsHeadline &&
+          event.newsBody &&
+          event.newsSourceName &&
+          event.newsSourceUrl,
+      )
+      .sort((a, b) => a.createdAt - b.createdAt)
+      .map((event) => ({
+        id: event._id,
+        headline: event.newsHeadline!,
+        body: event.newsBody!,
+        sourceName: event.newsSourceName!,
+        sourceUrl: event.newsSourceUrl!,
+        raceSlug: event.raceSlug ?? null,
+        createdAt: event.createdAt,
+      }));
+  },
+});
+
 // ============ Backfill ============
 
 /**

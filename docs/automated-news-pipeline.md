@@ -46,6 +46,9 @@ and feed event, not inferred later from prose or a mutable session list.
   `discord.postNews`, scheduled from the mutation that first inserts it. A
   correction patches the existing card and does not repost. See
   `docs/race-news.md` and `docs/discord-server-setup.md`.
+- The r/GPPicks app (`apps/reddit-news`) polls the same cards every ten
+  minutes and keeps its posts in step, corrections and retractions included.
+  See `docs/reddit-news-app.md`.
 - Current `affectsSessions` is required and non-empty. This is a **legacy
   limitation to change**, not the future editorial rule. Preserve its meaning
   for pick-related stories and weekend-card indicators; make it empty or absent

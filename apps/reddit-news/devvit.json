@@ -1,0 +1,24 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "gpp-news",
+  "server": {
+    "dir": "dist/server",
+    "entry": "index.cjs"
+  },
+  "permissions": {
+    "redis": true,
+    "reddit": true,
+    "http": {
+      "enable": true,
+      "domains": ["grandprixpicks.com"]
+    }
+  },
+  "scheduler": {
+    "tasks": {
+      "sync-news": {
+        "endpoint": "/internal/scheduler/sync-news",
+        "cron": "*/10 * * * *"
+      }
+    }
+  }
+}

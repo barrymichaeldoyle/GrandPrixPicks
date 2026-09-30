@@ -2,7 +2,10 @@ import type { Doc, Id } from '@convex-generated/dataModel';
 
 import { Button } from '@/components/Button/Button';
 import { PicksFormActionRow } from '@/components/PicksSaveStatus';
-import { PredictionForm, type SaveState } from '@/components/PredictionForm/PredictionForm';
+import {
+  PredictionForm,
+  type SaveState,
+} from '@/components/PredictionForm/PredictionForm';
 
 export function LandingTopFivePicker({
   raceId,

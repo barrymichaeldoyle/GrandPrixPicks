@@ -56,8 +56,8 @@
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "1.63.0",
     "knip": "6.38.0",
-    "oxfmt": "0.70.0",
-    "oxlint": "1.85.0",
+    "oxfmt": "0.71.0",
+    "oxlint": "1.86.0",
     "patch-pulse": "4.1.1",
     "typescript": "catalog:"
   },

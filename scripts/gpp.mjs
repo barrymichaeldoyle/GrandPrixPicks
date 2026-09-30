@@ -22,6 +22,8 @@ const HELP = `gpp <command> [args] [--prod] [--json]
   race [slug]                     weekend at a glance (default: current weekend)
   news list <slug>                one line per item, retracted included
   news show <slug> <key>          one item in full
+  news scan <slug>                unfiled F1 stories from RSS, clustered and ranked
+                                  --days N  window   --all  include noise and covered
   news publish <file.json>        dry run; --apply to publish (object or array, run in order)
   news retract <slug> <key>       shows the item; --apply to retract
   news move <from> <to> <key>...  dry run; --apply to move
@@ -29,6 +31,7 @@ const HELP = `gpp <command> [args] [--prod] [--json]
                                   --grep <regex>  only matching lines   --full  no truncation
   schema [table...]               Convex tables and indexes, or one table's fields (--full keeps comments)
   usage [--days N]                tool-output cost of recent Claude Code sessions here
+                                  --skill <name>  sessions that ran it   --session <id,...>  by id prefix
 
 Flags: --prod targets production Convex. --json prints the raw result.
 In publish files, sourcePublishedAt and feedVisibleAt may be ISO dates.`;
@@ -47,7 +50,10 @@ function parseArgs(argv) {
     if (arg.startsWith('--')) {
       const name = arg.slice(2);
       const next = argv[i + 1];
-      if (['grep', 'days'].includes(name) && next !== undefined) {
+      if (
+        ['grep', 'days', 'skill', 'session'].includes(name) &&
+        next !== undefined
+      ) {
         flags[name] = next;
         i++;
       } else {
@@ -416,6 +422,308 @@ function newsMove(from, to, keys, flags) {
 }
 
 // ---------------------------------------------------------------------------
+// news scan
+
+// F1-only feeds that answered with dated items in September 2026. formula1.com
+// carries no dates, so its items always pass the window; the URL check still
+// drops the ones already filed. planetf1 404s and the FIA feed has no titles.
+const NEWS_FEEDS = [
+  ['Formula 1', 'https://www.formula1.com/en/latest/all.xml'],
+  ['Autosport', 'https://www.autosport.com/rss/f1/news/'],
+  ['Motorsport.com', 'https://www.motorsport.com/rss/f1/news/'],
+  ['RaceFans', 'https://www.racefans.net/feed/'],
+  ['The Race', 'https://www.the-race.com/rss/'],
+  ['BBC Sport', 'https://feeds.bbci.co.uk/sport/formula1/rss.xml'],
+  ['Sky Sports', 'https://www.skysports.com/rss/12433'],
+  ['Crash', 'https://www.crash.net/rss/f1'],
+];
+
+// Stories that never become a news item: listings, media, betting, features.
+const NEWS_NOISE =
+  /\b(quiz|live|video|watch|podcast|betting|odds|tips|gallery|pictures|ratings|rated|ranked|power rankings|what time|how to|preview show|q&a|opinion|column|f1 fantasy|tv schedule)\b/i;
+
+// Words that make a story more likely to change a pick or the grid.
+const NEWS_SIGNALS =
+  /\b(penalt\w*|grid|power unit|engine|gearbox|reprimand|stewards?|disqualif\w*|ruled out|replace\w*|reserve|withdraw\w*|injur\w*|illness|ill|fitness|stand-in|substitut\w*|confirmed|signs?|contract|weather|rain|storm|heat|upgrade\w*|protest|appeal|fia|summons|investigat\w*|banned|cancel\w*)\b/i;
+
+const STOPWORDS = new Set(
+  'the a an and or of to in on at for with from by is are was be as after before over into his her their its it this that f1 formula grand prix gp new says say said will could would has have had not but more than why how what who when'.split(
+    ' ',
+  ),
+);
+
+function feedField(xml, tag) {
+  const m = xml.match(new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
+  if (!m) {
+    return '';
+  }
+  return textOf(m[1].replace(/^\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*$/, '$1'));
+}
+
+async function fetchFeed([source, url]) {
+  try {
+    const response = await fetch(url, {
+      headers: { 'user-agent': 'Mozilla/5.0 gpp-cli' },
+      signal: AbortSignal.timeout(12_000),
+    });
+    if (!response.ok) {
+      return { source, error: `HTTP ${response.status}`, items: [] };
+    }
+    const xml = await response.text();
+    const items = [];
+    for (const [block] of xml.matchAll(/<(item|entry)\b[\s\S]*?<\/\1>/gi)) {
+      const link =
+        feedField(block, 'link') ||
+        decode(block.match(/<link[^>]+href="([^"]+)"/i)?.[1] ?? '');
+      // Sky dates its items in BST, which Date.parse does not know.
+      const date = Date.parse(
+        (
+          feedField(block, 'pubDate') ||
+          feedField(block, 'published') ||
+          feedField(block, 'updated') ||
+          feedField(block, 'dc:date')
+        ).replace(/\bBST$/, '+0100'),
+      );
+      const title = feedField(block, 'title');
+      if (title && link) {
+        items.push({
+          source,
+          title,
+          url: link.trim(),
+          date: Number.isFinite(date) ? date : null,
+        });
+      }
+    }
+    return { source, items };
+  } catch (error) {
+    return {
+      source,
+      error: error.name === 'TimeoutError' ? 'timeout' : error.message,
+      items: [],
+    };
+  }
+}
+
+// Strip tracking params and trailing slashes, so the same article matches
+// the sourceUrl it was filed under.
+function normalizeUrl(url) {
+  try {
+    const u = new URL(url);
+    return `${u.hostname.replace(/^www\./, '')}${u.pathname.replace(/\/+$/, '')}`;
+  } catch {
+    return url;
+  }
+}
+
+function titleTokens(title) {
+  return new Set(
+    title
+      .toLowerCase()
+      .replace(/[’']s\b/g, '')
+      .split(/[^\p{L}\p{N}]+/u)
+      .filter((w) => w.length > 2 && !STOPWORDS.has(w)),
+  );
+}
+
+function overlap(a, b) {
+  let shared = 0;
+  for (const w of a) {
+    if (b.has(w)) {
+      shared++;
+    }
+  }
+  return { shared, jaccard: shared / (a.size + b.size - shared || 1) };
+}
+
+async function newsScan(slug, flags) {
+  if (!slug) {
+    fail('news scan <slug>');
+  }
+  const [feeds, existing, global, roster, circuitModule] = await Promise.all([
+    Promise.all(NEWS_FEEDS.map(fetchFeed)),
+    Promise.resolve(
+      convexRun('raceNews:listForOperators', { raceSlug: slug }, flags),
+    ),
+    Promise.resolve(convexRun('globalNews:listForOperators', {}, flags)),
+    Promise.resolve(convexRun('drivers:listDrivers', {}, flags)),
+    import(path.join(repoRoot, 'packages/shared/src/circuits.ts')),
+  ]);
+  const race = existing?.race;
+  if (!race) {
+    fail(`no race "${slug}"`);
+  }
+  const filed = [...(existing.items ?? []), ...(global?.items ?? [])];
+  const filedUrls = new Set(filed.map((i) => normalizeUrl(i.sourceUrl)));
+  const filedTokens = filed
+    .filter((i) => i.active)
+    .map((i) => ({
+      key: i.key,
+      tokens: titleTokens(i.headline),
+      textTokens: titleTokens(`${i.headline} ${i.body ?? ''}`),
+      codes: i.driverCodes ?? i.drivers?.map((d) => d.code) ?? [],
+    }));
+
+  // Names that tie a story to this weekend or its grid.
+  const circuit = circuitModule.getCircuitForRace(slug);
+  const places = [
+    race.name.replace(/ Grand Prix$/, ''),
+    circuit?.name.replace(
+      / (International )?(Circuit|Autodrome|Street Circuit)$/,
+      '',
+    ),
+    circuit?.locality,
+    circuit?.country,
+  ].filter(Boolean);
+  const drivers = (roster ?? []).map((d) => ({
+    code: d.code,
+    name: d.familyName ?? d.displayName.split(' ').pop(),
+  }));
+  const teams = [...new Set((roster ?? []).map((d) => d.team).filter(Boolean))];
+
+  // Default window: from the newest item already filed for this race (minus
+  // a day, for stories found late), at most a week back.
+  const newest = Math.max(
+    0,
+    ...(existing.items ?? []).map((i) => i.sourcePublishedAt ?? i.publishedAt),
+  );
+  const since = flags.days
+    ? Date.now() - Number(flags.days) * DAY
+    : Math.max(newest - DAY, Date.now() - 7 * DAY);
+
+  const counts = { seen: 0, old: 0, filed: 0, noise: 0, covered: 0 };
+  const fresh = [];
+  for (const feed of feeds) {
+    for (const item of feed.items) {
+      counts.seen++;
+      if (item.date !== null && item.date < since) {
+        counts.old++;
+      } else if (filedUrls.has(normalizeUrl(item.url))) {
+        counts.filed++;
+      } else if (
+        (NEWS_NOISE.test(item.title) || /\/(video|watch)\//.test(item.url)) &&
+        !flags.all
+      ) {
+        counts.noise++;
+      } else {
+        fresh.push({ ...item, tokens: titleTokens(item.title) });
+      }
+    }
+  }
+
+  // Cluster the same story across outlets; the earliest item leads.
+  fresh.sort((a, b) => (a.date ?? Infinity) - (b.date ?? Infinity));
+  const clusters = [];
+  for (const item of fresh) {
+    const home = clusters.find((c) => {
+      const o = overlap(c.tokens, item.tokens);
+      return o.jaccard >= 0.4 || o.shared >= 4;
+    });
+    if (home) {
+      home.items.push(item);
+      for (const w of item.tokens) {
+        home.tokens.add(w);
+      }
+    } else {
+      clusters.push({ items: [item], tokens: new Set(item.tokens) });
+    }
+  }
+
+  const rows = [];
+  for (const cluster of clusters) {
+    const lead = cluster.items[0];
+    const text = cluster.items.map((i) => i.title).join(' ');
+    const codes = drivers
+      .filter((d) => new RegExp(`\\b${d.name}\\b`, 'i').test(text))
+      .map((d) => d.code);
+    // Filed headlines name the venue ("Sepang") where outlets name the race
+    // ("Bahrain GP"), so a story about the same drivers also matches on the
+    // filed body.
+    const covered = filedTokens.find((f) => {
+      const o = overlap(f.tokens, cluster.tokens);
+      if (o.shared >= 3 && o.jaccard >= 0.2) {
+        return true;
+      }
+      return (
+        f.codes.length > 0 &&
+        f.codes.every((c) => codes.includes(c)) &&
+        overlap(f.textTokens, cluster.tokens).shared >= 3
+      );
+    });
+    if (covered && !flags.all) {
+      counts.covered++;
+      continue;
+    }
+    const place = places.some((p) => new RegExp(`\\b${p}\\b`, 'i').test(text));
+    const team = teams.some((t) =>
+      new RegExp(`\\b${t.split(' ')[0]}\\b`, 'i').test(text),
+    );
+    const signal = NEWS_SIGNALS.test(text);
+    const score =
+      (place ? 3 : 0) +
+      (signal ? 2 : 0) +
+      Math.min(codes.length, 2) +
+      (team ? 1 : 0) +
+      (cluster.items.length > 1 ? 1 : 0);
+    rows.push({ cluster, lead, codes, place, signal, covered, score });
+  }
+  rows.sort(
+    (a, b) => b.score - a.score || (b.lead.date ?? 0) - (a.lead.date ?? 0),
+  );
+  const limit = flags.all ? Infinity : 25;
+
+  if (flags.json) {
+    return console.log(
+      JSON.stringify(
+        rows.map((r) => ({
+          score: r.score,
+          codes: r.codes,
+          covered: r.covered?.key ?? null,
+          items: r.cluster.items.map((i) => ({
+            source: i.source,
+            title: i.title,
+            url: i.url,
+            date: i.date,
+          })),
+        })),
+        null,
+        2,
+      ),
+    );
+  }
+  const errors = feeds
+    .filter((f) => f.error)
+    .map((f) => `${f.source} ${f.error}`);
+  console.log(
+    `${race.slug} · since ${when(since)} · ${counts.seen} items from ${feeds.length - errors.length}/${feeds.length} feeds` +
+      ` · dropped ${counts.old} older, ${counts.filed} already sourced, ${counts.noise} listings/media, ${counts.covered} look covered`,
+  );
+  if (errors.length) {
+    console.log(`feeds failed: ${errors.join(', ')}`);
+  }
+  if (places.length) {
+    console.log(`weekend terms: ${places.join(', ')}`);
+  }
+  for (const r of rows.slice(0, limit)) {
+    const tags = [
+      r.place ? 'weekend' : null,
+      r.signal ? 'signal' : null,
+      r.codes.length ? r.codes.join(',') : null,
+      r.covered ? `≈${r.covered.key}` : null,
+    ].filter(Boolean);
+    const others = r.cluster.items.slice(1).map((i) => i.source);
+    const outlets = [r.lead.source, ...new Set(others)].join('+');
+    console.log(
+      `${r.score} ${r.lead.date ? day(r.lead.date) : '--'} ${outlets}  ${r.lead.title}${tags.length ? `  [${tags.join(' ')}]` : ''}\n    ${r.lead.url.replace(/\?utm_[^#]*$/, '')}`,
+    );
+  }
+  if (rows.length > limit) {
+    console.log(
+      `… ${rows.length - limit} lower-scored (--all shows them, noise and covered too)`,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // page
 
 const ENTITIES = {
@@ -623,7 +931,7 @@ function usageKey(name, input) {
     return `convex ${convex[1]} ${convex[3]}${cmd.includes('--prod') ? ' --prod' : ''}`;
   }
   const gpp = cmd.match(
-    /gpp(?:\.mjs)?\s+(\w+(?:\s+(?:list|show|publish|retract|move))?)/,
+    /gpp(?:\.mjs)?\s+(\w+(?:\s+(?:list|show|scan|publish|retract|move))?)/,
   );
   if (gpp) {
     return `gpp ${gpp[1]}`;
@@ -655,6 +963,7 @@ function usageCommand(flags) {
   const since = Date.now() - days * DAY;
   const calls = new Map();
   const sizes = new Map();
+  const turns = new Map();
   let sessions = 0;
   let screenshots = 0;
   for (const file of files) {
@@ -662,9 +971,22 @@ function usageCommand(flags) {
     if (statSync(full).mtimeMs < since) {
       continue;
     }
+    if (
+      typeof flags.session === 'string' &&
+      !flags.session.split(',').some((prefix) => file.startsWith(prefix))
+    ) {
+      continue;
+    }
+    const text = readFileSync(full, 'utf8');
+    if (
+      typeof flags.skill === 'string' &&
+      !text.includes(`"skill":"${flags.skill}"`)
+    ) {
+      continue;
+    }
     sessions++;
-    for (const line of readFileSync(full, 'utf8').split('\n')) {
-      if (!line.includes('tool_')) {
+    for (const line of text.split('\n')) {
+      if (!line.includes('tool_') && !line.includes('"usage"')) {
         continue;
       }
       let entry;
@@ -672,6 +994,11 @@ function usageCommand(flags) {
         entry = JSON.parse(line);
       } catch {
         continue;
+      }
+      // One API response can span several transcript lines; count it once.
+      const usage = entry.message?.usage;
+      if (usage && entry.message.id) {
+        turns.set(entry.message.id, usage);
       }
       const content = entry.message?.content;
       if (!Array.isArray(content)) {
@@ -724,6 +1051,21 @@ function usageCommand(flags) {
   console.log(
     `${sessions} sessions, last ${days}d · ${calls.size} tool calls · ${total.toLocaleString()} chars of output (~${Math.round(total / 4).toLocaleString()} tokens) · ${screenshots} screenshots (not counted)`,
   );
+  const model = { read: 0, write: 0, input: 0, output: 0 };
+  for (const u of turns.values()) {
+    model.read += u.cache_read_input_tokens ?? 0;
+    model.write += u.cache_creation_input_tokens ?? 0;
+    model.input += u.input_tokens ?? 0;
+    model.output += u.output_tokens ?? 0;
+  }
+  function perSession(n) {
+    return sessions ? Math.round(n / sessions).toLocaleString() : '0';
+  }
+  // Cache reads dominate the bill: every turn re-reads the whole context, so
+  // what a tool returns is paid again on each later turn.
+  console.log(
+    `per session: ${perSession(turns.size)} turns · ${perSession(model.read)} cache-read · ${perSession(model.write)} cache-write · ${perSession(model.input)} input · ${perSession(model.output)} output tokens`,
+  );
   console.log(`${pad('call', 52)}${pad('calls', 7)}${pad('sess', 6)}chars`);
   for (const [key, a] of rows.slice(0, 30)) {
     console.log(
@@ -752,8 +1094,10 @@ switch (command) {
       newsRetract(rest[0], rest[1], flags);
     } else if (sub === 'move') {
       newsMove(rest[0], rest[1], rest.slice(2), flags);
+    } else if (sub === 'scan') {
+      await newsScan(rest[0], flags);
     } else {
-      fail('news list|show|publish|retract|move');
+      fail('news list|show|scan|publish|retract|move');
     }
     break;
   case 'page':

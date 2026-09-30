@@ -16,12 +16,13 @@ spread across half a dozen `races:*`, `results:*` and `convex data` calls.
 scripts/gpp.mjs race [slug] [--prod]            # weekend at a glance
 scripts/gpp.mjs news list <slug> [--prod]       # one line per item
 scripts/gpp.mjs news show <slug> <key> [--prod] # one item in full
+scripts/gpp.mjs news scan <slug> [--prod] [--days N] [--all]
 scripts/gpp.mjs news publish <file> [--prod] [--apply]
 scripts/gpp.mjs news retract <slug> <key> [--prod] [--apply]
 scripts/gpp.mjs news move <from> <to> <key>... [--prod] [--apply]
 scripts/gpp.mjs page <url|/path> [--prod] [--grep re] [--full]
 scripts/gpp.mjs schema [table...] [--full]
-scripts/gpp.mjs usage [--days N]
+scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
 ```
 
 - **Writes rehearse by default.** `publish` and `move` dry-run, and `retract`
@@ -35,6 +36,16 @@ scripts/gpp.mjs usage [--days N]
   runs one item at a time in file order, so stories publish before the grid
   that links to them. `sourcePublishedAt` and `feedVisibleAt` take an ISO date
   as well as epoch ms. Editorial rules live in the `publish-race-news` skill.
+- **`news scan`** fetches eight F1 RSS feeds (list in `NEWS_FEEDS`) and prints
+  the unfiled stories, two lines each: score, date, outlets, headline, tags,
+  then the URL. The window starts a day before the race's newest item, and
+  never goes back more than a week. Dropped: stories older than that,
+  URLs already used as a `sourceUrl` (race or global news), listings and media
+  (`NEWS_NOISE`), and clusters whose headline overlaps a filed item. The
+  header line counts each group, so a quiet result can be told apart from a
+  broken feed. It exists to replace web-search sweeps. In September a pure
+  news check averaged 27 turns and 9 searches, and search results were a
+  third of its tool output, paid again on every later turn.
 - **`page`** fetches the server-rendered HTML and prints the head (title,
   description, canonical, robots) and the headings and text of `<main>`, one
   block per line. It answers "is the text there" without a screenshot, and
@@ -48,7 +59,9 @@ scripts/gpp.mjs usage [--days N]
   is over 1,200 lines and was read 94 times in the September scan, usually for
   one table.
 - **`usage`** reads this repo's Claude Code transcripts and ranks tool calls by
-  how much output they returned. Re-run it to see whether a change to the
+  how much output they returned, with per-session turns and model tokens.
+  `--skill publish-race-news` limits it to sessions that ran that skill, and
+  `--session` to transcript ids by prefix. Re-run it to see whether a change to the
   tooling moved anything. Screenshots are counted but not sized.
 
 ## How it talks to Convex

@@ -88,6 +88,30 @@ scripts/gpp.mjs news list italy-2026 --prod          # one line per item
 scripts/gpp.mjs news show italy-2026 <key> --prod    # one item in full
 ```
 
+**Find candidates with the scan before searching the web.**
+
+```bash
+scripts/gpp.mjs news scan italy-2026 --prod
+```
+
+It reads eight F1 feeds (formula1.com, Autosport, Motorsport.com, RaceFans, The
+Race, BBC, Sky, Crash), keeps what appeared since the race's newest item, and
+drops stories whose URL is already a `sourceUrl` or whose headline matches a
+filed one. It groups the same story across outlets and ranks by weekend terms,
+drivers and pick signals such as penalties, power units and replacements. The
+score only sorts the list: whether a story belongs is still your call, under
+"What to publish". `--days N` widens the window. `--all` also shows what it
+filtered out, and it is the thing to check when a story you expected is
+missing.
+
+Use WebSearch only for what feeds miss: FIA documents and stewards' decisions,
+team and Pirelli statements, the weather forecast, smaller outlets (none of
+Bahrain's forecast, tyre or Mercedes-upgrade items came from a feed), or a
+specific story the user mentions. Every
+search result stays in context for the rest of the session, so one targeted
+search is worth more than a sweep. Read a candidate with `gpp page <url>`
+before writing it up.
+
 **2. Rehearse.** Write the item to a JSON file in your scratchpad (an array
 for several; they run one at a time in file order), then publish it. Without
 `--apply` it is a dry run: it writes nothing and says whether it would create

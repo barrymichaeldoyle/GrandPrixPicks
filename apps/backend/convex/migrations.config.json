@@ -40,6 +40,10 @@
     "args": {}
   },
   {
+    "name": "raceNewsMigrations:addBahrain2026NewsPhotos",
+    "args": {}
+  },
+  {
     "name": "feed:backfillFeedSort",
     "args": {}
   }

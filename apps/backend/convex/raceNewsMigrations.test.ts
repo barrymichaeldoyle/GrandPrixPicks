@@ -10,6 +10,7 @@ import {
   HADJAR_DUTCH_GP_LINEUP_NOTE,
   HERTA_MONZA_FP1_BODY,
 } from './lib/italy2026MonzaNewsCopy';
+import { BAHRAIN_2026_NEWS_IMAGES } from './lib/bahrain2026NewsImages';
 import { BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE } from './lib/raceNewsWriteUpImage';
 import schema from './schema';
 
@@ -551,5 +552,72 @@ describe('publishMadrid2026News', () => {
       'bearman-madrid-fp3-crash',
       'stroll-madrid-grid-penalty',
     ]);
+  });
+});
+
+describe('addBahrain2026NewsPhotos', () => {
+  async function setup() {
+    const t = convexTest(schema, modules);
+    await t.run(async (ctx) => {
+      await ctx.db.insert('races', {
+        season: 2026,
+        round: 16,
+        name: 'Bahrain Grand Prix',
+        slug: 'bahrain-2026',
+        raceStartAt: 2_000,
+        predictionLockAt: 1_000,
+        status: 'upcoming',
+        createdAt: 100,
+        updatedAt: 100,
+      });
+    });
+    return t;
+  }
+
+  async function publishAll(t: Awaited<ReturnType<typeof setup>>) {
+    for (const key of Object.keys(BAHRAIN_2026_NEWS_IMAGES)) {
+      await t.mutation(internal.raceNews.publish, {
+        raceSlug: 'bahrain-2026',
+        key,
+        headline: `Headline ${key}`,
+        body: `Body ${key}`,
+        affectsSessions: [],
+        category: 'general',
+        sourceName: 'Formula 1',
+        sourceUrl: 'https://www.formula1.com/example',
+      });
+    }
+  }
+
+  it('attaches every photo without changing copy, then reports unchanged', async () => {
+    const t = await setup();
+    await publishAll(t);
+    const keys = Object.keys(BAHRAIN_2026_NEWS_IMAGES);
+
+    const first = await t.mutation(
+      internal.raceNewsMigrations.addBahrain2026NewsPhotos,
+      {},
+    );
+    expect(first).toEqual({ updated: keys, unchanged: [] });
+
+    const second = await t.mutation(
+      internal.raceNewsMigrations.addBahrain2026NewsPhotos,
+      {},
+    );
+    expect(second).toEqual({ updated: [], unchanged: keys });
+
+    const rows = await t.run(async (ctx) => ctx.db.query('raceNews').collect());
+    for (const row of rows) {
+      expect(row.headline).toBe(`Headline ${row.key}`);
+      expect(row.body).toBe(`Body ${row.key}`);
+      expect(row.writeUpImage).toEqual(BAHRAIN_2026_NEWS_IMAGES[row.key]);
+    }
+  });
+
+  it('fails loudly when a news item it patches is missing', async () => {
+    const t = await setup();
+    await expect(
+      t.mutation(internal.raceNewsMigrations.addBahrain2026NewsPhotos, {}),
+    ).rejects.toThrow('No bahrain-2026 news item');
   });
 });

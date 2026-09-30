@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import { internalMutation, type MutationCtx } from './_generated/server';
+import { BAHRAIN_2026_NEWS_IMAGES } from './lib/bahrain2026NewsImages';
 import { feedSortFor } from './lib/feedSort';
 import {
   ANTONELLI_MONZA_PENALTY_BODY,
@@ -162,6 +163,59 @@ export const addItaly2026BrowningWriteUpPhoto = internalMutation({
     });
 
     return { action: 'updated' as const, key: BROWNING_NEWS_KEY };
+  },
+});
+
+/**
+ * Attach photos to the Bahrain (Sepang) news cards without touching copy.
+ *
+ * The cards were published by hand through `raceNews:publish`, so this patches
+ * only `writeUpImage` and leaves the text to whoever owns it. Idempotent: safe
+ * to rerun on every deploy.
+ */
+export const addBahrain2026NewsPhotos = internalMutation({
+  args: {},
+  returns: v.object({
+    updated: v.array(v.string()),
+    unchanged: v.array(v.string()),
+  }),
+  handler: async (ctx) => {
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'bahrain-2026'))
+      .unique();
+    if (!race) {
+      throw new Error('bahrain-2026 race not found');
+    }
+
+    const updated: string[] = [];
+    const unchanged: string[] = [];
+    for (const [key, image] of Object.entries(BAHRAIN_2026_NEWS_IMAGES)) {
+      const existing = await ctx.db
+        .query('raceNews')
+        .withIndex('by_race_key', (q) =>
+          q.eq('raceId', race._id).eq('key', key),
+        )
+        .unique();
+      if (!existing) {
+        // Loud for the same reason as the Browning photo: the deploy runner
+        // only fails on a non-zero exit.
+        throw new Error(
+          `No bahrain-2026 news item with key "${key}". Publish it before attaching the photo.`,
+        );
+      }
+      if (writeUpImageFieldsMatch(existing.writeUpImage, image)) {
+        unchanged.push(key);
+        continue;
+      }
+      await ctx.db.patch(existing._id, {
+        writeUpImage: image,
+        updatedAt: Date.now(),
+      });
+      updated.push(key);
+    }
+
+    return { updated, unchanged };
   },
 });
 

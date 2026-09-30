@@ -440,7 +440,7 @@ const NEWS_FEEDS = [
 
 // Stories that never become a news item: listings, media, betting, features.
 const NEWS_NOISE =
-  /\b(quiz|live|video|watch|podcast|betting|odds|tips|gallery|pictures|ratings|rated|ranked|power rankings|what time|how to|preview show|q&a|opinion|column|f1 fantasy|tv schedule)\b/i;
+  /\b(quiz|live|video|watch|podcast|betting|odds|tips|gallery|pictures|ratings|rated|ranked|power rankings|what time|how to|preview show|q&a|opinion|column|verdict|on this day|f1 fantasy|tv schedule)\b/i;
 
 // Words that make a story more likely to change a pick or the grid.
 const NEWS_SIGNALS =
@@ -539,20 +539,37 @@ async function newsScan(slug, flags) {
   if (!slug) {
     fail('news scan <slug>');
   }
-  const [feeds, existing, global, roster, circuitModule] = await Promise.all([
-    Promise.all(NEWS_FEEDS.map(fetchFeed)),
-    Promise.resolve(
-      convexRun('raceNews:listForOperators', { raceSlug: slug }, flags),
-    ),
-    Promise.resolve(convexRun('globalNews:listForOperators', {}, flags)),
-    Promise.resolve(convexRun('drivers:listDrivers', {}, flags)),
-    import(path.join(repoRoot, 'packages/shared/src/circuits.ts')),
-  ]);
+  const season = Number(slug.match(/-(\d{4})$/)?.[1]);
+  const [feeds, existing, global, roster, calendar, circuitModule] =
+    await Promise.all([
+      Promise.all(NEWS_FEEDS.map(fetchFeed)),
+      Promise.resolve(
+        convexRun('raceNews:listForOperators', { raceSlug: slug }, flags),
+      ),
+      Promise.resolve(convexRun('globalNews:listForOperators', {}, flags)),
+      Promise.resolve(convexRun('drivers:listDrivers', {}, flags)),
+      Promise.resolve(
+        season ? convexRun('races:listRaces', { season }, flags) : [],
+      ),
+      import(path.join(repoRoot, 'packages/shared/src/circuits.ts')),
+    ]);
   const race = existing?.race;
   if (!race) {
     fail(`no race "${slug}"`);
   }
-  const filed = [...(existing.items ?? []), ...(global?.items ?? [])];
+  // The round before. Early in race week most of the feeds are its
+  // aftermath, which belongs under its own slug, not this one.
+  const previous = (calendar ?? [])
+    .filter((r) => r.round < race.round)
+    .sort((a, b) => b.round - a.round)[0];
+  const previousNews = previous
+    ? convexRun('raceNews:listForOperators', { raceSlug: previous.slug }, flags)
+    : null;
+  const filed = [
+    ...(existing.items ?? []),
+    ...(previousNews?.items ?? []),
+    ...(global?.items ?? []),
+  ];
   const filedUrls = new Set(filed.map((i) => normalizeUrl(i.sourceUrl)));
   const filedTokens = filed
     .filter((i) => i.active)
@@ -563,17 +580,24 @@ async function newsScan(slug, flags) {
       codes: i.driverCodes ?? i.drivers?.map((d) => d.code) ?? [],
     }));
 
-  // Names that tie a story to this weekend or its grid.
-  const circuit = circuitModule.getCircuitForRace(slug);
-  const places = [
-    race.name.replace(/ Grand Prix$/, ''),
-    circuit?.name.replace(
-      / (International )?(Circuit|Autodrome|Street Circuit)$/,
-      '',
-    ),
-    circuit?.locality,
-    circuit?.country,
-  ].filter(Boolean);
+  // Names that tie a story to a weekend.
+  function placesFor(r) {
+    const circuit = circuitModule.getCircuitForRace(r.slug);
+    return [
+      r.name.replace(/ Grand Prix$/, ''),
+      circuit?.name.replace(
+        / (International )?(Circuit|Autodrome|Street Circuit)$/,
+        '',
+      ),
+      circuit?.locality,
+      circuit?.country,
+    ].filter((p, i, all) => p && all.indexOf(p) === i);
+  }
+  function mentions(terms, text) {
+    return terms.some((p) => new RegExp(`\\b${p}\\b`, 'i').test(text));
+  }
+  const places = placesFor(race);
+  const previousPlaces = previous ? placesFor(previous) : [];
   const drivers = (roster ?? []).map((d) => ({
     code: d.code,
     name: d.familyName ?? d.displayName.split(' ').pop(),
@@ -614,10 +638,14 @@ async function newsScan(slug, flags) {
   fresh.sort((a, b) => (a.date ?? Infinity) - (b.date ?? Infinity));
   const clusters = [];
   for (const item of fresh) {
-    const home = clusters.find((c) => {
-      const o = overlap(c.tokens, item.tokens);
-      return o.jaccard >= 0.4 || o.shared >= 4;
-    });
+    // Match against each member, not the cluster's pooled words: a pool grows
+    // with every story it takes in and ends up swallowing unrelated ones.
+    const home = clusters.find((c) =>
+      c.items.some((member) => {
+        const o = overlap(member.tokens, item.tokens);
+        return o.jaccard >= 0.4 || o.shared >= 4;
+      }),
+    );
     if (home) {
       home.items.push(item);
       for (const w of item.tokens) {
@@ -643,17 +671,23 @@ async function newsScan(slug, flags) {
       if (o.shared >= 3 && o.jaccard >= 0.2) {
         return true;
       }
-      return (
+      const body = overlap(f.textTokens, cluster.tokens).shared;
+      if (
         f.codes.length > 0 &&
         f.codes.every((c) => codes.includes(c)) &&
-        overlap(f.textTokens, cluster.tokens).shared >= 3
-      );
+        body >= 3
+      ) {
+        return true;
+      }
+      // Team and paddock stories carry no driver codes.
+      return o.shared >= 2 && body >= 4;
     });
     if (covered && !flags.all) {
       counts.covered++;
       continue;
     }
-    const place = places.some((p) => new RegExp(`\\b${p}\\b`, 'i').test(text));
+    const place = mentions(places, text);
+    const lastRound = !place && mentions(previousPlaces, text);
     const team = teams.some((t) =>
       new RegExp(`\\b${t.split(' ')[0]}\\b`, 'i').test(text),
     );
@@ -664,17 +698,28 @@ async function newsScan(slug, flags) {
       Math.min(codes.length, 2) +
       (team ? 1 : 0) +
       (cluster.items.length > 1 ? 1 : 0);
-    rows.push({ cluster, lead, codes, place, signal, covered, score });
+    rows.push({
+      cluster,
+      lead,
+      codes,
+      place,
+      lastRound,
+      signal,
+      covered,
+      score,
+    });
   }
   rows.sort(
     (a, b) => b.score - a.score || (b.lead.date ?? 0) - (a.lead.date ?? 0),
   );
-  const limit = flags.all ? Infinity : 25;
+  const weekendRows = rows.filter((r) => !r.lastRound);
+  const lastRoundRows = rows.filter((r) => r.lastRound);
 
   if (flags.json) {
     return console.log(
       JSON.stringify(
         rows.map((r) => ({
+          section: r.lastRound ? previous.slug : race.slug,
           score: r.score,
           codes: r.codes,
           covered: r.covered?.key ?? null,
@@ -700,10 +745,11 @@ async function newsScan(slug, flags) {
   if (errors.length) {
     console.log(`feeds failed: ${errors.join(', ')}`);
   }
-  if (places.length) {
-    console.log(`weekend terms: ${places.join(', ')}`);
-  }
-  for (const r of rows.slice(0, limit)) {
+  console.log(
+    `weekend terms: ${places.join(', ')}` +
+      (previous ? ` · last round: ${previousPlaces.join(', ')}` : ''),
+  );
+  function printRow(r) {
     const tags = [
       r.place ? 'weekend' : null,
       r.signal ? 'signal' : null,
@@ -716,10 +762,22 @@ async function newsScan(slug, flags) {
       `${r.score} ${r.lead.date ? day(r.lead.date) : '--'} ${outlets}  ${r.lead.title}${tags.length ? `  [${tags.join(' ')}]` : ''}\n    ${r.lead.url.replace(/\?utm_[^#]*$/, '')}`,
     );
   }
-  if (rows.length > limit) {
+  function printSection(list, limit) {
+    for (const r of list.slice(0, limit)) {
+      printRow(r);
+    }
+    if (list.length > limit) {
+      console.log(
+        `… ${list.length - limit} lower-scored (--all shows them, noise and covered too)`,
+      );
+    }
+  }
+  printSection(weekendRows, flags.all ? Infinity : 20);
+  if (lastRoundRows.length) {
     console.log(
-      `… ${rows.length - limit} lower-scored (--all shows them, noise and covered too)`,
+      `\nlast round · ${previous.slug} (about that race only; file there if new)`,
     );
+    printSection(lastRoundRows, flags.all ? Infinity : 8);
   }
 }
 

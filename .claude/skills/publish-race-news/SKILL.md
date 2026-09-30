@@ -100,7 +100,9 @@ drops stories whose URL is already a `sourceUrl` or whose headline matches a
 filed one. It groups the same story across outlets and ranks by weekend terms,
 drivers and pick signals such as penalties, power units and replacements. The
 score only sorts the list: whether a story belongs is still your call, under
-"What to publish". `--days N` widens the window. `--all` also shows what it
+"What to publish". Aftermath of the previous round prints in its own
+"last round" section: file those under that round's slug, and spend the run on
+the weekend ahead. `--days N` widens the window. `--all` also shows what it
 filtered out, and it is the thing to check when a story you expected is
 missing.
 

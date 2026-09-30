@@ -43,7 +43,10 @@ scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
   URLs already used as a `sourceUrl` (race or global news), listings and media
   (`NEWS_NOISE`), and clusters whose headline overlaps a filed item. The
   header line counts each group, so a quiet result can be told apart from a
-  broken feed. It exists to replace web-search sweeps. In September a pure
+  broken feed. Stories that name the previous round's venue and not this
+  one's print in a separate "last round" section, and are checked against
+  that round's filed news too: early in race week they are most of the feeds,
+  and they belong under the previous slug. It exists to replace web-search sweeps. In September a pure
   news check averaged 27 turns and 9 searches, and search results were a
   third of its tool output, paid again on every later turn.
 - **`page`** fetches the server-rendered HTML and prints the head (title,

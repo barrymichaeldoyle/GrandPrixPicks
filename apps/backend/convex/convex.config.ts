@@ -9,6 +9,7 @@ const app = defineApp({
     OPEN_F1_PASSWORD: v.optional(v.string()),
     NEWS_WORKER_SECRET: v.optional(v.string()),
     NEWS_RSS_ALLOWED_HOSTS: v.optional(v.string()),
+    YOUTUBE_WEBSUB_SECRET: v.optional(v.string()),
   },
 });
 app.use(resend);

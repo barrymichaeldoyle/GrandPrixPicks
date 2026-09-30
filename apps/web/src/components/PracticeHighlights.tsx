@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 
 import { PracticeClassificationDialog } from '@/components/PracticeClassificationDialog';
+import { RaceVideoLink } from '@/components/RaceVideoLink';
 import {
   CompactColumns,
   CompactPracticeRow,
@@ -97,6 +98,14 @@ function SessionColumn({
         </div>
       ) : null}
       {rows}
+      {result.highlightsVideoId ? (
+        <div className="px-4 py-2">
+          <RaceVideoLink
+            videoId={result.highlightsVideoId}
+            kind={result.sessionType}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

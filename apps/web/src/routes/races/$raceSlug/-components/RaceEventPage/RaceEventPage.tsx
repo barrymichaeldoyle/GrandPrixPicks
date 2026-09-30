@@ -16,6 +16,7 @@ import {
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { PredictionForm } from '@/components/PredictionForm/PredictionForm';
 import { PracticeResultsCard } from '@/components/PracticeResultsCard';
+import { RaceVideoLinks } from '@/components/RaceVideoLinks';
 import {
   PracticeResultsButton,
   PracticeResultsModal,
@@ -480,7 +481,10 @@ export function RaceEventPage({
           ) : null
         }
         practiceResultsContent={
-          <PracticeResultsCard raceId={race._id} raceSlug={race.slug} />
+          <>
+            <PracticeResultsCard raceId={race._id} raceSlug={race.slug} />
+            <RaceVideoLinks raceSlug={race.slug} />
+          </>
         }
         initialTop5Content={renderInitialCtas()}
         /* No lock badge here. The session line above already carries one

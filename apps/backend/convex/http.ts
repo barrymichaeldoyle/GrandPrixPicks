@@ -2,7 +2,74 @@ import { httpRouter } from 'convex/server';
 import { env, httpAction } from './_generated/server';
 import { internal } from './_generated/api';
 import { resend } from './lib/email';
+import {
+  boundedBody,
+  parseUploads,
+  validSignature,
+  YOUTUBE_TOPIC,
+} from './lib/youtube';
 const http = httpRouter();
+http.route({
+  path: '/youtube-websub',
+  method: 'GET',
+  handler: httpAction(async (ctx, request) => {
+    const url = new URL(request.url);
+    const challenge = url.searchParams.get('hub.challenge');
+    if (
+      !env.YOUTUBE_WEBSUB_SECRET ||
+      url.searchParams.get('hub.mode') !== 'subscribe' ||
+      url.searchParams.get('hub.topic') !== YOUTUBE_TOPIC ||
+      !challenge ||
+      challenge.length > 1000
+    ) {
+      return new Response('Invalid challenge', { status: 400 });
+    }
+    const accepted = await ctx.runMutation(
+      internal.youtubeUploads.confirmSubscription,
+      {
+        token: url.searchParams.get('token') ?? '',
+        lease: Number(url.searchParams.get('hub.lease_seconds')),
+      },
+    );
+    return new Response(accepted ? challenge : 'Subscription not requested', {
+      status: accepted ? 200 : 403,
+      headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'no-store' },
+    });
+  }),
+});
+http.route({
+  path: '/youtube-websub',
+  method: 'POST',
+  handler: httpAction(async (ctx, request) => {
+    const secret = env.YOUTUBE_WEBSUB_SECRET;
+    if (!secret || secret.length < 32) {
+      return new Response('Disabled', { status: 503 });
+    }
+    let bytes: Uint8Array;
+    try {
+      bytes = await boundedBody(request);
+    } catch {
+      return new Response('Invalid body', { status: 413 });
+    }
+    if (
+      !(await validSignature(
+        secret,
+        request.headers.get('x-hub-signature'),
+        bytes,
+      ))
+    ) {
+      return new Response('Invalid signature', { status: 403 });
+    }
+    let uploads;
+    try {
+      uploads = parseUploads(new TextDecoder().decode(bytes));
+    } catch {
+      return new Response('Invalid feed', { status: 400 });
+    }
+    await ctx.runMutation(internal.youtubeUploads.ingest, { uploads });
+    return new Response(null, { status: 204 });
+  }),
+});
 async function readWorkerJson(request: Request): Promise<unknown> {
   if (
     !request.body ||
@@ -159,9 +226,18 @@ http.route({
 http.route({
   path: '/resend-webhook',
   method: 'POST',
-  handler: httpAction(async (ctx, request) =>
-    resend.handleResendEventWebhook(ctx, request),
-  ),
+  handler: httpAction(async (ctx, request) => {
+    try {
+      return await resend.handleResendEventWebhook(ctx, request);
+    } catch (error) {
+      // An unsigned or badly signed POST is a probe, not a failure. Anything
+      // after verification still throws and reaches Sentry.
+      if (error instanceof Error && error.name === 'WebhookVerificationError') {
+        return new Response('Invalid signature', { status: 400 });
+      }
+      throw error;
+    }
+  }),
 });
 const unsubscribe = httpAction(async (ctx, request) => {
   const url = new URL(request.url);

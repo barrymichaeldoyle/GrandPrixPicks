@@ -612,8 +612,15 @@ export const getResultForRace = query({
       ),
     );
 
+    const video = await ctx.db
+      .query('raceVideos')
+      .withIndex('by_race_kind', (q) =>
+        q.eq('raceId', args.raceId).eq('kind', sessionType),
+      )
+      .unique();
     return {
       ...result,
+      ...(video ? { highlightsVideoId: video.videoId } : {}),
       enrichedClassification,
     };
   },

@@ -650,27 +650,35 @@ export async function loadPracticeResultsForRace(
   ctx: QueryCtx,
   raceId: Id<'races'>,
 ) {
-  const [results, drivers] = await Promise.all([
+  const [results, drivers, videos] = await Promise.all([
     ctx.db
       .query('practiceResults')
       .withIndex('by_raceId_and_sessionType', (q) => q.eq('raceId', raceId))
       .take(3),
     ctx.db.query('drivers').take(40),
+    ctx.db
+      .query('raceVideos')
+      .withIndex('by_race_kind', (q) => q.eq('raceId', raceId))
+      .take(8),
   ]);
   const canonicalNumbers = new Set(
     drivers.flatMap((driver) =>
       driver.number === undefined ? [] : [driver.number],
     ),
   );
-  return results.map((result) => ({
-    sessionType: result.sessionType,
-    publishedAt: result.publishedAt,
-    entries: result.entries.map((entry) => ({
-      ...entry,
-      team: entry.team ?? null,
-      isReserve: !canonicalNumbers.has(entry.driverNumber),
-    })),
-  }));
+  return results.map((result) => {
+    const video = videos.find((video) => video.kind === result.sessionType);
+    return {
+      ...(video ? { highlightsVideoId: video.videoId } : {}),
+      sessionType: result.sessionType,
+      publishedAt: result.publishedAt,
+      entries: result.entries.map((entry) => ({
+        ...entry,
+        team: entry.team ?? null,
+        isReserve: !canonicalNumbers.has(entry.driverNumber),
+      })),
+    };
+  });
 }
 
 export const getPracticeResultsForRace = query({

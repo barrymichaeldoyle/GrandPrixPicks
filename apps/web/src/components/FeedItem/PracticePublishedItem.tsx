@@ -1,5 +1,6 @@
 import { api } from '@convex-generated/api';
 import { useState } from 'react';
+import { RaceVideoLink } from '@/components/RaceVideoLink';
 import { useQuery } from '@/integrations/convex/query';
 import { PracticeClassificationDialog } from '@/components/PracticeClassificationDialog';
 import { CompactPracticeRow } from '@/components/PracticeResultsCard';
@@ -28,6 +29,11 @@ export function PracticePublishedItem({ event }: { event: FeedEvent }) {
       </h3>
       {result ? (
         <>
+          <RaceVideoLink
+            videoId={result.highlightsVideoId}
+            kind={result.sessionType}
+            raceSlug={event.raceSlug}
+          />
           <ol className="divide-y divide-border">
             {result.entries.slice(0, 6).map((entry) => (
               <li key={entry.driverNumber}>

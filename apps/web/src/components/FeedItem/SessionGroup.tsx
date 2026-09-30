@@ -1,4 +1,5 @@
 import { api } from '@convex-generated/api';
+import { RaceVideoLinks } from '@/components/RaceVideoLinks';
 import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@/integrations/convex/query';
@@ -270,6 +271,13 @@ export function SessionGroup({
   const isScored =
     session.top5.length > 0 &&
     events.every((e) => e.type === 'score_published' && e.points !== undefined);
+  const videoKind =
+    session.sessionType === 'quali' ||
+    session.sessionType === 'sprint_quali' ||
+    session.sessionType === 'sprint' ||
+    session.sessionType === 'race'
+      ? session.sessionType
+      : null;
 
   /*
    * Every player the group is about, so the board comes back scored for all of
@@ -374,6 +382,11 @@ export function SessionGroup({
   return (
     <div className={SESSION_GROUP_SHELL}>
       <SessionSeparator session={sessionWithTime} grouped />
+      {session.raceSlug && videoKind ? (
+        <div className="px-4">
+          <RaceVideoLinks raceSlug={session.raceSlug} kind={videoKind} />
+        </div>
+      ) : null}
       {ranked.map((event, i) => (
         <SessionLeaderboardRow
           key={event._id}

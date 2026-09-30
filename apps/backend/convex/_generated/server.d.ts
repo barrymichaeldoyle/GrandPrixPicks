@@ -34,6 +34,7 @@ type Env = {
   readonly NEWS_WORKER_SECRET: string | undefined;
   readonly OPEN_F1_PASSWORD: string | undefined;
   readonly OPEN_F1_USERNAME: string | undefined;
+  readonly YOUTUBE_WEBSUB_SECRET: string | undefined;
 };
 
 /**

@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { AdminBannerTab } from '@/components/admin/AdminBannerTab';
 import { AdminCreatorPollTab } from '@/components/admin/AdminCreatorPollTab';
 import { AdminNewsTab } from '@/components/admin/AdminNewsTab';
+import { AdminVideosPanel } from '@/components/admin/AdminVideosPanel';
 import { AdminRacesTab } from '@/components/admin/AdminRacesTab';
 import type { AdminPredictionStatus } from '@/components/admin/AdminUsersTab';
 import { AdminUsersTab } from '@/components/admin/AdminUsersTab';
@@ -146,7 +147,10 @@ function AdminPage() {
         </div>
 
         {activeTab === 'news' ? (
-          <AdminNewsTab />
+          <>
+            <AdminNewsTab />
+            <AdminVideosPanel />
+          </>
         ) : activeTab === 'poll' ? (
           <AdminCreatorPollTab races={races} />
         ) : activeTab === 'banner' ? (

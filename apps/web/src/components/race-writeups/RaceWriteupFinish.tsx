@@ -2,6 +2,7 @@ import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 
 import { primaryButtonStyles } from '@/components/Button/Button';
+import { RaceVideoLinks } from '@/components/RaceVideoLinks';
 
 import type { RaceWriteupPhase } from '@/lib/raceWriteupPhase';
 
@@ -16,7 +17,18 @@ import { RaceWriteupNextRound } from './RaceWriteupNextRound';
  * `nextRace` is optional because a finished page that already linked the
  * next round further up should not print it twice.
  */
-export function RaceWriteupFinish({
+export function RaceWriteupFinish(
+  props: Parameters<typeof RaceWriteupFinishContent>[0],
+) {
+  return (
+    <>
+      <RaceVideoLinks raceSlug={props.raceSlug} />
+      <RaceWriteupFinishContent {...props} />
+    </>
+  );
+}
+
+function RaceWriteupFinishContent({
   isLive,
   phase,
   raceId,

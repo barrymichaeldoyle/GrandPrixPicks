@@ -218,7 +218,7 @@ async function raceByRef(
   if (ref.raceId !== undefined) {
     return await ctx.db.get(ref.raceId);
   }
-  throw new Error(
+  throw new ConvexError(
     'Name the race: pass raceSlug (for example "italy-2026") or raceId.',
   );
 }
@@ -489,7 +489,7 @@ export const publish = internalMutation({
 
     const race = await raceBySlug(ctx, args.raceSlug);
     if (!race) {
-      throw new Error(
+      throw new ConvexError(
         `No race with slug "${args.raceSlug}". Check the slug against the calendar.`,
       );
     }
@@ -503,7 +503,7 @@ export const publish = internalMutation({
       now: Date.now(),
     });
     if (problem) {
-      throw new Error(problem);
+      throw new ConvexError(problem);
     }
 
     // Resolved before the write so a typo fails at publish with a message
@@ -524,7 +524,7 @@ export const publish = internalMutation({
     const writeUpSelected =
       args.writeUpSelected ?? existing?.writeUpSelected ?? true;
     if (!feedSelected && !writeUpSelected) {
-      throw new Error('Select feed, write-up, or both.');
+      throw new ConvexError('Select feed, write-up, or both.');
     }
     const now = Date.now();
     const action = existing
@@ -794,7 +794,7 @@ async function resolveDriverCodes(
     });
   }
   if (unknown.length > 0) {
-    throw new Error(
+    throw new ConvexError(
       `Unknown driver ${unknown.length === 1 ? 'code' : 'codes'}: ${unknown.join(', ')}. Use the three-letter code from the roster, e.g. ANT.`,
     );
   }
@@ -929,7 +929,7 @@ async function resolveGridForPublish(
   }
   const problem = validateStartingGrid(entries);
   if (problem) {
-    throw new Error(problem);
+    throw new ConvexError(problem);
   }
 
   // Throws on an unknown code, naming it. A grid is 22 codes typed in one go,
@@ -1053,7 +1053,7 @@ export const retract = internalMutation({
   handler: async (ctx, args) => {
     const race = await raceBySlug(ctx, args.raceSlug);
     if (!race) {
-      throw new Error(`No race with slug "${args.raceSlug}".`);
+      throw new ConvexError(`No race with slug "${args.raceSlug}".`);
     }
     const existing = await newsByKey(ctx, race._id, args.key);
     if (!existing) {
@@ -1139,18 +1139,18 @@ export const move = internalMutation({
   }),
   handler: async (ctx, args) => {
     if (args.fromRaceSlug === args.toRaceSlug) {
-      throw new Error('fromRaceSlug and toRaceSlug are the same race.');
+      throw new ConvexError('fromRaceSlug and toRaceSlug are the same race.');
     }
     if (args.keys.length === 0) {
-      throw new Error('Name at least one key to move.');
+      throw new ConvexError('Name at least one key to move.');
     }
     const from = await raceBySlug(ctx, args.fromRaceSlug);
     if (!from) {
-      throw new Error(`No race with slug "${args.fromRaceSlug}".`);
+      throw new ConvexError(`No race with slug "${args.fromRaceSlug}".`);
     }
     const to = await raceBySlug(ctx, args.toRaceSlug);
     if (!to) {
-      throw new Error(`No race with slug "${args.toRaceSlug}".`);
+      throw new ConvexError(`No race with slug "${args.toRaceSlug}".`);
     }
 
     // Keys linked from a starting grid on the source race: moving one would
@@ -1176,10 +1176,12 @@ export const move = internalMutation({
     for (const key of new Set(args.keys)) {
       const row = await newsByKey(ctx, from._id, key);
       if (!row) {
-        throw new Error(`${from.name} has no news item with key "${key}".`);
+        throw new ConvexError(
+          `${from.name} has no news item with key "${key}".`,
+        );
       }
       if (await newsByKey(ctx, to._id, key)) {
-        throw new Error(
+        throw new ConvexError(
           `${to.name} already has a news item with key "${key}".`,
         );
       }
@@ -1187,17 +1189,17 @@ export const move = internalMutation({
         (session) => !weekend.includes(session),
       );
       if (offWeekend.length > 0) {
-        throw new Error(
+        throw new ConvexError(
           `"${key}" names ${offWeekend.join(', ')}, which ${to.name} does not run.`,
         );
       }
       if (row.feedReleaseScheduledId) {
-        throw new Error(
+        throw new ConvexError(
           `"${key}" has a scheduled feed release. Publish it without an embargo, or retract it, before moving.`,
         );
       }
       if (row.startingGrid || gridLinked.has(key)) {
-        throw new Error(
+        throw new ConvexError(
           `"${key}" carries or is linked from a starting grid. Move it by hand.`,
         );
       }

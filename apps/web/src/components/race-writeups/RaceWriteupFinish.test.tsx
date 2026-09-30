@@ -6,6 +6,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { RaceWriteupFinish } from './RaceWriteupFinish';
 
+vi.mock('@/integrations/convex/query', () => ({
+  useQuery: () => [],
+}));
+
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,

@@ -50,6 +50,7 @@ import type * as lib_prodWeekendNewsSeed from "../lib/prodWeekendNewsSeed.js";
 import type * as lib_raceNewsStartingGrid from "../lib/raceNewsStartingGrid.js";
 import type * as lib_raceNewsWriteUpImage from "../lib/raceNewsWriteUpImage.js";
 import type * as lib_raceTimezones from "../lib/raceTimezones.js";
+import type * as lib_raceVideos from "../lib/raceVideos.js";
 import type * as lib_recheckSchedule from "../lib/recheckSchedule.js";
 import type * as lib_scoring from "../lib/scoring.js";
 import type * as lib_season from "../lib/season.js";
@@ -59,6 +60,7 @@ import type * as lib_testing_scenarioDefinitions from "../lib/testing/scenarioDe
 import type * as lib_userIdentity from "../lib/userIdentity.js";
 import type * as lib_weather from "../lib/weather.js";
 import type * as lib_weekendCapabilities from "../lib/weekendCapabilities.js";
+import type * as lib_youtube from "../lib/youtube.js";
 import type * as liveClassification from "../liveClassification.js";
 import type * as liveScoring from "../liveScoring.js";
 import type * as newsNotifications from "../newsNotifications.js";
@@ -77,6 +79,7 @@ import type * as qualifyingChampionship from "../qualifyingChampionship.js";
 import type * as raceNews from "../raceNews.js";
 import type * as raceNewsMigrations from "../raceNewsMigrations.js";
 import type * as raceScheduleMigrations from "../raceScheduleMigrations.js";
+import type * as raceVideos from "../raceVideos.js";
 import type * as races from "../races.js";
 import type * as results from "../results.js";
 import type * as resultsRecheck from "../resultsRecheck.js";
@@ -87,6 +90,7 @@ import type * as testing from "../testing.js";
 import type * as testingScenarios from "../testingScenarios.js";
 import type * as users from "../users.js";
 import type * as weather from "../weather.js";
+import type * as youtubeUploads from "../youtubeUploads.js";
 
 import type {
   ApiFromModules,
@@ -137,6 +141,7 @@ declare const fullApi: ApiFromModules<{
   "lib/raceNewsStartingGrid": typeof lib_raceNewsStartingGrid;
   "lib/raceNewsWriteUpImage": typeof lib_raceNewsWriteUpImage;
   "lib/raceTimezones": typeof lib_raceTimezones;
+  "lib/raceVideos": typeof lib_raceVideos;
   "lib/recheckSchedule": typeof lib_recheckSchedule;
   "lib/scoring": typeof lib_scoring;
   "lib/season": typeof lib_season;
@@ -146,6 +151,7 @@ declare const fullApi: ApiFromModules<{
   "lib/userIdentity": typeof lib_userIdentity;
   "lib/weather": typeof lib_weather;
   "lib/weekendCapabilities": typeof lib_weekendCapabilities;
+  "lib/youtube": typeof lib_youtube;
   liveClassification: typeof liveClassification;
   liveScoring: typeof liveScoring;
   newsNotifications: typeof newsNotifications;
@@ -164,6 +170,7 @@ declare const fullApi: ApiFromModules<{
   raceNews: typeof raceNews;
   raceNewsMigrations: typeof raceNewsMigrations;
   raceScheduleMigrations: typeof raceScheduleMigrations;
+  raceVideos: typeof raceVideos;
   races: typeof races;
   results: typeof results;
   resultsRecheck: typeof resultsRecheck;
@@ -174,6 +181,7 @@ declare const fullApi: ApiFromModules<{
   testingScenarios: typeof testingScenarios;
   users: typeof users;
   weather: typeof weather;
+  youtubeUploads: typeof youtubeUploads;
 }>;
 
 /**

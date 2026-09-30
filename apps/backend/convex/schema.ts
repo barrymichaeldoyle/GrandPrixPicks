@@ -7,6 +7,7 @@ import {
 } from './lib/raceNewsStartingGrid';
 import { raceNewsWriteUpImageValidator } from './lib/raceNewsWriteUpImage';
 import { weatherDayValidator, weatherHourValidator } from './lib/weather';
+import { raceVideoKind } from './lib/raceVideos';
 
 const sessionType = v.union(
   v.literal('quali'),
@@ -32,6 +33,43 @@ const raceStatus = v.union(
 );
 
 export default defineSchema({
+  youtubeSubscription: defineTable({
+    key: v.string(),
+    requestedAt: v.number(),
+    verifyToken: v.string(),
+    expiresAt: v.number(),
+    lastError: v.optional(v.string()),
+  }).index('by_key', ['key']),
+  youtubeUploads: defineTable({
+    videoId: v.string(),
+    title: v.string(),
+    publishedAt: v.number(),
+    sourceUpdatedAt: v.number(),
+    status: v.union(
+      v.literal('pending'),
+      v.literal('review'),
+      v.literal('published'),
+      v.literal('ignored'),
+      v.literal('rejected'),
+    ),
+    verified: v.boolean(),
+    reason: v.string(),
+    attempts: v.number(),
+    raceSlug: v.optional(v.string()),
+    kind: v.optional(raceVideoKind),
+    reviewedBy: v.optional(v.id('users')),
+    reviewedAt: v.optional(v.number()),
+  })
+    .index('by_videoId', ['videoId'])
+    .index('by_status', ['status']),
+  raceVideos: defineTable({
+    raceId: v.id('races'),
+    kind: raceVideoKind,
+    videoId: v.string(),
+    title: v.string(),
+    updatedAt: v.number(),
+  }).index('by_race_kind', ['raceId', 'kind']),
+
   users: defineTable({
     clerkUserId: v.string(),
     clerkSubject: v.optional(v.string()),

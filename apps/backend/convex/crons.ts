@@ -96,4 +96,10 @@ crons.cron(
   {},
 );
 
+crons.interval(
+  'reconcile official YouTube uploads',
+  { hours: 6 },
+  internal.youtubeUploads.reconcile,
+  {},
+);
 export default crons;

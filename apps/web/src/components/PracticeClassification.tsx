@@ -2,6 +2,7 @@ import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import { useId, useState } from 'react';
 
 import { PracticeClassificationDialog } from '@/components/PracticeClassificationDialog';
+import { RaceVideoLink } from '@/components/RaceVideoLink';
 import { DriverBadge } from '@/components/DriverBadge';
 import {
   CompactColumns,
@@ -164,6 +165,15 @@ export function PracticeClassification({
 
   const tables = (
     <>
+      {selected.highlightsVideoId ? (
+        <div className="px-3 py-2">
+          <RaceVideoLink
+            videoId={selected.highlightsVideoId}
+            kind={selected.sessionType}
+            raceSlug={raceSlug}
+          />
+        </div>
+      ) : null}
       <CompactColumns
         entries={top}
         getKey={(entry) => entry.driverNumber}

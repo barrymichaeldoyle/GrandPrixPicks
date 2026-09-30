@@ -94,6 +94,7 @@ export const analyticsEventNames = [
   'push_pre_prompt_dismissed',
   'race_writeup_next_link_clicked',
   'race_writeup_next_round_clicked',
+  'race_video_clicked',
   'score_share_opened',
   'score_shared_x',
   'screen_viewed',
@@ -147,13 +148,18 @@ export type AnalyticsFailureReason =
 export function analyticsFailureReason(error: unknown): AnalyticsFailureReason {
   const message = error instanceof Error ? error.message.toLowerCase() : '';
 
-  if (/lock|deadline|closed/.test(message)) return 'locked';
-  if (/unauthor|forbidden|sign[ -]?in|auth/.test(message))
+  if (/lock|deadline|closed/.test(message)) {
+    return 'locked';
+  }
+  if (/unauthor|forbidden|sign[ -]?in|auth/.test(message)) {
     return 'unauthorized';
+  }
   if (/valid|invalid|required|must |cannot|can't/.test(message)) {
     return 'validation';
   }
-  if (/rate|too many|429/.test(message)) return 'rate_limited';
+  if (/rate|too many|429/.test(message)) {
+    return 'rate_limited';
+  }
   if (/network|fetch|offline|timeout|timed out|connection/.test(message)) {
     return 'network';
   }

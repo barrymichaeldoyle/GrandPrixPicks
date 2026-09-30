@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { practiceResultsHeading } from '@/lib/practiceSessions';
 
 import { DriverBadge } from '@/components/DriverBadge';
+import { RaceVideoLink } from '@/components/RaceVideoLink';
 import { TabSwitch } from '@/components/TabSwitch';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
@@ -343,6 +344,18 @@ export function PracticeResultsPanel({
           rather than corrected. `gpp-row-in` is 200ms and already stands down
           under `prefers-reduced-motion`. */}
       <div key={selectedSession} className="gpp-row-in">
+        {(selectedPractice?.highlightsVideoId ??
+        selectedCompetitive?.highlightsVideoId) ? (
+          <div className="px-4 py-2">
+            <RaceVideoLink
+              videoId={
+                selectedPractice?.highlightsVideoId ??
+                selectedCompetitive?.highlightsVideoId
+              }
+              kind={selectedSession}
+            />
+          </div>
+        ) : null}
         {selectedCompetitive ? (
           layout === 'compact' ? (
             <CompactColumns

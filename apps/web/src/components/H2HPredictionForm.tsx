@@ -363,14 +363,6 @@ export function H2HPredictionForm({
         matchup_count: totalMatchups,
         source: analyticsSource,
       });
-      if (analyticsSource === 'landing') {
-        captureAnalyticsEvent('landing_auth_started', {
-          source: analyticsSource,
-          prediction_type: 'h2h',
-          race_id: raceId,
-          session_type: sessionType ?? 'cascade',
-        });
-      }
       // Auto-save hides the submit bar; an error has to put it back so the
       // player can retry instead of staring at a finished card that never
       // landed.
@@ -396,12 +388,20 @@ export function H2HPredictionForm({
     }
     onSaveIntent?.();
     if (!isAuthenticated) {
-      setPendingSubmit(draftKey);
+      setPendingSubmit(draftKey, analyticsSource);
       captureAnalyticsEvent('h2h_prediction_signin_prompted', {
         race_id: raceId,
         session_type: sessionType ?? 'cascade',
         matchup_count: totalMatchups,
       });
+      if (analyticsSource === 'landing') {
+        captureAnalyticsEvent('landing_auth_started', {
+          source: analyticsSource,
+          prediction_type: 'h2h',
+          race_id: raceId,
+          session_type: sessionType ?? 'cascade',
+        });
+      }
       clerkRuntime.requestSignIn();
       return;
     }

@@ -127,6 +127,33 @@ Time-sensitive sections render only while a pick can still change. Durable
 circuit analysis remains in the archive. Aggregated player picks, when built,
 render in the finished phase only.
 
+## Page order
+
+A live write-up runs in three parts, in this order:
+
+1. **The weekend:** `RaceWriteupHero` (schedule and weather), then
+   `WeekendNewsSection` and practice. The news section shows the newest six
+   cards and folds the rest into a `<details>`.
+2. **The article:** the hand-written sections a fan came to read.
+3. **The picks, then reference material:** `RaceWriteupFinish` (or
+   `RaceWriteupClosingPanel` on a page not yet next), then championship
+   standings and `RaceFaqSection`.
+
+The picks come after the article because a reader who has read it is the one
+most likely to play. They come before the reference material because most
+readers never reach it. In September 2026 the median write-up visit scrolled
+about 60% of the page and about a quarter reached the end, and with the picker
+last only 1 of about 80 visits that landed on a write-up touched it.
+
+Less is more. A section earns its place by telling a fan something no other
+section on the page does. Cut:
+
+- a section that restates another (Sepang's "middle race of a triple-header"
+  was cut for this);
+- an FAQ answer that repeats another answer on the same page;
+- a news card that repeats a hand-written section. Republish it with
+  `writeUpSelected: false` and it stays in the feed.
+
 ## Dates and metadata
 
 `reviewedAt` in the write-up registry means the hand-written content was
@@ -188,7 +215,7 @@ Review the pattern after three race weekends using:
 4. Render `RaceWriteupPage`, `RaceWriteupHero` and `raceWriteupPageHead`. Put
    labelled sections in `RaceWriteupSection` or the photo shells.
 5. Put weather, weekend news and other expiring sections behind
-   `isRaceWriteupLive()`.
+   `isRaceWriteupLive()`, and follow the page order above.
 6. Pass cancellation state into SportsEvent structured data.
 7. Verify the preview, evidence, race-picks, picks-locked, finished and
    cancelled states.

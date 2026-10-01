@@ -1,11 +1,9 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, notFound } from '@tanstack/react-router';
-import type { FunctionReturnType } from 'convex/server';
 
 import { RACE_WRITEUP_PICKS_ANCHOR } from '@/components/race-writeups/DeferredRaceWriteupPicks';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
-import { RaceNameLink } from '@/components/race-writeups/RaceNameLink';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
@@ -67,10 +65,6 @@ const SURFACE_SOURCE =
 const START_TIME_SOURCE =
   'https://www.news.gp/en/fia-confirms-start-time-for-relocated-bahrain-grand-prix';
 
-type SeasonRace = FunctionReturnType<
-  typeof api.races.listCurrentSeason
->['races'][number];
-
 /*
  * Durable questions only. Weekend analysis belongs in the sections above, and
  * news belongs in `raceNews`, where it retires with the weekend.
@@ -95,11 +89,6 @@ const FAQS = [
     question: 'When did Formula 1 last race at Sepang?',
     answer:
       'In 2017. Sepang held the Malaysian Grand Prix from 1999 to 2017, and this is the first Formula 1 race there since. The track has changed in that time: Dromo resurfaced it in 2016, the year before that last race, and relaid Turns 7 to 12 in 2023.',
-  },
-  {
-    question: 'Is the 2026 Bahrain Grand Prix the Malaysian Grand Prix?',
-    answer:
-      'No. Formula 1 last held a Malaysian Grand Prix at Sepang in 2017. This round keeps the Bahrain Grand Prix name and is being held at Sepang after the Sakhir race was called off.',
   },
 ] as const;
 
@@ -279,7 +268,20 @@ function BahrainGrandPrixPredictionsPage() {
       <NoCurrentForm />
       <Circuit />
       <TyreChoice />
-      <TripleHeader season={season} />
+      {/* The picks follow the article and come before the reference material.
+          Most readers stop around two thirds of the way down, so a picker at
+          the foot of the page was one almost nobody reached. */}
+      <RaceWriteupFinish
+        isLive={isLive}
+        phase={phase}
+        raceId={race._id}
+        round={race.round}
+        season={race.season}
+        raceSlug={RACE_SLUG}
+        venueName="Sepang"
+        nextRace={nextRace}
+      />
+
       {isLive ? (
         <RaceWriteupChampionshipContext
           championship={championship}
@@ -291,17 +293,6 @@ function BahrainGrandPrixPredictionsPage() {
       ) : null}
 
       <RaceFaqSection faqs={FAQS} />
-
-      <RaceWriteupFinish
-        isLive={isLive}
-        phase={phase}
-        raceId={race._id}
-        round={race.round}
-        season={race.season}
-        raceSlug={RACE_SLUG}
-        venueName="Sepang"
-        nextRace={nextRace}
-      />
     </RaceWriteupPage>
   );
 }
@@ -469,53 +460,5 @@ function TyreChoice() {
         .
       </p>
     </TyreCompoundSection>
-  );
-}
-
-/**
- * Where this weekend sits in the run of three, with links out to the
- * neighbours.
- *
- * The links are the point as much as the prose: this page is published weeks
- * ahead of the race and the two beside it are the natural next click, so the
- * write-up registry resolves them when they exist and the race pages carry
- * them until then.
- */
-function TripleHeader({
-  season,
-}: {
-  season: { races: readonly SeasonRace[] };
-}) {
-  const neighbours = season.races
-    .filter((race) => race.round >= 15 && race.round <= 17)
-    .sort((a, b) => a.round - b.round);
-
-  return (
-    <RaceWriteupSection
-      id="triple-header"
-      heading="The middle race of a triple-header"
-      extra={
-        neighbours.length > 0 ? (
-          <ol className="mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-3">
-            {neighbours.map((race) => (
-              <li key={race.slug} className="bg-surface p-4 sm:p-5">
-                <p className="gpp-mono text-xs text-text-muted">
-                  Round {race.round}
-                </p>
-                <p className="font-title mt-2 font-medium text-text">
-                  <RaceNameLink race={race} />
-                </p>
-              </li>
-            ))}
-          </ol>
-        ) : null
-      }
-    >
-      <p className="gpp-reading-copy mt-4 text-text-muted">
-        Sepang was slotted between Azerbaijan and Singapore, so the teams race
-        three weekends in a row and travel from Baku to Malaysia to Singapore.
-        Singapore is a sprint weekend.
-      </p>
-    </RaceWriteupSection>
   );
 }

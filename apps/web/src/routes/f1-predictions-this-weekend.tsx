@@ -21,6 +21,7 @@ import {
   isRaceWriteupLive,
   raceWriteupPrimaryAction,
 } from '@/lib/raceWriteupPhase';
+import { captureAnalyticsEvent } from '@/lib/analytics';
 import { routeQuery } from '@/lib/routeQuery';
 import {
   breadcrumbSchema,
@@ -46,13 +47,12 @@ const PATH = '/f1-predictions-this-weekend';
  *
  * So this is one stable URL that always describes the next round.
  *
- * It began as a hub that only handed off: it described the weekend and pointed
- * at `/races/$raceSlug` for the picks. That made it a corridor, and it was the
- * corridor the site-wide footer opened onto, so the loudest chrome link led to
- * a page that could not take a prediction. It now finishes the job in place,
- * the way the editorial write-ups do: the round's Top 5 picker is on the page,
- * and the header's button is a same-page anchor. The footer itself now prefers
- * the current write-up when one exists, and only falls back here.
+ * When the round has a write-up, the page hands the reader to it: that is
+ * where the weekend is explained, and it carries its own picker below the
+ * article. The header's one button goes there. The round's Top 5 picker still
+ * sits on this page, below the schedule, for the reader who came to pick
+ * rather than to read, and it takes the header button only when there is no
+ * write-up to send anyone to.
  *
  * It is still not a second race page. Results and duels stay on
  * `/races/$raceSlug`, which is linked from beside the picker.
@@ -264,6 +264,15 @@ function PredictionsThisWeekendPage() {
   // round, including the ones whose circuit locality is not what anyone calls
   // the weekend (Sepang's is Kuala Lumpur).
   const venueName = race ? abbreviateGrandPrix(race.name) : '';
+  function trackPrimaryAction(
+    destination: 'race_writeup' | 'picks_anchor' | 'race_page',
+  ) {
+    captureAnalyticsEvent('public_page_cta_clicked', {
+      destination,
+      placement: 'predictions_hub',
+      race_slug: race?.slug,
+    });
+  }
   const actionClass =
     'inline-flex items-center gap-2 rounded-sm bg-accent px-4 py-2 text-base font-semibold text-text-on-accent transition-colors hover:bg-accent-hover';
 
@@ -297,47 +306,54 @@ function PredictionsThisWeekendPage() {
             )
           }
           actions={
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-              {race && phase ? (
-                picksOpen ? (
-                  <a
-                    href={`#${RACE_WRITEUP_PICKS_ANCHOR}`}
-                    className={actionClass}
-                  >
-                    {raceWriteupPrimaryAction(phase, venueName, true)}
-                    <ArrowDown className="h-4 w-4" aria-hidden />
-                  </a>
-                ) : (
-                  <Link
-                    to="/races/$raceSlug"
-                    params={{ raceSlug: race.slug }}
-                    className={actionClass}
-                  >
-                    {raceWriteupPrimaryAction(phase, venueName, true)}
-                    <ArrowRight className="h-4 w-4" aria-hidden />
-                  </Link>
-                )
+            race && writeup ? (
+              <Link
+                to={writeup.to}
+                onClick={() => trackPrimaryAction('race_writeup')}
+                className={actionClass}
+              >
+                {writeup.cta}
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            ) : race && phase ? (
+              picksOpen ? (
+                <a
+                  href={`#${RACE_WRITEUP_PICKS_ANCHOR}`}
+                  onClick={() => trackPrimaryAction('picks_anchor')}
+                  className={actionClass}
+                >
+                  {raceWriteupPrimaryAction(phase, venueName, true)}
+                  <ArrowDown className="h-4 w-4" aria-hidden />
+                </a>
               ) : (
-                <Link to="/races" className={actionClass}>
-                  Browse the race calendar
+                <Link
+                  to="/races/$raceSlug"
+                  params={{ raceSlug: race.slug }}
+                  onClick={() => trackPrimaryAction('race_page')}
+                  className={actionClass}
+                >
+                  {raceWriteupPrimaryAction(phase, venueName, true)}
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
-              )}
-              {/* The weekend's write-up, where one exists. It sat at the foot
-                  of the page in a list of related links, which made the read
-                  look like a step on the way to the picks rather than the
-                  optional extra it is. */}
-              {writeup ? (
-                <Link
-                  to={writeup.to}
-                  className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text"
-                >
-                  {writeup.cta}
-                </Link>
-              ) : null}
-            </div>
+              )
+            ) : (
+              <Link to="/races" className={actionClass}>
+                Browse the race calendar
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            )
           }
         />
+
+        {race && circuit ? (
+          <div className="mt-8">
+            <RaceWriteupWeekendSchedule
+              race={race}
+              timeZone={circuit.timeZone}
+              timeZoneLabel="Track time"
+            />
+          </div>
+        ) : null}
 
         {race && phase && picksOpen ? (
           <DeferredRaceWriteupPicks
@@ -349,16 +365,6 @@ function PredictionsThisWeekendPage() {
             surface="predictions_hub"
             venueName={venueName}
           />
-        ) : null}
-
-        {race && circuit ? (
-          <div className="mt-8">
-            <RaceWriteupWeekendSchedule
-              race={race}
-              timeZone={circuit.timeZone}
-              timeZoneLabel="Track time"
-            />
-          </div>
         ) : null}
 
         {/* Kept alongside the picker rather than folded into it. The picker is

@@ -400,7 +400,7 @@ export function LandingPicks({
 
   function prepareCombinedSave() {
     if (topFiveComplete) {
-      setPendingSubmit(getWebTop5DraftStorageKey(raceId));
+      setPendingSubmit(getWebTop5DraftStorageKey(raceId), 'landing');
     }
     captureAnalyticsEvent('landing_prediction_card_save_started', {
       race_id: raceId,

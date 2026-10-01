@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 
+import { captureAnalyticsEvent } from '@/lib/analytics';
 import {
   raceWriteupPrimaryAction,
   type RaceWriteupPhase,
@@ -43,6 +44,18 @@ export function RaceWriteupActions({
   signalsHeading,
   venueName,
 }: RaceWriteupActionsProps) {
+  // The only button above the fold on every write-up, and until this it was
+  // invisible to analytics: nobody could tell whether a reader who never
+  // reached the picker had tried the shortcut to it.
+  function trackPrimaryAction(destination: 'picks_anchor' | 'race_page') {
+    captureAnalyticsEvent('public_page_cta_clicked', {
+      destination,
+      placement: compact ? 'race_writeup_closing' : 'race_writeup_hero',
+      phase,
+      race_slug: raceSlug,
+    });
+  }
+
   return (
     <div
       className={
@@ -54,6 +67,7 @@ export function RaceWriteupActions({
       {primaryActionTargetId ? (
         <a
           href={`#${primaryActionTargetId}`}
+          onClick={() => trackPrimaryAction('picks_anchor')}
           className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           {raceWriteupPrimaryAction(phase, venueName, compact, hasPicks)}
@@ -63,6 +77,7 @@ export function RaceWriteupActions({
         <Link
           to="/races/$raceSlug"
           params={{ raceSlug }}
+          onClick={() => trackPrimaryAction('race_page')}
           className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           {raceWriteupPrimaryAction(phase, venueName, compact, hasPicks)}

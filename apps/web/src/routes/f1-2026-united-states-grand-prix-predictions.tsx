@@ -206,6 +206,13 @@ function UnitedStatesGrandPrixPredictionsPage() {
       <Circuit />
       <Upgrades />
       <LastYear />
+      <RaceWriteupClosingPanel
+        phase={phase}
+        raceId={race._id}
+        raceSlug={RACE_SLUG}
+        venueName="Austin"
+      />
+
       {isLive ? (
         <>
           <RaceWriteupChampionshipContext
@@ -218,13 +225,6 @@ function UnitedStatesGrandPrixPredictionsPage() {
       ) : null}
 
       <RaceFaqSection faqs={FAQS} />
-
-      <RaceWriteupClosingPanel
-        phase={phase}
-        raceId={race._id}
-        raceSlug={RACE_SLUG}
-        venueName="Austin"
-      />
     </RaceWriteupPage>
   );
 }

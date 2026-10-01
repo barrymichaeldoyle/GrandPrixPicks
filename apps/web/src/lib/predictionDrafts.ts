@@ -58,12 +58,18 @@ function pendingSubmitKey(draftKey: string) {
   return `${draftKey}:pending-submit`;
 }
 
-export function setPendingSubmit(draftKey: string) {
+/**
+ * Marks a draft as waiting on sign-in. `source` is the surface that asked
+ * (`landing`, `writeup`, ...), kept as the flag's value so the recovery pass
+ * can attribute the save: on the landing page the form that wrote the flag has
+ * unmounted by the time the save happens, and its own events never fire.
+ */
+export function setPendingSubmit(draftKey: string, source?: string) {
   if (!canUseSessionStorage()) {
     return;
   }
   try {
-    window.sessionStorage.setItem(pendingSubmitKey(draftKey), '1');
+    window.sessionStorage.setItem(pendingSubmitKey(draftKey), source || '1');
   } catch {
     // Ignore storage quota or availability errors.
   }
@@ -74,9 +80,22 @@ export function hasPendingSubmit(draftKey: string): boolean {
     return false;
   }
   try {
-    return window.sessionStorage.getItem(pendingSubmitKey(draftKey)) === '1';
+    return window.sessionStorage.getItem(pendingSubmitKey(draftKey)) !== null;
   } catch {
     return false;
+  }
+}
+
+/** The surface that set the flag, or null when none was recorded. */
+export function getPendingSubmitSource(draftKey: string): string | null {
+  if (!canUseSessionStorage()) {
+    return null;
+  }
+  try {
+    const value = window.sessionStorage.getItem(pendingSubmitKey(draftKey));
+    return value === null || value === '1' ? null : value;
+  } catch {
+    return null;
   }
 }
 
@@ -112,7 +131,7 @@ export function listPendingSubmitDraftKeys(): string[] {
       const key = window.sessionStorage.key(index);
       if (
         key?.endsWith(PENDING_SUBMIT_SUFFIX) &&
-        window.sessionStorage.getItem(key) === '1'
+        window.sessionStorage.getItem(key) !== null
       ) {
         keys.push(key.slice(0, -PENDING_SUBMIT_SUFFIX.length));
       }

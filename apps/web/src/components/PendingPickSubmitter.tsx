@@ -9,6 +9,7 @@ import { captureAnalyticsEvent } from '@/lib/analytics';
 import {
   clearPendingSubmit,
   clearPredictionDraft,
+  getPendingSubmitSource,
   listPendingSubmitDraftKeys,
   loadPredictionDraft,
 } from '@/lib/predictionDrafts';
@@ -107,9 +108,21 @@ export function PendingPickSubmitter() {
     // oxlint-disable-next-line react/set-state-in-effect
     setDraining(true);
 
+    // The landing funnel's last two steps used to be reported by the landing
+    // forms, which have unmounted by now (see above). They are reported here
+    // instead, from the source each form left in its flag, or the funnel ends
+    // at "sign-in prompted" for every visitor who went on to sign up.
+    const sources = new Map(
+      keys.map((key) => [key, getPendingSubmitSource(key)]),
+    );
+    if ([...sources.values()].includes('landing')) {
+      captureAnalyticsEvent('landing_auth_completed', { source: 'landing' });
+    }
+
     let cancelled = false;
     void (async () => {
       for (const draftKey of keys) {
+        const source = sources.get(draftKey) ?? undefined;
         const parsed = parseWebDraftStorageKey(draftKey);
         if (!parsed) {
           // Not ours to interpret, but the flag must still go: leaving it set
@@ -154,7 +167,17 @@ export function PendingPickSubmitter() {
             prediction_type: parsed.kind,
             race_id: parsed.raceId,
             session_type: parsed.sessionType ?? 'cascade',
+            source,
           });
+          if (source === 'landing') {
+            captureAnalyticsEvent('landing_prediction_saved', {
+              source,
+              prediction_type: parsed.kind,
+              race_id: parsed.raceId,
+              session_type: parsed.sessionType ?? 'cascade',
+              after_sign_in: true,
+            });
+          }
         } catch (error) {
           // The draft stays put so the picker can restore it and the player can
           // save it themselves; only the intent is dropped, because a session
@@ -164,6 +187,7 @@ export function PendingPickSubmitter() {
             prediction_type: parsed.kind,
             race_id: parsed.raceId,
             session_type: parsed.sessionType ?? 'cascade',
+            source,
             reason: error instanceof Error ? error.message : 'unknown',
           });
         }

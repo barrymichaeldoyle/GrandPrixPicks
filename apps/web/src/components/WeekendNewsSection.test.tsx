@@ -151,3 +151,57 @@ describe('WeekendNewsSection source date', () => {
     );
   });
 });
+
+describe('WeekendNewsSection fold', () => {
+  const many = Array.from({ length: 9 }, (_, index) => ({
+    ...item,
+    key: `story-${index}`,
+    headline: `Story ${index}`,
+  }));
+
+  function folded() {
+    return [...container.querySelectorAll('details article[id^="news-"]')].map(
+      (card) => card.id,
+    );
+  }
+
+  it('shows the newest six and folds the rest', () => {
+    render(many);
+    expect(folded()).toEqual(['news-story-6', 'news-story-7', 'news-story-8']);
+    expect(container.querySelector('summary')?.textContent).toContain(
+      '3 earlier stories',
+    );
+    // Folded, not dropped: the server HTML still carries every card.
+    expect(container.textContent).toContain('Story 8');
+  });
+
+  it('draws no fold when everything fits', () => {
+    render(many.slice(0, 6));
+    expect(container.querySelector('details')).toBeNull();
+  });
+
+  it('keeps a grid, and the cards it links to, out of the fold', () => {
+    render([...many, gridItem, penaltyItem]);
+    expect(folded()).not.toContain('news-monza-starting-grid');
+    expect(folded()).not.toContain('news-piastri-monza-grid-penalty');
+  });
+});
+
+describe('WeekendNewsSection fold and shared links', () => {
+  afterEach(() => {
+    window.history.replaceState(null, '', '/');
+  });
+
+  it('opens the fold when the URL points at a folded card', () => {
+    window.history.replaceState(null, '', '/#news-story-8');
+    Element.prototype.scrollIntoView = vi.fn();
+    render(
+      Array.from({ length: 9 }, (_, index) => ({
+        ...item,
+        key: `story-${index}`,
+        headline: `Story ${index}`,
+      })),
+    );
+    expect(container.querySelector('details')?.open).toBe(true);
+  });
+});

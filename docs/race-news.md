@@ -147,6 +147,11 @@ for this. The section ends with the scoring-policy note and every card links
 "How these are scored", so an instruction in the prose is the weakest sentence
 on the card as well as the one that dates fastest.
 
+The write-up shows the newest six cards and folds the rest under "N earlier
+stories" (`WeekendNewsSection`). A starting grid, and any card a grid row links
+to, always stays visible. When a card says what a hand-written section of the
+write-up already says, keep it off the write-up with `writeUpSelected: false`.
+
 Three more rules, the first two earned the hard way on the Antonelli item.
 
 **Be specific about numbers that came from the source.** "Takes a grid penalty"

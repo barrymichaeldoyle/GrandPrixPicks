@@ -1,5 +1,5 @@
-import { ExternalLink } from 'lucide-react';
-import type { CSSProperties } from 'react';
+import { ChevronDown, ExternalLink } from 'lucide-react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 
 import { ScoringPolicyNote } from '@/components/ScoringPolicyNote';
 import { newsListMentionsGridPenalty } from '@/lib/newsGridPenalty';
@@ -71,11 +71,119 @@ function cardId(key: string) {
   return `news-${key}`;
 }
 
+/**
+ * How many cards show before the rest fold away.
+ *
+ * A live weekend collects fifteen or more items, and stacked one column wide
+ * on a phone that was several screens of cards between the hero and the
+ * article. Readers stopped there: the median write-up visit scrolled about 60%
+ * of the page. Six is three rows of the two-column grid, and the newest six
+ * are the ones a returning reader has not seen.
+ */
+const LEAD_ITEMS = 6;
+
 export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
+  const foldRef = useRef<HTMLDetailsElement>(null);
+
+  // A shared `#news-...` link to a folded card has to open the fold, or it
+  // lands on a closed disclosure. Some browsers do this on their own; this
+  // makes it true in all of them.
+  useEffect(() => {
+    function openForHash() {
+      const fold = foldRef.current;
+      const id = window.location.hash.slice(1);
+      if (!fold || !id.startsWith('news-')) {
+        return;
+      }
+      const target = document.getElementById(id);
+      if (target && fold.contains(target)) {
+        fold.open = true;
+        target.scrollIntoView();
+      }
+    }
+    openForHash();
+    window.addEventListener('hashchange', openForHash);
+    return () => window.removeEventListener('hashchange', openForHash);
+  }, []);
+
   if (items.length === 0) {
     return null;
   }
 
+  // The grid's rows link to the cards beside them, which this section already
+  // holds: nothing is fetched and nothing is copied, so correcting a penalty
+  // story corrects the caption on the grid with it. A key with no card left
+  // (retracted after the grid went out) resolves to nothing and the note falls
+  // back to plain text, rather than to a link that goes nowhere.
+  const byKey = new Map(items.map((item) => [item.key, item]));
+  function newsLink(newsKey: string) {
+    const target = byKey.get(newsKey);
+    return target
+      ? { href: `#${cardId(target.key)}`, headline: target.headline }
+      : undefined;
+  }
+
+  // A grid, and every card a grid row links to, always stays out of the fold:
+  // the grid is what somebody searched for, and a link into a closed
+  // disclosure lands the reader on nothing.
+  const linkedFromGrid = new Set(
+    items.flatMap(
+      (item) => item.startingGrid?.flatMap((row) => row.newsKey ?? []) ?? [],
+    ),
+  );
+  const lead = items.filter(
+    (item, index) =>
+      index < LEAD_ITEMS ||
+      Boolean(item.startingGrid?.length) ||
+      linkedFromGrid.has(item.key),
+  );
+  const earlier = items.filter((item) => !lead.includes(item));
+
+  return (
+    <section className="py-8 sm:py-16" aria-labelledby="weekend-news">
+      <div className="max-w-3xl">
+        <h2
+          id="weekend-news"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
+        >
+          What changed this weekend
+        </h2>
+      </div>
+
+      <NewsCards items={lead} newsLink={newsLink} className="mt-7" />
+
+      {/* Native `<details>`, like the FAQ: the folded cards are still in the
+          server HTML for a crawler, and in-page search opens it. */}
+      {earlier.length > 0 ? (
+        <details ref={foldRef} className="group mt-4">
+          <summary className="gpp-touch-target inline-flex cursor-pointer list-none items-center gap-2 rounded-sm text-sm font-semibold text-text underline decoration-border-strong underline-offset-4 marker:content-none hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent [&::-webkit-details-marker]:hidden">
+            {earlier.length} earlier{' '}
+            {earlier.length === 1 ? 'story' : 'stories'}
+            <ChevronDown
+              className="size-4 transition-transform group-open:rotate-180"
+              aria-hidden
+            />
+          </summary>
+          <NewsCards items={earlier} newsLink={newsLink} className="mt-4" />
+        </details>
+      ) : null}
+
+      {newsListMentionsGridPenalty(items) ? (
+        <ScoringPolicyNote className="mt-5 text-sm text-text-muted" />
+      ) : null}
+    </section>
+  );
+}
+
+function NewsCards({
+  items,
+  newsLink,
+  className,
+}: {
+  items: NewsItem[];
+  newsLink: (newsKey: string) => { href: string; headline: string } | undefined;
+  className: string;
+}) {
   // A photo makes its card roughly 200px taller than a text-only one, and the
   // source row is pinned to the bottom, so the card beside it ends up with that
   // much dead space between its last line and its attribution. An odd number of
@@ -93,19 +201,6 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
     (total, item) => total + (item.startingGrid?.length ? 2 : 1),
     0,
   );
-  // The grid's rows link to the cards beside them, which this section already
-  // holds: nothing is fetched and nothing is copied, so correcting a penalty
-  // story corrects the caption on the grid with it. A key with no card left
-  // (retracted after the grid went out) resolves to nothing and the note falls
-  // back to plain text, rather than to a link that goes nowhere.
-  const byKey = new Map(items.map((item) => [item.key, item]));
-  function newsLink(newsKey: string) {
-    const target = byKey.get(newsKey);
-    return target
-      ? { href: `#${cardId(target.key)}`, headline: target.headline }
-      : undefined;
-  }
-
   const spanningKey =
     items.length >= 3 && cells % 2 === 1
       ? items.find((item) => item.writeUpImage && !item.startingGrid?.length)
@@ -113,126 +208,113 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
       : undefined;
 
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="weekend-news">
-      <div className="max-w-3xl">
-        <h2
-          id="weekend-news"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          What changed this weekend
-        </h2>
-      </div>
+    // `gpp-lean-run` flips each card's bar against the one above it, and does
+    // it in CSS because the answer changes when the grid folds from two
+    // columns to one.
+    <div
+      className={`gpp-lean-run gpp-lean-run-sm-2col grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-2 ${className}`}
+    >
+      {items.map((item) => {
+        // The card's own colour, from the driver it is about, exactly as the
+        // same item carries it in the feed (`RaceNewsItem`) and as the
+        // tribute section below carries Ferrari's. A run of news then reads
+        // as a Ferrari story then a Williams one, rather than as three grey
+        // blocks a reader has to parse to tell apart.
+        //
+        // First driver, not all of them: an item about two team mates is one
+        // team's story, and the badges already name both.
+        const team = item.drivers?.[0]?.team ?? null;
+        const teamColour = (team && TEAM_COLORS[team]) || 'var(--accent)';
 
-      {/* `gpp-lean-run` flips each card's bar against the one above it, and
-          does it in CSS because the answer changes when the grid folds from two
-          columns to one. */}
-      <div className="gpp-lean-run gpp-lean-run-sm-2col mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-2">
-        {items.map((item) => {
-          // The card's own colour, from the driver it is about, exactly as the
-          // same item carries it in the feed (`RaceNewsItem`) and as the
-          // tribute section below carries Ferrari's. A run of news then reads
-          // as a Ferrari story then a Williams one, rather than as three grey
-          // blocks a reader has to parse to tell apart.
-          //
-          // First driver, not all of them: an item about two team mates is one
-          // team's story, and the badges already name both.
-          const team = item.drivers?.[0]?.team ?? null;
-          const teamColour = (team && TEAM_COLORS[team]) || 'var(--accent)';
-
-          return (
-            // A column so the source row can be pushed to the bottom: the
-            // bodies differ in length, and without it each card's rule and
-            // attribution sit at a different height across the grid.
-            <article
-              key={item.key}
-              // The anchor a grid row jumps to. `styles.css` gives an
-              // `article[id]` its scroll offset under the sticky header, and
-              // `target:` marks which card answered the question: landing
-              // mid-page in a two-column grid of near-identical cards, the
-              // reader otherwise has to work out which one moved.
-              id={cardId(item.key)}
-              className={`flex flex-col bg-surface p-4 target:outline-2 target:outline-offset-[-2px] target:outline-accent sm:p-6 ${
-                item.startingGrid?.length
-                  ? // Both columns. Eleven rows beside eleven only fits if the
-                    // card is the full width of the section.
-                    'sm:col-span-2'
-                  : item.key === spanningKey
-                    ? 'sm:row-span-2'
-                    : ''
-              } ${
-                teamColour
-                  ? // Cut to the house lean, direction from `gpp-lean-run`
-                    // above. Deliberately not done to the same items in the
-                    // dashboard feed: stacked in one bordered block the bars
-                    // are short and butted end to end, and the alternation
-                    // reads as noise there rather than rhythm.
-                    'gpp-team-bar gpp-team-bar-lean'
+        return (
+          // A column so the source row can be pushed to the bottom: the
+          // bodies differ in length, and without it each card's rule and
+          // attribution sit at a different height across the grid.
+          <article
+            key={item.key}
+            // The anchor a grid row jumps to. `styles.css` gives an
+            // `article[id]` its scroll offset under the sticky header, and
+            // `target:` marks which card answered the question: landing
+            // mid-page in a two-column grid of near-identical cards, the
+            // reader otherwise has to work out which one moved.
+            id={cardId(item.key)}
+            className={`flex flex-col bg-surface p-4 target:outline-2 target:outline-offset-[-2px] target:outline-accent sm:p-6 ${
+              item.startingGrid?.length
+                ? // Both columns. Eleven rows beside eleven only fits if the
+                  // card is the full width of the section.
+                  'sm:col-span-2'
+                : item.key === spanningKey
+                  ? 'sm:row-span-2'
                   : ''
-              }`}
-              style={
-                teamColour
-                  ? ({ '--team-colour': teamColour } as CSSProperties)
-                  : undefined
-              }
-            >
-              <h3 className="font-title text-lg font-medium text-text">
-                {item.headline}
-              </h3>
-              {item.writeUpImage ? (
-                <WriteUpNewsPhoto {...item.writeUpImage} />
-              ) : null}
-              <p className="gpp-reading-copy mt-2 text-text-muted sm:mt-3">
-                {item.body}
-              </p>
-              {/* Every place, never a disclosure: this is a public page, the
-                  grid is what somebody searched for, and a crawler does not
-                  press buttons. Two columns because eleven rows beside eleven
-                  is a grid a reader can take in at once, where twenty-two in a
-                  line is a scroll. */}
-              {item.startingGrid && item.startingGrid.length > 0 ? (
-                <StartingGridTable
-                  entries={item.startingGrid}
-                  columns={2}
-                  newsLink={newsLink}
-                />
-              ) : null}
-              {/* No rule above it. The grid already draws a line between every
-                  card, and stacked one column wide that put a second hairline a
-                  few lines above the first: the page read as a stack of rules
-                  with copy trapped between them. Space does the same separating
-                  work here without adding a mark. */}
-              <p className="mt-4 text-right max-sm:mt-4 sm:mt-auto sm:pt-2">
-                <a
-                  href={item.sourceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="gpp-touch-target inline-flex items-center gap-1 text-sm font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+            } ${
+              teamColour
+                ? // Cut to the house lean, direction from `gpp-lean-run`
+                  // above. Deliberately not done to the same items in the
+                  // dashboard feed: stacked in one bordered block the bars
+                  // are short and butted end to end, and the alternation
+                  // reads as noise there rather than rhythm.
+                  'gpp-team-bar gpp-team-bar-lean'
+                : ''
+            }`}
+            style={
+              teamColour
+                ? ({ '--team-colour': teamColour } as CSSProperties)
+                : undefined
+            }
+          >
+            <h3 className="font-title text-lg font-medium text-text">
+              {item.headline}
+            </h3>
+            {item.writeUpImage ? (
+              <WriteUpNewsPhoto {...item.writeUpImage} />
+            ) : null}
+            <p className="gpp-reading-copy mt-2 text-text-muted sm:mt-3">
+              {item.body}
+            </p>
+            {/* Every place, never a disclosure: this is a public page, the
+                grid is what somebody searched for, and a crawler does not
+                press buttons. Two columns because eleven rows beside eleven
+                is a grid a reader can take in at once, where twenty-two in a
+                line is a scroll. */}
+            {item.startingGrid && item.startingGrid.length > 0 ? (
+              <StartingGridTable
+                entries={item.startingGrid}
+                columns={2}
+                newsLink={newsLink}
+              />
+            ) : null}
+            {/* No rule above it. The grid already draws a line between every
+                card, and stacked one column wide that put a second hairline a
+                few lines above the first: the page read as a stack of rules
+                with copy trapped between them. Space does the same separating
+                work here without adding a mark. */}
+            <p className="mt-4 text-right max-sm:mt-4 sm:mt-auto sm:pt-2">
+              <a
+                href={item.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="gpp-touch-target inline-flex items-center gap-1 text-sm font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+              >
+                {item.sourceName}
+                <ExternalLink className="size-3 shrink-0" aria-hidden />
+              </a>
+              {/* When the story broke, not when we published the card. This
+                  page is read weeks after the weekend, and "Antonelli takes a
+                  penalty" means something different on Wednesday than it does
+                  an hour before the race. `<time>` rather than a bare string
+                  so the date a reader sees is the one a crawler parses. */}
+              {item.sourcePublishedAt ? (
+                <time
+                  dateTime={utcDateAttribute(item.sourcePublishedAt)}
+                  className="ml-1.5 text-sm whitespace-nowrap text-text-muted"
                 >
-                  {item.sourceName}
-                  <ExternalLink className="size-3 shrink-0" aria-hidden />
-                </a>
-                {/* When the story broke, not when we published the card. This
-                    page is read weeks after the weekend, and "Antonelli takes a
-                    penalty" means something different on Wednesday than it does
-                    an hour before the race. `<time>` rather than a bare string
-                    so the date a reader sees is the one a crawler parses. */}
-                {item.sourcePublishedAt ? (
-                  <time
-                    dateTime={utcDateAttribute(item.sourcePublishedAt)}
-                    className="ml-1.5 text-sm whitespace-nowrap text-text-muted"
-                  >
-                    · {formatUtcDate(item.sourcePublishedAt)}
-                  </time>
-                ) : null}
-              </p>
-            </article>
-          );
-        })}
-      </div>
-
-      {newsListMentionsGridPenalty(items) ? (
-        <ScoringPolicyNote className="mt-5 text-sm text-text-muted" />
-      ) : null}
-    </section>
+                  · {formatUtcDate(item.sourcePublishedAt)}
+                </time>
+              ) : null}
+            </p>
+          </article>
+        );
+      })}
+    </div>
   );
 }

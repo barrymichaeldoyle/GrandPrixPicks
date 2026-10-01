@@ -601,7 +601,7 @@ export function PredictionForm({
       return;
     }
     if (!isAuthenticated) {
-      setPendingSubmit(draftKey);
+      setPendingSubmit(draftKey, analyticsSource);
       captureAnalyticsEvent('prediction_signin_prompted', {
         race_id: raceId,
         race_slug: race?.slug,

@@ -199,6 +199,13 @@ function SingaporeGrandPrixPredictionsPage() {
       <SaturdayEvidence />
       <Circuit />
       <TyreChoice />
+      <RaceWriteupClosingPanel
+        phase={phase}
+        raceId={race._id}
+        raceSlug={RACE_SLUG}
+        venueName="Singapore"
+      />
+
       {isLive ? (
         <>
           <RaceWriteupChampionshipContext
@@ -211,13 +218,6 @@ function SingaporeGrandPrixPredictionsPage() {
       ) : null}
 
       <RaceFaqSection faqs={FAQS} />
-
-      <RaceWriteupClosingPanel
-        phase={phase}
-        raceId={race._id}
-        raceSlug={RACE_SLUG}
-        venueName="Singapore"
-      />
     </RaceWriteupPage>
   );
 }

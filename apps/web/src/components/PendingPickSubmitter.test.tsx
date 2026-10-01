@@ -24,7 +24,8 @@ const top5Spy = vi.fn().mockResolvedValue(null);
 const h2hSpy = vi.fn().mockResolvedValue(null);
 const gateSpy = vi.fn();
 
-vi.mock('@/lib/analytics', () => ({ captureAnalyticsEvent: () => {} }));
+const { analyticsSpy } = vi.hoisted(() => ({ analyticsSpy: vi.fn() }));
+vi.mock('@/lib/analytics', () => ({ captureAnalyticsEvent: analyticsSpy }));
 
 vi.mock('@/integrations/clerk/auth-curtain', () => ({
   useAuthCurtainGate: (ready: boolean) => gateSpy(ready),
@@ -66,6 +67,7 @@ describe('PendingPickSubmitter', () => {
     top5Spy.mockClear().mockResolvedValue(null);
     h2hSpy.mockClear().mockResolvedValue(null);
     gateSpy.mockClear();
+    analyticsSpy.mockClear();
     convexAuth.isAuthenticated = false;
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -112,6 +114,47 @@ describe('PendingPickSubmitter', () => {
     expect(hasPendingSubmit(H2H_KEY)).toBe(false);
     expect(loadPredictionDraft(TOP5_KEY)).toBeNull();
     expect(loadPredictionDraft(H2H_KEY)).toBeNull();
+  });
+
+  it('reports a landing draft as the end of the landing funnel', async () => {
+    seedTop5();
+    seedH2H();
+    // What the landing card writes: its own name, not the bare flag.
+    window.sessionStorage.setItem(`${TOP5_KEY}:pending-submit`, 'landing');
+    window.sessionStorage.setItem(`${H2H_KEY}:pending-submit`, 'landing');
+    convexAuth.isAuthenticated = true;
+
+    await render();
+
+    const events = analyticsSpy.mock.calls.map(([name]) => name);
+    expect(
+      events.filter((name) => name === 'landing_auth_completed'),
+    ).toHaveLength(1);
+    expect(analyticsSpy).toHaveBeenCalledWith(
+      'landing_prediction_saved',
+      expect.objectContaining({ prediction_type: 'top5', after_sign_in: true }),
+    );
+    expect(analyticsSpy).toHaveBeenCalledWith(
+      'landing_prediction_saved',
+      expect.objectContaining({ prediction_type: 'h2h', after_sign_in: true }),
+    );
+  });
+
+  it('leaves the landing funnel alone for a draft from anywhere else', async () => {
+    seedTop5();
+    window.sessionStorage.setItem(`${TOP5_KEY}:pending-submit`, 'writeup');
+    convexAuth.isAuthenticated = true;
+
+    await render();
+
+    expect(top5Spy).toHaveBeenCalledTimes(1);
+    const events = analyticsSpy.mock.calls.map(([name]) => name);
+    expect(events).not.toContain('landing_auth_completed');
+    expect(events).not.toContain('landing_prediction_saved');
+    expect(analyticsSpy).toHaveBeenCalledWith(
+      'pending_pick_draft_recovered',
+      expect.objectContaining({ source: 'writeup' }),
+    );
   });
 
   it('submits the Top 5 before the H2H card whichever order storage hands them over', async () => {

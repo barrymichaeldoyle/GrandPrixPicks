@@ -1,7 +1,9 @@
 # r/GPPicks news app
 
-**Status:** built 30 September 2026, not yet uploaded to Reddit. The upload,
-playtest and app review are manual steps (see [Rollout](#rollout)).
+**Status:** uploaded 30 September 2026 as `gpp-news` v0.0.1, owned by
+u/GrandPrixPicks, and installed on the playtest subreddit r/gpp_news_dev.
+Waiting on Reddit's review of the `grandprixpicks.com` fetch domain; until it
+is approved every run logs a failed fetch and posts nothing.
 
 A small Devvit app, `apps/reddit-news`, that mirrors the site's news feed into
 r/GPPicks so the subreddit has a steady run of F1 news. It is the Reddit
@@ -92,7 +94,7 @@ From the Devvit docs as of 30 September 2026:
 
 Steps only Barry can do, in order:
 
-1. `pnpm --filter @grandprixpicks/reddit-news login` (opens a browser).
+1. `pnpm --filter @grandprixpicks/reddit-news run login` (opens a browser).
 2. `pnpm --filter @grandprixpicks/reddit-news build`, then from
    `apps/reddit-news`: `npx devvit upload`. This registers the app and submits
    the `grandprixpicks.com` domain for review.
@@ -100,6 +102,12 @@ Steps only Barry can do, in order:
    account as a moderator, and watch `npx devvit logs r/GPPicks`.
 4. Publish for review (`npx devvit publish`) if fetching does not work for an
    unreviewed app. The docs imply it will not.
+
+**`devvit upload` rewrites `package.json`.** It renames the package to the app
+name (`gpp-news`) and sets a BSD licence. The rename breaks every
+`--filter @grandprixpicks/reddit-news` script, so revert `package.json` after
+each upload (`git checkout apps/reddit-news/package.json`). Its edit to
+`devvit.json` (the `dev.subreddit` line) is fine to keep.
 
 The web endpoint ships with a normal push to `main`; it is safe to deploy
 before the app exists.

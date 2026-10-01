@@ -20,5 +20,8 @@
         "cron": "*/10 * * * *"
       }
     }
+  },
+  "dev": {
+    "subreddit": "gpp_news_dev"
   }
 }

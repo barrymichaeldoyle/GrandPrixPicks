@@ -634,30 +634,6 @@
     --lean-bottom: var(--stripe-lean);
   }
 
-  /*
-   * Add this alongside `.gpp-lean-run` for a run that becomes two columns at
-   * Tailwind's `sm`. At two columns the card above is the one *two* back, so
-   * inverting against it has a period of four rather than two — and a run that
-   * is one column at every width (the feed's news block) must not get this, or
-   * its third and fourth cards match the ones above them.
-   *
-   * Equal specificity to the rules above, so it wins on source order alone:
-   * keep it last.
-   */
-  @media (width >= 40rem) {
-    .gpp-lean-run-sm-2col > *:nth-child(4n + 1),
-    .gpp-lean-run-sm-2col > *:nth-child(4n + 4) {
-      --lean-top: var(--stripe-lean);
-      --lean-bottom: 0px;
-    }
-
-    .gpp-lean-run-sm-2col > *:nth-child(4n + 2),
-    .gpp-lean-run-sm-2col > *:nth-child(4n + 3) {
-      --lean-top: 0px;
-      --lean-bottom: var(--stripe-lean);
-    }
-  }
-
   .gpp-team-dot {
     display: inline-block;
     width: var(--team-dot-size);

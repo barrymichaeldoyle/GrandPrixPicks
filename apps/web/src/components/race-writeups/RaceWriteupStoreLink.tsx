@@ -70,16 +70,19 @@ const DISCLOSURE = 'We earn a commission on purchases made through this link.';
 export function RaceWriteupStoreCard({
   wide = false,
   storePage,
+  leanClassName = '',
 }: {
   wide?: boolean;
   storePage?: string;
+  /** Which way the edge bar leans, from the grid that places this card. */
+  leanClassName?: string;
 }) {
   const products = useStoreProducts(storePage);
   const hasProducts = products.length > 0;
 
   return (
     <article
-      className={`gpp-team-bar gpp-team-bar-lean flex flex-col bg-surface p-4 sm:p-6 ${
+      className={`gpp-team-bar gpp-team-bar-lean flex flex-col bg-surface p-4 sm:p-6 ${leanClassName} ${
         wide
           ? hasProducts
             ? 'sm:col-span-2'

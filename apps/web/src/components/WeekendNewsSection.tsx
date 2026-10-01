@@ -166,8 +166,12 @@ export function WeekendNewsSection({
         items={lead}
         newsLink={newsLink}
         className="mt-7"
-        trailing={(wide) => (
-          <RaceWriteupStoreCard wide={wide} storePage={storePage} />
+        trailing={(wide, leanClassName) => (
+          <RaceWriteupStoreCard
+            wide={wide}
+            storePage={storePage}
+            leanClassName={leanClassName}
+          />
         )}
       />
 
@@ -194,6 +198,60 @@ export function WeekendNewsSection({
   );
 }
 
+const LEAN_THIN_TOP =
+  'sm:[--lean-top:var(--stripe-lean)] sm:[--lean-bottom:0px]';
+const LEAN_THICK_TOP =
+  'sm:[--lean-top:0px] sm:[--lean-bottom:var(--stripe-lean)]';
+
+/**
+ * The bar direction for each card in the two-column grid, as classes.
+ *
+ * Browsers place cards row by row, skipping cells a spanning card already
+ * holds, and a bar sits on its card's left edge. So the card "above" is the
+ * previous card whose left edge is in the same column, and a card that takes
+ * both columns belongs to the left one. Each card is the inverse of that
+ * card, so bars meet thick to thick and thin to thin.
+ */
+function twoColumnLeans(cells: { cols: number; rows: number }[]): string[] {
+  const taken = new Set<string>();
+  const stackSize = [0, 0];
+  let row = 0;
+  let col = 0;
+
+  return cells.map(({ cols, rows }) => {
+    function fits(r: number, c: number) {
+      return (
+        c + cols <= 2 &&
+        Array.from({ length: rows * cols }, (_, i) => [
+          r + Math.floor(i / cols),
+          c + (i % cols),
+        ]).every(([rr, cc]) => !taken.has(`${rr}:${cc}`))
+      );
+    }
+
+    while (!fits(row, col)) {
+      col += 1;
+      if (col > 1) {
+        col = 0;
+        row += 1;
+      }
+    }
+    for (let r = row; r < row + rows; r++) {
+      for (let c = col; c < col + cols; c++) {
+        taken.add(`${r}:${c}`);
+      }
+    }
+
+    const lean = stackSize[col]++ % 2 === 0 ? LEAN_THIN_TOP : LEAN_THICK_TOP;
+    col += cols;
+    if (col > 1) {
+      col = 0;
+      row += 1;
+    }
+    return lean;
+  });
+}
+
 function NewsCards({
   items,
   newsLink,
@@ -208,7 +266,7 @@ function NewsCards({
    * one cell would leave the last row half empty and no photo card can span
    * to fill it.
    */
-  trailing?: (wide: boolean) => ReactNode;
+  trailing?: (wide: boolean, leanClassName: string) => ReactNode;
 }) {
   // A photo makes its card roughly 200px taller than a text-only one, and the
   // source row is pinned to the bottom, so the card beside it ends up with that
@@ -234,14 +292,23 @@ function NewsCards({
       : undefined;
   const trailingWide = cells % 2 === 1 && spanningKey === undefined;
 
+  const leans = twoColumnLeans([
+    ...items.map((item) => ({
+      cols: item.startingGrid?.length ? 2 : 1,
+      rows: item.key === spanningKey ? 2 : 1,
+    })),
+    ...(trailing ? [{ cols: trailingWide ? 2 : 1, rows: 1 }] : []),
+  ]);
+
   return (
-    // `gpp-lean-run` flips each card's bar against the one above it, and does
-    // it in CSS because the answer changes when the grid folds from two
-    // columns to one.
+    // `gpp-lean-run` flips each card's bar against the one above it for the
+    // one-column fold. From `sm` up each card carries its own lean
+    // (`twoColumnLeans`), because a card that spans cells moves the card
+    // above it and no nth-child pattern can follow that.
     <div
-      className={`gpp-lean-run gpp-lean-run-sm-2col grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-2 ${className}`}
+      className={`gpp-lean-run grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-2 ${className}`}
     >
-      {items.map((item) => {
+      {items.map((item, index) => {
         // The card's own colour, from the driver it is about, exactly as the
         // same item carries it in the feed (`RaceNewsItem`) and as the
         // tribute section below carries Ferrari's. A run of news then reads
@@ -273,7 +340,7 @@ function NewsCards({
                 : item.key === spanningKey
                   ? 'sm:row-span-2'
                   : ''
-            } ${
+            } ${leans[index]} ${
               teamColour
                 ? // Cut to the house lean, direction from `gpp-lean-run`
                   // above. Deliberately not done to the same items in the
@@ -342,7 +409,7 @@ function NewsCards({
           </article>
         );
       })}
-      {trailing?.(trailingWide)}
+      {trailing?.(trailingWide, leans[items.length] ?? '')}
     </div>
   );
 }

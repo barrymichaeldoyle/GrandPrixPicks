@@ -35,32 +35,33 @@ import { PicksCallToAction } from '@/components/PicksCallToAction/PicksCallToAct
 
 const PAGE_TITLE = 'F1 2027 Driver Line-Up | Grand Prix Picks';
 const PAGE_DESCRIPTION =
-  'Every 2027 F1 seat, team by team: who has signed, who is expected back, and where the Haas drive between Esteban Ocon and Rafael Camara stands.';
+  'Every 2027 F1 seat, team by team: who has signed, who is expected back, and who replaces Esteban Ocon at Haas, with Rafael Camara the favourite.';
 
 const FAQS = [
   {
     question: 'Is the 2027 F1 driver line-up confirmed?',
     answer:
-      'Not fully. Most seats are either announced or covered by a contract option, and one driver on the current grid, Esteban Ocon, has nothing for 2027 at all.',
+      'Not fully. Most seats are either announced or covered by a contract option. Esteban Ocon is leaving Haas, and Haas has not named who replaces him.',
   },
   {
     question: 'Which 2027 F1 seats are still open?',
-    answer: 'Esteban Ocon’s at Haas. He is out of contract at the end of 2026.',
+    answer:
+      'The Haas seat Esteban Ocon leaves at the end of 2026. Ocon announced his exit on 30 September.',
   },
   {
-    question: 'Who is in contention for Haas’s second seat?',
+    question: 'Who will replace Esteban Ocon at Haas?',
     answer:
-      'Haas has not decided. Ayao Komatsu named Ocon, Rafael Camara, Jack Doohan, Leonardo Fornaroli and Ryo Hirakawa as the five in the running on 4 September 2026. Ocon called himself a free agent for 2027 on 23 September, while saying talks with Haas were ongoing.',
+      'Rafael Camara, Jack Doohan, Leonardo Fornaroli and Ryo Hirakawa. Ayao Komatsu named them with Ocon on 4 September 2026, and Ocon announced his exit on 30 September. Camara is the favourite.',
   },
   {
     question: 'Is Rafael Camara driving in F1 in 2027?',
     answer:
-      'No signing has been announced. The Ferrari junior is reported to be the leading candidate to partner Oliver Bearman at Haas, but neither Haas nor Ferrari has confirmed it.',
+      'No signing has been announced. The Ferrari junior leads Formula 2 and is the favourite to replace Esteban Ocon at Haas, but neither Haas nor Ferrari has confirmed it.',
   },
   {
     question: 'When will Haas announce its 2027 driver line-up?',
     answer:
-      'On 24 September 2026, Ayao Komatsu said Haas expected to decide within the next two weeks. The driver evaluations are complete, but the findings still need to be discussed with Gene Haas before a final decision.',
+      'Haas has not given a date. On 24 September 2026, Ayao Komatsu said he expected a decision within about two weeks, after discussing the findings with Gene Haas. Confirming Ocon’s exit on 30 September, Haas said it would not share further driver news at that time.',
   },
   {
     question: 'Is Fernando Alonso racing in 2027?',
@@ -258,26 +259,21 @@ function F1LineUp2027Page() {
             id="haas-fight"
             className="font-title text-2xl font-semibold text-text sm:text-3xl"
           >
-            Five drivers, one Haas seat
+            Who replaces Ocon at Haas
           </h2>
           <p className="gpp-reading-copy mt-3 max-w-3xl text-text-muted">
-            Haas holds an option on Esteban Ocon for a third year and has spent
-            the summer testing alternatives to it instead. Ayao Komatsu put the
-            contest on the record on 4 September 2026: five drivers, one seat,
-            and a choice he said would be settled on speed rather than on what a
-            driver brings with him.
-          </p>
-          <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
-            At Baku on 23 September, Ocon called himself a free agent for 2027
-            and said discussions with Haas were ongoing. His departure is not
-            confirmed.{' '}
+            Esteban Ocon announced on 30 September 2026 that he will leave Haas
+            at the end of the season, and Haas confirmed it. Ayao Komatsu had
+            put the contest on the record on 4 September: five drivers, Ocon
+            among them, and a choice he said would be settled on speed rather
+            than on what a driver brings with him. Four remain.{' '}
             <a
               className="text-link underline decoration-border underline-offset-4 hover:decoration-current"
-              href="https://www.formula1.com/en/latest/article/definitely-a-free-agent-for-next-year-ocon-gives-update-on-haas-future-as-discussions-ongoing.5puGpQ2dMNroVXzQiV0Tgd"
+              href="https://www.formula1.com/en/latest/article/ocon-confirms-he-will-leave-haas-at-end-of-2026-season.cJjg9W9Om5ZW6Mn9GZ75v"
               target="_blank"
               rel="noreferrer"
             >
-              Ocon on his Haas future
+              Ocon confirms he will leave Haas
             </a>
             .
           </p>
@@ -328,13 +324,13 @@ function F1LineUp2027Page() {
             >
               Ocon and Bearman's season head to head
             </Link>{' '}
-            is the number Komatsu is being asked about every weekend.{' '}
+            covers their last year together.{' '}
             <Link
               to="/guides/$guideSlug"
               params={{ guideSlug: 'f1-2027-haas-second-seat' }}
               className="font-medium text-accent underline-offset-2 hover:underline"
             >
-              The five Haas candidates
+              The Haas candidates
             </Link>{' '}
             have a guide of their own, with each driver&rsquo;s record.
           </p>

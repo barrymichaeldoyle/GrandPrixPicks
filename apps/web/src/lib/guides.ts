@@ -11,6 +11,8 @@
  * belongs on a data page (/f1-standings, /leaderboard), not in a guide that
  * nobody will remember to update.
  */
+import type { F1StorePage } from '@/components/race-writeups/RaceWriteupStoreLink';
+
 import type { GuideMeta } from './guideMeta';
 import { getGuideMeta } from './guideMeta';
 
@@ -80,6 +82,11 @@ type GuideSection = {
   list?: readonly { term: string; detail: string }[];
   /** Optional table rendered after the paragraphs. See {@link GuideTable}. */
   table?: GuideTable;
+  /**
+   * An F1 Store affiliate link closing a `card` section, for a driver whose
+   * merch is part of the story. One per guide at most; see `F1StorePageLink`.
+   */
+  storeLink?: { page: F1StorePage; text: string; label: string };
 };
 
 /**
@@ -127,7 +134,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
   // retain the shortlist as dated context, and bump guideMeta.updatedAt.
   'f1-2027-haas-second-seat': {
     status:
-      'As of 21 September 2026, Haas has not announced who will take the second seat for 2027. Reporting puts Rafael Câmara in front, and Ayao Komatsu says the decision is not imminent.',
+      'As of 1 October 2026, Esteban Ocon is leaving Haas at the end of the season and Haas has not named his replacement. Rafael Câmara is the favourite.',
     hero: {
       src: '/images/guides/haas-monza-2025.jpg',
       width: 1280,
@@ -143,10 +150,24 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
     },
     sections: [
       {
+        heading: 'Ocon is leaving',
+        paragraphs: [
+          'Esteban Ocon announced on 30 September 2026 that he will leave Haas when the season ends, and Haas confirmed it with a statement from Ayao Komatsu. The team said it would not share further driver news at that time.',
+          'Ocon said he leaves with his head held high and that this is “absolutely not the end of my Formula 1 career”. He has not said where he goes next.',
+        ],
+        sources: [
+          {
+            label:
+              'Formula 1: Ocon confirms he will leave Haas (30 September 2026)',
+            url: 'https://www.formula1.com/en/latest/article/ocon-confirms-he-will-leave-haas-at-end-of-2026-season.cJjg9W9Om5ZW6Mn9GZ75v',
+          },
+        ],
+      },
+      {
         heading: 'What Komatsu has said',
         paragraphs: [
           'Writing for the Japanese publication as-web.jp during the Monza weekend, Ayao Komatsu named the five drivers in contention for one 2027 Haas seat.',
-          'Ocon has the seat now and is one of the five. Haas has been comparing the others in private testing. Grandprix.com reports that Hirakawa, Fornaroli and Bearman were within a tenth of a second of each other at Jerez, and that Haas gathered more data at Portimao afterwards. Doohan has since completed his own test at Jerez, running alongside Hirakawa and Sho Tsuboi. It was the last of the runs Haas said it wanted before deciding. Asked on 18 September when he would decide, Komatsu said: “I don’t know, not next week, shall I say.” He added that performance comes first, and that a driver’s backing only counts if two candidates are otherwise equal.',
+          'Ocon held the seat and was one of the five. Haas has been comparing the others in private testing. Grandprix.com reports that Hirakawa, Fornaroli and Bearman were within a tenth of a second of each other at Jerez, and that Haas gathered more data at Portimao afterwards. Doohan has since completed his own test at Jerez, running alongside Hirakawa and Sho Tsuboi. It was the last of the runs Haas said it wanted before deciding. Asked on 18 September when he would decide, Komatsu said: “I don’t know, not next week, shall I say.” He added that performance comes first, and that a driver’s backing only counts if two candidates are otherwise equal.',
         ],
         sources: [
           {
@@ -174,7 +195,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         heading: 'Where the contest stands',
         paragraphs: [
           'Grandprix.com reported on 17 September 2026 that reporting in Europe and Brazil places Câmara at the front of the queue to partner Bearman, and that neither Haas nor Ferrari has announced an agreement. GPblog puts the move at 90 percent through its paddock sources, and Grande Prêmio suggests he could be announced around his home Grand Prix in São Paulo.',
-          'Câmara’s case rests on a private Haas test at Portimão in late August. Brazilian reports say he produced the strongest comparison of the candidates who drove the car, though Haas has not published the times. Ocon is still formally part of the process, because the five Komatsu named have not been cut.',
+          'Câmara’s case rests on a private Haas test at Portimão in late August. Brazilian reports say he produced the strongest comparison of the candidates who drove the car, though Haas has not published the times. With Ocon leaving, four of the five remain, and Formula 1 names Câmara as the favourite for the seat.',
         ],
         sources: [
           {
@@ -182,12 +203,17 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
               'Grandprix.com: Câmara moves to the front of the Haas queue (17 September 2026)',
             url: 'https://www.grandprix.com/news/camara-moves-to-front-of-haas-queue-for-2027-seat.html',
           },
+          {
+            label:
+              'Formula 1: Câmara the favourite for Ocon’s seat (30 September 2026)',
+            url: 'https://www.formula1.com/en/latest/article/ocon-confirms-he-will-leave-haas-at-end-of-2026-season.cJjg9W9Om5ZW6Mn9GZ75v',
+          },
         ],
       },
       {
         heading: 'Why Bearman is not on the list',
         paragraphs: [
-          'The five are competing for one seat. Bearman holds the other, and Komatsu left him out of the contest because his place in the team is secure.',
+          'The five Komatsu named were competing for one seat. Bearman holds the other, and Komatsu left him out of the contest because his place in the team is secure.',
           'Haas’s July 2024 release says Bearman signed a multi-year contract beginning with the 2025 season. It names no end year. PlanetF1 reports the deal runs to the end of 2026 with a team option for 2027, and that Haas is expected to take it. Haas has confirmed neither the expiry nor the option.',
         ],
         sources: [
@@ -225,14 +251,24 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
             'https://creativecommons.org/publicdomain/zero/1.0/deed.en',
         },
         paragraphs: [
-          'Ocon joined Haas in 2025 and finished fifth in China in his second race for the team. He won the 2021 Hungarian Grand Prix with Alpine. He is the one candidate Haas can measure across a full season in its current car, and keeping him would leave the line-up unchanged.',
+          'Ocon joined Haas in 2025 and finished fifth in China in his second race for the team. He won the 2021 Hungarian Grand Prix with Alpine. He leaves Haas at the end of 2026 after two seasons and has not announced his next team.',
         ],
         sources: [
           {
             label: 'Haas: Esteban Ocon’s career and results',
             url: 'https://www.haasf1team.com/season/team/esteban-ocon',
           },
+          {
+            label:
+              'Formula 1: Ocon confirms he will leave Haas (30 September 2026)',
+            url: 'https://www.formula1.com/en/latest/article/ocon-confirms-he-will-leave-haas-at-end-of-2026-season.cJjg9W9Om5ZW6Mn9GZ75v',
+          },
         ],
+        storeLink: {
+          page: 'esteban-ocon',
+          text: 'Ocon’s Haas merch is on the F1 Store while stock lasts.',
+          label: 'Shop Ocon’s Haas kit',
+        },
       },
       {
         heading: 'Jack Doohan',
@@ -251,7 +287,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
             'https://creativecommons.org/publicdomain/zero/1.0/deed.en',
         },
         paragraphs: [
-          'Doohan joined Haas as a reserve driver in February 2026. He finished third in Formula 2 in 2023, made his F1 debut with Alpine at Abu Dhabi in 2024, and raced the opening six Grands Prix of 2025. Besides Ocon, he is the only candidate who has started a Grand Prix.',
+          'Doohan joined Haas as a reserve driver in February 2026. He finished third in Formula 2 in 2023, made his F1 debut with Alpine at Abu Dhabi in 2024, and raced the opening six Grands Prix of 2025. He is the only remaining candidate who has started a Grand Prix.',
         ],
         sources: [
           {
@@ -301,9 +337,13 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
         },
         paragraphs: [
-          'Câmara won the 2025 FIA Formula 3 title as a rookie with Trident, with four wins and five pole positions. He is a Ferrari Driver Academy member and moved to Formula 2 with Invicta for 2026. Haas has run him in its private testing.',
+          'Câmara won the 2025 FIA Formula 3 title as a rookie with Trident, with four wins and five pole positions. He is a Ferrari Driver Academy member, moved to Formula 2 with Invicta for 2026 and leads the championship. Haas has run him in its private testing.',
         ],
         sources: [
+          {
+            label: 'Formula 1: Câmara leads Formula 2 (30 September 2026)',
+            url: 'https://www.formula1.com/en/latest/article/ocon-confirms-he-will-leave-haas-at-end-of-2026-season.cJjg9W9Om5ZW6Mn9GZ75v',
+          },
           {
             label: 'Formula 3: Câmara’s 2025 title-winning season',
             url: 'https://www.fiaformula3.com/en/information/rafael-camara-2025-champion.6Xzppi1iWCn1PUraUFD0ws',
@@ -345,12 +385,17 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
       {
         heading: 'When will Haas decide?',
         paragraphs: [
-          'Haas has named no date. Komatsu’s shortlist leaves the seat open to Ocon and to the four drivers who would replace him, and the last test it said it wanted, Doohan at Jerez, ran on 17 September. The only timing anyone has reported is Grande Prêmio’s suggestion of an announcement around Câmara’s home race in São Paulo on 8 November. This guide will be updated when Haas confirms its 2027 line-up, and the five names will stay as the shortlist it considered.',
+          'Haas has named no date. On 24 September, Komatsu said the evaluations were complete and he expected a decision within about two weeks, after discussing the findings with Gene Haas. When it confirmed Ocon’s exit on 30 September, Haas said it would not share further driver news at that time. Grande Prêmio has suggested an announcement around Câmara’s home race in São Paulo on 8 November. This guide will be updated when Haas names Ocon’s replacement, and the shortlist will stay as the field it considered.',
         ],
         sources: [
           {
-            label: 'Grandprix.com: the selection remains open',
-            url: 'https://www.grandprix.com/news/komatsu-confirms-five-driver-fight-for-ocons-haas-seat.html',
+            label:
+              'Formula 1: Komatsu on the decision timeline (24 September 2026)',
+            url: 'https://www.formula1.com/en/latest/article/within-the-next-couple-of-weeks-komatsu-reveals-timeline-for-haas-2027-driver-line-up-decision.3BCkQ2eO3S0dCAynRFkTgA.3BCkQ2eO3S0dCAynRFkTgA',
+          },
+          {
+            label: 'Formula 1: Haas confirms Ocon’s exit (30 September 2026)',
+            url: 'https://www.formula1.com/en/latest/article/ocon-confirms-he-will-leave-haas-at-end-of-2026-season.cJjg9W9Om5ZW6Mn9GZ75v',
           },
         ],
       },

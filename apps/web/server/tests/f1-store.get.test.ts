@@ -1,14 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import { F1_STORE_TRACKING_URL } from '../lib/f1Store';
+import { F1_STORE_PAGES, F1_STORE_TRACKING_URL } from '../lib/f1Store';
 import handler from '../routes/go/f1-store.get';
 
-function landingFor(headers: Record<string, string>) {
+function redirectFor(headers: Record<string, string>, query = '') {
   const response = handler({
-    req: new Request('https://grandprixpicks.com/go/f1-store', { headers }),
+    req: new Request(`https://grandprixpicks.com/go/f1-store${query}`, {
+      headers,
+    }),
   });
   expect(response.status).toBe(302);
-  const location = new URL(response.headers.get('location')!);
+  return new URL(response.headers.get('location')!);
+}
+
+function landingFor(headers: Record<string, string>) {
+  const location = redirectFor(headers);
   expect(`${location.origin}${location.pathname}`).toBe(F1_STORE_TRACKING_URL);
   return location.searchParams.get('u');
 }
@@ -60,5 +66,38 @@ describe('/go/f1-store route', () => {
       req: new Request('https://grandprixpicks.com/go/f1-store'),
     });
     expect(response.headers.get('cache-control')).toBe('private, no-store');
+  });
+
+  it("sends a driver page link to that page in the visitor's shop, under its own ad", () => {
+    const location = redirectFor(
+      { 'cf-ipcountry': 'ZA', 'accept-language': 'en-ZA' },
+      '?page=esteban-ocon',
+    );
+    expect(`${location.origin}${location.pathname}`).toBe(
+      F1_STORE_PAGES['esteban-ocon'].trackingUrl,
+    );
+    expect(location.searchParams.get('u')).toBe(
+      'https://f1store4.formula1.com/en/esteban-ocon/a-2384886157+z-977991-74467561',
+    );
+  });
+
+  it('never forwards a page that is not on the allowlist', () => {
+    for (const page of [
+      '../../evil',
+      'constructor',
+      '__proto__',
+      'https://x',
+    ]) {
+      const location = redirectFor(
+        { 'cf-ipcountry': 'GB' },
+        `?page=${encodeURIComponent(page)}`,
+      );
+      expect(`${location.origin}${location.pathname}`).toBe(
+        F1_STORE_TRACKING_URL,
+      );
+      expect(location.searchParams.get('u')).toBe(
+        'https://f1store.formula1.com/en/',
+      );
+    }
   });
 });

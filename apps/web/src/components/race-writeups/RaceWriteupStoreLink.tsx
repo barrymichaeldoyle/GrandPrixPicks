@@ -13,7 +13,14 @@ import { TEAM_COLORS } from '@/lib/teamColors';
  */
 export const F1_STORE_LINK = '/go/f1-store';
 
-type StorePlacement = 'news' | 'footer';
+type StorePlacement = 'news' | 'footer' | 'guide';
+
+/**
+ * Store pages the redirect will open, mirroring `F1_STORE_PAGES` in
+ * `server/lib/f1Store.ts`. A key the server does not know falls back to the
+ * front page, so a mismatch costs the deep link, never the click.
+ */
+export type F1StorePage = 'esteban-ocon';
 
 /**
  * Shared by both placements. `rel="sponsored"` is Google's required marking for
@@ -24,13 +31,16 @@ type StorePlacement = 'news' | 'footer';
  * says which of the two placements earned it. The event has no race property
  * because PostHog already records the page's URL on it.
  */
-function storeLinkProps(placement: StorePlacement) {
+function storeLinkProps(placement: StorePlacement, page?: F1StorePage) {
   return {
-    href: F1_STORE_LINK,
+    href: page ? `${F1_STORE_LINK}?page=${page}` : F1_STORE_LINK,
     target: '_blank',
     rel: 'sponsored noopener',
     onClick: () =>
-      captureAnalyticsEvent('race_writeup_store_link_clicked', { placement }),
+      captureAnalyticsEvent('race_writeup_store_link_clicked', {
+        placement,
+        ...(page ? { page } : {}),
+      }),
   } as const;
 }
 
@@ -114,5 +124,44 @@ export function RaceWriteupStoreLink() {
       </a>
       . {DISCLOSURE}
     </p>
+  );
+}
+
+/**
+ * One store page inside a guide's driver card: a line saying what is there and
+ * a button to it. The copy is the guide's, because only the guide knows why
+ * the merch is worth mentioning (Ocon's, for one, is a leaving driver's last
+ * Haas stock).
+ *
+ * No product photo. Each regional shop stocks a different selection under the
+ * same page, so one picture would be wrong for some readers, and clearance
+ * stock sells out under an evergreen page.
+ */
+export function F1StorePageLink({
+  page,
+  text,
+  label,
+}: {
+  page: F1StorePage;
+  text: string;
+  label: string;
+}) {
+  return (
+    <div className="clear-both mt-5 border-t border-border pt-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-text">{text}</p>
+        <a
+          {...storeLinkProps('guide', page)}
+          className={`${primaryButtonStyles('sm')} shrink-0`}
+        >
+          {label}
+          <ArrowUpRight aria-hidden />
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      </div>
+      <p className="mt-2 text-xs text-text-muted">
+        Affiliate link. {DISCLOSURE}
+      </p>
+    </div>
   );
 }

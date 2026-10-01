@@ -8,6 +8,7 @@ import {
 import { ArrowRight } from 'lucide-react';
 
 import { InAppBackLink } from '@/components/InAppBackLink';
+import { F1StorePageLink } from '@/components/race-writeups/RaceWriteupStoreLink';
 import { getGuide } from '@/lib/guides';
 import { getGuideMeta, listGuideMeta } from '@/lib/guideMeta';
 import {
@@ -354,6 +355,9 @@ function GuidePage() {
                   ))}
                 </dl>
               )}
+              {section.storeLink ? (
+                <F1StorePageLink {...section.storeLink} />
+              ) : null}
             </section>
           ))}
           {guide.faqs && guide.faqs.length > 0 ? (

@@ -56,14 +56,13 @@ const GUIDE_META: readonly GuideMeta[] = [
   {
     slug: 'f1-2027-haas-second-seat',
     publishedAt: '2026-09-09',
-    updatedAt: '2026-09-21',
-    title: 'The 2027 Haas seat: five drivers in contention',
-    metaTitle:
-      '2027 Haas Seat: Five Candidates to Partner Bearman | Grand Prix Picks',
+    updatedAt: '2026-10-01',
+    title: 'The 2027 Haas seat: who replaces Esteban Ocon',
+    metaTitle: '2027 Haas Seat: Who Replaces Ocon? | Grand Prix Picks',
     metaDescription:
-      'Ocon, Doohan, Hirakawa, Rafael Câmara and Leonardo Fornaroli are in contention for Haas’s second 2027 seat. Their records, Haas experience and decision status.',
+      'Esteban Ocon leaves Haas at the end of 2026. Rafael Câmara is the favourite to replace him, with Doohan, Hirakawa and Fornaroli also in contention. Records and decision status.',
     summary:
-      'Oliver Bearman is staying. Esteban Ocon, Jack Doohan, Ryo Hirakawa, Rafael Câmara and Leonardo Fornaroli are in contention for the other Haas seat.',
+      'Esteban Ocon leaves Haas at the end of 2026. Rafael Câmara, Jack Doohan, Ryo Hirakawa and Leonardo Fornaroli are the drivers left in contention to partner Oliver Bearman.',
   },
   {
     slug: 'f1-points-system-explained',

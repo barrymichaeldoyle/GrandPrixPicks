@@ -21,8 +21,8 @@
  * Three states, because that is how many distinctions a reader can act on:
  * the team has said so, the team has not said so but holds the paperwork, or
  * there is no 2027 paperwork at all. "Out of contract" is deliberately not
- * called "open" — Alonso's seat is his to leave and Ocon's is his to lose,
- * and neither is a vacancy anyone else can simply take.
+ * called "open": a driver without a deal can still be kept, as Alonso was by
+ * Aston Martin, so the label says what is missing rather than who is out.
  */
 export type SeatStatus = 'signed' | 'expected' | 'out-of-contract';
 
@@ -47,10 +47,10 @@ export type TeamLineUp = {
 };
 
 /** Bumped by hand whenever the seats below are re-checked against reporting. */
-export const LINE_UP_2027_REVIEWED_AT = '2026-09-29';
+export const LINE_UP_2027_REVIEWED_AT = '2026-10-01';
 
 /** For prose. Kept next to the ISO date so the two cannot drift apart. */
-export const LINE_UP_2027_REVIEWED_LABEL = '29 September 2026';
+export const LINE_UP_2027_REVIEWED_LABEL = '1 October 2026';
 
 /**
  * Alphabetical by team. A championship order would be more flattering and
@@ -144,7 +144,7 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Esteban Ocon',
         status: 'out-of-contract',
-        note: 'Ocon called himself a free agent on 23 September. A day later, Komatsu said Haas had completed its evaluations and expected a decision within two weeks, after discussions with Gene Haas.',
+        note: 'Leaves Haas at the end of 2026, announced on 30 September. Haas has not named his replacement, and Rafael Camara is the favourite.',
       },
     ],
   },
@@ -226,25 +226,20 @@ export const LINE_UP_2027: TeamLineUp[] = [
 ];
 
 /**
- * The drivers Haas is choosing between for the seat Ocon currently holds.
+ * The drivers Haas is choosing between to replace Ocon.
  *
  * Ordered by where the contest stands rather than alphabetically, because the
  * page numbers them and a number that means nothing is worse than no number.
- * Komatsu named all five on 4 September 2026; the order below is how reporting
- * ranked them after the Portimão test, with the incumbent second because Haas
- * still holds his option. `claim` is why the driver is in the room, which is
- * the only part of this that stays true whoever wins.
+ * Komatsu named five on 4 September 2026, Ocon among them; Ocon left the list
+ * when he announced his exit on 30 September. The order is how reporting
+ * ranked them after the Portimão test. `claim` is why the driver is in the
+ * room, which is the only part of this that stays true whoever wins.
  */
 export const HAAS_2027_CONTENDERS = [
   {
     driver: 'Rafael Camara',
     claim:
-      'Ferrari academy, and second in Formula 2 with three rounds to go, seven points behind Nikola Tsolov. Brazilian reports make him the quickest of the candidates who drove the Haas at Portimão, though the team has not published the times. Signing him would give Haas two Ferrari juniors.',
-  },
-  {
-    driver: 'Esteban Ocon',
-    claim:
-      'Holds the seat, has won a Grand Prix, and knows the team. At Baku on 23 September, he called himself a free agent for 2027 and said talks with Haas were ongoing.',
+      'Ferrari academy, leading Formula 2, and the favourite for the seat. Brazilian reports make him the quickest of the candidates who drove the Haas at Portimão, though the team has not published the times. Signing him would give Haas two Ferrari juniors.',
   },
   {
     driver: 'Jack Doohan',

@@ -14,6 +14,30 @@
  */
 export const F1_STORE_TRACKING_URL = 'https://f1.pxf.io/c/1208040/852471/11910';
 
+/**
+ * Store pages a link may ask for with `?page=`, each under its own Impact ad so
+ * the dashboard reports it separately from the front-page link.
+ *
+ * An allowlist rather than a path from the query string: the redirect sits on
+ * our domain, and one that forwarded any path would be an open redirect into
+ * a shop with our click id on it. The paths are the same on every regional
+ * shop (checked 2026-10-01), so the shop is still chosen per visitor.
+ */
+export const F1_STORE_PAGES = {
+  'esteban-ocon': {
+    path: 'esteban-ocon/a-2384886157+z-977991-74467561',
+    trackingUrl: 'https://f1.pxf.io/c/1208040/866088/11910',
+  },
+} as const;
+
+type F1StorePage = keyof typeof F1_STORE_PAGES;
+
+function storePageFor(page: string | null) {
+  return page && Object.hasOwn(F1_STORE_PAGES, page)
+    ? F1_STORE_PAGES[page as F1StorePage]
+    : undefined;
+}
+
 type Shop = {
   origin: string;
   /** Path prefixes the shop serves, in the store's own order. */
@@ -90,12 +114,19 @@ function languageFor(shop: Shop, acceptLanguage: string | null): string {
  * `country` is Cloudflare's `cf-ipcountry` header: an ISO code, `XX` when
  * unknown, `T1` for Tor, and absent in local dev. All three of those land on
  * the international shop.
+ *
+ * `page` is a key of {@link F1_STORE_PAGES}. Anything else, including a
+ * mistyped key, falls back to the shop's front page rather than failing: a
+ * reader who clicked a store link should still reach the store.
  */
 export function f1StoreUrlFor(
   country: string | null,
   acceptLanguage: string | null,
+  page: string | null = null,
 ): string {
   const shop = shopFor(country);
-  const destination = `${shop.origin}/${languageFor(shop, acceptLanguage)}/`;
-  return `${F1_STORE_TRACKING_URL}?u=${encodeURIComponent(destination)}`;
+  const storePage = storePageFor(page);
+  const destination = `${shop.origin}/${languageFor(shop, acceptLanguage)}/${storePage?.path ?? ''}`;
+  const tracking = storePage?.trackingUrl ?? F1_STORE_TRACKING_URL;
+  return `${tracking}?u=${encodeURIComponent(destination)}`;
 }

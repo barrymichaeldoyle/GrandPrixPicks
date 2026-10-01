@@ -86,6 +86,7 @@ import type * as results from "../results.js";
 import type * as resultsRecheck from "../resultsRecheck.js";
 import type * as seed from "../seed.js";
 import type * as siteTotals from "../siteTotals.js";
+import type * as storeProducts from "../storeProducts.js";
 import type * as support from "../support.js";
 import type * as testing from "../testing.js";
 import type * as testingScenarios from "../testingScenarios.js";
@@ -178,6 +179,7 @@ declare const fullApi: ApiFromModules<{
   resultsRecheck: typeof resultsRecheck;
   seed: typeof seed;
   siteTotals: typeof siteTotals;
+  storeProducts: typeof storeProducts;
   support: typeof support;
   testing: typeof testing;
   testingScenarios: typeof testingScenarios;

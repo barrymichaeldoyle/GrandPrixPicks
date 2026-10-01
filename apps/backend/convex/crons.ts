@@ -102,4 +102,13 @@ crons.interval(
   internal.youtubeUploads.reconcile,
   {},
 );
+// F1 Store products for the affiliate store pages. Prices and stock move
+// daily at most; four runs a day keeps a sold-out item off the page.
+crons.interval(
+  'sync F1 Store products',
+  { hours: 6 },
+  internal.storeProducts.sync,
+  {},
+);
+
 export default crons;

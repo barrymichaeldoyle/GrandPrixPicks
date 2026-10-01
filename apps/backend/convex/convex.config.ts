@@ -10,6 +10,8 @@ const app = defineApp({
     NEWS_WORKER_SECRET: v.optional(v.string()),
     NEWS_RSS_ALLOWED_HOSTS: v.optional(v.string()),
     YOUTUBE_WEBSUB_SECRET: v.optional(v.string()),
+    IMPACT_ACCOUNT_SID: v.optional(v.string()),
+    IMPACT_AUTH_TOKEN: v.optional(v.string()),
   },
 });
 app.use(resend);

@@ -1,5 +1,5 @@
 import { ArrowUpRight } from 'lucide-react';
-import type { CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 
 import { primaryButtonStyles } from '@/components/Button/Button';
 import { captureAnalyticsEvent } from '@/lib/analytics';
@@ -58,39 +58,82 @@ const DISCLOSURE = 'We earn a commission on purchases made through this link.';
  * Eleven team colours in the house lean are the card's picture: the grid is
  * what the store sells, and it is the one decoration that needs no asset.
  *
+ * `storePage` is the race's slug. When the store sells merch named for the
+ * race (Singapore's special-edition kit, Mexico's skull graphics), the
+ * visitor's own shop's pieces replace the colours and the generic line, after
+ * the page loads (see `apps/backend/convex/storeProducts.ts`). A race with
+ * none, and a shop with none in stock, keep the generic card.
+ *
  * Not a shop page and not a section: the write-ups are the pages search ranks
  * and AdSense reviews (see `docs/seo-content-policy.md`).
  */
-export function RaceWriteupStoreCard({ wide = false }: { wide?: boolean }) {
+export function RaceWriteupStoreCard({
+  wide = false,
+  storePage,
+}: {
+  wide?: boolean;
+  storePage?: string;
+}) {
+  const products = useStoreProducts(storePage);
+  const hasProducts = products.length > 0;
+
   return (
     <article
       className={`gpp-team-bar gpp-team-bar-lean flex flex-col bg-surface p-4 sm:p-6 ${
-        wide ? 'sm:col-span-2 sm:flex-row sm:items-end sm:gap-10' : ''
+        wide
+          ? hasProducts
+            ? 'sm:col-span-2'
+            : 'sm:col-span-2 sm:flex-row sm:items-end sm:gap-10'
+          : ''
       }`}
       style={{ '--team-colour': 'var(--accent)' } as CSSProperties}
     >
-      <div className={wide ? 'sm:flex-1' : ''}>
-        <p className="gpp-mono text-xs text-text-muted">Affiliate link</p>
-        <h3 className="font-title mt-1 text-lg font-medium text-text">
-          Team kit at the F1 Store
-        </h3>
-        <div className="mt-3 flex gap-1" aria-hidden>
-          {Object.entries(TEAM_COLORS).map(([team, colour]) => (
-            <span
-              key={team}
-              className="h-7 w-3.5 [clip-path:polygon(var(--stripe-lean)_0,100%_0,calc(100%-var(--stripe-lean))_100%,0_100%)]"
-              style={{ background: colour }}
-            />
-          ))}
-        </div>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Caps, shirts and driver merch for every team on the grid, from the
-          official store for your country.
+      <div className={wide && !hasProducts ? 'sm:flex-1' : ''}>
+        <p className="gpp-mono text-xs text-text-muted">
+          {hasProducts ? 'Affiliate links' : 'Affiliate link'}
         </p>
+        <h3 className="font-title mt-1 text-lg font-medium text-text">
+          {hasProducts
+            ? 'Race merch at the F1 Store'
+            : 'Team kit at the F1 Store'}
+        </h3>
+        <StoreProductList
+          products={products}
+          className={`mt-3 grid gap-2 ${wide ? 'sm:grid-cols-3' : ''}`}
+          columns={wide}
+          onClick={() =>
+            captureAnalyticsEvent('race_writeup_store_link_clicked', {
+              placement: 'news',
+              page: storePage,
+              product: true,
+            })
+          }
+        />
+        {hasProducts ? null : (
+          <div className="mt-3 flex gap-1" aria-hidden>
+            {Object.entries(TEAM_COLORS).map(([team, colour]) => (
+              <span
+                key={team}
+                className="h-7 w-3.5 [clip-path:polygon(var(--stripe-lean)_0,100%_0,calc(100%-var(--stripe-lean))_100%,0_100%)]"
+                style={{ background: colour }}
+              />
+            ))}
+          </div>
+        )}
+        {hasProducts ? null : (
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            Caps, shirts and driver merch for every team on the grid, from the
+            official store for your country.
+          </p>
+        )}
       </div>
       <div
         className={
-          wide ? 'mt-4 sm:mt-0 sm:shrink-0' : 'mt-4 sm:mt-auto sm:pt-4'
+          wide && hasProducts
+            ? 'mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4'
+            : wide
+              ? 'mt-4 sm:mt-0 sm:shrink-0'
+              : 'mt-4 sm:mt-auto sm:pt-4'
         }
       >
         <a
@@ -101,7 +144,13 @@ export function RaceWriteupStoreCard({ wide = false }: { wide?: boolean }) {
           <ArrowUpRight aria-hidden />
           <span className="sr-only"> (opens in a new tab)</span>
         </a>
-        <p className="mt-2 text-xs text-text-muted">{DISCLOSURE}</p>
+        <p
+          className={`text-xs text-text-muted ${wide && hasProducts ? '' : 'mt-2'}`}
+        >
+          {hasProducts
+            ? 'We earn a commission on purchases made through these links.'
+            : DISCLOSURE}
+        </p>
       </div>
     </article>
   );
@@ -127,15 +176,163 @@ export function RaceWriteupStoreLink() {
   );
 }
 
+/** One product from the visitor's regional catalog, as `/api/f1-store/items` returns it. */
+type StoreProduct = {
+  name: string;
+  imageUrl: string;
+  url: string;
+  currentPrice: number;
+  originalPrice?: number;
+  currency: string;
+};
+
+function isStoreProduct(value: unknown): value is StoreProduct {
+  const item = value as Partial<StoreProduct> | null;
+  return (
+    typeof item?.name === 'string' &&
+    typeof item.imageUrl === 'string' &&
+    typeof item.url === 'string' &&
+    item.url.startsWith('https://f1.pxf.io/') &&
+    typeof item.currentPrice === 'number' &&
+    typeof item.currency === 'string'
+  );
+}
+
 /**
- * One store page inside a guide's driver card: a line saying what is there and
- * a button to it. The copy is the guide's, because only the guide knows why
- * the merch is worth mentioning (Ocon's, for one, is a leaving driver's last
- * Haas stock).
+ * The visitor's products for a store page, or an empty list until they load
+ * and whenever their shop has none. Fetched after hydration because the page
+ * itself is cached for every country at once.
+ */
+function useStoreProducts(page: string | undefined): StoreProduct[] {
+  const [products, setProducts] = useState<StoreProduct[]>([]);
+  useEffect(() => {
+    if (!page) {
+      return;
+    }
+    const controller = new AbortController();
+    fetch(`/api/f1-store/items?page=${page}`, { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : { items: [] }))
+      .then((body: { items?: unknown }) => {
+        setProducts(
+          Array.isArray(body.items) ? body.items.filter(isStoreProduct) : [],
+        );
+      })
+      .catch(() => {
+        // Aborted on unmount, or offline: the plain link still works.
+      });
+    return () => controller.abort();
+  }, [page]);
+  return products;
+}
+
+function formatPrice(amount: number, currency: string) {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency,
+    }).format(amount);
+  } catch {
+    return `${amount.toFixed(2)} ${currency}`;
+  }
+}
+
+/** The catalog serves 2000px originals; a tile needs a fraction of that. */
+function thumbnail(imageUrl: string) {
+  try {
+    const url = new URL(imageUrl);
+    url.searchParams.set('w', '240');
+    return url.toString();
+  } catch {
+    return imageUrl;
+  }
+}
+
+/**
+ * Products as tiles: photo, name, price, and the sale's original price struck
+ * through. Renders nothing for an empty list, so a caller can place it
+ * unconditionally and keep its own fallback copy.
+ */
+function StoreProductList({
+  products,
+  className,
+  onClick,
+  columns = false,
+}: {
+  products: StoreProduct[];
+  className: string;
+  onClick: () => void;
+  /**
+   * Photo above the name, for tiles laid side by side. Beside the name, a
+   * third of a card's width left room for two words of "Audi F1 adidas
+   * Special Edition Singapore GP Team Cap".
+   */
+  columns?: boolean;
+}) {
+  if (products.length === 0) {
+    return null;
+  }
+  return (
+    <ul className={className}>
+      {products.map((product) => (
+        <li key={product.url}>
+          <a
+            href={product.url}
+            target="_blank"
+            rel="sponsored noopener"
+            onClick={onClick}
+            className={`group flex gap-3 rounded-sm border border-border p-2 hover:border-border-strong ${
+              columns ? 'h-full flex-col' : 'items-center'
+            }`}
+          >
+            {/* White behind the photo: the catalog shoots products on white,
+                and a dark surface around a white square reads as a hole in
+                the card. */}
+            <img
+              src={thumbnail(product.imageUrl)}
+              alt=""
+              width={72}
+              height={72}
+              loading="lazy"
+              decoding="async"
+              className={`shrink-0 rounded-sm bg-white object-contain ${
+                columns ? 'h-32 w-full' : 'size-18'
+              }`}
+            />
+            <span className="min-w-0">
+              <span className="line-clamp-2 text-sm text-text group-hover:underline">
+                {product.name}
+                <span className="sr-only"> (opens in a new tab)</span>
+              </span>
+              <span className="gpp-mono mt-1 block text-sm">
+                <span className="font-semibold text-text">
+                  {formatPrice(product.currentPrice, product.currency)}
+                </span>
+                {product.originalPrice ? (
+                  <s className="ml-2 text-text-muted">
+                    {formatPrice(product.originalPrice, product.currency)}
+                  </s>
+                ) : null}
+              </span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * One store page inside a guide's driver card: the products the visitor's
+ * own shop has under it, then a line saying what is there and a button to the
+ * whole page. The copy is the guide's, because only the guide knows why the
+ * merch is worth mentioning (Ocon's, for one, is a leaving driver's last Haas
+ * stock).
  *
- * No product photo. Each regional shop stocks a different selection under the
- * same page, so one picture would be wrong for some readers, and clearance
- * stock sells out under an evergreen page.
+ * The products come from the store's Impact catalogs, synced by the backend
+ * (`storeProducts.ts`), so the photos are ones affiliates may use and each
+ * shop shows its own stock in its own currency. Until they load, and in a
+ * shop with nothing in stock, the card is just the line and the button: a
+ * sold-out item leaves the page on the next sync without anyone editing it.
  */
 export function F1StorePageLink({
   page,
@@ -146,8 +343,21 @@ export function F1StorePageLink({
   text: string;
   label: string;
 }) {
+  const products = useStoreProducts(page);
+
   return (
     <div className="clear-both mt-5 border-t border-border pt-4">
+      <StoreProductList
+        products={products}
+        className="mb-4 grid gap-3"
+        onClick={() =>
+          captureAnalyticsEvent('race_writeup_store_link_clicked', {
+            placement: 'guide',
+            page,
+            product: true,
+          })
+        }
+      />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-text">{text}</p>
         <a
@@ -160,7 +370,7 @@ export function F1StorePageLink({
         </a>
       </div>
       <p className="mt-2 text-xs text-text-muted">
-        Affiliate link. {DISCLOSURE}
+        Affiliate links. We earn a commission on purchases made through them.
       </p>
     </div>
   );

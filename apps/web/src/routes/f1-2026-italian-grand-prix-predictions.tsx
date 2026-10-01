@@ -367,7 +367,7 @@ function ItalianGrandPrixPredictionsPage() {
             the feed item that reports it. */}
       {isLive ? (
         <>
-          <WeekendNewsSection items={news.items} />
+          <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
           <MonzaSeats byCode={driversByCode} />
           <WeekendPracticeSection
             results={practice}

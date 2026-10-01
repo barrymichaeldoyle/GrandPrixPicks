@@ -189,7 +189,7 @@ function SingaporeGrandPrixPredictionsPage() {
           have an item or a session. */}
       {isLive ? (
         <>
-          <WeekendNewsSection items={news.items} />
+          <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
           <WeekendPracticeSection
             results={practice}
             raceSlug={RACE_SLUG}

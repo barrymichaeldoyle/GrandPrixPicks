@@ -84,7 +84,14 @@ function cardId(key: string) {
  */
 const LEAD_ITEMS = 6;
 
-export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
+export function WeekendNewsSection({
+  items,
+  storePage,
+}: {
+  items: NewsItem[];
+  /** The race's slug, for race merch in the store card. */
+  storePage?: string;
+}) {
   const foldRef = useRef<HTMLDetailsElement>(null);
 
   // A shared `#news-...` link to a folded card has to open the fold, or it
@@ -159,7 +166,9 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
         items={lead}
         newsLink={newsLink}
         className="mt-7"
-        trailing={(wide) => <RaceWriteupStoreCard wide={wide} />}
+        trailing={(wide) => (
+          <RaceWriteupStoreCard wide={wide} storePage={storePage} />
+        )}
       />
 
       {/* Native `<details>`, like the FAQ: the folded cards are still in the

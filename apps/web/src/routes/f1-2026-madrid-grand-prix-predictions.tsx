@@ -446,7 +446,7 @@ function MadridGrandPrixPredictionsPage() {
           mattering in. */}
       {isLive ? (
         <>
-          <WeekendNewsSection items={news.items} />
+          <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
           <SaturdayAtMadring />
           <WeekendPracticeSection
             results={practice}

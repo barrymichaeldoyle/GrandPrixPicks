@@ -1293,4 +1293,22 @@ export default defineSchema({
       'sessionType',
     ])
     .index('by_raceId_and_sessionType', ['raceId', 'sessionType']),
+
+  // F1 Store products for an affiliate store page (`storeProducts.ts`), one
+  // row per item per Impact catalog. Replaced whole on every sync, so a sold
+  // out or delisted item disappears rather than lingering.
+  storeProducts: defineTable({
+    page: v.string(),
+    catalogId: v.string(),
+    catalogItemId: v.string(),
+    name: v.string(),
+    imageUrl: v.string(),
+    /** Impact tracking link to the product, as the catalog supplies it. */
+    url: v.string(),
+    currentPrice: v.number(),
+    originalPrice: v.optional(v.number()),
+    currency: v.string(),
+    inStock: v.boolean(),
+    syncedAt: v.number(),
+  }).index('by_page_and_catalogId', ['page', 'catalogId']),
 });

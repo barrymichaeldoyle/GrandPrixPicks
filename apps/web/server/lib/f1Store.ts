@@ -42,19 +42,31 @@ type Shop = {
   origin: string;
   /** Path prefixes the shop serves, in the store's own order. */
   languages: readonly string[];
+  /**
+   * The shop's Impact product catalogs by language, read by the store-page
+   * product tiles (`apps/backend/convex/storeProducts.ts`). The first is the
+   * fallback for a language with no catalog. Absent for the US shop, which
+   * has no catalog: its "US" catalog is really the international one.
+   */
+  catalogs?: Record<string, string>;
 };
 
 const UK: Shop = {
   origin: 'https://f1store.formula1.com',
   languages: ['en', 'de', 'es', 'fr'],
+  catalogs: { en: '6648' },
 };
 const EU: Shop = {
   origin: 'https://f1store2.formula1.com',
   languages: ['en', 'de', 'es', 'fr'],
+  // French first: it is the shop's own default, and there is no English
+  // catalog for the EU.
+  catalogs: { fr: '6649', es: '6650', de: '6651' },
 };
 const AUSTRALIA: Shop = {
   origin: 'https://f1store3.formula1.com',
   languages: ['en', 'es', 'fr'],
+  catalogs: { en: '6652' },
 };
 const US: Shop = {
   origin: 'https://usf1store.formula1.com',
@@ -64,6 +76,7 @@ const US: Shop = {
 const INTERNATIONAL: Shop = {
   origin: 'https://f1store4.formula1.com',
   languages: ['en', 'es', 'fr'],
+  catalogs: { en: '6653' },
 };
 
 const UK_COUNTRIES = new Set(['GB', 'GG', 'JE', 'IM']);
@@ -129,4 +142,24 @@ export function f1StoreUrlFor(
   const destination = `${shop.origin}/${languageFor(shop, acceptLanguage)}/${storePage?.path ?? ''}`;
   const tracking = storePage?.trackingUrl ?? F1_STORE_TRACKING_URL;
   return `${tracking}?u=${encodeURIComponent(destination)}`;
+}
+
+/**
+ * The Impact catalog whose products this visitor should see: their shop's,
+ * in their language where the shop has a catalog for it. Null for a shop with
+ * no catalog, and the caller shows the plain link instead.
+ */
+export function f1StoreCatalogFor(
+  country: string | null,
+  acceptLanguage: string | null,
+): string | null {
+  const { catalogs } = shopFor(country);
+  if (!catalogs) {
+    return null;
+  }
+  return (
+    catalogs[languageFor(shopFor(country), acceptLanguage)] ??
+    Object.values(catalogs)[0] ??
+    null
+  );
 }

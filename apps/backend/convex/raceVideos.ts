@@ -9,6 +9,7 @@ import {
   validateVideoId,
 } from './lib/raceVideos';
 import schema from './schema';
+import { fetchWithTimeout } from './lib/fetchWithTimeout';
 
 /** One reviewed official video per race/session; replacing it updates every surface. */
 export const list = query({
@@ -44,8 +45,7 @@ export const attach = internalAction({
       `https://www.youtube.com/watch?v=${args.videoId}`,
     );
     endpoint.searchParams.set('format', 'json');
-    const response = await fetch(endpoint, {
-      signal: AbortSignal.timeout(10000),
+    const response = await fetchWithTimeout(endpoint, {
       redirect: 'error',
     });
     if (!response.ok) {

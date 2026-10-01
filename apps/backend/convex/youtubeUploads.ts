@@ -23,6 +23,7 @@ import {
 } from './lib/raceVideos';
 import { upsertRaceVideo } from './raceVideos';
 import schema from './schema';
+import { fetchWithTimeout } from './lib/fetchWithTimeout';
 
 const uploadArgs = {
   videoId: v.string(),
@@ -211,8 +212,7 @@ export const process = internalAction({
         `https://www.youtube.com/watch?v=${upload.videoId}`,
       );
       url.searchParams.set('format', 'json');
-      const response = await fetch(url, {
-        signal: AbortSignal.timeout(10000),
+      const response = await fetchWithTimeout(url, {
         redirect: 'error',
       });
       if (!response.ok) {
@@ -445,20 +445,22 @@ export const renew = internalAction({
       verifyToken: token,
     });
     try {
-      const response = await fetch('https://pubsubhubbub.appspot.com/', {
-        method: 'POST',
-        redirect: 'error',
-        signal: AbortSignal.timeout(10000),
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          'hub.callback': callback,
-          'hub.topic': YOUTUBE_TOPIC,
-          'hub.mode': 'subscribe',
-          'hub.verify': 'async',
-          'hub.lease_seconds': '432000',
-          'hub.secret': secret,
-        }),
-      });
+      const response = await fetchWithTimeout(
+        'https://pubsubhubbub.appspot.com/',
+        {
+          method: 'POST',
+          redirect: 'error',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            'hub.callback': callback,
+            'hub.topic': YOUTUBE_TOPIC,
+            'hub.mode': 'subscribe',
+            'hub.verify': 'async',
+            'hub.lease_seconds': '432000',
+            'hub.secret': secret,
+          }).toString(),
+        },
+      );
       if (response.status !== 202 && response.status !== 204) {
         throw new Error(
           `YouTube hub refused subscription (${response.status})`,
@@ -493,8 +495,7 @@ export const reconcile = internalAction({
     }
     await ctx.runAction(internal.youtubeUploads.renew, {});
     try {
-      const response = await fetch(YOUTUBE_TOPIC, {
-        signal: AbortSignal.timeout(10000),
+      const response = await fetchWithTimeout(YOUTUBE_TOPIC, {
         redirect: 'error',
       });
       if (!response.ok) {

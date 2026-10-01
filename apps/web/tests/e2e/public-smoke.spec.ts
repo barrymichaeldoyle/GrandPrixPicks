@@ -54,16 +54,22 @@ test.describe('[public] smoke', () => {
     await expect(
       page.getByRole('heading', { name: 'Pick each team-mate winner' }),
     ).toBeVisible();
-    await expect(page.getByTestId('h2h-duel-progress')).toHaveText(
-      'Team-mate pick 1 of 11',
+    // Duels the Top 5 already settles start out filled in, so how many are
+    // left to ask depends on which five drivers were picked: fewer than the
+    // 11 on the grid, never none. The total is read rather than written down,
+    // and the check is that the sequence moves on.
+    const progress = page.getByTestId('h2h-duel-progress');
+    await expect(progress).toHaveText(/^Team-mate pick 1 of \d+$/);
+    const total = Number(
+      (await progress.textContent())?.match(/of (\d+)/)?.[1],
     );
+    expect(total).toBeGreaterThan(1);
+    expect(total).toBeLessThanOrEqual(11);
     await page
       .locator('[data-testid="h2h-duel-picker"] button[aria-label^="Pick"]')
       .first()
       .click();
-    await expect(page.getByTestId('h2h-duel-progress')).toHaveText(
-      'Team-mate pick 2 of 11',
-    );
+    await expect(progress).toHaveText(`Team-mate pick 2 of ${total}`);
 
     await page.goto('/how-to-play');
     const guideHeader = page.getByRole('banner');

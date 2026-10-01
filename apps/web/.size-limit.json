@@ -20,8 +20,17 @@
     "limit": "40 KB"
   },
   {
-    "name": "all client JS (except /trmnl)",
-    "path": [".output/public/assets/*.js", "!.output/public/assets/trmnl-*.js"],
+    "name": "all client JS (except /trmnl and race write-ups)",
+    "path": [
+      ".output/public/assets/*.js",
+      "!.output/public/assets/trmnl-*.js",
+      "!.output/public/assets/f1-20*-grand-prix-predictions-*.js"
+    ],
     "limit": "630 KB"
+  },
+  {
+    "name": "race write-ups (each loads only on its own page; ~6 KB per write-up, sized for the 2026 season)",
+    "path": ".output/public/assets/f1-20*-grand-prix-predictions-*.js",
+    "limit": "64 KB"
   }
 ]

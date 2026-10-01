@@ -726,6 +726,7 @@ function H2HPickerSkeleton() {
   return (
     <div
       className="grid grid-cols-1 gap-2 pb-2 lg:grid-cols-2 xl:grid-cols-3"
+      role="status"
       aria-busy="true"
       aria-label="Loading team-mate matchups"
     >

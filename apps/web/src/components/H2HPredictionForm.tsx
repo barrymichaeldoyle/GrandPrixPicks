@@ -1,5 +1,6 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
+import { inferH2HPicks } from '@grandprixpicks/shared/h2hInference';
 import {
   getWebH2HDraftStorageKey,
   getWebTop5DraftStorageKey,
@@ -67,7 +68,10 @@ interface H2HPredictionFormProps {
   draftNoticeTarget?: HTMLElement | null;
   /** Emits duel progress so a parent funnel can label its own tab/step. */
   onSelectionProgress?: (selected: number, total: number) => void;
-  /** Top 5 slot (1-5) per driver, surfaced on the matching duel card. */
+  /**
+   * Top 5 slot (1-5) per driver. Shown on the matching duel card, and every
+   * duel it answers starts out called (see `inferH2HPicks`).
+   */
   topFivePositions?: Record<string, number | undefined>;
   /**
    * Leaves the duel sequence from battle one (e.g. back to Top 5). Wired to
@@ -95,6 +99,28 @@ type H2HDraft = {
   selections: Record<string, Id<'drivers'>>;
   updatedAt: string;
 };
+
+/** Key-order-free, so a merged object compares equal to a saved one. */
+function picksSignature(picks: Record<string, string>): string {
+  return JSON.stringify(
+    Object.keys(picks)
+      .sort()
+      .map((key) => [key, picks[key]]),
+  );
+}
+
+/** Driver ids in Top 5 order, from the slot-per-driver map. */
+function topFiveOrder(
+  positions: Record<string, number | undefined> | undefined,
+): string[] {
+  if (!positions) {
+    return [];
+  }
+  return Object.entries(positions)
+    .filter((entry): entry is [string, number] => entry[1] !== undefined)
+    .sort((a, b) => a[1] - b[1])
+    .map(([driverId]) => driverId);
+}
 
 /** Yield one tick so the final selection renders before its silent backup. */
 const AUTO_SAVE_DELAY_MS = 0;
@@ -129,9 +155,15 @@ export function H2HPredictionForm({
   const authCompletedCapturedRef = useRef(false);
   const sequenceStartedAtRef = useRef<number | null>(null);
 
-  const [selections, setSelections] = useState<Record<string, Id<'drivers'>>>(
-    existingPicks ?? {},
-  );
+  /**
+   * The calls this form is answerable for: saved picks plus anything tapped.
+   * Duels the Top 5 answers are layered underneath at render rather than
+   * copied in here, so they keep following the Top 5 until the player taps
+   * one, and a draft only ever holds what the player actually chose.
+   */
+  const [explicitPicks, setExplicitPicks] = useState<
+    Record<string, Id<'drivers'>>
+  >(existingPicks ?? {});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<
     'idle' | 'success' | 'error'
@@ -140,7 +172,7 @@ export function H2HPredictionForm({
   const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
   const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
   const [persistedSignature, setPersistedSignature] = useState(() =>
-    JSON.stringify(existingPicks ?? {}),
+    picksSignature(existingPicks ?? {}),
   );
   const reportDirtyChange = useEffectEvent((dirty: boolean) =>
     onDirtyChange?.(dirty),
@@ -154,20 +186,41 @@ export function H2HPredictionForm({
   useIsomorphicLayoutEffect(() => {
     const draft = loadPredictionDraft<H2HDraft>(draftKey);
     if (draft && Object.keys(draft.selections).length > 0) {
-      setSelections(draft.selections);
+      setExplicitPicks(draft.selections);
       setRestoredDraftAt(draft.updatedAt);
     } else {
-      setSelections(existingPicks ?? {});
+      setExplicitPicks(existingPicks ?? {});
       setRestoredDraftAt(null);
     }
-    setPersistedSignature(JSON.stringify(existingPicks ?? {}));
+    setPersistedSignature(picksSignature(existingPicks ?? {}));
     setHasHydratedDraft(true);
   }, [draftKey, existingPicks]);
 
+  const inferredPicks = inferH2HPicks(
+    matchups.map((matchup) => ({
+      matchupId: matchup._id as string,
+      driver1Id: matchup.driver1._id,
+      driver2Id: matchup.driver2._id,
+    })),
+    topFiveOrder(topFivePositions),
+  ) as Record<string, Id<'drivers'>>;
+  const selections: Record<string, Id<'drivers'>> = {
+    ...inferredPicks,
+    ...explicitPicks,
+  };
+  /** Duels currently showing the Top 5's answer rather than a tap. */
+  const inferredMatchupIds = new Set(
+    Object.keys(inferredPicks).filter((id) => !(id in explicitPicks)),
+  );
+  const inferredCount = inferredMatchupIds.size;
+
   const totalMatchups = matchups.length;
-  const selectedCount = Object.keys(selections).length;
-  const allSelected = selectedCount === totalMatchups;
-  const selectionsSignature = JSON.stringify(selections);
+  const selectedCount = matchups.filter(
+    (matchup) => selections[matchup._id] !== undefined,
+  ).length;
+  const allSelected = totalMatchups > 0 && selectedCount === totalMatchups;
+  const selectionsSignature = picksSignature(selections);
+  const explicitSignature = picksSignature(explicitPicks);
   const isFirstEntry =
     !existingPicks || Object.keys(existingPicks).length === 0;
   // Kept apart from `isFirstEntry` on purpose. That flag still means "nothing
@@ -203,11 +256,14 @@ export function H2HPredictionForm({
   ) {
     markInteraction();
     const changedPick = selections[matchupId] !== undefined;
+    const wasInferred = inferredMatchupIds.has(matchupId);
     const next = {
       ...selections,
       [matchupId]: driverId,
     };
-    const nextCount = Object.keys(next).length;
+    const nextCount = matchups.filter(
+      (candidate) => next[candidate._id] !== undefined,
+    ).length;
     const matchupIndex = matchups.findIndex(
       (matchup) => matchup._id === matchupId,
     );
@@ -220,6 +276,7 @@ export function H2HPredictionForm({
         race_id: raceId,
         session_type: sessionType ?? 'cascade',
         matchup_count: totalMatchups,
+        inferred_count: inferredCount,
         source: analyticsSource,
         entry_method: entryMethod,
       });
@@ -240,9 +297,23 @@ export function H2HPredictionForm({
       selected_count: nextCount,
       team: matchup?.team,
       changed_pick: changedPick,
+      was_inferred: wasInferred,
       source: analyticsSource,
       entry_method: entryMethod,
     });
+
+    // The hedge rate: how often a player backs the team-mate their own Top 5
+    // ranked lower. Tapping the inferred driver again is a confirmation, not
+    // a hedge, so it is not counted.
+    if (wasInferred && selections[matchupId] !== driverId) {
+      captureAnalyticsEvent('h2h_inferred_pick_changed', {
+        race_id: raceId,
+        session_type: sessionType ?? 'cascade',
+        team: matchup?.team,
+        source: analyticsSource,
+        entry_method: entryMethod,
+      });
+    }
 
     if (nextCount === totalMatchups && !completedCapturedRef.current) {
       completedCapturedRef.current = true;
@@ -253,6 +324,7 @@ export function H2HPredictionForm({
         race_id: raceId,
         session_type: sessionType ?? 'cascade',
         matchup_count: totalMatchups,
+        inferred_count: inferredMatchupIds.size - (wasInferred ? 1 : 0),
         duration_ms: durationMs,
         source: analyticsSource,
         entry_method: entryMethod,
@@ -283,7 +355,7 @@ export function H2HPredictionForm({
       }
     }
 
-    setSelections(next);
+    setExplicitPicks({ ...explicitPicks, [matchupId]: driverId });
     setSubmitStatus('idle');
   }
 
@@ -320,6 +392,7 @@ export function H2HPredictionForm({
         ),
         restored_draft: Boolean(restoredDraftAt),
         matchup_count: totalMatchups,
+        inferred_count: inferredCount,
         auto_saved: Boolean(options?.autoSaved),
         after_sign_in: Boolean(options?.afterSignIn),
         source: analyticsSource,
@@ -333,6 +406,9 @@ export function H2HPredictionForm({
           after_sign_in: Boolean(options?.afterSignIn),
         });
       }
+      // Everything just saved is the player's card now, inferred or not: the
+      // server keeps it in step with later Top 5 edits from here on.
+      setExplicitPicks(selections);
       setPersistedSignature(selectionsSignature);
       clearPredictionDraft(draftKey);
       clearPendingSubmit(draftKey);
@@ -463,12 +539,18 @@ export function H2HPredictionForm({
   }, [isAuthenticated, hasHydratedDraft, draftKey, allSelected, isSubmitting]);
 
   const hasChanges = selectionsSignature !== persistedSignature;
+  /**
+   * Whether the player has done anything worth keeping. Calls filled in from
+   * the Top 5 are re-derived on every open, so on their own they are neither a
+   * draft to restore nor unsaved work to warn about.
+   */
+  const hasPlayerChanges = explicitSignature !== persistedSignature;
 
   // Effect Events read current callbacks without notifying again just because
   // a parent supplied a new inline function.
   useEffect(() => {
-    reportDirtyChange(hasChanges);
-  }, [hasChanges]);
+    reportDirtyChange(hasPlayerChanges);
+  }, [hasPlayerChanges]);
 
   useEffect(() => {
     reportSelectionProgress(selectedCount, totalMatchups);
@@ -479,16 +561,16 @@ export function H2HPredictionForm({
       return;
     }
 
-    if (hasChanges) {
+    if (hasPlayerChanges) {
       savePredictionDraft<H2HDraft>(draftKey, {
-        selections,
+        selections: explicitPicks,
         updatedAt: new Date().toISOString(),
       });
       return;
     }
 
     clearPredictionDraft(draftKey);
-  }, [draftKey, hasChanges, hasHydratedDraft, selections]);
+  }, [draftKey, hasPlayerChanges, hasHydratedDraft, explicitPicks]);
 
   const isUnchangedFromSaved = Boolean(
     allSelected &&
@@ -496,7 +578,7 @@ export function H2HPredictionForm({
     ((existingPicks && Object.keys(existingPicks).length === totalMatchups) ||
       (isFirstEntry &&
         persistedSignature === selectionsSignature &&
-        persistedSignature !== '{}')),
+        persistedSignature !== picksSignature({}))),
   );
 
   const submitButtonProps = {
@@ -546,7 +628,7 @@ export function H2HPredictionForm({
       session_type: sessionType ?? 'cascade',
       matchup_count: totalMatchups,
     });
-    setSelections(existingPicks ?? {});
+    setExplicitPicks(existingPicks ?? {});
     setSubmitStatus('idle');
     setErrorMessage('');
     setRestoredDraftAt(null);
@@ -578,6 +660,7 @@ export function H2HPredictionForm({
           onSelect={toggleSelection}
           draftHydrated={hasHydratedDraft}
           topFivePositions={topFivePositions}
+          inferredMatchupIds={inferredMatchupIds}
           onExitPrevious={onExitPrevious}
           collapsedEdit={collapsedEdit}
           sessionType={sessionType}

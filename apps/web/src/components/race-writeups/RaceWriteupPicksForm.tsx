@@ -113,6 +113,19 @@ export function RaceWriteupPicksForm({
                 sessionType={sessionType}
                 existingPicks={existingH2HPicks}
                 analyticsSource={analyticsSource}
+                // The saved Top 5, not the one being dragged above: it saves
+                // itself on the fifth pick, and the subscription then fills
+                // the duels it answers.
+                topFivePositions={
+                  existingPicks
+                    ? Object.fromEntries(
+                        existingPicks.map((driverId, index) => [
+                          driverId,
+                          index + 1,
+                        ]),
+                      )
+                    : undefined
+                }
               />
             )}
           </div>

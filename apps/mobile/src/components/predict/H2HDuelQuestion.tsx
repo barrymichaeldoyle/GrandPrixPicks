@@ -107,7 +107,7 @@ export function H2HDuelQuestion({
               className="h-[5px] w-[5px] rounded-full"
               style={{ backgroundColor: getTeamColor(matchup.team) }}
             />
-            <Text className="text-muted text-xs font-semibold tracking-wider uppercase">
+            <Text className="text-muted text-xs font-medium">
               {displayTeamName(matchup.team)}
             </Text>
           </View>
@@ -163,7 +163,7 @@ function VersusLabel() {
       className="text-muted text-xs font-semibold"
       style={numeralFontFamily ? { fontFamily: numeralFontFamily } : null}
     >
-      VS
+      vs
     </Text>
   );
 }
@@ -357,7 +357,7 @@ function DuelDriverButton({
       {topFivePosition ? (
         <View className="absolute top-2 left-2 rounded-sm border border-accent/40 px-1 py-0.5">
           <Text className="text-xs leading-none text-accent" style={monoStyle}>
-            YOUR P{topFivePosition}
+            Your P{topFivePosition}
           </Text>
         </View>
       ) : null}

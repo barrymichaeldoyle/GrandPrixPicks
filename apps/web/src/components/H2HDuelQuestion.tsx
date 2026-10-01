@@ -75,7 +75,7 @@ export function H2HDuelQuestion({
           which is the part of the sequence that is supposed to feel still. */}
       <div className="mb-4 shrink-0 text-center" data-testid="h2h-duel-heading">
         {showTeam ? (
-          <p className="gpp-label flex items-center justify-center gap-2 text-text-muted">
+          <p className="flex items-center justify-center gap-2 text-xs font-medium text-text-muted">
             <span
               className="h-1.5 w-1.5 rounded-full"
               style={{ backgroundColor: teamColor }}
@@ -133,7 +133,7 @@ export function H2HDuelQuestion({
           {isTakeover ? (
             <span className="h-px flex-1 bg-border sm:hidden" />
           ) : null}
-          VS
+          vs
           {isTakeover ? (
             <span className="h-px flex-1 bg-border sm:hidden" />
           ) : null}
@@ -337,7 +337,7 @@ function DuelDriverButton({
           this driver in your Top 5, the duel should not make you remember. */}
       {topFivePosition ? (
         <span className="gpp-mono absolute top-2 left-2 rounded-sm border border-accent/40 px-1 py-0.5 text-xs leading-none text-accent">
-          YOUR P{topFivePosition}
+          Your P{topFivePosition}
         </span>
       ) : null}
       <DriverBadge

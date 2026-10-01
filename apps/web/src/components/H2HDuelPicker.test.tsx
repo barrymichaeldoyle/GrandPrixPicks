@@ -356,7 +356,7 @@ describe('H2HDuelPicker', () => {
     expect(heading?.closest('[data-testid="h2h-duel-panel"]')).toBe(null);
 
     const vs = [...(container.querySelectorAll('span') ?? [])].find(
-      (node) => node.textContent?.trim() === 'VS',
+      (node) => node.textContent?.trim() === 'vs',
     );
     expect(vs?.closest('[data-testid="h2h-duel-panel"]')).toBe(null);
     expect(

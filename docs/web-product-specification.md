@@ -262,6 +262,16 @@ Requirements:
 - H2H selections can be revised until the relevant session locks;
 - the first complete selection may save automatically when the final matchup is
   chosen, as indicated by the web interaction;
+- every matchup the session's Top 5 answers starts out selected (a driver in
+  the Top 5 beats a team-mate outside it; of two team-mates in it, the higher
+  slot wins). The duel sequence only asks the rest, the picks strip shows the
+  filled-in ones in a quieter style, and any of them can be changed
+  (`inferH2HPicks` in `packages/shared/src/h2hInference.ts`, rendered by
+  `H2HPredictionForm`, `H2HDuelPicker` and `H2HPicksBar`);
+- saving a changed Top 5 moves each saved H2H pick that still agreed with the
+  old Top 5 onto what the new one implies. A pick against the old Top 5 (a
+  hedge) is never changed, and a pick the new Top 5 says nothing about stays
+  (`followedH2HPick`, applied in `predictions.submitPrediction`);
 - H2H picks are scored only after relevant results are published.
 
 Each correct matchup earns 1 H2H point. An incorrect or unscorable matchup earns

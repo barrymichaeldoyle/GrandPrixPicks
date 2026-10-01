@@ -1,7 +1,8 @@
+import { followedH2HPick } from '@grandprixpicks/shared/h2hInference';
 import { ConvexError, v } from 'convex/values';
 
 import type { Id } from './_generated/dataModel';
-import type { QueryCtx } from './_generated/server';
+import type { MutationCtx, QueryCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 import {
@@ -479,6 +480,14 @@ export const submitPrediction = mutation({
         .unique();
 
       if (existing) {
+        await followTopFiveInH2H(ctx, {
+          userId: viewer._id,
+          raceId: args.raceId,
+          sessionType,
+          previousTopFive: existing.picks,
+          nextTopFive: args.picks,
+          now,
+        });
         await ctx.db.patch(existing._id, {
           picks: args.picks,
           updatedAt: now,
@@ -504,6 +513,58 @@ export const submitPrediction = mutation({
     return results[0]; // Return first created/updated prediction ID
   },
 });
+
+/**
+ * Moves the session's duel picks that were following the old Top 5 onto the
+ * new one.
+ *
+ * The pickers fill every duel a Top 5 answers, so most saved duel picks are
+ * just that Top 5 restated. When it changes they should change with it, or a
+ * player who swaps a driver out on Saturday is left backing them in a duel
+ * they never chose. A hedge (a pick against the old Top 5) is the player's own
+ * call and is never touched; see `followedH2HPick`.
+ */
+async function followTopFiveInH2H(
+  ctx: MutationCtx,
+  params: {
+    userId: Id<'users'>;
+    raceId: Id<'races'>;
+    sessionType: SessionType;
+    previousTopFive: ReadonlyArray<Id<'drivers'>>;
+    nextTopFive: ReadonlyArray<Id<'drivers'>>;
+    now: number;
+  },
+) {
+  const h2hPicks = await ctx.db
+    .query('h2hPredictions')
+    .withIndex('by_user_race_session', (q) =>
+      q
+        .eq('userId', params.userId)
+        .eq('raceId', params.raceId)
+        .eq('sessionType', params.sessionType),
+    )
+    .take(32);
+
+  for (const pick of h2hPicks) {
+    const matchup = await ctx.db.get(pick.matchupId);
+    if (!matchup) {
+      continue;
+    }
+    const next = followedH2HPick({
+      driver1Id: matchup.driver1Id,
+      driver2Id: matchup.driver2Id,
+      savedWinnerId: pick.predictedWinnerId,
+      previousTopFive: params.previousTopFive,
+      nextTopFive: params.nextTopFive,
+    });
+    if (next !== null) {
+      await ctx.db.patch(pick._id, {
+        predictedWinnerId: next,
+        updatedAt: params.now,
+      });
+    }
+  }
+}
 
 function shuffleArray<T>(array: Array<T>): Array<T> {
   const shuffled = [...array];

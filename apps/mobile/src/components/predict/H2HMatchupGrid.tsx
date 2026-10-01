@@ -50,7 +50,7 @@ export function H2HMatchupGrid({
                 className="h-[5px] w-[5px] rounded-full"
                 style={{ backgroundColor: getTeamColor(matchup.team) }}
               />
-              <Text className="text-muted text-xs font-semibold tracking-wider uppercase">
+              <Text className="text-muted text-xs font-medium">
                 {displayTeamName(matchup.team)}
               </Text>
             </View>

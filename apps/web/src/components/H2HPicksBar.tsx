@@ -20,6 +20,7 @@ export function H2HPicksBar({
   matchups,
   selections,
   activeIndex = -1,
+  inferredMatchupIds,
   onSelectIndex,
   ariaLabel = 'Team-mate picks',
   className = 'mt-2',
@@ -29,6 +30,11 @@ export function H2HPicksBar({
   selections: Record<string, H2HDriver['_id'] | undefined>;
   /** Cell currently being asked about, or -1 when nothing is. */
   activeIndex?: number;
+  /**
+   * Calls filled in from the Top 5. They read quieter than a tapped call (no
+   * raised fill, muted code) so a player can see which ones they made.
+   */
+  inferredMatchupIds?: ReadonlySet<string>;
   /** Omit to render a read-only bar (a locked session's saved calls). */
   onSelectIndex?: (index: number) => void;
   ariaLabel?: string;
@@ -63,10 +69,17 @@ export function H2HPicksBar({
           (driver) => driver._id === selectedId,
         );
         const isActive = index === activeIndex;
+        const inferred = Boolean(
+          picked && inferredMatchupIds?.has(matchup._id),
+        );
         const teamColor = TEAM_COLORS[matchup.team] ?? FALLBACK_TEAM_COLOR;
         const label = `Battle ${index + 1} of ${matchups.length}, ${displayTeamName(
           matchup.team,
-        )}. ${picked ? `${picked.displayName} picked` : 'Not called yet'}.`;
+        )}. ${
+          picked
+            ? `${picked.displayName} picked${inferred ? ' from your Top 5' : ''}`
+            : 'Not called yet'
+        }.`;
 
         const cellClassName = `gpp-team-bar flex h-9 min-w-0 items-center justify-center overflow-hidden rounded-sm border pr-1 pl-2 transition-colors sm:h-7 sm:pr-0.5 sm:pl-1.5 ${
           interactive
@@ -75,9 +88,11 @@ export function H2HPicksBar({
         } ${
           isActive
             ? 'border-accent bg-surface-elevated'
-            : picked
-              ? `border-border bg-surface-elevated ${interactive ? 'hover:border-border-strong' : ''}`
-              : `border-dashed border-border bg-page ${interactive ? 'hover:border-border-strong' : ''}`
+            : inferred
+              ? `border-border bg-page ${interactive ? 'hover:border-border-strong' : ''}`
+              : picked
+                ? `border-border bg-surface-elevated ${interactive ? 'hover:border-border-strong' : ''}`
+                : `border-dashed border-border bg-page ${interactive ? 'hover:border-border-strong' : ''}`
         }`;
 
         // Re-keying on the code replays the settle, so a cell visibly takes the
@@ -88,7 +103,7 @@ export function H2HPicksBar({
           <span
             key={picked ? picked.code : 'open'}
             className={`gpp-row-in gpp-mono truncate text-xs leading-none ${
-              picked ? 'text-text' : 'text-text-muted'
+              picked && !inferred ? 'text-text' : 'text-text-muted'
             }`}
           >
             {picked ? picked.code : index + 1}

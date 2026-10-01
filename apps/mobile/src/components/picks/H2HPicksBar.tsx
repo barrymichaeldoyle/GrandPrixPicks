@@ -15,12 +15,15 @@ export function H2HPicksBar({
   matchups,
   selections,
   activeIndex = -1,
+  inferredMatchupIds,
   onSelectIndex,
 }: {
   matchups: ReadonlyArray<H2HBarMatchup>;
   selections: Record<string, string | undefined>;
   /** Cell currently being asked about in the duel sequence, or -1. */
   activeIndex?: number;
+  /** Calls filled in from the Top 5: quieter than a tapped call. Same as web. */
+  inferredMatchupIds?: ReadonlySet<string>;
   onSelectIndex?: (index: number) => void;
 }) {
   const interactive = onSelectIndex !== undefined;
@@ -33,16 +36,25 @@ export function H2HPicksBar({
         const picked = [matchup.driver1, matchup.driver2].find(
           (driver) => driver._id === selectedId,
         );
+        const inferred = Boolean(
+          picked && inferredMatchupIds?.has(matchup._id),
+        );
         const label = `Battle ${index + 1} of ${matchups.length}, ${displayTeamName(
           matchup.team,
-        )}. ${picked ? `${picked.code} picked` : 'Not called yet'}.`;
+        )}. ${
+          picked
+            ? `${picked.code} picked${inferred ? ' from your Top 5' : ''}`
+            : 'Not called yet'
+        }.`;
         const isActive = index === activeIndex;
         const className = `relative h-9 min-w-0 flex-row items-center justify-center overflow-hidden rounded-sm border pr-1 pl-2 ${
           isActive
             ? 'border-accent bg-surface-elevated'
-            : picked
-              ? 'border-border bg-surface-elevated'
-              : 'border-dashed border-border bg-page'
+            : inferred
+              ? 'border-border bg-page'
+              : picked
+                ? 'border-border bg-surface-elevated'
+                : 'border-dashed border-border bg-page'
         }`;
         const content = (
           <>
@@ -52,7 +64,7 @@ export function H2HPicksBar({
             />
             <Text
               className={`text-xs leading-none ${
-                picked ? 'text-foreground' : 'text-muted'
+                picked && !inferred ? 'text-foreground' : 'text-muted'
               }`}
               numberOfLines={1}
             >

@@ -16,7 +16,7 @@ import { H2HDuelQuestion } from './H2HDuelQuestion';
  */
 const ADVANCE_DELAY_MS = 420;
 
-const LABEL = 'text-muted text-xs font-semibold tracking-wider uppercase';
+const LABEL = 'text-muted text-xs font-medium';
 
 /**
  * The eleven team-mate battles, one at a time. Port of web's `H2HDuelPicker`:
@@ -29,6 +29,7 @@ export function H2HDuelPicker({
   onSelect,
   draftHydrated = true,
   topFivePositions,
+  inferredMatchupIds,
   disabled = false,
 }: {
   matchups: ReadonlyArray<H2HDuelMatchup>;
@@ -41,6 +42,11 @@ export function H2HDuelPicker({
    */
   draftHydrated?: boolean;
   topFivePositions?: Record<string, number | undefined>;
+  /**
+   * Duels answered by the Top 5 rather than a tap. The sequence steps over
+   * them and the bar marks them; tapping a cell still reopens one.
+   */
+  inferredMatchupIds?: ReadonlySet<string>;
   disabled?: boolean;
 }) {
   const reduceMotion = useReducedMotion();
@@ -60,6 +66,16 @@ export function H2HDuelPicker({
   const previousSelectedCountRef = useRef(selectedCount);
   const complete = matchups.length > 0 && selectedCount === matchups.length;
   const matchup = matchups[activeIndex];
+  // Count only the battles the sequence asks, as web does, so the label
+  // doesn't skip numbers as it steps over the ones the Top 5 answered.
+  const askedIndexes = matchups
+    .map((_, index) => index)
+    .filter((index) => !inferredMatchupIds?.has(matchups[index]._id));
+  const askedPosition = askedIndexes.indexOf(activeIndex);
+  const inferredCount = matchups.length - askedIndexes.length;
+  const previousAskedIndex = [...askedIndexes]
+    .reverse()
+    .find((index) => index < activeIndex);
 
   useEffect(
     () => () => {
@@ -168,15 +184,22 @@ export function H2HDuelPicker({
             <Text className={LABEL}>
               {collapsed
                 ? 'All team-mate picks made'
-                : `Team-mate pick ${activeIndex + 1} of ${matchups.length}`}
+                : askedPosition === -1
+                  ? 'Set from your Top 5'
+                  : `Team-mate pick ${askedPosition + 1} of ${askedIndexes.length}`}
             </Text>
           </View>
           {collapsed ? (
             <Text className="text-muted text-xs">Tap one to change it</Text>
+          ) : inferredCount > 0 ? (
+            <Text className="text-muted text-xs">
+              {inferredCount} set from your Top 5
+            </Text>
           ) : null}
         </View>
         <H2HPicksBar
           activeIndex={collapsed ? -1 : activeIndex}
+          inferredMatchupIds={inferredMatchupIds}
           matchups={matchups}
           onSelectIndex={disabled ? undefined : goTo}
           selections={selections}
@@ -199,13 +222,19 @@ export function H2HDuelPicker({
           <View className="mt-3 min-h-9 flex-row items-center justify-between gap-3">
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ disabled: activeIndex === 0 }}
+              accessibilityState={{
+                disabled: previousAskedIndex === undefined,
+              }}
               className={`min-h-11 flex-row items-center gap-1.5 pr-3 ${
-                activeIndex === 0 ? 'opacity-40' : ''
+                previousAskedIndex === undefined ? 'opacity-40' : ''
               }`}
-              disabled={activeIndex === 0}
+              disabled={previousAskedIndex === undefined}
               hitSlop={6}
-              onPress={() => goTo(activeIndex - 1)}
+              onPress={() => {
+                if (previousAskedIndex !== undefined) {
+                  goTo(previousAskedIndex);
+                }
+              }}
             >
               <Ionicons color={colors.text} name="arrow-back" size={14} />
               <Text className="text-foreground text-sm font-medium">

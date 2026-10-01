@@ -35,6 +35,7 @@ export const analyticsEventNames = [
   'h2h_duel_edited',
   'h2h_duel_selected',
   'h2h_editor_opened',
+  'h2h_inferred_pick_changed',
   'h2h_picks_completed',
   'h2h_prediction_draft_discarded',
   'h2h_prediction_signin_prompted',

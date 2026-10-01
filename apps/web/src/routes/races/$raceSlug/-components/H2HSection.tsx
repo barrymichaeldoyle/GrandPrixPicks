@@ -105,6 +105,12 @@ export function H2HSection({
     round: race.round,
     season: race.season,
   });
+  // Same subscription the page's Top 5 half already holds, so this is a cache
+  // hit. The Top 5 being edited (or, for a first card, the one the cascade
+  // just saved) answers the duels it covers before the overlay opens.
+  const weekendTop5 = useQuery(api.predictions.myWeekendPredictions, {
+    raceId: race._id,
+  });
   const now = useNow();
   const selectedSessionLockTime = getRaceSessionLockAt(race, selectedSession);
   const selectedSessionLocked = now >= selectedSessionLockTime;
@@ -294,6 +300,10 @@ export function H2HSection({
           <H2HPredictionForm
             raceId={race._id}
             matchups={matchups}
+            topFivePositions={topFivePositionsFor(
+              weekendTop5?.predictions,
+              editingSession ?? selectedSession,
+            )}
             sessionType={editingSession ?? undefined}
             existingPicks={
               editingSession
@@ -315,4 +325,16 @@ export function H2HSection({
       />
     </div>
   );
+}
+
+function topFivePositionsFor(
+  predictions: Partial<Record<SessionType, string[] | null>> | undefined,
+  session: SessionType,
+): Record<string, number> | undefined {
+  const picks =
+    predictions?.[session] ??
+    Object.values(predictions ?? {}).find((candidate) => candidate != null);
+  return picks
+    ? Object.fromEntries(picks.map((driverId, index) => [driverId, index + 1]))
+    : undefined;
 }

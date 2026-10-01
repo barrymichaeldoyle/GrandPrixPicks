@@ -30,6 +30,7 @@ export function H2HDuelPicker({
   onSelect,
   draftHydrated = true,
   topFivePositions,
+  inferredMatchupIds,
   onExitPrevious,
   collapsedEdit = 'inline',
   sessionType,
@@ -45,6 +46,12 @@ export function H2HDuelPicker({
   draftHydrated?: boolean;
   /** Top 5 slot (1-5) per driver, so a duel can show what you already called. */
   topFivePositions?: Record<string, number | undefined>;
+  /**
+   * Duels currently answered by the Top 5 rather than by a tap. The sequence
+   * steps over them (the player has already made that call upstairs) and the
+   * strip marks them, so they can still be opened and changed.
+   */
+  inferredMatchupIds?: ReadonlySet<string>;
   /**
    * When on the first battle, Previous can leave the duel sequence (e.g. back
    * to Top 5 in a two-step funnel). Without this, Previous stays disabled.
@@ -93,6 +100,22 @@ export function H2HDuelPicker({
   const previousSelectedCountRef = useRef(selectedCount);
   const complete = matchups.length > 0 && selectedCount === matchups.length;
   const matchup = matchups[activeIndex];
+  function isInferred(index: number) {
+    return inferredMatchupIds?.has(matchups[index]?._id) ?? false;
+  }
+  /**
+   * The battles this sequence actually asks. Counting the ones the Top 5
+   * already answered made the label skip ("2 of 11", then "5 of 11") as the
+   * sequence stepped over them.
+   */
+  const askedIndexes = matchups
+    .map((_, index) => index)
+    .filter((index) => !isInferred(index));
+  const askedPosition = askedIndexes.indexOf(activeIndex);
+  const inferredCount = matchups.length - askedIndexes.length;
+  const previousAskedIndex = [...askedIndexes]
+    .reverse()
+    .find((index) => index < activeIndex);
 
   useEffect(
     () => () => {
@@ -287,7 +310,7 @@ export function H2HDuelPicker({
             "All battles called" a third time. */}
         <div className="flex items-center justify-between gap-3">
           <p
-            className="gpp-label flex items-center gap-1.5 text-text-muted"
+            className="flex items-center gap-1.5 text-xs font-medium text-text-muted"
             aria-live="polite"
             data-testid="h2h-duel-progress"
           >
@@ -296,8 +319,10 @@ export function H2HDuelPicker({
                 <Check size={14} className="text-accent" aria-hidden="true" />
                 All team-mate picks made
               </>
+            ) : askedPosition === -1 ? (
+              'Set from your Top 5'
             ) : (
-              `Team-mate pick ${activeIndex + 1} of ${matchups.length}`
+              `Team-mate pick ${askedPosition + 1} of ${askedIndexes.length}`
             )}
           </p>
           {/* The "tap a battle to change your mind" hint used to sit under the
@@ -306,12 +331,20 @@ export function H2HDuelPicker({
               hint, not a heading: quiet, and on the row it belongs to. */}
           {showFinishedCard ? (
             <p className="text-xs text-text-muted">Tap one to change it</p>
+          ) : inferredCount > 0 ? (
+            <p
+              className="text-xs text-text-muted"
+              data-testid="h2h-inferred-count"
+            >
+              {inferredCount} set from your Top 5
+            </p>
           ) : null}
         </div>
         <H2HPicksBar
           matchups={matchups}
           selections={selections}
           activeIndex={collapsed ? -1 : activeIndex}
+          inferredMatchupIds={inferredMatchupIds}
           onSelectIndex={goTo}
           testId="h2h-duel-strip"
         />
@@ -336,13 +369,15 @@ export function H2HDuelPicker({
               size="sm"
               className="[&_svg]:translate-y-px"
               leftIcon={ArrowLeft}
-              disabled={activeIndex === 0 && !onExitPrevious}
+              disabled={previousAskedIndex === undefined && !onExitPrevious}
               onClick={() => {
-                if (activeIndex === 0) {
+                // Back through the battles the sequence asked, not the ones
+                // the Top 5 answered: those are a tap away on the strip.
+                if (previousAskedIndex === undefined) {
                   onExitPrevious?.();
                   return;
                 }
-                goTo(activeIndex - 1);
+                goTo(previousAskedIndex);
               }}
             >
               Previous

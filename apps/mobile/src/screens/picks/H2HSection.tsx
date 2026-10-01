@@ -4,6 +4,7 @@ import {
   SESSION_LABELS_SHORT,
   type SessionType,
 } from '@grandprixpicks/shared/sessions';
+import { inferH2HPicks } from '@grandprixpicks/shared/h2hInference';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import { H2HDuelPicker } from '../../components/predict/H2HDuelPicker';
@@ -176,9 +177,31 @@ export function H2HEditor({
   const { formatDateTime } = useUserDateFormat();
   const isSignedIn = useIsSignedIn();
   const draftSession = cascadeMode ? CASCADE_DRAFT_SESSION : selectedSession;
-  const [selections, setSelections] = useState<Record<string, string>>({
+  /**
+   * Saved picks plus anything tapped. Duels the Top 5 answers are layered
+   * underneath (`selections` below) rather than stored, so they keep following
+   * the Top 5 until tapped and a draft only holds what the player chose.
+   */
+  const [explicitPicks, setSelections] = useState<Record<string, string>>({
     ...existingPicks,
   });
+  const inferredPicks = inferH2HPicks(
+    matchups.map((matchup) => ({
+      matchupId: matchup._id,
+      driver1Id: matchup.driver1._id,
+      driver2Id: matchup.driver2._id,
+    })),
+    Object.entries(topFivePositions ?? {})
+      .sort((a, b) => a[1] - b[1])
+      .map(([driverId]) => driverId),
+  ) as Record<string, string>;
+  const selections: Record<string, string> = {
+    ...inferredPicks,
+    ...explicitPicks,
+  };
+  const inferredMatchupIds = new Set(
+    Object.keys(inferredPicks).filter((id) => !(id in explicitPicks)),
+  );
   const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -248,11 +271,13 @@ export function H2HEditor({
       return;
     }
     void patchConnectedDraft(race.slug, draftSession, {
-      h2hByMatchup: selections,
+      h2hByMatchup: explicitPicks,
     });
-  }, [draftSession, isDirty, race.slug, selections]);
+  }, [draftSession, isDirty, race.slug, explicitPicks]);
 
-  const isComplete = Object.keys(selections).length === matchups.length;
+  const isComplete =
+    matchups.length > 0 &&
+    matchups.every((matchup) => selections[matchup._id] !== undefined);
   const canSave = isComplete && !sessionIsLocked;
 
   // First-time picks save themselves as the last matchup is tapped — users
@@ -277,7 +302,9 @@ export function H2HEditor({
     picks: Record<string, string> = selections,
     options?: { singleDuel?: boolean },
   ) {
-    const picksComplete = Object.keys(picks).length === matchups.length;
+    const picksComplete = matchups.every(
+      (matchup) => picks[matchup._id] !== undefined,
+    );
     if (!picksComplete || sessionIsLocked || isSubmitting) {
       return;
     }
@@ -329,18 +356,25 @@ export function H2HEditor({
   function selectMatchup(matchupId: string, driverId: string) {
     markInteraction();
     setIsDirty(true);
-    setSelections((prev) => {
-      const next = { ...prev, [matchupId]: driverId };
-      if (
-        Object.keys(prev).length < matchups.length &&
-        Object.keys(next).length === matchups.length
-      ) {
-        captureAnalyticsEvent('h2h_picks_completed', {
-          scope: cascadeMode ? 'cascade' : 'session',
-        });
-      }
-      return next;
-    });
+    if (
+      inferredMatchupIds.has(matchupId) &&
+      selections[matchupId] !== driverId
+    ) {
+      captureAnalyticsEvent('h2h_inferred_pick_changed', {
+        scope: cascadeMode ? 'cascade' : 'session',
+      });
+    }
+    const next = { ...selections, [matchupId]: driverId };
+    if (
+      !isComplete &&
+      matchups.every((matchup) => next[matchup._id] !== undefined)
+    ) {
+      captureAnalyticsEvent('h2h_picks_completed', {
+        scope: cascadeMode ? 'cascade' : 'session',
+        inferred_count: inferredMatchupIds.size,
+      });
+    }
+    setSelections((prev) => ({ ...prev, [matchupId]: driverId }));
   }
 
   async function handleDiscardDraft() {
@@ -378,7 +412,10 @@ export function H2HEditor({
               void Haptics.selectionAsync();
               const next = { ...selections, [visibleMatchup._id]: driverId };
               setIsDirty(true);
-              setSelections(next);
+              setSelections((prev) => ({
+                ...prev,
+                [visibleMatchup._id]: driverId,
+              }));
               void handleSave(next, { singleDuel: true });
             }}
             selectedDriverId={selections[visibleMatchup._id]}
@@ -406,6 +443,7 @@ export function H2HEditor({
           draftHydrated={draftHydrated}
           matchups={matchups}
           onSelect={selectMatchup}
+          inferredMatchupIds={inferredMatchupIds}
           selections={selections}
           topFivePositions={topFivePositions}
         />
@@ -433,7 +471,11 @@ export function H2HEditor({
               : sessionIsLocked
                 ? 'Session locked'
                 : !isComplete
-                  ? `Pick ${matchups.length - Object.keys(selections).length} more`
+                  ? `Pick ${
+                      matchups.filter(
+                        (matchup) => selections[matchup._id] === undefined,
+                      ).length
+                    } more`
                   : cascadeMode
                     ? 'Save weekend H2H'
                     : `Save ${SESSION_LABELS_SHORT[selectedSession]} H2H`

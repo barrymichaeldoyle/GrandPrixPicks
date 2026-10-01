@@ -8,6 +8,10 @@ import { RaceWriteupStoreLink } from './RaceWriteupStoreLink';
  * The chrome every race write-up sits in: reading measure, source list, the
  * F1 Store affiliate line, stamp.
  *
+ * The affiliate line is the fallback placement. While the weekend's news grid
+ * is on the page the store is a card in it (`RaceWriteupStoreCard`), and a
+ * second link down here would be the same advert twice.
+ *
  * The prose stays in the page. This is only the frame, so a change to the
  * footer's measure or the last-reviewed line lands once instead of five
  * times.
@@ -15,12 +19,15 @@ import { RaceWriteupStoreLink } from './RaceWriteupStoreLink';
 export function RaceWriteupPage({
   sources,
   reviewedAt,
+  storeLinkInFooter,
   children,
 }: {
   /** The attribution paragraph. Each claim still names its own source. */
   sources: ReactNode;
   /** Editorial review timestamp, from `lastReviewedAt`. */
   reviewedAt: number;
+  /** False while `WeekendNewsSection` is rendered, which carries the card. */
+  storeLinkInFooter: boolean;
   children: ReactNode;
 }) {
   return (
@@ -29,7 +36,7 @@ export function RaceWriteupPage({
         {children}
         <footer className="mt-10 pb-4 text-sm leading-6 text-text-muted">
           <p>{sources}</p>
-          <RaceWriteupStoreLink />
+          {storeLinkInFooter ? <RaceWriteupStoreLink /> : null}
           <p className="gpp-mono mt-2 text-xs">
             Last reviewed {reviewedStamp(reviewedAt)}
           </p>

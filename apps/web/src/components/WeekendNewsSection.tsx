@@ -1,5 +1,7 @@
 import { ChevronDown, ExternalLink } from 'lucide-react';
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+
+import { RaceWriteupStoreCard } from '@/components/race-writeups/RaceWriteupStoreLink';
 
 import { ScoringPolicyNote } from '@/components/ScoringPolicyNote';
 import { newsListMentionsGridPenalty } from '@/lib/newsGridPenalty';
@@ -150,7 +152,15 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
         </h2>
       </div>
 
-      <NewsCards items={lead} newsLink={newsLink} className="mt-7" />
+      {/* The store card closes the lead grid rather than the fold, so it is
+          seen without opening anything, after the stories a reader came for.
+          Only here: the earlier stories are a second grid of the same news. */}
+      <NewsCards
+        items={lead}
+        newsLink={newsLink}
+        className="mt-7"
+        trailing={(wide) => <RaceWriteupStoreCard wide={wide} />}
+      />
 
       {/* Native `<details>`, like the FAQ: the folded cards are still in the
           server HTML for a crawler, and in-page search opens it. */}
@@ -179,10 +189,17 @@ function NewsCards({
   items,
   newsLink,
   className,
+  trailing,
 }: {
   items: NewsItem[];
   newsLink: (newsKey: string) => { href: string; headline: string } | undefined;
   className: string;
+  /**
+   * One more card after the news. `wide` asks it to take both columns, when
+   * one cell would leave the last row half empty and no photo card can span
+   * to fill it.
+   */
+  trailing?: (wide: boolean) => ReactNode;
 }) {
   // A photo makes its card roughly 200px taller than a text-only one, and the
   // source row is pinned to the bottom, so the card beside it ends up with that
@@ -199,13 +216,14 @@ function NewsCards({
   // on any weekend that publishes a grid, and open the hole it exists to close.
   const cells = items.reduce(
     (total, item) => total + (item.startingGrid?.length ? 2 : 1),
-    0,
+    trailing ? 1 : 0,
   );
   const spanningKey =
     items.length >= 3 && cells % 2 === 1
       ? items.find((item) => item.writeUpImage && !item.startingGrid?.length)
           ?.key
       : undefined;
+  const trailingWide = cells % 2 === 1 && spanningKey === undefined;
 
   return (
     // `gpp-lean-run` flips each card's bar against the one above it, and does
@@ -315,6 +333,7 @@ function NewsCards({
           </article>
         );
       })}
+      {trailing?.(trailingWide)}
     </div>
   );
 }

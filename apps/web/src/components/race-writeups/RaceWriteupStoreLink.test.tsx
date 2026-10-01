@@ -1,10 +1,11 @@
-import { act } from 'react';
+import { act, type ReactElement } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  F1_STORE_AFFILIATE_URL,
+  F1_STORE_LINK,
+  RaceWriteupStoreCard,
   RaceWriteupStoreLink,
 } from './RaceWriteupStoreLink';
 
@@ -30,29 +31,44 @@ describe('race write-up store link', () => {
     root = null;
   });
 
-  function render() {
+  function render(element: ReactElement) {
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
-    act(() => root!.render(<RaceWriteupStoreLink />));
+    act(() => root!.render(element));
     return container;
   }
 
-  it('marks the affiliate link as sponsored and discloses the commission', () => {
-    const view = render();
-    const link = view.querySelector('a')!;
+  it.each([
+    ['footer', <RaceWriteupStoreLink key="footer" />],
+    ['news', <RaceWriteupStoreCard key="news" />],
+  ] as const)(
+    'the %s placement goes through the regional redirect, marked sponsored and disclosed',
+    (placement, element) => {
+      const view = render(element);
+      const link = view.querySelector('a')!;
 
-    expect(link.getAttribute('href')).toBe(F1_STORE_AFFILIATE_URL);
-    expect(link.getAttribute('rel')).toContain('sponsored');
-    expect(view.textContent).toContain('We earn a commission');
-  });
+      // Never the Impact link itself: that always opened the EU shop.
+      expect(link.getAttribute('href')).toBe(F1_STORE_LINK);
+      expect(link.getAttribute('rel')).toContain('sponsored');
+      expect(view.textContent).toContain('We earn a commission');
 
-  it('records the click', () => {
-    const view = render();
-    act(() => view.querySelector('a')!.click());
+      // Clicking must not navigate jsdom away; the handler runs first.
+      link.addEventListener('click', (event) => event.preventDefault());
+      act(() => link.click());
+      expect(captureAnalyticsEvent).toHaveBeenCalledWith(
+        'race_writeup_store_link_clicked',
+        { placement },
+      );
+    },
+  );
 
-    expect(captureAnalyticsEvent).toHaveBeenCalledWith(
-      'race_writeup_store_link_clicked',
+  it('says the card is an affiliate link before its headline', () => {
+    const view = render(<RaceWriteupStoreCard />);
+    const text = view.textContent ?? '';
+
+    expect(text.indexOf('Affiliate link')).toBeLessThan(
+      text.indexOf('Team kit at the F1 Store'),
     );
   });
 });

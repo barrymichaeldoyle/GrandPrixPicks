@@ -150,6 +150,7 @@ function SaoPauloGrandPrixPredictionsPage() {
 
   return (
     <RaceWriteupPage
+      storeLinkInFooter={!(isLive && news.items.length > 0)}
       reviewedAt={PROSE_REVIEWED_AT}
       sources={
         <>

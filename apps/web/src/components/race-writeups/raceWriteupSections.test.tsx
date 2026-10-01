@@ -198,6 +198,7 @@ describe('race write-up sections', () => {
     it('stamps the editorial review under the sources', () => {
       const el = render(
         <RaceWriteupPage
+          storeLinkInFooter
           sources="Race facts and schedule: Formula 1."
           reviewedAt={Date.parse('2026-09-10T00:00:00Z')}
         >

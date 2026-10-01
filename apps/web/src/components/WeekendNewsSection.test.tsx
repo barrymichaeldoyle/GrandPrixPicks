@@ -205,3 +205,34 @@ describe('WeekendNewsSection fold and shared links', () => {
     expect(container.querySelector('details')?.open).toBe(true);
   });
 });
+
+describe('WeekendNewsSection store card', () => {
+  function storeCard() {
+    return [...container.querySelectorAll('article')].find((article) =>
+      article.textContent?.includes('Team kit at the F1 Store'),
+    );
+  }
+  function stories(count: number) {
+    return Array.from({ length: count }, (_, index) => ({
+      ...item,
+      key: `story-${index}`,
+    }));
+  }
+
+  it('closes the grid with one store card', () => {
+    render(stories(2));
+    expect(storeCard()).toBeDefined();
+    expect(container.querySelector('article:last-of-type')).toBe(storeCard());
+  });
+
+  it('takes both columns when one cell would leave the last row half empty', () => {
+    // Six stories is the usual lead: a seventh cell would sit beside a hole.
+    render(stories(6));
+    expect(storeCard()?.className).toContain('sm:col-span-2');
+  });
+
+  it('takes one cell when that fills the last row', () => {
+    render(stories(5));
+    expect(storeCard()?.className).not.toContain('sm:col-span-2');
+  });
+});

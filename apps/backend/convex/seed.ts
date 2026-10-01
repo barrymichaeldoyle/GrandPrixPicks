@@ -562,8 +562,8 @@ export const F1_RACES_2026: Array<{
     fp1Date: '2026-11-20T00:30:00Z',
     fp2Date: '2026-11-20T04:00:00Z',
     fp3Date: '2026-11-21T00:30:00Z',
-    qualiDate: '2026-11-20T04:00:00Z',
-    raceDate: '2026-11-21T04:00:00Z',
+    qualiDate: '2026-11-21T04:00:00Z',
+    raceDate: '2026-11-22T04:00:00Z',
   },
   {
     round: 22,

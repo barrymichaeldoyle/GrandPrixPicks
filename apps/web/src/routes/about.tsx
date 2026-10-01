@@ -98,9 +98,11 @@ function AboutPage() {
           </p>
           <p className="gpp-reading-copy mt-4 text-text-muted">
             It is operated by Barry Michael Doyle Software Solutions (Pty) Ltd.
-            The site is not affiliated with, endorsed by, or connected to
-            Formula 1, the FIA, or any Formula 1 team. All team and driver names
-            are used for identification only.
+            Grand Prix Picks is an independent fan site, not endorsed by Formula
+            1, the FIA or any Formula 1 team. Team and driver names are used for
+            identification only. The race write-ups link to the official F1
+            Store as an affiliate, and we earn a commission on purchases made
+            through those links.
           </p>
         </section>
 

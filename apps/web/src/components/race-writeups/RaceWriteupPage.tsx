@@ -2,8 +2,11 @@ import type { ReactNode } from 'react';
 
 import { reviewedStamp } from '@/lib/lastReviewed';
 
+import { RaceWriteupStoreLink } from './RaceWriteupStoreLink';
+
 /**
- * The chrome every race write-up sits in: reading measure, source list, stamp.
+ * The chrome every race write-up sits in: reading measure, source list, the
+ * F1 Store affiliate line, stamp.
  *
  * The prose stays in the page. This is only the frame, so a change to the
  * footer's measure or the last-reviewed line lands once instead of five
@@ -26,6 +29,7 @@ export function RaceWriteupPage({
         {children}
         <footer className="mt-10 pb-4 text-sm leading-6 text-text-muted">
           <p>{sources}</p>
+          <RaceWriteupStoreLink />
           <p className="gpp-mono mt-2 text-xs">
             Last reviewed {reviewedStamp(reviewedAt)}
           </p>

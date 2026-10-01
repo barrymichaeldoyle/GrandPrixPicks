@@ -95,6 +95,7 @@ export const analyticsEventNames = [
   'push_pre_prompt_dismissed',
   'race_writeup_next_link_clicked',
   'race_writeup_next_round_clicked',
+  'race_writeup_store_link_clicked',
   'race_video_clicked',
   'score_share_opened',
   'score_shared_x',

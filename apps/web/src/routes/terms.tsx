@@ -26,7 +26,7 @@ function TermsPage() {
       <div className="mx-auto max-w-4xl px-4 py-6">
         <PageHeader
           title="Terms of Service"
-          subtitle="Last updated: February 2026"
+          subtitle="Last updated: October 2026"
         />
 
         <div className="reveal-up reveal-delay-1 prose prose-invert max-w-none space-y-6 text-text-muted">
@@ -48,13 +48,15 @@ function TermsPage() {
               2. Description of Service
             </h2>
             <p>
-              Grand Prix Picks is a fan-made, non-commercial prediction game
-              where users predict the top 5 finishers for each session of a
-              Formula 1 race weekend (qualifying, sprint qualifying, sprint, and
-              race) and earn points based on accuracy. Users can also make
-              head-to-head (H2H) predictions on team-mate matchups. The app is
-              provided for entertainment only and is not affiliated with Formula
-              1, the FIA, or any related entities.
+              Grand Prix Picks is a fan-made prediction game where users
+              predict the top 5 finishers for each session of a Formula 1 race
+              weekend (qualifying, sprint qualifying, sprint, and race) and earn
+              points based on accuracy. Users can also make head-to-head (H2H)
+              predictions on team-mate matchups. The app is provided for
+              entertainment only and is not endorsed by Formula 1, the FIA, or
+              any related entities. Some pages contain affiliate links to the
+              official F1 Store, and we earn a commission on purchases made
+              through them.
             </p>
           </section>
 

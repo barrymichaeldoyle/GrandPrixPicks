@@ -123,14 +123,15 @@ Baseline, measured against prod. The 2026-09-08 column is the state after the
 practice pages and three guides were removed; the 2026-09-18 column is the
 reading after the Haas seat guide and the ratified 2027 calendar; the
 2026-09-21 column adds the Austin write-up, measured with that one page served
-locally:
+locally; the 2026-10-01 column adds the Mexico City and São Paulo write-ups
+the same way:
 
-|                        | 2026-09-06 refusal | after circuit pages | 2026-09-08 | 2026-09-18 | 2026-09-21 |
-| ---------------------- | ------------------ | ------------------- | ---------- | ---------- | ---------- |
-| Sitemap URLs           | 82                 | 58                  | 42         | 43         | **43**     |
-| Templated              | 72%                | 71%                 | 60%        | 60%        | **60%**    |
-| Worst overlap anywhere | 67-74%             | 37%                 | 37%        | 37%        | **37%**    |
-| Cross-template at 50%+ | 19 pages           | none                | none       | none       | **none**   |
+|                        | 2026-09-06 refusal | after circuit pages | 2026-09-08 | 2026-09-18 | 2026-09-21 | 2026-10-01 |
+| ---------------------- | ------------------ | ------------------- | ---------- | ---------- | ---------- | ---------- |
+| Sitemap URLs           | 82                 | 58                  | 42         | 43         | 43         | **43**     |
+| Templated              | 72%                | 71%                 | 60%        | 60%        | 60%        | **60%**    |
+| Worst overlap anywhere | 67-74%             | 37%                 | 37%        | 37%        | 37%        | **37%**    |
+| Cross-template at 50%+ | 19 pages           | none                | none       | none       | none       | **none**   |
 
 The 67-74% band that got the circuit pages deleted is gone, and the worst
 figure left is 37% between `/races/hungary-2026` and `/races/austria-2026`,
@@ -138,6 +139,15 @@ inside the 17-35% band this doc calls normal. Templates are now race (17),
 write-up (6) and guide (3), with 17 standalone pages: a race page leaves the
 sitemap when its write-up exists, so the Austin write-up swapped one URL for
 another. Its closest match anywhere is 9%.
+
+The Mexico City and São Paulo write-ups each did the same swap, so prod stays
+at 43 URLs (a local run reads one more because of a dev-only scenario race).
+Measured locally, they are each other's closest match (40% and 36%). Nearly all
+of it is the shared championship standings block: dev data lists every driver
+on zero points and every unscored round. With the standings and FAQ cut, they
+share 12-13%, including what is left of the chrome. On prod the same block puts
+Singapore and Austin at 20% to each other, so expect the new pages in the 20s
+there. Re-measure against prod after deploy.
 
 The manual version, if the script is ever in doubt:
 

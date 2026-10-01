@@ -113,6 +113,24 @@ const RACE_WRITEUPS = {
       'Austin returns to a standard weekend, Ferrari and Mercedes bring new parts, and Verstappen won from pole last year.',
     cta: 'Read the Austin predictions',
   },
+  'mexico-2026': {
+    to: '/f1-2026-mexico-city-grand-prix-predictions',
+    reviewedAt: '2026-10-01',
+    venueName: 'Mexico City',
+    label: 'Mexico City predictions',
+    summary:
+      'Sergio Pérez’s home race with Cadillac, what the altitude does to grip and tyres, and how Norris won from pole in 2025.',
+    cta: 'Read the Mexico City predictions',
+  },
+  'brazil-2026': {
+    to: '/f1-2026-sao-paulo-grand-prix-predictions',
+    reviewedAt: '2026-10-01',
+    venueName: 'São Paulo',
+    label: 'São Paulo predictions',
+    summary:
+      'Bortoleto’s home race with Audi, a bumpy Interlagos resurfaced again, the rain that moved 2024 qualifying to Sunday, and Verstappen’s podium from the pit lane.',
+    cta: 'Read the São Paulo predictions',
+  },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
     reviewedAt: '2026-09-21',

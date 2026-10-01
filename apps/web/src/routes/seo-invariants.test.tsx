@@ -222,6 +222,28 @@ const ROUTES: {
     },
   },
   {
+    module: './f1-2026-mexico-city-grand-prix-predictions',
+    path: '/f1-2026-mexico-city-grand-prix-predictions',
+    statuses: RACE_STATUSES,
+    writeup: true,
+    args: {
+      loaderData: {
+        race: { raceStartAt: 1_793_563_200_000 },
+      },
+    },
+  },
+  {
+    module: './f1-2026-sao-paulo-grand-prix-predictions',
+    path: '/f1-2026-sao-paulo-grand-prix-predictions',
+    statuses: RACE_STATUSES,
+    writeup: true,
+    args: {
+      loaderData: {
+        race: { raceStartAt: 1_794_157_200_000 },
+      },
+    },
+  },
+  {
     module: './f1-2026-madrid-grand-prix-predictions',
     path: '/f1-2026-madrid-grand-prix-predictions',
     statuses: RACE_STATUSES,

@@ -264,7 +264,9 @@ function StoreProductList({
   /**
    * Photo above the name, for tiles laid side by side. Beside the name, a
    * third of a card's width left room for two words of "Audi F1 adidas
-   * Special Edition Singapore GP Team Cap".
+   * Special Edition Singapore GP Team Cap". From `sm` up only: stacked one
+   * column wide on a phone, three full-width photos were a screen and a half
+   * of shop, so a phone keeps the compact row.
    */
   columns?: boolean;
 }) {
@@ -280,8 +282,8 @@ function StoreProductList({
             target="_blank"
             rel="sponsored noopener"
             onClick={onClick}
-            className={`group flex gap-3 rounded-sm border border-border p-2 hover:border-border-strong ${
-              columns ? 'h-full flex-col' : 'items-center'
+            className={`group flex items-center gap-3 rounded-sm border border-border p-2 hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+              columns ? 'h-full sm:flex-col sm:items-stretch' : ''
             }`}
           >
             {/* White behind the photo: the catalog shoots products on white,
@@ -294,25 +296,30 @@ function StoreProductList({
               height={72}
               loading="lazy"
               decoding="async"
-              className={`shrink-0 rounded-sm bg-white object-contain ${
-                columns ? 'h-32 w-full' : 'size-18'
+              className={`size-18 shrink-0 rounded-sm bg-white object-contain ${
+                columns ? 'sm:h-32 sm:w-full' : ''
               }`}
             />
             <span className="min-w-0">
               <span className="line-clamp-2 text-sm text-text group-hover:underline">
                 {product.name}
-                <span className="sr-only"> (opens in a new tab)</span>
               </span>
               <span className="gpp-mono mt-1 block text-sm">
                 <span className="font-semibold text-text">
                   {formatPrice(product.currentPrice, product.currency)}
                 </span>
+                {/* Strikethrough is not announced, so a screen reader would
+                    read a sale as two prices. "was" says which is which. */}
                 {product.originalPrice ? (
-                  <s className="ml-2 text-text-muted">
-                    {formatPrice(product.originalPrice, product.currency)}
-                  </s>
+                  <>
+                    <span className="sr-only">, was </span>
+                    <s className="ml-2 text-text-muted">
+                      {formatPrice(product.originalPrice, product.currency)}
+                    </s>
+                  </>
                 ) : null}
               </span>
+              <span className="sr-only"> (opens in a new tab)</span>
             </span>
           </a>
         </li>

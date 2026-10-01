@@ -8,5 +8,12 @@ Allow: /
 # under /cdn-cgi/ is ours or worth crawling, so disallow the whole prefix.
 Disallow: /cdn-cgi/
 
+# /go/ redirects to the F1 Store through an affiliate tracking link, and every
+# race write-up links to it: followed, it spends crawl budget on a shop. /api/
+# is JSON for our own pages, the TRMNL plugin and the Reddit app. Neither has
+# anything to rank.
+Disallow: /go/
+Disallow: /api/
+
 # Sitemap
 Sitemap: https://grandprixpicks.com/sitemap.xml

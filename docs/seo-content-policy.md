@@ -123,8 +123,8 @@ Baseline, measured against prod. The 2026-09-08 column is the state after the
 practice pages and three guides were removed; the 2026-09-18 column is the
 reading after the Haas seat guide and the ratified 2027 calendar; the
 2026-09-21 column adds the Austin write-up, measured with that one page served
-locally; the 2026-10-01 column adds the Mexico City and São Paulo write-ups
-the same way:
+locally; the 2026-10-01 column adds the Mexico City, São Paulo and Las Vegas
+write-ups the same way:
 
 |                        | 2026-09-06 refusal | after circuit pages | 2026-09-08 | 2026-09-18 | 2026-09-21 | 2026-10-01 |
 | ---------------------- | ------------------ | ------------------- | ---------- | ---------- | ---------- | ---------- |
@@ -140,14 +140,16 @@ write-up (6) and guide (3), with 17 standalone pages: a race page leaves the
 sitemap when its write-up exists, so the Austin write-up swapped one URL for
 another. Its closest match anywhere is 9%.
 
-The Mexico City and São Paulo write-ups each did the same swap, so prod stays
-at 43 URLs (a local run reads one more because of a dev-only scenario race).
-Measured locally, they are each other's closest match (40% and 36%). Nearly all
-of it is the shared championship standings block: dev data lists every driver
-on zero points and every unscored round. With the standings and FAQ cut, they
-share 12-13%, including what is left of the chrome. On prod the same block puts
-Singapore and Austin at 20% to each other, so expect the new pages in the 20s
-there. Re-measure against prod after deploy.
+The Mexico City, São Paulo and Las Vegas write-ups each did the same swap, so
+prod stays at 43 URLs. Measured on prod on 2026-10-01 (against the deployment
+URL, since the edge caches the sitemap for an hour), Mexico City and São Paulo
+are each other's closest match at 32% and 28%: inside the normal band, and
+higher than Singapore and Austin's 20% because consecutive rounds carry almost
+the same championship standings block. With the standings and FAQ cut they
+share 12-13%. Locally, on dev data, Las Vegas read 33% against São Paulo for
+the same reason; re-measure it on prod once it ships. The standings block is
+now the main thing live write-ups share, so it is the first place to look if
+this figure climbs.
 
 The manual version, if the script is ever in doubt:
 

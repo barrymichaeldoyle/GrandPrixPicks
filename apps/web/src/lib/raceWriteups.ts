@@ -131,6 +131,15 @@ const RACE_WRITEUPS = {
       'Bortoleto’s home race with Audi, a bumpy Interlagos resurfaced again, the rain that moved 2024 qualifying to Sunday, and Verstappen’s podium from the pit lane.',
     cta: 'Read the São Paulo predictions',
   },
+  'las-vegas-2026': {
+    to: '/f1-2026-las-vegas-grand-prix-predictions',
+    reviewedAt: '2026-10-01',
+    venueName: 'Las Vegas',
+    label: 'Las Vegas predictions',
+    summary:
+      'A fast street lap down the Strip, why cold tyres are the main problem on a desert night, and the double McLaren disqualification in 2025.',
+    cta: 'Read the Las Vegas predictions',
+  },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
     reviewedAt: '2026-09-21',

@@ -14,6 +14,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as F12026AzerbaijanGrandPrixPredictionsRouteImport } from './routes/f1-2026-azerbaijan-grand-prix-predictions'
 import { Route as F12026BahrainGrandPrixPredictionsRouteImport } from './routes/f1-2026-bahrain-grand-prix-predictions'
 import { Route as F12026ItalianGrandPrixPredictionsRouteImport } from './routes/f1-2026-italian-grand-prix-predictions'
+import { Route as F12026LasVegasGrandPrixPredictionsRouteImport } from './routes/f1-2026-las-vegas-grand-prix-predictions'
 import { Route as F12026MadridGrandPrixPredictionsRouteImport } from './routes/f1-2026-madrid-grand-prix-predictions'
 import { Route as F12026MexicoCityGrandPrixPredictionsRouteImport } from './routes/f1-2026-mexico-city-grand-prix-predictions'
 import { Route as F12026SaoPauloGrandPrixPredictionsRouteImport } from './routes/f1-2026-sao-paulo-grand-prix-predictions'
@@ -89,6 +90,12 @@ const F12026ItalianGrandPrixPredictionsRoute =
   F12026ItalianGrandPrixPredictionsRouteImport.update({
     id: '/f1-2026-italian-grand-prix-predictions',
     path: '/f1-2026-italian-grand-prix-predictions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const F12026LasVegasGrandPrixPredictionsRoute =
+  F12026LasVegasGrandPrixPredictionsRouteImport.update({
+    id: '/f1-2026-las-vegas-grand-prix-predictions',
+    path: '/f1-2026-las-vegas-grand-prix-predictions',
     getParentRoute: () => rootRouteImport,
   } as any)
 const F12026MadridGrandPrixPredictionsRoute =
@@ -344,6 +351,7 @@ export interface FileRoutesByFullPath {
   '/f1-2026-azerbaijan-grand-prix-predictions': typeof F12026AzerbaijanGrandPrixPredictionsRoute
   '/f1-2026-bahrain-grand-prix-predictions': typeof F12026BahrainGrandPrixPredictionsRoute
   '/f1-2026-italian-grand-prix-predictions': typeof F12026ItalianGrandPrixPredictionsRoute
+  '/f1-2026-las-vegas-grand-prix-predictions': typeof F12026LasVegasGrandPrixPredictionsRoute
   '/f1-2026-madrid-grand-prix-predictions': typeof F12026MadridGrandPrixPredictionsRoute
   '/f1-2026-mexico-city-grand-prix-predictions': typeof F12026MexicoCityGrandPrixPredictionsRoute
   '/f1-2026-sao-paulo-grand-prix-predictions': typeof F12026SaoPauloGrandPrixPredictionsRoute
@@ -399,6 +407,7 @@ export interface FileRoutesByTo {
   '/f1-2026-azerbaijan-grand-prix-predictions': typeof F12026AzerbaijanGrandPrixPredictionsRoute
   '/f1-2026-bahrain-grand-prix-predictions': typeof F12026BahrainGrandPrixPredictionsRoute
   '/f1-2026-italian-grand-prix-predictions': typeof F12026ItalianGrandPrixPredictionsRoute
+  '/f1-2026-las-vegas-grand-prix-predictions': typeof F12026LasVegasGrandPrixPredictionsRoute
   '/f1-2026-madrid-grand-prix-predictions': typeof F12026MadridGrandPrixPredictionsRoute
   '/f1-2026-mexico-city-grand-prix-predictions': typeof F12026MexicoCityGrandPrixPredictionsRoute
   '/f1-2026-sao-paulo-grand-prix-predictions': typeof F12026SaoPauloGrandPrixPredictionsRoute
@@ -454,6 +463,7 @@ export interface FileRoutesById {
   '/f1-2026-azerbaijan-grand-prix-predictions': typeof F12026AzerbaijanGrandPrixPredictionsRoute
   '/f1-2026-bahrain-grand-prix-predictions': typeof F12026BahrainGrandPrixPredictionsRoute
   '/f1-2026-italian-grand-prix-predictions': typeof F12026ItalianGrandPrixPredictionsRoute
+  '/f1-2026-las-vegas-grand-prix-predictions': typeof F12026LasVegasGrandPrixPredictionsRoute
   '/f1-2026-madrid-grand-prix-predictions': typeof F12026MadridGrandPrixPredictionsRoute
   '/f1-2026-mexico-city-grand-prix-predictions': typeof F12026MexicoCityGrandPrixPredictionsRoute
   '/f1-2026-sao-paulo-grand-prix-predictions': typeof F12026SaoPauloGrandPrixPredictionsRoute
@@ -511,6 +521,7 @@ export interface FileRouteTypes {
     | '/f1-2026-azerbaijan-grand-prix-predictions'
     | '/f1-2026-bahrain-grand-prix-predictions'
     | '/f1-2026-italian-grand-prix-predictions'
+    | '/f1-2026-las-vegas-grand-prix-predictions'
     | '/f1-2026-madrid-grand-prix-predictions'
     | '/f1-2026-mexico-city-grand-prix-predictions'
     | '/f1-2026-sao-paulo-grand-prix-predictions'
@@ -566,6 +577,7 @@ export interface FileRouteTypes {
     | '/f1-2026-azerbaijan-grand-prix-predictions'
     | '/f1-2026-bahrain-grand-prix-predictions'
     | '/f1-2026-italian-grand-prix-predictions'
+    | '/f1-2026-las-vegas-grand-prix-predictions'
     | '/f1-2026-madrid-grand-prix-predictions'
     | '/f1-2026-mexico-city-grand-prix-predictions'
     | '/f1-2026-sao-paulo-grand-prix-predictions'
@@ -620,6 +632,7 @@ export interface FileRouteTypes {
     | '/f1-2026-azerbaijan-grand-prix-predictions'
     | '/f1-2026-bahrain-grand-prix-predictions'
     | '/f1-2026-italian-grand-prix-predictions'
+    | '/f1-2026-las-vegas-grand-prix-predictions'
     | '/f1-2026-madrid-grand-prix-predictions'
     | '/f1-2026-mexico-city-grand-prix-predictions'
     | '/f1-2026-sao-paulo-grand-prix-predictions'
@@ -676,6 +689,7 @@ export interface RootRouteChildren {
   F12026AzerbaijanGrandPrixPredictionsRoute: typeof F12026AzerbaijanGrandPrixPredictionsRoute
   F12026BahrainGrandPrixPredictionsRoute: typeof F12026BahrainGrandPrixPredictionsRoute
   F12026ItalianGrandPrixPredictionsRoute: typeof F12026ItalianGrandPrixPredictionsRoute
+  F12026LasVegasGrandPrixPredictionsRoute: typeof F12026LasVegasGrandPrixPredictionsRoute
   F12026MadridGrandPrixPredictionsRoute: typeof F12026MadridGrandPrixPredictionsRoute
   F12026MexicoCityGrandPrixPredictionsRoute: typeof F12026MexicoCityGrandPrixPredictionsRoute
   F12026SaoPauloGrandPrixPredictionsRoute: typeof F12026SaoPauloGrandPrixPredictionsRoute
@@ -756,6 +770,13 @@ declare module '@tanstack/react-router' {
       path: '/f1-2026-italian-grand-prix-predictions'
       fullPath: '/f1-2026-italian-grand-prix-predictions'
       preLoaderRoute: typeof F12026ItalianGrandPrixPredictionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/f1-2026-las-vegas-grand-prix-predictions': {
+      id: '/f1-2026-las-vegas-grand-prix-predictions'
+      path: '/f1-2026-las-vegas-grand-prix-predictions'
+      fullPath: '/f1-2026-las-vegas-grand-prix-predictions'
+      preLoaderRoute: typeof F12026LasVegasGrandPrixPredictionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/f1-2026-madrid-grand-prix-predictions': {
@@ -1144,6 +1165,8 @@ const rootRouteChildren: RootRouteChildren = {
     F12026BahrainGrandPrixPredictionsRoute,
   F12026ItalianGrandPrixPredictionsRoute:
     F12026ItalianGrandPrixPredictionsRoute,
+  F12026LasVegasGrandPrixPredictionsRoute:
+    F12026LasVegasGrandPrixPredictionsRoute,
   F12026MadridGrandPrixPredictionsRoute: F12026MadridGrandPrixPredictionsRoute,
   F12026MexicoCityGrandPrixPredictionsRoute:
     F12026MexicoCityGrandPrixPredictionsRoute,

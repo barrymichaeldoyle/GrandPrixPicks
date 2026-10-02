@@ -44,7 +44,7 @@ custom_fields:
   field_type: author_bio
   name: About This Plugin
   category: sports
-  description: 'Made by GrandPrixPicks.com. Install rather than Fork to get future updates. <br/><br/>Questions or ideas? <a href="https://discord.gg/c7YHSNE4Te">Join the Discord</a>'
+  description: Made by GrandPrixPicks.com. Install rather than Fork to get future updates. <br/><br/>Questions or ideas? <a href="https://discord.gg/c7YHSNE4Te">Join the Discord</a>
   learn_more_url: https://grandprixpicks.com/trmnl
   github_url: https://github.com/barrymichaeldoyle/GrandPrixPicks/tree/main/apps/trmnl
   email_address: barry@barrymichaeldoyle.com

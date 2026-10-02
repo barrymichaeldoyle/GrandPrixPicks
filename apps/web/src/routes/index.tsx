@@ -4,12 +4,10 @@ import { lazy, Suspense, useEffect } from 'react';
 
 import { DevNowPanel } from '@/components/DevNowPanel';
 import { InlineLoader } from '@/components/InlineLoader';
-import { RaceWriteupCallout } from '@/components/race-writeups/RaceWriteupCallout';
 import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { setHomeCacheHeaders } from '@/lib/homeCacheHeaders';
-import { getRaceWriteup } from '@/lib/raceWriteups';
 import { routeQuery } from '@/lib/routeQuery';
 import {
   CURRENT_SEASON,
@@ -31,6 +29,7 @@ import {
   ScrollToPicksCta,
 } from './-home/LandingHero';
 import { LANDING_PICKS_ANCHOR, LandingPicks } from './-home/LandingPicks';
+import { LandingWeekendNews } from './-home/LandingWeekendNews';
 import { CompetitionSection } from './-home/CompetitionSection';
 import { ScoringSection } from './-home/ScoringSection';
 import { SessionClock, SessionClockChip } from './-home/SessionClock';
@@ -151,6 +150,7 @@ export const Route = createFileRoute('/')({
       drivers: data.drivers,
       h2hMatchups: data.h2hMatchups,
       entryListNote: data.entryListNote,
+      nextRaceNews: data.nextRaceNews,
       dashboard,
       /*
        * "The server rendered this viewer's page without their data", which is
@@ -257,6 +257,7 @@ function PublicLandingPage() {
     drivers,
     h2hMatchups,
     entryListNote,
+    nextRaceNews,
     now: serverNow,
   } = Route.useLoaderData();
   // The visible clocks only show whole minutes. Updating the entire landing
@@ -270,11 +271,6 @@ function PublicLandingPage() {
   const featuredRace =
     nextRace ?? (recentRaceIsStillCurrent ? mostRecentStartedRace : null);
   const publishedSessions = nextRace ? nextRaceResults : recentRaceResults;
-  // The race itself rather than a boolean, so the JSX below keeps its
-  // narrowing and `ScoringSection` can ask the same question without repeating
-  // the lookup.
-  const writeupCalloutRace =
-    nextRace && getRaceWriteup(nextRace.slug) ? nextRace : null;
   const sessions = featuredRace ? buildSessions(featuredRace) : [];
   const nextSession =
     sessions.find(
@@ -342,25 +338,15 @@ function PublicLandingPage() {
           />
         ) : null}
 
-        {/* No rule of its own, above or below. The landing sections are
-            divided by one, and giving the callout a second put it in a band
-            between two lines, which read as a section of its own rather than
-            as the tail of the picks it follows. The rule below was the same
-            mistake from the other side: the callout is a fully outlined box,
-            so `ScoringSection` drops its top rule when this is what it
-            follows. */}
-        {writeupCalloutRace ? (
-          <div className="px-4 pb-10 sm:pb-14">
-            <div className="mx-auto w-full max-w-5xl">
-              <RaceWriteupCallout
-                raceSlug={writeupCalloutRace.slug}
-                className="mt-0"
-              />
-            </div>
-          </div>
+        {nextRace ? (
+          <LandingWeekendNews
+            raceName={nextRace.name}
+            raceSlug={nextRace.slug}
+            news={nextRaceNews}
+          />
         ) : null}
 
-        <ScoringSection dividerAbove={writeupCalloutRace === null} />
+        <ScoringSection />
 
         <CompetitionSection
           board={weekendBoard}

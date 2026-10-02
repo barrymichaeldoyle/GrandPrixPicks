@@ -338,6 +338,36 @@ export const listForOperators = internalQuery({
   },
 });
 
+/**
+ * The landing page's headlines for the next race: what the write-up carries,
+ * cut to a line each so the home page links into it instead of copying it.
+ *
+ * Stories that change a session lead, newest first within each group: a
+ * visitor reading these sits next to the picker, and a grid penalty is the
+ * one thing that changes the pick they are about to make.
+ */
+export async function loadNewsHeadlines(
+  ctx: QueryCtx,
+  race: Doc<'races'>,
+  limit: number,
+) {
+  const { items } = await listRaceNews(ctx, race, false);
+  const picksFirst = [
+    ...items.filter((item) => item.affectsSessions.length > 0),
+    ...items.filter((item) => item.affectsSessions.length === 0),
+  ];
+  return {
+    total: items.length,
+    items: picksFirst.slice(0, limit).map((item) => ({
+      key: item.key,
+      headline: item.headline,
+      sourceName: item.sourceName,
+      team: item.drivers[0]?.team ?? null,
+      affectsPicks: item.affectsSessions.length > 0,
+    })),
+  };
+}
+
 /** Active news for a race, for the feed and the write-up pages. */
 export async function loadActiveRaceNews(
   ctx: QueryCtx,

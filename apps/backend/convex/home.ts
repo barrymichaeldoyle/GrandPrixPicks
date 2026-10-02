@@ -24,6 +24,7 @@ import { loadCurrentWeekend } from './races';
 import { toUserIdentity } from './lib/userIdentity';
 import { loadMe } from './users';
 import { loadRosterForRound } from './drivers';
+import { loadNewsHeadlines } from './raceNews';
 import {
   getDefaultLeaderboardSeason,
   getFollowedUserIds,
@@ -224,6 +225,12 @@ export const getHomePageData = query({
       ? await loadMatchupsForSeason(ctx, nextRace.season, nextRace.round)
       : [];
 
+    // Five headlines, not the stories: the landing page links each one into
+    // the race write-up, which is where the sourced text is published.
+    const nextRaceNews = nextRace
+      ? await loadNewsHeadlines(ctx, nextRace, 5)
+      : null;
+
     const season = await getDefaultLeaderboardSeason(ctx);
     const allRows = await loadCombinedSeasonRows(ctx, { season });
 
@@ -298,6 +305,7 @@ export const getHomePageData = query({
       drivers,
       h2hMatchups,
       entryListNote: nextRace ? pendingEntryNoteForSlug(nextRace.slug) : null,
+      nextRaceNews,
     };
   },
 });

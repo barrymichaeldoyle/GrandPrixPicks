@@ -5,34 +5,31 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CompetitionSection } from './CompetitionSection';
+import { LandingWeekendNews } from './LandingWeekendNews';
 import { ScoringSection } from './ScoringSection';
-
-const requestSignIn = vi.fn();
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,
     to,
+    hash,
     className,
     onClick,
   }: {
     children?: ReactNode;
     to: string;
+    hash?: string;
     className?: string;
     onClick?: MouseEventHandler<HTMLAnchorElement>;
   }) => (
-    <a href={to} className={className} onClick={onClick}>
+    <a
+      href={hash ? `${to}#${hash}` : to}
+      className={className}
+      onClick={onClick}
+    >
       {children}
     </a>
   ),
-}));
-
-vi.mock('@/integrations/clerk/runtime-control', () => ({
-  useClerkRuntimeControl: () => ({
-    requestSignIn,
-    signInPending: false,
-  }),
-  useClerkWarmHandlers: () => ({}),
 }));
 
 vi.mock('@/lib/analytics', () => ({ captureAnalyticsEvent: () => {} }));
@@ -42,7 +39,6 @@ describe('landing conversion sections', () => {
   let root: Root;
 
   beforeEach(() => {
-    requestSignIn.mockReset();
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -60,9 +56,9 @@ describe('landing conversion sections', () => {
     expect(container.textContent).toContain(
       'Each of your five picks is scored against where that driver actually finished.',
     );
-    expect(container.textContent).toContain('5pointsExact position');
-    expect(container.textContent).toContain('3pointsOne position away');
-    expect(container.textContent).toContain('1pointIn the actual Top 5');
+    expect(container.textContent).toContain('5 pointsExact position');
+    expect(container.textContent).toContain('3 pointsOne position away');
+    expect(container.textContent).toContain('1 pointIn the actual Top 5');
     expect(container.querySelector('a')?.getAttribute('href')).toBe(
       '/how-to-play',
     );
@@ -73,7 +69,7 @@ describe('landing conversion sections', () => {
     ).not.toBeNull();
   });
 
-  it('connects live global proof with a private-league action', () => {
+  it('shows the real weekend board and nothing invented', () => {
     act(() =>
       root.render(
         <CompetitionSection
@@ -110,17 +106,56 @@ describe('landing conversion sections', () => {
     expect(container.textContent).toContain('14 players');
     // The handle, never a display name: public boards are named by username.
     expect(container.textContent).toContain('overcut-king');
-    expect(container.textContent).toContain('Sunday Strategists');
-    // The invented league has to say so on screen, not only to a screen reader.
-    expect(container.textContent).toContain('Example');
+    expect(container.textContent).not.toContain('Example');
     expect(container.querySelector('a[href="/leaderboard"]')).not.toBeNull();
     // The section's own call to action, back to the picker it argues for.
     expect(container.querySelector('a[href="#landing-picks"]')).not.toBeNull();
+  });
 
-    const leagueButton = Array.from(container.querySelectorAll('button')).find(
-      (button) => button.textContent?.includes('Start a league'),
+  it('links each weekend headline to its card on the write-up', () => {
+    act(() =>
+      root.render(
+        <LandingWeekendNews
+          raceName="Bahrain Grand Prix"
+          raceSlug="bahrain-2026"
+          news={{
+            total: 18,
+            items: [
+              {
+                key: 'colapinto-sepang-grid-penalty',
+                headline: 'Colapinto drops 15 places on the Sepang grid',
+                sourceName: 'Formula 1',
+                team: null,
+              },
+            ],
+          }}
+        />,
+      ),
     );
-    act(() => leagueButton?.click());
-    expect(requestSignIn).toHaveBeenCalledWith('/leagues/create');
+
+    expect(container.textContent).toContain('Bahrain Grand Prix news');
+    expect(
+      container.querySelector(
+        'a[href="/f1-2026-bahrain-grand-prix-predictions#news-colapinto-sepang-grid-penalty"]',
+      )?.textContent,
+    ).toContain('Colapinto drops 15 places');
+    expect(
+      container.querySelector(
+        'a[href="/f1-2026-bahrain-grand-prix-predictions"]',
+      ),
+    ).not.toBeNull();
+  });
+
+  it('renders nothing for a race without a write-up', () => {
+    act(() =>
+      root.render(
+        <LandingWeekendNews
+          raceName="Test Grand Prix"
+          raceSlug="no-such-race"
+          news={null}
+        />,
+      ),
+    );
+    expect(container.innerHTML).toBe('');
   });
 });

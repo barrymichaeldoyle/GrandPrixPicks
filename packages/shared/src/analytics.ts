@@ -51,6 +51,7 @@ export const analyticsEventNames = [
   'landing_h2h_completed',
   'landing_hero_cta_clicked',
   'landing_league_cta_clicked',
+  'landing_news_clicked',
   'landing_picker_step_changed',
   'landing_picker_viewed',
   'landing_picks_started_over',

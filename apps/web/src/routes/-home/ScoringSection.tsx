@@ -10,7 +10,7 @@ const scoringBands = [
     title: 'Exact position',
     copy: 'Your driver finishes exactly where you predicted.',
     textClass: 'text-result-exact',
-    ruleClass: 'bg-result-exact',
+    ruleClass: 'border-result-exact',
   },
   {
     points: 3,
@@ -18,7 +18,7 @@ const scoringBands = [
     title: 'One position away',
     copy: 'Your driver finishes one place above or below your pick.',
     textClass: 'text-result-near',
-    ruleClass: 'bg-result-near',
+    ruleClass: 'border-result-near',
   },
   {
     points: 1,
@@ -26,79 +26,59 @@ const scoringBands = [
     title: 'In the actual Top 5',
     copy: 'Your driver finishes in the Top 5, two or more places from your pick.',
     textClass: 'text-result-top5',
-    ruleClass: 'bg-result-top5',
+    ruleClass: 'border-result-top5',
   },
 ] as const;
 
 /**
- * `dividerAbove` is false when the write-up callout sits directly above this
- * section. That callout is a fully outlined box, so it closes the block it
- * ends on its own, and the section rule landed a second hairline forty pixels
- * under the first: two lines with nothing between them, which reads as a
- * mistake rather than as a division. The rule still earns its place when the
- * callout is absent, where this section follows the open bottom edge of the
- * picks.
+ * The three bands as one flat row, each under a rule in its result colour.
+ *
+ * They were three bordered cards with a 48-unit floor and an 8px colour strip,
+ * which made the rules the tallest block on the landing page while almost
+ * nobody acted on them (one "Full scoring rules" click in 90 days). The facts
+ * are the same; the space goes to the weekend's news above.
  */
-export function ScoringSection({
-  dividerAbove = true,
-}: {
-  dividerAbove?: boolean;
-}) {
+export function ScoringSection() {
   return (
     <section
       aria-labelledby="landing-scoring-heading"
-      className={`px-4 py-12 sm:py-16 ${
-        dividerAbove ? 'border-t border-border' : ''
-      }`}
+      className="border-t border-border px-4 py-12 sm:py-16"
     >
       <div className="mx-auto w-full max-w-5xl">
-        <div className="max-w-3xl">
-          <h2
-            id="landing-scoring-heading"
-            className="text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"
-          >
-            How scoring works
-          </h2>
-          <p className="gpp-reading-copy-lg mt-3 text-text-muted">
-            Each of your five picks is scored against where that driver actually
-            finished.
-          </p>
-        </div>
+        <h2
+          id="landing-scoring-heading"
+          className="text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"
+        >
+          How scoring works
+        </h2>
+        <p className="gpp-reading-copy-lg mt-3 max-w-3xl text-text-muted">
+          Each of your five picks is scored against where that driver actually
+          finished.
+        </p>
 
-        <div className="mt-7 grid gap-4 md:grid-cols-3">
+        <dl className="mt-7 grid gap-x-8 gap-y-5 sm:grid-cols-3">
           {scoringBands.map((band) => (
-            <article
+            <div
               key={band.points}
-              // `min-h-48` equalises the three columns on desktop. Below `md`
-              // they stack single-column, where the floor is no longer holding
-              // anything level and just leaves a dead band between the copy and
-              // the sector rule, so it starts at the same breakpoint as the grid.
-              //
-              // `border-b-0` + a filled rule strip (not `border-b-8`) keeps the
-              // sector colour square-ended — CSS miters adjacent borders.
-              className="flex flex-col border border-b-0 border-border bg-surface md:min-h-48"
+              className={`border-t-2 pt-3 ${band.ruleClass}`}
             >
-              <div className="flex flex-1 flex-col p-5">
-                <div className={`flex items-end gap-2 ${band.textClass}`}>
-                  <span className="gpp-mono text-4xl leading-none font-semibold">
-                    {band.points}
-                  </span>
-                  <span className="gpp-label pb-0.5">{band.unit}</span>
-                </div>
-                <h3 className="mt-5 font-semibold text-text">{band.title}</h3>
-                <p className="gpp-reading-copy mt-2 text-text-muted">
-                  {band.copy}
-                </p>
-              </div>
-              <div
-                className={`h-2 shrink-0 ${band.ruleClass}`}
-                aria-hidden="true"
-              />
-            </article>
+              <dt className="flex items-baseline gap-3">
+                <span
+                  className={`gpp-mono text-3xl leading-none font-semibold ${band.textClass}`}
+                >
+                  {band.points}
+                  <span className="sr-only"> {band.unit}</span>
+                </span>
+                <span className="font-semibold text-text">{band.title}</span>
+              </dt>
+              <dd className="gpp-reading-copy mt-2 text-text-muted">
+                {band.copy}
+              </dd>
+            </div>
           ))}
-        </div>
+        </dl>
 
-        <div className="mt-4 flex flex-col gap-4 border border-border bg-surface px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-7 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="gpp-reading-copy text-text-muted">
             <strong className="text-text">Team-mate picks:</strong> each correct
             call adds 1 point to your Combined score.

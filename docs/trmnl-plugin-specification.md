@@ -332,9 +332,11 @@ on the OG and 9 + 1 on the X, and a portrait X clipped the list after eight.
 fitting is width-only, and a height check wrongly shrinks text to the minimum
 size. So the lead has none.
 
-**Long values fit.** The lead value carries `data-value-fit="true"` (an
-earlier `data-fit-value` was the wrong name and did nothing), and its wrapper
-is `w--full`: TRMNL's fitting shrinks a value to its parent's width, and in a
+**Long values fit.** The lead value carries `data-value-fit="true"`, the
+documented name. Framework 3.x reads the legacy `data-fit-value` as well
+(checked in the 3.4.0 `plugins.js` on 2 October 2026), so the attribute was
+never what stopped long names fitting: the wrapper was. It is
+`w--full`: TRMNL's fitting shrinks a value to its parent's width, and in a
 centred flex column that parent was exactly as wide as the text, so "Kimi
 Antonelli" ran under the QR code.
 

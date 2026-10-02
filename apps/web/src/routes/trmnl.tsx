@@ -1,7 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Loader2 } from 'lucide-react';
+import { ExternalLink, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
+import { Button } from '@/components/Button/Button';
 import { PageHeader } from '@/components/PageHeader';
 import { TabSwitch } from '@/components/TabSwitch';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
@@ -33,11 +34,18 @@ import { TrmnlFeedback } from './-trmnl/TrmnlFeedback';
  * later moment (`lib/trmnl/pageScenarios.ts`). Spec:
  * `docs/trmnl-plugin-specification.md`.
  *
- * noindex and out of the sitemap: it is mostly rendered screens with little
- * prose, which is the shape `docs/seo-content-policy.md` says not to ask
- * Google to index. It is the plugin's "learn more" link from the TRMNL
- * directory, and the place to check a layout change.
+ * Indexed and in the sitemap since 2026-10-02. It is the plugin's "learn
+ * more" link from the TRMNL directory, a followed link from trmnl.com, and a
+ * noindex page would waste it. The screens are drawn on the client inside
+ * iframes, so a crawler sees none of them: what it indexes is the photo and the
+ * prose, which no other page on the site carries (`docs/seo-content-policy.md`
+ * rule 1). It is also the place to check a layout change, which is what the
+ * palette and sample-news controls are for.
  */
+
+const TRMNL_RECIPE_URL = 'https://trmnl.com/recipes/485545';
+const TRMNL_SOURCE_URL =
+  'https://github.com/barrymichaeldoyle/GrandPrixPicks/tree/main/apps/trmnl';
 
 type Device = TrmnlScreenConfig['device'];
 type Orientation = TrmnlScreenConfig['orientation'];
@@ -101,9 +109,8 @@ export const Route = createFileRoute('/trmnl')({
     pageMeta({
       title: 'Formula 1 Race Weekend for TRMNL | Grand Prix Picks',
       description:
-        'Every screen of the Grand Prix Picks plugin for TRMNL e-ink displays, for each moment of a race weekend and each screen size.',
+        'A free TRMNL plugin for the Formula 1 race weekend: session times in your time zone, forecasts, results, the starting grid and news on your e-ink display.',
       path: '/trmnl',
-      noIndex: true,
     }),
 });
 
@@ -165,79 +172,189 @@ function TrmnlPage() {
       <div className="mx-auto max-w-5xl px-4 py-6">
         <PageHeader
           title="Formula 1 Race Weekend for TRMNL"
-          subtitle="Our plugin for the TRMNL e-ink display shows the current race weekend: session times in your time zone, practice and session results as they are published, the starting grid on race morning, and the news. Between seasons it shows the final standings."
+          subtitle="A free plugin for the TRMNL e-ink display that follows the current Formula 1 race weekend: session times in your time zone, the forecast, results, the starting grid and the news. It doesn’t need a Grand Prix Picks account."
+          actions={
+            <div className="flex flex-wrap items-center gap-3">
+              <Button asChild rightIcon={ExternalLink}>
+                <a href={TRMNL_RECIPE_URL} target="_blank" rel="noopener">
+                  Install on TRMNL
+                </a>
+              </Button>
+              <Button asChild variant="secondary">
+                <a href={TRMNL_SOURCE_URL} target="_blank" rel="noopener">
+                  Source on GitHub
+                </a>
+              </Button>
+            </div>
+          }
         />
 
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap gap-3">
-            <TabSwitch
-              value={config.device}
-              onChange={(value) =>
-                navigate({
-                  search: (prev) => ({ ...prev, device: value }),
-                  replace: true,
-                })
-              }
-              options={DEVICE_OPTIONS}
-              className="flex gap-1 rounded-lg bg-surface-muted/70 p-1"
-              ariaLabel="Device"
-            />
-            <TabSwitch
-              value={config.orientation}
-              onChange={(value) =>
-                navigate({
-                  search: (prev) => ({ ...prev, orientation: value }),
-                  replace: true,
-                })
-              }
-              options={ORIENTATION_OPTIONS}
-              className="flex gap-1 rounded-lg bg-surface-muted/70 p-1"
-              ariaLabel="Orientation"
-            />
-            <TabSwitch
-              value={config.palette}
-              onChange={(value) =>
-                navigate({
-                  search: (prev) => ({ ...prev, palette: value }),
-                  replace: true,
-                })
-              }
-              options={paletteOptions}
-              className="flex gap-1 rounded-lg bg-surface-muted/70 p-1"
-              ariaLabel="Palette"
-            />
+        <figure className="mt-8">
+          <img
+            src="/images/trmnl/trmnl-og-photo.webp"
+            width={1280}
+            height={960}
+            alt="A TRMNL OG e-ink display on a shelf showing the Bahrain Grand Prix at Sepang: Free Practice 1 on Friday at 6:30 AM with the forecast, every session's time and weather, and nine news headlines."
+            className="w-full max-w-3xl rounded-md border border-border"
+            fetchPriority="high"
+          />
+          <figcaption className="mt-2 text-sm text-text-muted">
+            A TRMNL OG on the Friday of the 2026 Bahrain Grand Prix at Sepang,
+            before first practice.
+          </figcaption>
+        </figure>
+
+        <section
+          aria-labelledby="trmnl-what-it-shows"
+          className="gpp-reading-copy mt-10 max-w-2xl border-t border-border pt-6"
+        >
+          <h2
+            id="trmnl-what-it-shows"
+            className="text-xl font-semibold text-text"
+          >
+            What it shows
+          </h2>
+          <div className="mt-3 flex flex-col gap-3 text-text-muted">
+            <p>
+              The screen leads with the next session and its start time in your
+              time zone, with the forecast for the circuit. Below it, every
+              session of the weekend is listed with its own temperature, rain
+              and wind.
+            </p>
+            <p>
+              Once a session has run, its row shows the top three. Qualifying
+              results show the top five, and sprint and race results the top
+              ten. A race result stays on screen for 36 hours.
+            </p>
+            <p>
+              The other column carries the weekend’s news, with grid penalties
+              and other changes to a session first. On race morning it shows the
+              confirmed starting grid. The QR code opens that weekend’s write-up
+              on Grand Prix Picks, or the race page when there isn’t one.
+            </p>
+            <p>
+              Between seasons, the screen shows the drivers’ and constructors'
+              championship tables, with the latest Formula 1 news.
+            </p>
           </div>
-          <TabSwitch
-            value={scenario.id}
-            onChange={(value) =>
-              navigate({
-                search: (prev) => ({ ...prev, scenario: value }),
-                replace: true,
-              })
-            }
-            options={scenarioOptions}
-            className="flex flex-wrap gap-1 rounded-lg bg-surface-muted/55 p-1"
-            ariaLabel="Moment of the weekend"
-          />
-          <TabSwitch
-            value={newsChoice}
-            onChange={(value) =>
-              navigate({
-                search: (prev) => ({
-                  ...prev,
-                  news:
-                    value === 'published'
-                      ? undefined
-                      : (Number(value) as 0 | 1 | 2 | 20),
-                }),
-                replace: true,
-              })
-            }
-            options={NEWS_OPTIONS}
-            className="flex flex-wrap gap-1 rounded-lg bg-surface-muted/40 p-1"
-            ariaLabel="News"
-          />
-        </div>
+        </section>
+
+        <section
+          aria-labelledby="trmnl-setup"
+          className="gpp-reading-copy mt-8 max-w-2xl border-t border-border pt-6"
+        >
+          <h2 id="trmnl-setup" className="text-xl font-semibold text-text">
+            Setup
+          </h2>
+          <div className="mt-3 flex flex-col gap-3 text-text-muted">
+            <p>
+              Install the recipe from TRMNL’s plugin directory and add it to a
+              playlist. Choose Install rather than Fork: an installed recipe
+              gets updates, while a fork is a copy that stays as it was.
+            </p>
+            <p>
+              Times follow the time zone on your TRMNL account. The one setting
+              is Units, for metric or imperial weather. The screen refreshes
+              every 15 minutes and fits all four layouts, landscape or portrait,
+              on the TRMNL OG and the TRMNL X.
+            </p>
+          </div>
+        </section>
+
+        <section
+          aria-labelledby="trmnl-screens"
+          className="mt-8 border-t border-border pt-6"
+        >
+          <h2 id="trmnl-screens" className="text-xl font-semibold text-text">
+            Every screen
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm text-text-muted">
+            Drawn from the plugin’s own templates with real weekend data. Later
+            moments replay the last weekend that reached them.
+          </p>
+
+          <div className="mt-4 flex flex-col gap-3">
+            <div className="flex flex-wrap gap-3">
+              <TabSwitch
+                value={config.device}
+                onChange={(value) =>
+                  navigate({
+                    search: (prev) => ({ ...prev, device: value }),
+                    replace: true,
+                  })
+                }
+                options={DEVICE_OPTIONS}
+                className="flex gap-1 rounded-lg bg-surface-muted/70 p-1"
+                ariaLabel="Device"
+              />
+              <TabSwitch
+                value={config.orientation}
+                onChange={(value) =>
+                  navigate({
+                    search: (prev) => ({ ...prev, orientation: value }),
+                    replace: true,
+                  })
+                }
+                options={ORIENTATION_OPTIONS}
+                className="flex gap-1 rounded-lg bg-surface-muted/70 p-1"
+                ariaLabel="Orientation"
+              />
+            </div>
+            <TabSwitch
+              value={scenario.id}
+              onChange={(value) =>
+                navigate({
+                  search: (prev) => ({ ...prev, scenario: value }),
+                  replace: true,
+                })
+              }
+              options={scenarioOptions}
+              className="flex flex-wrap gap-1 rounded-lg bg-surface-muted/55 p-1"
+              ariaLabel="Moment of the weekend"
+            />
+            {/* Open whenever the URL already picks one, so a shared link shows
+                what it changed. */}
+            <details
+              open={search.palette !== undefined || search.news !== undefined}
+            >
+              <summary className="cursor-pointer text-sm text-text-muted hover:text-text">
+                Palette and sample news
+              </summary>
+              <div className="mt-3 flex flex-col gap-3">
+                <TabSwitch
+                  value={config.palette}
+                  onChange={(value) =>
+                    navigate({
+                      search: (prev) => ({ ...prev, palette: value }),
+                      replace: true,
+                    })
+                  }
+                  options={paletteOptions}
+                  className="flex flex-wrap gap-1 rounded-lg bg-surface-muted/70 p-1"
+                  ariaLabel="Palette"
+                />
+                <TabSwitch
+                  value={newsChoice}
+                  onChange={(value) =>
+                    navigate({
+                      search: (prev) => ({
+                        ...prev,
+                        news:
+                          value === 'published'
+                            ? undefined
+                            : (Number(value) as 0 | 1 | 2 | 20),
+                      }),
+                      replace: true,
+                    })
+                  }
+                  options={NEWS_OPTIONS}
+                  className="flex flex-wrap gap-1 rounded-lg bg-surface-muted/40 p-1"
+                  ariaLabel="News"
+                />
+              </div>
+            </details>
+          </div>
+        </section>
 
         {/* Two lines reserved, so a longer caption never moves the screen. */}
         <p className="mt-6 min-h-10 text-sm text-text-muted">
@@ -262,57 +379,10 @@ function TrmnlPage() {
           ))}
         </div>
 
-        <section
-          aria-labelledby="trmnl-data-spec"
-          className="mt-8 border-t border-border pt-6"
-        >
-          <h2 id="trmnl-data-spec" className="text-xl font-semibold text-text">
-            What the plugin shows
-          </h2>
-          <dl className="mt-4 grid gap-x-8 gap-y-4 text-sm sm:grid-cols-2">
-            <div>
-              <dt className="font-semibold text-text">Weekend</dt>
-              <dd className="mt-1 text-text-muted">
-                The current or next race, its circuit, round and session times
-                in the device owner’s time zone. A race result stays up for 36
-                hours.
-              </dd>
-            </div>
-            <div>
-              <dt className="font-semibold text-text">Weather</dt>
-              <dd className="mt-1 text-text-muted">
-                Session forecasts appear when current weather data is available.
-              </dd>
-            </div>
-            <div>
-              <dt className="font-semibold text-text">Results and grid</dt>
-              <dd className="mt-1 text-text-muted">
-                Practice shows the top three. Qualifying shows the top five;
-                sprint and race results show the top ten. The confirmed grid
-                appears when it is published.
-              </dd>
-            </div>
-            <div>
-              <dt className="font-semibold text-text">News</dt>
-              <dd className="mt-1 text-text-muted">
-                Published weekend headlines appear as space allows. The QR code
-                opens the weekend write-up when available, or the race page.
-              </dd>
-            </div>
-            <div>
-              <dt className="font-semibold text-text">Between seasons</dt>
-              <dd className="mt-1 text-text-muted">
-                The full screen shows 22 drivers and 11 constructors from the
-                championship standings.
-              </dd>
-            </div>
-          </dl>
-          <p className="mt-5 text-sm text-text-muted">
-            The preview replays earlier weekend moments. Headline counts other
-            than “News as published” use sample headlines. Before the season
-            ends, the off-season tab uses current standings and sample news.
-          </p>
-        </section>
+        <p className="mt-5 max-w-2xl text-sm text-text-muted">
+          Before the season ends, the off-season tab uses current standings and
+          sample news.
+        </p>
 
         <TrmnlFeedback />
 

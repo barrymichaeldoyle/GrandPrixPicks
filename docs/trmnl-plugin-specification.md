@@ -570,8 +570,20 @@ a layout change, and the plugin's "learn more" link from the TRMNL directory.
   they must not import the renderer or the scenarios. When they did, liquidjs
   and the templates added about 125 kB to every page. The component is split
   into its own chunk (about 32 kB brotli), loaded only on `/trmnl`.
-- **SEO:** `noindex` and not in the sitemap: it is mostly rendered screens with
-  little prose, per `docs/seo-content-policy.md`.
+- **SEO:** indexed, in the sitemap and linked from the footer ("F1 on TRMNL")
+  since 2026-10-02. The recipe's "learn more" link from trmnl.com lands here
+  and is followed, which a `noindex` page would waste. The screens draw on the
+  client inside iframes and are invisible to a crawler, so what gets indexed is
+  the device photo (`public/images/trmnl/`) and the "What it shows" and "Setup"
+  prose: 433 content words, 0% overlap with any other page by
+  `check:duplication`. The palette and sample-news controls sit in a collapsed
+  `<details>` (opened when the URL sets either), since they are for checking
+  layouts rather than for a reader.
+- **Listing copy:** the TRMNL recipe's `recipe_overview` (in
+  `apps/trmnl/src/settings.yml`) must stay at 100+ words or TRMNL serves the
+  recipe page `noindex`. The `author_bio` field holds credits and links only.
+  Keep the overview and this page's prose worded differently, so the two do
+  not compete as duplicates.
 
 ## 9. Installing and publishing
 

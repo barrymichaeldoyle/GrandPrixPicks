@@ -171,7 +171,7 @@ routes/                # TanStack Router file-based routes
   settings.tsx         # Account settings (profile, regional, notifications)
   pricing.tsx, pay.tsx, refund-policy.tsx  # Season pass / Paddle checkout
   support.tsx          # Support request form
-  trmnl.tsx            # TRMNL plugin screens, every moment x size (noindex)
+  trmnl.tsx            # TRMNL plugin page: photo, setup, every moment x size (indexed)
   admin/               # Admin routes (race management, result publishing)
   terms.tsx, privacy.tsx
 components/            # Shared React components (app-wide)

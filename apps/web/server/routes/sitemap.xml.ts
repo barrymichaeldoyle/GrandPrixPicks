@@ -128,6 +128,12 @@ const staticEntries: SitemapEntry[] = [
     priority: '0.7',
   },
   {
+    // The TRMNL directory's "learn more" link lands here.
+    loc: `${siteConfig.url}/trmnl`,
+    changefreq: 'monthly',
+    priority: '0.5',
+  },
+  {
     loc: `${siteConfig.url}/refund-policy`,
     changefreq: 'monthly',
     priority: '0.6',

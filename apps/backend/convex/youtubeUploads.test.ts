@@ -96,6 +96,25 @@ describe('YouTube uploads', () => {
         { ...upload, title: 'FP2 Highlights | Azerbaijan Grand Prix' },
         races,
       ),
+    ).toEqual({ raceSlug: 'azerbaijan-2026', kind: 'fp2' });
+    expect(
+      matchUpload(
+        {
+          ...upload,
+          title: 'FP2 Highlights | Azerbaijan Grand Prix',
+          publishedAt: upload.publishedAt + 30 * 86400000,
+        },
+        races,
+      ),
+    ).toBe('Race needs review');
+    expect(
+      matchUpload(
+        {
+          ...upload,
+          title: 'FP2 Highlights | 2025 vs 2026 Azerbaijan Grand Prix',
+        },
+        races,
+      ),
     ).toBe('Race year needs review');
     expect(
       matchUpload(
@@ -147,7 +166,7 @@ describe('YouTube uploads', () => {
           new Response(
             JSON.stringify({
               author_url: 'https://www.youtube.com/@Formula1',
-              title: 'FP2 Highlights | Azerbaijan Grand Prix',
+              title: 'FP2 Highlights | 2025 Azerbaijan Grand Prix',
             }),
           ),
         ),

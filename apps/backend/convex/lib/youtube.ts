@@ -181,9 +181,15 @@ export function matchUpload(
     return 'Video type needs review';
   }
   const years = [...new Set(title.match(/\b20\d{2}\b/g) ?? [])];
-  if (years.length !== 1) {
+  if (years.length > 1) {
     return 'Race year needs review';
   }
+  // F1 sometimes drops the year ("FP2 Highlights | Bahrain Grand Prix in
+  // Malaysia"). The publish year is then safe: the window check below still
+  // ties the upload to that weekend.
+  const year = years.length
+    ? Number(years[0])
+    : new Date(upload.publishedAt).getUTCFullYear();
   const aliases: Record<string, string[]> = {
     italy: ['italian'],
     australia: ['australian'],
@@ -206,7 +212,7 @@ export function matchUpload(
       ...(aliases[slug] ?? []),
     ];
     return (
-      race.season === Number(years[0]) &&
+      race.season === year &&
       race.status !== 'cancelled' &&
       names.some(
         (name) => name && ` ${title} `.includes(` ${name} grand prix `),

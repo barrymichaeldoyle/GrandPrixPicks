@@ -59,11 +59,14 @@ exposed by the admin status query.
 
 `youtubeUploads` deduplicates by video ID and ignores stale deliveries. Every
 new upload or metadata update schedules a channel verification through YouTube
-oEmbed. Only supported highlights/Radio Rewind with an explicit single year,
-an unambiguous race name, a matching calendar window and a valid session can
-publish automatically. F2/F3, F1 Academy and explicitly historical compilations
-are ignored. Missing years, uncertain matches and occupied race/session slots
-enter the private admin News video queue. Verification failures retry up to
+oEmbed. Only supported highlights/Radio Rewind with at most one year in the
+title, an unambiguous race name, a matching calendar window and a valid session
+can publish automatically. A title with no year (F1 dropped it from "FP2
+Highlights | Bahrain Grand Prix in Malaysia") is matched against the publish
+year; the calendar window still ties it to that weekend. F2/F3, F1 Academy and
+explicitly historical compilations are ignored. Titles naming several years,
+uncertain matches and occupied race/session slots enter the private admin News
+video queue. Verification failures retry up to
 three attempts before review; admins can retry them.
 
 Admins can choose a race/session and publish a verified upload, or reject it.

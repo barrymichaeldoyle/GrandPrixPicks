@@ -72,12 +72,17 @@ that check or the human review.
 
 ## Keeping TRMNL in sync
 
-GitHub Sync is not connected yet. The private plugin's markup is currently
-updated manually from this directory; the About text comes from the
-`custom_fields` block in `src/settings.yml`.
+GitHub Sync is connected: edits saved in TRMNL arrive as commits from
+`trmnl-sync[bot]` ("Updated from TRMNL"). The About text comes from the
+`custom_fields` block in `src/settings.yml`, and the public recipe page text
+from its top-level `recipe_overview`, which must stay at 100+ words or TRMNL
+serves the recipe page `noindex`.
 
-TRMNL supports a subdirectory in an existing repository. If connecting it,
-choose:
+`trmnlp` is not installed globally. It needs the Ruby pinned in
+`.ruby-version`, so run it from this directory after the setup under Local
+linting, plus `trmnlp login` once for the API key.
+
+The connection uses a subdirectory of this repository:
 
 - **Repository:** `barrymichaeldoyle/GrandPrixPicks`
 - **Folder in the repository:** `apps/trmnl` (not `apps/trmnl/src`)

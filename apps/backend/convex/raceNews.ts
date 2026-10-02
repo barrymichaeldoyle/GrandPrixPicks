@@ -68,6 +68,7 @@ const raceNewsListResultValidator = v.object({
       sourceUrl: v.string(),
       active: v.boolean(),
       publishedAt: v.number(),
+      headlineUpdatedAt: v.optional(v.number()),
       sourcePublishedAt: v.optional(v.number()),
       drivers: v.array(
         v.object({
@@ -289,6 +290,7 @@ async function listRaceNews(
     sourceUrl: row.sourceUrl,
     active: row.active,
     publishedAt: row.publishedAt,
+    headlineUpdatedAt: row.headlineUpdatedAt,
     sourcePublishedAt: row.sourcePublishedAt,
     drivers: (row.driverCodes ?? []).flatMap((code) => {
       const driver = roster.get(code);
@@ -613,7 +615,12 @@ export const publish = internalMutation({
           /* Already ran. */
         }
       }
-      await ctx.db.patch(existing._id, fields);
+      await ctx.db.patch(existing._id, {
+        ...fields,
+        ...(existing.headline !== args.headline
+          ? { headlineUpdatedAt: now }
+          : {}),
+      });
     } else {
       await ctx.db.insert('raceNews', { ...fields, publishedAt: now });
     }

@@ -215,7 +215,14 @@ column: the grid on race morning, otherwise whichever is newer of the latest
 session result ("Race result", "Qualifying result") and the headlines. It
 offers seven headlines on the OG, eleven on the X in landscape, and ten on the
 X in portrait; more than six headlines steps the type down once. A horizontal divider
-separates each adjacent headline.
+separates each adjacent headline. Every layout takes headlines in one order
+(`formatNews` in `apps/web/src/lib/trmnl/payload.ts`): news that changes a
+session (non-empty `affectsSessions`, such as a grid penalty) first, then the
+rest, newest first within each. In plain recency order, a penalty filed early in
+the week fell off the bottom of the list behind Thursday's colour pieces.
+"Newest" is the later of `publishedAt` and `headlineUpdatedAt`, which a
+republish sets only when it changes the headline: Colapinto's five places
+becoming 15 is news again, a body typo fix is not.
 The focus block owns the column's spare
 height: TRMNL's overflow script hides news items that do not fit, and a
 separate spacer read to it as content and hid most of them. When headlines fit,
@@ -613,7 +620,16 @@ TRMNL. `trmnlp push` can (Ruby 4 or Docker, and a TRMNL API key). By hand:
 `pbcopy < file`, click into the tab's code, select all, paste, ⌘S; the
 editor is CodeMirror 6, so a SHA-256 of `.cm-content`'s `cmView.view` document
 against the file confirms the paste. Last synced from the repo on 26 September
-2026, with the `units` form field.
+2026, with the `units` form field. The edits go both ways: TRMNL's reviewer
+changed the live copy when approving the recipe (2 October 2026), and the repo
+was brought in line by hand. On an X, the schedule's forecast labels are
+`label--large` and its Next badge `label--base`, because the icon already holds
+the row's height and the text can fill it at no cost. The reviewer also added
+`github_url` to `author_bio`, which puts a GitHub icon on the recipe page;
+the bio's own "View source on GitHub" link went, and the Discord link (in the
+repo since 27 September, never pasted) went live, when the form fields were
+pasted from the repo the same day. Check the live editor against the repo
+before the next paste.
 
 ### Publishing it as a Recipe
 

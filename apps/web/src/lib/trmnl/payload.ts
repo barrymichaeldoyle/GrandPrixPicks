@@ -131,6 +131,10 @@ type ResultRow = {
 type NewsItem = {
   headline: string;
   publishedAt: number;
+  /** When a republish last changed the headline: the story moved on. */
+  headlineUpdatedAt?: number;
+  /** Non-empty for news that changes a session (`pick_related`). */
+  affectsSessions?: readonly string[];
   startingGrid?: {
     position: number;
     code: string;
@@ -383,9 +387,7 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
     .find((session) => (input.results[session]?.length ?? 0) > 0);
   const raceResult = input.results.race ?? [];
 
-  const newsByRecency = [...input.news].sort(
-    (a, b) => b.publishedAt - a.publishedAt,
-  );
+  const newsByRecency = [...input.news].sort((a, b) => newsAt(b) - newsAt(a));
   const gridItem = newsByRecency.find(
     (item) => (item.startingGrid?.length ?? 0) > 0,
   );
@@ -418,7 +420,7 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
   const focus = chooseFocus({
     hasRaceResult: raceResult.length > 0,
     hasGrid: grid.length > 0,
-    latestNewsAt: newsByRecency[0]?.publishedAt,
+    latestNewsAt: newsByRecency[0] ? newsAt(newsByRecency[0]) : undefined,
     latestResultStartedAt: lastResulted
       ? sessionStartAt(race, lastResulted)
       : undefined,
@@ -496,11 +498,32 @@ function clockTime(seconds: number): string {
   return rest;
 }
 
+/**
+ * News that changes a session (a grid penalty, a replacement driver) first,
+ * then the rest, newest first within each (see `newsAt`). The layouts show 1 to about 11
+ * headlines, and by Friday a weekend has more: in pure recency order
+ * Colapinto's 15-place drop, filed early and firmed up later, ranked 14th of
+ * 15 behind a repainted grid slot.
+ */
 function formatNews(news: NewsItem[]): TrmnlPayload['news'] {
   return [...news]
-    .sort((a, b) => b.publishedAt - a.publishedAt)
+    .sort((a, b) => newsTier(a) - newsTier(b) || newsAt(b) - newsAt(a))
     .slice(0, NEWS_LIMIT)
     .map((item) => ({ headline: item.headline }));
+}
+
+/** 0 for news that changes a session, 1 for the rest. */
+function newsTier(item: NewsItem): number {
+  return (item.affectsSessions?.length ?? 0) > 0 ? 0 : 1;
+}
+
+/**
+ * How new an item is: when it was published, or when a republish last
+ * changed its headline, whichever is later. A five-place penalty that became
+ * 15 places is news again; a body typo fix is not.
+ */
+function newsAt(item: NewsItem): number {
+  return Math.max(item.publishedAt, item.headlineUpdatedAt ?? 0);
 }
 
 /**

@@ -179,11 +179,11 @@
         </span>
       </td>
       {% else %}
-      <td>{% if row.weather %}<span class="label label--small lg:label--base">{{ row.weather.temp }}</span>{% endif %}</td>
+      <td>{% if row.weather %}<span class="label label--small lg:label--large">{{ row.weather.temp }}</span>{% endif %}</td>
       <td>{% if row.weather %}<img class="image image-dither w--[22px] h--[22px] lg:w--[32px] lg:h--[32px]" src="{{ row.weather.icon }}" alt="">{% endif %}</td>
-      {% if schedule_rain_column %}<td>{% if row.weather and row.weather.rain != "" %}<span class="label label--small lg:label--base">{{ row.weather.rain }}</span>{% endif %}</td>{% endif %}
-      {% unless no_rainfall %}<td>{% if row.weather %}<span class="label label--small lg:label--base">{{ row.weather.rainAmount }}</span>{% endif %}</td>{% endunless %}
-      <td>{% if row.next %}<span class="label label--small label--filled">Next</span>{% endif %}</td>
+      {% if schedule_rain_column %}<td>{% if row.weather and row.weather.rain != "" %}<span class="label label--small lg:label--large">{{ row.weather.rain }}</span>{% endif %}</td>{% endif %}
+      {% unless no_rainfall %}<td>{% if row.weather %}<span class="label label--small lg:label--large">{{ row.weather.rainAmount }}</span>{% endif %}</td>{% endunless %}
+      <td>{% if row.next %}<span class="label label--small lg:label--base label--filled">Next</span>{% endif %}</td>
       {% endif %}
     </tr>
     {% endfor %}

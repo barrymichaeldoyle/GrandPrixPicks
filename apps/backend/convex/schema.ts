@@ -1129,6 +1129,13 @@ export default defineSchema({
      */
     sourcePublishedAt: v.optional(v.number()),
     publishedAt: v.number(),
+    /**
+     * When a republish last changed the headline. A new headline is a story
+     * that moved on ("takes a five-place penalty" to "drops 15 places"), so
+     * it counts as fresh news on TRMNL. A body correction leaves this alone;
+     * `updatedAt` moves on every republish, typo fixes included.
+     */
+    headlineUpdatedAt: v.optional(v.number()),
     updatedAt: v.number(),
   })
     .index('by_race', ['raceId'])

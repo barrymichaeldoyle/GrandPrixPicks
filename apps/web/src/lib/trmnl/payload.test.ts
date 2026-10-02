@@ -525,6 +525,68 @@ describe('buildTrmnlPayload', () => {
     expect(payload.news.at(-1)?.headline).toBe('Headline 6');
   });
 
+  it('puts news that changes a session ahead of newer general news', () => {
+    const payload = buildTrmnlPayload(
+      input({
+        now: at('2026-10-02T12:00:00Z'),
+        news: [
+          {
+            headline: 'Pole slot repainted',
+            publishedAt: at('2026-10-01T15:00:00Z'),
+            affectsSessions: [],
+          },
+          {
+            headline: 'Colapinto drops 15 places',
+            publishedAt: at('2026-09-26T09:00:00Z'),
+            affectsSessions: ['race'],
+          },
+          {
+            headline: 'Heat hazard declared',
+            publishedAt: at('2026-09-30T09:00:00Z'),
+          },
+          {
+            headline: 'Hadjar drops five places',
+            publishedAt: at('2026-10-01T09:00:00Z'),
+            affectsSessions: ['race'],
+          },
+        ],
+      }),
+    );
+
+    expect(payload.news.map((item) => item.headline)).toEqual([
+      'Hadjar drops five places',
+      'Colapinto drops 15 places',
+      'Pole slot repainted',
+      'Heat hazard declared',
+    ]);
+  });
+
+  it('counts a changed headline as new news', () => {
+    const payload = buildTrmnlPayload(
+      input({
+        now: at('2026-10-02T12:00:00Z'),
+        news: [
+          {
+            headline: 'Hadjar drops five places',
+            publishedAt: at('2026-10-01T09:00:00Z'),
+            affectsSessions: ['race'],
+          },
+          {
+            headline: 'Colapinto drops 15 places',
+            publishedAt: at('2026-09-26T09:00:00Z'),
+            headlineUpdatedAt: at('2026-10-02T08:00:00Z'),
+            affectsSessions: ['race'],
+          },
+        ],
+      }),
+    );
+
+    expect(payload.news.map((item) => item.headline)).toEqual([
+      'Colapinto drops 15 places',
+      'Hadjar drops five places',
+    ]);
+  });
+
   it('gives every session in the forecast window its own weather', () => {
     const weather = sampleForecast('Europe/Rome', {
       '2026-09-04': {

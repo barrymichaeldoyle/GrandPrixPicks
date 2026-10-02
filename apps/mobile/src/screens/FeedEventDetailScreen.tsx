@@ -4,7 +4,6 @@ import type { FeedEvent } from '../components/feed/FeedEventCard';
 import { FeedEventCard } from '../components/feed/FeedEventCard';
 import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
-import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { useQuery } from '../integrations/convex/query';
 import type { HomeStackParamList } from '../navigation/types';
@@ -15,10 +14,9 @@ type Props = NativeStackScreenProps<HomeStackParamList, 'FeedEventDetail'>;
 
 export function FeedEventDetailScreen({ route }: Props) {
   const { convexEnabled } = useMobileConfig();
-  const feedEventId = route.params.feedEventId as ConvexId<'feedEvents'>;
   const detail = useQuery(
-    api.feed.getFeedEvent,
-    convexEnabled ? { feedEventId } : 'skip',
+    api.feed.getFeedEventByRef,
+    convexEnabled ? { ref: route.params.feedEventId } : 'skip',
   );
 
   if (!convexEnabled) {

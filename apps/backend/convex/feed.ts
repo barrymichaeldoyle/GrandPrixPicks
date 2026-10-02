@@ -3,7 +3,11 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
-import type { DatabaseReader, MutationCtx } from './_generated/server';
+import type {
+  DatabaseReader,
+  MutationCtx,
+  QueryCtx,
+} from './_generated/server';
 import { internalMutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
 import {
@@ -16,6 +20,7 @@ import { loadConstructorPoints } from './f1Standings';
 import { sortByConstructorStanding } from './lib/teammateBattles';
 import { toUserIdentity } from './lib/userIdentity';
 import { getCurrentSeason } from './lib/season';
+import schema from './schema';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -1261,41 +1266,116 @@ export const getLeagueFeed = query({
   },
 });
 
+const sessionHeaderDriverValidator = v.object({
+  code: v.string(),
+  displayName: v.string(),
+  team: v.optional(v.string()),
+  number: v.optional(v.number()),
+  nationality: v.optional(v.string()),
+});
+
+const feedEventDetailValidator = v.union(
+  v.null(),
+  v.object({
+    event: schema.doc('feedEvents').extend({
+      seatMoves: v.optional(
+        v.array(
+          schema.tables.feedEvents.validator.fields.seatMoves.element.extend({
+            outNationality: v.optional(v.string()),
+            inNationality: v.optional(v.string()),
+          }),
+        ),
+      ),
+      picks: v.optional(
+        v.array(
+          v.object({
+            code: v.string(),
+            team: v.optional(v.string()),
+            displayName: v.optional(v.string()),
+            number: v.optional(v.number()),
+            nationality: v.optional(v.string()),
+            predictedPosition: v.number(),
+            actualPosition: v.optional(v.number()),
+            points: v.number(),
+          }),
+        ),
+      ),
+      h2hScore: v.union(
+        v.null(),
+        v.object({
+          correctPicks: v.number(),
+          totalPicks: v.number(),
+          points: v.number(),
+        }),
+      ),
+    }),
+    session: v.union(
+      v.null(),
+      v.object({
+        raceName: v.string(),
+        sessionType: v.string(),
+        raceSlug: v.optional(v.string()),
+        top5: v.array(sessionHeaderDriverValidator),
+        h2h: v.array(
+          v.object({
+            team: v.string(),
+            winner: sessionHeaderDriverValidator,
+            loser: sessionHeaderDriverValidator,
+          }),
+        ),
+      }),
+    ),
+  }),
+);
+
+async function loadFeedEvent(ctx: QueryCtx, feedEventId: Id<'feedEvents'>) {
+  const event = await ctx.db.get(feedEventId);
+  if (!event || event.type === 'streak_milestone') {
+    return null;
+  }
+
+  // News is the one event a signed-out reader may open: the Discord #news
+  // post links here. It is public already, since an embargoed item has no
+  // feed event until its release and a retracted one loses it. Everything
+  // else is a player's own activity.
+  if (event.type !== 'race_news' && !(await getViewer(ctx))) {
+    return null;
+  }
+
+  const [scoreEnrichment, lineupEnrichment, sessions] = await Promise.all([
+    enrichScoreEvent(ctx, event),
+    enrichLineupEvent(ctx, event),
+    buildSessionHeaders(ctx, [event]),
+  ]);
+
+  const sessionKey =
+    event.raceId && event.sessionType
+      ? `${event.raceId}_${event.sessionType}`
+      : null;
+
+  return {
+    event: {
+      ...event,
+      ...scoreEnrichment,
+      ...lineupEnrichment,
+    },
+    session: sessionKey ? (sessions[sessionKey] ?? null) : null,
+  };
+}
+
 export const getFeedEvent = query({
   args: { feedEventId: v.id('feedEvents') },
-  handler: async (ctx, args) => {
-    const event = await ctx.db.get(args.feedEventId);
-    if (!event || event.type === 'streak_milestone') {
-      return null;
-    }
+  returns: feedEventDetailValidator,
+  handler: async (ctx, args) => loadFeedEvent(ctx, args.feedEventId),
+});
 
-    // News is the one event a signed-out reader may open: the Discord #news
-    // post links here. It is public already, since an embargoed item has no
-    // feed event until its release and a retracted one loses it. Everything
-    // else is a player's own activity.
-    if (event.type !== 'race_news' && !(await getViewer(ctx))) {
-      return null;
-    }
-
-    const [scoreEnrichment, lineupEnrichment, sessions] = await Promise.all([
-      enrichScoreEvent(ctx, event),
-      enrichLineupEvent(ctx, event),
-      buildSessionHeaders(ctx, [event]),
-    ]);
-
-    const sessionKey =
-      event.raceId && event.sessionType
-        ? `${event.raceId}_${event.sessionType}`
-        : null;
-
-    return {
-      event: {
-        ...event,
-        ...scoreEnrichment,
-        ...lineupEnrichment,
-      },
-      session: sessionKey ? (sessions[sessionKey] ?? null) : null,
-    };
+/** URL and push-link references are untrusted strings, not typed document IDs. */
+export const getFeedEventByRef = query({
+  args: { ref: v.string() },
+  returns: feedEventDetailValidator,
+  handler: async (ctx, { ref }) => {
+    const feedEventId = ctx.db.normalizeId('feedEvents', ref);
+    return feedEventId ? loadFeedEvent(ctx, feedEventId) : null;
   },
 });
 

@@ -1,5 +1,4 @@
 import { api } from '@convex-generated/api';
-import type { Id } from '@convex-generated/dataModel';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@/integrations/convex/query';
 import { ArrowLeft, ArrowRight, Gauge } from 'lucide-react';
@@ -49,8 +48,8 @@ function FeedEventPage() {
   // Asked signed out too: the query answers for news, which the Discord #news
   // posts link here, and returns null for a player's activity.
   const feedEvent = useQuery(
-    api.feed.getFeedEvent,
-    isLoaded ? { feedEventId: feedEventId as Id<'feedEvents'> } : 'skip',
+    api.feed.getFeedEventByRef,
+    isLoaded ? { ref: feedEventId } : 'skip',
   );
 
   // There is deliberately no public preview of a player's activity: another

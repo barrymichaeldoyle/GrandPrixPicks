@@ -1,5 +1,11 @@
 import { ChevronDown, ExternalLink } from 'lucide-react';
-import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 
 import { RaceWriteupStoreCard } from '@/components/race-writeups/RaceWriteupStoreLink';
 
@@ -92,27 +98,49 @@ export function WeekendNewsSection({
   /** The race's slug, for race merch in the store card. */
   storePage?: string;
 }) {
+  const sectionRef = useRef<HTMLElement>(null);
   const foldRef = useRef<HTMLDetailsElement>(null);
+  const [targetId, setTargetId] = useState<string | null>(null);
 
-  // A shared `#news-...` link to a folded card has to open the fold, or it
-  // lands on a closed disclosure. Some browsers do this on their own; this
-  // makes it true in all of them.
+  // A `#news-...` link has to land on its card, and the browser cannot be left
+  // to do it alone:
+  //
+  // - A folded card has to have its fold opened, or the link lands on a closed
+  //   disclosure. Some browsers do this on their own; this makes it all of them.
+  // - The landing page's headlines arrive by client navigation, which is
+  //   `pushState`, and `pushState` never updates `:target`. The card was
+  //   reached but not marked, in a two-column grid of near-identical cards, so
+  //   the mark is state here rather than left to the selector.
+  // - Content above the news (the hero's schedule and weather, photos) settles
+  //   after the jump and pushes the card back down the page. Following the
+  //   layout until it stops, or until the reader scrolls, keeps the card where
+  //   the link put it.
   useEffect(() => {
-    function openForHash() {
-      const fold = foldRef.current;
-      const id = window.location.hash.slice(1);
-      if (!fold || !id.startsWith('news-')) {
+    let stopFollowing: (() => void) | undefined;
+    function goToHash() {
+      stopFollowing?.();
+      const id = decodeURIComponent(window.location.hash.slice(1));
+      const target = id.startsWith('news-')
+        ? document.getElementById(id)
+        : null;
+      if (!target || !sectionRef.current?.contains(target)) {
+        setTargetId(null);
         return;
       }
-      const target = document.getElementById(id);
-      if (target && fold.contains(target)) {
+      const fold = foldRef.current;
+      if (fold?.contains(target)) {
         fold.open = true;
-        target.scrollIntoView();
       }
+      setTargetId(id);
+      target.scrollIntoView();
+      stopFollowing = followLayoutUntilSettled(target);
     }
-    openForHash();
-    window.addEventListener('hashchange', openForHash);
-    return () => window.removeEventListener('hashchange', openForHash);
+    goToHash();
+    window.addEventListener('hashchange', goToHash);
+    return () => {
+      stopFollowing?.();
+      window.removeEventListener('hashchange', goToHash);
+    };
   }, []);
 
   if (items.length === 0) {
@@ -149,7 +177,11 @@ export function WeekendNewsSection({
   const earlier = items.filter((item) => !lead.includes(item));
 
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="weekend-news">
+    <section
+      ref={sectionRef}
+      className="py-8 sm:py-16"
+      aria-labelledby="weekend-news"
+    >
       <div className="max-w-3xl">
         <h2
           id="weekend-news"
@@ -165,6 +197,7 @@ export function WeekendNewsSection({
       <NewsCards
         items={lead}
         newsLink={newsLink}
+        targetId={targetId}
         className="mt-7"
         trailing={(wide, leanClassName) => (
           <RaceWriteupStoreCard
@@ -187,7 +220,12 @@ export function WeekendNewsSection({
               aria-hidden
             />
           </summary>
-          <NewsCards items={earlier} newsLink={newsLink} className="mt-4" />
+          <NewsCards
+            items={earlier}
+            newsLink={newsLink}
+            targetId={targetId}
+            className="mt-4"
+          />
         </details>
       ) : null}
 
@@ -196,6 +234,48 @@ export function WeekendNewsSection({
       ) : null}
     </section>
   );
+}
+
+/** Long enough for the hero and photos above to settle on a slow phone. */
+const FOLLOW_LAYOUT_MS = 2500;
+
+/**
+ * Keeps `target` at the top of the viewport while the page above it is still
+ * changing height, and lets go the moment the reader takes over.
+ *
+ * Instant rather than smooth: the first jump has already animated, and these
+ * are corrections of a few hundred pixels that should read as the card staying
+ * put, not as the page moving again.
+ */
+function followLayoutUntilSettled(target: HTMLElement): () => void {
+  if (typeof ResizeObserver === 'undefined') {
+    return () => {};
+  }
+  // `observe` reports the current size once straight away. That is not a
+  // change, and answering it would cut the first, smooth scroll short.
+  let initial = true;
+  const observer = new ResizeObserver(() => {
+    if (initial) {
+      initial = false;
+      return;
+    }
+    target.scrollIntoView({ behavior: 'instant' });
+  });
+  observer.observe(document.body);
+
+  const intents = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const;
+  const timer = window.setTimeout(stop, FOLLOW_LAYOUT_MS);
+  function stop() {
+    observer.disconnect();
+    window.clearTimeout(timer);
+    for (const type of intents) {
+      window.removeEventListener(type, stop);
+    }
+  }
+  for (const type of intents) {
+    window.addEventListener(type, stop, { passive: true });
+  }
+  return stop;
 }
 
 const LEAN_THIN_TOP =
@@ -255,11 +335,14 @@ function twoColumnLeans(cells: { cols: number; rows: number }[]): string[] {
 function NewsCards({
   items,
   newsLink,
+  targetId,
   className,
   trailing,
 }: {
   items: NewsItem[];
   newsLink: (newsKey: string) => { href: string; headline: string } | undefined;
+  /** The card the URL's hash points at, marked as `:target` would mark it. */
+  targetId: string | null;
   className: string;
   /**
    * One more card after the news. `wide` asks it to take both columns, when
@@ -327,12 +410,15 @@ function NewsCards({
           <article
             key={item.key}
             // The anchor a grid row jumps to. `styles.css` gives an
-            // `article[id]` its scroll offset under the sticky header, and
-            // `target:` marks which card answered the question: landing
+            // `article[id]` its scroll offset under the sticky header, and the
+            // outline marks which card answered the question: landing
             // mid-page in a two-column grid of near-identical cards, the
-            // reader otherwise has to work out which one moved.
+            // reader otherwise has to work out which one moved. `target:`
+            // covers the server HTML; `data-hash-target` covers a client
+            // navigation, which `:target` never sees.
             id={cardId(item.key)}
-            className={`flex flex-col bg-surface p-4 target:outline-2 target:outline-offset-[-2px] target:outline-accent sm:p-6 ${
+            data-hash-target={targetId === cardId(item.key) ? '' : undefined}
+            className={`flex flex-col bg-surface p-4 target:outline-2 target:outline-offset-[-2px] target:outline-accent data-hash-target:outline-2 data-hash-target:outline-offset-[-2px] data-hash-target:outline-accent sm:p-6 ${
               item.startingGrid?.length
                 ? // Both columns. Eleven rows beside eleven only fits if the
                   // card is the full width of the section.

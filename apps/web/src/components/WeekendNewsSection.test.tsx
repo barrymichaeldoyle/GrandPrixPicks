@@ -204,6 +204,24 @@ describe('WeekendNewsSection fold and shared links', () => {
     );
     expect(container.querySelector('details')?.open).toBe(true);
   });
+
+  // A client navigation from the landing page's headlines is `pushState`, which
+  // never updates `:target`, so the card has to be marked by the component.
+  it('scrolls to and marks a lead card the URL points at', () => {
+    window.history.replaceState(null, '', '/#news-story-1');
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    render(
+      Array.from({ length: 3 }, (_, index) => ({
+        ...item,
+        key: `story-${index}`,
+        headline: `Story ${index}`,
+      })),
+    );
+    const marked = container.querySelectorAll('[data-hash-target]');
+    expect([...marked].map((card) => card.id)).toEqual(['news-story-1']);
+    expect(scrollIntoView).toHaveBeenCalled();
+  });
 });
 
 describe('WeekendNewsSection store card', () => {

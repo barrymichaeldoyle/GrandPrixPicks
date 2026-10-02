@@ -2,7 +2,9 @@ import { Link } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 import type { CSSProperties } from 'react';
 
+import { Flag } from '@/components/Flag';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { getRaceWriteup } from '@/lib/raceWriteups';
 import { TEAM_COLORS } from '@/lib/teamColors';
 
@@ -45,6 +47,9 @@ export function LandingWeekendNews({
     return null;
   }
   const items = news?.items ?? [];
+  // The same flag the hero's clock and the weekend board put beside a race
+  // name, so every race this page names reads the same way.
+  const countryCode = getCountryCodeForRace({ slug: raceSlug });
 
   function track(target: string) {
     captureAnalyticsEvent('landing_news_clicked', {
@@ -62,9 +67,10 @@ export function LandingWeekendNews({
         <div>
           <h2
             id="landing-news-heading"
-            className="text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"
+            className="flex items-center gap-3 text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"
           >
-            {raceName} news
+            {countryCode ? <Flag code={countryCode} size="md" /> : null}
+            <span>{raceName} news</span>
           </h2>
           <p className="gpp-reading-copy mt-3 text-text-muted">
             {writeup.summary}

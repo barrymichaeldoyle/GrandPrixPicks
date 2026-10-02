@@ -8,8 +8,8 @@ framework_version: 3.3.2
 serverless_language: ''
 refresh_interval_floor: ''
 polling_url: https://grandprixpicks.com/api/trmnl/weekend?tz={{ trmnl.user.time_zone_iana }}&locale={{ trmnl.user.locale }}&units={{ units }}
-polling_headers: ''
-polling_body: ''
+polling_headers:
+polling_body:
 id: 485545
 oauth_enabled: 'false'
 oauth_pkce_enabled: 'no'
@@ -19,9 +19,7 @@ oauth_scopes: ''
 oauth_scope_separator: ''
 oauth_refresh_url: ''
 oauth_auth_params: ''
-oauth_token_headers: ''
 oauth_token_site: ''
-oauth_token_params: ''
 oauth_token_request_auth_method: ''
 oauth_body_format: ''
 oauth_token_response_metadata: ''

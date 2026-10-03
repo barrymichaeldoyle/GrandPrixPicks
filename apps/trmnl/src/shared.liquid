@@ -282,6 +282,9 @@
   `headline_size` is always passed. It is not called `size`: liquidjs, which
   renders the /trmnl page, resolves a missing `size` to 0 where TRMNL's Ruby
   Liquid falls back to a default, so the page and the device disagreed.
+  `strict_clamp` uses CSS for the grid headline: the X scales the screen,
+  and the Framework can measure its width in panel pixels rather than CSS
+  pixels, letting extra lines through its JavaScript clamp.
 {% endcomment %}
 {% template news %}
 <div class="flex flex--col gap--xsmall {% if fill or news.size == 0 %}h--full{% endif %} {% if news.size == 0 %}flex--center{% elsif fill %}flex--left flex--center-y{% endif %}" data-overflow="true">
@@ -290,7 +293,7 @@
   <div class="item">
     <div class="meta"></div>
     <div class="content">
-      <span class="title {{ headline_size }}" data-clamp="{{ clamp | default: 2 }}">{{ item.headline }}</span>
+      <span class="title {{ headline_size }}" {% if strict_clamp %}style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: {{ clamp | default: 2 }}; overflow: hidden;"{% else %}data-clamp="{{ clamp | default: 2 }}"{% endif %}>{{ item.headline }}</span>
     </div>
   </div>
   {% unless forloop.last %}<div class="divider divider--h"></div>{% endunless %}

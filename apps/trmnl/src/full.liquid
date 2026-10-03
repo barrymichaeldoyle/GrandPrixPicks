@@ -83,7 +83,7 @@
         script hides news items that do not fit, and a separate spacer would
         read to it as content.
       {% endcomment %}
-      <div class="grow {% if focus == 'result' or focus == 'standings' %}flex flex--col flex--stretch-x flex--center-y h--full{% elsif focus == 'grid' %}flex flex--col flex--stretch-x gap--medium h--full{% elsif news.size == 0 %}h--full{% endif %}">
+      <div class="grow {% if focus == 'result' or focus == 'standings' %}flex flex--col flex--stretch-x flex--center-y h--full{% elsif focus == 'grid' %}flex flex--col flex--stretch-x gap--medium lg:gap--small h--full{% elsif news.size == 0 %}h--full{% endif %}">
         {% if focus == "result" %}
           {% comment %}
             The whole field in two columns with times, as the race reads once
@@ -101,13 +101,13 @@
         {% elsif focus == "grid" %}
           {% render "grid", grid: grid %}
           {% comment %}
-            The grid leaves room under it on race morning for one-line
-            headlines: two on the OG, one on the X, whose grid rows are taller
-            in landscape and whose timeline is shortened in portrait.
+            Keep two one-line headlines on the OG and one two-line headline
+            on the X. The tighter X gap above the news reserves both lines
+            below all 22 grid places, including in portrait.
           {% endcomment %}
           {% if grid_news.size > 0 %}
           <div class="grow lg:hidden">{% render "news", news: grid_news, limit: 2, headline_size: "title--small", clamp: 1, fill: true %}</div>
-          <div class="grow hidden lg:block">{% render "news", news: grid_news, limit: 1, headline_size: "title--base", clamp: 1, fill: true %}</div>
+          <div class="grow hidden lg:block">{% render "news", news: grid_news, limit: 1, headline_size: "title--base", clamp: 2, strict_clamp: true, fill: true %}</div>
           {% endif %}
         {% elsif focus == "news" %}
           {% comment %}

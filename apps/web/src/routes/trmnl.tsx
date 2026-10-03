@@ -228,15 +228,14 @@ function TrmnlPage() {
             </p>
             <p>
               Once a session has run, its row lists the finishers in order, as
-              many as fit. Qualifying results show the top five, and sprint and
-              race results the top ten. A race result stays on screen for 36
-              hours.
+              many as fit. A race result stays on screen for 36 hours.
             </p>
             <p>
               The other column carries the weekend’s news, with grid penalties
-              and other changes to a session first. On race morning it shows the
-              confirmed starting grid. The QR code opens that weekend’s write-up
-              on Grand Prix Picks, or the race page when there isn’t one.
+              and other changes to a session first. After qualifying it shows
+              the whole field with lap times, then the confirmed starting grid
+              once it is published. The QR code opens that weekend’s write-up on
+              Grand Prix Picks, or the race page when there isn’t one.
             </p>
             <p>
               Between seasons, the screen shows the drivers’ and constructors'

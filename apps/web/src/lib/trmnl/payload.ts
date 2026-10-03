@@ -63,17 +63,17 @@ export const TRMNL_RESULT_HOLD_MS = 36 * 60 * 60 * 1000;
 
 const NEWS_LIMIT = 20;
 /**
- * Result rows the payload carries per session. The race carries the whole
- * classification, which the full screen shows once the weekend is over; the
- * sprint goes to ten, the points places a fan reads; the qualifying top five
- * is the pick game's own measure. Each layout shows as many as it has room
- * for.
+ * Result rows the payload carries per session. The race and both qualifying
+ * sessions carry the whole field, which the full screen shows in two columns:
+ * qualifying sets tomorrow's grid, so every place matters. The sprint goes to
+ * ten, the points places a fan reads. Each layout shows as many as it has
+ * room for.
  */
 const RESULT_ROWS: Record<SessionType, number> = {
   race: 30,
   sprint: 10,
-  quali: 5,
-  sprint_quali: 5,
+  quali: 30,
+  sprint_quali: 30,
 };
 /** Beyond this, a weekday alone is ambiguous, so the date is added. */
 const WEEKDAY_ONLY_WITHIN_MS = 6 * 24 * 60 * 60 * 1000;
@@ -126,6 +126,8 @@ type ResultRow = {
   gapToLeaderSeconds?: number | null;
   lapsDown?: number | null;
   durationSeconds?: number | null;
+  /** Qualifying only: best lap in Q1, Q2, Q3, null where none was set. */
+  qualifyingSeconds?: readonly (number | null)[] | null;
 };
 
 type NewsItem = {
@@ -281,8 +283,9 @@ export type TrmnlPayload = {
       status: string;
       /**
        * The winner's race time ("1:38:02.143"), everyone else's gap to them
-       * ("+0.196", "+1:04.221", "+1 lap"), or "" when there is none: a
-       * driver who did not finish, or a result without official timing.
+       * ("+0.196", "+1:04.221", "+1 lap"); in qualifying, the lap from the
+       * last part the driver set one in ("1:29.708"). "" when there is none:
+       * a driver who did not finish, or a result without official timing.
        */
       gap: string;
     }[];
@@ -475,6 +478,7 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
   const focus = chooseFocus({
     hasRaceResult: raceResult.length > 0,
     hasGrid: grid.length > 0,
+    setsNextGrid: lastResulted === 'quali' || lastResulted === 'sprint_quali',
     latestNewsAt: newsByRecency[0] ? newsAt(newsByRecency[0]) : undefined,
     latestResultStartedAt: lastResulted
       ? sessionStartAt(race, lastResulted)
@@ -535,9 +539,17 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
 
 /**
  * A classification row's timing as F1's results write it: the winner's race
- * time, then each finisher's gap to the winner, or laps down.
+ * time, then each finisher's gap to the winner, or laps down. In qualifying,
+ * the time from the last part the driver set one in, as F1's own grid
+ * sheet shows it: Q3 for the top ten, Q2 for the next five, Q1 after that.
  */
 export function formatGap(row: ResultRow): string {
+  const qualifyingLap = [...(row.qualifyingSeconds ?? [])]
+    .reverse()
+    .find((lap) => lap !== null);
+  if (qualifyingLap) {
+    return clockTime(qualifyingLap);
+  }
   if (row.lapsDown) {
     return `+${row.lapsDown} ${row.lapsDown === 1 ? 'lap' : 'laps'}`;
   }
@@ -751,13 +763,18 @@ export function resolveTrmnlLanding(pathname: string): string {
  * The block a large layout spends its spare room on.
  *
  * A published race result ends the weekend. Before that, the confirmed grid
- * is the most useful thing on race morning. Otherwise whichever is newer: a
- * session result or the latest news, so a Saturday qualifying result is not
- * buried under Thursday's news, and news that breaks after it is not hidden.
+ * is the most useful thing on race morning, and failing that the qualifying
+ * that sets it: the whole field in order is the grid unless the stewards
+ * change it, and a change that does arrives as a published grid. Otherwise
+ * (a sprint result) whichever is newer: the result or the latest news, so a
+ * result is not buried under Thursday's news, and news that breaks after it
+ * is not hidden.
  */
 function chooseFocus(args: {
   hasRaceResult: boolean;
   hasGrid: boolean;
+  /** The latest result is a qualifying session's. */
+  setsNextGrid: boolean;
   latestNewsAt: number | undefined;
   latestResultStartedAt: number | undefined;
 }): TrmnlPayload['focus'] {
@@ -766,6 +783,9 @@ function chooseFocus(args: {
   }
   if (args.hasGrid) {
     return 'grid';
+  }
+  if (args.setsNextGrid) {
+    return 'result';
   }
   const { latestNewsAt, latestResultStartedAt } = args;
   if (latestResultStartedAt !== undefined) {

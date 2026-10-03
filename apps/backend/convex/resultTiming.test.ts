@@ -29,14 +29,21 @@ describe('OpenF1 finishing gaps', () => {
     });
   });
 
-  it('drops what it does not recognise instead of failing the result', () => {
-    // Qualifying sends one value per part; a retirement sends nulls.
+  it('keeps qualifying lap times per part', () => {
+    // Qualifying sends one value per part, null where no time was set.
     expect(
       parseResultTiming({
-        gap_to_leader: [0, 0.1, 0.2],
+        gap_to_leader: [0, 0.1, null],
         duration: [90.1, 89.5, null],
       }),
+    ).toEqual({ qualifyingSeconds: [90.1, 89.5, null] });
+    expect(
+      parseResultTiming({ gap_to_leader: [null], duration: [null, null] }),
     ).toEqual({});
+  });
+
+  it('drops what it does not recognise instead of failing the result', () => {
+    // A retirement sends nulls.
     expect(
       parseResultTiming({
         gap_to_leader: null,

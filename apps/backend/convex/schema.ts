@@ -291,8 +291,8 @@ export default defineSchema({
         }),
       ),
     ),
-    // Official finishing gaps from OpenF1 `session_result`, race and sprint
-    // only, for display. Keyed by driver, so a later reorder (a penalty) keeps
+    // Official timing from OpenF1 `session_result`, for display: finishing
+    // gaps for race and sprint, lap times for qualifying. Keyed by driver, so a later reorder (a penalty) keeps
     // each gap with its driver. Written by `openF1Results.recordResultTiming`,
     // never by publishing, and never read by scoring.
     timing: v.optional(
@@ -307,6 +307,11 @@ export default defineSchema({
           laps: v.optional(v.number()),
           /** Race time in seconds, for a driver who finished. */
           durationSeconds: v.optional(v.number()),
+          /**
+           * Qualifying only: the driver's best lap in Q1, Q2 and Q3, null
+           * for a part they did not reach or set no time in.
+           */
+          qualifyingSeconds: v.optional(v.array(v.union(v.number(), v.null()))),
         }),
       ),
     ),

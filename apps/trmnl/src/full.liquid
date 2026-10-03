@@ -60,7 +60,16 @@
       {% render "checker" %}
       {% comment %}No weather line: each timeline row carries its own forecast.{% endcomment %}
       {% comment %}The forecast a step smaller in the landscape X's half-width column: at `label--large` a sprint weekend's row ran past it.{% endcomment %}
+      {% if focus == "result" and result.rows.size > 10 %}
+      {% comment %}
+        A whole qualifying field stacked below on the portrait X ran under the
+        title bar at P19: the timeline keeps its last three rows there.
+      {% endcomment %}
+      <div class="lg:portrait:hidden">{% render "schedule", schedule: schedule, size: "table--small lg:table--large", name: "label", aligned: true, fill: true, forecast_size: "lg:label--base lg:portrait:label--large", no_next: between_rounds, theme: theme %}</div>
+      <div class="hidden lg:portrait:block">{% render "schedule", schedule: schedule, limit: 3, tail: true, size: "table--small lg:table--large", name: "label", aligned: true, fill: true, forecast_size: "lg:label--base lg:portrait:label--large", no_next: between_rounds, theme: theme %}</div>
+      {% else %}
       {% render "schedule", schedule: schedule, size: "table--small lg:table--large", name: "label", aligned: true, fill: true, forecast_size: "lg:label--base lg:portrait:label--large", no_next: between_rounds, theme: theme %}
+      {% endif %}
     </div>
     <div class="flex flex--col flex--stretch-x gap--small h--full">
       {% comment %}
@@ -70,7 +79,15 @@
       {% endcomment %}
       <div class="grow {% if focus == 'result' or focus == 'standings' %}flex flex--col flex--stretch-x flex--center-y h--full{% elsif news.size == 0 and focus != 'grid' %}h--full{% endif %}">
         {% if focus == "result" %}
-          {% render "result", result: result, limit: 10, split: true %}
+          {% comment %}
+            The whole field in two columns with times, as the race reads once
+            it is over: a qualifying result is tomorrow's grid, unless a grid
+            has been published, which takes this place instead. Stacked under
+            the timeline in portrait, where eleven rows a column need the
+            compact height on the X too.
+          {% endcomment %}
+          <div class="portrait:hidden">{% render "classification", result: result, size: "table--xsmall lg:table--base" %}</div>
+          <div class="hidden portrait:block">{% render "classification", result: result, size: "table--xsmall" %}</div>
         {% elsif focus == "standings" %}
           {% comment %}Stacked under the timeline in portrait, where the full width takes four columns.{% endcomment %}
           <div class="portrait:hidden">{% render "championship", rows: standings.drivers, cols: 2, size: "table--xsmall lg:table--base" %}</div>

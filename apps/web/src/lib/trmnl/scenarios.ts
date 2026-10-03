@@ -120,6 +120,19 @@ const classification = GRID_ORDER.map(([code, displayName], index) => ({
   displayName,
 }));
 
+/**
+ * The sample order as a qualifying result, with invented lap times: Q3 for
+ * the top ten, Q2 for the next five, Q1 for the rest, as the parts run.
+ */
+const qualifying = classification.map((row, index) => ({
+  ...row,
+  qualifyingSeconds: [
+    80.9 + index * 0.071,
+    index < 15 ? 80.6 + index * 0.064 : null,
+    index < 10 ? 80.2 + index * 0.058 : null,
+  ],
+}));
+
 const practice = (['fp1', 'fp2', 'fp3'] as const).map((sessionType, i) => ({
   sessionType,
   classification: [...classification.slice(i), ...classification.slice(0, i)],
@@ -437,13 +450,13 @@ export const TRMNL_SCENARIOS: readonly TrmnlScenario[] = [
     now: at('2026-09-05T19:00:00Z'),
     news,
     practice,
-    results: { quali: classification },
+    results: { quali: qualifying },
   }),
   scenario('race-morning', 'Race morning', 'Sunday morning, grid confirmed', {
     now: at('2026-09-06T09:30:00Z'),
     news: [gridNews, ...news],
     practice,
-    results: { quali: classification },
+    results: { quali: qualifying },
   }),
   scenario('finished', 'Finished', 'Sunday evening, race result in', {
     now: at('2026-09-06T17:00:00Z'),
@@ -451,7 +464,7 @@ export const TRMNL_SCENARIOS: readonly TrmnlScenario[] = [
     practice,
     // The last two retired, so the classification shows DNF rows.
     results: {
-      quali: classification,
+      quali: qualifying,
       race: classification.map((row, index) =>
         index >= classification.length - 2
           ? { ...row, status: 'dnf' }
@@ -476,7 +489,7 @@ export const TRMNL_SCENARIOS: readonly TrmnlScenario[] = [
     race: miami,
     weather: miamiWeather,
     practice: practice.slice(0, 1),
-    results: { sprint_quali: classification, sprint: classification },
+    results: { sprint_quali: qualifying, sprint: classification },
   }),
   scenario('off-season', 'Off-season', 'No race left in the season', {
     now: at('2026-12-20T09:00:00Z'),

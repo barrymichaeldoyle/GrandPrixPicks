@@ -636,9 +636,10 @@ export const auditSeason = internalAction({
 });
 
 /**
- * Fill in the official finishing gaps (`results.timing`) for race and sprint
- * results published before gaps were stored, or refresh them. Writes only the
- * gaps: no classification, score or notification can change.
+ * Fill in the official timing (`results.timing`: finishing gaps, qualifying
+ * lap times) for results published before it was stored, or refresh it.
+ * Writes only the timing: no classification, score or notification can
+ * change.
  *
  *   npx convex run --prod resultsRecheck:backfillTiming '{"season":2026}'
  */
@@ -653,9 +654,7 @@ export const backfillTiming = internalAction({
       { season: args.season },
     );
     const tasks = allTasks.filter(
-      (task) =>
-        (task.sessionType === 'race' || task.sessionType === 'sprint') &&
-        (!args.raceSlug || task.raceSlug === args.raceSlug),
+      (task) => !args.raceSlug || task.raceSlug === args.raceSlug,
     );
     const driverByNumber = await loadDriverNumberMap(ctx);
     const outcomes: Array<{

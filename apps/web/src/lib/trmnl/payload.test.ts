@@ -319,7 +319,7 @@ describe('buildTrmnlPayload', () => {
     expect(payload.result?.rows).toHaveLength(6);
   });
 
-  it('carries the whole race and the qualifying top five', () => {
+  it('carries the whole field for the race and qualifying', () => {
     const field = Array.from({ length: 22 }, (_, index) => ({
       position: index + 1,
       code: `D${index + 1}`,
@@ -333,7 +333,7 @@ describe('buildTrmnlPayload', () => {
       buildTrmnlPayload(
         input({ now: at('2026-09-05T18:00:00Z'), results: { quali: field } }),
       ).result?.rows,
-    ).toHaveLength(5);
+    ).toHaveLength(22);
   });
 
   it('builds the weekend timeline with practice and results in order', () => {
@@ -567,30 +567,77 @@ describe('buildTrmnlPayload', () => {
     expect(selectTrmnlNextRace([race], race)).toBe(null);
   });
 
-  it('focuses whichever is newer, a session result or the news', () => {
-    function news(publishedAt: string) {
-      return [
-        {
-          headline: 'Antonelli takes a grid penalty',
-          publishedAt: at(publishedAt),
-        },
-      ];
-    }
+  function news(publishedAt: string) {
+    return [
+      {
+        headline: 'Antonelli takes a grid penalty',
+        publishedAt: at(publishedAt),
+      },
+    ];
+  }
+
+  it('focuses a qualifying result over newer news until the race', () => {
+    const payload = buildTrmnlPayload(
+      input({
+        now: at('2026-09-05T18:00:00Z'),
+        results: { quali: podium },
+        news: news('2026-09-05T17:00:00Z'),
+      }),
+    );
+    expect(payload.focus).toBe('result');
+    expect(payload.result?.label).toBe('Qualifying result');
+  });
+
+  it('focuses whichever is newer, a sprint result or the news', () => {
+    const sprintRace = {
+      ...race,
+      hasSprint: true,
+      sprintQualiStartAt: at('2026-09-04T15:30:00Z'),
+      sprintStartAt: at('2026-09-05T10:00:00Z'),
+    };
     const base = {
-      now: at('2026-09-05T18:00:00Z'),
-      results: { quali: podium },
+      race: sprintRace,
+      now: at('2026-09-05T12:00:00Z'),
+      results: { sprint_quali: podium, sprint: podium },
     };
     expect(
       buildTrmnlPayload(input({ ...base, news: news('2026-09-04T10:00:00Z') }))
         .focus,
     ).toBe('result');
     const latestNews = buildTrmnlPayload(
-      input({ ...base, news: news('2026-09-05T17:00:00Z') }),
+      input({ ...base, news: news('2026-09-05T11:00:00Z') }),
     );
     expect(latestNews.focus).toBe('news');
     expect(latestNews.news).toEqual([
       { headline: 'Antonelli takes a grid penalty' },
     ]);
+  });
+
+  it('gives a qualifying row the lap from the last part it ran', () => {
+    expect(
+      formatGap({
+        position: 1,
+        code: 'NOR',
+        displayName: 'Lando Norris',
+        qualifyingSeconds: [80.9, 80.4, 79.708],
+      }),
+    ).toBe('1:19.708');
+    expect(
+      formatGap({
+        position: 12,
+        code: 'GAS',
+        displayName: 'Pierre Gasly',
+        qualifyingSeconds: [81.2, 80.95, null],
+      }),
+    ).toBe('1:20.950');
+    expect(
+      formatGap({
+        position: 22,
+        code: 'PER',
+        displayName: 'Sergio Perez',
+        qualifyingSeconds: [null, null, null],
+      }),
+    ).toBe('');
   });
 
   it('carries up to twenty news headlines', () => {

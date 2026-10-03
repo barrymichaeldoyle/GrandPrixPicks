@@ -113,29 +113,35 @@ type OpenF1Result = {
   dsq: boolean;
   /** False for drivers the official result leaves unranked (given a tail position by us). */
   ranked: boolean;
-  /** Race and sprint only. Qualifying sends arrays here, which are dropped. */
+  /** Race and sprint only. Qualifying sends arrays here instead. */
   gapToLeaderSeconds?: number;
   lapsDown?: number;
   laps?: number;
   durationSeconds?: number;
+  /** Qualifying only: the best lap in each part. */
+  qualifyingSeconds?: Array<number | null>;
 };
 
 /**
  * The display-only timing fields of a `session_result` row. Never fatal: a
  * shape we do not recognise just leaves the gap out. `gap_to_leader` is
  * seconds, or "+1 LAP" / "+2 LAPS" for a lapped finisher, or null.
+ * Qualifying sends `duration` as one best lap per part ([Q1, Q2, Q3], null
+ * where the driver set no time), kept as `qualifyingSeconds`.
  */
 export function parseResultTiming(item: Record<string, unknown>): {
   gapToLeaderSeconds?: number;
   lapsDown?: number;
   laps?: number;
   durationSeconds?: number;
+  qualifyingSeconds?: Array<number | null>;
 } {
   const timing: {
     gapToLeaderSeconds?: number;
     lapsDown?: number;
     laps?: number;
     durationSeconds?: number;
+    qualifyingSeconds?: Array<number | null>;
   } = {};
   const gap = item.gap_to_leader;
   if (typeof gap === 'number' && Number.isFinite(gap) && gap >= 0) {
@@ -159,6 +165,13 @@ export function parseResultTiming(item: Record<string, unknown>): {
     item.duration > 0
   ) {
     timing.durationSeconds = item.duration;
+  } else if (Array.isArray(item.duration)) {
+    const parts = item.duration.map((lap) =>
+      typeof lap === 'number' && Number.isFinite(lap) && lap > 0 ? lap : null,
+    );
+    if (parts.some((lap) => lap !== null)) {
+      timing.qualifyingSeconds = parts;
+    }
   }
   return timing;
 }
@@ -544,6 +557,7 @@ export type ResultTimingEntry = {
   lapsDown?: number;
   laps?: number;
   durationSeconds?: number;
+  qualifyingSeconds?: Array<number | null>;
 };
 
 export type OfficialClassification = {
@@ -551,12 +565,17 @@ export type OfficialClassification = {
   classification: Array<Id<'drivers'>>;
   dnfDriverIds: Array<Id<'drivers'>>;
   driverStatuses: Array<DriverStatusEntry>;
-  /** Race and sprint gaps, for display. Empty for qualifying. */
+  /** Race and sprint gaps, qualifying lap times, for display. */
   timing: Array<ResultTimingEntry>;
 };
 
-/** Sessions whose `session_result` carries finishing gaps. */
-const TIMED_SESSIONS: ReadonlySet<SessionType> = new Set(['race', 'sprint']);
+/** Sessions whose `session_result` carries gaps or lap times. */
+const TIMED_SESSIONS: ReadonlySet<SessionType> = new Set([
+  'race',
+  'sprint',
+  'quali',
+  'sprint_quali',
+]);
 
 export const resultTimingValidator = v.array(
   v.object({
@@ -565,6 +584,7 @@ export const resultTimingValidator = v.array(
     lapsDown: v.optional(v.number()),
     laps: v.optional(v.number()),
     durationSeconds: v.optional(v.number()),
+    qualifyingSeconds: v.optional(v.array(v.union(v.number(), v.null()))),
   }),
 );
 
@@ -658,6 +678,9 @@ export async function fetchOfficialClassification(args: {
           }
           if (row.durationSeconds !== undefined) {
             entry.durationSeconds = row.durationSeconds;
+          }
+          if (row.qualifyingSeconds !== undefined) {
+            entry.qualifyingSeconds = row.qualifyingSeconds;
           }
           return entry;
         })

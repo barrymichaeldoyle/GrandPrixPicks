@@ -583,7 +583,8 @@ export const getResultForRace = query({
         entry.status,
       ]),
     );
-    // Official gaps, when OpenF1 has sent them (race and sprint). Display only.
+    // Official gaps (race, sprint) and lap times (qualifying), when OpenF1
+    // has sent them. Display only.
     const timingByDriver = new Map(
       (result.timing ?? []).map((entry) => [entry.driverId, entry]),
     );
@@ -607,6 +608,7 @@ export const getResultForRace = query({
             gapToLeaderSeconds: timing?.gapToLeaderSeconds ?? null,
             lapsDown: timing?.lapsDown ?? null,
             durationSeconds: timing?.durationSeconds ?? null,
+            qualifyingSeconds: timing?.qualifyingSeconds ?? null,
           };
         },
       ),

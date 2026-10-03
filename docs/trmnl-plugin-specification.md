@@ -103,13 +103,13 @@ section and the page disagree, the page is right and this section is the bug.
 The screen changes with the weekend. The phase is computed on every poll from
 the race document and what has been published; nothing is scheduled.
 
-| When                                | Lead (every layout)  | Full layout, right column |
-| ----------------------------------- | -------------------- | ------------------------- |
-| Weekend more than six days off      | "Coming up" rounds   | News, else standings      |
-| Before the race is next             | `<Session> <time>`   | Newer of news or result   |
-| Race next or under way, no result   | `Lights out <time>`  | Grid if published         |
-| Race result published, held for 36h | `Race winner <name>` | Whole classification      |
-| No race left in the season          | The champion         | Both tables, the news     |
+| When                                | Lead (every layout)  | Full layout, right column                              |
+| ----------------------------------- | -------------------- | ------------------------------------------------------ |
+| Weekend more than six days off      | "Coming up" rounds   | News, else standings                                   |
+| Before the race is next             | `<Session> <time>`   | Qualifying result, else newer of news or sprint result |
+| Race next or under way, no result   | `Lights out <time>`  | Grid if published                                      |
+| Race result published, held for 36h | `Race winner <name>` | Whole classification                                   |
+| No race left in the season          | The champion         | Both tables, the news                                  |
 
 The weekend shown is the next race, except that a race holds the screen for
 36 hours after lights out so a Sunday result is still up on Monday
@@ -308,8 +308,12 @@ as the championship reads, and the official gap, the winner's race time
 halves' top-ten lists, so the tail does not read as finishing places.
 
 The gaps are OpenF1's `session_result` `gap_to_leader`, `duration` and
-`number_of_laps`, kept on the result as `results.timing` (race and sprint,
-keyed by driver so a penalty reorder keeps each gap with its driver). They
+`number_of_laps`, kept on the result as `results.timing` (keyed by driver so a
+penalty reorder keeps each gap with its driver). For qualifying and sprint
+qualifying, OpenF1 sends `duration` as one best lap per part, kept as
+`qualifyingSeconds` ([Q1, Q2, Q3], null where no time was set); the screen
+shows the lap from the last part the driver set one in, as F1's own sheet
+does (`formatGap`). They
 are written by `openF1Results.recordResultTiming`, apart from publishing, so
 they can never change a classification, a score or a notification; the
 automatic poll, the admin fetch and applied rechecks all call it. Results
@@ -360,9 +364,18 @@ a temperature alone read as an orphan. Timeline rows keep the compact form
 ("23°C", icon, "60%", "2.4 mm" in Metric or "0.09 in" in Imperial); a
 zero-rain forecast reads "Dry" unless a meaningful rain chance remains.
 
-**Results** carry the top ten for a race or sprint and the top five for a
-qualifying session (`RESULT_ROWS`). The full layout and the half-vertical show
-ten as two columns of five; the half-horizontal shows five. The columns are
+**Results** carry the whole field for a race or qualifying session and the
+top ten for a sprint (`RESULT_ROWS`). The half-vertical shows ten as two
+columns of five; the half-horizontal shows five. The full layout shows every
+row in two columns (`classification` in `shared.liquid`): position, code and
+time.
+
+**After qualifying** the full layout's right column is the qualifying result,
+whatever news is newer (`chooseFocus`): it is tomorrow's grid unless the
+stewards change it, and a change arrives as a published grid, which then
+takes the column (`focus: "grid"`). On the portrait X the whole field stacked
+under the timeline ran under the title bar at P19, so while it is shown the
+timeline keeps its last three rows there. The columns are
 split by hand, although TRMNL's rules ask for their overflow engine (one
 `.column` with `data-overflow-max-cols`). Tried on 23 September 2026, the engine
 filled the first column before starting the second: ten rows came out 7 + 3

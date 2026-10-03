@@ -1,15 +1,15 @@
 ---
 strategy: polling
 no_screen_padding: 'no'
-dark_mode: 'no'
+dark_mode: 'yes'
 static_data: ''
 polling_verb: get
 framework_version: 3.3.2
 serverless_language: ''
 refresh_interval_floor: ''
 polling_url: https://grandprixpicks.com/api/trmnl/weekend?tz={{ trmnl.user.time_zone_iana }}&locale={{ trmnl.user.locale }}&units={{ units }}
-polling_headers:
-polling_body:
+polling_headers: ''
+polling_body: ''
 id: 485545
 oauth_enabled: 'false'
 oauth_pkce_enabled: 'no'
@@ -19,7 +19,9 @@ oauth_scopes: ''
 oauth_scope_separator: ''
 oauth_refresh_url: ''
 oauth_auth_params: ''
+oauth_token_headers: ''
 oauth_token_site: ''
+oauth_token_params: ''
 oauth_token_request_auth_method: ''
 oauth_body_format: ''
 oauth_token_response_metadata: ''
@@ -48,14 +50,5 @@ custom_fields:
   email_address: barry@barrymichaeldoyle.com
 name: Formula 1 Race Weekend
 description: 'F1 weekend: times, results, news'
-recipe_overview: |-
-  Follow the current Formula 1 race weekend on your TRMNL. The screen leads with the next F1 session and its start time in your time zone, with the weather forecast for the circuit.
-
-  A timeline lists every session of the weekend. Upcoming sessions show temperature, rain and wind. Once a session has run, its row shows the top three: practice, qualifying, sprint and race.
-
-  Beside it is the weekend's news, with grid penalties and other changes that affect a session listed first. On race morning that space shows the confirmed starting grid, and after the race, the top ten.
-
-  Between seasons, the screen shows the drivers' and constructors' championship standings.
-
-  Works in every TRMNL layout, landscape and portrait. Choose metric or imperial units. No account needed.
+recipe_overview: "Follow the current Formula 1 race weekend on your TRMNL. The screen leads with the next F1 session and its start time in your time zone, with the weather forecast for the circuit.\r\n\r\nA timeline lists every session of the weekend. Upcoming sessions show temperature, rain and wind. Once a session has run, its row shows the top three: practice, qualifying, sprint and race.\r\n\r\nBeside it is the weekend's news, with grid penalties and other changes that affect a session listed first. On race morning that space shows the confirmed starting grid, and after the race, the top ten.\r\n\r\nBetween seasons, the screen shows the drivers' and constructors' championship standings.\r\n\r\nWorks in every TRMNL layout, landscape and portrait. Choose metric or imperial units. No account needed."
 refresh_interval: 15

@@ -21,13 +21,8 @@
   <div class="grow flex flex--col flex--stretch-x gap--medium {{ half_vertical_body_center }}">
   <div class="flex flex--row flex--center-y gap--medium">
     <div class="grow flex flex--col flex--center gap--xsmall">
-      {% if between_rounds and upcoming.size > 0 %}
-        <div class="w--full portrait:hidden lg:portrait:block">{% render "upcoming", upcoming: upcoming, limit: 3, size: "table--xsmall lg:table--small", title_size: "title--small lg:title--base" %}</div>
-        <div class="w--full hidden portrait:block lg:portrait:hidden">{% render "upcoming", upcoming: upcoming, limit: 3, title_size: "title--small", stacked: true %}</div>
-      {% else %}
       {% render "lead", lead: lead, size: "value--large lg:value--large" %}
-      {% render "lead_weather", weather: lead.weather, stack: "portrait:" %}
-      {% endif %}
+      {% render "lead_weather", weather: lead.weather, stack: "portrait:", unstack: "lg:portrait:" %}
     </div>
   </div>
   {% if focus == "result" %}
@@ -47,34 +42,23 @@
     <div class="{% if news.size > 0 %}grow {% endif %}portrait:hidden lg:hidden">
       <div class="flex flex--col flex--stretch-x gap--auto h--full {{ half_vertical_body_center }}">
         {% if news.size > 0 %}
-          {% render "schedule", schedule: schedule, limit: 3, tail: true, size: "table--small", name: "short", fill: true, no_next: between_rounds %}
+          {% render "schedule", schedule: schedule, limit: 3, tail: true, size: "table--small", name: "short" %}
         {% else %}
-          {% render "schedule", schedule: schedule, limit: 5, size: "table--small", name: "short", fill: true, no_next: between_rounds %}
+          {% render "schedule", schedule: schedule, limit: 5, size: "table--small", name: "short" %}
         {% endif %}
         {% if news.size > 0 %}{% render "news", news: news, limit: 1, headline_size: half_vertical_news_size %}{% endif %}
       </div>
     </div>
     <div class="{% if news.size > 0 %}grow {% endif %}hidden portrait:block lg:portrait:hidden">
       <div class="flex flex--col flex--stretch-x gap--auto h--full {{ half_vertical_body_center }}">
-        {% comment %}
-          Four rows even without news: the fifth, with its Next badge, crushed
-          the columns together. No badge either: the lead above names the next
-          session, and the badge pushed the table up to 15px past the slot.
-        {% endcomment %}
-        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--small", name: "short", no_rainfall: true, no_next: true, tight: true, fill: true %}
+        {% comment %}Four rows even without news: the fifth, with its Next badge, crushed the columns together.{% endcomment %}
+        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--small", name: "short", no_rainfall: true %}
         {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
       </div>
     </div>
-    <div class="{% if news.size > 0 %}grow {% endif %}hidden lg:block lg:portrait:hidden">
+    <div class="{% if news.size > 0 %}grow {% endif %}hidden lg:block">
       <div class="flex flex--col flex--stretch-x gap--auto h--full {{ half_vertical_body_center }}">
-        {% render "schedule", schedule: schedule, limit: 5, tail: true, size: "table--base", name: "short", fill: true, no_next: between_rounds %}
-        {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
-      </div>
-    </div>
-    {% comment %}The portrait X drops the rain columns, as the portrait OG does: with them the table ran up to 29px past the slot.{% endcomment %}
-    <div class="{% if news.size > 0 %}grow {% endif %}hidden lg:portrait:block">
-      <div class="flex flex--col flex--stretch-x gap--auto h--full {{ half_vertical_body_center }}">
-        {% render "schedule", schedule: schedule, limit: 5, tail: true, size: "table--base", name: "short", no_rainfall: true, fill: true, no_next: between_rounds %}
+        {% render "schedule", schedule: schedule, limit: 5, tail: true, size: "table--base", name: "short" %}
         {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
       </div>
     </div>

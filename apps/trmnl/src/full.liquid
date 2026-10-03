@@ -61,11 +61,16 @@
       {% render "checker" %}
       {% comment %}No weather line: each timeline row carries its own forecast.{% endcomment %}
       {% comment %}The forecast a step smaller in the landscape X's half-width column: at `label--large` a sprint weekend's row ran past it.{% endcomment %}
-      {% if focus == "result" and result.rows.size > 10 %}
       {% comment %}
         A whole qualifying field stacked below on the portrait X ran under the
-        title bar at P19: the timeline keeps its last three rows there.
+        title bar at P19, and the race-morning grid lost P11 and P22: the
+        timeline keeps its last three rows there. Two `if`s, because Liquid
+        reads `a and b or c` as `a and (b or c)`.
       {% endcomment %}
+      {% assign short_timeline = false %}
+      {% if focus == "result" and result.rows.size > 10 %}{% assign short_timeline = true %}{% endif %}
+      {% if focus == "grid" %}{% assign short_timeline = true %}{% endif %}
+      {% if short_timeline %}
       <div class="lg:portrait:hidden">{% render "schedule", schedule: schedule, size: "table--small lg:table--large", name: "label", aligned: true, fill: true, forecast_size: "lg:label--base lg:portrait:label--large", no_next: between_rounds, theme: theme %}</div>
       <div class="hidden lg:portrait:block">{% render "schedule", schedule: schedule, limit: 3, tail: true, size: "table--small lg:table--large", name: "label", aligned: true, fill: true, forecast_size: "lg:label--base lg:portrait:label--large", no_next: between_rounds, theme: theme %}</div>
       {% else %}
@@ -97,12 +102,12 @@
           {% render "grid", grid: grid %}
           {% comment %}
             The grid leaves room under it on race morning for one-line
-            headlines: two on the OG, one on the landscape X, whose grid rows
-            are taller. None on the portrait X, where the grid needs it all.
+            headlines: two on the OG, one on the X, whose grid rows are taller
+            in landscape and whose timeline is shortened in portrait.
           {% endcomment %}
           {% if grid_news.size > 0 %}
           <div class="grow lg:hidden">{% render "news", news: grid_news, limit: 2, headline_size: "title--small", clamp: 1, fill: true %}</div>
-          <div class="grow hidden lg:block lg:portrait:hidden">{% render "news", news: grid_news, limit: 1, headline_size: "title--base", clamp: 1, fill: true %}</div>
+          <div class="grow hidden lg:block">{% render "news", news: grid_news, limit: 1, headline_size: "title--base", clamp: 1, fill: true %}</div>
           {% endif %}
         {% elsif focus == "news" %}
           {% comment %}

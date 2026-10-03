@@ -341,6 +341,13 @@ describe('race morning', () => {
     expect(markup).toContain(payload.grid_news[0]!.headline);
     expect(markup).not.toContain('Starting grid confirmed');
   });
+
+  it('shortens the timeline on the portrait X, so all 22 grid places fit', () => {
+    const { payload } = TRMNL_SCENARIOS.find((s) => s.id === 'race-morning')!;
+    expect(renderTrmnlMarkup('full', payload)).toContain(
+      '<div class="hidden lg:portrait:block">',
+    );
+  });
 });
 
 describe('the Theme setting', () => {

@@ -252,8 +252,7 @@ height: TRMNL's overflow script hides news items that do not fit, and a
 separate spacer read to it as content and hid most of them. When headlines fit,
 the list is centred vertically in the column. On race morning
 the grid fills the right column while the QR code stays in the header, with
-one-line headlines under it: two on the OG, one on the X in landscape, none on
-the X in portrait, where the grid needs the height. They come from
+one-line headlines under it: two on the OG, one on the X. They come from
 `grid_news`, the headlines without the item that carried the grid.
 When there is no news, result or grid yet, the right column shows the whole
 Drivers' Championship by three-letter code (`championship` in `shared.liquid`):
@@ -733,8 +732,10 @@ items on it were not met at first, and were fixed on 23 September 2026:
    and time and left half the screen empty. The half-vertical shows one column
    of ten results in portrait instead of two of five (`portrait:hidden` /
    `hidden portrait:block`), and the race-morning grid drops to its smallest
-   rows on a portrait X (`lg:portrait:table--xsmall`), so all 22 grid positions
-   fit. The half-horizontal's columns stack in portrait
+   rows on a portrait X (`lg:portrait:table--xsmall`). That alone still lost
+   P11 and P22 under the title bar, so there the timeline keeps its last three
+   rows, as it does under a whole qualifying field, and all 22 fit with one
+   headline below. The half-horizontal's columns stack in portrait
    (`portrait:layout--col`): the header above the lead, the QR code beside
    the lead, then the schedule or result full width. The quarter puts its QR
    code below the race header in portrait. The grid children are plain flex

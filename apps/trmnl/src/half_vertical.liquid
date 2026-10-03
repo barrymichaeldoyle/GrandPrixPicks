@@ -7,13 +7,13 @@
 {% if news.size == 0 or focus == "result" %}{% assign half_vertical_body_center = "flex--center-y" %}{% endif %}
 <div class="{{ dark_classes }}layout layout--col layout--top layout--stretch-x gap--medium">
   <div class="flex flex--row flex--center-y gap--medium w--full portrait:hidden">
-    <div class="grow">{% render "race_header", race: race, name_size: "title--small lg:title--large lg:portrait:title--base", detail_size: "lg:label--large lg:portrait:label--base", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true, split_dates: true %}</div>
+    <div class="grow">{% render "race_header", race: race, name_size: "title--small lg:title--large lg:portrait:title--base", detail_size: "lg:label--large lg:portrait:label--base", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true, split_dates: true, theme: theme %}</div>
     <div class="flex-none">{% render "qr", url: race.url %}</div>
   </div>
   <div class="hidden portrait:block w--full">
     {% comment %}The portrait OG is too narrow for the name beside the QR code: it wrapped to three lines.{% endcomment %}
     <div class="flex flex--col flex--left gap--small lg:flex--row lg:flex--center-y w--full">
-      <div class="grow">{% render "race_header", race: race, name_size: "title--small lg:title--large lg:portrait:title--base", detail_size: "lg:label--large lg:portrait:label--base", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true, split_dates: true %}</div>
+      <div class="grow">{% render "race_header", race: race, name_size: "title--small lg:title--large lg:portrait:title--base", detail_size: "lg:label--large lg:portrait:label--base", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true, split_dates: true, theme: theme %}</div>
       <div class="flex-none">{% render "qr", url: race.url %}</div>
     </div>
   </div>

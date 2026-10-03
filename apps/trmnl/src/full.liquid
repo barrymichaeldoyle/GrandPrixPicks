@@ -7,7 +7,7 @@
 <div class="{{ dark_classes }}layout layout--col layout--top layout--stretch-x gap--medium">
   <div class="flex flex--row flex--center-y gap--medium">
     <div class="grow">
-      {% render "race_header", race: race, name_size: "title--large portrait:title--small lg:text--xxxlarge lg:portrait:text--xlarge", detail_size: "label--base portrait:label--small lg:label--xlarge lg:portrait:label--large", flag_size: "h--[56px] w--max-[112px] lg:h--[96px] lg:w--max-48", compact_details: true %}
+      {% render "race_header", race: race, name_size: "title--large portrait:title--small lg:text--xxxlarge lg:portrait:text--xlarge", detail_size: "label--base portrait:label--small lg:label--xlarge lg:portrait:label--large", flag_size: "h--[56px] w--max-[112px] lg:h--[96px] lg:w--max-48", compact_details: true, theme: theme %}
     </div>
     <div class="flex-none">{% render "qr", url: race.url, size_class: "w--[56px] h--[56px] lg:w--[96px] lg:h--[96px]" %}</div>
   </div>
@@ -38,7 +38,7 @@
         <div class="hidden lg:portrait:block">{% render "news", news: news, limit: 3, headline_size: "lg:title--base" %}</div>
       </div>
       {% endif %}
-      {% if next_race %}{% render "next_race", next_race: next_race %}{% endif %}
+      {% if next_race %}{% render "next_race", next_race: next_race, theme: theme %}{% endif %}
     </div>
     <div class="flex flex--col flex--stretch-x flex--center-y h--full portrait:h--auto lg:col--span-2 lg:portrait:col--span-1">
       <div class="portrait:hidden">{% render "classification", result: result, size: "table--xsmall lg:table--base" %}</div>

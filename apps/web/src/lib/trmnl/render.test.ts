@@ -352,6 +352,7 @@ describe('the Theme setting', () => {
       expect(light).not.toContain('inverse');
       expect(light).not.toContain(' invert');
       expect(light).not.toContain('<script');
+      expect(light).toContain('class="bg--black p--0.5');
     }
   });
 
@@ -360,6 +361,8 @@ describe('the Theme setting', () => {
       const dark = renderTrmnlMarkup(id, friday.payload, 'dark');
       expect(dark).toMatch(/class="inverse bg--canvas layout /);
       expect(dark).toContain('class="title_bar inverse bg--canvas"');
+      expect(dark).toContain('class="bg--gray-55 p--0.5');
+      expect(dark).not.toContain('class="bg--black p--0.5');
       expect(dark).toMatch(/<img class="image image-dither [^"]* invert"/);
       expect(dark).toContain("view.classList.add('inverse', 'bg--canvas')");
       expect(dark).toContain("screen.classList.add('screen--dark-mode')");

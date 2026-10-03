@@ -113,7 +113,7 @@
 {% if inline_flag %}
 <div class="flex flex--col flex--left gap--none">
   <div class="flex flex--row flex--left flex--center-y gap--small">
-    {% render "race_flag", race: race, flag_size: flag_size %}
+    {% render "race_flag", race: race, flag_size: flag_size, theme: theme %}
     <span class="title {{ name_size }}">{{ race.name }}</span>
   </div>
   {% if split_dates %}
@@ -126,7 +126,7 @@
 </div>
 {% else %}
 <div class="flex flex--row flex--left flex--center-y gap--medium">
-  {% render "race_flag", race: race, flag_size: flag_size %}
+  {% render "race_flag", race: race, flag_size: flag_size, theme: theme %}
   <div class="flex flex--col flex--left gap--none">
     <span class="title {{ name_size }}">{{ race.name }}</span>
     {% if compact_details %}
@@ -147,9 +147,15 @@
 {% template race_flag %}
 {% comment %}
   Dither flags on both OG and X to the target device's palette.
+
+  The frame keeps a flag's edge where it matches the screen: white parts
+  (Japan, Bahrain) on light, black ones (Belgium, Abu Dhabi) on dark. Black
+  on light; on dark, `gray-55`, which dark mode paints dark gray, solid on
+  the OG's four grays: black would turn white there, a bright box round
+  every flag.
 {% endcomment %}
 {% if race.flag_url %}
-<div class="bg--black p--0.5 shrink-0 flex">
+<div class="{% if theme == "dark" %}bg--gray-55{% else %}bg--black{% endif %} p--0.5 shrink-0 flex">
   <img class="image image-dither shrink-0 w--auto {{ flag_size }}" src="{{ race.flag_url }}" alt="">
 </div>
 {% endif %}
@@ -585,7 +591,7 @@
   it, the name. Two short lines, so the column keeps room for another headline.
 {% endcomment %}
 <div class="flex flex--row flex--left flex--center-y gap--small w--full">
-  {% render "race_flag", race: next_race, flag_size: "h--[28px] w--max-[56px] lg:h--[56px] lg:w--max-[112px] lg:portrait:h--[44px] lg:portrait:w--max-[88px]" %}
+  {% render "race_flag", race: next_race, flag_size: "h--[28px] w--max-[56px] lg:h--[56px] lg:w--max-[112px] lg:portrait:h--[44px] lg:portrait:w--max-[88px]", theme: theme %}
   <div class="flex flex--col flex--left gap--none">
     <span class="label label--small lg:label--base">Next race · {{ next_race.dates | replace: " ", "&nbsp;" | replace: "–", "&#8288;–&#8288;" }}</span>
     <span class="title title--small lg:title--large">{{ next_race.name }}</span>

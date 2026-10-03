@@ -5,7 +5,6 @@ import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { railFooterLinks } from '@/lib/navigation';
 import { siteConfig } from '@/lib/site';
 import { PrivacyChoicesButton } from '@/components/PrivacyChoicesButton';
-import { FriendGameLink } from '@/components/FriendGameLink';
 
 /**
  * Deliberately sized to WCAG 2.2 AA (24x24 CSS px) rather than the 44px touch
@@ -47,11 +46,7 @@ export function RailFooterLinks() {
   }
 
   return (
-    // The border and top padding moved off the <nav> when the outbound link
-    // joined it: the rule separates the rail's content from all of the small
-    // print, not just from the navigation half of it.
-    <div className="space-y-1 border-t border-border pt-4 text-xs leading-relaxed text-text-muted">
-      <FriendGameLink linkClassName={linkClass} />
+    <div className="border-t border-border pt-4 text-xs leading-relaxed text-text-muted">
       <nav
         aria-label="Site information"
         // Taller rows on touch need the wrap gap opened up too, so two stacked

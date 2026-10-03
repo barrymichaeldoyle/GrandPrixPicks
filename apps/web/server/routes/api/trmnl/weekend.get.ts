@@ -34,7 +34,10 @@ function validPollingQuery(params: URLSearchParams): boolean {
   if ((timeZone?.length ?? 0) > 64 || (locale?.length ?? 0) > 35) {
     return false;
   }
-  if (units && units !== 'metric' && units !== 'imperial') {
+  // Anything but "imperial" reads as metric rather than failing: a 400
+  // freezes the device on its last screen, and an install saved before the
+  // field's options settled can hold another value.
+  if ((units?.length ?? 0) > 16) {
     return false;
   }
 

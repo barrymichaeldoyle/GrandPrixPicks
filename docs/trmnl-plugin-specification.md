@@ -757,8 +757,8 @@ Also check:
 - **Date, weather, and units checks.** Payload tests cover London spring and
   autumn DST transitions, missing and stale weather, partial forecast
   coverage, and metric/imperial weather conversion. The polling endpoint
-  normalizes units with `toLowerCase()`; both capitalized form labels and
-  lowercase values are accepted.
+  normalizes units with `toLowerCase()` and reads anything but `imperial`
+  as metric.
 
 - **Automated review hints.** The templates have no inline style attributes;
   the checker SVGs use Framework `block h--auto` classes. Two hints may
@@ -786,10 +786,14 @@ Also check:
 - **Units is required.** The `units` select has no value on a plugin made
   before the field existed, and the browser blocks every save until one is
   chosen. Parse still fills in the `Metric` default.
-- **Select defaults name the stored value.** TRMNL stores a select's value in
-  lowercase, so `default: Metric` matched no option and a new install showed
-  Units empty (seen 3 October 2026). Options are `'Metric: metric'` (label,
-  then value) and the default is `metric`; Theme follows the same shape.
+- **Select defaults name the stored value.** A plain option list (`- Metric`)
+  shows the option and stores it lowercased (`metric`), and `default` must be
+  that stored value: `default: Metric` matched nothing, so a new install showed
+  Units empty (3 October 2026). Quoted `'Metric: metric'` is not label/value
+  syntax; TRMNL showed it literally. An install made before a default worked
+  keeps "Please select…" until the owner picks one, so the endpoint reads
+  any units value but `imperial` as metric and the templates read any theme
+  but `dark` as light.
 - **Theme is a form field, light by default.** TRMNL's own `dark_mode` is a
   plugin-wide setting only the author sees, so `settings.yml` keeps it `'no'`
   and the `theme` select gives each install the choice. Dark puts the

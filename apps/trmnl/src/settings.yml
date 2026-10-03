@@ -35,17 +35,16 @@ custom_fields:
 - keyname: units
   field_type: select
   name: Units
-  description: Choose metric or imperial units for weather.
   options:
-  - 'Metric: metric'
-  - 'Imperial: imperial'
+  - Metric
+  - Imperial
   default: metric
 - keyname: theme
   field_type: select
   name: Theme
   options:
-  - 'Light: light'
-  - 'Dark: dark'
+  - Light
+  - Dark
   default: light
 - keyname: about
   field_type: author_bio

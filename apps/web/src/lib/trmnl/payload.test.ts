@@ -12,7 +12,7 @@ import {
   TRMNL_RESULT_HOLD_MS,
   weatherIconUrl,
 } from './payload';
-import { sampleForecast } from './scenarios';
+import { sampleForecast, TRMNL_SCENARIOS } from './scenarios';
 
 const HOUR = 60 * 60 * 1000;
 function at(iso: string): number {
@@ -903,5 +903,26 @@ describe('weatherIconUrl', () => {
     expect(icon('partlycloudy_night')).toBe('day-cloudy');
     expect(icon('clearsky_day', true)).toBe('night-clear');
     expect(icon('heavyrainshowers_day', true)).toBe('night-alt-showers');
+  });
+});
+
+describe('grid_news', () => {
+  it('leaves out the item that carried the grid, at most two', () => {
+    const { payload } = TRMNL_SCENARIOS.find((s) => s.id === 'race-morning')!;
+    expect(payload.grid.length).toBeGreaterThan(0);
+    expect(payload.grid_news.length).toBeGreaterThan(0);
+    expect(payload.grid_news.length).toBeLessThanOrEqual(2);
+    expect(payload.grid_news.map((n) => n.headline)).not.toContain(
+      'Starting grid confirmed',
+    );
+    expect(payload.news.map((n) => n.headline)).toContain(
+      'Starting grid confirmed',
+    );
+  });
+
+  it('is empty without a grid', () => {
+    const { payload } = TRMNL_SCENARIOS.find((s) => s.id === 'friday')!;
+    expect(payload.grid).toEqual([]);
+    expect(payload.grid_news).toEqual([]);
   });
 });

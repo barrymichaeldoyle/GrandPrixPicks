@@ -334,6 +334,15 @@ describe('the schedule in a 12-hour locale', () => {
   });
 });
 
+describe('race morning', () => {
+  it("puts headlines under the grid, never the grid's own", () => {
+    const { payload } = TRMNL_SCENARIOS.find((s) => s.id === 'race-morning')!;
+    const markup = renderTrmnlMarkup('full', payload);
+    expect(markup).toContain(payload.grid_news[0]!.headline);
+    expect(markup).not.toContain('Starting grid confirmed');
+  });
+});
+
 describe('the Theme setting', () => {
   const friday = TRMNL_SCENARIOS.find((s) => s.id === 'friday')!;
 

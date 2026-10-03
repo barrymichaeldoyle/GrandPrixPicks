@@ -78,7 +78,7 @@
         script hides news items that do not fit, and a separate spacer would
         read to it as content.
       {% endcomment %}
-      <div class="grow {% if focus == 'result' or focus == 'standings' %}flex flex--col flex--stretch-x flex--center-y h--full{% elsif news.size == 0 and focus != 'grid' %}h--full{% endif %}">
+      <div class="grow {% if focus == 'result' or focus == 'standings' %}flex flex--col flex--stretch-x flex--center-y h--full{% elsif focus == 'grid' %}flex flex--col flex--stretch-x gap--medium h--full{% elsif news.size == 0 %}h--full{% endif %}">
         {% if focus == "result" %}
           {% comment %}
             The whole field in two columns with times, as the race reads once
@@ -95,6 +95,15 @@
           <div class="hidden portrait:block">{% render "championship", rows: standings.drivers, cols: 4, size: "table--xsmall lg:table--small" %}</div>
         {% elsif focus == "grid" %}
           {% render "grid", grid: grid %}
+          {% comment %}
+            The grid leaves room under it on race morning for one-line
+            headlines: two on the OG, one on the landscape X, whose grid rows
+            are taller. None on the portrait X, where the grid needs it all.
+          {% endcomment %}
+          {% if grid_news.size > 0 %}
+          <div class="grow lg:hidden">{% render "news", news: grid_news, limit: 2, headline_size: "title--small", clamp: 1, fill: true %}</div>
+          <div class="grow hidden lg:block lg:portrait:hidden">{% render "news", news: grid_news, limit: 1, headline_size: "title--base", clamp: 1, fill: true %}</div>
+          {% endif %}
         {% elsif focus == "news" %}
           {% comment %}
             Cap headlines for the physical screen size. The overflow script

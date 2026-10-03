@@ -251,7 +251,10 @@ The focus block owns the column's spare
 height: TRMNL's overflow script hides news items that do not fit, and a
 separate spacer read to it as content and hid most of them. When headlines fit,
 the list is centred vertically in the column. On race morning
-the grid fills the right column while the QR code stays in the header.
+the grid fills the right column while the QR code stays in the header, with
+one-line headlines under it: two on the OG, one on the X in landscape, none on
+the X in portrait, where the grid needs the height. They come from
+`grid_news`, the headlines without the item that carried the grid.
 When there is no news, result or grid yet, the right column shows the whole
 Drivers' Championship by three-letter code (`championship` in `shared.liquid`):
 two columns, or four in portrait where it stacks under the timeline. That is

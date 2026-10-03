@@ -320,6 +320,11 @@ export type TrmnlPayload = {
     dates: string;
   } | null;
   grid: { pos: number; code: string; name: string; note: string }[];
+  /**
+   * Up to two headlines for under the full screen's starting grid: the news
+   * without the item that carried the grid, which the grid already shows.
+   */
+  grid_news: { headline: string }[];
   news: { headline: string }[];
   /**
    * The off-season screen when `has_race` is false. With a race, set only
@@ -427,6 +432,7 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
       upcoming: [],
       next_race: null,
       grid: [],
+      grid_news: [],
       news: formatNews(input.news),
       standings: buildStandings(input.standings ?? null),
     };
@@ -535,6 +541,9 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
         }
       : null,
     grid,
+    grid_news: grid.length
+      ? formatNews(input.news.filter((item) => item !== gridItem)).slice(0, 2)
+      : [],
     news: formatNews(input.news),
     standings,
   };

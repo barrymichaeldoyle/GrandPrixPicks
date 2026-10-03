@@ -1,4 +1,5 @@
 import { Link, useLocation } from '@tanstack/react-router';
+import { useState } from 'react';
 
 import { showsGlobalFooter } from '@/lib/globalFooter';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
@@ -39,7 +40,7 @@ const linkClass =
 export function RailFooterLinks() {
   const pathname = useLocation({ select: (location) => location.pathname });
   const { isSignedIn } = useViewerSession();
-  const year = new Date().getFullYear();
+  const [year] = useState(() => new Date().getFullYear());
 
   if (showsGlobalFooter(pathname, isSignedIn)) {
     return null;

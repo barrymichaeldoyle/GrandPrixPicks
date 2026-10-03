@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { Button } from './Button/Button';
 
 function getDefaultTimeFormat(): 'en-US' | 'en-GB' {
@@ -48,7 +50,7 @@ export function TimeFormatSelect({
     }
   }
 
-  const previewDate = new Date();
+  const [previewDate] = useState(() => new Date());
   const optionsWithPreview = TIME_FORMAT_OPTIONS.map((opt) => {
     try {
       const example = new Intl.DateTimeFormat(opt.value, {

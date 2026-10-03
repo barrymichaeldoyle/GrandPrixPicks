@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { useState } from 'react';
 
 import {
   footerF1Links,
@@ -154,7 +155,7 @@ export function Footer({
 }: {
   weekendRace?: { slug: string } | null;
 }) {
-  const year = new Date().getFullYear();
+  const [year] = useState(() => new Date().getFullYear());
   const footerLinkClass =
     'inline-flex min-h-6 items-center rounded-sm text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none pointer-coarse:min-h-11';
   const footerLinkActiveClass = `${footerLinkClass} text-text underline decoration-border-strong underline-offset-4`;

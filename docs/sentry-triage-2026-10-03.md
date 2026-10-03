@@ -23,6 +23,30 @@ application code changes or deployments were necessary in this session.
 This verification does not establish mobile release rollout or repair
 the original cross-deployment news link.
 
+## Later regression alert: invalid operator move
+
+[2S](https://barry-michael-doyle.sentry.io/issues/7759181707/) reopened after
+`raceNews:move` rejected a call at 09:43:14 UTC on production
+`cheery-tern-274`: Azerbaijan had no item with key
+`colapinto-sepang-grid-penalty`. Sentry grouped this event with a different
+28 September `raceNews:publish` rejection for a future source publication
+date. The issue was resolved on 30 September, so the new rejection triggered
+the regression label.
+
+Read-only calls to production `raceNews:list` confirmed the Colapinto item
+is active under `bahrain-2026`, with headline “Colapinto drops 15 places on
+the Sepang grid”, and absent from `azerbaijan-2026`. The event establishes
+the attempted source race; it does not record the destination or whether
+the call was a dry run. The missing-source guard runs before writes and
+correctly rejected the invocation. There is no evidence of an application
+regression or a need to relocate the story.
+
+The backend suite passed: 606 tests, one skipped, including the existing
+move tests for missing source keys, destination conflicts, dry runs and
+preserving the feed card without a second Discord post. No application
+code or production data changes were needed. 2S was marked resolved as an
+invalid operator invocation; inspect the source race's news list before moving.
+
 ## Validation
 
 - Backend suite: 605 passed; one skipped.

@@ -602,8 +602,10 @@
   onto white, so white bars alone would vanish, and the title bar's stroke
   filter overrides the Framework's `invert`. The layout and the title bar each
   carry `inverse`, which works without JavaScript but leaves the view's gap
-  between them light; the script moves it onto the view itself, which only
-  ever darkens this plugin's own slot of a mashup.
+  between them light. The script moves it onto the view itself, which only
+  ever darkens this plugin's own slot of a mashup; on a full screen, the only
+  view there, it turns on the Framework's `screen--dark-mode` instead, so the
+  screen's padding around the view goes dark too.
 {% endcomment %}
 {% template title_bar %}
 {%- if theme == "dark" -%}
@@ -621,7 +623,9 @@
     var view = script.closest('.view');
     if (!view) return;
     view.querySelectorAll(':scope > .inverse').forEach(function (el) { el.classList.remove('inverse', 'bg--canvas'); });
-    view.classList.add('inverse', 'bg--canvas');
+    var screen = view.closest('.screen');
+    if (screen && view.classList.contains('view--full')) screen.classList.add('screen--dark-mode');
+    else view.classList.add('inverse', 'bg--canvas');
   })(document.currentScript);
 </script>
 {% endif %}

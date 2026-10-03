@@ -353,6 +353,7 @@ describe('the Theme setting', () => {
       expect(dark).toContain('class="title_bar inverse bg--canvas"');
       expect(dark).toMatch(/<img class="image image-dither [^"]* invert"/);
       expect(dark).toContain("view.classList.add('inverse', 'bg--canvas')");
+      expect(dark).toContain("screen.classList.add('screen--dark-mode')");
     }
   });
 

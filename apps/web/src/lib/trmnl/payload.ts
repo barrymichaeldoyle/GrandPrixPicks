@@ -283,8 +283,9 @@ export type TrmnlPayload = {
       status: string;
       /**
        * The winner's race time ("1:38:02.143"), everyone else's gap to them
-       * ("+0.196", "+1:04.221", "+1 lap"); in qualifying, the lap from the
-       * last part the driver set one in ("1:29.708"). "" when there is none:
+       * ("+0.196", "+1:04.221", "+1 lap"); in qualifying, pole's lap
+       * ("1:29.708") and everyone else's gap in the part they last ran in
+       * ("+0.298"). "" when there is none:
        * a driver who did not finish, or a result without official timing.
        */
       gap: string;
@@ -458,18 +459,20 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
         note: entry.note ?? '',
       }));
 
+  const lastResultRows = lastResulted
+    ? (input.results[lastResulted] ?? [])
+    : [];
+  const partBest = fastestPerPart(lastResultRows);
   const result = lastResulted
     ? {
         label: `${SESSION_LABELS_FULL[lastResulted]} result`,
-        rows: (input.results[lastResulted] ?? [])
-          .slice(0, RESULT_ROWS[lastResulted])
-          .map((row) => ({
-            pos: row.position,
-            code: row.code,
-            name: row.displayName,
-            status: row.status ? row.status.toUpperCase() : '',
-            gap: row.status ? '' : formatGap(row),
-          })),
+        rows: lastResultRows.slice(0, RESULT_ROWS[lastResulted]).map((row) => ({
+          pos: row.position,
+          code: row.code,
+          name: row.displayName,
+          status: row.status ? row.status.toUpperCase() : '',
+          gap: row.status ? '' : formatGap(row, partBest),
+        })),
       }
     : null;
   const raceFinished = raceResult.length > 0;
@@ -538,17 +541,50 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
 }
 
 /**
- * A classification row's timing as F1's results write it: the winner's race
- * time, then each finisher's gap to the winner, or laps down. In qualifying,
- * the time from the last part the driver set one in, as F1's own grid
- * sheet shows it: Q3 for the top ten, Q2 for the next five, Q1 after that.
+ * The fastest lap in each part of a qualifying session ([Q1, Q2, Q3]), null
+ * for a part nobody set a time in. Empty for a session without lap times.
  */
-export function formatGap(row: ResultRow): string {
-  const qualifyingLap = [...(row.qualifyingSeconds ?? [])]
-    .reverse()
-    .find((lap) => lap !== null);
+export function fastestPerPart(rows: readonly ResultRow[]): (number | null)[] {
+  const best: (number | null)[] = [];
+  for (const row of rows) {
+    (row.qualifyingSeconds ?? []).forEach((lap, part) => {
+      const current = best[part] ?? null;
+      if (lap !== null && (current === null || lap < current)) {
+        best[part] = lap;
+      } else if (best[part] === undefined) {
+        best[part] = null;
+      }
+    });
+  }
+  return best;
+}
+
+/**
+ * A classification row's timing as F1's results write it: the winner's race
+ * time, then each finisher's gap to the winner, or laps down.
+ *
+ * Qualifying reads the same way: pole's time, then everyone's gap. A
+ * driver's lap is from the last part they set one in (Q3 for the top ten, Q2
+ * for the next five, Q1 after that), and its gap is to the fastest lap of
+ * that part (`partBest`, from {@link fastestPerPart}), as F1's timing gives
+ * it: a Q2 lap measured against a Q3 lap would compare two different
+ * tracks, and could come out negative. Without `partBest`, the lap itself.
+ */
+export function formatGap(
+  row: ResultRow,
+  partBest: readonly (number | null)[] = [],
+): string {
+  const laps = row.qualifyingSeconds ?? [];
+  let part = laps.length - 1;
+  while (part >= 0 && laps[part] === null) {
+    part -= 1;
+  }
+  const qualifyingLap = part >= 0 ? laps[part] : null;
   if (qualifyingLap) {
-    return clockTime(qualifyingLap);
+    const best = partBest[part];
+    return row.position === 1 || !best
+      ? clockTime(qualifyingLap)
+      : `+${clockTime(Math.max(0, qualifyingLap - best))}`;
   }
   if (row.lapsDown) {
     return `+${row.lapsDown} ${row.lapsDown === 1 ? 'lap' : 'laps'}`;

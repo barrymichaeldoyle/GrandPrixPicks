@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { TrmnlInput } from './payload';
 import {
   buildTrmnlPayload,
+  fastestPerPart,
   formatGap,
   selectTrmnlNextRace,
   resolveTrmnlLanding,
@@ -613,31 +614,49 @@ describe('buildTrmnlPayload', () => {
     ]);
   });
 
-  it('gives a qualifying row the lap from the last part it ran', () => {
-    expect(
-      formatGap({
+  it('gives pole its lap and everyone else a gap within their part', () => {
+    const rows = [
+      {
         position: 1,
-        code: 'NOR',
-        displayName: 'Lando Norris',
-        qualifyingSeconds: [80.9, 80.4, 79.708],
-      }),
-    ).toBe('1:19.708');
-    expect(
-      formatGap({
-        position: 12,
-        code: 'GAS',
-        displayName: 'Pierre Gasly',
-        qualifyingSeconds: [81.2, 80.95, null],
-      }),
-    ).toBe('1:20.950');
-    expect(
-      formatGap({
+        code: 'VER',
+        displayName: 'Max Verstappen',
+        qualifyingSeconds: [96.477, 95.9, 95.13],
+      },
+      {
+        position: 2,
+        code: 'HAM',
+        displayName: 'Lewis Hamilton',
+        qualifyingSeconds: [96.6, 95.85, 95.428],
+      },
+      {
+        position: 11,
+        code: 'LAW',
+        displayName: 'Liam Lawson',
+        qualifyingSeconds: [97.1, 97.023, null],
+      },
+      {
+        position: 16,
+        code: 'LIN',
+        displayName: 'Arvid Lindblad',
+        qualifyingSeconds: [97.883, null, null],
+      },
+      {
         position: 22,
         code: 'PER',
         displayName: 'Sergio Perez',
         qualifyingSeconds: [null, null, null],
-      }),
-    ).toBe('');
+      },
+    ];
+    const best = fastestPerPart(rows);
+    expect(best).toEqual([96.477, 95.85, 95.13]);
+    expect(formatGap(rows[0]!, best)).toBe('1:35.130');
+    expect(formatGap(rows[1]!, best)).toBe('+0.298');
+    // Lawson's Q2 lap against Q2's fastest (Hamilton), not Verstappen's pole.
+    expect(formatGap(rows[2]!, best)).toBe('+1.173');
+    expect(formatGap(rows[3]!, best)).toBe('+1.406');
+    expect(formatGap(rows[4]!, best)).toBe('');
+    // Without the session's other laps, the lap itself.
+    expect(formatGap(rows[2]!)).toBe('1:37.023');
   });
 
   it('carries up to twenty news headlines', () => {

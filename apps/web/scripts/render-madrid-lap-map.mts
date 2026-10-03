@@ -86,11 +86,10 @@ function logo(gutter: number, top: number): ReactNode {
           display: 'flex',
           fontSize: 22,
           fontWeight: 600,
-          letterSpacing: 3.4,
           color: colors.text,
         },
       },
-      'GRAND PRIX PICKS',
+      'Grand Prix Picks',
     ),
   );
 }
@@ -157,7 +156,7 @@ function footer(
         color: colors.accent,
       },
     },
-    'GRANDPRIXPICKS.COM',
+    'GrandPrixPicks.com',
   );
 }
 
@@ -177,7 +176,7 @@ function instagram(): ReactNode {
           width: 950,
         },
       },
-      eyebrow('MADRING  /  ROUND 14  /  11–13 SEPTEMBER'),
+      eyebrow('Madring  /  Round 14  /  11–13 September'),
       // Bigger than the X card's headline, and the only prose on the frame.
       // A standfirst under it pushed the map down to where the numbers and the
       // call to action had to fight for the last 200px, and in a feed a second
@@ -244,7 +243,7 @@ function instagram(): ReactNode {
                 color: colors.textMuted,
               },
             },
-            label.toUpperCase(),
+            label,
           ),
           e(
             'div',
@@ -299,7 +298,7 @@ function instagram(): ReactNode {
             letterSpacing: 2.4,
           },
         },
-        'GRANDPRIXPICKS.COM',
+        'GrandPrixPicks.com',
       ),
     ),
   ]);
@@ -344,7 +343,7 @@ function xCard(): ReactNode {
           width: 560,
         },
       },
-      eyebrow('MADRING  /  11–13 SEPTEMBER'),
+      eyebrow('Madring  /  11–13 September'),
       e(
         'div',
         {
@@ -388,7 +387,7 @@ function xCard(): ReactNode {
             color: colors.accent,
           },
         },
-        'GRANDPRIXPICKS.COM',
+        'GrandPrixPicks.com',
       ),
     ),
   ]);

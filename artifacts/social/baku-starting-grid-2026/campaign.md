@@ -38,7 +38,7 @@ Built-in imagegen tool. Exact prompts follow.
 ### Instagram
 
 Create a finished Grand Prix Picks branded motorsport starting-grid social poster. Contemporary editorial race poster in acid lime #d4ff3f, near-black #101113, warm white. Bold condensed typography, subtle screenprint grain on header and borders ONLY; clean extremely readable data area. Small stylized Baku old city and Flame Towers silhouette within header, tasteful sweeping race-track graphic, no cars or portraits needed. Full-bleed flat graphic, no mockup.
-Exact header text: "GRAND PRIX PICKS" small brand, "BAKU" large lime headline, "Provisional starting grid" prominent white subtitle. "26 September 2026" smaller.
+Exact header text: "Grand Prix Picks" small brand, "Baku" large lime headline, "Provisional starting grid" prominent white subtitle. "26 September 2026" smaller.
 Grid arranged as 11 paired rows, left odd position, right even position, with clear column gutter and horizontal row separators. Names large bold white, numbers lime. Ensure every entry appears exactly once with exact number; no teams or lap times, no additional labels. Pair these exact texts on each row:
 01 RUSSELL | 02 LECLERC
 03 PIASTRI | 04 HADJAR
@@ -57,7 +57,7 @@ Format: portrait Instagram feed graphic, 4:5 aspect ratio, 1080x1350 or equivale
 ### X
 
 Create a finished Grand Prix Picks branded motorsport starting-grid social poster. Contemporary editorial race poster in acid lime #d4ff3f, near-black #101113, warm white. Bold condensed typography, subtle screenprint grain on header and borders ONLY; clean extremely readable data area. Small stylized Baku old city and Flame Towers silhouette within header, tasteful sweeping race-track graphic, no cars or portraits needed. Full-bleed flat graphic, no mockup.
-Exact header text: "GRAND PRIX PICKS" small brand, "BAKU" large lime headline, "Provisional starting grid" prominent white subtitle. "26 September 2026" smaller.
+Exact header text: "Grand Prix Picks" small brand, "Baku" large lime headline, "Provisional starting grid" prominent white subtitle. "26 September 2026" smaller.
 Grid arranged as 11 paired rows, left odd position, right even position, with clear column gutter and horizontal row separators. Names large bold white, numbers lime. Ensure every entry appears exactly once with exact number; no teams or lap times, no additional labels. Pair these exact texts on each row:
 01 RUSSELL | 02 LECLERC
 03 PIASTRI | 04 HADJAR

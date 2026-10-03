@@ -63,7 +63,7 @@ const stories: Story[] = [
   {
     filename: 'ferrari-tribute.png',
     art: art.ferrariTribute,
-    eyebrow: 'REPORTED  /  FERRARI',
+    eyebrow: 'Reported  /  Ferrari',
     title: 'Ferrari set for Schumacher tribute livery.',
     body: "The expected design draws on 1996. Hamilton and Leclerc's seven-star race suits have already been revealed.",
     source: 'Reported by Motorsport.com',
@@ -73,7 +73,7 @@ const stories: Story[] = [
   {
     filename: 'ferrari-upgrades.png',
     art: art.ferrariUpgrades,
-    eyebrow: 'REPORTED  /  FERRARI',
+    eyebrow: 'Reported  /  Ferrari',
     title: 'Ferrari set to bring engine and aero upgrades.',
     body: "An upgraded power unit, aerodynamic changes and Monza-specific parts are reportedly in the team's home-race package.",
     source: 'Reported by Autosport',
@@ -83,7 +83,7 @@ const stories: Story[] = [
   {
     filename: 'antonelli-grid-penalty.png',
     art: art.antonelli,
-    eyebrow: 'CONFIRMED  /  MERCEDES',
+    eyebrow: 'Confirmed  /  Mercedes',
     title: 'Kimi Antonelli will take at least a 10-place grid penalty.',
     body: 'Mercedes plans to change his power unit ahead of his home race. Antonelli arrives at Monza leading the championship.',
     source: 'Confirmed by Formula 1',
@@ -93,7 +93,7 @@ const stories: Story[] = [
   {
     filename: 'browning-fp1.png',
     art: art.browning,
-    eyebrow: 'CONFIRMED  /  WILLIAMS',
+    eyebrow: 'Confirmed  /  Williams',
     title: 'Luke Browning replaces Alex Albon in FP1.',
     body: "Browning will drive Albon's Williams in Friday's opening session. Albon returns to the car for FP2.",
     source: 'Confirmed by Williams',
@@ -103,7 +103,7 @@ const stories: Story[] = [
   {
     filename: 'hadjar-status.png',
     art: art.hadjar,
-    eyebrow: 'DRIVER UPDATE',
+    eyebrow: 'Driver update',
     title: "Isack Hadjar's Monza return remains unconfirmed.",
     body: 'He missed Zandvoort with a wrist injury. His fitness will determine the Red Bull and Racing Bulls line-ups at Monza.',
     source: 'Status as of 28 August',
@@ -169,11 +169,10 @@ function brandRail(width: number, compact = false): ReactNode {
           fontFamily: 'IBM Plex Mono',
           fontSize: compact ? 15 : 17,
           fontWeight: 600,
-          letterSpacing: compact ? 2.4 : 3,
           color: colors.text,
         },
       },
-      'GRAND PRIX PICKS  /  MONZA',
+      'Grand Prix Picks  /  MONZA',
     ),
     mark(compact ? 0.46 : 0.54),
   );
@@ -270,7 +269,7 @@ function cover(): ReactNode {
             color: '#d5cec0',
           },
         },
-        'ONE WEEK TO GO',
+        'One week to go',
       ),
       e(
         'div',
@@ -316,7 +315,7 @@ function cover(): ReactNode {
           letterSpacing: 2,
         },
       },
-      'WHAT WE KNOW AHEAD OF THE ITALIAN GRAND PRIX',
+      'What we know ahead of the Italian Grand Prix',
     ),
   ]);
 }
@@ -419,7 +418,7 @@ function storyCard(story: Story): ReactNode {
           color: '#c5bdaf',
         },
       },
-      story.source.toUpperCase(),
+      story.source,
     ),
   ]);
 }
@@ -464,7 +463,7 @@ function xSummary(): ReactNode {
             color: '#d5cec0',
           },
         },
-        'ONE WEEK TO GO',
+        'One week to go',
       ),
       e(
         'div',
@@ -520,11 +519,11 @@ const standalonePosts: readonly StandaloneNewsPost[] = [
   {
     filename: 'monza-tyres',
     art: art.tyresInstagram,
-    section: 'PIRELLI',
-    sectionDetail: 'ITALIAN GP TYRES',
+    section: 'Pirelli',
+    sectionDetail: 'Italian GP tyres',
     title: 'Pirelli selects the softest tyre trio for Monza.',
     body: 'C3, C4 and C5 will be the hard, medium and soft compounds for the Italian Grand Prix.',
-    source: 'PIRELLI  /  28 JUL 2026',
+    source: 'Pirelli  /  28 Jul 2026',
     colors: ['#f5dc16', '#d5212a'],
     titleSize: 66,
     compounds: ['C3', 'C4', 'C5'],
@@ -532,11 +531,11 @@ const standalonePosts: readonly StandaloneNewsPost[] = [
   {
     filename: 'monza-alpine-upgrade',
     art: art.alpineInstagram,
-    section: 'ALPINE',
-    sectionDetail: 'MONZA UPGRADE',
+    section: 'Alpine',
+    sectionDetail: 'Monza upgrade',
     title: 'Alpine gives Colapinto its full upgrade package for Monza.',
     body: "The revised floor, diffuser, rear wing and sidepods debuted on Gasly's A526 at Zandvoort.",
-    source: 'FORMULA 1  /  25 AUG 2026',
+    source: 'Formula 1  /  25 Aug 2026',
     colors: [teams.Alpine, '#f27eb2'],
     titleSize: 64,
   },
@@ -576,11 +575,10 @@ function newsBrandRail(width: number, compact = false): ReactNode {
             fontFamily: 'IBM Plex Mono',
             fontSize: compact ? 18 : 21,
             fontWeight: 600,
-            letterSpacing: compact ? 3 : 3.5,
             color: '#f5f1e8',
           },
         },
-        'GRAND PRIX PICKS',
+        'Grand Prix Picks',
       ),
     ),
     e(
@@ -598,7 +596,7 @@ function newsBrandRail(width: number, compact = false): ReactNode {
           backgroundColor: 'rgba(7,8,10,0.72)',
         },
       },
-      'MONZA  /  2026',
+      'Monza  /  2026',
     ),
   );
 }
@@ -679,9 +677,9 @@ function newsIdentity(post: StandaloneNewsPost, compact = false): ReactNode {
 
 function compoundRail(compounds: readonly string[]): ReactNode {
   const compoundStyles = [
-    { label: 'HARD', color: '#f2f1eb' },
-    { label: 'MEDIUM', color: '#ffd12e' },
-    { label: 'SOFT', color: '#e33132' },
+    { label: 'Hard', color: '#f2f1eb' },
+    { label: 'Medium', color: '#ffd12e' },
+    { label: 'Soft', color: '#e33132' },
   ] as const;
 
   return e(
@@ -821,7 +819,7 @@ function standaloneInstagram(post: StandaloneNewsPost): ReactNode {
                 letterSpacing: 2,
               },
             },
-            'FULL PACKAGE  /  FOUR MAJOR SURFACES',
+            'Full package  /  Four major surfaces',
           ),
       e(
         'div',
@@ -853,7 +851,7 @@ function standaloneInstagram(post: StandaloneNewsPost): ReactNode {
           color: colors.accent,
         },
       },
-      `SOURCE  /  ${post.source}`,
+      `Source  /  ${post.source}`,
     ),
   ]);
 }
@@ -954,7 +952,7 @@ function standaloneX(post: StandaloneNewsPost, artSource: string): ReactNode {
           color: colors.accent,
         },
       },
-      `SOURCE  /  ${post.source}`,
+      `Source  /  ${post.source}`,
     ),
   ]);
 }

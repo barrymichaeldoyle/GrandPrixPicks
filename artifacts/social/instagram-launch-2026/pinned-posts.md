@@ -49,7 +49,7 @@ This folder contains only the four final 1080 x 1350 slides. They use Instagram'
 - Format: 1080 x 1350 portrait carousel
 - Keep every slide understandable without reading the caption
 - Use sentence case, not full caps, for headlines
-- Small labels may use the existing spaced uppercase brand treatment
+- Small labels use sentence case, never full caps
 - Do not add decorative slide numbers or technical-looking IDs
 - Keep `GrandPrixPicks.com/ig` to the final slide so it feels like a destination, not a watermark
 - In captions, use “link in bio” because Instagram caption links are not clickable

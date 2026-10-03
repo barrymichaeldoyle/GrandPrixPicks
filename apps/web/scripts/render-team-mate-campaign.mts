@@ -575,8 +575,6 @@ function textLabel(
       style: {
         fontSize: 19,
         fontWeight: 600,
-        letterSpacing: 3.2,
-        textTransform: 'uppercase' as const,
         color: colors.textMuted,
         ...extra,
       },
@@ -607,7 +605,7 @@ function driverBlock(
   const number = e(
     'div',
     {},
-    driver.number == null ? 'NO NUMBER' : `#${driver.number}`,
+    driver.number == null ? 'No number' : `#${driver.number}`,
   );
 
   return e(
@@ -676,7 +674,7 @@ function breakdownRow(
   const margin = Math.abs(left - right);
   const marginLabel =
     margin === 0
-      ? 'LEVEL'
+      ? 'Level'
       : `${left > right ? leftCode : rightCode} +${margin}`;
 
   function value(
@@ -729,8 +727,6 @@ function breakdownRow(
           borderRight: `1px solid ${colors.border}`,
           fontSize: 16,
           fontWeight: 600,
-          letterSpacing: 2.2,
-          textTransform: 'uppercase' as const,
           color: colors.textMuted,
         },
       },
@@ -943,12 +939,10 @@ function championshipPointsLine(
         fontFamily: 'IBM Plex Mono',
         fontSize: 12,
         fontWeight: 500,
-        letterSpacing: 1.4,
-        textTransform: 'uppercase' as const,
         color: colors.textMuted,
       },
     },
-    e('div', {}, 'CHAMPIONSHIP PTS ·'),
+    e('div', {}, 'Championship pts ·'),
     e('div', { style: { marginLeft: 8 } }, left.code),
     points(left.points, leftLeads, 4),
     e('div', { style: { marginLeft: 2, marginRight: 2 } }, '–'),
@@ -1013,8 +1007,8 @@ function card(
   const [left, right] = battle.drivers;
   const presentation = teamPresentation[battle.team];
   const qualifyingContext = battle.qualifyingGap
-    ? `AVG QUALI EDGE · ${battle.qualifyingGap.leaderCode} ${battle.qualifyingGap.averageSeconds.toFixed(3)}s`
-    : 'AVG QUALI EDGE · UNAVAILABLE';
+    ? `Avg quali edge · ${battle.qualifyingGap.leaderCode} ${battle.qualifyingGap.averageSeconds.toFixed(3)}s`
+    : 'Avg quali edge · unavailable';
 
   return e(
     'div',
@@ -1046,7 +1040,7 @@ function card(
         brandMark(31),
         textLabel('Grand Prix Picks', { color: colors.text, fontSize: 18 }),
       ),
-      textLabel('2026 Summer Break · Team-mate H2H', { fontSize: 17 }),
+      textLabel('2026 summer break · Team-mate H2H', { fontSize: 17 }),
     ),
     e(
       'div',
@@ -1190,7 +1184,7 @@ function card(
             color: colors.textMuted,
           },
         },
-        `THROUGH HUNGARIAN GP · ${snapshot.roundsCounted} ROUNDS · ${snapshot.sessionCounts.sprint} SPRINT WEEKENDS`,
+        `Through Hungarian GP · ${snapshot.roundsCounted} rounds · ${snapshot.sessionCounts.sprint} sprint weekends`,
       ),
       e(
         'div',

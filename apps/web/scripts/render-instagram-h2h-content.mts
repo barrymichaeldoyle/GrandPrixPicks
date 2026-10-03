@@ -279,11 +279,10 @@ function feedBrandRail(section: string): ReactNode {
           fontFamily: 'IBM Plex Mono',
           fontSize: 17,
           fontWeight: 600,
-          letterSpacing: 2.8,
           color: colors.textMuted,
         },
       },
-      'GRAND PRIX PICKS',
+      'Grand Prix Picks',
       e('div', {
         style: {
           width: 34,
@@ -302,7 +301,7 @@ function feedBrandRail(section: string): ReactNode {
   );
 }
 
-function feedFooter(text = '2026 SUMMER BREAK H2H'): ReactNode {
+function feedFooter(text = '2026 summer break H2H'): ReactNode {
   return e(
     'div',
     {
@@ -341,9 +340,7 @@ function eyebrow(text: string, size = 19): ReactNode {
         fontFamily: 'IBM Plex Mono',
         fontSize: size,
         fontWeight: 600,
-        letterSpacing: 3,
         color: colors.textMuted,
-        textTransform: 'uppercase',
       },
     },
     text,
@@ -405,9 +402,7 @@ function compactScoreCard(battle: Battle): ReactNode {
           fontFamily: 'IBM Plex Mono',
           fontSize: 11,
           fontWeight: 600,
-          letterSpacing: 1.4,
           color: colors.textMuted,
-          textTransform: 'uppercase',
         },
       },
       battle.team,
@@ -534,7 +529,7 @@ function fullGridScorecard(snapshot: Snapshot): ReactNode {
   return canvas(
     FEED_WIDTH,
     FEED_HEIGHT,
-    feedBrandRail('TEAM-MATE H2H'),
+    feedBrandRail('Team-mate H2H'),
     e(
       'div',
       {
@@ -590,7 +585,7 @@ function fullGridScorecard(snapshot: Snapshot): ReactNode {
       },
       ...constructorOrder.map((battle) => compactScoreCard(battle)),
     ),
-    feedFooter('RACE  /  QUALIFYING  /  SPRINT  /  SPRINT QUALI'),
+    feedFooter('Race  /  Qualifying  /  Sprint  /  Sprint quali'),
   );
 }
 
@@ -721,11 +716,11 @@ function battleBreakdown(battle: Battle): ReactNode {
         backgroundColor: colors.surface,
       },
     },
-    categoryRow('RACES', left.race, right.race),
-    categoryRow('QUALIFYING', left.qualifying, right.qualifying),
-    categoryRow('SPRINT RACES', left.sprint, right.sprint),
+    categoryRow('Races', left.race, right.race),
+    categoryRow('Qualifying', left.qualifying, right.qualifying),
+    categoryRow('Sprint races', left.sprint, right.sprint),
     categoryRow(
-      'SPRINT QUALIFYING',
+      'Sprint qualifying',
       left.sprintQualifying,
       right.sprintQualifying,
     ),
@@ -894,7 +889,7 @@ function teamDetailSlide(
         ),
       ),
     ),
-    feedFooter(`${battle.sessionsSettled} CLASSIFIED OUTCOMES`),
+    feedFooter(`${battle.sessionsSettled} classified outcomes`),
   );
 }
 
@@ -903,26 +898,26 @@ function contextCover(): ReactNode {
     {
       team: 'McLaren',
       overall: '20-9',
-      contrastLabel: 'RACE SCORE',
+      contrastLabel: 'Race score',
       contrast: '5-5',
     },
     {
       team: 'Williams',
       overall: '23-7',
-      contrastLabel: 'RACE SCORE',
+      contrastLabel: 'Race score',
       contrast: '6-5',
     },
     {
       team: 'Cadillac',
       overall: '20-10',
-      contrastLabel: 'QUALIFYING PACE',
-      contrast: 'BOT 0.016s QUICKER',
+      contrastLabel: 'Qualifying pace',
+      contrast: 'BOT 0.016s quicker',
     },
   ];
   return canvas(
     FEED_WIDTH,
     FEED_HEIGHT,
-    feedBrandRail('TEAM-MATE H2H'),
+    feedBrandRail('Team-mate H2H'),
     e(
       'div',
       {
@@ -993,9 +988,7 @@ function contextCover(): ReactNode {
                 alignItems: 'center',
                 fontSize: 15,
                 fontWeight: 600,
-                letterSpacing: 1.8,
                 color: colors.textMuted,
-                textTransform: 'uppercase',
               },
             },
             e('div', {
@@ -1036,7 +1029,7 @@ function contextCover(): ReactNode {
                     color: colors.textMuted,
                   },
                 },
-                'OVERALL SCORE',
+                'Overall score',
               ),
               e(
                 'div',
@@ -1102,7 +1095,7 @@ function contextCover(): ReactNode {
         ),
       ),
     ),
-    feedFooter('SWIPE FOR THE FORMAT-BY-FORMAT BREAKDOWN'),
+    feedFooter('Swipe for the format-by-format breakdown'),
   );
 }
 
@@ -1110,7 +1103,7 @@ function controlCover(battles: Battle[]): ReactNode {
   return canvas(
     FEED_WIDTH,
     FEED_HEIGHT,
-    feedBrandRail('TEAM-MATE H2H'),
+    feedBrandRail('Team-mate H2H'),
     e(
       'div',
       {
@@ -1208,7 +1201,7 @@ function controlCover(battles: Battle[]): ReactNode {
                   color: colors.textMuted,
                 },
               },
-              battle.team.toUpperCase(),
+              battle.team,
             ),
             e(
               'div',
@@ -1271,7 +1264,7 @@ function controlCover(battles: Battle[]): ReactNode {
         );
       }),
     ),
-    feedFooter('SWIPE FOR THE FORMAT-BY-FORMAT BREAKDOWN'),
+    feedFooter('Swipe for the format-by-format breakdown'),
   );
 }
 
@@ -1283,7 +1276,7 @@ function questionSlide(
   return canvas(
     FEED_WIDTH,
     FEED_HEIGHT,
-    feedBrandRail('YOUR CALL'),
+    feedBrandRail('Your call'),
     e(
       'div',
       {
@@ -1340,10 +1333,10 @@ function questionSlide(
             color: colors.accent,
           },
         },
-        'TEAM-MATE CALLS COUNT IN EVERY SESSION',
+        'Team-mate calls count in every session',
       ),
     ),
-    feedFooter('FREE F1 PREDICTION GAME'),
+    feedFooter('Free F1 prediction game'),
   );
 }
 
@@ -1402,7 +1395,7 @@ function storyDriverCard(driver: Driver, selectedColour: string): ReactNode {
           color: colors.textMuted,
         },
       },
-      `#${driver.number ?? '?'}  /  SCORE ${driver.total}`,
+      `#${driver.number ?? '?'}  /  Score ${driver.total}`,
     ),
   );
 }
@@ -1434,11 +1427,10 @@ function storyPollBackground(battle: Battle): ReactNode {
             fontFamily: 'IBM Plex Mono',
             fontSize: 17,
             fontWeight: 600,
-            letterSpacing: 2.7,
             color: colors.textMuted,
           },
         },
-        'GRAND PRIX PICKS',
+        'Grand Prix Picks',
       ),
       mark(0.58),
     ),
@@ -1531,7 +1523,7 @@ function storyPollBackground(battle: Battle): ReactNode {
       e(
         'div',
         { style: { display: 'flex' } },
-        'CURRENT SCORE  /  SUMMER BREAK',
+        'Current score  /  Summer break',
       ),
       e(
         'div',
@@ -1697,7 +1689,7 @@ async function main(): Promise<void> {
           `${String(index + 2).padStart(2, '0')}-${team.toLowerCase().replaceAll(' ', '-')}.png`,
           teamDetailSlide(
             byTeam.get(team)!,
-            'THE TOTAL NEEDS CONTEXT',
+            'The total needs context',
             contextInsights[team],
           ),
         ] as [string, ReactNode],
@@ -1721,7 +1713,7 @@ async function main(): Promise<void> {
           `${String(index + 2).padStart(2, '0')}-${team.toLowerCase().replaceAll(' ', '-')}.png`,
           teamDetailSlide(
             byTeam.get(team)!,
-            'DRIVERS IN CONTROL',
+            'Drivers in control',
             controlInsights[team],
           ),
         ] as [string, ReactNode],
@@ -1752,25 +1744,25 @@ async function main(): Promise<void> {
   }
 
   await contactSheet(
-    'FULL-GRID SCORECARD',
+    'Full-grid scorecard',
     scorecardFiles,
     path.join(previewDir, '01-full-grid-scorecard.png'),
     'feed',
   );
   await contactSheet(
-    'THE SCORE NEEDS CONTEXT',
+    'The score needs context',
     contextFiles,
     path.join(previewDir, '02-score-needs-context.png'),
     'feed',
   );
   await contactSheet(
-    'DRIVERS IN CONTROL',
+    'Drivers in control',
     controlFiles,
     path.join(previewDir, '03-drivers-in-control.png'),
     'feed',
   );
   await contactSheet(
-    'STORY POLLS',
+    'Story polls',
     storyFiles,
     path.join(previewDir, '04-story-polls.png'),
     'story',

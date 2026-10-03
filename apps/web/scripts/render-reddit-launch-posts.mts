@@ -286,9 +286,7 @@ function teamSummaryCard(summary: TeamSummary): ReactNode {
           fontFamily: 'IBM Plex Mono',
           fontSize: 11,
           fontWeight: 600,
-          letterSpacing: 1.5,
           color: colors.textMuted,
-          textTransform: 'uppercase',
         },
       },
       summary.team,
@@ -347,11 +345,10 @@ function h2hCover(snapshot: Snapshot): ReactNode {
             fontFamily: 'IBM Plex Mono',
             fontSize: 16,
             fontWeight: 600,
-            letterSpacing: 2.8,
             color: colors.textMuted,
           },
         },
-        'GRAND PRIX PICKS',
+        'Grand Prix Picks',
       ),
       mark(0.55),
     ),
@@ -379,7 +376,7 @@ function h2hCover(snapshot: Snapshot): ReactNode {
             color: colors.textMuted,
           },
         },
-        `${snapshot.season} SUMMER BREAK`,
+        `${snapshot.season} summer break`,
       ),
       e(
         'div',
@@ -429,7 +426,7 @@ function h2hCover(snapshot: Snapshot): ReactNode {
             color: colors.accent,
           },
         },
-        '11 TEAMS  /  ONE SCORECARD',
+        '11 teams  /  One scorecard',
       ),
     ),
     e(
@@ -469,7 +466,7 @@ function h2hCover(snapshot: Snapshot): ReactNode {
       e(
         'div',
         { style: { display: 'flex' } },
-        'FULL BREAKDOWN  /  SWIPE THROUGH',
+        'Full breakdown  /  Swipe through',
       ),
       e(
         'div',
@@ -611,7 +608,9 @@ async function main(): Promise<void> {
       );
     }
     await contactSheet(
-      gallery.directory.replaceAll('-', ' ').toUpperCase(),
+      gallery.directory
+        .replaceAll('-', ' ')
+        .replace(/[a-z]/, (letter) => letter.toUpperCase()),
       gallery.files.map((file) => path.join(galleryDir, file.destination)),
       path.join(previewDir, `${gallery.directory}.png`),
       'portrait',
@@ -650,7 +649,7 @@ async function main(): Promise<void> {
     )),
   ];
   await contactSheet(
-    '2026 SUMMER BREAK H2H',
+    '2026 summer break H2H',
     h2hGalleryFiles,
     path.join(previewDir, '04-summer-break-h2h.png'),
     'landscape',

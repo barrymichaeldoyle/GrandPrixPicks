@@ -37,7 +37,7 @@ export function TabChrome({ brand, title, action }: TabChromeProps) {
         >
           <BrandMark size={20} />
           <Text
-            className="text-foreground text-lg font-semibold tracking-[0.06em] uppercase"
+            className="text-foreground text-lg font-semibold"
             numberOfLines={1}
             style={
               titleFontFamily ? { fontFamily: titleFontFamily } : undefined

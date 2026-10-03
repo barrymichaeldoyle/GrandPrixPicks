@@ -146,11 +146,10 @@ function brandRail(section: string): ReactNode {
           fontFamily: 'IBM Plex Mono',
           fontSize: 16,
           fontWeight: 600,
-          letterSpacing: 2.8,
           color: colors.textMuted,
         },
       },
-      'GRAND PRIX PICKS',
+      'Grand Prix Picks',
       e('div', {
         style: {
           width: 38,
@@ -341,7 +340,7 @@ function topFivePanel(): ReactNode {
           color: colors.textMuted,
         },
       },
-      e('div', { style: { display: 'flex' } }, 'RANK THE TOP 5'),
+      e('div', { style: { display: 'flex' } }, 'Rank the Top 5'),
       e('div', { style: { display: 'flex', color: colors.accent } }, '5 OF 5'),
     ),
     ...drivers.map((driver, index) => compactDriverRow(driver, index + 1)),
@@ -460,8 +459,8 @@ function h2hPanel(): ReactNode {
           color: colors.textMuted,
         },
       },
-      e('div', { style: { display: 'flex' } }, 'TEAM-MATE HEAD-TO-HEAD'),
-      e('div', { style: { display: 'flex' } }, 'WHO FINISHES AHEAD?'),
+      e('div', { style: { display: 'flex' } }, 'Team-mate head-to-head'),
+      e('div', { style: { display: 'flex' } }, 'Who finishes ahead?'),
     ),
     e(
       'div',
@@ -474,7 +473,7 @@ function h2hPanel(): ReactNode {
 
 function productPost(): ReactNode {
   return frame(
-    brandRail('HOW IT WORKS'),
+    brandRail('How it works'),
     e(
       'div',
       {
@@ -487,7 +486,7 @@ function productPost(): ReactNode {
           width: 570,
         },
       },
-      eyebrow('FREE F1 PREDICTION GAME'),
+      eyebrow('Free F1 prediction game'),
       e(
         'div',
         {
@@ -545,7 +544,7 @@ function productPost(): ReactNode {
             backgroundColor: colors.accent,
           },
         }),
-        'QUALIFYING  /  SPRINTS  /  RACES',
+        'Qualifying  /  Sprints  /  Races',
       ),
     ),
     e(
@@ -563,7 +562,7 @@ function productPost(): ReactNode {
       topFivePanel(),
       h2hPanel(),
     ),
-    footer('GLOBAL LEADERBOARD  /  PRIVATE LEAGUES'),
+    footer('Global leaderboard  /  Private leagues'),
   );
 }
 
@@ -620,7 +619,7 @@ function scoreCard(
             letterSpacing: 2.3,
           },
         },
-        points === '1' ? 'POINT' : 'POINTS',
+        points === '1' ? 'point' : 'points',
       ),
     ),
     e(
@@ -655,7 +654,7 @@ function scoreCard(
 
 function scoringPost(): ReactNode {
   return frame(
-    brandRail('SCORING'),
+    brandRail('Scoring'),
     e(
       'div',
       {
@@ -668,7 +667,7 @@ function scoringPost(): ReactNode {
           width: 530,
         },
       },
-      eyebrow('HOW SCORING WORKS'),
+      eyebrow('How scoring works'),
       e(
         'div',
         {
@@ -721,7 +720,7 @@ function scoringPost(): ReactNode {
             backgroundColor: colors.resultNear,
           },
         }),
-        'NEAR MISSES ARE NOT WORTHLESS',
+        'Near misses are not worthless',
       ),
     ),
     e(
@@ -755,7 +754,7 @@ function scoringPost(): ReactNode {
         colors.resultTop5,
       ),
     ),
-    footer('TOP 5 SCORING  /  TEAM-MATE CALLS SCORE SEPARATELY'),
+    footer('Top 5 scoring  /  Team-mate calls score separately'),
   );
 }
 
@@ -860,7 +859,7 @@ function standingsPanel(
 function competitionPost(): ReactNode {
   const score = 455;
   return frame(
-    brandRail('LEADERBOARDS'),
+    brandRail('Leaderboards'),
     e(
       'div',
       {
@@ -873,7 +872,7 @@ function competitionPost(): ReactNode {
           width: 530,
         },
       },
-      eyebrow('ACROSS THE SEASON'),
+      eyebrow('Across the season'),
       e(
         'div',
         {
@@ -917,7 +916,7 @@ function competitionPost(): ReactNode {
             color: colors.accent,
           },
         },
-        'SAME PICKS  /  SAME SCORE',
+        'Same picks  /  Same score',
       ),
     ),
     e(
@@ -968,7 +967,7 @@ function competitionPost(): ReactNode {
               color: colors.textMuted,
             },
           },
-          'YOUR SCORE',
+          'Your score',
         ),
       ),
       e('div', {
@@ -1005,19 +1004,19 @@ function competitionPost(): ReactNode {
       e(
         'div',
         { style: { display: 'flex', width: '100%', gap: 18 } },
-        standingsPanel('GLOBAL LEADERBOARD', 'SEASON', [
+        standingsPanel('Global leaderboard', 'Season', [
           { position: 11, name: 'LateBraker', points: 462 },
           { position: 12, name: 'You', points: score, isYou: true },
           { position: 13, name: 'Box Box Sam', points: 443 },
         ]),
-        standingsPanel('PRIVATE LEAGUE', '8 PLAYERS', [
+        standingsPanel('Private league', '8 players', [
           { position: 1, name: 'You', points: score, isYou: true },
           { position: 2, name: 'Box Box Sam', points: 443 },
           { position: 3, name: 'Undercut Enjoyer', points: 428 },
         ]),
       ),
     ),
-    footer('QUALIFYING  /  SPRINTS  /  RACES'),
+    footer('Qualifying  /  Sprints  /  Races'),
   );
 }
 

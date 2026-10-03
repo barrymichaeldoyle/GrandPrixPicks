@@ -161,7 +161,7 @@ function xHeroBlock(): ReactNode {
           color: colors.textMuted,
         },
       },
-      'FREE F1 PREDICTION GAME',
+      'Free F1 prediction game',
     ),
     e(
       'div',

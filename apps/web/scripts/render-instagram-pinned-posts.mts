@@ -141,17 +141,16 @@ function brandRail(): ReactNode {
           fontFamily: 'IBM Plex Mono',
           fontSize: 18,
           fontWeight: 600,
-          letterSpacing: 3.2,
           color: colors.textMuted,
         },
       },
-      'GRAND PRIX PICKS',
+      'Grand Prix Picks',
     ),
     mark(0.58),
   );
 }
 
-function footer(text = 'FREE F1 PREDICTION GAME'): ReactNode {
+function footer(text = 'Free F1 prediction game'): ReactNode {
   return e(
     'div',
     {
@@ -186,9 +185,7 @@ function eyebrow(text: string): ReactNode {
         fontFamily: 'IBM Plex Mono',
         fontSize: 20,
         fontWeight: 500,
-        letterSpacing: 3.4,
         color: colors.textMuted,
-        textTransform: 'uppercase',
       },
     },
     text,
@@ -363,7 +360,7 @@ function topFivePanel(compact = false): ReactNode {
               color: index === 0 ? colors.textMuted : colors.textDisabled,
             },
           },
-          index === 0 ? 'CHOOSE A DRIVER' : '',
+          index === 0 ? 'Choose a driver' : '',
         ),
         e('div', {
           style: {
@@ -525,7 +522,7 @@ function matchupRow(index: number): ReactNode {
           color: colors.textDisabled,
         },
       },
-      'WHO FINISHES AHEAD?',
+      'Who finishes ahead?',
     ),
     e(
       'div',
@@ -647,9 +644,9 @@ function sessionsSlide(): ReactNode {
           gap: 24,
         },
       },
-      weekendPanel('REGULAR WEEKEND', ['Qualifying', 'Race'], 390),
+      weekendPanel('Regular weekend', ['Qualifying', 'Race'], 390),
       weekendPanel(
-        'SPRINT WEEKEND',
+        'Sprint weekend',
         ['Sprint Qualifying', 'Sprint', 'Qualifying', 'Race'],
         490,
       ),
@@ -770,12 +767,12 @@ function competitionSlide(): ReactNode {
           gap: 22,
         },
       },
-      standingsPanel('GLOBAL LEADERBOARD', [
+      standingsPanel('Global leaderboard', [
         ['1', 'ApexHunter', '486'],
         ['2', 'LateBraker', '471'],
         ['3', 'You', '455', true],
       ]),
-      standingsPanel('PRIVATE LEAGUE', [
+      standingsPanel('Private league', [
         ['1', 'You', '455', true],
         ['2', 'BoxBoxSam', '443'],
         ['3', 'SundayStrategy', '428'],
@@ -813,7 +810,7 @@ function ctaSlide(): ReactNode {
             color: colors.textMuted,
           },
         },
-        'MAKE YOUR FIRST PICKS',
+        'Make your first picks',
       ),
       headline('Free to play. Built for F1 fans.', 92, 860),
       e(
@@ -836,7 +833,7 @@ function ctaSlide(): ReactNode {
         'GrandPrixPicks.com/ig',
       ),
     ),
-    footer('LINK IN BIO'),
+    footer('Link in bio'),
   );
 }
 
@@ -933,7 +930,7 @@ function scoringCoverSlide(): ReactNode {
           color: colors.textMuted,
         },
       },
-      'EACH TOP 5 PICK SCORES ON ITS OWN',
+      'Each Top 5 pick scores on its own',
     ),
   );
 }
@@ -1112,7 +1109,7 @@ function scoringRuleSlide(
               letterSpacing: 3,
             },
           },
-          points === '1' ? 'POINT' : 'POINTS',
+          points === '1' ? 'point' : 'points',
         ),
       ),
       headline(title, 86, 900),
@@ -1133,7 +1130,7 @@ function scoringRuleSlide(
           backgroundColor: colors.surface,
         },
       },
-      panelLabel('EXAMPLE'),
+      panelLabel('Example'),
       e(
         'div',
         {
@@ -1143,7 +1140,7 @@ function scoringRuleSlide(
             marginTop: 24,
           },
         },
-        panelLabel('YOUR PICK'),
+        panelLabel('Your pick'),
         scoringDriverCard(
           driver,
           [pickPosition],
@@ -1165,7 +1162,7 @@ function scoringRuleSlide(
           },
           '↓',
         ),
-        panelLabel('ACTUAL RESULT'),
+        panelLabel('Actual result'),
         scoringDriverCard(
           driver,
           resultPositions,
@@ -1245,7 +1242,7 @@ function h2hScoringSlide(): ReactNode {
           },
         },
         e('div', { style: { display: 'flex' } }, 'McLaren'),
-        e('div', { style: { display: 'flex' } }, 'WHO FINISHES AHEAD?'),
+        e('div', { style: { display: 'flex' } }, 'Who finishes ahead?'),
       ),
       h2hDriverChoice(exampleTopFive[0]!, true),
       h2hDriverChoice(exampleTopFive[3]!, false),
@@ -1264,7 +1261,7 @@ function h2hScoringSlide(): ReactNode {
             color: colors.resultNear,
           },
         },
-        'CORRECT CALL  +1 POINT',
+        'Correct call  +1 point',
       ),
     ),
   );
@@ -1402,7 +1399,7 @@ function perfectTopFiveSlide(): ReactNode {
             color: colors.textMuted,
           },
         },
-        'POINTS',
+        'points',
       ),
     ),
   );
@@ -1651,7 +1648,7 @@ function competitionCoverSlide(): ReactNode {
             color: colors.textMuted,
           },
         },
-        'YOUR SCORE',
+        'Your score',
       ),
     ),
     e('div', {
@@ -1710,8 +1707,8 @@ function competitionCoverSlide(): ReactNode {
         'div',
         { style: { display: 'flex', width: 448 } },
         competitionStandingsPanel(
-          'GLOBAL',
-          'SEASON',
+          'Global',
+          'Season',
           [
             { position: 11, name: 'LateBraker', points: 462 },
             { position: 12, name: 'You', points: score, isYou: true },
@@ -1723,8 +1720,8 @@ function competitionCoverSlide(): ReactNode {
         'div',
         { style: { display: 'flex', width: 448 } },
         competitionStandingsPanel(
-          'PRIVATE LEAGUE',
-          '8 PLAYERS',
+          'Private league',
+          '8 players',
           [
             { position: 1, name: 'You', points: score, isYou: true },
             { position: 2, name: 'Box Box Sam', points: 443 },
@@ -1793,7 +1790,7 @@ function globalLeaderboardSlide(): ReactNode {
               color: colors.textMuted,
             },
           },
-          'RACE WEEKEND',
+          'Race weekend',
         ),
         e(
           'div',
@@ -1812,13 +1809,13 @@ function globalLeaderboardSlide(): ReactNode {
               color: colors.accent,
             },
           },
-          'FULL SEASON',
+          'Full season',
         ),
       ),
       e(
         'div',
         { style: { display: 'flex', width: '100%', marginTop: 16 } },
-        competitionStandingsPanel('GLOBAL LEADERBOARD', 'POINTS', [
+        competitionStandingsPanel('Global leaderboard', 'points', [
           { position: 10, name: 'ApexHunter', points: 468 },
           { position: 11, name: 'LateBraker', points: 462 },
           { position: 12, name: 'You', points: 455, isYou: true },
@@ -1890,7 +1887,7 @@ function privateLeagueSlide(): ReactNode {
               color: colors.textMuted,
             },
           },
-          '8 PLAYERS',
+          '8 players',
         ),
       ),
       competitionStandingRow({
@@ -1935,7 +1932,7 @@ function privateLeagueSlide(): ReactNode {
               flexDirection: 'column',
             },
           },
-          panelLabel('INVITE YOUR FRIENDS'),
+          panelLabel('Invite your friends'),
           e(
             'div',
             {
@@ -1965,7 +1962,7 @@ function privateLeagueSlide(): ReactNode {
               color: colors.textOnAccent,
             },
           },
-          'COPY INVITE LINK',
+          'Copy invite link',
         ),
       ),
     ),
@@ -2100,19 +2097,19 @@ function oneSetOfPicksSlide(): ReactNode {
           gap: 18,
         },
       },
-      pickDestinationCard('GLOBAL', 'Everyone'),
-      pickDestinationCard('SUNDAY STRATEGY', 'Private, 8 players'),
-      pickDestinationCard('PIT WALL CHAT', 'Private, 5 players'),
+      pickDestinationCard('Global', 'Everyone'),
+      pickDestinationCard('Sunday Strategy', 'Private, 8 players'),
+      pickDestinationCard('Pit Wall Chat', 'Private, 5 players'),
     ),
   );
 }
 
 function sessionsMoveOrderSlide(): ReactNode {
   const sessionRows = [
-    ['SPRINT QUALIFYING', '+18', '8'],
-    ['SPRINT', '+14', '7'],
-    ['QUALIFYING', '+21', '6'],
-    ['RACE', '+25', '5'],
+    ['Sprint qualifying', '+18', '8'],
+    ['Sprint', '+14', '7'],
+    ['Qualifying', '+21', '6'],
+    ['Race', '+25', '5'],
   ] as const;
   return editorialFrame(
     e(
@@ -2161,8 +2158,8 @@ function sessionsMoveOrderSlide(): ReactNode {
             color: colors.textMuted,
           },
         },
-        e('div', { style: { display: 'flex' } }, 'SPRINT WEEKEND'),
-        e('div', { style: { display: 'flex' } }, 'YOUR RANK'),
+        e('div', { style: { display: 'flex' } }, 'Sprint weekend'),
+        e('div', { style: { display: 'flex' } }, 'Your rank'),
       ),
       ...sessionRows.map(([session, score, rank], index) =>
         e(
@@ -2343,11 +2340,10 @@ function wordmark(): ReactNode {
           fontFamily: 'IBM Plex Mono',
           fontSize: 18,
           fontWeight: 600,
-          letterSpacing: 3.2,
           color: colors.textMuted,
         },
       },
-      'GRAND PRIX PICKS',
+      'Grand Prix Picks',
     ),
     mark(0.62),
   );
@@ -2463,11 +2459,10 @@ function scoringPollStory(): ReactNode {
             fontFamily: 'IBM Plex Mono',
             fontSize: 18,
             fontWeight: 600,
-            letterSpacing: 3.2,
             color: colors.textMuted,
           },
         },
-        'GRAND PRIX PICKS',
+        'Grand Prix Picks',
       ),
       mark(0.62),
     ),
@@ -2534,7 +2529,7 @@ function scoringPollStory(): ReactNode {
         colors.resultExact,
       ),
       storyGameCard(
-        'TEAM-MATE H2H',
+        'Team-mate H2H',
         'Every battle',
         'One point for each correct head-to-head call.',
         colors.resultNear,
@@ -2559,7 +2554,7 @@ function scoringPollStory(): ReactNode {
           color: colors.textMuted,
         },
       },
-      e('div', { style: { display: 'flex' } }, 'FREE F1 PREDICTION GAME'),
+      e('div', { style: { display: 'flex' } }, 'Free F1 prediction game'),
       e(
         'div',
         { style: { display: 'flex', color: colors.accent } },
@@ -2759,7 +2754,7 @@ function completedTopFive(compact = false): ReactNode {
           color: colors.textMuted,
         },
       },
-      e('div', { style: { display: 'flex' } }, 'YOUR PICKS'),
+      e('div', { style: { display: 'flex' } }, 'Your picks'),
       e('div', { style: { display: 'flex', color: colors.accent } }, '5 OF 5'),
     ),
     ...exampleTopFive.map((driver, index) =>
@@ -2933,7 +2928,7 @@ function introGameSlide(): ReactNode {
           top: 350,
         },
       },
-      panelLabel('RANK THE TOP 5'),
+      panelLabel('Rank the Top 5'),
       e(
         'div',
         { style: { display: 'flex', width: '100%', marginTop: 18 } },
@@ -2952,7 +2947,7 @@ function introGameSlide(): ReactNode {
           top: 840,
         },
       },
-      panelLabel('TEAM-MATE HEAD-TO-HEAD'),
+      panelLabel('Team-mate head-to-head'),
       e(
         'div',
         {
@@ -2981,7 +2976,7 @@ function introGameSlide(): ReactNode {
             },
           },
           e('div', { style: { display: 'flex' } }, 'McLAREN'),
-          e('div', { style: { display: 'flex' } }, 'WHO FINISHES AHEAD?'),
+          e('div', { style: { display: 'flex' } }, 'Who finishes ahead?'),
         ),
         h2hDriverChoice(exampleTopFive[0]!, true),
         h2hDriverChoice(exampleTopFive[3]!, false),
@@ -3000,7 +2995,7 @@ function introGameSlide(): ReactNode {
               color: colors.accent,
             },
           },
-          'PICK SAVED',
+          'Pick saved',
         ),
       ),
     ),
@@ -3064,7 +3059,7 @@ function introPayoffSlide(): ReactNode {
             color: colors.textMuted,
           },
         },
-        'YOUR SCORE',
+        'Your score',
       ),
     ),
     e('div', {
@@ -3122,7 +3117,7 @@ function introPayoffSlide(): ReactNode {
       e(
         'div',
         { style: { display: 'flex', width: 446 } },
-        standingsPanel('GLOBAL LEADERBOARD', [
+        standingsPanel('Global leaderboard', [
           ['1', 'Dave is P1 again', '486'],
           ['2', 'You', '455', true],
           ['3', 'Undercut Enjoyer', '443'],
@@ -3131,7 +3126,7 @@ function introPayoffSlide(): ReactNode {
       e(
         'div',
         { style: { display: 'flex', width: 446 } },
-        standingsPanel('PRIVATE LEAGUE', [
+        standingsPanel('Private league', [
           ['1', 'You', '455', true],
           ['2', 'Box Box Barbara', '443'],
           ['3', 'Two Stopper Truther', '428'],
@@ -3152,7 +3147,7 @@ function introPayoffSlide(): ReactNode {
           color: colors.accent,
         },
       },
-      'SAME PICKS  /  SAME SCORE',
+      'Same picks  /  Same score',
     ),
   );
 }
@@ -3234,7 +3229,7 @@ function introCtaSlide(): ReactNode {
             backgroundColor: colors.accent,
           },
         }),
-        'PICKS LOCK AT SESSION START',
+        'Picks lock at session start',
       ),
     ),
   );

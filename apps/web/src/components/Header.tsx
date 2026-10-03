@@ -135,7 +135,7 @@ export function Header() {
                 destinations are in the bottom bar — so the full wordmark fits
                 from 360px, with the compact one covering 320px-class screens. */}
             <span
-              className={`pr-1 text-lg font-semibold tracking-[0.06em] whitespace-nowrap uppercase transition-colors group-hover:text-accent ${
+              className={`pr-1 text-lg font-semibold whitespace-nowrap transition-colors group-hover:text-accent ${
                 showSignedOutNav
                   ? 'gpp-public-wordmark hidden min-[440px]:inline min-[844px]:hidden'
                   : 'min-[360px]:hidden'
@@ -144,7 +144,7 @@ export function Header() {
               GP Picks
             </span>
             <span
-              className={`pr-1 text-lg font-semibold tracking-[0.06em] whitespace-nowrap uppercase transition-colors group-hover:text-accent ${
+              className={`pr-1 text-lg font-semibold whitespace-nowrap transition-colors group-hover:text-accent ${
                 showSignedOutNav
                   ? 'gpp-public-wordmark-full hidden min-[844px]:inline'
                   : 'hidden min-[360px]:inline'

@@ -70,9 +70,9 @@ export default async function handler(event: RouteEvent) {
           raceName: race.name,
           round: race.round,
           season: race.season,
-          lockDate: lock.date.toUpperCase(),
+          lockDate: lock.date,
           lockTime: lock.time,
-          // The town, not the full circuit name: "MONZA" is what a fan calls
+          // The town, not the full circuit name: "Monza" is what a fan calls
           // the round, and "Autodromo Nazionale Monza" does not fit the band.
           venue: getCircuitForRace(race.slug)?.locality,
           flagSrc,

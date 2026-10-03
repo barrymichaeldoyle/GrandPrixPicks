@@ -33,7 +33,7 @@ export type ChinwagCardData = {
 
 export function chinwagCardTemplate(data: ChinwagCardData): ReactNode {
   const heading =
-    data.phase === 'post' ? 'BANGERS & CLANGERS' : 'YOUR RACE PREDICTIONS';
+    data.phase === 'post' ? 'Bangers & clangers' : 'Your race predictions';
   const subheading =
     data.phase === 'post'
       ? 'Who was the banger? Who dropped the clanger?'
@@ -70,7 +70,6 @@ export function chinwagCardTemplate(data: ChinwagCardData): ReactNode {
           style: {
             fontSize: 68,
             fontWeight: 600,
-            letterSpacing: 2,
             color: CHINWAG.ink,
             textAlign: 'center' as const,
           },

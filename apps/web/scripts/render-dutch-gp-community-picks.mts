@@ -124,15 +124,16 @@ function artwork(width: number, height: number): ReactNode {
             fontFamily: 'IBM Plex Mono',
             fontWeight: 600,
             fontSize: portrait ? 18 : 17,
-            letterSpacing: 3,
             color: colors.textMuted,
           },
         },
-        'GRAND PRIX PICKS  /  ',
+        'Grand Prix Picks  /  ',
         e(
           'span',
-          { style: { display: 'flex', color: colors.accent } },
-          'COMMUNITY CALL',
+          {
+            style: { display: 'flex', color: colors.accent, letterSpacing: 3 },
+          },
+          'Community call',
         ),
       ),
       mark(portrait ? 0.62 : 0.56),
@@ -267,7 +268,7 @@ function artwork(width: number, height: number): ReactNode {
                   border: `1px solid ${colors.borderStrong}`,
                 },
               }),
-              `${pick.code} · ${teamLabel.toUpperCase()}`,
+              `${pick.code} · ${teamLabel}`,
             ),
           ),
           e(
@@ -331,7 +332,7 @@ function artwork(width: number, height: number): ReactNode {
                       flexShrink: 0,
                     },
                   },
-                  'RACE WINNER',
+                  'Race winner',
                 )
               : null,
           ),

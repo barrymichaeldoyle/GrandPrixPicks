@@ -112,11 +112,10 @@ function layout(size: OgImageSize, ...children: ReactNode[]): ReactNode {
               style: {
                 fontSize: 19,
                 fontWeight: 600,
-                letterSpacing: 3.2,
                 color: colors.text,
               },
             },
-            'GRAND PRIX PICKS',
+            'Grand Prix Picks',
           ),
         ),
         e(
@@ -208,8 +207,6 @@ function eyebrow(text: string): ReactNode {
       style: {
         fontSize: 21,
         fontWeight: 600,
-        textTransform: 'uppercase' as const,
-        letterSpacing: 3,
         color: colors.textMuted,
       },
     },
@@ -248,7 +245,7 @@ export interface NextRaceOgData {
  *
  * The codes are a fixed illustrative Top 5, not a house prediction and not
  * live data: this card is cached by scrapers for weeks, so anything that moves
- * with results would be wrong more often than right. `YOUR TOP 5` in the
+ * with results would be wrong more often than right. `Your Top 5` in the
  * header is what keeps it reading as an example rather than as a tip. Update
  * the list when the grid changes, the same way any other hard-coded roster
  * fact is updated.
@@ -286,11 +283,10 @@ function pickSheet(): ReactNode {
           fontFamily: 'IBM Plex Mono',
           fontSize: 15,
           fontWeight: 600,
-          letterSpacing: 2.6,
           color: colors.textMuted,
         },
       },
-      'YOUR TOP 5',
+      'Your Top 5',
     ),
     ...SHEET_ROWS.map((row, index) =>
       e(
@@ -359,11 +355,10 @@ function brandWordmark(): ReactNode {
         style: {
           fontSize: 18,
           fontWeight: 600,
-          letterSpacing: 3.2,
           color: colors.textMuted,
         },
       },
-      'GRAND PRIX PICKS',
+      'Grand Prix Picks',
     ),
   );
 }
@@ -432,7 +427,6 @@ function bandStat(
         style: {
           fontFamily: 'IBM Plex Mono',
           fontSize: 15,
-          letterSpacing: 2.6,
           color: colors.textMuted,
         },
       },
@@ -555,8 +549,8 @@ function brandCardFrame(bandLeft: ReactNode, bandRight: ReactNode): ReactNode {
  */
 export function defaultBrandTemplate(): ReactNode {
   return brandCardFrame(
-    bandStat('EVERY RACE WEEKEND', 'QUALI · SPRINT · RACE', 'flex-start'),
-    bandStat('ENTRY', 'FREE TO PLAY', 'flex-end'),
+    bandStat('Every race weekend', 'Quali · Sprint · Race', 'flex-start'),
+    bandStat('Entry', 'Free to play', 'flex-end'),
   );
 }
 
@@ -572,8 +566,8 @@ export function defaultBrandTemplate(): ReactNode {
  */
 export function nextRaceTemplate(data: NextRaceOgData): ReactNode {
   const roundLabel = data.venue
-    ? `ROUND ${data.round} · ${data.venue.toUpperCase()}`
-    : `ROUND ${data.round} · ${data.season}`;
+    ? `Round ${data.round} · ${data.venue}`
+    : `Round ${data.round} · ${data.season}`;
 
   return brandCardFrame(
     e(
@@ -587,10 +581,10 @@ export function nextRaceTemplate(data: NextRaceOgData): ReactNode {
             style: { borderRadius: 1, objectFit: 'cover' as const },
           })
         : null,
-      bandStat(roundLabel, data.raceName.toUpperCase(), 'flex-start'),
+      bandStat(roundLabel, data.raceName, 'flex-start'),
     ),
     bandStat(
-      'PICKS LOCK',
+      'Picks lock',
       `${data.lockDate}  ${data.lockTime}`,
       'flex-start',
       true,
@@ -668,7 +662,7 @@ export function shareResultsTemplate(
 ): ReactNode {
   return shareTopFiveTemplate(
     data,
-    `${data.sessionLabel} Results \u00b7 Official Top 5`,
+    `${data.sessionLabel} results \u00b7 Official Top 5`,
     size,
   );
 }
@@ -691,7 +685,7 @@ export function shareH2HPicksTemplate(
 ): ReactNode {
   return shareH2HWinnersTemplate(
     data,
-    `${data.by ? `${data.by}'s` : 'My'} H2H Picks · ${data.sessionLabel}`,
+    `${data.by ? `${data.by}'s` : 'My'} H2H picks · ${data.sessionLabel}`,
     size,
   );
 }
@@ -702,7 +696,7 @@ export function shareH2HResultsTemplate(
 ): ReactNode {
   return shareH2HWinnersTemplate(
     data,
-    `${data.sessionLabel} H2H Results · Team-mate Winners`,
+    `${data.sessionLabel} H2H results · Team-mate winners`,
     size,
   );
 }
@@ -814,7 +808,7 @@ export function shareH2HScoreTemplate(
         },
       },
       eyebrow(
-        `${data.by ? `${data.by}'s` : 'My'} Head-to-Head \u00b7 ${data.sessionLabel}`,
+        `${data.by ? `${data.by}'s` : 'My'} head-to-head \u00b7 ${data.sessionLabel}`,
       ),
       e(
         'div',
@@ -985,7 +979,7 @@ export function shareScoreTemplate(
         },
       },
       eyebrow(
-        `${data.by ? `${data.by}'s` : 'My'} ${data.final ? 'Weekend Total' : 'Points So Far'}`,
+        `${data.by ? `${data.by}'s` : 'My'} ${data.final ? 'weekend total' : 'points so far'}`,
       ),
       e(
         'div',
@@ -1047,7 +1041,7 @@ function practiceRow(entry: PracticeCardEntry): ReactNode {
       ? formatLapTime(entry.bestLapSeconds)
       : entry.gapToLeaderSeconds !== null
         ? `+${entry.gapToLeaderSeconds.toFixed(3)}`
-        : 'NO TIME';
+        : 'No time';
   return e(
     'div',
     {
@@ -1171,11 +1165,10 @@ export function practiceResultsTemplate({
               fontSize: 20,
               fontWeight: 600,
               fontFamily: 'IBM Plex Mono',
-              letterSpacing: 2,
               color: colors.textMuted,
             },
           },
-          `${season} · ROUND ${round}`,
+          `${season} · Round ${round}`,
         ),
         e(
           'div',
@@ -1201,7 +1194,6 @@ export function practiceResultsTemplate({
               fontSize: 26,
               fontWeight: 600,
               fontFamily: 'Archivo',
-              letterSpacing: 1,
               color: colors.text,
               border: `1px solid ${colors.borderStrong}`,
               borderRadius: 2,
@@ -1434,11 +1426,10 @@ export function qualifyingChampionshipTemplate({
               fontSize: 19,
               fontWeight: 600,
               fontFamily: 'IBM Plex Mono',
-              letterSpacing: 2,
               color: colors.textMuted,
             },
           },
-          `${season} · AFTER ${roundsScored} ${roundsScored === 1 ? 'ROUND' : 'ROUNDS'}`,
+          `${season} · after ${roundsScored} ${roundsScored === 1 ? 'round' : 'rounds'}`,
         ),
         e(
           'div',
@@ -1463,14 +1454,13 @@ export function qualifyingChampionshipTemplate({
             fontSize: 15,
             fontWeight: 600,
             fontFamily: 'IBM Plex Mono',
-            letterSpacing: 1.6,
             lineHeight: 1.6,
             color: colors.textMuted,
             textAlign: 'right' as const,
           },
         },
-        e('div', {}, 'CHANGE SHOWN AGAINST'),
-        e('div', {}, 'THE WORLD CHAMPIONSHIP'),
+        e('div', {}, 'Change shown against'),
+        e('div', {}, 'the World Championship'),
       ),
     ),
     e(
@@ -1537,8 +1527,6 @@ function h2hMatchup(row: H2HCardRow): ReactNode {
           marginBottom: 5,
           fontSize: 12,
           fontWeight: 600,
-          letterSpacing: 1.2,
-          textTransform: 'uppercase' as const,
           color: colors.textMuted,
         },
       },
@@ -1583,12 +1571,11 @@ function h2hMatchup(row: H2HCardRow): ReactNode {
             border: `1px solid ${colors.border}`,
             fontSize: 11,
             fontWeight: 600,
-            letterSpacing: 1,
             lineHeight: 1,
             color: colors.textMuted,
           },
         },
-        'BEAT',
+        'Beat',
       ),
       e(
         'div',
@@ -1665,12 +1652,11 @@ export function h2hResultsTemplate({
           style: {
             fontSize: 24,
             fontWeight: 600,
-            letterSpacing: 2.2,
             color: colors.textMuted,
             marginTop: 7,
           },
         },
-        `HEAD 2 HEAD / ${sessionLabel.toUpperCase()} RESULTS`,
+        `Head 2 head / ${sessionLabel} results`,
       ),
       e(
         'div',
@@ -1697,11 +1683,10 @@ export function h2hResultsTemplate({
               fontSize: 15,
               fontWeight: 600,
               fontFamily: 'IBM Plex Mono',
-              letterSpacing: 2.2,
               color: colors.textMuted,
             },
           },
-          `${season}  /  ROUND ${round}`,
+          `${season}  /  Round ${round}`,
         ),
       ),
     ),
@@ -1855,11 +1840,10 @@ export function sessionResultsTemplate({
               fontSize: 20,
               fontWeight: 600,
               fontFamily: 'IBM Plex Mono',
-              letterSpacing: 2,
               color: colors.textMuted,
             },
           },
-          `${season} · ROUND ${round}`,
+          `${season} · Round ${round}`,
         ),
         e(
           'div',
@@ -1885,14 +1869,13 @@ export function sessionResultsTemplate({
               fontSize: 24,
               fontWeight: 600,
               fontFamily: 'Archivo',
-              letterSpacing: 1,
               color: colors.text,
               border: `1px solid ${colors.borderStrong}`,
               borderRadius: 2,
               padding: '7px 18px',
             },
           },
-          sessionLabel.toUpperCase(),
+          sessionLabel,
         ),
         flagSrc
           ? e('img', {
@@ -1966,7 +1949,6 @@ function seatCountBlock(
           fontSize: 17,
           fontWeight: 600,
           fontFamily: 'IBM Plex Mono',
-          letterSpacing: 1.8,
           color: colors.textMuted,
           marginTop: 12,
         },
@@ -2002,12 +1984,11 @@ function openSeatRow(seat: LineUp2027OpenSeat): ReactNode {
             fontSize: 16,
             fontWeight: 600,
             fontFamily: 'IBM Plex Mono',
-            letterSpacing: 1.6,
             color: colors.textMuted,
             marginTop: 3,
           },
         },
-        seat.team.toUpperCase(),
+        seat.team,
       ),
     ),
   );
@@ -2062,11 +2043,10 @@ export function lineUp2027Template({
               fontSize: 19,
               fontWeight: 600,
               fontFamily: 'IBM Plex Mono',
-              letterSpacing: 2,
               color: colors.textMuted,
             },
           },
-          '2027 DRIVER LINE-UP',
+          '2027 driver line-up',
         ),
         e(
           'div',
@@ -2089,19 +2069,18 @@ export function lineUp2027Template({
             fontSize: 15,
             fontWeight: 600,
             fontFamily: 'IBM Plex Mono',
-            letterSpacing: 1.6,
             color: colors.textMuted,
           },
         },
-        `REVIEWED ${reviewedLabel.toUpperCase()}`,
+        `Reviewed ${reviewedLabel}`,
       ),
     ),
     e(
       'div',
       { style: { display: 'flex', gap: 40, marginBottom: 44 } },
-      seatCountBlock('SIGNED', signed, colors.accent),
-      seatCountBlock('EXPECTED', expected, colors.borderStrong),
-      seatCountBlock('OUT OF CONTRACT', outOfContract, colors.warning),
+      seatCountBlock('Signed', signed, colors.accent),
+      seatCountBlock('Expected', expected, colors.borderStrong),
+      seatCountBlock('Out of contract', outOfContract, colors.warning),
     ),
     e('div', {
       style: { height: 1, backgroundColor: colors.border, marginBottom: 26 },
@@ -2113,12 +2092,11 @@ export function lineUp2027Template({
           fontSize: 15,
           fontWeight: 600,
           fontFamily: 'IBM Plex Mono',
-          letterSpacing: 1.8,
           color: colors.textMuted,
           marginBottom: 18,
         },
       },
-      'STILL TO BE DECIDED',
+      'Still to be decided',
     ),
     e(
       'div',
@@ -2157,11 +2135,10 @@ export function guideTemplate({
           fontSize: 19,
           fontWeight: 600,
           fontFamily: 'IBM Plex Mono',
-          letterSpacing: 2,
           color: colors.textMuted,
         },
       },
-      'F1 GUIDE',
+      'F1 guide',
     ),
     e(
       'div',

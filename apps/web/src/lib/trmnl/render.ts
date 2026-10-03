@@ -68,10 +68,14 @@ export function defaultTrmnlPalette(device: TrmnlDevice): TrmnlPalette {
   return device === 'og' ? '2bit' : '4bit';
 }
 
+/** The plugin's Theme setting (`theme` in `settings.yml`); light by default. */
+export type TrmnlTheme = 'light' | 'dark';
+
 export type TrmnlScreenConfig = {
   device: TrmnlDevice;
   orientation: TrmnlOrientation;
   palette: TrmnlPalette;
+  theme?: TrmnlTheme;
 };
 
 const DEFAULT_SCREEN_CONFIG: TrmnlScreenConfig = {
@@ -198,15 +202,18 @@ function getEngine() {
 /**
  * One layout's markup, exactly as TRMNL would build it: the Shared tab's
  * content first, then the layout. `trmnl` is the platform's own variable; only
- * the fields the templates read are supplied.
+ * the fields the templates read are supplied. TRMNL passes each form field by
+ * its keyname, which is how `theme` arrives.
  */
 export function renderTrmnlMarkup(
   layout: TrmnlLayout,
   payload: TrmnlPayload,
+  theme: TrmnlTheme = 'light',
 ): string {
   const { liquid, sharedRest } = getEngine();
   return liquid.parseAndRenderSync(`${sharedRest}\n${source(layout)}`, {
     ...payload,
+    theme,
     trmnl: { user: { time_zone_iana: 'Europe/London', locale: 'en' } },
   }) as string;
 }
@@ -322,8 +329,12 @@ function ditherScreenImages(inks, gray) {
       if (!solidGray) img.style.imageRendering = 'pixelated';
       img.src = canvas.toDataURL();
     } catch (e) {
-      // Keep grayscale previews monochrome even if an asset cannot be read.
-      if (gray) img.style.filter = 'grayscale(1)';
+      // Keep grayscale previews monochrome even if an asset cannot be read,
+      // on top of any filter the Framework set (the dark theme's invert).
+      if (gray) {
+        var framework = getComputedStyle(img).filter;
+        img.style.filter = (framework === 'none' ? '' : framework + ' ') + 'grayscale(1)';
+      }
     }
   }
 }
@@ -358,7 +369,7 @@ export function trmnlScreenMarkup(
   config: TrmnlScreenConfig = DEFAULT_SCREEN_CONFIG,
 ): string {
   const { screenClass } = trmnlScreenProfile(config);
-  const ours = `<div class="view view--${layout}">${renderTrmnlMarkup(layout, payload)}</div>`;
+  const ours = `<div class="view view--${layout}">${renderTrmnlMarkup(layout, payload, config.theme)}</div>`;
   const { mashup, slots } = MASHUPS[layout];
   const other = `<div class="view view--${layout}"><div class="layout layout--col layout--center"><span class="label label--gray">Another plugin</span></div></div>`;
   const screen = mashup

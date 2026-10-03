@@ -322,6 +322,45 @@ describe('trmnlScreenDocument', () => {
   });
 });
 
+describe('the Theme setting', () => {
+  const friday = TRMNL_SCENARIOS.find((s) => s.id === 'friday')!;
+
+  it('is light unless dark is chosen', () => {
+    for (const { id } of TRMNL_LAYOUTS) {
+      const light = renderTrmnlMarkup(id, friday.payload);
+      expect(light).not.toContain('inverse');
+      expect(light).not.toContain(' invert');
+      expect(light).not.toContain('<script');
+    }
+  });
+
+  it('darkens every layout, its title bar and its weather icons', () => {
+    for (const { id } of TRMNL_LAYOUTS) {
+      const dark = renderTrmnlMarkup(id, friday.payload, 'dark');
+      expect(dark).toMatch(/class="inverse bg--canvas layout /);
+      expect(dark).toContain('class="title_bar inverse bg--canvas"');
+      expect(dark).toMatch(/<img class="image image-dither [^"]* invert"/);
+      expect(dark).toContain("view.classList.add('inverse', 'bg--canvas')");
+    }
+  });
+
+  it('draws the dark logo as white bars on its own black square', () => {
+    // TRMNL dithers the icon onto white: white bars alone would vanish.
+    function logo(markup: string) {
+      const data = markup.match(
+        /<div class="title_bar[^"]*">\s*<img [^>]*src="data:image\/svg\+xml;base64,([^"]+)"/,
+      )![1];
+      return Buffer.from(data, 'base64').toString();
+    }
+    expect(logo(renderTrmnlMarkup('full', friday.payload))).toContain(
+      '<g fill="#000"',
+    );
+    const dark = logo(renderTrmnlMarkup('full', friday.payload, 'dark'));
+    expect(dark).toContain('<rect width="32" height="32" fill="#000"/>');
+    expect(dark).toContain('<g fill="#fff"');
+  });
+});
+
 describe('qrCodeSvg', () => {
   it('draws modules at the requested size with no quiet zone', () => {
     // 36 characters at level M fits version 3: 29 modules.

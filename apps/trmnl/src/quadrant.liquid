@@ -1,6 +1,8 @@
+{% comment %}The Theme setting: dark paints this plugin's own view, never the rest of a mashup.{% endcomment %}
+{% if theme == "dark" %}{% assign dark_classes = "inverse bg--canvas " %}{% endif %}
 {% if has_race and race %}
 {% comment %}The narrow portrait quarter stacks the QR below the race header.{% endcomment %}
-<div class="layout layout--col layout--top layout--stretch-x gap--none">
+<div class="{{ dark_classes }}layout layout--col layout--top layout--stretch-x gap--none">
   <div class="flex flex--row flex--center-y gap--small w--full portrait:hidden">
     <div class="grow">{% render "race_header", race: race, name_size: "title--small lg:title--base", detail_size: "lg:label--base", flag_size: "h--[24px] w--max-[48px] lg:h--[32px] lg:w--max-[64px]", inline_flag: true %}</div>
     <div class="flex-none">{% render "qr", url: race.url %}</div>
@@ -21,8 +23,8 @@
         quarter and wrapped the wind inside itself, and stacked it pushed the
         headline under the title bar. With no timeline here, rain says more.
       {% endcomment %}
-      <div class="w--full lg:hidden portrait:hidden">{% render "lead_weather", weather: lead.weather, rain_amount: true, no_wind: true %}</div>
-      <div class="w--full hidden lg:block portrait:block">{% render "lead_weather", weather: lead.weather, rain_amount: true, stack: "portrait:" %}</div>
+      <div class="w--full lg:hidden portrait:hidden">{% render "lead_weather", weather: lead.weather, rain_amount: true, no_wind: true, theme: theme %}</div>
+      <div class="w--full hidden lg:block portrait:block">{% render "lead_weather", weather: lead.weather, rain_amount: true, stack: "portrait:", theme: theme %}</div>
       {% endif %}
     </div>
     {% if news.size > 0 %}
@@ -42,7 +44,7 @@
   </div>
 </div>
 {% elsif standings %}
-<div class="layout layout--col layout--top layout--stretch-x gap--small">
+<div class="{{ dark_classes }}layout layout--col layout--top layout--stretch-x gap--small">
   <div class="flex flex--row flex--center-y gap--small w--full">
     <div class="grow">{% render "standings_header", standings: standings, title_size: "portrait:title--small lg:title--base", detail_size: "lg:label--base" %}</div>
     <div class="flex-none">{% render "qr", url: standings.url %}</div>
@@ -57,8 +59,8 @@
   </div>
 </div>
 {% else %}
-<div class="layout layout--col layout--center">
+<div class="{{ dark_classes }}layout layout--col layout--center">
   <span class="title title--small">No race scheduled.</span>
 </div>
 {% endif %}
-{% render "title_bar", race: race %}
+{% render "title_bar", race: race, theme: theme %}

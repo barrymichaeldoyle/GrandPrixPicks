@@ -1,8 +1,10 @@
+{% comment %}The Theme setting: dark paints this plugin's own view, never the rest of a mashup.{% endcomment %}
+{% if theme == "dark" %}{% assign dark_classes = "inverse bg--canvas " %}{% endif %}
 {% if has_race and race %}
 {% assign half_vertical_news_size = "title--small lg:title--base" %}
 {% assign half_vertical_body_center = "" %}
 {% if news.size == 0 or focus == "result" %}{% assign half_vertical_body_center = "flex--center-y" %}{% endif %}
-<div class="layout layout--col layout--top layout--stretch-x gap--medium">
+<div class="{{ dark_classes }}layout layout--col layout--top layout--stretch-x gap--medium">
   <div class="flex flex--row flex--center-y gap--medium w--full portrait:hidden">
     <div class="grow">{% render "race_header", race: race, name_size: "title--small lg:title--large lg:portrait:title--base", detail_size: "lg:label--large lg:portrait:label--base", flag_size: "h--[28px] w--max-[56px] lg:h--[36px] lg:w--max-[72px]", inline_flag: true, split_dates: true %}</div>
     <div class="flex-none">{% render "qr", url: race.url %}</div>
@@ -26,7 +28,7 @@
         <div class="w--full hidden portrait:block lg:portrait:hidden">{% render "upcoming", upcoming: upcoming, limit: 3, title_size: "title--small", stacked: true %}</div>
       {% else %}
       {% render "lead", lead: lead, size: "value--large lg:value--large" %}
-      {% render "lead_weather", weather: lead.weather, stack: "portrait:" %}
+      {% render "lead_weather", weather: lead.weather, stack: "portrait:", theme: theme %}
       {% endif %}
     </div>
   </div>
@@ -47,9 +49,9 @@
     <div class="{% if news.size > 0 %}grow {% endif %}portrait:hidden lg:hidden">
       <div class="flex flex--col flex--stretch-x gap--auto h--full {{ half_vertical_body_center }}">
         {% if news.size > 0 %}
-          {% render "schedule", schedule: schedule, limit: 3, tail: true, size: "table--small", name: "short", fill: true, no_next: between_rounds %}
+          {% render "schedule", schedule: schedule, limit: 3, tail: true, size: "table--small", name: "short", fill: true, no_next: between_rounds, theme: theme %}
         {% else %}
-          {% render "schedule", schedule: schedule, limit: 5, size: "table--small", name: "short", fill: true, no_next: between_rounds %}
+          {% render "schedule", schedule: schedule, limit: 5, size: "table--small", name: "short", fill: true, no_next: between_rounds, theme: theme %}
         {% endif %}
         {% if news.size > 0 %}{% render "news", news: news, limit: 1, headline_size: half_vertical_news_size %}{% endif %}
       </div>
@@ -61,20 +63,20 @@
           the columns together. No badge either: the lead above names the next
           session, and the badge pushed the table up to 15px past the slot.
         {% endcomment %}
-        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--small", name: "short", no_rainfall: true, no_next: true, tight: true, fill: true %}
+        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--small", name: "short", no_rainfall: true, no_next: true, tight: true, fill: true, theme: theme %}
         {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
       </div>
     </div>
     <div class="{% if news.size > 0 %}grow {% endif %}hidden lg:block lg:portrait:hidden">
       <div class="flex flex--col flex--stretch-x gap--auto h--full {{ half_vertical_body_center }}">
-        {% render "schedule", schedule: schedule, limit: 5, tail: true, size: "table--base", name: "short", fill: true, no_next: between_rounds %}
+        {% render "schedule", schedule: schedule, limit: 5, tail: true, size: "table--base", name: "short", fill: true, no_next: between_rounds, theme: theme %}
         {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
       </div>
     </div>
     {% comment %}The portrait X drops the rain columns, as the portrait OG does: with them the table ran up to 29px past the slot.{% endcomment %}
     <div class="{% if news.size > 0 %}grow {% endif %}hidden lg:portrait:block">
       <div class="flex flex--col flex--stretch-x gap--auto h--full {{ half_vertical_body_center }}">
-        {% render "schedule", schedule: schedule, limit: 5, tail: true, size: "table--base", name: "short", no_rainfall: true, fill: true, no_next: between_rounds %}
+        {% render "schedule", schedule: schedule, limit: 5, tail: true, size: "table--base", name: "short", no_rainfall: true, fill: true, no_next: between_rounds, theme: theme %}
         {% if news.size > 0 %}{% render "news", news: news, limit: 3, headline_size: half_vertical_news_size %}{% endif %}
       </div>
     </div>
@@ -82,7 +84,7 @@
   </div>
 </div>
 {% elsif standings %}
-<div class="layout layout--col layout--top layout--stretch-x gap--medium">
+<div class="{{ dark_classes }}layout layout--col layout--top layout--stretch-x gap--medium">
   <div class="flex flex--row flex--center-y gap--medium portrait:hidden">
     <div class="grow">
       {% render "standings_header", standings: standings, title_size: "lg:title--large", detail_size: "lg:label--large" %}
@@ -105,8 +107,8 @@
   </div>
 </div>
 {% else %}
-<div class="layout layout--col layout--center">
+<div class="{{ dark_classes }}layout layout--col layout--center">
   <span class="title">No race scheduled.</span>
 </div>
 {% endif %}
-{% render "title_bar", race: race %}
+{% render "title_bar", race: race, theme: theme %}

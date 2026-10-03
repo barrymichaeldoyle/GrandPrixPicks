@@ -1,7 +1,9 @@
+{% comment %}The Theme setting: dark paints this plugin's own view, never the rest of a mashup.{% endcomment %}
+{% if theme == "dark" %}{% assign dark_classes = "inverse bg--canvas " %}{% endif %}
 {% if has_race and race %}
 {% assign full_news_size = "title--base lg:title--large" %}
 {% if news.size > 6 %}{% assign full_news_size = "title--small lg:title--base" %}{% endif %}
-<div class="layout layout--col layout--top layout--stretch-x gap--medium">
+<div class="{{ dark_classes }}layout layout--col layout--top layout--stretch-x gap--medium">
   <div class="flex flex--row flex--center-y gap--medium">
     <div class="grow">
       {% render "race_header", race: race, name_size: "title--large portrait:title--small lg:text--xxxlarge lg:portrait:text--xlarge", detail_size: "label--base portrait:label--small lg:label--xlarge lg:portrait:label--large", flag_size: "h--[56px] w--max-[112px] lg:h--[96px] lg:w--max-48", compact_details: true %}
@@ -52,13 +54,13 @@
       <div class="flex flex--col flex--center gap--xsmall">
         {% render "lead", lead: lead, size: "value--large lg:value--xxlarge", label_size: "lg:text--mega" %}
         {% comment %}Stacked on the X: on one line a long forecast ("Thunderstorms", gusts) overran the column at this size.{% endcomment %}
-        {% render "lead_weather", weather: lead.weather, text_size: "lg:label--xlarge", stack: "lg:" %}
+        {% render "lead_weather", weather: lead.weather, text_size: "lg:label--xlarge", stack: "lg:", theme: theme %}
       </div>
       {% endif %}
       {% render "checker" %}
       {% comment %}No weather line: each timeline row carries its own forecast.{% endcomment %}
       {% comment %}The forecast a step smaller in the landscape X's half-width column: at `label--large` a sprint weekend's row ran past it.{% endcomment %}
-      {% render "schedule", schedule: schedule, size: "table--small lg:table--large", name: "label", aligned: true, fill: true, forecast_size: "lg:label--base lg:portrait:label--large", no_next: between_rounds %}
+      {% render "schedule", schedule: schedule, size: "table--small lg:table--large", name: "label", aligned: true, fill: true, forecast_size: "lg:label--base lg:portrait:label--large", no_next: between_rounds, theme: theme %}
     </div>
     <div class="flex flex--col flex--stretch-x gap--small h--full">
       {% comment %}
@@ -104,7 +106,7 @@
   be pushed below the screen by the tables. In portrait, constructors follow
   the drivers.
 {% endcomment %}
-<div class="layout layout--col layout--top layout--stretch-x gap--small">
+<div class="{{ dark_classes }}layout layout--col layout--top layout--stretch-x gap--small">
   <div class="flex flex--row flex--center-y gap--medium portrait:hidden">
     <div class="grow flex flex--col flex--left flex--stretch-x gap--small">
       {% render "standings_header", standings: standings, title_size: "lg:title--xlarge", detail_size: "lg:label--large" %}
@@ -134,8 +136,8 @@
   </div>
 </div>
 {% else %}
-<div class="layout layout--col layout--center">
+<div class="{{ dark_classes }}layout layout--col layout--center">
   <span class="title">No race scheduled.</span>
 </div>
 {% endif %}
-{% render "title_bar", race: race %}
+{% render "title_bar", race: race, theme: theme %}

@@ -257,7 +257,7 @@
       </td>
       {% else %}
       <td class="{{ schedule_cell_pad }}">{% if row.weather %}<span class="label label--small {{ schedule_forecast_size }}">{{ row.weather.temp }}</span>{% endif %}</td>
-      <td class="{{ schedule_cell_pad }}">{% if row.weather %}<img class="image image-dither w--[22px] h--[22px] lg:w--[32px] lg:h--[32px]" src="{{ row.weather.icon }}" alt="">{% endif %}</td>
+      <td class="{{ schedule_cell_pad }}">{% if row.weather %}<img class="image image-dither w--[22px] h--[22px] lg:w--[32px] lg:h--[32px]{% if theme == "dark" %} invert{% endif %}" src="{{ row.weather.icon }}" alt="">{% endif %}</td>
       {% if schedule_rain_column %}<td class="{{ schedule_cell_pad }}">{% if row.weather and row.weather.rain != "" %}<span class="label label--small {{ schedule_forecast_size }}">{{ row.weather.rain }}</span>{% endif %}</td>{% endif %}
       {% unless no_rainfall %}<td class="{{ schedule_cell_pad }}">{% if row.weather %}<span class="label label--small {{ schedule_forecast_size }}">{{ row.weather.rainAmount | replace: " ", "&nbsp;" }}</span>{% endif %}</td>{% endunless %}
       {% unless no_next %}<td>{% if row.next %}<span class="label label--small lg:label--base label--filled">Next</span>{% endif %}</td>{% endunless %}
@@ -405,7 +405,7 @@
     <span class="label label--small {{ weather_text }}">{{ weather.temp }}</span>
     <span class="label label--small {{ weather_text }}" aria-hidden="true">·</span>
     <span class="flex flex--row flex--center-y gap--xsmall">
-      <img class="image image-dither w--[24px] h--[24px] lg:w--[32px] lg:h--[32px]" src="{{ weather.icon }}" alt="">
+      <img class="image image-dither w--[24px] h--[24px] lg:w--[32px] lg:h--[32px]{% if theme == "dark" %} invert{% endif %}" src="{{ weather.icon }}" alt="">
       <span class="label label--small {{ weather_text }}">{{ weather.condition }}</span>
     </span>
   </span>
@@ -425,7 +425,7 @@
     {% if weather_wind != "" %}
     {% unless weather_first %}<span class="label label--small {{ weather_text }}" aria-hidden="true">·</span>{% endunless %}
     <span class="flex flex--row flex--center-y gap--xsmall">
-      <svg class="w--[24px] h--[24px] lg:w--[32px] lg:h--[32px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#000" stroke-linecap="round" stroke-width="2"><path d="M3 7h12a3 3 0 1 0-3-3"/><path d="M2 12h17a3 3 0 1 1-3 3"/><path d="M4 17h7a2 2 0 1 1-2 2"/></g></svg>
+      <svg class="w--[24px] h--[24px] lg:w--[32px] lg:h--[32px]{% if theme == "dark" %} invert{% endif %}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#000" stroke-linecap="round" stroke-width="2"><path d="M3 7h12a3 3 0 1 0-3-3"/><path d="M2 12h17a3 3 0 1 1-3 3"/><path d="M4 17h7a2 2 0 1 1-2 2"/></g></svg>
       <span class="label label--small {{ weather_text }}">{{ weather.wind }}</span>
     </span>
     {% endif %}
@@ -595,11 +595,32 @@
   The icon is inline, as TRMNL's guide asks: a URL can fail to load when the
   screen is drawn. Captured inside the template because a rendered template
   cannot see variables from outside it.
+
+  Dark draws its own black square behind white bars: TRMNL dithers the icon
+  onto white, so white bars alone would vanish, and the title bar's stroke
+  filter overrides the Framework's `invert`. The layout and the title bar each
+  carry `inverse`, which works without JavaScript but leaves the view's gap
+  between them light; the script moves it onto the view itself, which only
+  ever darkens this plugin's own slot of a mashup.
 {% endcomment %}
 {% template title_bar %}
+{%- if theme == "dark" -%}
+{%- capture icon -%}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24"><rect width="32" height="32" fill="#000"/><g fill="#fff" transform="translate(16 16) skewX(-12) translate(-16 -16)"><rect x="5" y="13" width="6" height="12"/><rect x="14" y="7" width="6" height="18"/><rect x="23" y="16" width="6" height="9"/></g></svg>{%- endcapture -%}
+{%- else -%}
 {%- capture icon -%}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24"><g fill="#000" transform="translate(16 16) skewX(-12) translate(-16 -16)"><rect x="5" y="13" width="6" height="12"/><rect x="14" y="7" width="6" height="18"/><rect x="23" y="16" width="6" height="9"/></g></svg>{%- endcapture -%}
-<div class="title_bar">
+{%- endif -%}
+<div class="title_bar{% if theme == "dark" %} inverse bg--canvas{% endif %}">
   <img class="image image-dither image-stroke" src="data:image/svg+xml;base64,{{ icon | base64_encode }}" alt="">
   <span class="title">GrandPrixPicks.com</span>
 </div>
+{% if theme == "dark" %}
+<script>
+  (function (script) {
+    var view = script.closest('.view');
+    if (!view) return;
+    view.querySelectorAll(':scope > .inverse').forEach(function (el) { el.classList.remove('inverse', 'bg--canvas'); });
+    view.classList.add('inverse', 'bg--canvas');
+  })(document.currentScript);
+</script>
+{% endif %}
 {% endtemplate %}

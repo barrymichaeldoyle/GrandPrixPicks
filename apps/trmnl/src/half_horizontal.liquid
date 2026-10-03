@@ -1,3 +1,5 @@
+{% comment %}The Theme setting: dark paints this plugin's own view, never the rest of a mashup.{% endcomment %}
+{% if theme == "dark" %}{% assign dark_classes = "inverse bg--canvas " %}{% endif %}
 {% if has_race and race %}
 {% assign half_horizontal_news_size = "title--small lg:title--base" %}
 {% if news.size > 6 %}{% assign half_horizontal_news_size = "title--small lg:title--small" %}{% endif %}
@@ -6,7 +8,7 @@
   it below the compact header and lead. The QR code sits beside the lead so
   the forecast stays above the title bar on the short OG half.
 {% endcomment %}
-<div class="layout layout--row portrait:layout--col layout--center-y layout--stretch-x gap--large">
+<div class="{{ dark_classes }}layout layout--row portrait:layout--col layout--center-y layout--stretch-x gap--large">
   <div class="flex flex--col flex--stretch-x gap--small flex-none portrait:w--full">
     {% render "race_header", race: race, name_size: "title--small lg:title--base", detail_size: "lg:label--base", flag_size: "h--[24px] w--max-[48px] lg:h--[32px] lg:w--max-[64px]", inline_flag: true, split_dates: true %}
     {% comment %}`gap--medium`: a winner's name ran into the QR code.{% endcomment %}
@@ -16,7 +18,7 @@
           {% render "upcoming", upcoming: upcoming, limit: 2, size: "table--xsmall lg:table--small", title_size: "title--small" %}
         {% else %}
         {% render "lead", lead: lead, size: "value--medium portrait:value--large lg:value--xlarge" %}
-        {% render "lead_weather", weather: lead.weather %}
+        {% render "lead_weather", weather: lead.weather, theme: theme %}
         {% endif %}
       </div>
       <div class="flex-none">{% render "qr", url: race.url %}</div>
@@ -27,13 +29,13 @@
       {% render "result", result: result, limit: 5, split: false, compact: true %}
     {% else %}
       <div class="portrait:hidden">
-        {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short", fill: true, no_next: between_rounds %}
+        {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short", fill: true, no_next: between_rounds, theme: theme %}
       </div>
       <div class="hidden portrait:block lg:portrait:hidden">
-        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--xsmall", name: "short", fill: true, no_next: between_rounds %}
+        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--xsmall", name: "short", fill: true, no_next: between_rounds, theme: theme %}
       </div>
       <div class="hidden lg:portrait:block">
-        {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short", fill: true, no_next: between_rounds %}
+        {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short", fill: true, no_next: between_rounds, theme: theme %}
       </div>
       {% if news.size > 0 %}
         <div class="grow portrait:hidden lg:hidden">
@@ -47,7 +49,7 @@
   </div>
 </div>
 {% elsif standings %}
-<div class="layout layout--row portrait:layout--col layout--top layout--stretch-x gap--large">
+<div class="{{ dark_classes }}layout layout--row portrait:layout--col layout--top layout--stretch-x gap--large">
   <div class="flex flex--col gap--small flex-none">
     <div class="flex flex--row flex--center-y gap--small w--full">
       <div class="grow">{% render "standings_header", standings: standings, title_size: "lg:title--large", detail_size: "lg:label--base" %}</div>
@@ -69,8 +71,8 @@
   </div>
 </div>
 {% else %}
-<div class="layout layout--col layout--center">
+<div class="{{ dark_classes }}layout layout--col layout--center">
   <span class="title">No race scheduled.</span>
 </div>
 {% endif %}
-{% render "title_bar", race: race %}
+{% render "title_bar", race: race, theme: theme %}

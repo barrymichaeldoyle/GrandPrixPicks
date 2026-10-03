@@ -773,6 +773,19 @@ Also check:
 - **Units is required.** The `units` select has no value on a plugin made
   before the field existed, and the browser blocks every save until one is
   chosen. Parse still fills in the `Metric` default.
+- **Select defaults name the stored value.** TRMNL stores a select's value in
+  lowercase, so `default: Metric` matched no option and a new install showed
+  Units empty (seen 3 October 2026). Options are `'Metric: metric'` (label,
+  then value) and the default is `metric`; Theme follows the same shape.
+- **Theme is a form field, light by default.** TRMNL's own `dark_mode` is a
+  plugin-wide setting only the author sees, so `settings.yml` keeps it `'no'`
+  and the `theme` select gives each install the choice. Dark puts the
+  Framework's `inverse bg--canvas` on the layout and title bar (a script in
+  `title_bar` moves it onto the view, so the gap between them is dark too),
+  inverts the weather and wind icons, and draws the title-bar logo as white
+  bars on its own black square: TRMNL dithers the icon onto white, and the
+  title bar's stroke filter overrides `invert`. Only this plugin's slot of a
+  mashup goes dark. `/trmnl` renders light; `render.test.ts` covers dark.
 - **Form fields.** A plugin set up by hand has no `author_bio`. Paste the
   `custom_fields` block from `settings.yml` into the plugin's Form Fields
   box, then check its text and links render.

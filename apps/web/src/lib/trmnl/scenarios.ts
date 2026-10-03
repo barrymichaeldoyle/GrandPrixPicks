@@ -122,7 +122,7 @@ const classification = GRID_ORDER.map(([code, displayName], index) => ({
 
 const practice = (['fp1', 'fp2', 'fp3'] as const).map((sessionType, i) => ({
   sessionType,
-  topThree: classification.slice(i, i + 3),
+  classification: [...classification.slice(i), ...classification.slice(0, i)],
 }));
 
 /*
@@ -366,6 +366,43 @@ const miamiWeather = sampleForecast('America/New_York', {
   },
 });
 
+/** A regular weekend after Baku, for the "Coming up" list between rounds. */
+function laterRound(
+  slug: string,
+  name: string,
+  round: number,
+  friday: string,
+): NonNullable<TrmnlInput['race']> {
+  const fri = at(`${friday}T10:30:00Z`);
+  return {
+    ...baku,
+    _id: `sample-${slug}` as NonNullable<TrmnlInput['race']>['_id'],
+    slug,
+    name,
+    round,
+    fp1StartAt: fri,
+    fp2StartAt: fri + 4 * HOUR_MS,
+    fp3StartAt: fri + DAY_MS,
+    qualiStartAt: fri + DAY_MS + 4 * HOUR_MS,
+    qualiLockAt: fri + DAY_MS + 4 * HOUR_MS,
+    raceStartAt: fri + 2 * DAY_MS + 3 * HOUR_MS,
+    predictionLockAt: fri + 2 * DAY_MS + 3 * HOUR_MS,
+  };
+}
+
+const afterBaku = [
+  laterRound('singapore-2026', 'Singapore Grand Prix', 18, '2026-10-02'),
+  laterRound(
+    'united-states-2026',
+    'United States Grand Prix',
+    19,
+    '2026-10-16',
+  ),
+  laterRound('mexico-2026', 'Mexico City Grand Prix', 20, '2026-10-23'),
+  laterRound('brazil-2026', 'São Paulo Grand Prix', 21, '2026-11-06'),
+  laterRound('las-vegas-2026', 'Las Vegas Grand Prix', 22, '2026-11-19'),
+];
+
 const base: Omit<TrmnlInput, 'now'> = {
   timeZone: 'Europe/London',
   locale: 'en-GB',
@@ -426,6 +463,13 @@ export const TRMNL_SCENARIOS: readonly TrmnlScenario[] = [
       ),
     },
     nextRace: baku,
+  }),
+  scenario('between', 'Between rounds', 'The Wednesday after Monza', {
+    now: at('2026-09-09T09:00:00Z'),
+    race: baku,
+    weather: null,
+    news: news.slice(3),
+    upcoming: afterBaku,
   }),
   scenario('sprint', 'Sprint weekend', 'Saturday of a sprint weekend', {
     now: at('2026-05-02T18:00:00Z'),

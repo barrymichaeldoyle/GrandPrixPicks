@@ -20,7 +20,10 @@ function draftFor(summary: Summary) {
   if (!session?.fastest) {
     return '';
   }
-  const podium = session.topThree.map((entry) => entry.code).join(' · ');
+  const podium = session.classification
+    .slice(0, 3)
+    .map((entry) => entry.code)
+    .join(' · ');
   const mover = session.positionChanges[0];
   const reserve = session.reserveDrivers[0];
   return [

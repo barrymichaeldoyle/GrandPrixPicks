@@ -1,4 +1,5 @@
 import type { TrmnlInput } from './payload';
+import { isBetweenRounds, selectTrmnlRace } from './payload';
 import type { TrmnlWeekendData } from './weekendData';
 
 type Race = NonNullable<TrmnlInput['race']>;
@@ -11,6 +12,7 @@ const DAY_MS = 24 * HOUR_MS;
  * race's own schedule so any weekend can be replayed at it.
  */
 export type TrmnlMomentId =
+  | 'between'
   | 'build-up'
   | 'friday'
   | 'saturday'
@@ -19,6 +21,7 @@ export type TrmnlMomentId =
   | 'sprint';
 
 export const TRMNL_MOMENTS: readonly { id: TrmnlMomentId; label: string }[] = [
+  { id: 'between', label: 'Between rounds' },
   { id: 'build-up', label: 'Build-up' },
   { id: 'friday', label: 'Friday' },
   { id: 'saturday', label: 'Saturday' },
@@ -42,12 +45,17 @@ function weekendStart(race: Race): number {
  * When a moment happens on a given weekend, or null if that weekend has no
  * such moment (the sprint, on a regular weekend).
  *
+ * Between rounds is nine days before the weekend, past the six-day line
+ * (`isBetweenRounds`); `pickReplay` skips a weekend with no gap before it.
+ *
  * Friday evening is three hours after the last Friday session starts: FP2 on
  * a regular weekend, sprint qualifying on a sprint one. Saturday is three
  * hours after qualifying, the sprint moment three hours after the sprint.
  */
 export function momentAt(race: Race, moment: TrmnlMomentId): number | null {
   switch (moment) {
+    case 'between':
+      return weekendStart(race) - 9 * DAY_MS;
     case 'build-up':
       return weekendStart(race) - 3 * DAY_MS;
     case 'friday': {
@@ -78,7 +86,8 @@ export function momentAt(race: Race, moment: TrmnlMomentId): number | null {
  * past weekend it has come for: so on a Tuesday the build-up is this weekend's,
  * live, and Friday is last weekend's until this Friday evening arrives. The
  * build-up of a weekend that has not started is shown at the real time rather
- * than three days before, because now is the build-up.
+ * than three days before, because now is the build-up; more than six days out,
+ * now is between rounds instead, and the build-up tab replays the last one.
  *
  * `races` is the season, in any order. Null when no weekend in it has reached
  * the moment yet, e.g. every moment but the build-up before round one.
@@ -93,12 +102,26 @@ export function pickReplay(
     .sort((a, b) => b.raceStartAt - a.raceStartAt);
   const next = [...live].reverse().find((race) => race.raceStartAt > now);
 
-  if (moment === 'build-up' && next && now < weekendStart(next)) {
+  // Now is the next weekend's build-up, or the gap before it, whichever it
+  // is: each tab shows its own phase, so the other falls back to a replay.
+  if (
+    next &&
+    now < weekendStart(next) &&
+    (moment === 'build-up' || moment === 'between') &&
+    (moment === 'between') === isBetweenRounds(next, now) &&
+    selectTrmnlRace(live, now) === next
+  ) {
     return { race: next, at: now, live: true };
   }
   for (const race of live) {
     const at = momentAt(race, moment);
-    if (at !== null && at <= now) {
+    // Between rounds only follows a gap: after a back-to-back, the previous
+    // race still holds the screen nine days out.
+    if (
+      at !== null &&
+      at <= now &&
+      (moment !== 'between' || selectTrmnlRace(live, at) === race)
+    ) {
       return { race, at, live: false };
     }
   }

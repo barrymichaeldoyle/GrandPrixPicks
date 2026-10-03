@@ -12,8 +12,12 @@
     {% comment %}`gap--medium`: a winner's name ran into the QR code.{% endcomment %}
     <div class="flex flex--row flex--center-y gap--medium w--full">
       <div class="grow flex flex--col flex--center gap--xsmall">
+        {% if between_rounds and upcoming.size > 0 %}
+          {% render "upcoming", upcoming: upcoming, limit: 2, size: "table--xsmall lg:table--small", title_size: "title--small" %}
+        {% else %}
         {% render "lead", lead: lead, size: "value--medium portrait:value--large lg:value--xlarge" %}
         {% render "lead_weather", weather: lead.weather %}
+        {% endif %}
       </div>
       <div class="flex-none">{% render "qr", url: race.url %}</div>
     </div>
@@ -23,13 +27,13 @@
       {% render "result", result: result, limit: 5, split: false, compact: true %}
     {% else %}
       <div class="portrait:hidden">
-        {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short" %}
+        {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short", fill: true, no_next: between_rounds %}
       </div>
       <div class="hidden portrait:block lg:portrait:hidden">
-        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--xsmall", name: "short" %}
+        {% render "schedule", schedule: schedule, limit: 4, tail: true, size: "table--xsmall", name: "short", fill: true, no_next: between_rounds %}
       </div>
       <div class="hidden lg:portrait:block">
-        {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short" %}
+        {% render "schedule", schedule: schedule, limit: 5, size: "table--xsmall", name: "short", fill: true, no_next: between_rounds %}
       </div>
       {% if news.size > 0 %}
         <div class="grow portrait:hidden lg:hidden">

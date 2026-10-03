@@ -105,6 +105,7 @@ the race document and what has been published; nothing is scheduled.
 
 | When                                | Lead (every layout)  | Full layout, right column |
 | ----------------------------------- | -------------------- | ------------------------- |
+| Weekend more than six days off      | "Coming up" rounds   | News, else standings      |
 | Before the race is next             | `<Session> <time>`   | Newer of news or result   |
 | Race next or under way, no result   | `Lights out <time>`  | Grid if published         |
 | Race result published, held for 36h | `Race winner <name>` | Whole classification      |
@@ -113,6 +114,25 @@ the race document and what has been published; nothing is scheduled.
 The weekend shown is the next race, except that a race holds the screen for
 36 hours after lights out so a Sunday result is still up on Monday
 (`selectTrmnlRace`). A cancelled round is skipped.
+
+**Between rounds** (`between_rounds`: the weekend's first session is more
+than six days off, `isBetweenRounds`) the lead gives way to a "Coming up" list
+(`upcoming` in `shared.liquid`): this Grand Prix and the rounds after it, each
+as "R17 Azerbaijan GP 18 – 20 Sept". A session time weeks ahead was the
+screen's biggest type ("Free Practice 1 / Fri 25 Sept, 9:30"); the dates say
+when the weekend is, and the timeline below, still weekday and time, reads
+correctly under them. Nothing carries a forecast or the "Next" badge. Six days
+is the line a bare weekday is drawn at (`WEEKDAY_ONLY_WITHIN_MS`), so the
+screen switches to the weekend the Friday before. The list shows as many
+rounds as the slot holds: 3 on the full screen in landscape and 5 in
+portrait, 3 in the half vertical, 2 in the half horizontal and the quarter.
+The portrait OG's half vertical and quarter stack each round's number and
+dates under its name, since one row of three wrapped every name. The payload
+also sets `lead` to "Race weekend" and the dates, which is what markup from
+before the list shows. The rounds come from `selectTrmnlUpcomingRaces`
+(the next six), passed as `upcoming` by the polling endpoint and the `/trmnl`
+page. After a back-to-back the screen never reaches this phase: the previous
+race holds it until the next weekend is within six days.
 
 **The off-season** (no race left, and the result hold over) shows the season
 just run: `standings` in the payload, built by `buildStandings` from
@@ -145,7 +165,11 @@ table would count results that moment had not seen (`replayWeekend`).
 **Race header:** the race flag beside the race name and weekend details. The
 full landscape layout combines circuit, round and dates on one line, with a
 larger race name above it. Portrait full screens use smaller type and allow
-the details to wrap beside the flag and QR. The smaller layouts keep those
+the details to wrap beside the flag and QR. On the X in portrait the name is
+`text--xlarge` and the details `label--large`: the three lines then stand
+almost the flag's height (150 of 180 px), and the longest name, "Barcelona-
+Catalunya Grand Prix", still fits on one line; a size larger wraps it past
+the flag. The smaller layouts keep those
 details on two lines. The flag follows race identity (`raceCountries.ts`) and
 the circuit follows the venue
 (`circuits.ts`), so the 2026 Bahrain round flies Bahrain's flag over "Sepang
@@ -209,8 +233,8 @@ night), never from the code's `_night` suffix: beyond a couple of days MET
 forecasts in 6-hour periods, and a 16:00 race in Baku drew a moon.
 
 **Full:** the race header and QR code across the top. Left column: the lead and the
-weekend timeline (sessions with local times, weather, each one's top three,
-and a filled "Next" marker on the first session that has not started). Right
+weekend timeline (sessions with local times, weather, as many of each one's
+finishers as fit on its row, and a filled "Next" marker on the first session that has not started). Right
 column: the grid on race morning, otherwise whichever is newer of the latest
 session result ("Race result", "Qualifying result") and the headlines. It
 offers seven headlines on the OG, eleven on the X in landscape, and ten on the
@@ -245,11 +269,24 @@ rainfall are separate table columns, so they line up whatever their widths.
 **Every layout** shares the lead forecast (`lead_weather`): temperature · icon
 and condition · rain chance, when worth mentioning · wind, and in the quarter,
 which has no timeline, the session's rainfall. It is two groups, so a narrow
-slot breaks between them instead of leaving a dot at the end of a line. The
+slot breaks between them instead of leaving a dot at the end of a line: on
+every X full screen and in every portrait half and quarter they stack, one
+group per line. On one line a long forecast ("Thunderstorms", gusts) squeezed
+the groups into each other and wrapped the wind inside itself ("NE 11 /
+km/h"). The
 timeline's weather columns are shared too, and only upcoming sessions carry
-them: once a session has run, its row shows the top three (or "Awaiting
+them: once a session has run, its row shows its finishers (or "Awaiting
 result") across those columns, since a past forecast says nothing and carrying
-both crushed the narrow layouts. Every row keeps the weather icon's height, so
+both crushed the narrow layouts. Every timeline (`fill` on the `schedule`
+template) shows as many of `codes`, the session's ranked finishers in order,
+as fit on one line: on the full screen 6 to 8 in landscape and 9 to 15 in
+portrait; in the halves from 3 (half vertical, OG portrait) to 14 (half
+horizontal, X portrait). It is CSS only:
+the codes wrap and the row's fixed height clips the second line, so a code is
+shown whole or not at all, and the name and time columns shrink to their
+content (`w--0`) to leave the codes the spare width. Only the full screen
+widens their padding: in the halves it pushed the table past the slot. `top3`
+stays in the payload for markup that predates `codes`. Every row keeps the weather icon's height, so
 the timeline's rhythm does not change as sessions finish. Race dates keep their en dash and
 never break inside the range; where the header is two lines, it splits as the
 circuit, then "Round 16 · 2 – 4 Oct", so no line starts or ends on a dot.
@@ -295,8 +332,12 @@ all five remain above the title bar.
 its weather; on the portrait OG the QR code drops below the header, which
 wrapped the race name to three lines beside it. Before results, the landscape
 OG shows the last three sessions and one headline, or all five with no
-headline; the X shows all five and up to three headlines; the portrait OG
-shows the last four, without the rainfall column, which crushed the others.
+headline; the X shows all five and up to three headlines. In portrait the
+timeline drops the rain chance and rainfall columns: with them the table ran
+past the slot (up to 29px on a sprint weekend). The portrait OG shows the last
+four, and also drops the "Next" badge, since the lead just above names that
+session, and pads its columns a little less (`tight`), which buys its third
+driver.
 Keeping the tail of the schedule preserves the qualifying and race times in
 the narrow view. With no headline, or with a result in focus, the lead and
 what follows it are centred together as one block. Headlines stay at the base
@@ -449,7 +490,9 @@ authentication mechanism for a future paid API.
   rather than `server/` because the `/trmnl` page runs it too.
 - `apps/trmnl/`: the plugin in `trmnlp`'s project layout (`src/settings.yml`,
   four layouts, `shared.liquid`). `trmnlp` needs Ruby 4 or Docker. To import
-  by hand, zip the flat files in `src/`.
+  by hand, zip the flat files in `src/`. `settings.yml` keeps `trmnlp`'s own
+  serialization, so it is in `.oxfmtrc.json`'s `ignorePatterns`: `pnpm
+format` used to rewrite it.
 
 ### The screens page: `/trmnl`
 
@@ -467,8 +510,9 @@ would. There was a size switch as well; showing every size at once replaced
 it. It is the place to check
 a layout change, and the plugin's "learn more" link from the TRMNL directory.
 
-- **The screens are the site's real weekends.** Each moment (build-up,
-  Friday, Saturday, race morning, finished, sprint) shows the next race if that
+- **The screens are the site's real weekends.** Each moment (between rounds,
+  build-up, Friday, Saturday, race morning, finished, sprint) shows the next
+  race if that
   moment has already come for it, otherwise the latest weekend it has come
   for, replayed as it stood then: so on a Tuesday the build-up is this
   weekend's, live, and the rest are last weekend's until this one reaches
@@ -477,6 +521,9 @@ a layout change, and the plugin's "learn more" link from the TRMNL directory.
   published after its moment; results are taken to land a fixed lag after
   their session starts). Moments are defined against each race's own schedule
   (`momentAt`: Friday is three hours after the last Friday session, and so on).
+  Between rounds is nine days before a weekend, and only after a gap: a
+  back-to-back weekend is skipped for the one before it. Now is live for
+  whichever of between rounds and build-up it is; the other tab replays.
 - **Data** comes from `loadTrmnlWeekend` (`weekendData.ts`), the same loader
   the polling endpoint uses, so the page cannot fetch differently from the
   device. A replay of a finished weekend reads the write-up forecast
@@ -638,7 +685,9 @@ against the file confirms the paste. Last synced from the repo on 26 September
 changed the live copy when approving the recipe (2 October 2026), and the repo
 was brought in line by hand. On an X, the schedule's forecast labels are
 `label--large` and its Next badge `label--base`, because the icon already holds
-the row's height and the text can fill it at no cost. The reviewer also added
+the row's height and the text can fill it at no cost. The one exception is the
+full screen's landscape column (`forecast_size`), where at `label--large` a
+sprint weekend's forecast row ran past the column into the headlines. The reviewer also added
 `github_url` to `author_bio`, which puts a GitHub icon on the recipe page;
 the bio's own "View source on GitHub" link went, and the Discord link (in the
 repo since 27 September, never pasted) went live, when the form fields were

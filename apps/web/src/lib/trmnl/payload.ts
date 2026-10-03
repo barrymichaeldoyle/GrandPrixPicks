@@ -162,7 +162,7 @@ type ChampionshipInput = {
 
 type PracticeSummary = {
   sessionType: keyof typeof PRACTICE_LABELS;
-  topThree: ResultRow[];
+  classification: ResultRow[];
 };
 
 export type TrmnlInput = {
@@ -180,6 +180,11 @@ export type TrmnlInput = {
    * is in. `selectTrmnlNextRace` picks it. Null after the season's last race.
    */
   nextRace?: RaceForTrmnl | null;
+  /**
+   * The rounds after `race`, in order, for the "Coming up" list between
+   * rounds. `selectTrmnlUpcomingRaces` picks them.
+   */
+  upcoming?: RaceForTrmnl[];
   /**
    * The season's championship. With no race, the season just run, shown
    * through the off-season (its `news` is then the site's race-independent
@@ -228,6 +233,12 @@ type ScheduleRow = {
    * the weekend is. It moves only when a session starts.
    */
   next: boolean;
+  /**
+   * The ranked finishers' codes in order once the session has run. Every
+   * layout shows as many as fit on the row.
+   */
+  codes: string[];
+  /** For markup that predates `codes`. */
   top3: string[];
   /** Null once the session is out of the forecast window, or it is stale. */
   weather: SessionWeather | null;
@@ -281,6 +292,22 @@ export type TrmnlPayload = {
    * timeline for the whole classification, the news and `next_race`.
    */
   race_finished: boolean;
+  /**
+   * The weekend's first session is more than six days off: the gap between
+   * rounds. The lead gives way to `upcoming`, and nothing carries a forecast,
+   * which says little that far ahead.
+   */
+  between_rounds: boolean;
+  /**
+   * Between rounds, `race` and the rounds after it, each with its dates.
+   * Empty otherwise.
+   */
+  upcoming: {
+    round: number;
+    /** "Azerbaijan GP". */
+    short_name: string;
+    dates: string;
+  }[];
   /** Set when `race_finished`, unless this was the season's last race. */
   next_race: {
     name: string;
@@ -338,20 +365,44 @@ export function selectTrmnlRace<T extends RaceForTrmnl>(
   );
 }
 
+/**
+ * The weekend's first session is more than six days off. The same line a bare
+ * weekday is drawn at: before it, a session time is weeks early for the
+ * screen's biggest type, and a forecast says little.
+ */
+export function isBetweenRounds(race: RaceForTrmnl, now: number): boolean {
+  return weekendStartAt(race) - now > WEEKDAY_ONLY_WITHIN_MS;
+}
+
+/** "Azerbaijan Grand Prix" as "Azerbaijan GP". */
+function shortName(name: string): string {
+  return name.replace(/ Grand Prix$/, ' GP');
+}
+
+/**
+ * The rounds after `race` in the season, in order, skipping cancelled ones:
+ * more than any layout lists, so each shows as many as fit.
+ */
+export function selectTrmnlUpcomingRaces<T extends RaceForTrmnl>(
+  races: T[],
+  race: RaceForTrmnl,
+): T[] {
+  return races
+    .filter(
+      (candidate) =>
+        candidate.status !== 'cancelled' &&
+        candidate.raceStartAt > race.raceStartAt,
+    )
+    .sort((a, b) => a.raceStartAt - b.raceStartAt)
+    .slice(0, 6);
+}
+
 /** The round after `race` in the season, skipping cancelled ones. */
 export function selectTrmnlNextRace<T extends RaceForTrmnl>(
   races: T[],
   race: RaceForTrmnl,
 ): T | null {
-  return (
-    races
-      .filter(
-        (candidate) =>
-          candidate.status !== 'cancelled' &&
-          candidate.raceStartAt > race.raceStartAt,
-      )
-      .sort((a, b) => a.raceStartAt - b.raceStartAt)[0] ?? null
-  );
+  return selectTrmnlUpcomingRaces(races, race)[0] ?? null;
 }
 
 export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
@@ -368,6 +419,8 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
       focus: 'news',
       result: null,
       race_finished: false,
+      between_rounds: false,
+      upcoming: [],
       next_race: null,
       grid: [],
       news: formatNews(input.news),
@@ -376,12 +429,14 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
   }
 
   const sessions = getSessionsForWeekend(!!race.hasSprint);
+  const betweenRounds = isBetweenRounds(race, now);
   const timeline = buildTimeline(
     input,
     race,
     format.scheduleWhen,
     format.scheduleParts,
-  );
+  ).map((row) => (betweenRounds ? { ...row, weather: null } : row));
+  const dates = format.range(weekendStartAt(race), race.raceStartAt);
   const lastResulted = [...sessions]
     .reverse()
     .find((session) => (input.results[session]?.length ?? 0) > 0);
@@ -437,21 +492,33 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
     has_race: true,
     race: {
       name: race.name,
-      short_name: race.name.replace(/ Grand Prix$/, ' GP'),
+      short_name: shortName(race.name),
       circuit: getCircuitForRace(race.slug)?.name ?? null,
       flag_url: flagUrl(race.slug),
       round: race.round,
       season: race.season,
-      dates: format.range(weekendStartAt(race), race.raceStartAt),
+      dates,
       url: raceUrl(race.slug, phaseOf(race, raceResult, now)),
     },
-    lead: buildLead(timeline, race, raceResult, now, format.when),
+    // Between rounds the lead is the weekend's dates: what a layout without
+    // the "Coming up" list (markup that predates it) shows in its place.
+    lead: betweenRounds
+      ? { label: 'Race weekend', value: dates, weather: null }
+      : buildLead(timeline, race, raceResult, now, format.when),
     schedule: markNext(timeline, now).map(
       ({ startAt: _startAt, ...row }) => row,
     ),
     focus: standings ? 'standings' : focus,
     result,
     race_finished: raceFinished,
+    between_rounds: betweenRounds,
+    upcoming: betweenRounds
+      ? [race, ...(input.upcoming ?? [])].map((round) => ({
+          round: round.round,
+          short_name: shortName(round.name),
+          dates: format.range(weekendStartAt(round), round.raceStartAt),
+        }))
+      : [],
     next_race: nextRace
       ? {
           name: nextRace.name,
@@ -740,9 +807,7 @@ function buildTimeline(
     if (at === undefined) {
       continue;
     }
-    const top3 = (practiceByType.get(type)?.topThree ?? []).map(
-      (row) => row.code,
-    );
+    const codes = rankedCodes(practiceByType.get(type)?.classification);
     rows.push({
       startAt: at,
       key: type,
@@ -751,20 +816,19 @@ function buildTimeline(
       when: when(at),
       ...scheduleParts(at),
       state:
-        top3.length === 0 && input.now >= at + PRACTICE_RESULT_WAIT_MS
+        codes.length === 0 && input.now >= at + PRACTICE_RESULT_WAIT_MS
           ? 'no_result'
-          : rowState(top3.length > 0, at, input.now),
+          : rowState(codes.length > 0, at, input.now),
       next: false,
-      top3,
+      codes,
+      top3: codes.slice(0, 3),
       weather: forecasts.get(type) ?? null,
     });
   }
 
   for (const session of getSessionsForWeekend(!!race.hasSprint)) {
     const at = sessionStartAt(race, session);
-    const top3 = (input.results[session] ?? [])
-      .slice(0, 3)
-      .map((row) => row.code);
+    const codes = rankedCodes(input.results[session]);
     rows.push({
       startAt: at,
       key: session,
@@ -775,14 +839,23 @@ function buildTimeline(
       short: SESSION_LABELS_SHORT[session],
       when: when(at),
       ...scheduleParts(at),
-      state: rowState(top3.length > 0, at, input.now),
+      state: rowState(codes.length > 0, at, input.now),
       next: false,
-      top3,
+      codes,
+      top3: codes.slice(0, 3),
       weather: forecasts.get(session) ?? null,
     });
   }
 
   return rows.sort((a, b) => a.startAt - b.startAt);
+}
+
+/**
+ * A session's codes in finishing order, ranked finishers only: a DNF at the
+ * tail of a sprint would read as a finishing place.
+ */
+function rankedCodes(rows: ResultRow[] | undefined): string[] {
+  return (rows ?? []).filter((row) => !row.status).map((row) => row.code);
 }
 
 function rowState(

@@ -63,6 +63,60 @@ function input(overrides: Partial<TrmnlInput> = {}): TrmnlInput {
   };
 }
 
+describe('between rounds', () => {
+  function later(start: number): number {
+    return start + 28 * 24 * HOUR;
+  }
+  const singapore = {
+    ...race,
+    _id: 'race3' as Id<'races'>,
+    slug: 'singapore-2026',
+    name: 'Singapore Grand Prix',
+    round: 17,
+    fp1StartAt: later(race.fp1StartAt),
+    fp2StartAt: later(race.fp2StartAt),
+    fp3StartAt: later(race.fp3StartAt),
+    qualiStartAt: later(race.qualiStartAt),
+    raceStartAt: later(race.raceStartAt),
+  };
+
+  it('lists the coming rounds with no session time or forecast', () => {
+    const payload = buildTrmnlPayload(
+      input({
+        now: race.fp1StartAt - 10 * 24 * HOUR,
+        weather: sampleForecast('Europe/Rome', {
+          '2026-09-04': {
+            temperatureC: 27,
+            conditionCode: 'rain',
+            precipitationProbability: 60,
+          },
+        }),
+        upcoming: [singapore],
+      }),
+    );
+    expect(payload.between_rounds).toBe(true);
+    expect(payload.lead).toEqual({
+      label: 'Race weekend',
+      value: '4 – 6 Sept',
+      weather: null,
+    });
+    expect(payload.upcoming).toEqual([
+      { round: 16, short_name: 'Italian GP', dates: '4 – 6 Sept' },
+      { round: 17, short_name: 'Singapore GP', dates: '2 – 4 Oct' },
+    ]);
+    expect(payload.schedule.every((row) => row.weather === null)).toBe(true);
+  });
+
+  it('leads with the first session once the weekend is within six days', () => {
+    const payload = buildTrmnlPayload(
+      input({ now: race.fp1StartAt - 6 * 24 * HOUR, upcoming: [singapore] }),
+    );
+    expect(payload.between_rounds).toBe(false);
+    expect(payload.upcoming).toEqual([]);
+    expect(payload.lead?.label).toBe('Free Practice 1');
+  });
+});
+
 describe('selectTrmnlRace', () => {
   const next = {
     ...race,
@@ -107,13 +161,14 @@ describe('buildTrmnlPayload', () => {
     });
   });
 
-  it('keeps the schedule time compact but adds a date to the distant lead', () => {
+  it('keeps the schedule time compact between rounds', () => {
+    // Ten days out the lead is the weekend's dates, never a session time.
     const payload = buildTrmnlPayload(
       input({ now: at('2026-08-25T08:00:00Z') }),
     );
     expect(payload.lead).toMatchObject({
-      label: 'Free Practice 1',
-      value: 'Fri 4 Sept, 13:30',
+      label: 'Race weekend',
+      value: '4 – 6 Sept',
     });
     expect(payload.schedule[0]?.when).toBe('Fri 13:30');
   });
@@ -285,7 +340,7 @@ describe('buildTrmnlPayload', () => {
     const payload = buildTrmnlPayload(
       input({
         now: at('2026-09-05T15:30:00Z'),
-        practice: [{ sessionType: 'fp1', topThree: podium.slice(0, 3) }],
+        practice: [{ sessionType: 'fp1', classification: podium }],
         results: { quali: podium },
       }),
     );
@@ -297,6 +352,33 @@ describe('buildTrmnlPayload', () => {
       ['FP3', 'awaiting', ''],
       ['Quali', 'done', 'NOR PIA LEC'],
       ['Race', 'upcoming', ''],
+    ]);
+  });
+
+  it('carries each session in order, ranked finishers only', () => {
+    const payload = buildTrmnlPayload(
+      input({
+        now: at('2026-09-05T15:30:00Z'),
+        practice: [{ sessionType: 'fp1', classification: podium }],
+        results: {
+          quali: [
+            ...podium,
+            {
+              position: 7,
+              code: 'ALO',
+              displayName: 'Fernando Alonso',
+              status: 'dns',
+            },
+          ],
+        },
+      }),
+    );
+    const codes = payload.schedule
+      .filter((row) => row.state === 'done')
+      .map((row) => row.codes.join(' '));
+    expect(codes).toEqual([
+      'NOR PIA LEC VER RUS HAM',
+      'NOR PIA LEC VER RUS HAM',
     ]);
   });
 

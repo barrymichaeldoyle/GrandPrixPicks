@@ -246,7 +246,7 @@ export function buildPracticeSessionSummaries(
             bestLapSeconds: fastest.bestLapSeconds,
           }
         : null,
-      topThree: result.entries.slice(0, 3).map((entry) => ({
+      classification: result.entries.map((entry) => ({
         position: entry.position,
         code: entry.code,
         displayName: entry.displayName,

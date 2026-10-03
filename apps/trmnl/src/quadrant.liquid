@@ -11,8 +11,19 @@
   </div>
   <div class="grow flex flex--col flex--stretch-x gap--auto">
     <div class="flex-none flex flex--col flex--center gap--none">
+      {% if between_rounds and upcoming.size > 0 %}
+        <div class="w--full portrait:hidden lg:portrait:block">{% render "upcoming", upcoming: upcoming, limit: 2, size: "table--xsmall", title_size: "title--small" %}</div>
+        <div class="w--full hidden portrait:block lg:portrait:hidden">{% render "upcoming", upcoming: upcoming, limit: 2, title_size: "title--small", stacked: true %}</div>
+      {% else %}
       {% render "lead", lead: lead, size: "value--small portrait:value--medium lg:value--large" %}
-      {% render "lead_weather", weather: lead.weather, rain_amount: true, stack: "portrait:" %}
+      {% comment %}
+        No wind on the landscape OG: with the rainfall it ran 2px past the
+        quarter and wrapped the wind inside itself, and stacked it pushed the
+        headline under the title bar. With no timeline here, rain says more.
+      {% endcomment %}
+      <div class="w--full lg:hidden portrait:hidden">{% render "lead_weather", weather: lead.weather, rain_amount: true, no_wind: true %}</div>
+      <div class="w--full hidden lg:block portrait:block">{% render "lead_weather", weather: lead.weather, rain_amount: true, stack: "portrait:" %}</div>
+      {% endif %}
     </div>
     {% if news.size > 0 %}
       <div class="portrait:hidden lg:hidden">

@@ -72,6 +72,43 @@
   but TRMNL's rules forbid inline styles, and the Framework has no all-sides
   border class; 2px is its smallest padding step.
 {% endcomment %}
+{% comment %}
+  Between rounds (`between_rounds`), in the lead's place: this Grand Prix and
+  the rounds after it, each with its dates, up to `limit`. A session time
+  weeks ahead was the screen's biggest type ("Free Practice 1, Fri 25 Sept,
+  9:30"); the dates say when the weekend is, and the timeline below says the
+  rest. `size` is the table's size and `title_size` the heading's.
+  The round and dates never wrap. `stacked` puts them under the name, for the
+  portrait OG's narrow slots, where one row of three wrapped every name.
+{% endcomment %}
+{% template upcoming %}
+<div class="flex flex--col flex--stretch-x gap--xsmall w--full">
+  <span class="title {{ title_size }}">Coming up</span>
+  {% if stacked %}
+  <div class="flex flex--col flex--stretch-x gap--xsmall">
+    {% for round in upcoming limit: limit %}
+    <div class="flex flex--col flex--left gap--none">
+      <span class="title title--small">{{ round.short_name }}</span>
+      <span class="label label--small">R{{ round.round }} · {{ round.dates | replace: " ", "&nbsp;" | replace: "–", "&#8288;–&#8288;" }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <table class="table w--full {{ size }}">
+    <tbody>
+      {% for round in upcoming limit: limit %}
+      <tr>
+        <td class="w--0"><span class="label lg:label--large pr--2">R{{ round.round }}</span></td>
+        <td><span class="title title--small lg:title--base pr--2">{{ round.short_name }}</span></td>
+        <td class="w--0 text--right"><span class="label lg:label--large">{{ round.dates | replace: " ", "&nbsp;" | replace: "–", "&#8288;–&#8288;" }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+{% endtemplate %}
+
 {% template race_header %}
 {% if inline_flag %}
 <div class="flex flex--col flex--left gap--none">
@@ -121,13 +158,29 @@
 {% comment %}
   The weekend timeline. `name` picks the row label ("FP1", "Quali"); `short`
   uses the narrow-layout labels ("FP1", "SQ"). `tail` shows the last `limit` rows so the
-  narrow layouts keep qualifying and the race. Each row carries its forecast:
+  narrow layouts keep qualifying and the race. A finished row lists its top
+  three, or with `fill` as many drivers as fit on the line. Each row carries its forecast:
   temperature, rain chance when it is worth mentioning, and session rainfall
-  (`no_rainfall` drops the last two where the slot is too narrow).
+  (`no_rainfall` drops the last two where the slot is too narrow). `no_next`
+  drops the "Next" badge where the lead just above already names that session.
 {% endcomment %}
 {% template schedule %}
 {% if schedule and schedule.size > 0 %}
 {% assign schedule_limit = limit | default: 99 %}
+{% comment %}
+  The full screen packs the name and time columns (`fill`), so they take wider
+  padding there; in the halves that pushed the table past the slot. `tight`
+  takes less, which buys the portrait OG half its third driver.
+{% endcomment %}
+{% if fill and aligned %}{% assign schedule_pad = "pr--3" %}{% elsif tight %}{% assign schedule_pad = "pr--1" %}{% else %}{% assign schedule_pad = "pr--2" %}{% endif %}
+{% comment %}
+  The forecast cells had no padding: at the table's narrowest, "30°C", its
+  icon and "45%" touched. `forecast_size` sets their text on the X:
+  `label--large` (TRMNL's reviewer chose it: the icon already holds the row's
+  height) unless a slot is too narrow for it.
+{% endcomment %}
+{% assign schedule_forecast_size = forecast_size | default: "lg:label--large" %}
+{% if tight %}{% assign schedule_cell_pad = "pr--1" %}{% else %}{% assign schedule_cell_pad = "pr--2" %}{% endif %}
 {% assign schedule_offset = 0 %}
 {% if tail and schedule.size > schedule_limit %}
   {% assign schedule_offset = schedule.size | minus: schedule_limit %}
@@ -138,8 +191,9 @@
   {% if row.state == "upcoming" and row.weather and row.weather.rain != "" %}{% assign schedule_rain_column = true %}{% endif %}
 {% endfor %}
 {% endunless %}
-{% comment %}Columns after the time: temperature, icon, rain chance?, rainfall?, status.{% endcomment %}
-{% assign schedule_after_time = 3 %}
+{% comment %}Columns after the time: temperature, icon, rain chance?, rainfall?, status?.{% endcomment %}
+{% assign schedule_after_time = 2 %}
+{% unless no_next %}{% assign schedule_after_time = schedule_after_time | plus: 1 %}{% endunless %}
 {% if schedule_rain_column %}{% assign schedule_after_time = schedule_after_time | plus: 1 %}{% endif %}
 {% unless no_rainfall %}{% assign schedule_after_time = schedule_after_time | plus: 1 %}{% endunless %}
 <table class="table w--full {{ size }}">
@@ -148,21 +202,26 @@
     <tr>
       {% comment %}`pr--2` on the name and time: the narrow OG ran them together ("QualiFri 13:00").{% endcomment %}
       {% comment %}The name cell holds the icon's height, so every row is as tall whatever it carries.{% endcomment %}
-      <td><span class="flex flex--row flex--left flex--center-y h--[22px] lg:h--[32px]"><span class="title title--small lg:title--base pr--2">{{ row[name] }}</span></span></td>
-      <td>
+      {% comment %}
+        With `fill`, the name and time columns shrink to their content (`w--0`;
+        a cell never goes narrower than that), so the spare width goes to the
+        drivers. The non-breaking space keeps "Sprint Quali" on one line.
+      {% endcomment %}
+      <td{% if fill %} class="w--0"{% endif %}><span class="flex flex--row flex--left flex--center-y h--[22px] lg:h--[32px]"><span class="title title--small lg:title--base {{ schedule_pad }}">{% if fill %}{{ row[name] | replace: " ", "&nbsp;" }}{% else %}{{ row[name] }}{% endif %}</span></span></td>
+      <td{% if fill %} class="w--0"{% endif %}>
         {% if aligned %}
         <span class="flex flex--row flex--left flex--center-y gap--xsmall">
           <span class="label label--base lg:label--large w--[32px] lg:w--[40px] shrink-0">{{ row.weekday }}</span>
-          <span class="label label--base lg:label--large pr--2">{{ row.time }}</span>
+          <span class="label label--base lg:label--large {{ schedule_pad }}">{{ row.time }}</span>
         </span>
         {% else %}
-        <span class="label label--base lg:label--large pr--2">{{ row.when | replace: " ", "&nbsp;" }}</span>
+        <span class="label label--base lg:label--large {{ schedule_pad }}">{{ row.when | replace: " ", "&nbsp;" }}</span>
         {% endif %}
       </td>
       {% comment %}
         One column per forecast value, so the table lines them up: a narrower
         temperature ("31°C") moved the icon and rainfall on its own row. Once a
-        session has run, its forecast is history: the row shows the top three,
+        session has run, its forecast is history: the row shows its leaders,
         or "Awaiting result", across those columns instead. Carrying both
         crushed the narrow layouts ("QualiFri 13:00").
       {% endcomment %}
@@ -170,7 +229,21 @@
       <td colspan="{{ schedule_after_time }}">
         {% comment %}The icon's height, so a finished row is as tall as one with a forecast.{% endcomment %}
         <span class="flex flex--row flex--left flex--center-y h--[22px] lg:h--[32px]">
-        {% if row.state == "done" %}
+        {% if row.state == "done" and fill and row.codes %}
+          {% comment %}
+            As many drivers as fit, whole codes only, with no script: they
+            wrap onto a second line, which the row's height clips
+            (`rounded--none` is the Framework's `overflow: hidden`). `w--0
+            w--min-full` fills the cell without adding to the table's own
+            width calculation, so a long session never squeezes the name and
+            time columns.
+          {% endcomment %}
+          <span class="block w--0 w--min-full h--[22px] lg:h--[32px] rounded--none">
+            <span class="flex flex--row flex--wrap flex--left gap--xsmall lg:gap--small">
+              {% for code in row.codes %}<span class="flex flex--center-y h--[22px] lg:h--[32px]"><span class="label label--small lg:label--base">{{ code }}</span></span>{% endfor %}
+            </span>
+          </span>
+        {% elsif row.state == "done" %}
           <span class="label label--small lg:label--base">{{ row.top3 | join: " " }}</span>
         {% elsif row.state == "awaiting" %}
           {% comment %}One line where there is room; the narrow slot clipped it, so there it may wrap.{% endcomment %}
@@ -179,11 +252,11 @@
         </span>
       </td>
       {% else %}
-      <td>{% if row.weather %}<span class="label label--small lg:label--large">{{ row.weather.temp }}</span>{% endif %}</td>
-      <td>{% if row.weather %}<img class="image image-dither w--[22px] h--[22px] lg:w--[32px] lg:h--[32px]" src="{{ row.weather.icon }}" alt="">{% endif %}</td>
-      {% if schedule_rain_column %}<td>{% if row.weather and row.weather.rain != "" %}<span class="label label--small lg:label--large">{{ row.weather.rain }}</span>{% endif %}</td>{% endif %}
-      {% unless no_rainfall %}<td>{% if row.weather %}<span class="label label--small lg:label--large">{{ row.weather.rainAmount }}</span>{% endif %}</td>{% endunless %}
-      <td>{% if row.next %}<span class="label label--small lg:label--base label--filled">Next</span>{% endif %}</td>
+      <td class="{{ schedule_cell_pad }}">{% if row.weather %}<span class="label label--small {{ schedule_forecast_size }}">{{ row.weather.temp }}</span>{% endif %}</td>
+      <td class="{{ schedule_cell_pad }}">{% if row.weather %}<img class="image image-dither w--[22px] h--[22px] lg:w--[32px] lg:h--[32px]" src="{{ row.weather.icon }}" alt="">{% endif %}</td>
+      {% if schedule_rain_column %}<td class="{{ schedule_cell_pad }}">{% if row.weather and row.weather.rain != "" %}<span class="label label--small {{ schedule_forecast_size }}">{{ row.weather.rain }}</span>{% endif %}</td>{% endif %}
+      {% unless no_rainfall %}<td class="{{ schedule_cell_pad }}">{% if row.weather %}<span class="label label--small {{ schedule_forecast_size }}">{{ row.weather.rainAmount | replace: " ", "&nbsp;" }}</span>{% endif %}</td>{% endunless %}
+      {% unless no_next %}<td>{% if row.next %}<span class="label label--small lg:label--base label--filled">Next</span>{% endif %}</td>{% endunless %}
       {% endif %}
     </tr>
     {% endfor %}
@@ -310,16 +383,20 @@
 
   Two groups, so a narrow slot breaks between them and never leaves a dot at
   the end of a line: `stack` names the breakpoint ("portrait:") at which the
-  second group drops below the first and the dot between them goes, and
-  `unstack` ("lg:portrait:") the breakpoint that puts them back on one line.
+  second group drops below the first and the dot between them goes.
+  `no_wind` leaves the wind out where even two lines do not fit. The X in
+  portrait once put them back on one line, which a long forecast could not
+  fit: the wind wrapped inside itself ("NE 11 / km/h").
 {% endcomment %}
 {% template lead_weather %}
 {% if weather %}
 {% assign weather_text = text_size | default: 'lg:label--base' %}
 {% assign weather_more = false %}
-{% if weather.rain != "" or weather.wind != "" %}{% assign weather_more = true %}{% endif %}
+{% assign weather_wind = weather.wind %}
+{% if no_wind %}{% assign weather_wind = "" %}{% endif %}
+{% if weather.rain != "" or weather_wind != "" %}{% assign weather_more = true %}{% endif %}
 {% if rain_amount and weather.rainAmount != "Dry" %}{% assign weather_more = true %}{% endif %}
-<span class="flex flex--row flex--center flex--center-y gap--small{% if stack %} {{ stack }}flex--col {{ stack }}gap--xsmall{% endif %}{% if unstack %} {{ unstack }}flex--row {{ unstack }}gap--small{% endif %}">
+<span class="flex flex--row flex--center flex--center-y gap--small{% if stack %} {{ stack }}flex--col {{ stack }}gap--xsmall{% endif %}">
   <span class="flex flex--row flex--center-y gap--small">
     <span class="label label--small {{ weather_text }}">{{ weather.temp }}</span>
     <span class="label label--small {{ weather_text }}" aria-hidden="true">·</span>
@@ -329,7 +406,7 @@
     </span>
   </span>
   {% if weather_more %}
-  <span class="label label--small {{ weather_text }}{% if stack %} {{ stack }}hidden{% endif %}{% if unstack %} {{ unstack }}block{% endif %}" aria-hidden="true">·</span>
+  <span class="label label--small {{ weather_text }}{% if stack %} {{ stack }}hidden{% endif %}" aria-hidden="true">·</span>
   <span class="flex flex--row flex--center-y gap--small">
     {% assign weather_first = true %}
     {% if weather.rain != "" %}
@@ -341,7 +418,7 @@
     <span class="label label--small {{ weather_text }}">{{ weather.rainAmount }}</span>
     {% assign weather_first = false %}
     {% endif %}
-    {% if weather.wind != "" %}
+    {% if weather_wind != "" %}
     {% unless weather_first %}<span class="label label--small {{ weather_text }}" aria-hidden="true">·</span>{% endunless %}
     <span class="flex flex--row flex--center-y gap--xsmall">
       <svg class="w--[24px] h--[24px] lg:w--[32px] lg:h--[32px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#000" stroke-linecap="round" stroke-width="2"><path d="M3 7h12a3 3 0 1 0-3-3"/><path d="M2 12h17a3 3 0 1 1-3 3"/><path d="M4 17h7a2 2 0 1 1-2 2"/></g></svg>

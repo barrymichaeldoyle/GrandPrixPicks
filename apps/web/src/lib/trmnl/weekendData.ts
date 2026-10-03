@@ -16,9 +16,9 @@ export type TrmnlWeekendData = Pick<
  * the `/trmnl` page, so the page cannot show a screen the endpoint would
  * build differently.
  *
- * Top fives are enough everywhere except the race and sprint results, which
- * the layouts show to tenth, so those two sessions read the full
- * classification. `weather` picks the forecast query: the endpoint wants the
+ * Every session reads its full classification: the race and sprint results
+ * show to tenth and beyond, and the full screen's timeline shows each
+ * session's first six, one past the top five a pick is scored on. `weather` picks the forecast query: the endpoint wants the
  * live one, which goes quiet once the race is over; a replay of a finished
  * weekend wants the write-up's, which keeps the forecast the sessions ran in.
  *
@@ -33,38 +33,56 @@ export async function loadTrmnlWeekend(
   now: number,
   weather: 'live' | 'writeup' = 'live',
 ): Promise<TrmnlWeekendData> {
-  const [news, top5, practice, forecast, raceResult, sprintResult, standings] =
-    await Promise.all([
-      convex.query(api.raceNews.list, { raceSlug: race.slug }),
-      convex.query(api.results.getEnrichedTop5BySessionForRaceSlug, {
-        raceSlug: race.slug,
-      }),
-      convex.query(api.practiceResults.getPracticeSessionSummariesForRace, {
-        raceId: race._id,
-      }),
-      weather === 'live'
-        ? convex.query(api.weather.getByRaceSlug, { raceSlug: race.slug, now })
-        : convex.query(api.weather.getForWriteup, { raceSlug: race.slug, now }),
-      convex.query(api.results.getResultForRace, {
-        raceId: race._id,
-        sessionType: 'race',
-      }),
-      race.hasSprint
-        ? convex.query(api.results.getResultForRace, {
-            raceId: race._id,
-            sessionType: 'sprint',
-          })
-        : null,
-      convex.query(api.f1Standings.getF1Championship, {
-        season: race.season,
-      }),
-    ]);
+  const [
+    news,
+    practice,
+    forecast,
+    qualiResult,
+    raceResult,
+    sprintQualiResult,
+    sprintResult,
+    standings,
+  ] = await Promise.all([
+    convex.query(api.raceNews.list, { raceSlug: race.slug }),
+    convex.query(api.practiceResults.getPracticeSessionSummariesForRace, {
+      raceId: race._id,
+    }),
+    weather === 'live'
+      ? convex.query(api.weather.getByRaceSlug, { raceSlug: race.slug, now })
+      : convex.query(api.weather.getForWriteup, { raceSlug: race.slug, now }),
+    convex.query(api.results.getResultForRace, {
+      raceId: race._id,
+      sessionType: 'quali',
+    }),
+    convex.query(api.results.getResultForRace, {
+      raceId: race._id,
+      sessionType: 'race',
+    }),
+    race.hasSprint
+      ? convex.query(api.results.getResultForRace, {
+          raceId: race._id,
+          sessionType: 'sprint_quali',
+        })
+      : null,
+    race.hasSprint
+      ? convex.query(api.results.getResultForRace, {
+          raceId: race._id,
+          sessionType: 'sprint',
+        })
+      : null,
+    convex.query(api.f1Standings.getF1Championship, {
+      season: race.season,
+    }),
+  ]);
 
   return {
     race,
     news: news.items,
     results: {
-      ...top5,
+      ...(qualiResult ? { quali: qualiResult.enrichedClassification } : {}),
+      ...(sprintQualiResult
+        ? { sprint_quali: sprintQualiResult.enrichedClassification }
+        : {}),
       ...(raceResult ? { race: raceResult.enrichedClassification } : {}),
       ...(sprintResult ? { sprint: sprintResult.enrichedClassification } : {}),
     },

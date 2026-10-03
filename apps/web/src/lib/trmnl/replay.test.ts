@@ -101,6 +101,36 @@ describe('pickReplay', () => {
     expect(pickReplay([baku], 'finished', tuesday)).toBe(null);
   });
 
+  it('shows the gap before the next weekend live, and replays the build-up', () => {
+    const gap = at('2026-09-14T12:00:00Z');
+    expect(pickReplay(season, 'between', gap)).toEqual({
+      race: baku,
+      at: gap,
+      live: true,
+    });
+    expect(pickReplay(season, 'build-up', gap)?.race.slug).toBe('italy-2026');
+    expect(pickReplay(season, 'build-up', gap)?.live).toBe(false);
+  });
+
+  it('replays the gap nine days before a weekend once inside the six', () => {
+    expect(pickReplay(season, 'between', tuesday)).toEqual({
+      race: baku,
+      at: baku.fp1StartAt - 9 * 24 * HOUR,
+      live: false,
+    });
+  });
+
+  it('skips a back-to-back weekend, which has no gap before it', () => {
+    const backToBack = {
+      ...baku,
+      fp1StartAt: monza.raceStartAt + 5 * 24 * HOUR,
+      raceStartAt: monza.raceStartAt + 7 * 24 * HOUR,
+    };
+    expect(
+      pickReplay([miami, monza, backToBack], 'between', tuesday)?.race.slug,
+    ).toBe('italy-2026');
+  });
+
   it('skips a cancelled round', () => {
     const cancelled = { ...monza, status: 'cancelled' as const };
     expect(
@@ -125,8 +155,8 @@ describe('replayWeekend', () => {
     race: monza,
     results: { quali: [row], race: [row] },
     practice: [
-      { sessionType: 'fp1', topThree: [row] },
-      { sessionType: 'fp3', topThree: [row] },
+      { sessionType: 'fp1', classification: [row] },
+      { sessionType: 'fp3', classification: [row] },
     ],
     news: [
       {

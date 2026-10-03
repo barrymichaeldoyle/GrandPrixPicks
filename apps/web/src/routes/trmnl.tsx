@@ -218,13 +218,19 @@ function TrmnlPage() {
             <p>
               The screen leads with the next session and its start time in your
               time zone, with the forecast for the circuit. Below it, every
-              session of the weekend is listed with its own temperature, rain
-              and wind.
+              session of the weekend is listed with its own temperature and
+              rain.
             </p>
             <p>
-              Once a session has run, its row shows the top three. Qualifying
-              results show the top five, and sprint and race results the top
-              ten. A race result stays on screen for 36 hours.
+              More than six days before a race weekend, the screen lists the
+              coming rounds and their dates instead, with the weekend’s sessions
+              below. Forecasts appear from six days out.
+            </p>
+            <p>
+              Once a session has run, its row lists the finishers in order, as
+              many as fit. Qualifying results show the top five, and sprint and
+              race results the top ten. A race result stays on screen for 36
+              hours.
             </p>
             <p>
               The other column carries the weekend’s news, with grid penalties

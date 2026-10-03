@@ -6,6 +6,7 @@ import {
   buildTrmnlPayload,
   selectTrmnlNextRace,
   selectTrmnlRace,
+  selectTrmnlUpcomingRaces,
 } from '../../../../src/lib/trmnl/payload';
 import type { MeasurementUnits } from '../../../../src/lib/weatherPresentation';
 import {
@@ -131,6 +132,7 @@ export default async function handler(event: RouteEvent) {
           ...weekend,
           news: news?.items.length ? news.items : weekend.news,
           nextRace,
+          upcoming: selectTrmnlUpcomingRaces(races, race),
         });
       },
     );

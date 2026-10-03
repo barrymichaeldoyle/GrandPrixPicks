@@ -65,11 +65,13 @@ describe('TRMNL layouts', () => {
       it(`renders ${scenario.id} at ${layout.id}`, () => {
         const html = renderTrmnlMarkup(layout.id, scenario.payload);
 
-        // Every layout carries the lead, or in the off-season the standings
-        // and their champion.
-        const { lead, standings } = scenario.payload;
+        // Every layout carries the lead, or between rounds the coming rounds,
+        // or in the off-season the standings and their champion.
+        const { lead, standings, between_rounds } = scenario.payload;
         expect(html).toContain(
-          lead?.value ?? standings?.title ?? 'No race scheduled.',
+          between_rounds
+            ? 'Coming up'
+            : (lead?.value ?? standings?.title ?? 'No race scheduled.'),
         );
         // An unrendered tag means a template the engine did not know.
         expect(html).not.toMatch(/{%|{{/);
@@ -208,8 +210,10 @@ describe('TRMNL layouts', () => {
       ...buildUp.payload,
       ...variant,
     });
-    expect(halfVertical.match(/data-clamp="2"/g)).toHaveLength(7);
-    expect(halfVertical.match(/class="divider divider--h"/g)).toHaveLength(4);
+    // One headline on the landscape OG, three each on the portrait OG and on
+    // the X in landscape and in portrait.
+    expect(halfVertical.match(/data-clamp="2"/g)).toHaveLength(10);
+    expect(halfVertical.match(/class="divider divider--h"/g)).toHaveLength(6);
     expect(halfVertical).toContain('Race');
     expect(halfVertical).toContain('Quali');
   });

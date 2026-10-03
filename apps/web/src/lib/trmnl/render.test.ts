@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { buildTrmnlPayload } from './payload';
 import {
   DITHER_SOURCE,
   qrCodeSvg,
@@ -319,6 +320,17 @@ describe('trmnlScreenDocument', () => {
         palette: '4bit',
       }),
     ).toMatchObject({ width: 1404, height: 1872 });
+  });
+});
+
+describe('the schedule in a 12-hour locale', () => {
+  it('keeps each time on one line', () => {
+    // A breakable "6:30 AM" let the packed time column shrink to "6:30".
+    const friday = TRMNL_SCENARIOS.find((s) => s.id === 'friday')!;
+    const payload = buildTrmnlPayload({ ...friday.input, locale: 'en-US' });
+    const markup = renderTrmnlMarkup('full', payload);
+    expect(markup).toMatch(/>\d{1,2}:\d{2}&nbsp;[AP]M</);
+    expect(markup).not.toMatch(/>\d{1,2}:\d{2} [AP]M</);
   });
 });
 

@@ -312,8 +312,9 @@ The gaps are OpenF1's `session_result` `gap_to_leader`, `duration` and
 penalty reorder keeps each gap with its driver). For qualifying and sprint
 qualifying, OpenF1 sends `duration` as one best lap per part, kept as
 `qualifyingSeconds` ([Q1, Q2, Q3], null where no time was set); the screen
-shows the lap from the last part the driver set one in, as F1's own sheet
-does (`formatGap`). They
+shows pole's lap, then each driver's gap to the fastest lap of the last part
+they set one in (`formatGap`, `fastestPerPart`), so a Q2 lap is never measured
+against a Q3 one. They
 are written by `openF1Results.recordResultTiming`, apart from publishing, so
 they can never change a classification, a score or a notification; the
 automatic poll, the admin fetch and applied rechecks all call it. Results
@@ -796,7 +797,10 @@ Also check:
   but `dark` as light.
 - **Theme is a form field, light by default.** TRMNL's own `dark_mode` is a
   plugin-wide setting only the author sees, so `settings.yml` keeps it `'no'`
-  and the `theme` select gives each install the choice. Dark puts the
+  and the `theme` select gives each install the choice. The layouts read it
+  as `trmnl.plugin_settings.custom_fields_values.theme`: a bare `{{ theme }}`
+  is empty in markup (the keyname alone works only in the polling URL), and
+  the first release rendered light on the device because of it. Dark puts the
   Framework's `inverse bg--canvas` on the layout and title bar (a script in
   `title_bar` moves it onto the view, so the gap between them is dark too),
   inverts the weather and wind icons, and draws the title-bar logo as white

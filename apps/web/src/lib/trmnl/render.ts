@@ -202,8 +202,10 @@ function getEngine() {
 /**
  * One layout's markup, exactly as TRMNL would build it: the Shared tab's
  * content first, then the layout. `trmnl` is the platform's own variable; only
- * the fields the templates read are supplied. TRMNL passes each form field by
- * its keyname, which is how `theme` arrives.
+ * the fields the templates read are supplied. Form fields reach the markup
+ * only as `trmnl.plugin_settings.custom_fields_values`: the bare keyname
+ * (`{{ units }}`) works in the polling URL, not in a template, which is how
+ * the first dark theme rendered light on the device.
  */
 export function renderTrmnlMarkup(
   layout: TrmnlLayout,
@@ -213,8 +215,10 @@ export function renderTrmnlMarkup(
   const { liquid, sharedRest } = getEngine();
   return liquid.parseAndRenderSync(`${sharedRest}\n${source(layout)}`, {
     ...payload,
-    theme,
-    trmnl: { user: { time_zone_iana: 'Europe/London', locale: 'en' } },
+    trmnl: {
+      user: { time_zone_iana: 'Europe/London', locale: 'en' },
+      plugin_settings: { custom_fields_values: { theme } },
+    },
   }) as string;
 }
 

@@ -1,4 +1,5 @@
 {% comment %}The Theme setting: dark paints this plugin's own view, never the rest of a mashup.{% endcomment %}
+{% assign theme = trmnl.plugin_settings.custom_fields_values.theme %}
 {% if theme == "dark" %}{% assign dark_classes = "inverse bg--canvas " %}{% endif %}
 {% if has_race and race %}
 {% comment %}The narrow portrait quarter stacks the QR below the race header.{% endcomment %}

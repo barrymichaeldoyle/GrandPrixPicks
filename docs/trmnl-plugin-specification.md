@@ -676,8 +676,11 @@ Things that cost time the first time:
   `trmnl` until a poll has succeeded with markup in place.
 
 To change the plugin: edit `apps/trmnl/src`, check it on `/trmnl`, commit,
-then copy the changed files into TRMNL's editor. Nothing syncs the repo to
-TRMNL. `trmnlp push` can (Ruby 4 or Docker, and a TRMNL API key). By hand:
+then import them in TRMNL (GitHub Sync, `apps/trmnl/README.md`) or copy the
+changed files into TRMNL's editor. A push only makes an import available:
+nothing updates the plugin until it is imported, and a save in TRMNL before
+the import commits TRMNL's old copy back over the repo (it did on 3 October
+2026). `trmnlp push` can also do it (Ruby 4 or Docker, and a TRMNL API key). By hand:
 `pbcopy < file`, click into the tab's code, select all, paste, ⌘S; the
 editor is CodeMirror 6, so a SHA-256 of `.cm-content`'s `cmView.view` document
 against the file confirms the paste. Last synced from the repo on 26 September

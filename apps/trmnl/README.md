@@ -94,7 +94,13 @@ not automatically update the plugin. See the
 
 Keep changes in the repo first, review them in the preview, then import them
 into TRMNL. After an edit made in TRMNL, pull its generated commit before
-making further local changes. GitHub Sync covers the plugin files; it does
+making further local changes.
+
+Import before saving anything in TRMNL. A save there, even a setting such as
+dark mode, commits TRMNL's whole copy of the plugin, so one made before the
+import writes the old templates back over the repo's. That happened on
+3 October 2026: turning on dark mode reverted a day of template changes, and
+they were restored by hand from the commit before it. GitHub Sync covers the plugin files; it does
 not deploy the website or its polling endpoint.
 
 ## License

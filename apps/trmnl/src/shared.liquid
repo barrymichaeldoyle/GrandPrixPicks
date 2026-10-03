@@ -173,8 +173,12 @@
         {% if row.state == "done" %}
           <span class="label label--small lg:label--base">{{ row.top3 | join: " " }}</span>
         {% elsif row.state == "awaiting" %}
-          {% comment %}One line where there is room; the narrow slot clipped it, so there it may wrap.{% endcomment %}
-          <span class="label label--small 2bit:label--gray 4bit:label--gray">{% if no_rainfall %}Awaiting result{% else %}Awaiting&nbsp;result{% endif %}</span>
+          {% comment %}
+            One line where there is room; the narrow slot clipped it, so there
+            it may wrap. Black: gray was a dithered pattern that dark mode
+            turned into gray on black, too faint to read at this size.
+          {% endcomment %}
+          <span class="label label--small">{% if no_rainfall %}Awaiting result{% else %}Awaiting&nbsp;result{% endif %}</span>
         {% endif %}
         </span>
       </td>
@@ -274,7 +278,7 @@
     <tr>
       <td><span class="label label--small">{{ row.pos }}</span></td>
       <td><span class="title title--small">{{ row.code }}</span></td>
-      <td><span class="label label--small 2bit:label--gray 4bit:label--gray">{{ row.note }}</span></td>
+      <td><span class="label label--small">{{ row.note }}</span></td>
     </tr>
     {% endfor %}
   </tbody>

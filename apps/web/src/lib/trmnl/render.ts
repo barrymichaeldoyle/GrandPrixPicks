@@ -96,8 +96,7 @@ const DEFAULT_SCREEN_CONFIG: TrmnlScreenConfig = {
  * - `screen--portrait` swaps the dimensions. TRMNL's reviewers check every
  *   layout on the X in portrait, and on the OG and X in landscape.
  * - The palette is the rendering-mode class (`screen--2bit`,
- *   `screen--color-4bwry`...). Labels are gray only on 2-bit and 4-bit,
- *   where the ink has real grays; 1-bit and colour would dither them.
+ *   `screen--color-4bwry`...).
  */
 export function trmnlScreenProfile(config: TrmnlScreenConfig): {
   label: string;

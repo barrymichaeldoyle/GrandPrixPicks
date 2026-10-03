@@ -721,11 +721,12 @@ items on it were not met at first, and were fixed on 23 September 2026:
    columns: the Framework's `column` class is positioned by the `columns`
    engine and clipped its content inside a grid.
 2. **Gray labels on 1-bit screens.** They flag `label--gray` as hard to read on
-   an OG set to the 1-bit palette. Labels are black by default and gray only
-   on palettes with real gray ink (`2bit:label--gray 4bit:label--gray`): a
-   1-bit screen dithers gray text into speckle, and so does every colour
-   palette, which has no gray and no Framework prefix to override it with.
-   `/trmnl`'s palette switch shows all six.
+   an OG set to the 1-bit palette. Labels were then gray only on palettes with
+   real gray ink (`2bit:label--gray 4bit:label--gray`): a 1-bit screen dithers
+   gray text into speckle, and so does every colour palette. Since 3 October
+   2026 no label is gray at all: "Awaiting result" and the grid's notes, the
+   last two, were near unreadable in dark mode, which turned the gray into
+   gray on black. `/trmnl`'s palette switch shows all six palettes.
 3. **A way to contact the author.** `author_bio` in `settings.yml` now has
    `email_address` (barry@barrymichaeldoyle.com, confirmed as the address to
    list).

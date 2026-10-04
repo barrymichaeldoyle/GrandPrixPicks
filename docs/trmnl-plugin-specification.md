@@ -295,10 +295,14 @@ circuit, then "Round 16 · 2 – 4 Oct", so no line starts or ends on a dot.
 
 **Full, once the race result is in** (`race_finished`): the weekend is over,
 so the timeline goes. The left column has the winner, the checkered band, the
-latest headlines (three on the OG, five on the X in landscape, three in
-portrait: more two-line headlines pushed the next race under the title bar;
-"Race winner" is a step smaller than the build-up's lead label on the X to
-make room for the fifth) and the next round as a small race header: its flag
+latest headlines (three on the OG and in portrait; on the landscape X, all
+twenty are offered to the overflow engine, which keeps as many as fit above
+the next race). The landscape X's grid and news area use `grow` with `h--0`
+to take the remaining height without expanding for the headlines; the news
+list fills that area so overflow measures its available height. Short
+headlines can use the space that wrapping headlines need. "Race winner" is
+a step smaller than the build-up's lead label on the X. The next round is a
+small race header: its flag
 beside "Next race · 2 – 4 Oct" with the name under it (`next_race`, from
 `selectTrmnlNextRace`; absent after the season's last race).
 The right column, or the bottom in portrait, has the whole classification in

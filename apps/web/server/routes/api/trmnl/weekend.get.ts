@@ -120,20 +120,9 @@ export default async function handler(event: RouteEvent) {
         const nextRace = selectTrmnlNextRace(races, race);
         const weekend = await loadTrmnlWeekend(convex, race, now);
 
-        // Once the race has a result, its own news pool is last weekend's
-        // build-up: swap in the next round's, if it has any yet.
-        const raceFinished = !!weekend.results.race?.length;
-        const news =
-          raceFinished && nextRace
-            ? await convex.query(api.raceNews.list, {
-                raceSlug: nextRace.slug,
-              })
-            : null;
-
         return buildTrmnlPayload({
           ...base,
           ...weekend,
-          news: news?.items.length ? news.items : weekend.news,
           nextRace,
           upcoming: selectTrmnlUpcomingRaces(races, race),
         });

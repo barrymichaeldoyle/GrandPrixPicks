@@ -533,6 +533,36 @@ describe('buildTrmnlPayload', () => {
     expect(saturday.next_race).toBe(null);
   });
 
+  it('shows only news first published after lights out once the race is finished', () => {
+    const payload = buildTrmnlPayload(
+      input({
+        now: at('2026-09-06T17:00:00Z'),
+        results: { race: podium },
+        news: [
+          {
+            headline: 'Colapinto drops 15 grid places',
+            publishedAt: at('2026-09-04T09:00:00Z'),
+            headlineUpdatedAt: at('2026-09-06T16:00:00Z'),
+            affectsSessions: ['race'],
+          },
+          {
+            headline: 'Norris wins after a late-race pass',
+            publishedAt: at('2026-09-06T15:00:00Z'),
+          },
+          {
+            headline: 'Opening-lap contact brings out the safety car',
+            publishedAt: race.raceStartAt,
+          },
+        ],
+      }),
+    );
+
+    expect(payload.news.map((item) => item.headline)).toEqual([
+      'Norris wins after a late-race pass',
+      'Opening-lap contact brings out the safety car',
+    ]);
+  });
+
   it('writes gaps the way F1 results do', () => {
     const row = { position: 2, code: 'VER', displayName: 'Max Verstappen' };
     expect(

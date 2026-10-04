@@ -22,10 +22,10 @@ export type TrmnlWeekendData = Pick<
  * live one, which goes quiet once the race is over; a replay of a finished
  * weekend wants the write-up's, which keeps the forecast the sessions ran in.
  *
- * `news` here is always `race`'s own pool. The polling endpoint swaps it for
- * the next round's once `race` has a result (see `weekend.get.ts`); a replay
- * on the `/trmnl` page filters this same pool down to a moment in the past
- * instead, so it must stay tied to `race`.
+ * `news` here is always `race`'s own pool. The payload builder narrows a
+ * finished weekend to stories first published from lights out onward; a
+ * replay on the `/trmnl` page filters this same pool down to a moment in the
+ * past instead, so it must stay tied to `race`.
  */
 export async function loadTrmnlWeekend(
   convex: Pick<ConvexHttpClient, 'query'>,

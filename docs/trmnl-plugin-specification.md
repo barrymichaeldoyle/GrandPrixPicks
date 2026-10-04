@@ -295,9 +295,11 @@ circuit, then "Round 16 · 2 – 4 Oct", so no line starts or ends on a dot.
 
 **Full, once the race result is in** (`race_finished`): the weekend is over,
 so the timeline goes. The left column has the winner, the checkered band, the
-latest headlines (three on the OG and in portrait; on the landscape X, all
-twenty are offered to the overflow engine, which keeps as many as fit above
-the next race). The landscape X's grid and news area use `grow` with `h--0`
+latest headlines first published from lights out onward (three on the OG and
+in portrait; on the landscape X, all twenty are offered to the overflow
+engine, which keeps as many as fit above the next race). Pre-race changes stay
+off this finished screen even when their headline was edited later. The
+landscape X's grid and news area use `grow` with `h--0`
 to take the remaining height without expanding for the headlines; the news
 list fills that area so overflow measures its available height. Short
 headlines can use the space that wrapping headlines need. "Race winner" is

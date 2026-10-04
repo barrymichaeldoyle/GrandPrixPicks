@@ -452,7 +452,15 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
     .find((session) => (input.results[session]?.length ?? 0) > 0);
   const raceResult = input.results.race ?? [];
 
-  const newsByRecency = [...input.news].sort((a, b) => newsAt(b) - newsAt(a));
+  // Once the classification is in, the display is a record of the race that
+  // just ran. Pre-race changes and the next round's build-up no longer belong
+  // in its news column. Race incidents and aftermath can be published from
+  // lights out onward, so publication time is the boundary; editing an old
+  // headline after the start does not turn that story into post-race news.
+  const visibleNews = raceResult.length
+    ? input.news.filter((item) => item.publishedAt >= race.raceStartAt)
+    : input.news;
+  const newsByRecency = [...visibleNews].sort((a, b) => newsAt(b) - newsAt(a));
   const gridItem = newsByRecency.find(
     (item) => (item.startingGrid?.length ?? 0) > 0,
   );
@@ -542,9 +550,9 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
       : null,
     grid,
     grid_news: grid.length
-      ? formatNews(input.news.filter((item) => item !== gridItem)).slice(0, 2)
+      ? formatNews(visibleNews.filter((item) => item !== gridItem)).slice(0, 2)
       : [],
-    news: formatNews(input.news),
+    news: formatNews(visibleNews),
     standings,
   };
 }

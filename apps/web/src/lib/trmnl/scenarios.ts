@@ -156,6 +156,13 @@ const news: TrmnlInput['news'] = [
   },
 ];
 
+const postRaceNews: TrmnlInput['news'] = [
+  {
+    headline: 'Norris wins after a late-race pass',
+    publishedAt: at('2026-09-06T16:30:00Z'),
+  },
+];
+
 /**
  * Invented headlines for the `/trmnl` page's news switch, which shows any
  * moment with 0, 1, 2 or 20 of them instead of the news as published.
@@ -460,7 +467,7 @@ export const TRMNL_SCENARIOS: readonly TrmnlScenario[] = [
   }),
   scenario('finished', 'Finished', 'Sunday evening, race result in', {
     now: at('2026-09-06T17:00:00Z'),
-    news: [gridNews, ...news],
+    news: [...postRaceNews, gridNews, ...news],
     practice,
     // The last two retired, so the classification shows DNF rows.
     results: {

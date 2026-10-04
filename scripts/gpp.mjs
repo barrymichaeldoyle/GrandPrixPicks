@@ -77,8 +77,9 @@ function fail(message) {
 function convexRun(fn, args, { prod }) {
   // The backend's own convex binary, run from its directory so it picks up
   // apps/backend/.env.local, the same as `pnpm dev:backend`.
+  const convexBin = path.join(backendDir, 'node_modules/.bin/convex');
   const result = spawnSync(
-    path.join(backendDir, 'node_modules/.bin/convex'),
+    convexBin,
     [
       'run',
       fn,
@@ -91,8 +92,21 @@ function convexRun(fn, args, { prod }) {
     ],
     { cwd: backendDir, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
   );
+  // A failed spawn sets `error` and leaves status, stdout and stderr empty.
+  if (result.error) {
+    fail(
+      result.error.code === 'ENOENT'
+        ? `${path.relative(repoRoot, convexBin)} not found; run \`pnpm install\` first.`
+        : `could not run ${path.relative(repoRoot, convexBin)}: ${result.error.message}`,
+    );
+  }
   if (result.status !== 0) {
     const raw = `${result.stderr}\n${result.stdout}`;
+    if (/No CONVEX_DEPLOYMENT set/i.test(raw)) {
+      fail(
+        'no CONVEX_DEPLOYMENT in apps/backend/.env.local; run `pnpm dev:backend` once to create it.',
+      );
+    }
     if (/Could not find (public )?function/i.test(raw)) {
       fail(
         `${fn} is not on ${prod ? 'prod' : 'dev'} yet. A push to main deploys it` +

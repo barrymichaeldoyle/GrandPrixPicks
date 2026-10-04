@@ -10,12 +10,14 @@
 
 import { spawnSync } from 'node:child_process';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 
 const repoRoot = path.resolve(import.meta.dirname, '..');
 const backendDir = path.join(repoRoot, 'apps/backend');
+const sharedPackage = path.join(repoRoot, 'packages/shared/package.json');
 
 const HELP = `gpp <command> [args] [--prod] [--json]
 
@@ -540,19 +542,22 @@ async function newsScan(slug, flags) {
     fail('news scan <slug>');
   }
   const season = Number(slug.match(/-(\d{4})$/)?.[1]);
-  const [feeds, existing, global, roster, calendar, circuitModule] =
-    await Promise.all([
-      Promise.all(NEWS_FEEDS.map(fetchFeed)),
-      Promise.resolve(
-        convexRun('raceNews:listForOperators', { raceSlug: slug }, flags),
-      ),
-      Promise.resolve(convexRun('globalNews:listForOperators', {}, flags)),
-      Promise.resolve(convexRun('drivers:listDrivers', {}, flags)),
-      Promise.resolve(
-        season ? convexRun('races:listRaces', { season }, flags) : [],
-      ),
-      import(path.join(repoRoot, 'packages/shared/src/circuits.ts')),
-    ]);
+  const [feeds, existing, global, roster, calendar] = await Promise.all([
+    Promise.all(NEWS_FEEDS.map(fetchFeed)),
+    Promise.resolve(
+      convexRun('raceNews:listForOperators', { raceSlug: slug }, flags),
+    ),
+    Promise.resolve(convexRun('globalNews:listForOperators', {}, flags)),
+    Promise.resolve(convexRun('drivers:listDrivers', {}, flags)),
+    Promise.resolve(
+      season ? convexRun('races:listRaces', { season }, flags) : [],
+    ),
+  ]);
+  // Plain node strips TypeScript types only from 22.18. The shared package's
+  // own tsx loads the file on any version.
+  const { getCircuitForRace } = createRequire(sharedPackage)(
+    'tsx/cjs/api',
+  ).require('./src/circuits.ts', sharedPackage);
   const race = existing?.race;
   if (!race) {
     fail(`no race "${slug}"`);
@@ -582,7 +587,7 @@ async function newsScan(slug, flags) {
 
   // Names that tie a story to a weekend.
   function placesFor(r) {
-    const circuit = circuitModule.getCircuitForRace(r.slug);
+    const circuit = getCircuitForRace(r.slug);
     return [
       r.name.replace(/ Grand Prix$/, ''),
       circuit?.name.replace(

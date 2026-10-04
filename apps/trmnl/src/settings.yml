@@ -1,7 +1,7 @@
 ---
 strategy: polling
 no_screen_padding: 'no'
-dark_mode: 'no'
+dark_mode: 'yes'
 static_data: ''
 polling_verb: get
 framework_version: 3.3.2

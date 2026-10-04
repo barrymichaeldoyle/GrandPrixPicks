@@ -20,11 +20,9 @@
   {% comment %}
     The weekend is over, so the timeline goes: the winner, the latest news
     and when the next round is on the left; the whole classification on the
-    right. On the landscape X, h--0 with grow fixes the remaining height
-    before overflow measures the news; otherwise the grid expands to fit it.
-    Portrait keeps its natural height for the classification below.
+    right.
   {% endcomment %}
-  <div class="grid grid--cols-2 lg:grid--cols-5 portrait:grid--cols-1 lg:portrait:grid--cols-1 gap--large grow lg:h--0 lg:portrait:h--auto">
+  <div class="grid grid--cols-2 lg:grid--cols-5 portrait:grid--cols-1 lg:portrait:grid--cols-1 gap--large grow">
     <div class="flex flex--col flex--stretch-x gap--medium lg:col--span-3 lg:portrait:col--span-1">
       <div class="flex flex--col flex--center gap--xsmall">
         {% comment %}"Race winner" a step below the build-up's lead label on the X, for a fifth headline.{% endcomment %}
@@ -32,11 +30,11 @@
       </div>
       {% render "checker" %}
       {% if news.size > 0 %}
-      <div class="grow lg:h--0 lg:portrait:h--auto">
+      <div class="grow">
         <div class="lg:hidden portrait:hidden">{% render "news", news: news, limit: 3, headline_size: "title--small" %}</div>
         <div class="hidden portrait:block lg:portrait:hidden">{% render "news", news: news, limit: 3, headline_size: "title--small" %}</div>
-        {% comment %}On the landscape X, offer every headline to the overflow engine in the height left above the next race.{% endcomment %}
-        <div class="hidden lg:block lg:portrait:hidden h--full">{% render "news", news: news, limit: 20, headline_size: "lg:title--base", fill: true %}</div>
+        {% comment %}The wider news column on the landscape X fits seven headlines above the next race.{% endcomment %}
+        <div class="hidden lg:block lg:portrait:hidden">{% render "news", news: news, limit: 7, headline_size: "lg:title--base" %}</div>
         <div class="hidden lg:portrait:block">{% render "news", news: news, limit: 3, headline_size: "lg:title--base" %}</div>
       </div>
       {% endif %}

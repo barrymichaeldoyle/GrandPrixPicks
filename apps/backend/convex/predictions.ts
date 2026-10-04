@@ -1,7 +1,7 @@
 import { followedH2HPick } from '@grandprixpicks/shared/h2hInference';
 import { ConvexError, v } from 'convex/values';
 
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
@@ -127,7 +127,7 @@ export const myPredictionHistory = query({
 
         const weekendLeaderboard =
           scores.length > 0
-            ? await getRaceLeaderboardForViewer(ctx, { raceId })
+            ? await getRaceLeaderboardForViewer(ctx, { raceId }, race)
             : null;
         const weekendEntry = weekendLeaderboard?.entries.find(
           (entry) => entry.userId === viewer._id,
@@ -165,9 +165,8 @@ export const myPredictionHistory = query({
 
 /**
  * The body of {@link getUserPredictionHistory}, callable from another query.
- * Shared with `home.getDashboardPageData`, which uses it only to pick out the
- * most recent scored weekend — see the note there on why the whole history
- * does not travel to the client.
+ * Used by profile pages. The dashboard uses `loadLatestScoredWeekend` to
+ * avoid rebuilding every historical leaderboard for its latest-result card.
  */
 export async function loadUserPredictionHistory(
   ctx: QueryCtx,
@@ -197,7 +196,7 @@ export async function loadUserPredictionHistory(
       byRace.set(pred.raceId, existing);
     }
 
-    const now = Date.now();
+    const now = isOwner ? 0 : Date.now();
 
     const weekends = await Promise.all(
       Array.from(byRace.entries()).map(async ([raceId, weekendPredictions]) => {
@@ -273,7 +272,7 @@ export async function loadUserPredictionHistory(
 
         const weekendLeaderboard =
           scores.length > 0
-            ? await getRaceLeaderboardForViewer(ctx, { raceId })
+            ? await getRaceLeaderboardForViewer(ctx, { raceId }, race)
             : null;
         const weekendEntry = weekendLeaderboard?.entries.find(
           (entry) => entry.userId === args.userId,
@@ -314,6 +313,81 @@ export async function loadUserPredictionHistory(
 export const getUserPredictionHistory = query({
   args: { userId: v.id('users') },
   handler: async (ctx, args) => await loadUserPredictionHistory(ctx, args),
+});
+
+const latestScoredWeekendValidator = v.union(
+  v.null(),
+  v.object({
+    raceId: v.id('races'),
+    raceSlug: v.string(),
+    raceName: v.string(),
+    totalPoints: v.number(),
+    top5Rank: v.union(v.number(), v.null()),
+    top5FieldSize: v.number(),
+  }),
+);
+
+/** The dashboard needs one result, rather than every pick and historical board. */
+export async function loadLatestScoredWeekend(
+  ctx: QueryCtx,
+  userId: Id<'users'>,
+) {
+  const scoresByRace = new Map<Id<'races'>, Array<Doc<'scores'>>>();
+  for await (const score of ctx.db
+    .query('scores')
+    .withIndex('by_user', (q) => q.eq('userId', userId))) {
+    const raceScores = scoresByRace.get(score.raceId) ?? [];
+    raceScores.push(score);
+    scoresByRace.set(score.raceId, raceScores);
+  }
+  const races = await Promise.all(
+    [...scoresByRace.keys()].map((raceId) => ctx.db.get('races', raceId)),
+  );
+  const candidates = races
+    .filter((race): race is Doc<'races'> => race !== null)
+    .sort((a, b) => b.raceStartAt - a.raceStartAt);
+  for (const race of candidates) {
+    // Preserve history's definition of participation, including zero-point
+    // scores and old scores whose prediction was removed.
+    const predictions = await ctx.db
+      .query('predictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', userId).eq('raceId', race._id),
+      )
+      .take(8);
+    if (predictions.length === 0) {
+      continue;
+    }
+    const predictedSessions = new Set(
+      predictions.map((prediction) => prediction.sessionType),
+    );
+    const board = await getRaceLeaderboardForViewer(
+      ctx,
+      { raceId: race._id },
+      race,
+    );
+    return {
+      raceId: race._id,
+      raceSlug: race.slug,
+      raceName: race.name,
+      totalPoints: (scoresByRace.get(race._id) ?? [])
+        .filter((score) => predictedSessions.has(score.sessionType))
+        .reduce((total, score) => total + score.points, 0),
+      top5Rank:
+        board.entries.find((entry) => entry.userId === userId)?.rank ?? null,
+      top5FieldSize: board.entries.length,
+    };
+  }
+  return null;
+}
+
+export const getMyLatestScoredWeekend = query({
+  args: {},
+  returns: latestScoredWeekendValidator,
+  handler: async (ctx) => {
+    const viewer = await getViewer(ctx);
+    return viewer ? await loadLatestScoredWeekend(ctx, viewer._id) : null;
+  },
 });
 
 function assertFiveUnique(ids: Array<string>) {

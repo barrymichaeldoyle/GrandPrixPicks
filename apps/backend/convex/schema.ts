@@ -224,7 +224,12 @@ export default defineSchema({
     .index('by_slug', ['slug'])
     .index('by_status_and_predictionLockAt', ['status', 'predictionLockAt'])
     .index('by_predictionLockAt', ['predictionLockAt'])
-    .index('by_raceStartAt', ['raceStartAt']),
+    .index('by_raceStartAt', ['raceStartAt'])
+    .index('by_fp1StartAt', ['fp1StartAt'])
+    .index('by_fp2StartAt', ['fp2StartAt'])
+    .index('by_fp3StartAt', ['fp3StartAt'])
+    .index('by_qualiStartAt', ['qualiStartAt'])
+    .index('by_sprintQualiStartAt', ['sprintQualiStartAt']),
 
   // A provider response is normalized into one bounded document per race.
   // Keeping full event days (rather than only session instants) lets readers
@@ -268,6 +273,14 @@ export default defineSchema({
     .index('by_user', ['userId']),
 
   // Classification results per session
+  // Shared ordering data for driver and H2H queries. Source writes invalidate
+  // the row transactionally; readers fall back to live results while rebuilding.
+  constructorPointsCache: defineTable({
+    season: v.number(),
+    points: v.array(v.object({ team: v.string(), points: v.number() })),
+    version: v.number(),
+  }).index('by_season', ['season']),
+
   results: defineTable({
     raceId: v.id('races'),
     sessionType: sessionType,

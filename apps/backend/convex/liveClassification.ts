@@ -15,6 +15,7 @@ import {
   isMissingSessionResults,
   parseOpenF1Sessions,
 } from './openF1Results';
+import { loadRacesInSessionWindow } from './lib/sessionWindows';
 
 type TimedSession = 'fp1' | 'fp2' | 'fp3' | 'quali' | 'sprint_quali';
 const names: Record<TimedSession, readonly string[]> = {
@@ -57,11 +58,12 @@ export const activeTask = internalQuery({
   args: { now: v.number() },
   returns: v.any(),
   handler: async (ctx, { now }) => {
-    const races = await ctx.db
-      .query('races')
-      .withIndex('by_season_round')
-      .order('desc')
-      .take(30);
+    const races = await loadRacesInSessionWindow(
+      ctx,
+      ['fp1', 'fp2', 'fp3', 'quali', 'sprint_quali'],
+      now - 120 * 60_000,
+      now,
+    );
     for (const race of races) {
       const starts: Array<[TimedSession, number | undefined, number]> = [
         ['fp1', race.fp1StartAt, 90],

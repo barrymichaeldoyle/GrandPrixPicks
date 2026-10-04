@@ -11,6 +11,7 @@
 import type * as announcements from "../announcements.js";
 import type * as billing from "../billing.js";
 import type * as consensus from "../consensus.js";
+import type * as constructorPointsCache from "../constructorPointsCache.js";
 import type * as creatorPolls from "../creatorPolls.js";
 import type * as crons from "../crons.js";
 import type * as discord from "../discord.js";
@@ -56,7 +57,9 @@ import type * as lib_raceVideos from "../lib/raceVideos.js";
 import type * as lib_recheckSchedule from "../lib/recheckSchedule.js";
 import type * as lib_scoring from "../lib/scoring.js";
 import type * as lib_season from "../lib/season.js";
+import type * as lib_sessionWindows from "../lib/sessionWindows.js";
 import type * as lib_standings from "../lib/standings.js";
+import type * as lib_standingsMutations from "../lib/standingsMutations.js";
 import type * as lib_teammateBattles from "../lib/teammateBattles.js";
 import type * as lib_testing_scenarioDefinitions from "../lib/testing/scenarioDefinitions.js";
 import type * as lib_userIdentity from "../lib/userIdentity.js";
@@ -105,6 +108,7 @@ declare const fullApi: ApiFromModules<{
   announcements: typeof announcements;
   billing: typeof billing;
   consensus: typeof consensus;
+  constructorPointsCache: typeof constructorPointsCache;
   creatorPolls: typeof creatorPolls;
   crons: typeof crons;
   discord: typeof discord;
@@ -150,7 +154,9 @@ declare const fullApi: ApiFromModules<{
   "lib/recheckSchedule": typeof lib_recheckSchedule;
   "lib/scoring": typeof lib_scoring;
   "lib/season": typeof lib_season;
+  "lib/sessionWindows": typeof lib_sessionWindows;
   "lib/standings": typeof lib_standings;
+  "lib/standingsMutations": typeof lib_standingsMutations;
   "lib/teammateBattles": typeof lib_teammateBattles;
   "lib/testing/scenarioDefinitions": typeof lib_testing_scenarioDefinitions;
   "lib/userIdentity": typeof lib_userIdentity;

@@ -1,6 +1,7 @@
 import { currentPairings } from '@grandprixpicks/shared/teams';
 import { v } from 'convex/values';
 
+import type { Doc } from './_generated/dataModel';
 import type { DatabaseReader } from './_generated/server';
 import { query } from './_generated/server';
 import { loadStintsForSeason, teamForRound } from './lib/lineups';
@@ -8,6 +9,13 @@ import { getCurrentSeason } from './lib/season';
 import { sortByConstructorStanding } from './lib/teammateBattles';
 
 type ReadCtx = { db: DatabaseReader };
+type SeasonRoster = {
+  drivers: Array<Doc<'drivers'>>;
+  stints: Awaited<ReturnType<typeof loadStintsForSeason>>;
+};
+
+// Bump if constructor point calculation or attribution rules change.
+export const CONSTRUCTOR_POINTS_CACHE_VERSION = 1;
 
 /**
  * Formula 1 World Championship standings, computed from the actual finishing
@@ -463,8 +471,16 @@ export function rankConstructorStandings(
 export async function loadConstructorPoints(
   ctx: ReadCtx,
   season: number,
+  roster?: SeasonRoster,
 ): Promise<Map<string, number>> {
-  const { constructors } = await loadChampionship(ctx, season);
+  const cached = await ctx.db
+    .query('constructorPointsCache')
+    .withIndex('by_season', (q) => q.eq('season', season))
+    .unique();
+  if (cached?.version === CONSTRUCTOR_POINTS_CACHE_VERSION) {
+    return new Map(cached.points.map(({ team, points }) => [team, points]));
+  }
+  const { constructors } = await loadChampionship(ctx, season, false, roster);
   return new Map(constructors.map((c) => [c.team, c.points]));
 }
 
@@ -506,7 +522,12 @@ export function resultChangedAt(result: {
  * session types once means that page costs the same reads as either table
  * alone, rather than walking the season twice.
  */
-export async function loadSeasonResults(ctx: ReadCtx, season: number) {
+export async function loadSeasonResults(
+  ctx: ReadCtx,
+  season: number,
+  sessionTypes?: readonly ChampionshipSessionType[],
+  roster?: SeasonRoster,
+) {
   const races = await ctx.db
     .query('races')
     .withIndex('by_season_round', (q) => q.eq('season', season))
@@ -519,10 +540,23 @@ export async function loadSeasonResults(ctx: ReadCtx, season: number) {
   const sessions: (ChampionshipSessionResult & { changedAt: number })[] = [];
 
   for (const race of orderedRaces) {
-    const raceResults = await ctx.db
-      .query('results')
-      .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
-      .take(8);
+    const raceResults = sessionTypes
+      ? (
+          await Promise.all(
+            sessionTypes.map((sessionType) =>
+              ctx.db
+                .query('results')
+                .withIndex('by_race_session', (q) =>
+                  q.eq('raceId', race._id).eq('sessionType', sessionType),
+                )
+                .unique(),
+            ),
+          )
+        ).filter((result) => result !== null)
+      : await ctx.db
+          .query('results')
+          .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
+          .take(8);
 
     for (const result of raceResults) {
       if (!(result.sessionType in POINTS_TABLES)) {
@@ -539,12 +573,11 @@ export async function loadSeasonResults(ctx: ReadCtx, season: number) {
   }
 
   // Load the roster once, rather than a per-driver db.get.
-  const drivers = await ctx.db
-    .query('drivers')
-    .withIndex('by_displayName')
-    .take(60);
+  const drivers =
+    roster?.drivers ??
+    (await ctx.db.query('drivers').withIndex('by_displayName').take(60));
 
-  const stints = await loadStintsForSeason(ctx, season);
+  const stints = roster?.stints ?? (await loadStintsForSeason(ctx, season));
 
   return {
     sessions,
@@ -847,8 +880,14 @@ export async function loadChampionship(
   ctx: ReadCtx,
   season: number,
   includeHistory = false,
+  roster?: SeasonRoster,
 ) {
-  const data = await loadSeasonResults(ctx, season);
+  const data = await loadSeasonResults(
+    ctx,
+    season,
+    CHAMPIONSHIP_SESSIONS,
+    roster,
+  );
   return {
     season,
     ...rankChampionship(data, {

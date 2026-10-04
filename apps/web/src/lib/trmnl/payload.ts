@@ -1149,7 +1149,10 @@ function makeFormatter(
       };
     },
     range(from: number, to: number): string {
-      return plainSpaces(days.formatRange(new Date(from), new Date(to)));
+      // Some ICU versions omit spaces around the range dash altogether.
+      return plainSpaces(
+        days.formatRange(new Date(from), new Date(to)),
+      ).replace(/\s*–\s*/g, ' – ');
     },
   };
 }

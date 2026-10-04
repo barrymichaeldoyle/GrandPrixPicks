@@ -8,11 +8,8 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
-import {
-  internalAction,
-  internalMutation,
-  type MutationCtx,
-} from './_generated/server';
+import { internalAction, type MutationCtx } from './_generated/server';
+import { internalMutation } from './lib/standingsMutations';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { insertFeedEvent } from './lib/feedSort';
 import { computeFollowCountsForUser } from './lib/followCounts';

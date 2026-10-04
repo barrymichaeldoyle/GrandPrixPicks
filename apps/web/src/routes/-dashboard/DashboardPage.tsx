@@ -69,9 +69,9 @@ export function DashboardPage({
     useQuery(api.users.me, {}),
     initialDashboard?.me ?? undefined,
   );
-  const history = useQuery(
-    api.predictions.getUserPredictionHistory,
-    me ? { userId: me._id } : 'skip',
+  const latestScoredWeekend = liveOrSsr(
+    useQuery(api.predictions.getMyLatestScoredWeekend, me ? {} : 'skip'),
+    initialDashboard ? initialDashboard.latestScoredWeekend : undefined,
   );
   const seasonLeaderboard = liveOrSsr(
     useQuery(api.leaderboards.getCombinedSeasonLeaderboard, { limit: 3 }),
@@ -90,22 +90,8 @@ export function DashboardPage({
     useQuery(api.weather.getUpcoming, { now: weatherNow }),
     initialDashboard?.weather ?? undefined,
   );
-  /*
-   * The history query is deliberately *not* seeded: it walks a player's whole
-   * season and exists here only to name the last scored weekend, so shipping it
-   * would put a season of picks in the HTML for one card. The server picks that
-   * weekend out and sends just it — which does not render the card (that still
-   * waits for the race leaderboard, see `latestResultReady`) but does let the
-   * leaderboard request start on the first render rather than after the history
-   * comes back.
-   *
-   * `undefined` and not `?? null` on the live side, so an answered history with
-   * no scored weekend (a new player) reads as "answered, nothing" rather than
-   * falling back forever to a value SSR never had either.
-   */
-  const latestScoredWeekend = history
-    ? history.find((weekend) => weekend.hasScores)
-    : (initialDashboard?.latestScoredWeekend ?? undefined);
+  // Seed the focused result query so the combined board starts immediately.
+  // A live null clears the SSR seed when the player no longer has scores.
   const latestRaceLeaderboard = useQuery(
     api.leaderboards.getCombinedRaceLeaderboard,
     latestScoredWeekend ? { raceId: latestScoredWeekend.raceId } : 'skip',
@@ -191,12 +177,10 @@ export function DashboardPage({
         ) as readonly string[])
     : null;
 
-  // Ready once there is a weekend to show, whoever produced it. Waiting on
-  // `history` here would have held every server-rendered card behind the one
-  // query this page no longer needs before first paint.
+  // Both null (no scored weekend) and a result are answered states.
   const latestResultReady =
-    (history !== undefined || latestScoredWeekend !== undefined) &&
-    (latestScoredWeekend === undefined || latestRaceLeaderboard !== undefined);
+    latestScoredWeekend !== undefined &&
+    (latestScoredWeekend === null || latestRaceLeaderboard !== undefined);
 
   /**
    * Holds the sign-in curtain until above-the-fold rails + weekend chrome are

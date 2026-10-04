@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 import type { QueryCtx } from './_generated/server';
 import { query } from './_generated/server';
 import { getViewer } from './lib/auth';
@@ -1170,8 +1170,9 @@ export const getLeagueH2HRaceLeaderboard = query({
 export async function getRaceLeaderboardForViewer(
   ctx: QueryCtx,
   args: { raceId: Id<'races'> },
+  loadedRace?: Doc<'races'>,
 ) {
-  const race = await ctx.db.get(args.raceId);
+  const race = loadedRace ?? (await ctx.db.get(args.raceId));
   if (!race) {
     throw new Error('Race not found');
   }

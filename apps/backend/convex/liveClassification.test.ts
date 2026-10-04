@@ -189,3 +189,75 @@ describe('liveClassification.refresh', () => {
     ).rejects.toThrow(/HTTP 500/);
   });
 });
+
+describe('liveClassification.activeTask', () => {
+  it('finds a rescheduled session among future and historical races', async () => {
+    const t = convexTest(schema, modules);
+    const now = Date.UTC(2026, 9, 4, 10);
+    const raceId = await t.run(async (ctx) => {
+      for (let round = 1; round <= 40; round++) {
+        await ctx.db.insert('races', {
+          season: 2027,
+          round,
+          name: 'Future',
+          slug: `future-${round}`,
+          raceStartAt: now + 100 * HOUR,
+          predictionLockAt: now + 100 * HOUR,
+          fp1StartAt: now + 90 * HOUR,
+          status: 'upcoming',
+          createdAt: 0,
+          updatedAt: 0,
+        });
+      }
+      // Session time is the source of truth even when the main race was moved.
+      return ctx.db.insert('races', {
+        season: 2026,
+        round: 1,
+        name: 'Rescheduled',
+        slug: 'rescheduled',
+        raceStartAt: now - 30 * 24 * HOUR,
+        predictionLockAt: now - 30 * 24 * HOUR,
+        sprintQualiStartAt: now - HOUR,
+        status: 'locked',
+        createdAt: 0,
+        updatedAt: 0,
+      });
+    });
+    expect(
+      await t.query(internal.liveClassification.activeTask, { now }),
+    ).toMatchObject({ raceId, sessionType: 'sprint_quali' });
+    expect(
+      await t.query(internal.liveClassification.activeTask, {
+        now: now + HOUR,
+      }),
+    ).toBeNull();
+  });
+
+  it('keeps qualifying active for two hours and practice for ninety minutes', async () => {
+    const t = convexTest(schema, modules);
+    const now = Date.UTC(2026, 9, 4, 10);
+    const raceId = await t.run((ctx) =>
+      ctx.db.insert('races', {
+        season: 2026,
+        round: 1,
+        name: 'Timed',
+        slug: 'timed',
+        status: 'locked',
+        raceStartAt: now + HOUR,
+        predictionLockAt: now + HOUR,
+        fp1StartAt: now - 91 * 60_000,
+        qualiStartAt: now - 119 * 60_000,
+        createdAt: 0,
+        updatedAt: 0,
+      }),
+    );
+    expect(
+      await t.query(internal.liveClassification.activeTask, { now }),
+    ).toMatchObject({ raceId, sessionType: 'quali' });
+    expect(
+      await t.query(internal.liveClassification.activeTask, {
+        now: now + 2 * 60_000,
+      }),
+    ).toBeNull();
+  });
+});

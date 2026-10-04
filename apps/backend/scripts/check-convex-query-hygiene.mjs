@@ -184,13 +184,47 @@ function printNewViolations(violations) {
 const files = await getSourceFiles(convexRoot);
 const unboundedCollectViolations = [];
 const dbFilterViolations = [];
+const standingsWriterFiles = new Set([
+  'convex/races.ts',
+  'convex/results.ts',
+  'convex/resultsRecheck.ts',
+  'convex/seed.ts',
+  'convex/testing.ts',
+  'convex/testingScenarios.ts',
+]);
+const standingsWriterViolations = [];
 
 for (const absolutePath of files) {
   const source = await readFile(absolutePath, 'utf8');
   const relativePath = path.relative(backendRoot, absolutePath);
+  const writesStandingsInputs =
+    standingsWriterFiles.has(relativePath) ||
+    /\.db\.insert\(\s*['"](?:results|races|drivers|driverTeamStints)['"]/.test(
+      source,
+    ) ||
+    /\bpublishResultsCore\(/.test(source);
+  if (writesStandingsInputs) {
+    for (const imported of source.matchAll(
+      /import\s*\{([^}]+)\}\s*from\s*['"]\.\/_generated\/server['"]/g,
+    )) {
+      if (/\b(?:mutation|internalMutation)\b/.test(imported[1])) {
+        standingsWriterViolations.push(relativePath);
+      }
+    }
+  }
   const violations = collectViolations(relativePath, source);
   unboundedCollectViolations.push(...violations.unboundedCollect);
   dbFilterViolations.push(...violations.dbFilter);
+}
+
+if (standingsWriterViolations.length > 0) {
+  console.error(
+    'Standings writers must import mutation builders from lib/standingsMutations to invalidate cached points:',
+  );
+  for (const file of standingsWriterViolations) {
+    console.error(`- ${file}`);
+  }
+  process.exit(1);
 }
 
 const baseline = JSON.parse(await readFile(baselinePath, 'utf8'));

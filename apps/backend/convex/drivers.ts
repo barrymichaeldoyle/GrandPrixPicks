@@ -49,6 +49,14 @@ export const listDrivers = query({
  */
 export async function loadRosterForRound(
   ctx: QueryCtx,
+  args: Parameters<typeof loadRosterWithConstructorPoints>[1],
+) {
+  return (await loadRosterWithConstructorPoints(ctx, args)).drivers;
+}
+
+/** Share the roster's ordering data with callers that also render H2H matchups. */
+export async function loadRosterWithConstructorPoints(
+  ctx: QueryCtx,
   args: {
     round?: number;
     season?: number;
@@ -61,7 +69,10 @@ export async function loadRosterForRound(
     teamPoints?: ReadonlyMap<string, number>;
   },
 ) {
-  const current = await getCurrentSeasonAndRound(ctx);
+  const current =
+    args.season !== undefined && args.round !== undefined
+      ? { season: args.season, round: args.round }
+      : await getCurrentSeasonAndRound(ctx);
   const season = args.season ?? current.season;
   const round = args.round ?? current.round;
 
@@ -97,6 +108,10 @@ export async function loadRosterForRound(
   // Sorting here means the pool, the duel grid and the feed all come out of
   // the same championship, and a scored race moves them together.
   const teamPoints =
-    args.teamPoints ?? (await loadConstructorPoints(ctx, season));
-  return marked.sort((a, b) => compareDriversByTeam(a, b, teamPoints));
+    args.teamPoints ??
+    (await loadConstructorPoints(ctx, season, { drivers, stints }));
+  return {
+    drivers: marked.sort((a, b) => compareDriversByTeam(a, b, teamPoints)),
+    teamPoints,
+  };
 }

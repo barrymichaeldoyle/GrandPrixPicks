@@ -101,6 +101,7 @@ export async function loadMatchupsForSeason(
   ctx: QueryCtx,
   season: number,
   round: number,
+  teamPoints?: ReadonlyMap<string, number>,
 ) {
   const rows = (
     await ctx.db
@@ -115,7 +116,7 @@ export async function loadMatchupsForSeason(
   // show the same order.
   const matchups = sortByConstructorStanding(
     rows,
-    await loadConstructorPoints(ctx, season),
+    teamPoints ?? (await loadConstructorPoints(ctx, season)),
   );
 
   // A driver's team is read for THIS round, not from their driver row: after a
@@ -572,7 +573,7 @@ export const getUserH2HPicksByRace = query({
       predictions.push(prediction);
     }
 
-    const now = Date.now();
+    const now = isOwner ? 0 : Date.now();
     const byRace = new Map<Id<'races'>, Record<SessionType, boolean>>();
 
     // Predictions share a small set of races — fetch each distinct race once,
@@ -635,7 +636,7 @@ export const getUserH2HDetailedPicks = query({
       return null;
     }
 
-    const now = Date.now();
+    const now = isOwner ? 0 : Date.now();
 
     const lockTimes: Record<SessionType, number | undefined> = {
       quali: race.qualiLockAt,
@@ -812,7 +813,13 @@ export const getH2HPicksForFeedItem = query({
       race: race.predictionLockAt,
     };
     const lockTime = lockTimes[args.sessionType];
-    if (!canViewH2HPicksForSession({ isOwner, lockTime, now: Date.now() })) {
+    if (
+      !canViewH2HPicksForSession({
+        isOwner,
+        lockTime,
+        now: isOwner ? 0 : Date.now(),
+      })
+    ) {
       return null;
     }
 

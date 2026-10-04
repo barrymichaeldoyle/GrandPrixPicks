@@ -5,11 +5,7 @@ import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import type { ActionCtx } from './_generated/server';
-import {
-  internalAction,
-  internalMutation,
-  internalQuery,
-} from './_generated/server';
+import { internalAction, internalQuery } from './_generated/server';
 import type { DriverStatus } from '@grandprixpicks/shared/driverStatus';
 
 import type { ClassificationMovement } from './lib/classificationDiff';
@@ -25,6 +21,7 @@ import {
   sleep,
 } from './openF1Results';
 import { publishResultsCore } from './results';
+import { internalMutation } from './lib/standingsMutations';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),

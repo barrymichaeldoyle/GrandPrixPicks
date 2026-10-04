@@ -16,14 +16,14 @@ import {
 import { loadMyLeagues } from './leagues';
 import {
   loadMyWeekendPredictions,
-  loadUserPredictionHistory,
+  loadLatestScoredWeekend,
 } from './predictions';
 import { loadActiveSnapshot } from './liveScoring';
 import { loadPracticeResultsForRace } from './practiceResults';
 import { loadCurrentWeekend } from './races';
 import { toUserIdentity } from './lib/userIdentity';
 import { loadMe } from './users';
-import { loadRosterForRound } from './drivers';
+import { loadRosterWithConstructorPoints } from './drivers';
 import { loadNewsHeadlines } from './raceNews';
 import {
   getDefaultLeaderboardSeason,
@@ -180,7 +180,7 @@ export const getHomePageData = query({
     // `includeNotRacing` matches the client for the same reason the race page
     // gives: a saved pick naming a driver who has since lost their seat has to
     // resolve to five slots on the server too.
-    const drivers = await loadRosterForRound(ctx, {
+    const { drivers, teamPoints } = await loadRosterWithConstructorPoints(ctx, {
       round: nextRace?.round,
       season: nextRace?.season,
       includeNotRacing: true,
@@ -222,7 +222,12 @@ export const getHomePageData = query({
     // skeleton boxes waiting on a websocket round trip for data the SSR render
     // already had in hand.
     const h2hMatchups = nextRace
-      ? await loadMatchupsForSeason(ctx, nextRace.season, nextRace.round)
+      ? await loadMatchupsForSeason(
+          ctx,
+          nextRace.season,
+          nextRace.round,
+          teamPoints,
+        )
       : [];
 
     // Five headlines, not the stories: the landing page links each one into
@@ -232,7 +237,6 @@ export const getHomePageData = query({
       : null;
 
     const season = await getDefaultLeaderboardSeason(ctx);
-    const allRows = await loadCombinedSeasonRows(ctx, { season });
 
     /*
      * The landing page's board is ONE race weekend, not the season.
@@ -250,17 +254,10 @@ export const getHomePageData = query({
      * board would be empty from Monday to Friday, which is worse than the
      * season table it replaced. `lastScoredRace` is already resolved above.
      *
-     * Identities come from the season rows that are loaded anyway: anyone with
-     * race points has a `seasonStandings` row, because that table is
-     * denormalised from the same scores. `ctx.db.get` covers the case where
-     * one is missing rather than letting a player render as Anonymous.
+     * Only the five displayed players need identities. Read their standings
+     * by user instead of loading both entire season tables just for names.
+     * The user row remains the fallback for missing standings.
      */
-    const identityByUserId = new Map(
-      allRows.map((row) => [
-        row.userId as string,
-        { username: row.username, avatarUrl: row.avatarUrl },
-      ]),
-    );
     const rankedWeekend = assignCompetitionRanks(
       [...lastScoredRacePoints.entries()]
         .map(([userId, points]) => ({ userId, points }))
@@ -273,9 +270,23 @@ export const getHomePageData = query({
     );
     const weekendPlayers = await Promise.all(
       rankedWeekend.slice(0, 5).map(async (row) => {
-        const identity =
-          identityByUserId.get(row.userId) ??
-          toUserIdentity(await ctx.db.get(row.userId as Id<'users'>));
+        const userId = row.userId as Id<'users'>;
+        const standing =
+          (await ctx.db
+            .query('seasonStandings')
+            .withIndex('by_user_season', (q) =>
+              q.eq('userId', userId).eq('season', season),
+            )
+            .unique()) ??
+          (await ctx.db
+            .query('h2hSeasonStandings')
+            .withIndex('by_user_season', (q) =>
+              q.eq('userId', userId).eq('season', season),
+            )
+            .unique());
+        const identity = toUserIdentity(
+          standing ?? (await ctx.db.get('users', userId)),
+        );
         return {
           rank: row.rank,
           userId: row.userId,
@@ -373,26 +384,28 @@ async function loadFeedPreview(ctx: QueryCtx, viewer: Doc<'users'>) {
  * trips, one after the other. Seeding the weekend lets that request go out on
  * the first render instead.
  *
- * Only the weekend travels, never the history it came from. The walk happens
- * here, and the leaderboard stays a client fetch on purpose — it returns
+ * The server and client share a focused latest-result query. Historical
+ * leaderboards and picks are never loaded for this card. The combined
+ * leaderboard stays a client fetch on purpose — it returns
  * *every* entry for a race with no limit, which is a few kilobytes at 35
  * players and a tax that grows with the game.
  */
 async function loadDashboardRails(ctx: QueryCtx, viewer: Doc<'users'>) {
   const userId = viewer._id;
-  const [seasonLeaderboard, leagues, history, feedPreview] = await Promise.all([
-    // The same limit `DashboardPage` passes. A different one here would seed a
-    // cache entry under a key nothing reads.
-    loadCombinedSeasonLeaderboard(ctx, { limit: 3 }),
-    loadMyLeagues(ctx),
-    loadUserPredictionHistory(ctx, { userId }),
-    loadFeedPreview(ctx, viewer),
-  ]);
+  const [seasonLeaderboard, leagues, latestScoredWeekend, feedPreview] =
+    await Promise.all([
+      // The same limit `DashboardPage` passes. A different one here would seed a
+      // cache entry under a key nothing reads.
+      loadCombinedSeasonLeaderboard(ctx, { limit: 3 }),
+      loadMyLeagues(ctx),
+      loadLatestScoredWeekend(ctx, userId),
+      loadFeedPreview(ctx, viewer),
+    ]);
 
   return {
     seasonLeaderboard,
     leagues,
-    latestScoredWeekend: history.find((weekend) => weekend.hasScores) ?? null,
+    latestScoredWeekend,
     feedPreview,
   };
 }

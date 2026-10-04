@@ -16,6 +16,7 @@ import {
 } from './openF1Results';
 import { getViewer } from './lib/auth';
 import { insertFeedEvent } from './lib/feedSort';
+import { loadRacesInSessionWindow } from './lib/sessionWindows';
 
 const MINUTE = 60_000;
 const PRACTICE_DURATION = 60 * MINUTE;
@@ -318,13 +319,68 @@ async function fetchPracticeResult(args: PracticeTask) {
 }
 
 export const getDuePracticeSessions = internalQuery({
-  args: { now: v.number() },
+  args: { now: v.number(), includeHistorical: v.optional(v.boolean()) },
+  returns: v.array(
+    v.object({
+      raceId: v.id('races'),
+      raceName: v.string(),
+      raceSlug: v.string(),
+      season: v.number(),
+      sessionType: practiceSessionValidator,
+      sessionStartAt: v.number(),
+      mode: v.union(v.literal('populate'), v.literal('reconcile')),
+      lastAttemptAt: v.optional(v.number()),
+    }),
+  ),
   handler: async (ctx, args): Promise<PracticeTask[]> => {
-    const races = await ctx.db
-      .query('races')
-      .withIndex('by_season_round')
-      .take(100);
+    // Historical gaps still drain through the hourly/manual backfill. The
+    // five-minute job only looks at recent sessions and explicitly due rechecks.
+    const races = args.includeHistorical
+      ? await ctx.db.query('races').withIndex('by_season_round').take(100)
+      : await loadRacesInSessionWindow(
+          ctx,
+          ['fp1', 'fp2', 'fp3'],
+          args.now - 7 * 24 * 60 * MINUTE,
+          args.now - PRACTICE_DURATION - FIRST_ATTEMPT_DELAY,
+        );
     const due: PracticeTask[] = [];
+
+    if (!args.includeHistorical) {
+      const rechecks = await ctx.db
+        .query('practiceResults')
+        .withIndex('by_nextRecheckAt', (q) =>
+          q.gt('nextRecheckAt', 0).lte('nextRecheckAt', args.now),
+        )
+        .take(100);
+      for (const result of rechecks) {
+        const race = await ctx.db.get('races', result.raceId);
+        const start = race?.[`${result.sessionType}StartAt`];
+        if (
+          !race ||
+          race.status === 'cancelled' ||
+          start === undefined ||
+          args.now < start + PRACTICE_DURATION + FIRST_ATTEMPT_DELAY
+        ) {
+          continue;
+        }
+        const poll = await ctx.db
+          .query('practiceResultPolls')
+          .withIndex('by_raceId_and_sessionType', (q) =>
+            q.eq('raceId', race._id).eq('sessionType', result.sessionType),
+          )
+          .unique();
+        due.push({
+          raceId: race._id,
+          raceName: race.name,
+          raceSlug: race.slug,
+          season: race.season,
+          sessionType: result.sessionType,
+          sessionStartAt: start,
+          mode: 'reconcile',
+          lastAttemptAt: poll?.lastAttemptAt,
+        });
+      }
+    }
 
     for (const race of races) {
       if (race.status === 'cancelled') {
@@ -337,7 +393,13 @@ export const getDuePracticeSessions = internalQuery({
       ];
       for (const [sessionType, sessionStartAt] of starts) {
         if (
+          due.some(
+            (task) =>
+              task.raceId === race._id && task.sessionType === sessionType,
+          ) ||
           sessionStartAt === undefined ||
+          (!args.includeHistorical &&
+            sessionStartAt < args.now - 7 * 24 * 60 * MINUTE) ||
           args.now < sessionStartAt + PRACTICE_DURATION + FIRST_ATTEMPT_DELAY
         ) {
           continue;
@@ -348,17 +410,17 @@ export const getDuePracticeSessions = internalQuery({
             q.eq('raceId', race._id).eq('sessionType', sessionType),
           )
           .unique();
-        const poll = await ctx.db
-          .query('practiceResultPolls')
-          .withIndex('by_raceId_and_sessionType', (q) =>
-            q.eq('raceId', race._id).eq('sessionType', sessionType),
-          )
-          .unique();
         if (
           !existing ||
           existing.recheckStage === undefined ||
           (existing.nextRecheckAt ?? Infinity) <= args.now
         ) {
+          const poll = await ctx.db
+            .query('practiceResultPolls')
+            .withIndex('by_raceId_and_sessionType', (q) =>
+              q.eq('raceId', race._id).eq('sessionType', sessionType),
+            )
+            .unique();
           due.push({
             raceId: race._id,
             raceName: race.name,
@@ -561,10 +623,10 @@ export const recordPracticePollAttempt = internalMutation({
   },
 });
 
-async function populateDuePractice(ctx: ActionCtx) {
+async function populateDuePractice(ctx: ActionCtx, includeHistorical = false) {
   const tasks: PracticeTask[] = await ctx.runQuery(
     internal.practiceResults.getDuePracticeSessions,
-    { now: Date.now() },
+    { now: Date.now(), includeHistorical },
   );
   if (tasks.length === 0) {
     return { processed: 0, published: 0, failed: 0 };
@@ -627,16 +689,16 @@ async function populateDuePractice(ctx: ActionCtx) {
   return { processed: tasks.length, published, failed };
 }
 
-/** Cron target; the same bounded sweep also drains historical sessions. */
+/** Fast cron target for recent sessions and due rechecks. */
 export const pollDuePracticeResults = internalAction({
   args: {},
-  handler: populateDuePractice,
+  handler: (ctx) => populateDuePractice(ctx),
 });
 
 /** Manually trigger one bounded backfill batch after deploying/seeding. */
 export const backfillPracticeResults = internalAction({
   args: {},
-  handler: populateDuePractice,
+  handler: (ctx) => populateDuePractice(ctx, true),
 });
 
 /**

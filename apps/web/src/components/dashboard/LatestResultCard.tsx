@@ -9,8 +9,8 @@ import { RaceFlag } from '@/components/RaceFlag';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 
 type HistoryWeekend = FunctionReturnType<
-  typeof api.predictions.getUserPredictionHistory
->[number];
+  typeof api.predictions.getMyLatestScoredWeekend
+>;
 
 type RaceLeaderboard = FunctionReturnType<
   typeof api.leaderboards.getCombinedRaceLeaderboard

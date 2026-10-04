@@ -4,6 +4,15 @@ import { internal } from './_generated/api';
 
 const crons = cronJobs();
 
+// Source writes refresh standings immediately. This only bootstraps missing
+// seasons after a deploy or calculation-version change; valid rows stay cached.
+crons.interval(
+  'warm missing constructor standings',
+  { hours: 24 },
+  internal.constructorPointsCache.warm,
+  {},
+);
+
 crons.interval(
   'poll OpenF1 fallback results',
   { minutes: 5 },
@@ -15,6 +24,13 @@ crons.interval(
   'poll OpenF1 practice results',
   { minutes: 5 },
   internal.practiceResults.pollDuePracticeResults,
+  {},
+);
+
+crons.interval(
+  'backfill historical practice results',
+  { hours: 1 },
+  internal.practiceResults.backfillPracticeResults,
   {},
 );
 

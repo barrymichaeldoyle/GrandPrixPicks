@@ -8,6 +8,7 @@ import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceW
 import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
+import { RaceWriteupOfficialResult } from '@/components/race-writeups/RaceWriteupOfficialResult';
 import {
   RACE_WRITEUP_CIRCUIT_ANCHOR,
   RaceWriteupFigure as Figure,
@@ -42,6 +43,12 @@ const PROSE_REVIEWED_AT = lastReviewedAt(PROSE_REVIEWED);
 
 const PATH = '/f1-2026-bahrain-grand-prix-predictions';
 const RACE_SLUG = 'bahrain-2026';
+// Keep the archive sourced from the same corrected records as the news feed.
+const ARCHIVE_NEWS_KEYS = new Set([
+  'sepang-race-start-delayed',
+  'russell-sepang-race-retirement',
+  'ferrari-sepang-race-recovery',
+]);
 
 /**
  * The circuit section's heading. Declared once so the section cannot drift
@@ -76,19 +83,19 @@ const START_TIME_SOURCE =
  */
 const FAQS = [
   {
-    question: 'Why is the 2026 Bahrain Grand Prix being held in Malaysia?',
+    question: 'Why was the 2026 Bahrain Grand Prix held in Malaysia?',
     answer:
       'The round was due to run at Sakhir in April and was called off on safety grounds, along with the Saudi Arabian Grand Prix. Formula 1, the FIA and the governments of Bahrain and Malaysia agreed to reinstate it at Sepang in October. It keeps the Bahrain Grand Prix name, and Bahrain sets the ticket prices and receives the ticket revenue.',
   },
   {
-    question: 'When is the 2026 Bahrain Grand Prix?',
+    question: 'When was the 2026 Bahrain Grand Prix?',
     answer:
-      'The weekend runs from 2 to 4 October 2026 at Sepang. Qualifying is on Saturday and the 56-lap Grand Prix starts at 15:00 Malaysian time on Sunday.',
+      'The weekend took place from 2 to 4 October 2026 at Sepang. Qualifying was on Saturday and the Grand Prix was scheduled to start at 15:00 Malaysian time on Sunday.',
   },
   {
     question: 'When did Formula 1 last race at Sepang?',
     answer:
-      'In 2017. Sepang held the Malaysian Grand Prix from 1999 to 2017, and this is the first Formula 1 race there since. The track has changed in that time: Dromo resurfaced it in 2016, the year before that last race, and relaid Turns 7 to 12 in 2023.',
+      'Formula 1 returned to Sepang on 4 October 2026 for the Bahrain Grand Prix. Before that, its last visit was the 2017 Malaysian Grand Prix. Dromo resurfaced Sepang in 2016 and relaid Turns 7 to 12 in 2023.',
   },
 ] as const;
 
@@ -98,31 +105,37 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
     loader: async ({ context }) => {
       await setRaceDataCacheHeaders();
       const weatherNow = Date.now();
+      const race = await context.queryClient.ensureQueryData(
+        routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
+      );
+      if (!race) {
+        throw notFound();
+      }
+      const isLive = isRaceWriteupLive(getRaceWriteupPhase(race, weatherNow));
       const [
-        race,
         championship,
         weather,
         news,
         season,
         practice,
         consensus,
+        top5,
         nextRace,
       ] = await Promise.all([
-        context.queryClient.ensureQueryData(
-          routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
-        ),
         // Live. This page is published well ahead of the weekend, so three
         // rounds are still to be scored before it and a hand-typed table would
         // be wrong long before anybody reads it in October.
         context.queryClient.ensureQueryData(
           routeQuery(api.f1Standings.getF1Championship, {}),
         ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.weather.getForWriteup, {
-            raceSlug: RACE_SLUG,
-            now: weatherNow,
-          }),
-        ),
+        isLive
+          ? context.queryClient.ensureQueryData(
+              routeQuery(api.weather.getForWriteup, {
+                raceSlug: RACE_SLUG,
+                now: weatherNow,
+              }),
+            )
+          : null,
         context.queryClient.ensureQueryData(
           routeQuery(api.raceNews.list, { raceSlug: RACE_SLUG }),
         ),
@@ -144,12 +157,14 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
           }),
         ),
         context.queryClient.ensureQueryData(
+          routeQuery(api.results.getEnrichedTop5BySessionForRaceSlug, {
+            raceSlug: RACE_SLUG,
+          }),
+        ),
+        context.queryClient.ensureQueryData(
           routeQuery(api.races.getNextRace, {}),
         ),
       ]);
-      if (!race) {
-        throw notFound();
-      }
       return {
         race,
         championship,
@@ -159,6 +174,7 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
         season,
         practice,
         consensus,
+        top5,
         nextRace,
       };
     },
@@ -166,11 +182,14 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
       raceWriteupPageHead({
         path: PATH,
         raceSlug: RACE_SLUG,
-        title: '2026 Bahrain Grand Prix Predictions | Sepang',
+        title:
+          loaderData?.race.status === 'finished'
+            ? '2026 Bahrain Grand Prix Results & Picks | Sepang'
+            : '2026 Bahrain Grand Prix Predictions | Sepang',
         description: {
-          live: '2026 Bahrain Grand Prix predictions at Sepang in Malaysia. Pick a top 5 for qualifying and the race at a circuit the 2026 cars have never run.',
+          live: '2026 Bahrain Grand Prix predictions at Sepang in Malaysia. Follow weekend news, tyres and circuit analysis, then pick a top 5 for qualifying and the race.',
           finished:
-            '2026 Bahrain Grand Prix predictions scored against the official Sepang classification. See who called the top 5 for qualifying and the race.',
+            '2026 Bahrain Grand Prix results at Sepang, the key race developments and how players picked the Top 5. Make your picks for the next Formula 1 race.',
           cancelled: 'The 2026 Bahrain Grand Prix was called off.',
         },
         imageAlt:
@@ -178,7 +197,10 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
         reviewedAt: PROSE_REVIEWED_AT,
         eventName: '2026 Bahrain Grand Prix',
         eventAlternateName: '2026 Sepang Grand Prix',
-        breadcrumbName: 'Bahrain Grand Prix predictions',
+        breadcrumbName:
+          loaderData?.race.status === 'finished'
+            ? 'Bahrain Grand Prix results'
+            : 'Bahrain Grand Prix predictions',
         race: loaderData?.race,
         faqs: FAQS,
       }),
@@ -195,14 +217,31 @@ function BahrainGrandPrixPredictionsPage() {
     season,
     practice,
     consensus,
+    top5,
     nextRace,
   } = Route.useLoaderData();
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
-  const consensusSessions = (['quali', 'race'] as const).flatMap((session) => {
-    const sessionConsensus = consensus[session];
-    return sessionConsensus ? [{ session, consensus: sessionConsensus }] : [];
-  });
+  const archiveSessions = (['quali', 'race'] as const).map((session) => ({
+    session,
+    classification: top5[session] ?? [],
+  }));
+  const consensusSessions = archiveSessions.flatMap(
+    ({ session, classification }) => {
+      const sessionConsensus = consensus[session];
+      return sessionConsensus
+        ? [{ session, classification, consensus: sessionConsensus }]
+        : [];
+    },
+  );
+  const podium = top5.race?.slice(0, 3) ?? [];
+  const finishedSummary =
+    podium.length === 3
+      ? `${podium[0]!.displayName} won ahead of ${podium[1]!.displayName} and ${podium[2]!.displayName}. Compare the official Top 5 with how players picked.`
+      : 'The Bahrain Grand Prix at Sepang is complete. Compare the official Top 5 with how players picked.';
+  const archiveNews = news.items.filter((item) =>
+    ARCHIVE_NEWS_KEYS.has(item.key),
+  );
 
   return (
     <RaceWriteupPage
@@ -232,15 +271,22 @@ function BahrainGrandPrixPredictionsPage() {
       <RaceWriteupHero
         flagCode="BH"
         eyebrow={`02–04 Oct · Sepang · Round ${race.round}`}
-        title="2026 Bahrain Grand Prix predictions"
+        title={
+          phase === 'finished'
+            ? '2026 Bahrain Grand Prix results at Sepang'
+            : '2026 Bahrain Grand Prix predictions'
+        }
         summary={raceWriteupHeroSummary(
           phase,
           'The Bahrain Grand Prix',
           'Formula 1 last raced at Sepang in 2017. The 2026 cars have never run here, and this year\u2019s Bahrain Grand Prix is being held in Malaysia.',
+          finishedSummary,
         )}
         phase={phase}
         raceSlug={RACE_SLUG}
+        nextRace={phase === 'finished' ? nextRace : undefined}
         venueName="Sepang"
+        signalsHeading={SIGNALS_HEADING}
         primaryActionTargetId={isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
         schedule={{
           race,
@@ -264,11 +310,24 @@ function BahrainGrandPrixPredictionsPage() {
           />
         </>
       ) : null}
-      <SessionConsensusSections sessions={consensusSessions} />
+      {phase === 'finished' ? (
+        <>
+          <RaceWriteupOfficialResult
+            sessions={archiveSessions}
+            venueName="Sepang"
+          />
+          <WeekendNewsSection
+            items={archiveNews}
+            heading="What decided the race"
+            showStoreCard={false}
+          />
+          <SessionConsensusSections sessions={consensusSessions} />
+        </>
+      ) : null}
       <WhyMalaysia />
-      <NoCurrentForm />
+      <NoCurrentForm isFinished={phase === 'finished'} />
       <Circuit />
-      <TyreChoice />
+      <TyreChoice isFinished={phase === 'finished'} />
       {/* The picks follow the article and come before the reference material.
           Most readers stop around two thirds of the way down, so a picker at
           the foot of the page was one almost nobody reached. */}
@@ -351,23 +410,27 @@ function WhyMalaysia() {
  * signal is about. The 2016 surface was also laid for wet grip, so "abrasive"
  * was working against the only description anyone has published of it.
  */
-function NoCurrentForm() {
+function NoCurrentForm({ isFinished }: { isFinished: boolean }) {
   return (
     <RaceWriteupSection
       id="no-current-form"
-      heading="The last Formula 1 race here was in 2017"
+      heading={
+        isFinished
+          ? 'Formula 1 returned after nine years'
+          : 'The last Formula 1 race here was in 2017'
+      }
       aside={<WriteUpNewsPhoto {...SEPANG_PODIUM_WRITEUP_IMAGE} />}
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
-        Sepang held the Malaysian Grand Prix from 1999 to 2017. Nine years of
-        regulation changes sit between that race and this one, and the 2026 cars
-        are new this season, so no driver on the grid has a lap here in anything
-        resembling the car they will drive.
+        {isFinished
+          ? 'Sepang held the Malaysian Grand Prix from 1999 to 2017. Formula 1 returned in 2026 after nine years of regulation changes, leaving teams without recent circuit data for the new cars.'
+          : 'Sepang held the Malaysian Grand Prix from 1999 to 2017. Nine years of regulation changes sit between that race and this one, and the 2026 cars are new this season, so no driver on the grid has a lap here in anything resembling the car they will drive.'}
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        Pirelli is working from 2017 data for the same reason. Its motorsport
-        director has said the 2017 tyre sizes are reasonably close to the
-        current ones, which is the closest thing to a reference anyone has.{' '}
+        Pirelli {isFinished ? 'worked' : 'is working'} from 2017 data for the
+        same reason. Its motorsport director {isFinished ? 'said' : 'has said'}{' '}
+        the 2017 tyre sizes are reasonably close to the current ones, which is
+        the closest thing to a reference anyone has.{' '}
         <ExternalSource href={PIRELLI_DATA_SOURCE}>
           How Pirelli is using 2017 data
         </ExternalSource>
@@ -414,7 +477,7 @@ function Circuit() {
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         Sepang is <Figure>5.543 km</Figure> long with{' '}
-        <Figure>15 corners</Figure>, and the Grand Prix runs for{' '}
+        <Figure>15 corners</Figure>. A full-distance Grand Prix is{' '}
         <Figure>56 laps</Figure>. The track is wide, with long straights, heavy
         braking zones and fast, flowing corners, so drivers can attack from
         different lines. Its best-known corners are the long sweep through Turns
@@ -442,19 +505,24 @@ function Circuit() {
  * the middle three while the two street races on either side of it take the
  * softest three, which is what makes the strip worth drawing.
  */
-function TyreChoice() {
+function TyreChoice({ isFinished }: { isFinished: boolean }) {
   return (
     <TyreCompoundSection
-      heading="Sepang gets the middle three tyres"
+      heading={
+        isFinished
+          ? 'Sepang used the middle three tyre compounds'
+          : 'Sepang gets the middle three tyres'
+      }
       venue="Sepang"
       hardest="C2"
       aside={<WriteUpNewsPhoto {...SEPANG_OVERTAKE_WRITEUP_IMAGE} />}
     >
       <p className="gpp-reading-copy mt-7 text-text-muted">
-        Pirelli brings C2, C3 and C4, one step harder than the C3, C4 and C5
-        going to Baku and Singapore either side of this weekend. It left out the
-        hardest compounds to narrow the gap between a one-stop and a two-stop
-        race, so teams have more strategies to choose from.{' '}
+        Pirelli {isFinished ? 'brought' : 'brings'} C2, C3 and C4, one step
+        harder than the C3, C4 and C5 nominated for Baku and Singapore either
+        side of this weekend. It left out the hardest compounds to narrow the
+        gap between a one-stop and a two-stop race, giving teams more strategies
+        to choose from.{' '}
         <ExternalSource href={TYRE_SOURCE}>
           Pirelli&rsquo;s compound selection
         </ExternalSource>

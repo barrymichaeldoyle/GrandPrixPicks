@@ -385,6 +385,35 @@ describe('SEO head metadata', () => {
     ).toMatch(/^2026 Spanish Grand Prix predictions at the Madring/);
   });
 
+  it('keeps the Sepang archive on its established URL with results metadata and current FAQs', async () => {
+    const { Route } = await import('./f1-2026-bahrain-grand-prix-predictions');
+    const { head } = Route as unknown as {
+      head: (args: {
+        loaderData: { race: { raceStartAt: number; status: string } };
+      }) => HeadResult;
+    };
+    const result = head({
+      loaderData: {
+        race: {
+          status: 'finished',
+          raceStartAt: Date.parse('2026-10-04T07:00:00Z'),
+        },
+      },
+    });
+    expect(result.meta?.find((tag) => tag.title)?.title).toBe(
+      '2026 Bahrain Grand Prix Results & Picks | Sepang',
+    );
+    expect(result.links?.find((link) => link.rel === 'canonical')?.href).toBe(
+      'https://grandprixpicks.com/f1-2026-bahrain-grand-prix-predictions',
+    );
+    expect(
+      result.meta?.find((tag) => tag.name === 'description')?.content,
+    ).toContain('Make your picks for the next Formula 1 race');
+    const schema = result.scripts?.map((script) => script.children).join(' ');
+    expect(schema).toContain('Formula 1 returned to Sepang on 4 October 2026');
+    expect(schema).toContain('Bahrain Grand Prix results');
+  });
+
   it('only promises Baku qualifying and grid details after they are published', async () => {
     const { Route: bakuRoute } =
       await import('./f1-2026-azerbaijan-grand-prix-predictions');

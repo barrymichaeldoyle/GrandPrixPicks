@@ -243,6 +243,26 @@ describe('WeekendNewsSection store card', () => {
     expect(container.querySelector('article:last-of-type')).toBe(storeCard());
   });
 
+  it('can present an archive recap without a competing store card', () => {
+    act(() =>
+      root.render(
+        <WeekendNewsSection
+          items={[item]}
+          heading="What decided the race"
+          showStoreCard={false}
+        />,
+      ),
+    );
+    expect(container.querySelector('h2')?.textContent).toBe(
+      'What decided the race',
+    );
+    expect(container.textContent).toContain(item.headline);
+    expect(
+      container.querySelector(`a[href="${item.sourceUrl}"]`),
+    ).not.toBeNull();
+    expect(storeCard()).toBeUndefined();
+  });
+
   it('takes both columns when one cell would leave the last row half empty', () => {
     // Six stories is the usual lead: a seventh cell would sit beside a hole.
     render(stories(6));

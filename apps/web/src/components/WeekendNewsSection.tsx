@@ -93,8 +93,12 @@ const LEAD_ITEMS = 6;
 export function WeekendNewsSection({
   items,
   storePage,
+  heading = 'What changed this weekend',
+  showStoreCard = true,
 }: {
   items: NewsItem[];
+  heading?: string;
+  showStoreCard?: boolean;
   /** The race's slug, for race merch in the store card. */
   storePage?: string;
 }) {
@@ -187,7 +191,7 @@ export function WeekendNewsSection({
           id="weekend-news"
           className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
-          What changed this weekend
+          {heading}
         </h2>
       </div>
 
@@ -199,13 +203,17 @@ export function WeekendNewsSection({
         newsLink={newsLink}
         targetId={targetId}
         className="mt-7"
-        trailing={(wide, leanClassName) => (
-          <RaceWriteupStoreCard
-            wide={wide}
-            storePage={storePage}
-            leanClassName={leanClassName}
-          />
-        )}
+        trailing={
+          showStoreCard
+            ? (wide, leanClassName) => (
+                <RaceWriteupStoreCard
+                  wide={wide}
+                  storePage={storePage}
+                  leanClassName={leanClassName}
+                />
+              )
+            : undefined
+        }
       />
 
       {/* Native `<details>`, like the FAQ: the folded cards are still in the

@@ -35,6 +35,7 @@ export function RaceWriteupHero({
   summary,
   phase,
   raceSlug,
+  nextRace,
   venueName,
   primaryActionTargetId,
   signalsHeading,
@@ -47,6 +48,7 @@ export function RaceWriteupHero({
   summary: string;
   phase: RaceWriteupPhase;
   raceSlug: string;
+  nextRace?: { slug: string; name: string } | null;
   venueName: string;
   primaryActionTargetId?: string;
   signalsHeading?: string;
@@ -89,9 +91,16 @@ export function RaceWriteupHero({
           phase={phase}
           primaryActionTargetId={primaryActionTargetId}
           raceSlug={raceSlug}
+          nextRace={nextRace}
           venueName={venueName}
           signalsHeading={signalsHeading}
         />
+        {phase === 'finished' && nextRace ? (
+          <p className="mt-3 max-w-xl text-sm leading-6 text-text-muted">
+            Choose five drivers in finishing order. You can start before signing
+            in; saving your picks needs a free account.
+          </p>
+        ) : null}
       </header>
 
       <RaceWriteupWeekendSchedule

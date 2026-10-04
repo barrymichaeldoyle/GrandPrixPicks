@@ -13,6 +13,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
+import { pathToFileURL } from 'node:url';
 
 const repoRoot = path.resolve(import.meta.dirname, '..');
 const backendDir = path.join(repoRoot, 'apps/backend');
@@ -74,11 +75,22 @@ function fail(message) {
 // ---------------------------------------------------------------------------
 // convex
 
+// Names, never values: these end up in error output that agents paste around.
+function missingProdCredentials() {
+  return ['CONVEX_DEPLOY_KEY', 'CONVEX_DEPLOYMENT'].every(
+    (name) => !process.env[name],
+  );
+}
+
+const PROD_CREDENTIALS_HINT =
+  'For --prod, set CONVEX_DEPLOY_KEY (or CONVEX_DEPLOYMENT) in the environment.';
+
 function convexRun(fn, args, { prod }) {
   // The backend's own convex binary, run from its directory so it picks up
   // apps/backend/.env.local, the same as `pnpm dev:backend`.
+  const convexBin = path.join(backendDir, 'node_modules/.bin/convex');
   const result = spawnSync(
-    path.join(backendDir, 'node_modules/.bin/convex'),
+    convexBin,
     [
       'run',
       fn,
@@ -91,8 +103,30 @@ function convexRun(fn, args, { prod }) {
     ],
     { cwd: backendDir, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
   );
+  // A spawn failure (binary missing, not executable) leaves status, stdout
+  // and stderr all null and puts the cause in result.error. Without this
+  // check it reads as a failed function call that printed "null null".
+  if (result.error) {
+    const relBin = path.relative(repoRoot, convexBin);
+    const reason =
+      result.error.code === 'ENOENT'
+        ? `convex CLI not found at ${relBin}. Run pnpm install first.`
+        : `could not start the convex CLI at ${relBin}: ${result.error.message}`;
+    fail(
+      `${fn}: ${reason}` +
+        (prod && missingProdCredentials() ? `\n${PROD_CREDENTIALS_HINT}` : ''),
+    );
+  }
   if (result.status !== 0) {
-    const raw = `${result.stderr}\n${result.stdout}`;
+    const raw = `${result.stderr ?? ''}\n${result.stdout ?? ''}`;
+    if (/No CONVEX_DEPLOYMENT set/i.test(raw)) {
+      fail(
+        `${fn}: no Convex deployment configured.\n` +
+          (prod
+            ? PROD_CREDENTIALS_HINT
+            : 'For dev, run `pnpm dev:backend` once so apps/backend/.env.local has CONVEX_DEPLOYMENT.'),
+      );
+    }
     if (/Could not find (public )?function/i.test(raw)) {
       fail(
         `${fn} is not on ${prod ? 'prod' : 'dev'} yet. A push to main deploys it` +
@@ -535,6 +569,22 @@ function overlap(a, b) {
   return { shared, jaccard: shared / (a.size + b.size - shared || 1) };
 }
 
+// Plain `node` only strips types from .ts files on 22.18+ / 23.6+, so load
+// TypeScript through tsx's API rather than a bare import(). Imported lazily
+// so the commands that don't need it keep working without it.
+async function importTs(file) {
+  let tsImport;
+  try {
+    ({ tsImport } = await import('tsx/esm/api'));
+  } catch (error) {
+    if (error?.code === 'ERR_MODULE_NOT_FOUND') {
+      fail('tsx is not installed. Run pnpm install first.');
+    }
+    throw error;
+  }
+  return tsImport(pathToFileURL(file).href, import.meta.url);
+}
+
 async function newsScan(slug, flags) {
   if (!slug) {
     fail('news scan <slug>');
@@ -551,7 +601,7 @@ async function newsScan(slug, flags) {
       Promise.resolve(
         season ? convexRun('races:listRaces', { season }, flags) : [],
       ),
-      import(path.join(repoRoot, 'packages/shared/src/circuits.ts')),
+      importTs(path.join(repoRoot, 'packages/shared/src/circuits.ts')),
     ]);
   const race = existing?.race;
   if (!race) {

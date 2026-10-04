@@ -59,6 +59,7 @@
     "oxfmt": "0.71.0",
     "oxlint": "1.86.0",
     "patch-pulse": "4.1.1",
+    "tsx": "4.23.15",
     "typescript": "catalog:"
   },
   "packageManager": "pnpm@12.4.1"

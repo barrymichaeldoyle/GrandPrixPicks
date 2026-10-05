@@ -131,6 +131,75 @@ export function sessionsForWeekend(hasSprint: boolean): string[] {
  * messages are written for whoever ran the command: an agent that gets one back
  * should be able to fix the call without reading this file.
  */
+/**
+ * A publish refusal the operator can fix without reading this file.
+ *
+ * Simple cases are a message only. Timestamp mistakes also carry the value,
+ * how it reads in UTC, and (for future dates) the latest allowed time, so the
+ * caller does not have to decode the number.
+ */
+export type PublishValidationProblem = {
+  message: string;
+  code?:
+    | 'SOURCE_PUBLISHED_AT_IN_FUTURE'
+    | 'SOURCE_PUBLISHED_AT_SECONDS'
+    | 'SOURCE_PUBLISHED_AT_INVALID';
+  sourcePublishedAt?: number;
+  sourcePublishedAtIso?: string;
+  serverNowIso?: string;
+  latestAllowedIso?: string;
+  suggestedSourcePublishedAt?: number;
+};
+
+/** Milliseconds or an ISO 8601 string with an explicit offset. */
+const epochMsValidator = v.union(v.number(), v.string());
+
+/**
+ * Turn a publish date argument into epoch ms.
+ *
+ * Accepts a number (milliseconds) or an ISO 8601 string. Prefer a string with
+ * an explicit offset when calling by hand, e.g. "2026-09-28T10:00:00+02:00",
+ * so the conversion is not done ad hoc on the client.
+ */
+export function parseEpochInput(
+  value: number | string | undefined,
+  field: string,
+):
+  | { ok: true; ms: number | undefined }
+  | { ok: false; problem: PublishValidationProblem } {
+  if (value === undefined) {
+    return { ok: true, ms: undefined };
+  }
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      return {
+        ok: false,
+        problem: {
+          code: 'SOURCE_PUBLISHED_AT_INVALID',
+          message: `${field} must be a finite number of milliseconds, or an ISO 8601 timestamp with an explicit offset.`,
+          sourcePublishedAt: value,
+        },
+      };
+    }
+    return { ok: true, ms: value };
+  }
+  const trimmed = value.trim();
+  const ms = Date.parse(trimmed);
+  if (Number.isNaN(ms)) {
+    return {
+      ok: false,
+      problem: {
+        code: 'SOURCE_PUBLISHED_AT_INVALID',
+        message:
+          `${field} "${value}" is not a valid timestamp. ` +
+          'Pass milliseconds, or an ISO 8601 string with an explicit offset ' +
+          '(for example "2026-09-28T10:00:00+02:00").',
+      },
+    };
+  }
+  return { ok: true, ms };
+}
+
 export function validatePublishInput(input: {
   raceName: string;
   hasSprint: boolean;
@@ -139,15 +208,18 @@ export function validatePublishInput(input: {
   sourceUrl: string;
   sourcePublishedAt?: number;
   now: number;
-}): string | null {
+}): PublishValidationProblem | null {
   if (
     (input.category ?? 'pick_related') === 'pick_related' &&
     input.affectsSessions.length === 0
   ) {
-    return 'Pick-related news must name at least one session; general news may have none.';
+    return {
+      message:
+        'Pick-related news must name at least one session; general news may have none.',
+    };
   }
   if (input.category === 'general' && input.affectsSessions.length !== 0) {
-    return 'General news cannot name affected sessions.';
+    return { message: 'General news cannot name affected sessions.' };
   }
 
   // A weekend only runs the sessions it has, so `["sprint"]` on a conventional
@@ -156,42 +228,64 @@ export function validatePublishInput(input: {
   const weekend = sessionsForWeekend(input.hasSprint);
   const impossible = input.affectsSessions.filter((s) => !weekend.includes(s));
   if (impossible.length > 0) {
-    return (
-      `${input.raceName} has no ${impossible.join(', ')} session. ` +
-      `This weekend runs: ${weekend.join(', ')}.`
-    );
+    return {
+      message:
+        `${input.raceName} has no ${impossible.join(', ')} session. ` +
+        `This weekend runs: ${weekend.join(', ')}.`,
+    };
   }
 
   if (!/^https?:\/\//.test(input.sourceUrl)) {
-    return 'sourceUrl must be a full http(s) URL.';
+    return { message: 'sourceUrl must be a full http(s) URL.' };
   }
 
   const sourcePublishedAt = input.sourcePublishedAt;
   if (sourcePublishedAt !== undefined) {
+    const sourcePublishedAtIso = isoUtc(sourcePublishedAt)!;
     // Seconds where milliseconds were meant is the mistake to expect: most
     // article metadata is in seconds, and the two are indistinguishable to a
     // validator that only checks the type. Left alone it dates a 2026 penalty
     // to 1970, which renders as a perfectly ordinary date on the card.
     if (sourcePublishedAt < SECONDS_EPOCH_CEILING) {
-      return (
-        'sourcePublishedAt looks like seconds, not milliseconds. ' +
-        `Multiply by 1000: ${sourcePublishedAt * 1000}.`
-      );
+      const suggested = sourcePublishedAt * 1000;
+      return {
+        code: 'SOURCE_PUBLISHED_AT_SECONDS',
+        message:
+          `sourcePublishedAt ${sourcePublishedAt} reads as ${sourcePublishedAtIso}. ` +
+          `That looks like a seconds-epoch value; pass milliseconds instead ` +
+          `(${suggested}).`,
+        sourcePublishedAt,
+        sourcePublishedAtIso,
+        suggestedSourcePublishedAt: suggested,
+      };
     }
     // A day of slack, because a source's timestamp is in its own timezone and
     // occasionally runs ahead of ours. Beyond that it is a typo, and a card
     // dated tomorrow undermines every date on the page.
-    if (sourcePublishedAt > input.now + DAY_MS) {
-      return 'sourcePublishedAt is in the future. Use when the source published the story.';
+    const latestAllowed = input.now + DAY_MS;
+    if (sourcePublishedAt > latestAllowed) {
+      const serverNowIso = isoUtc(input.now)!;
+      const latestAllowedIso = isoUtc(latestAllowed)!;
+      return {
+        code: 'SOURCE_PUBLISHED_AT_IN_FUTURE',
+        message:
+          `sourcePublishedAt ${sourcePublishedAt} reads as ${sourcePublishedAtIso}, ` +
+          `which is after the latest allowed time (${latestAllowedIso}). ` +
+          "Use the time on the source's date line.",
+        sourcePublishedAt,
+        sourcePublishedAtIso,
+        serverNowIso,
+        latestAllowedIso,
+      };
     }
   }
 
   return null;
 }
 
-/** `2026-09-05`, for reporting a stored timestamp back to whoever ran the command. */
-function isoDay(at: number | undefined): string | undefined {
-  return at === undefined ? undefined : new Date(at).toISOString().slice(0, 10);
+/** Full UTC ISO timestamp, for proving a stored date back to whoever ran the command. */
+export function isoUtc(at: number | undefined): string | undefined {
+  return at === undefined ? undefined : new Date(at).toISOString();
 }
 
 async function raceBySlug(ctx: QueryCtx | MutationCtx, slug: string) {
@@ -503,17 +597,20 @@ export const publish = internalMutation({
      * round earns its SEO the day it breaks, while the feed stays about the
      * weekend the reader is picking. Omit for news about the current weekend.
      */
-    feedVisibleAt: v.optional(v.number()),
+    feedVisibleAt: v.optional(epochMsValidator),
     /**
-     * When the source published the story (ms epoch), which the write-up page
+     * When the source published the story (ms epoch or ISO 8601 with an
+     * explicit offset), which the write-up page
      * shows beside the source name.
      *
      * Worth setting on every item: the write-up page is read long after the
      * weekend by someone who wants to know when a penalty was handed down, and
-     * `publishedAt` can only tell them when we ran. Omit it rather than guess
-     * when the source carries no date.
+     * `publishedAt` can only tell them when we ran. Prefer an ISO 8601 string
+     * with an explicit offset (for example "2026-09-28T10:00:00+02:00");
+     * milliseconds still work. Omit it rather than guess when the source
+     * carries no date.
      */
-    sourcePublishedAt: v.optional(v.number()),
+    sourcePublishedAt: v.optional(epochMsValidator),
     dryRun: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -525,17 +622,41 @@ export const publish = internalMutation({
         `No race with slug "${args.raceSlug}". Check the slug against the calendar.`,
       );
     }
-    const problem = validatePublishInput({
-      raceName: race.name,
-      hasSprint: Boolean(race.hasSprint),
-      affectsSessions: args.affectsSessions,
-      category: args.category,
-      sourceUrl: args.sourceUrl,
-      sourcePublishedAt: args.sourcePublishedAt,
-      now: Date.now(),
-    });
-    if (problem) {
-      throw new ConvexError(problem);
+
+    const parsedSource = parseEpochInput(
+      args.sourcePublishedAt,
+      'sourcePublishedAt',
+    );
+    const parsedFeedVisible = parseEpochInput(
+      args.feedVisibleAt,
+      'feedVisibleAt',
+    );
+    const sourcePublishedAtMs = parsedSource.ok ? parsedSource.ms : undefined;
+    const feedVisibleAtArg = parsedFeedVisible.ok
+      ? parsedFeedVisible.ms
+      : undefined;
+
+    let validationProblem: PublishValidationProblem | null = null;
+    if (!parsedSource.ok) {
+      validationProblem = parsedSource.problem;
+    } else if (!parsedFeedVisible.ok) {
+      validationProblem = parsedFeedVisible.problem;
+    } else {
+      validationProblem = validatePublishInput({
+        raceName: race.name,
+        hasSprint: Boolean(race.hasSprint),
+        affectsSessions: args.affectsSessions,
+        category: args.category,
+        sourceUrl: args.sourceUrl,
+        sourcePublishedAt: sourcePublishedAtMs,
+        now: Date.now(),
+      });
+    }
+    // Real publishes throw; dry runs report the problem in the preview so a
+    // rehearsal catches a bad stamp before the real call, the same way
+    // missingNewsKeys works for grid links.
+    if (validationProblem && !dryRun) {
+      throw new ConvexError(validationProblem);
     }
 
     // Resolved before the write so a typo fails at publish with a message
@@ -565,7 +686,7 @@ export const publish = internalMutation({
         : ('republished' as const)
       : ('created' as const);
 
-    const feedVisibleAt = args.feedVisibleAt ?? existing?.feedVisibleAt;
+    const feedVisibleAt = feedVisibleAtArg ?? existing?.feedVisibleAt;
     const alreadyInFeed =
       (await feedEventForNews(ctx, race._id, args.key)) !== null;
     // An item already in the feed cannot be un-published by an embargo: that is
@@ -582,10 +703,10 @@ export const publish = internalMutation({
         dryRun: true,
         action,
         feedVisibleAt: heldBack ? feedVisibleAt : undefined,
-        // Echoed as a date rather than the epoch that was passed in. A wrong
-        // but well-formed timestamp is the one mistake validation cannot catch,
-        // and nobody proof-reads 1788680139597.
-        sourcePublished: isoDay(args.sourcePublishedAt),
+        // Full UTC ISO so a wrong hour is as visible as a wrong day. A
+        // well-formed but incorrect timestamp is the one mistake validation
+        // cannot catch, and nobody proof-reads 1788680139597.
+        sourcePublished: isoUtc(sourcePublishedAtMs),
         gridNewsLinks: grid?.resolved.filter((entry) => entry.newsKey).length,
         race: { slug: race.slug, name: race.name, round: race.round },
         key: args.key,
@@ -596,6 +717,9 @@ export const publish = internalMutation({
         // Must be empty before the real run: each entry is a row linking to a
         // story that is not live on this race yet.
         missingNewsKeys: grid?.missingNewsKeys,
+        // Empty (or absent) before the real run: timestamp and field mistakes
+        // that would otherwise throw on apply.
+        validationProblem: validationProblem ?? undefined,
       };
     }
 
@@ -623,13 +747,13 @@ export const publish = internalMutation({
       // Spread for the same reason the photo is: a correction to the copy on
       // the grid item should not have to restate 22 rows to keep them.
       ...(grid !== undefined ? { startingGrid: grid.stored } : {}),
-      ...(args.feedVisibleAt !== undefined
-        ? { feedVisibleAt: args.feedVisibleAt }
+      ...(feedVisibleAtArg !== undefined
+        ? { feedVisibleAt: feedVisibleAtArg }
         : {}),
       // Spread like the photo and the grid: a correction to the copy should not
       // have to restate the source's date to keep it.
-      ...(args.sourcePublishedAt !== undefined
-        ? { sourcePublishedAt: args.sourcePublishedAt }
+      ...(sourcePublishedAtMs !== undefined
+        ? { sourcePublishedAt: sourcePublishedAtMs }
         : {}),
       active: true,
       updatedAt: now,
@@ -683,8 +807,8 @@ export const publish = internalMutation({
       gridPositions: grid?.resolved.length,
       feedVisibleAt: heldBack ? feedVisibleAt : undefined,
       gridNewsLinks: grid?.resolved.filter((entry) => entry.newsKey).length,
-      sourcePublished: isoDay(
-        args.sourcePublishedAt ?? existing?.sourcePublishedAt,
+      sourcePublished: isoUtc(
+        sourcePublishedAtMs ?? existing?.sourcePublishedAt,
       ),
     };
   },

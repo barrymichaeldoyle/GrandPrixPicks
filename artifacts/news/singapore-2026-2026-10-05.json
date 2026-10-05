@@ -1,0 +1,38 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "audi-singapore-special-livery",
+    "headline": "Audi unveils a special livery for Singapore",
+    "body": "Audi's R26 will carry a Singapore-specific silver finish with a traditional Peranakan pattern on the sidepods and rear wing. The design, inspired by the city's transition from daylight to twilight, also appears on Nico Hulkenberg and Gabriel Bortoleto's race suits.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HUL", "BOR"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/gallery-audi-unveil-special-livery-for-singapore-grand-prix.5Z07QWFA7vVqCPC1jb6AIq",
+    "sourcePublishedAt": "2026-10-05T13:02:23.602Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "bottas-cycles-to-singapore",
+    "headline": "Bottas is cycling from Malaysia to Singapore",
+    "body": "Valtteri Bottas is travelling to the Singapore Grand Prix by bike alongside his partner, professional cyclist Tiffany Cromwell. The Cadillac driver began the journey after the Sepang race and is due in Singapore for Thursday's media commitments.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["BOT"],
+    "sourceName": "BBC Sport",
+    "sourceUrl": "https://www.bbc.co.uk/sport/formula1/articles/cv2d6p9en7wdo",
+    "sourcePublishedAt": "2026-10-05T19:00:23.041Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "russell-singapore-engine-penalty-risk",
+    "headline": "Russell faces a possible engine penalty in Singapore",
+    "body": "Mercedes is checking whether the power unit that failed at Sepang can be repaired. If Russell needs a fresh unit for Singapore, he faces a grid penalty, with another possible penalty for the expected engine upgrade in Austin.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["RUS"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/george-russell-at-risk-of-double-whammy-grid-penalty/",
+    "sourcePublishedAt": "2026-10-05T14:04:55.000Z"
+  }
+]

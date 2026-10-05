@@ -305,7 +305,9 @@ function StoreProductList({
             />
             <span className="min-w-0">
               <span className="line-clamp-2 text-sm text-text group-hover:underline">
-                {product.name}
+                {/* The upstream catalog misspells Norris; correct the display
+                    name here so catalog refreshes keep the correction. */}
+                {product.name.replace(/\bLando Noris\b/g, 'Lando Norris')}
               </span>
               <span className="gpp-mono mt-1 block text-sm">
                 <span className="font-semibold text-text">

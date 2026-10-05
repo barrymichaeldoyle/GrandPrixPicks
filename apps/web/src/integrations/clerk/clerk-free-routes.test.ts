@@ -11,6 +11,7 @@ describe('isClerkFreeRoute', () => {
       '/races/monaco-2026/practice',
       '/f1-standings',
       '/f1-2026-italian-grand-prix-predictions',
+      '/f1-2026-singapore-grand-prix-predictions',
       '/f1-2027-calendar',
       '/f1-2027-driver-line-up',
       '/f1-team-mate-battles',

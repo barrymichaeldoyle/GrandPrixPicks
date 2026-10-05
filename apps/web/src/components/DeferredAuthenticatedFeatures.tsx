@@ -8,7 +8,8 @@ import { identifyAnalyticsUser, resetAnalyticsUser } from '@/lib/analytics';
 import { ErrorBoundary } from './error/ErrorBoundary';
 import { UpcomingPredictionBanner } from './UpcomingPredictionBanner/UpcomingPredictionBanner';
 
-export function DeferredObservabilityUserSync() {
+/** Identify before the following siblings report auth completion or recover picks. */
+export function ObservabilityUserSync() {
   const { user, isLoaded } = useUser();
   const prevIdRef = useRef<string | null>(null);
 

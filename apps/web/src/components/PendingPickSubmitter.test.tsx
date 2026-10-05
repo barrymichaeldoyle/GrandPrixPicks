@@ -131,6 +131,22 @@ describe('PendingPickSubmitter', () => {
       events.filter((name) => name === 'landing_auth_completed'),
     ).toHaveLength(1);
     expect(analyticsSpy).toHaveBeenCalledWith(
+      'prediction_saved',
+      expect.objectContaining({
+        source: 'landing',
+        prediction_type: 'top5',
+        after_sign_in: true,
+      }),
+    );
+    expect(analyticsSpy).toHaveBeenCalledWith(
+      'prediction_saved',
+      expect.objectContaining({
+        source: 'landing',
+        prediction_type: 'h2h',
+        after_sign_in: true,
+      }),
+    );
+    expect(analyticsSpy).toHaveBeenCalledWith(
       'landing_prediction_saved',
       expect.objectContaining({ prediction_type: 'top5', after_sign_in: true }),
     );
@@ -210,6 +226,7 @@ describe('PendingPickSubmitter', () => {
 
   it('drops the intent but keeps the draft when a submit fails', async () => {
     seedTop5();
+    window.sessionStorage.setItem(`${TOP5_KEY}:pending-submit`, 'landing');
     top5Spy.mockRejectedValue(new Error('Session already locked'));
     convexAuth.isAuthenticated = true;
 
@@ -219,6 +236,10 @@ describe('PendingPickSubmitter', () => {
     // player should still find their picks in the picker.
     expect(hasPendingSubmit(TOP5_KEY)).toBe(false);
     expect(loadPredictionDraft(TOP5_KEY)).not.toBeNull();
+    const events = analyticsSpy.mock.calls.map(([name]) => name);
+    expect(events).toContain('landing_auth_completed');
+    expect(events).not.toContain('prediction_saved');
+    expect(events).not.toContain('landing_prediction_saved');
   });
 
   it('never submits an incomplete Top 5', async () => {

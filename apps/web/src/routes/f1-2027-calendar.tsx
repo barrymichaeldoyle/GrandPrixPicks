@@ -14,6 +14,10 @@ import { getCountryCodeForRaceSlug } from '@grandprixpicks/shared/raceCountries'
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 import { RaceFlag } from '@/components/RaceFlag';
 import { PicksCallToAction } from '@/components/PicksCallToAction/PicksCallToAction';
+import {
+  SUPPORT_CALENDAR_2027,
+  SUPPORT_CALENDAR_2027_SOURCES,
+} from '@/lib/supportCalendar2027';
 
 /**
  * The 2027 calendar, now that there is a 2027 calendar.
@@ -163,6 +167,15 @@ function F1Calendar2027Page() {
             sprint weekends.
           </p>
           <p className="gpp-reading-copy mt-4 text-text-muted">
+            <a
+              href="#support-series"
+              className="font-medium text-accent underline-offset-2 hover:underline"
+            >
+              F2 and F3 weekend dates
+            </a>{' '}
+            are listed below alongside their F1 venues.
+          </p>
+          <p className="gpp-reading-copy mt-4 text-text-muted">
             <Link
               to="/f1-2027-driver-line-up"
               className="font-medium text-accent underline-offset-2 hover:underline"
@@ -233,6 +246,108 @@ function F1Calendar2027Page() {
           <p className="gpp-reading-meta mt-4 rounded-lg border border-border/70 bg-surface-muted/30 px-4 py-3 text-text-muted">
             Session times are not published this far out. Dates can still be
             amended before the season starts, as they are most years.
+          </p>
+        </section>
+
+        <section aria-labelledby="support-series" className="mt-12 sm:mt-16">
+          <h2
+            id="support-series"
+            className="font-title text-2xl font-semibold text-text sm:text-3xl"
+          >
+            F2 and F3 in 2027
+          </h2>
+          <p className="gpp-reading-copy mt-3 max-w-3xl text-text-muted">
+            Formula 2 and Formula 3 published their calendars on 5 October 2026.
+            All 14 F2 rounds and ten F3 rounds share a weekend with F1. Both
+            calendars list Thursday starts in Montréal and Monaco; F3 finishes
+            in Istanbul, while F2 continues to Abu Dhabi.
+          </p>
+          <p className="gpp-reading-meta mt-3 text-text-muted">
+            Official announcements:{' '}
+            <a
+              href={SUPPORT_CALENDAR_2027_SOURCES.f2}
+              className="font-medium text-accent underline-offset-2 hover:underline"
+            >
+              2027 Formula 2 calendar
+            </a>{' '}
+            and{' '}
+            <a
+              href={SUPPORT_CALENDAR_2027_SOURCES.f3}
+              className="font-medium text-accent underline-offset-2 hover:underline"
+            >
+              2027 Formula 3 calendar
+            </a>
+            .
+          </p>
+          <div className="mt-6 overflow-x-auto rounded-xl border border-border">
+            <table className="w-full min-w-[28rem] border-collapse text-sm">
+              <caption className="sr-only">
+                2027 support-series weekends at F1 venues, with F2 and F3 round
+                numbers.
+              </caption>
+              <thead>
+                <tr className="bg-surface-muted/40 text-left">
+                  {['Venue', 'Support dates', 'F2 round', 'F3 round'].map(
+                    (label) => (
+                      <th
+                        key={label}
+                        scope="col"
+                        className="gpp-label px-3 py-3 sm:px-4"
+                      >
+                        {label}
+                      </th>
+                    ),
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {SUPPORT_CALENDAR_2027.map((support) => {
+                  const round = CALENDAR_2027.find(
+                    (round) => round.slug === support.slug,
+                  )!;
+                  return (
+                    <tr
+                      key={support.slug}
+                      className="border-t border-border/70"
+                    >
+                      <th
+                        scope="row"
+                        className="px-3 py-3 text-left align-top font-medium text-text sm:px-4"
+                      >
+                        {round.venue}
+                        {support.condition ? (
+                          <span className="gpp-reading-meta mt-1 block text-text-muted">
+                            {support.condition}
+                          </span>
+                        ) : null}
+                      </th>
+                      <td className="px-3 py-3 align-top whitespace-nowrap text-text-muted sm:px-4">
+                        {support.dates}
+                      </td>
+                      <td className="gpp-mono px-3 py-3 align-top text-text-muted sm:px-4">
+                        {support.f2Round}
+                      </td>
+                      <td className="gpp-mono px-3 py-3 align-top text-text-muted sm:px-4">
+                        {support.f3Round ?? (
+                          <span aria-label="No F3 round">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
+            F1 Academy has not published a 2027 calendar as of 5 October 2026.
+            Its{' '}
+            <a
+              href={SUPPORT_CALENDAR_2027_SOURCES.academy}
+              className="font-medium text-accent underline-offset-2 hover:underline"
+            >
+              official calendar
+            </a>{' '}
+            still lists the 2026 season.
           </p>
         </section>
 

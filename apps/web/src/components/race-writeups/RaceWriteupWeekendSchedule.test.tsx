@@ -110,21 +110,34 @@ describe('RaceWriteupWeekendSchedule', () => {
       return container!;
     }
 
-    it('re-reads the schedule in the viewer’s zone on request', () => {
+    it('defaults to the viewer’s own zone once hydrated', () => {
+      const el = render(FOREIGN_ZONE);
+      // "My time" is the default, so the schedule already reads in the
+      // viewer's zone and the track-time label is gone without a click.
+      expect(el.textContent).not.toContain('TRACK TIME');
+      const myTime = [...el.querySelectorAll('button')].find(
+        (button) => button.textContent === 'My time',
+      );
+      expect(myTime?.getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('switches to track time on request and saves the choice', () => {
       const el = render(FOREIGN_ZONE);
       function raceTime() {
         return [...el.querySelectorAll('dd')].at(-1)?.textContent;
       }
-      const trackTime = raceTime();
+      const viewerTime = raceTime();
 
-      const myTime = [...el.querySelectorAll('button')].find(
-        (button) => button.textContent === 'My time',
+      const trackTime = [...el.querySelectorAll('button')].find(
+        (button) => button.textContent === 'Track time',
       );
-      expect(myTime).toBeDefined();
-      act(() => myTime!.click());
+      expect(trackTime).toBeDefined();
+      act(() => trackTime!.click());
 
-      expect(raceTime()).not.toBe(trackTime);
-      expect(el.textContent).not.toContain('TRACK TIME');
+      expect(raceTime()).not.toBe(viewerTime);
+      expect(el.textContent).toContain('TRACK TIME');
+      // The choice is saved, so it holds across a reload.
+      expect(localStorage.getItem('session-time-view')).toBe('track');
     });
 
     it('offers no toggle to a reader already in the track’s zone', () => {

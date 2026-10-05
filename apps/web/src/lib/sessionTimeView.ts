@@ -1,16 +1,30 @@
 import { useSyncExternalStore } from 'react';
 
+import { captureAnalyticsEvent } from '@/lib/analytics';
+
 /**
  * Track time vs the viewer's zone, shared by the write-up schedule and the
  * practice countdown sitting under it.
  *
  * The preference lives in this module rather than in either card so flipping
  * the toggle on the schedule re-reads the countdown without a second control.
- * Default is track time: that is what the edge-cached HTML can honestly
- * render, and what a reader who never touches the toggle should keep seeing.
+ *
+ * The server and hydration both render track time, because that is what the
+ * edge-cached HTML can honestly carry (a baked-in zone would be one reader's
+ * zone served to everybody). After hydration the client reads the reader's own
+ * saved choice, which defaults to "My time": most readers are not in the
+ * track's zone, so their own time is the one they want without a click. The
+ * choice is saved to `localStorage`, so it holds across reloads and visits.
  */
 
-let preferViewerTime = false;
+const STORAGE_KEY = 'session-time-view';
+
+/**
+ * `null` until the first client read, which loads the saved choice. Keeping the
+ * resolved value afterwards makes the store snapshot stable, which
+ * `useSyncExternalStore` needs.
+ */
+let preferViewerTime: boolean | null = null;
 const listeners = new Set<() => void>();
 
 function subscribePreferViewerTime(onStoreChange: () => void) {
@@ -20,7 +34,26 @@ function subscribePreferViewerTime(onStoreChange: () => void) {
   };
 }
 
-function readPreferViewerTime() {
+/** The saved choice, defaulting to the viewer's own time. */
+function loadPreferViewerTime(): boolean {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === 'track') {
+      return false;
+    }
+    if (saved === 'viewer') {
+      return true;
+    }
+  } catch {
+    // A blocked or missing store falls back to the default.
+  }
+  return true;
+}
+
+function readPreferViewerTime(): boolean {
+  if (preferViewerTime === null) {
+    preferViewerTime = loadPreferViewerTime();
+  }
   return preferViewerTime;
 }
 
@@ -29,10 +62,18 @@ function readTrackTime() {
 }
 
 function setPreferViewerTime(value: boolean) {
-  if (preferViewerTime === value) {
+  if (readPreferViewerTime() === value) {
     return;
   }
   preferViewerTime = value;
+  try {
+    localStorage.setItem(STORAGE_KEY, value ? 'viewer' : 'track');
+  } catch {
+    // The choice still holds for this page without a store to save it in.
+  }
+  captureAnalyticsEvent('session_time_view_changed', {
+    view: value ? 'viewer' : 'track',
+  });
   for (const listener of listeners) {
     listener();
   }
@@ -107,7 +148,15 @@ export function useSessionTimeView(trackTimeZone: string): {
   };
 }
 
-/** Test isolation: the preference is process-global. */
+/** Test isolation: the preference is process-global and saved to localStorage. */
 export function resetSessionTimeView() {
-  setPreferViewerTime(false);
+  preferViewerTime = null;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Nothing to clear.
+  }
+  for (const listener of listeners) {
+    listener();
+  }
 }

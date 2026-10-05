@@ -115,7 +115,7 @@ npx convex run --prod raceNews:publish '{
   "affectsSessions": ["race"],
   "sourceName": "Formula 1",
   "sourceUrl": "https://www.formula1.com/en/latest/article/...",
-  "sourcePublishedAt": 1788428400000,
+  "sourcePublishedAt": "2026-09-03T09:00:00Z",
   "dryRun": true
 }'
 
@@ -279,14 +279,18 @@ split (`WeekendSplit`) either side of it. The card still shows when it arrived.
 race changes, so a late story never sits under the next weekend's flag. A story
 about no race joins the weekend at the top of the feed when it arrives.
 
-Set it from the source's own date line. Milliseconds, not seconds — publishing
-refuses a seconds-epoch value and hands back the corrected number, because
-untouched it dates a 2026 penalty to 1970 and renders as an ordinary date. It
-also refuses a date more than a day in the future, and allows anything inside
-that, since a source stamps its own timezone. The dry run echoes the date back
-as `sourcePublished: "2026-09-05"` rather than the epoch, because a wrong but
-well-formed timestamp is the one mistake validation cannot catch and nobody
-proof-reads `1788680139597`.
+Set it from the source's own date line. Prefer an ISO 8601 string with an
+explicit offset, for example `"2026-09-28T10:00:00+02:00"`. Milliseconds still
+work. Publishing refuses a seconds-epoch value and names the corrected
+millisecond figure, because untouched it dates a 2026 penalty to 1970 and
+renders as an ordinary date. It also refuses a date more than a day in the
+future, and allows anything inside that, since a source stamps its own timezone.
+Both refusals include the value and its UTC reading. On a dry run the same
+problem is returned as `validationProblem` instead of thrown. The dry run (and
+a real publish) echo the stamp back as a full UTC ISO timestamp, for example
+`sourcePublished: "2026-09-05T09:30:00.000Z"`, because a wrong but well-formed
+timestamp is the one mistake validation cannot catch and nobody proof-reads
+`1788680139597`.
 
 Omit it when the source carries no date. Blank is honest; a guess is a date on a
 public page that we made up.

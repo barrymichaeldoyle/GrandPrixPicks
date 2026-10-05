@@ -35,7 +35,7 @@ const HELP = `gpp <command> [args] [--prod] [--json]
                                   --skill <name>  sessions that ran it   --session <id,...>  by id prefix
 
 Flags: --prod targets production Convex. --json prints the raw result.
-In publish files, sourcePublishedAt and feedVisibleAt may be ISO dates.`;
+In publish files, sourcePublishedAt and feedVisibleAt may be ISO timestamps (prefer an explicit offset).`;
 
 // ---------------------------------------------------------------------------
 // args
@@ -393,6 +393,11 @@ function newsPublish(file, flags) {
     console.log(bits.join('  '));
     if (res.missingNewsKeys?.length) {
       console.log(`  MISSING newsKeys: ${JSON.stringify(res.missingNewsKeys)}`);
+    }
+    if (res.validationProblem) {
+      console.log(
+        `  VALIDATION: ${res.validationProblem.message ?? JSON.stringify(res.validationProblem)}`,
+      );
     }
   }
   if (!apply) {

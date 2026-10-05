@@ -1,10 +1,18 @@
-import { describe, expect, it } from 'vitest';
+/// <reference types="vite/client" />
 
+import { convexTest } from 'convex-test';
+import { ConvexError } from 'convex/values';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import { internal } from './_generated/api';
 import {
+  isoUtc,
+  parseEpochInput,
   resolveStartingGrid,
   sessionsForWeekend,
   validatePublishInput,
 } from './raceNews';
+import schema from './schema';
 
 const NOW = Date.parse('2026-09-06T12:00:00Z');
 
@@ -40,8 +48,8 @@ describe('validatePublishInput', () => {
     // The editorial rule, enforced rather than documented: if nothing is
     // affected, this is a story for a write-up page and not for the feed.
     const problem = validatePublishInput({ ...base, affectsSessions: [] });
-    expect(problem).toMatch(/at least one session/);
-    expect(problem).toMatch(/general news/);
+    expect(problem?.message).toMatch(/at least one session/);
+    expect(problem?.message).toMatch(/general news/);
   });
 
   it('allows general news without a session and rejects invented impact', () => {
@@ -52,9 +60,9 @@ describe('validatePublishInput', () => {
         affectsSessions: [],
       }),
     ).toBeNull();
-    expect(validatePublishInput({ ...base, category: 'general' })).toMatch(
-      /cannot name affected sessions/,
-    );
+    expect(
+      validatePublishInput({ ...base, category: 'general' })?.message,
+    ).toMatch(/cannot name affected sessions/);
   });
 
   it('refuses a session the weekend does not run', () => {
@@ -64,10 +72,10 @@ describe('validatePublishInput', () => {
       ...base,
       affectsSessions: ['sprint'],
     });
-    expect(problem).toMatch(/has no sprint session/);
+    expect(problem?.message).toMatch(/has no sprint session/);
     // The message names what the weekend does run, so the caller can fix the
     // call without going to look it up.
-    expect(problem).toMatch(/quali, race/);
+    expect(problem?.message).toMatch(/quali, race/);
   });
 
   it('allows sprint sessions on a sprint weekend', () => {
@@ -87,7 +95,7 @@ describe('validatePublishInput', () => {
       ...base,
       affectsSessions: ['sprint', 'sprint_quali'],
     });
-    expect(problem).toMatch(/sprint, sprint_quali/);
+    expect(problem?.message).toMatch(/sprint, sprint_quali/);
   });
 
   it('accepts several real sessions', () => {
@@ -98,9 +106,9 @@ describe('validatePublishInput', () => {
 
   it('refuses a source that is not a full URL', () => {
     expect(
-      validatePublishInput({ ...base, sourceUrl: 'formula1.com' }),
+      validatePublishInput({ ...base, sourceUrl: 'formula1.com' })?.message,
     ).toMatch(/full http/);
-    expect(validatePublishInput({ ...base, sourceUrl: '' })).toMatch(
+    expect(validatePublishInput({ ...base, sourceUrl: '' })?.message).toMatch(
       /full http/,
     );
   });
@@ -133,19 +141,32 @@ describe('validatePublishInput', () => {
       ...base,
       sourcePublishedAt: seconds,
     });
-    expect(problem).toMatch(/seconds, not milliseconds/);
-    // The message carries the corrected value, so the caller does not do the
-    // arithmetic itself.
-    expect(problem).toContain(String(seconds * 1000));
+    expect(problem).toMatchObject({
+      code: 'SOURCE_PUBLISHED_AT_SECONDS',
+      sourcePublishedAt: seconds,
+      sourcePublishedAtIso: isoUtc(seconds),
+      suggestedSourcePublishedAt: seconds * 1000,
+    });
+    expect(problem?.message).toContain(String(seconds * 1000));
+    expect(problem?.message).toContain(isoUtc(seconds)!);
   });
 
-  it('refuses a source date in the future', () => {
-    expect(
-      validatePublishInput({
-        ...base,
-        sourcePublishedAt: NOW + 3 * 24 * 60 * 60 * 1000,
-      }),
-    ).toMatch(/in the future/);
+  it('refuses a source date in the future with the value and bounds', () => {
+    const stamp = NOW + 3 * 24 * 60 * 60 * 1000;
+    const latestAllowed = NOW + 24 * 60 * 60 * 1000;
+    const problem = validatePublishInput({
+      ...base,
+      sourcePublishedAt: stamp,
+    });
+    expect(problem).toMatchObject({
+      code: 'SOURCE_PUBLISHED_AT_IN_FUTURE',
+      sourcePublishedAt: stamp,
+      sourcePublishedAtIso: isoUtc(stamp),
+      serverNowIso: isoUtc(NOW),
+      latestAllowedIso: isoUtc(latestAllowed),
+    });
+    expect(problem?.message).toContain(isoUtc(stamp)!);
+    expect(problem?.message).toContain(isoUtc(latestAllowed)!);
   });
 
   it('allows a source date slightly ahead of us', () => {
@@ -167,8 +188,66 @@ describe('validatePublishInput', () => {
         ...base,
         affectsSessions: [],
         sourceUrl: 'nope',
-      }),
+      })?.message,
     ).toMatch(/at least one session/);
+  });
+});
+
+describe('parseEpochInput', () => {
+  it('passes through milliseconds', () => {
+    expect(parseEpochInput(1_757_067_000_000, 'sourcePublishedAt')).toEqual({
+      ok: true,
+      ms: 1_757_067_000_000,
+    });
+  });
+
+  it('accepts an ISO string with an explicit offset', () => {
+    expect(
+      parseEpochInput('2026-09-28T10:00:00+02:00', 'sourcePublishedAt'),
+    ).toEqual({
+      ok: true,
+      ms: Date.parse('2026-09-28T08:00:00.000Z'),
+    });
+  });
+
+  it('accepts a Zulu ISO string', () => {
+    expect(
+      parseEpochInput('2026-09-28T08:00:00Z', 'sourcePublishedAt'),
+    ).toEqual({
+      ok: true,
+      ms: Date.parse('2026-09-28T08:00:00.000Z'),
+    });
+  });
+
+  it('refuses a string that is not a timestamp', () => {
+    const result = parseEpochInput('next Tuesday', 'sourcePublishedAt');
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.problem).toMatchObject({
+      code: 'SOURCE_PUBLISHED_AT_INVALID',
+    });
+    expect(result.problem.message).toMatch(/not a valid timestamp/);
+  });
+
+  it('leaves undefined alone', () => {
+    expect(parseEpochInput(undefined, 'sourcePublishedAt')).toEqual({
+      ok: true,
+      ms: undefined,
+    });
+  });
+});
+
+describe('isoUtc', () => {
+  it('echoes a full UTC ISO timestamp', () => {
+    expect(isoUtc(Date.parse('2026-09-28T08:00:00Z'))).toBe(
+      '2026-09-28T08:00:00.000Z',
+    );
+  });
+
+  it('returns undefined when there is no stamp', () => {
+    expect(isoUtc(undefined)).toBeUndefined();
   });
 });
 
@@ -229,5 +308,130 @@ describe('resolveStartingGrid', () => {
       (code) => roster.get(code),
     );
     expect(entry?.note).toBe('3-place penalty');
+  });
+});
+
+/// Integration coverage for the publish path: dry-run reports and ConvexError
+/// shapes for sourcePublishedAt. Unit checks above cover the pure helpers.
+
+const modules = import.meta.glob('./**/*.ts');
+
+const item = {
+  raceSlug: 'italy-2026',
+  key: 'antonelli-grid-penalty',
+  headline: 'Antonelli takes a grid penalty at Monza',
+  body: 'Full power unit change. Ten places minimum.',
+  affectsSessions: ['race' as const],
+  sourceName: 'Formula 1',
+  sourceUrl: 'https://www.formula1.com/en/latest/article/example',
+};
+
+describe('raceNews.publish sourcePublishedAt', () => {
+  let t: ReturnType<typeof convexTest>;
+
+  beforeEach(async () => {
+    t = convexTest(schema, modules);
+    await t.run(async (ctx) => {
+      await ctx.db.insert('races', {
+        season: 2026,
+        round: 13,
+        name: 'Italian Grand Prix',
+        slug: 'italy-2026',
+        raceStartAt: 2_000,
+        predictionLockAt: 1_000,
+        status: 'upcoming',
+        createdAt: 100,
+        updatedAt: 100,
+      });
+    });
+  });
+
+  it('throws a structured ConvexError for a future stamp', async () => {
+    const stamp = Date.now() + 3 * 24 * 60 * 60 * 1000;
+    const error = await t
+      .mutation(internal.raceNews.publish, {
+        ...item,
+        sourcePublishedAt: stamp,
+      })
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(ConvexError);
+    const data = (
+      error as ConvexError<{
+        code: string;
+        message: string;
+        sourcePublishedAt: number;
+        sourcePublishedAtIso: string;
+        latestAllowedIso: string;
+      }>
+    ).data;
+    expect(data).toMatchObject({
+      code: 'SOURCE_PUBLISHED_AT_IN_FUTURE',
+      sourcePublishedAt: stamp,
+      sourcePublishedAtIso: isoUtc(stamp),
+    });
+    expect(data.message).toContain(isoUtc(stamp)!);
+    expect(data.latestAllowedIso).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+  });
+
+  it('reports a future stamp on dry run instead of throwing', async () => {
+    const stamp = Date.now() + 3 * 24 * 60 * 60 * 1000;
+    const preview = await t.mutation(internal.raceNews.publish, {
+      ...item,
+      sourcePublishedAt: stamp,
+      dryRun: true,
+    });
+    expect(preview).toMatchObject({
+      dryRun: true,
+      sourcePublished: isoUtc(stamp),
+      validationProblem: {
+        code: 'SOURCE_PUBLISHED_AT_IN_FUTURE',
+        sourcePublishedAt: stamp,
+        sourcePublishedAtIso: isoUtc(stamp),
+      },
+    });
+  });
+
+  it('echoes sourcePublished as a full UTC ISO on dry run and publish', async () => {
+    const stamp = Date.parse('2026-09-03T09:00:00Z');
+    const preview = await t.mutation(internal.raceNews.publish, {
+      ...item,
+      sourcePublishedAt: stamp,
+      dryRun: true,
+    });
+    expect(preview.sourcePublished).toBe('2026-09-03T09:00:00.000Z');
+    expect(preview.validationProblem).toBeUndefined();
+
+    const published = await t.mutation(internal.raceNews.publish, {
+      ...item,
+      sourcePublishedAt: '2026-09-03T11:00:00+02:00',
+    });
+    expect(published.sourcePublished).toBe('2026-09-03T09:00:00.000Z');
+  });
+
+  it('accepts an ISO string with an explicit offset on publish', async () => {
+    const published = await t.mutation(internal.raceNews.publish, {
+      ...item,
+      sourcePublishedAt: '2026-09-28T10:00:00+02:00',
+    });
+    expect(published.sourcePublished).toBe('2026-09-28T08:00:00.000Z');
+  });
+
+  it('reports a seconds-epoch stamp on dry run', async () => {
+    const seconds = Math.floor(Date.parse('2026-09-05T09:30:00Z') / 1000);
+    const preview = await t.mutation(internal.raceNews.publish, {
+      ...item,
+      sourcePublishedAt: seconds,
+      dryRun: true,
+    });
+    expect(preview).toMatchObject({
+      dryRun: true,
+      sourcePublished: isoUtc(seconds),
+      validationProblem: {
+        code: 'SOURCE_PUBLISHED_AT_SECONDS',
+        sourcePublishedAt: seconds,
+        suggestedSourcePublishedAt: seconds * 1000,
+      },
+    });
   });
 });

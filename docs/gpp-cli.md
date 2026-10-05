@@ -34,8 +34,10 @@ scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
   recheck error).
 - **`news publish`** reads a JSON file holding one item or an array. An array
   runs one item at a time in file order, so stories publish before the grid
-  that links to them. `sourcePublishedAt` and `feedVisibleAt` take an ISO date
-  as well as epoch ms. Editorial rules live in the `publish-race-news` skill.
+  that links to them. `sourcePublishedAt` and `feedVisibleAt` take an ISO 8601
+  timestamp with an explicit offset (or epoch ms); the dry run echoes
+  `sourcePublished` as a full UTC ISO string and reports validation problems in
+  the preview. Editorial rules live in the `publish-race-news` skill.
 - **`news scan`** fetches eight F1 RSS feeds (list in `NEWS_FEEDS`) and prints
   the unfiled stories, two lines each: score, date, outlets, headline, tags,
   then the URL. The window starts a day before the race's newest item, and

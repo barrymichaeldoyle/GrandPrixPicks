@@ -137,9 +137,12 @@ or update.
 scripts/gpp.mjs news publish $SCRATCH/antonelli.json --prod
 ```
 
-`sourcePublishedAt` and `feedVisibleAt` take an ISO date or ms epoch. The dry
-run echoes the source date back. Read it: a timestamp that is well-formed and
-wrong is the one mistake nothing else catches.
+`sourcePublishedAt` and `feedVisibleAt` take an ISO 8601 timestamp with an
+explicit offset (for example `"2026-09-28T10:00:00+02:00"`) or milliseconds.
+The server converts the string. The dry run echoes `sourcePublished` as a full
+UTC ISO timestamp. Read it: a stamp that is well-formed and wrong is the one
+mistake nothing else catches. A validation problem shows up in the preview as
+`validationProblem` instead of throwing, so fix it before `--apply`.
 
 **3. Publish.** The same command plus `--apply`. A first publish (not a
 correction of an existing key) posts to the Discord #news channel
@@ -197,16 +200,18 @@ chance to catch a mistake, not the publish itself.
   against the article's own text, not a summary of it:
   `scripts/gpp.mjs page <url>` prints the article (`--grep` to find a figure).
   WebFetch and search summaries have returned confident wrong answers.
-- **`sourcePublishedAt`** — when the **source** published the story, in
-  milliseconds. Set it on every item you can. The write-up page shows it beside
-  the source name, and that page is read weeks later by somebody who wants to
-  know when a penalty was handed down: `publishedAt` can only tell them when
-  this command ran, and a batch of five items lands two seconds apart. Take the
-  date from the article's own date line rather than from when you found it.
-  Publishing refuses a seconds-epoch value and a date more than a day ahead.
-  Omit it when the source carries no date: blank is honest, a guess is a made-up
-  date on a public page. It does **not** move the feed card, which keeps showing
-  when it arrived.
+- **`sourcePublishedAt`** — when the **source** published the story. Prefer an
+  ISO 8601 string with an explicit offset, taken from the article's own date
+  line: `"2026-09-28T10:00:00+02:00"`. Milliseconds still work. Set it on every
+  item you can. The write-up page shows it beside the source name, and that page
+  is read weeks later by somebody who wants to know when a penalty was handed
+  down: `publishedAt` can only tell them when this command ran, and a batch of
+  five items lands two seconds apart. Publishing refuses a seconds-epoch value
+  and a date more than a day ahead; both refusals name the value and how it
+  reads in UTC. On a dry run the same problem lands in `validationProblem`
+  instead of throwing. Omit it when the source carries no date: blank is honest,
+  a guess is a made-up date on a public page. It does **not** move the feed
+  card, which keeps showing when it arrived.
 
 ## Publishing the starting grid
 

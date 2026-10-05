@@ -110,21 +110,22 @@ describe('RaceWriteupWeekendSchedule', () => {
       return container!;
     }
 
-    it('re-reads the schedule in the viewer’s zone on request', () => {
+    it('defaults to the viewer’s zone and offers track time', () => {
       const el = render(FOREIGN_ZONE);
       function raceTime() {
         return [...el.querySelectorAll('dd')].at(-1)?.textContent;
       }
-      const trackTime = raceTime();
-
-      const myTime = [...el.querySelectorAll('button')].find(
-        (button) => button.textContent === 'My time',
-      );
-      expect(myTime).toBeDefined();
-      act(() => myTime!.click());
-
-      expect(raceTime()).not.toBe(trackTime);
+      const viewerTime = raceTime();
       expect(el.textContent).not.toContain('TRACK TIME');
+
+      const trackTime = [...el.querySelectorAll('button')].find(
+        (button) => button.textContent === 'Track time',
+      );
+      expect(trackTime).toBeDefined();
+      act(() => trackTime!.click());
+
+      expect(raceTime()).not.toBe(viewerTime);
+      expect(el.textContent).toContain('TRACK TIME');
     });
 
     it('offers no toggle to a reader already in the track’s zone', () => {

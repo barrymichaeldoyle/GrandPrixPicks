@@ -6,21 +6,37 @@ import { useSyncExternalStore } from 'react';
  *
  * The preference lives in this module rather than in either card so flipping
  * the toggle on the schedule re-reads the countdown without a second control.
- * Default is track time: that is what the edge-cached HTML can honestly
- * render, and what a reader who never touches the toggle should keep seeing.
+ * Cached HTML uses track time; after hydration the browser defaults to the
+ * viewer's zone and restores their choice from localStorage.
  */
 
-let preferViewerTime = false;
+const STORAGE_KEY = 'gpp:session-time-view';
+let preferViewerTime = true;
 const listeners = new Set<() => void>();
 
 function subscribePreferViewerTime(onStoreChange: () => void) {
   listeners.add(onStoreChange);
+  function onStorage(event: StorageEvent) {
+    if (event.key === STORAGE_KEY || event.key === null) {
+      onStoreChange();
+    }
+  }
+  window.addEventListener('storage', onStorage);
   return () => {
     listeners.delete(onStoreChange);
+    window.removeEventListener('storage', onStorage);
   };
 }
 
 function readPreferViewerTime() {
+  try {
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    if (saved === 'track' || saved === 'viewer') {
+      return saved === 'viewer';
+    }
+  } catch {
+    // A blocked storage API still allows the choice for this page load.
+  }
   return preferViewerTime;
 }
 
@@ -29,10 +45,12 @@ function readTrackTime() {
 }
 
 function setPreferViewerTime(value: boolean) {
-  if (preferViewerTime === value) {
-    return;
-  }
   preferViewerTime = value;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, value ? 'viewer' : 'track');
+  } catch {
+    // Keep the in-memory choice when storage is unavailable.
+  }
   for (const listener of listeners) {
     listener();
   }
@@ -77,7 +95,11 @@ function subscribeToNothing() {
 }
 
 function readDeviceTimeZone(): string {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone || UNKNOWN_ZONE;
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || UNKNOWN_ZONE;
+  } catch {
+    return UNKNOWN_ZONE;
+  }
 }
 
 function readUnknownTimeZone(): string {
@@ -109,5 +131,13 @@ export function useSessionTimeView(trackTimeZone: string): {
 
 /** Test isolation: the preference is process-global. */
 export function resetSessionTimeView() {
-  setPreferViewerTime(false);
+  preferViewerTime = true;
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Test isolation also works without storage.
+  }
+  for (const listener of listeners) {
+    listener();
+  }
 }

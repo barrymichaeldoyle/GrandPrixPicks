@@ -250,14 +250,13 @@ function SingaporeGrandPrixPredictionsPage() {
         </ul>
       </nav>
 
-      {isLive ? picks : null}
-
-      {/* This weekend's news and practice lead the page while it is live:
-          they are what changes between visits. Both render nothing until they
-          have an item or a session. */}
+      {/* News gives arriving readers the weekend context before they make
+          picks. Practice follows the picker; both news and practice render
+          nothing until they have an item or a session. */}
       {isLive ? (
         <>
           <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
+          {picks}
           <WeekendPracticeSection
             results={practice}
             raceSlug={RACE_SLUG}

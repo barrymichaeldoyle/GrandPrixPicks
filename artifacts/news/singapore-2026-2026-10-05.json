@@ -9,7 +9,17 @@
     "driverCodes": ["HUL", "BOR"],
     "sourceName": "Formula 1",
     "sourceUrl": "https://www.formula1.com/en/latest/article/gallery-audi-unveil-special-livery-for-singapore-grand-prix.5Z07QWFA7vVqCPC1jb6AIq",
-    "sourcePublishedAt": "2026-10-05T13:02:23.602Z"
+    "sourcePublishedAt": "2026-10-05T13:02:23.602Z",
+    "writeUpImage": {
+      "src": "https://cheery-tern-274.convex.cloud/api/storage/377b12ac-d47d-497a-881e-cd1ed8f4fc71",
+      "alt": "Audi R26 in its silver and purple Peranakan-pattern livery for the 2026 Singapore Grand Prix",
+      "width": 1112,
+      "height": 288,
+      "creditName": "Audi",
+      "creditUrl": "https://www.formula1.com/en/latest/article/gallery-audi-unveil-special-livery-for-singapore-grand-prix.5Z07QWFA7vVqCPC1jb6AIq",
+      "licenseName": "All rights reserved",
+      "licenseUrl": "https://www.formula1.com/en/latest/article/gallery-audi-unveil-special-livery-for-singapore-grand-prix.5Z07QWFA7vVqCPC1jb6AIq"
+    }
   },
   {
     "raceSlug": "singapore-2026",

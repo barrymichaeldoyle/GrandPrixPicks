@@ -183,6 +183,33 @@ function SingaporeGrandPrixPredictionsPage() {
 
   return (
     <RaceWriteupPage
+      hero={
+        <RaceWriteupHero
+          flagCode="SG"
+          eyebrow={`09–11 Oct · Marina Bay · Round ${race.round}`}
+          title="Singapore Grand Prix 2026 predictions"
+          summary={raceWriteupHeroSummary(
+            phase,
+            'The Singapore Grand Prix',
+            'Singapore hosts its first sprint weekend, with one practice session before Sprint Qualifying on Friday.',
+          )}
+          phase={phase}
+          raceSlug={RACE_SLUG}
+          primaryActionTargetId={
+            canPick ? RACE_WRITEUP_PICKS_ANCHOR : undefined
+          }
+          nextRace={phase === 'finished' ? nextRace : undefined}
+          venueName="Singapore"
+          signalsHeading={SIGNALS_HEADING}
+          schedule={{
+            race,
+            timeZone: 'Asia/Singapore',
+            timeZoneLabel: 'Singapore time',
+            weather,
+            now: weatherNow,
+          }}
+        />
+      }
       storeLinkInFooter={!(isLive && news.items.length > 0)}
       reviewedAt={PROSE_REVIEWED_AT}
       sources={
@@ -199,30 +226,6 @@ function SingaporeGrandPrixPredictionsPage() {
         </>
       }
     >
-      <RaceWriteupHero
-        flagCode="SG"
-        eyebrow={`09–11 Oct · Marina Bay · Round ${race.round}`}
-        title="Singapore Grand Prix 2026 predictions"
-        summary={raceWriteupHeroSummary(
-          phase,
-          'The Singapore Grand Prix',
-          'Singapore hosts its first sprint weekend, with one practice session before Sprint Qualifying on Friday.',
-        )}
-        phase={phase}
-        raceSlug={RACE_SLUG}
-        primaryActionTargetId={canPick ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
-        nextRace={phase === 'finished' ? nextRace : undefined}
-        venueName="Singapore"
-        signalsHeading={SIGNALS_HEADING}
-        schedule={{
-          race,
-          timeZone: 'Asia/Singapore',
-          timeZoneLabel: 'Singapore time',
-          weather,
-          now: weatherNow,
-        }}
-      />
-
       <nav
         aria-label="On this page"
         className="mb-8 border-b border-border pb-4"

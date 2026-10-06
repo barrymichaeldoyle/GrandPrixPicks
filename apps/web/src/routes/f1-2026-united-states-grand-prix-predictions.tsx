@@ -141,6 +141,29 @@ function UnitedStatesGrandPrixPredictionsPage() {
 
   return (
     <RaceWriteupPage
+      hero={
+        <RaceWriteupHero
+          flagCode="US"
+          eyebrow={`23–25 Oct · Austin · Round ${race.round}`}
+          title="United States Grand Prix 2026 predictions"
+          summary={raceWriteupHeroSummary(
+            phase,
+            'The United States Grand Prix',
+            'Austin opens three races in the Americas, and this year it has no Sprint.',
+          )}
+          phase={phase}
+          raceSlug={RACE_SLUG}
+          venueName="Austin"
+          signalsHeading={SIGNALS_HEADING}
+          schedule={{
+            race,
+            timeZone: 'America/Chicago',
+            timeZoneLabel: 'Austin time',
+            weather,
+            now: weatherNow,
+          }}
+        />
+      }
       storeLinkInFooter={!(isLive && news.items.length > 0)}
       reviewedAt={PROSE_REVIEWED_AT}
       sources={
@@ -168,28 +191,6 @@ function UnitedStatesGrandPrixPredictionsPage() {
         </>
       }
     >
-      <RaceWriteupHero
-        flagCode="US"
-        eyebrow={`23–25 Oct · Austin · Round ${race.round}`}
-        title="United States Grand Prix 2026 predictions"
-        summary={raceWriteupHeroSummary(
-          phase,
-          'The United States Grand Prix',
-          'Austin opens three races in the Americas, and this year it has no Sprint.',
-        )}
-        phase={phase}
-        raceSlug={RACE_SLUG}
-        venueName="Austin"
-        signalsHeading={SIGNALS_HEADING}
-        schedule={{
-          race,
-          timeZone: 'America/Chicago',
-          timeZoneLabel: 'Austin time',
-          weather,
-          now: weatherNow,
-        }}
-      />
-
       {/* This weekend's news and practice lead the page while it is live:
           they are what changes between visits. Both render nothing until they
           have an item or a session. */}

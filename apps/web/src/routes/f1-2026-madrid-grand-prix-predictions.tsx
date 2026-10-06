@@ -347,6 +347,34 @@ function MadridGrandPrixPredictionsPage() {
 
   return (
     <RaceWriteupPage
+      hero={
+        // No secondary action. The hero's second link was the heading of
+        // "What to watch in practice", the driest section on the page, and
+        // that section came off on 2026-09-21: its figures moved into the
+        // lap section's prose.
+        <RaceWriteupHero
+          flagCode="ES"
+          eyebrow={`11–13 Sep · Madring · Round ${race.round}`}
+          title="2026 Spanish Grand Prix predictions"
+          summary={raceWriteupHeroSummary(
+            phase,
+            'The Spanish Grand Prix',
+            'Norris is on pole for the first Spanish Grand Prix at the Madring, 0.011 seconds ahead of Antonelli. The race is on Sunday.',
+            'Antonelli won the first Grand Prix at the Madring, after a Virtual Safety Car and a slow McLaren stop cost pole-sitter Norris the lead.',
+          )}
+          phase={phase}
+          raceSlug={RACE_SLUG}
+          venueName="Madrid"
+          primaryActionTargetId={isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
+          schedule={{
+            race,
+            timeZone: 'Europe/Madrid',
+            timeZoneLabel: 'Madrid time',
+            weather,
+            now: weatherNow,
+          }}
+        />
+      }
       storeLinkInFooter={!(isLive && news.items.length > 0)}
       reviewedAt={PROSE_REVIEWED_AT}
       sources={
@@ -397,33 +425,6 @@ function MadridGrandPrixPredictionsPage() {
         </>
       }
     >
-      {/* No secondary action. The hero's second link was the heading of
-          "What to watch in practice", the driest section on the page, and
-          that section came off on 2026-09-21: its figures moved into the
-          lap section's prose. */}
-      <RaceWriteupHero
-        flagCode="ES"
-        eyebrow={`11–13 Sep · Madring · Round ${race.round}`}
-        title="2026 Spanish Grand Prix predictions"
-        summary={raceWriteupHeroSummary(
-          phase,
-          'The Spanish Grand Prix',
-          'Norris is on pole for the first Spanish Grand Prix at the Madring, 0.011 seconds ahead of Antonelli. The race is on Sunday.',
-          'Antonelli won the first Grand Prix at the Madring, after a Virtual Safety Car and a slow McLaren stop cost pole-sitter Norris the lead.',
-        )}
-        phase={phase}
-        raceSlug={RACE_SLUG}
-        venueName="Madrid"
-        primaryActionTargetId={isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
-        schedule={{
-          race,
-          timeZone: 'Europe/Madrid',
-          timeZoneLabel: 'Madrid time',
-          weather,
-          now: weatherNow,
-        }}
-      />
-
       {/* The result leads a finished page: a reader arriving after Sunday
           came for the classification, then how the field picked it and why
           the two differ. */}

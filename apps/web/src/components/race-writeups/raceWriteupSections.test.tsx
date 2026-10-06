@@ -198,6 +198,7 @@ describe('race write-up sections', () => {
     it('stamps the editorial review under the sources', () => {
       const el = render(
         <RaceWriteupPage
+          hero={<h1>The hero</h1>}
           storeLinkInFooter
           sources="Race facts and schedule: Formula 1."
           reviewedAt={Date.parse('2026-09-10T00:00:00Z')}
@@ -206,6 +207,7 @@ describe('race write-up sections', () => {
         </RaceWriteupPage>,
       );
 
+      expect(el.textContent).toContain('The hero');
       expect(el.textContent).toContain('The body.');
       expect(el.textContent).toContain('Race facts and schedule: Formula 1.');
       expect(el.textContent).toContain('Last reviewed 10 Sept 2026');

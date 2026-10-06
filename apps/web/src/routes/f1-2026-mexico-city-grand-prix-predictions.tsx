@@ -140,6 +140,29 @@ function MexicoCityGrandPrixPredictionsPage() {
 
   return (
     <RaceWriteupPage
+      hero={
+        <RaceWriteupHero
+          flagCode="MX"
+          eyebrow={`30 Oct–1 Nov · Mexico City · Round ${race.round}`}
+          title="Mexico City Grand Prix 2026 predictions"
+          summary={raceWriteupHeroSummary(
+            phase,
+            'The Mexico City Grand Prix',
+            'Sergio Pérez is back for his home race, now with Cadillac, at a circuit more than 2,200 metres above sea level.',
+          )}
+          phase={phase}
+          raceSlug={RACE_SLUG}
+          venueName="Mexico City"
+          signalsHeading={SIGNALS_HEADING}
+          schedule={{
+            race,
+            timeZone: 'America/Mexico_City',
+            timeZoneLabel: 'Mexico City time',
+            weather,
+            now: weatherNow,
+          }}
+        />
+      }
       storeLinkInFooter={!(isLive && news.items.length > 0)}
       reviewedAt={PROSE_REVIEWED_AT}
       sources={
@@ -163,28 +186,6 @@ function MexicoCityGrandPrixPredictionsPage() {
         </>
       }
     >
-      <RaceWriteupHero
-        flagCode="MX"
-        eyebrow={`30 Oct–1 Nov · Mexico City · Round ${race.round}`}
-        title="Mexico City Grand Prix 2026 predictions"
-        summary={raceWriteupHeroSummary(
-          phase,
-          'The Mexico City Grand Prix',
-          'Sergio Pérez is back for his home race, now with Cadillac, at a circuit more than 2,200 metres above sea level.',
-        )}
-        phase={phase}
-        raceSlug={RACE_SLUG}
-        venueName="Mexico City"
-        signalsHeading={SIGNALS_HEADING}
-        schedule={{
-          race,
-          timeZone: 'America/Mexico_City',
-          timeZoneLabel: 'Mexico City time',
-          weather,
-          now: weatherNow,
-        }}
-      />
-
       {/* This weekend's news and practice lead the page while it is live:
           they are what changes between visits. Both render nothing until they
           have an item or a session. */}

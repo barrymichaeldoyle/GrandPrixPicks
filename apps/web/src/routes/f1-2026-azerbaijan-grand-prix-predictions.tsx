@@ -273,6 +273,31 @@ function AzerbaijanGrandPrixPredictionsPage() {
 
   return (
     <RaceWriteupPage
+      hero={
+        <RaceWriteupHero
+          flagCode="AZ"
+          eyebrow={`24–26 Sep · Baku · Round ${race.round}`}
+          title="Azerbaijan Grand Prix 2026 predictions"
+          summary={raceWriteupHeroSummary(
+            phase,
+            'The Azerbaijan Grand Prix',
+            phase === 'race-picks' && qualifyingPublished
+              ? 'Russell took pole ahead of Leclerc and Piastri. The race starts at 15:00 Baku time on Saturday.'
+              : 'The Grand Prix moved to Saturday this year, so practice starts on Thursday and qualifying is on Friday.',
+          )}
+          phase={phase}
+          raceSlug={RACE_SLUG}
+          venueName="Baku"
+          signalsHeading={SIGNALS_HEADING}
+          schedule={{
+            race,
+            timeZone: 'Asia/Baku',
+            timeZoneLabel: 'Baku time',
+            weather,
+            now: weatherNow,
+          }}
+        />
+      }
       storeLinkInFooter={!(isLive && news.items.length > 0)}
       reviewedAt={PROSE_REVIEWED_AT}
       sources={
@@ -293,30 +318,6 @@ function AzerbaijanGrandPrixPredictionsPage() {
         </>
       }
     >
-      <RaceWriteupHero
-        flagCode="AZ"
-        eyebrow={`24–26 Sep · Baku · Round ${race.round}`}
-        title="Azerbaijan Grand Prix 2026 predictions"
-        summary={raceWriteupHeroSummary(
-          phase,
-          'The Azerbaijan Grand Prix',
-          phase === 'race-picks' && qualifyingPublished
-            ? 'Russell took pole ahead of Leclerc and Piastri. The race starts at 15:00 Baku time on Saturday.'
-            : 'The Grand Prix moved to Saturday this year, so practice starts on Thursday and qualifying is on Friday.',
-        )}
-        phase={phase}
-        raceSlug={RACE_SLUG}
-        venueName="Baku"
-        signalsHeading={SIGNALS_HEADING}
-        schedule={{
-          race,
-          timeZone: 'Asia/Baku',
-          timeZoneLabel: 'Baku time',
-          weather,
-          now: weatherNow,
-        }}
-      />
-
       {/* The result leads a finished page: a reader arriving after the race
           came for the classification, then how the field picked it. */}
       {phase === 'finished' ? (

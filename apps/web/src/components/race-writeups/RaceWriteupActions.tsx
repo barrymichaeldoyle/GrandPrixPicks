@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowDown, ArrowRight } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import {
@@ -25,6 +26,12 @@ type RaceWriteupActionsProps = {
    */
   signalsHeading?: string;
   venueName: string;
+  /**
+   * A line about the primary action. It sits directly under the button on a
+   * phone, where the secondary link wraps below it and would otherwise come
+   * between the two, and under the whole row from `sm`.
+   */
+  note?: ReactNode;
 };
 
 /**
@@ -45,6 +52,7 @@ export function RaceWriteupActions({
   nextRace,
   signalsHeading,
   venueName,
+  note,
 }: RaceWriteupActionsProps) {
   // The only button above the fold on every write-up, and until this it was
   // invisible to analytics: nobody could tell whether a reader who never
@@ -86,7 +94,7 @@ export function RaceWriteupActions({
             to="/races/$raceSlug"
             params={{ raceSlug }}
             onClick={() => trackPrimaryAction('race_page')}
-            className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text"
+            className="order-2 inline-flex min-h-11 items-center px-1 text-sm font-semibold text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text sm:order-1"
           >
             See {venueName} results
           </Link>
@@ -111,10 +119,15 @@ export function RaceWriteupActions({
           <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       )}
+      {!compact && note ? (
+        <p className="order-1 -mt-1 basis-full text-sm leading-6 text-text-muted sm:order-2 sm:mt-0 sm:max-w-xl">
+          {note}
+        </p>
+      ) : null}
       {!compact && signalsHeading ? (
         <a
           href={`#${RACE_WRITEUP_CIRCUIT_ANCHOR}`}
-          className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text"
+          className="order-2 inline-flex min-h-11 items-center px-1 text-sm font-semibold text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text sm:order-1"
         >
           {signalsHeading}
         </a>

@@ -245,6 +245,40 @@ function BahrainGrandPrixPredictionsPage() {
 
   return (
     <RaceWriteupPage
+      hero={
+        // Bahrain's flag on a race run in Malaysia is not a bug. The race
+        // keeps its identity and the circuit is a separate fact, which is
+        // exactly the split `circuits.ts` exists to hold. The eyebrow names
+        // Sepang so the two are never read as one.
+        <RaceWriteupHero
+          flagCode="BH"
+          eyebrow={`02–04 Oct · Sepang · Round ${race.round}`}
+          title={
+            phase === 'finished'
+              ? '2026 Bahrain Grand Prix results at Sepang'
+              : '2026 Bahrain Grand Prix predictions'
+          }
+          summary={raceWriteupHeroSummary(
+            phase,
+            'The Bahrain Grand Prix',
+            'Formula 1 last raced at Sepang in 2017. The 2026 cars have never run here, and this year\u2019s Bahrain Grand Prix is being held in Malaysia.',
+            finishedSummary,
+          )}
+          phase={phase}
+          raceSlug={RACE_SLUG}
+          nextRace={phase === 'finished' ? nextRace : undefined}
+          venueName="Sepang"
+          signalsHeading={SIGNALS_HEADING}
+          primaryActionTargetId={isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
+          schedule={{
+            race,
+            timeZone: 'Asia/Kuala_Lumpur',
+            timeZoneLabel: 'Sepang time',
+            weather,
+            now: weatherNow,
+          }}
+        />
+      }
       storeLinkInFooter={!(isLive && news.items.length > 0)}
       reviewedAt={PROSE_REVIEWED_AT}
       sources={
@@ -264,39 +298,6 @@ function BahrainGrandPrixPredictionsPage() {
         </>
       }
     >
-      {/* Bahrain's flag on a race run in Malaysia is not a bug. The race
-          keeps its identity and the circuit is a separate fact, which is
-          exactly the split `circuits.ts` exists to hold. The eyebrow names
-          Sepang so the two are never read as one. */}
-      <RaceWriteupHero
-        flagCode="BH"
-        eyebrow={`02–04 Oct · Sepang · Round ${race.round}`}
-        title={
-          phase === 'finished'
-            ? '2026 Bahrain Grand Prix results at Sepang'
-            : '2026 Bahrain Grand Prix predictions'
-        }
-        summary={raceWriteupHeroSummary(
-          phase,
-          'The Bahrain Grand Prix',
-          'Formula 1 last raced at Sepang in 2017. The 2026 cars have never run here, and this year\u2019s Bahrain Grand Prix is being held in Malaysia.',
-          finishedSummary,
-        )}
-        phase={phase}
-        raceSlug={RACE_SLUG}
-        nextRace={phase === 'finished' ? nextRace : undefined}
-        venueName="Sepang"
-        signalsHeading={SIGNALS_HEADING}
-        primaryActionTargetId={isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
-        schedule={{
-          race,
-          timeZone: 'Asia/Kuala_Lumpur',
-          timeZoneLabel: 'Sepang time',
-          weather,
-          now: weatherNow,
-        }}
-      />
-
       {/* This weekend's news and practice lead the page while it is live:
           they are what changes between visits. Both render nothing until they
           have an item or a session. */}

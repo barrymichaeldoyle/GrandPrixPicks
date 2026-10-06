@@ -305,6 +305,31 @@ function ItalianGrandPrixPredictionsPage() {
 
   return (
     <RaceWriteupPage
+      hero={
+        <RaceWriteupHero
+          flagCode="IT"
+          eyebrow={`04–06 Sep · Monza · Round ${race.round}`}
+          title="Italian Grand Prix 2026 predictions"
+          summary={raceWriteupHeroSummary(
+            phase,
+            'The Italian Grand Prix',
+            'Straight-line speed, braking into the chicanes, and long-run pace decide a Monza Top 5.',
+            'The Italian Grand Prix is complete.',
+          )}
+          phase={phase}
+          raceSlug={RACE_SLUG}
+          venueName="Monza"
+          signalsHeading={SIGNALS_HEADING}
+          primaryActionTargetId={isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
+          schedule={{
+            race,
+            timeZone: 'Europe/Rome',
+            timeZoneLabel: 'Monza time',
+            weather,
+            now: weatherNow,
+          }}
+        />
+      }
       storeLinkInFooter={!(isLive && news.items.length > 0)}
       reviewedAt={PROSE_REVIEWED_AT}
       sources={
@@ -319,30 +344,6 @@ function ItalianGrandPrixPredictionsPage() {
         </>
       }
     >
-      <RaceWriteupHero
-        flagCode="IT"
-        eyebrow={`04–06 Sep · Monza · Round ${race.round}`}
-        title="Italian Grand Prix 2026 predictions"
-        summary={raceWriteupHeroSummary(
-          phase,
-          'The Italian Grand Prix',
-          'Straight-line speed, braking into the chicanes, and long-run pace decide a Monza Top 5.',
-          'The Italian Grand Prix is complete.',
-        )}
-        phase={phase}
-        raceSlug={RACE_SLUG}
-        venueName="Monza"
-        signalsHeading={SIGNALS_HEADING}
-        primaryActionTargetId={isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
-        schedule={{
-          race,
-          timeZone: 'Europe/Rome',
-          timeZoneLabel: 'Monza time',
-          weather,
-          now: weatherNow,
-        }}
-      />
-
       {/* The result leads a finished page. A reader arriving after Sunday
             came for the classification, and everything below this point is
             either the geography that was always here or the reasoning that

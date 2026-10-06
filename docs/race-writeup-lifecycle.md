@@ -219,8 +219,10 @@ Review the pattern after three race weekends using:
    `reviewedAt` date.
 2. Add it to the SEO invariant fixtures and signed-out smoke coverage.
 3. Use `getRaceWriteupPhase()` with the loader's server timestamp.
-4. Render `RaceWriteupPage`, `RaceWriteupHero` and `raceWriteupPageHead`. Put
-   labelled sections in `RaceWriteupSection` or the photo shells.
+4. Render `RaceWriteupPage`, `RaceWriteupHero` and `raceWriteupPageHead`. The
+   hero goes in `RaceWriteupPage`'s `hero` prop, which draws it as a
+   full-bleed band above the page frame; it is not a child. Put labelled
+   sections in `RaceWriteupSection` or the photo shells.
 5. Put weather, weekend news and other expiring sections behind
    `isRaceWriteupLive()`, and follow the page order above.
 6. Pass cancellation state into SportsEvent structured data.

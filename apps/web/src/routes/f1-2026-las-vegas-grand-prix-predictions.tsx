@@ -132,6 +132,29 @@ function LasVegasGrandPrixPredictionsPage() {
 
   return (
     <RaceWriteupPage
+      hero={
+        <RaceWriteupHero
+          flagCode="US"
+          eyebrow={`19–21 Nov · Las Vegas · Round ${race.round}`}
+          title="Las Vegas Grand Prix 2026 predictions"
+          summary={raceWriteupHeroSummary(
+            phase,
+            'The Las Vegas Grand Prix',
+            'A Saturday-night race down the Strip, where getting the tyres warm is the main problem, a year after both McLarens were disqualified.',
+          )}
+          phase={phase}
+          raceSlug={RACE_SLUG}
+          venueName="Las Vegas"
+          signalsHeading={SIGNALS_HEADING}
+          schedule={{
+            race,
+            timeZone: 'America/Los_Angeles',
+            timeZoneLabel: 'Las Vegas time',
+            weather,
+            now: weatherNow,
+          }}
+        />
+      }
       storeLinkInFooter={!(isLive && news.items.length > 0)}
       reviewedAt={PROSE_REVIEWED_AT}
       sources={
@@ -148,28 +171,6 @@ function LasVegasGrandPrixPredictionsPage() {
         </>
       }
     >
-      <RaceWriteupHero
-        flagCode="US"
-        eyebrow={`19–21 Nov · Las Vegas · Round ${race.round}`}
-        title="Las Vegas Grand Prix 2026 predictions"
-        summary={raceWriteupHeroSummary(
-          phase,
-          'The Las Vegas Grand Prix',
-          'A Saturday-night race down the Strip, where getting the tyres warm is the main problem, a year after both McLarens were disqualified.',
-        )}
-        phase={phase}
-        raceSlug={RACE_SLUG}
-        venueName="Las Vegas"
-        signalsHeading={SIGNALS_HEADING}
-        schedule={{
-          race,
-          timeZone: 'America/Los_Angeles',
-          timeZoneLabel: 'Las Vegas time',
-          weather,
-          now: weatherNow,
-        }}
-      />
-
       {/* This weekend's news and practice lead the page while it is live:
           they are what changes between visits. Both render nothing until they
           have an item or a session. */}

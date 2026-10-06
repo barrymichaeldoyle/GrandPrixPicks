@@ -150,6 +150,29 @@ function SaoPauloGrandPrixPredictionsPage() {
 
   return (
     <RaceWriteupPage
+      hero={
+        <RaceWriteupHero
+          flagCode="BR"
+          eyebrow={`6–8 Nov · São Paulo · Round ${race.round}`}
+          title="São Paulo Grand Prix 2026 predictions"
+          summary={raceWriteupHeroSummary(
+            phase,
+            'The São Paulo Grand Prix',
+            'Gabriel Bortoleto races at home with Audi, on a bumpy anticlockwise circuit where rain is a regular risk in November.',
+          )}
+          phase={phase}
+          raceSlug={RACE_SLUG}
+          venueName="São Paulo"
+          signalsHeading={SIGNALS_HEADING}
+          schedule={{
+            race,
+            timeZone: 'America/Sao_Paulo',
+            timeZoneLabel: 'São Paulo time',
+            weather,
+            now: weatherNow,
+          }}
+        />
+      }
       storeLinkInFooter={!(isLive && news.items.length > 0)}
       reviewedAt={PROSE_REVIEWED_AT}
       sources={
@@ -177,28 +200,6 @@ function SaoPauloGrandPrixPredictionsPage() {
         </>
       }
     >
-      <RaceWriteupHero
-        flagCode="BR"
-        eyebrow={`6–8 Nov · São Paulo · Round ${race.round}`}
-        title="São Paulo Grand Prix 2026 predictions"
-        summary={raceWriteupHeroSummary(
-          phase,
-          'The São Paulo Grand Prix',
-          'Gabriel Bortoleto races at home with Audi, on a bumpy anticlockwise circuit where rain is a regular risk in November.',
-        )}
-        phase={phase}
-        raceSlug={RACE_SLUG}
-        venueName="São Paulo"
-        signalsHeading={SIGNALS_HEADING}
-        schedule={{
-          race,
-          timeZone: 'America/Sao_Paulo',
-          timeZoneLabel: 'São Paulo time',
-          weather,
-          now: weatherNow,
-        }}
-      />
-
       {/* This weekend's news and practice lead the page while it is live:
           they are what changes between visits. Both render nothing until they
           have an item or a session. */}

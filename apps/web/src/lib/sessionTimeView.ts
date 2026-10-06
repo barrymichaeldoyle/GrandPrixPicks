@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
+import { captureAnalyticsEvent } from '@/lib/analytics';
+
 /**
  * Track time vs the viewer's zone, shared by the write-up schedule and the
  * practice countdown sitting under it.
@@ -45,12 +47,18 @@ function readTrackTime() {
 }
 
 function setPreferViewerTime(value: boolean) {
+  if (readPreferViewerTime() === value) {
+    return;
+  }
   preferViewerTime = value;
   try {
     window.localStorage.setItem(STORAGE_KEY, value ? 'viewer' : 'track');
   } catch {
     // Keep the in-memory choice when storage is unavailable.
   }
+  captureAnalyticsEvent('session_time_view_changed', {
+    view: value ? 'viewer' : 'track',
+  });
   for (const listener of listeners) {
     listener();
   }

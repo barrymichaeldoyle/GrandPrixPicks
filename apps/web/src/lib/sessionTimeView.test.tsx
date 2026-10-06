@@ -1,125 +1,200 @@
 import { act } from 'react';
-import { createRoot, hydrateRoot, type Root } from 'react-dom/client';
+import { createRoot, type Root } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { resetSessionTimeView, useSessionTimeView } from './sessionTimeView';
+import { captureAnalyticsEvent } from '@/lib/analytics';
 
+vi.mock('@/lib/analytics', () => ({ captureAnalyticsEvent: vi.fn() }));
+
+const STORAGE_KEY = 'gpp:session-time-view';
 const DEVICE_ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const TRACK_ZONE = DEVICE_ZONE === 'Asia/Tokyo' ? 'UTC' : 'Asia/Tokyo';
-const STORAGE_KEY = 'gpp:session-time-view';
 
-function View({ trackZone = TRACK_ZONE }: { trackZone?: string }) {
-  const view = useSessionTimeView(trackZone);
+let useSessionTimeView: typeof import('./sessionTimeView').useSessionTimeView;
+let container: HTMLDivElement;
+let root: Root | null = null;
+
+beforeEach(async () => {
+  // A fresh module models a new visit while retaining the browser's storage.
+  vi.resetModules();
+  ({ useSessionTimeView } = await import('./sessionTimeView'));
+  localStorage.removeItem(STORAGE_KEY);
+  vi.mocked(captureAnalyticsEvent).mockClear();
+  container = document.createElement('div');
+  document.body.append(container);
+});
+
+afterEach(() => {
+  act(() => root?.unmount());
+  root = null;
+  container.remove();
+  vi.restoreAllMocks();
+  localStorage.removeItem(STORAGE_KEY);
+});
+
+function TimeView({ timeZone = TRACK_ZONE }: { timeZone?: string }) {
+  const { activeTimeZone, setInViewerTime } = useSessionTimeView(timeZone);
   return (
     <div>
-      <output>{view.activeTimeZone}</output>
-      {view.showToggle ? (
-        <button onClick={() => view.setInViewerTime(!view.showViewerTime)}>
-          {view.showViewerTime ? 'Track time' : 'My time'}
-        </button>
-      ) : null}
+      <output>{activeTimeZone}</output>
+      <button onClick={() => setInViewerTime(false)}>Track</button>
+      <button onClick={() => setInViewerTime(true)}>Viewer</button>
     </div>
   );
 }
 
-describe('session time preference', () => {
-  let container: HTMLDivElement;
-  let root: Root;
+function render(node = <TimeView />) {
+  root = createRoot(container);
+  act(() => root!.render(node));
+}
 
-  beforeEach(() => {
-    resetSessionTimeView();
-    container = document.createElement('div');
-    document.body.appendChild(container);
-    root = createRoot(container);
-  });
+function click(label: string) {
+  const button = [...container.querySelectorAll('button')].find(
+    (candidate) => candidate.textContent === label,
+  );
+  expect(button).toBeDefined();
+  act(() => button!.click());
+}
 
-  afterEach(() => {
-    act(() => root.unmount());
-    container.remove();
-    vi.restoreAllMocks();
-    resetSessionTimeView();
-  });
+function zones() {
+  return [...container.querySelectorAll('output')].map(
+    (output) => output.textContent,
+  );
+}
 
-  function render() {
-    act(() => root.render(<View />));
-  }
-  function toggle() {
-    act(() => container.querySelector('button')!.click());
-  }
-  function zone() {
-    return container.querySelector('output')!.textContent;
-  }
+describe('useSessionTimeView', () => {
+  it.each([null, 'viewer', 'invalid'])(
+    'defaults to viewer time for %s',
+    (saved) => {
+      if (saved !== null) {
+        localStorage.setItem(STORAGE_KEY, saved);
+      }
+      render();
+      expect(zones()).toEqual([DEVICE_ZONE]);
+      expect(captureAnalyticsEvent).not.toHaveBeenCalled();
+    },
+  );
 
-  it('defaults to local time and persists both choices', () => {
+  it('restores saved track time without recording a toggle', () => {
+    localStorage.setItem(STORAGE_KEY, 'track');
     render();
-    expect(zone()).toBe(DEVICE_ZONE);
-    toggle();
-    expect(zone()).toBe(TRACK_ZONE);
-    expect(window.localStorage.getItem(STORAGE_KEY)).toBe('track');
-    toggle();
-    expect(zone()).toBe(DEVICE_ZONE);
-    expect(window.localStorage.getItem(STORAGE_KEY)).toBe('viewer');
+    expect(zones()).toEqual([TRACK_ZONE]);
+    expect(captureAnalyticsEvent).not.toHaveBeenCalled();
   });
 
-  it('restores a track-time choice from an earlier visit', () => {
-    window.localStorage.setItem(STORAGE_KEY, 'track');
-    render();
-    expect(zone()).toBe(TRACK_ZONE);
-  });
+  it.each(['Track', 'Viewer'])(
+    'restores the %s choice on a fresh visit',
+    async (choice) => {
+      render();
+      click('Track');
+      if (choice === 'Viewer') {
+        click('Viewer');
+      }
+      const expectedZone = choice === 'Track' ? TRACK_ZONE : DEVICE_ZONE;
+      expect(zones()).toEqual([expectedZone]);
 
-  it('updates multiple mounted schedules and follows choices from other tabs', () => {
-    act(() =>
-      root.render(
-        <>
-          <View />
-          <View />
-        </>,
-      ),
+      act(() => root!.unmount());
+      root = null;
+      vi.resetModules();
+      ({ useSessionTimeView } = await import('./sessionTimeView'));
+      vi.mocked(captureAnalyticsEvent).mockClear();
+      render();
+      expect(zones()).toEqual([expectedZone]);
+      expect(captureAnalyticsEvent).not.toHaveBeenCalled();
+    },
+  );
+
+  it('updates every consumer and captures only changes to the choice', () => {
+    render(
+      <>
+        <TimeView />
+        <TimeView />
+      </>,
     );
-    toggle();
-    expect(
-      [...container.querySelectorAll('output')].map((el) => el.textContent),
-    ).toEqual([TRACK_ZONE, TRACK_ZONE]);
+    expect(zones()).toEqual([DEVICE_ZONE, DEVICE_ZONE]);
+    click('Viewer');
+    click('Track');
+    expect(zones()).toEqual([TRACK_ZONE, TRACK_ZONE]);
+    expect(localStorage.getItem(STORAGE_KEY)).toBe('track');
+    click('Track');
+    click('Viewer');
+    expect(zones()).toEqual([DEVICE_ZONE, DEVICE_ZONE]);
+    expect(localStorage.getItem(STORAGE_KEY)).toBe('viewer');
+    expect(vi.mocked(captureAnalyticsEvent).mock.calls).toEqual([
+      ['session_time_view_changed', { view: 'track' }],
+      ['session_time_view_changed', { view: 'viewer' }],
+    ]);
+  });
+
+  it('still switches all consumers when storage is blocked', () => {
+    vi.spyOn(localStorage, 'getItem').mockImplementation(() => {
+      throw new DOMException('Storage blocked', 'SecurityError');
+    });
+    vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
+      throw new DOMException('Storage blocked', 'SecurityError');
+    });
+    render(
+      <>
+        <TimeView />
+        <TimeView />
+      </>,
+    );
+    expect(zones()).toEqual([DEVICE_ZONE, DEVICE_ZONE]);
+    click('Track');
+    expect(zones()).toEqual([TRACK_ZONE, TRACK_ZONE]);
+    click('Viewer');
+    expect(zones()).toEqual([DEVICE_ZONE, DEVICE_ZONE]);
+  });
+
+  it('follows choices from other tabs without recording a local toggle', () => {
+    render(
+      <>
+        <TimeView />
+        <TimeView />
+      </>,
+    );
     act(() => {
-      window.localStorage.setItem(STORAGE_KEY, 'viewer');
+      localStorage.setItem(STORAGE_KEY, 'track');
+      window.dispatchEvent(
+        new StorageEvent('storage', { key: STORAGE_KEY, newValue: 'track' }),
+      );
+    });
+    expect(zones()).toEqual([TRACK_ZONE, TRACK_ZONE]);
+    act(() => {
+      localStorage.setItem(STORAGE_KEY, 'viewer');
       window.dispatchEvent(
         new StorageEvent('storage', { key: STORAGE_KEY, newValue: 'viewer' }),
       );
     });
-    expect(
-      [...container.querySelectorAll('output')].map((el) => el.textContent),
-    ).toEqual([DEVICE_ZONE, DEVICE_ZONE]);
+    expect(zones()).toEqual([DEVICE_ZONE, DEVICE_ZONE]);
+    expect(captureAnalyticsEvent).not.toHaveBeenCalled();
   });
 
-  it('still toggles when localStorage is blocked', () => {
-    vi.spyOn(window.localStorage, 'getItem').mockImplementation(() => {
-      throw new Error('blocked');
-    });
-    vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
-      throw new Error('blocked');
-    });
+  it('falls back to the default when another tab clears storage', () => {
+    localStorage.setItem(STORAGE_KEY, 'track');
     render();
-    expect(zone()).toBe(DEVICE_ZONE);
-    toggle();
-    expect(zone()).toBe(TRACK_ZONE);
-  });
-
-  it('hydrates cached track time into local time without a mismatch', async () => {
-    act(() => root.unmount());
-    container.innerHTML = renderToString(<View />);
-    expect(zone()).toBe(TRACK_ZONE);
-    const onRecoverableError = vi.fn();
-    await act(async () => {
-      root = hydrateRoot(container, <View />, { onRecoverableError });
+    expect(zones()).toEqual([TRACK_ZONE]);
+    act(() => {
+      localStorage.clear();
+      window.dispatchEvent(new StorageEvent('storage', { key: null }));
     });
-    expect(onRecoverableError).not.toHaveBeenCalled();
-    expect(zone()).toBe(DEVICE_ZONE);
+    expect(zones()).toEqual([DEVICE_ZONE]);
+    expect(captureAnalyticsEvent).not.toHaveBeenCalled();
   });
 
-  it('hides the toggle when the viewer is in the circuit timezone', () => {
-    act(() => root.render(<View trackZone={DEVICE_ZONE} />));
-    expect(zone()).toBe(DEVICE_ZONE);
-    expect(container.querySelector('button')).toBeNull();
+  it('uses track time when the viewer is in the circuit timezone', () => {
+    render(<TimeView timeZone={DEVICE_ZONE} />);
+    expect(zones()).toEqual([DEVICE_ZONE]);
+  });
+
+  it('server-renders track time without reading storage, even after client use', () => {
+    render();
+    expect(zones()).toEqual([DEVICE_ZONE]);
+    const readStorage = vi.spyOn(localStorage, 'getItem');
+    const html = renderToString(<TimeView />);
+    expect(html).toContain(`<output>${TRACK_ZONE}</output>`);
+    expect(readStorage).not.toHaveBeenCalled();
+    expect(captureAnalyticsEvent).not.toHaveBeenCalled();
   });
 });

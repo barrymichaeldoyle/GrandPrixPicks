@@ -105,6 +105,7 @@ export const analyticsEventNames = [
   'session_results_expanded',
   'session_results_modal_opened',
   'session_results_tab_selected',
+  'session_time_view_changed',
   'settings_regional_updated',
   'top5_editor_opened',
   'top5_picks_completed',

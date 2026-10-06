@@ -1,8 +1,8 @@
 import { act } from 'react';
 import type { Root } from 'react-dom/client';
-import { createRoot } from 'react-dom/client';
-import { renderToStaticMarkup } from 'react-dom/server';
-import { afterEach, describe, expect, it } from 'vitest';
+import { hydrateRoot } from 'react-dom/client';
+import { renderToStaticMarkup, renderToString } from 'react-dom/server';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { resetSessionTimeView } from '@/lib/sessionTimeView';
 
@@ -95,28 +95,63 @@ describe('RaceWriteupWeekendSchedule', () => {
     });
 
     function render(timeZone: string) {
-      container = document.createElement('div');
-      document.body.append(container);
-      root = createRoot(container);
-      act(() =>
-        root!.render(
-          <RaceWriteupWeekendSchedule
-            race={{ raceStartAt: Date.parse('2026-09-13T13:00:00Z') }}
-            timeZone={timeZone}
-            timeZoneLabel="TRACK TIME"
-          />,
-        ),
+      const schedule = (
+        <RaceWriteupWeekendSchedule
+          race={{ raceStartAt: Date.parse('2026-09-13T13:00:00Z') }}
+          timeZone={timeZone}
+          timeZoneLabel="TRACK TIME"
+        />
       );
+      container = document.createElement('div');
+      container.innerHTML = renderToString(schedule);
+      expect(container.textContent).toContain('TRACK TIME');
+      document.body.append(container);
+      const onRecoverableError = vi.fn();
+      act(() => {
+        root = hydrateRoot(container!, schedule, { onRecoverableError });
+      });
+      expect(onRecoverableError).not.toHaveBeenCalled();
       return container!;
     }
 
-    it('defaults to the viewer’s zone and offers track time', () => {
+    it('defaults to the viewer’s own zone once hydrated', () => {
+      const el = render(FOREIGN_ZONE);
+      // "My time" is the default, so the schedule already reads in the
+      // viewer's zone and the track-time label is gone without a click.
+      expect(el.textContent).not.toContain('TRACK TIME');
+      const myTime = [...el.querySelectorAll('button')].find(
+        (button) => button.textContent === 'My time',
+      );
+      expect(myTime?.getAttribute('aria-pressed')).toBe('true');
+      expect([...el.querySelectorAll('dd')].at(-1)?.textContent).toBe(
+        new Intl.DateTimeFormat('en-GB', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+          timeZone: DEVICE_ZONE,
+        }).format(Date.parse('2026-09-13T13:00:00Z')),
+      );
+    });
+
+    it('hydrates a saved track-time choice without switching to viewer time', () => {
+      localStorage.setItem('gpp:session-time-view', 'track');
+      const el = render(FOREIGN_ZONE);
+      expect(el.textContent).toContain('TRACK TIME');
+      const trackTime = [...el.querySelectorAll('button')].find(
+        (button) => button.textContent === 'Track time',
+      );
+      expect(trackTime?.getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('switches to track time on request and saves the choice', () => {
       const el = render(FOREIGN_ZONE);
       function raceTime() {
         return [...el.querySelectorAll('dd')].at(-1)?.textContent;
       }
       const viewerTime = raceTime();
-      expect(el.textContent).not.toContain('TRACK TIME');
 
       const trackTime = [...el.querySelectorAll('button')].find(
         (button) => button.textContent === 'Track time',
@@ -126,6 +161,8 @@ describe('RaceWriteupWeekendSchedule', () => {
 
       expect(raceTime()).not.toBe(viewerTime);
       expect(el.textContent).toContain('TRACK TIME');
+      // The choice is saved, so it holds across a reload.
+      expect(localStorage.getItem('gpp:session-time-view')).toBe('track');
     });
 
     it('offers no toggle to a reader already in the track’s zone', () => {

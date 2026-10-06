@@ -11,6 +11,7 @@ import { AppConvexProvider } from '@/integrations/convex/provider';
 import { AppClerkProvider } from './provider';
 import { useClerkRuntimeControl } from './runtime-control';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { ObservabilityUserSync } from '@/components/DeferredAuthenticatedFeatures';
 
 export function AuthenticatedAppRuntime({
   children,
@@ -19,6 +20,7 @@ export function AuthenticatedAppRuntime({
   return (
     <AppClerkProvider darkMode={true} assumeSignedIn={assumeSignedIn}>
       <AppConvexProvider>
+        <ObservabilityUserSync />
         <ProfileSync />
         <PushRegistrationSync />
         <AfterSignInIntentNavigator />

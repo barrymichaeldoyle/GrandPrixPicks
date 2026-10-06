@@ -137,7 +137,7 @@ describe('RaceWriteupWeekendSchedule', () => {
     });
 
     it('hydrates a saved track-time choice without switching to viewer time', () => {
-      localStorage.setItem('session-time-view', 'track');
+      localStorage.setItem('gpp:session-time-view', 'track');
       const el = render(FOREIGN_ZONE);
       expect(el.textContent).toContain('TRACK TIME');
       const trackTime = [...el.querySelectorAll('button')].find(
@@ -162,7 +162,7 @@ describe('RaceWriteupWeekendSchedule', () => {
       expect(raceTime()).not.toBe(viewerTime);
       expect(el.textContent).toContain('TRACK TIME');
       // The choice is saved, so it holds across a reload.
-      expect(localStorage.getItem('session-time-view')).toBe('track');
+      expect(localStorage.getItem('gpp:session-time-view')).toBe('track');
     });
 
     it('offers no toggle to a reader already in the track’s zone', () => {

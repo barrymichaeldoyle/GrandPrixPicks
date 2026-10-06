@@ -19,7 +19,11 @@ const RaceWriteupPicksForm = lazy(() =>
   })),
 );
 
-function copyForPhase(phase: RaceWriteupPhase, venueName: string) {
+function copyForPhase(
+  phase: RaceWriteupPhase,
+  venueName: string,
+  hasSprint: boolean,
+) {
   // Deliberately says nothing about team-mate battles, even though the section
   // below carries them for a signed-in player. This copy is server-rendered and
   // the duels are not offered to a signed-out visitor, so naming them here
@@ -33,7 +37,9 @@ function copyForPhase(phase: RaceWriteupPhase, venueName: string) {
 
   return {
     heading: `Make your ${venueName} picks`,
-    body: 'Choose your Top 5 for qualifying and the race. You can change each set until that session locks.',
+    body: hasSprint
+      ? 'Choose a Top 5 for all open sessions, or make a separate set for each. Each set locks when its session starts.'
+      : 'Choose your Top 5 for qualifying and the race. You can change each set until that session locks.',
   };
 }
 
@@ -60,6 +66,8 @@ export function DeferredRaceWriteupPicks({
   raceSlug,
   surface = 'writeup',
   venueName,
+  hasSprint = false,
+  loadImmediately = false,
 }: {
   phase: RaceWriteupPhase;
   raceId: Id<'races'>;
@@ -68,11 +76,14 @@ export function DeferredRaceWriteupPicks({
   raceSlug: string;
   surface?: RaceWriteupPicksSurface;
   venueName: string;
+  hasSprint?: boolean;
+  /** A picker near the hero should be ready without waiting for a scroll. */
+  loadImmediately?: boolean;
 }) {
   const sectionRef = useRef<HTMLElement>(null);
-  const [shouldLoad, setShouldLoad] = useState(false);
+  const [shouldLoad, setShouldLoad] = useState(loadImmediately);
   useRegisterPicksAnchor();
-  const copy = copyForPhase(phase, venueName);
+  const copy = copyForPhase(phase, venueName, hasSprint);
   // SSR-resolved, so this matches on the server and does not reflow the
   // section once Clerk boots.
   const { isSignedIn } = useViewerSession();
@@ -172,6 +183,7 @@ export function DeferredRaceWriteupPicks({
                 raceId={raceId}
                 round={round}
                 season={season}
+                hasSprint={hasSprint}
               />
             </Suspense>
           </ErrorBoundary>

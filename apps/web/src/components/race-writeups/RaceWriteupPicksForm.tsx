@@ -1,5 +1,6 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
+import { useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';
 import { H2HPredictionForm } from '@/components/H2HPredictionForm';
@@ -7,6 +8,11 @@ import { PredictionForm } from '@/components/PredictionForm/PredictionForm';
 import { useQuery } from '@/integrations/convex/query';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import type { RaceWriteupPhase } from '@/lib/raceWriteupPhase';
+import {
+  getSessionsForWeekend,
+  SESSION_LABELS_FULL,
+  type SessionType,
+} from '@/lib/sessions';
 
 export function RaceWriteupPicksForm({
   analyticsSource,
@@ -14,6 +20,7 @@ export function RaceWriteupPicksForm({
   raceId,
   round,
   season,
+  hasSprint = false,
 }: {
   /** Which page the picker is embedded in, for the conversion funnel. */
   analyticsSource: 'writeup' | 'predictions_hub';
@@ -21,7 +28,9 @@ export function RaceWriteupPicksForm({
   raceId: Id<'races'>;
   round: number;
   season: number;
+  hasSprint?: boolean;
 }) {
+  const [selectedSession, setSelectedSession] = useState<SessionType>();
   const drivers = useQuery(api.drivers.listDrivers, {
     round,
     season,
@@ -51,18 +60,58 @@ export function RaceWriteupPicksForm({
     );
   }
 
-  const sessionType = phase === 'race-picks' ? ('race' as const) : undefined;
+  const sessionType =
+    selectedSession ?? (phase === 'race-picks' ? 'race' : undefined);
   const predictions = weekendPredictions?.predictions;
   const existingPicks = sessionType
-    ? predictions?.race
-    : (predictions?.quali ?? predictions?.race);
+    ? predictions?.[sessionType]
+    : ((hasSprint ? predictions?.sprint_quali : undefined) ??
+      predictions?.quali ??
+      predictions?.race);
   const existingH2HPicks = sessionType
-    ? (h2hPredictions?.race ?? undefined)
-    : (h2hPredictions?.quali ?? h2hPredictions?.race ?? undefined);
+    ? (h2hPredictions?.[sessionType] ?? undefined)
+    : ((hasSprint ? h2hPredictions?.sprint_quali : undefined) ??
+      h2hPredictions?.quali ??
+      h2hPredictions?.race ??
+      undefined);
 
   return (
     <>
+      {hasSprint ? (
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <label
+            htmlFor="writeup-picks-session"
+            className="text-sm font-medium text-text"
+          >
+            Picks for
+          </label>
+          <select
+            id="writeup-picks-session"
+            value={sessionType ?? 'all'}
+            onChange={(event) =>
+              setSelectedSession(
+                event.target.value === 'all'
+                  ? undefined
+                  : (event.target.value as SessionType),
+              )
+            }
+            className="min-h-11 max-w-full rounded-sm border border-border-strong bg-surface-elevated px-3 text-base text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            {phase !== 'race-picks' ? (
+              <option value="all">All open sessions</option>
+            ) : null}
+            {getSessionsForWeekend(hasSprint).map((session) => (
+              <option key={session} value={session}>
+                {session === 'race'
+                  ? 'Grand Prix'
+                  : SESSION_LABELS_FULL[session]}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
       <PredictionForm
+        key={sessionType ?? 'all'}
         raceId={raceId}
         initialDrivers={drivers}
         existingPicks={existingPicks ?? undefined}
@@ -108,6 +157,7 @@ export function RaceWriteupPicksForm({
               </p>
             ) : (
               <H2HPredictionForm
+                key={sessionType ?? 'all'}
                 raceId={raceId}
                 matchups={matchups}
                 sessionType={sessionType}

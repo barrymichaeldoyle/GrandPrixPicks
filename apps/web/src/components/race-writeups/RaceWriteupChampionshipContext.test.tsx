@@ -49,6 +49,41 @@ function championshipWith(
 }
 
 describe('RaceWriteupChampionshipContext', () => {
+  it('keeps a long pending-round list in an accessible disclosure with its links intact', () => {
+    const championship = championshipWith([
+      driver(1, 'ANT', 'Kimi Antonelli', 25),
+      driver(2, 'RUS', 'George Russell', 18),
+    ]);
+    championship.roundsScored = 1;
+    const races = Array.from({ length: 5 }, (_, index) => ({
+      slug: `round-${index + 2}`,
+      name: `Round ${index + 2} Grand Prix`,
+      round: index + 2,
+      status: index === 4 ? 'cancelled' : 'upcoming',
+    })) as unknown as Parameters<
+      typeof RaceWriteupChampionshipContext
+    >[0]['races'];
+    const html = renderToStaticMarkup(
+      <RaceWriteupChampionshipContext
+        championship={championship}
+        races={races}
+        thisRound={7}
+        venueName="Singapore"
+      />,
+    );
+    const view = document.createElement('div');
+    view.innerHTML = html;
+    expect(view.querySelector('p')!.textContent).toContain('After 1 round,');
+    expect(view.querySelector('p')!.textContent).toContain(
+      '4 rounds still have to be scored',
+    );
+    expect(view.querySelector('p')!.querySelector('a')).toBeNull();
+    const details = view.querySelector('details')!;
+    expect(details.hasAttribute('open')).toBe(false);
+    expect(details.querySelectorAll('a')).toHaveLength(4);
+    expect(details.querySelector('a[href="/races/round-6"]')).toBeNull();
+  });
+
   it('names one chaser when second place is clear', () => {
     const html = renderToStaticMarkup(
       <RaceWriteupChampionshipContext

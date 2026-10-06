@@ -7,7 +7,7 @@ import { captureAnalyticsEvent } from '@/lib/analytics';
 
 vi.mock('@/lib/analytics', () => ({ captureAnalyticsEvent: vi.fn() }));
 
-const STORAGE_KEY = 'session-time-view';
+const STORAGE_KEY = 'gpp:session-time-view';
 const DEVICE_ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const TRACK_ZONE = DEVICE_ZONE === 'Asia/Tokyo' ? 'UTC' : 'Asia/Tokyo';
 
@@ -145,6 +145,47 @@ describe('useSessionTimeView', () => {
     expect(zones()).toEqual([TRACK_ZONE, TRACK_ZONE]);
     click('Viewer');
     expect(zones()).toEqual([DEVICE_ZONE, DEVICE_ZONE]);
+  });
+
+  it('follows choices from other tabs without recording a local toggle', () => {
+    render(
+      <>
+        <TimeView />
+        <TimeView />
+      </>,
+    );
+    act(() => {
+      localStorage.setItem(STORAGE_KEY, 'track');
+      window.dispatchEvent(
+        new StorageEvent('storage', { key: STORAGE_KEY, newValue: 'track' }),
+      );
+    });
+    expect(zones()).toEqual([TRACK_ZONE, TRACK_ZONE]);
+    act(() => {
+      localStorage.setItem(STORAGE_KEY, 'viewer');
+      window.dispatchEvent(
+        new StorageEvent('storage', { key: STORAGE_KEY, newValue: 'viewer' }),
+      );
+    });
+    expect(zones()).toEqual([DEVICE_ZONE, DEVICE_ZONE]);
+    expect(captureAnalyticsEvent).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the default when another tab clears storage', () => {
+    localStorage.setItem(STORAGE_KEY, 'track');
+    render();
+    expect(zones()).toEqual([TRACK_ZONE]);
+    act(() => {
+      localStorage.clear();
+      window.dispatchEvent(new StorageEvent('storage', { key: null }));
+    });
+    expect(zones()).toEqual([DEVICE_ZONE]);
+    expect(captureAnalyticsEvent).not.toHaveBeenCalled();
+  });
+
+  it('uses track time when the viewer is in the circuit timezone', () => {
+    render(<TimeView timeZone={DEVICE_ZONE} />);
+    expect(zones()).toEqual([DEVICE_ZONE]);
   });
 
   it('server-renders track time without reading storage, even after client use', () => {

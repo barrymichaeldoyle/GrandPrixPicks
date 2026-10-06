@@ -75,7 +75,9 @@ describe('deferred race write-up picks', () => {
     root = null;
   });
 
-  function render() {
+  function render(
+    props: Partial<Parameters<typeof DeferredRaceWriteupPicks>[0]> = {},
+  ) {
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
@@ -88,6 +90,7 @@ describe('deferred race write-up picks', () => {
           season={2026}
           raceSlug="italy-2026"
           venueName="Monza"
+          {...props}
         />,
       ),
     );
@@ -146,5 +149,17 @@ describe('deferred race write-up picks', () => {
     expect(
       container!.querySelector('[data-testid="prediction-form"]'),
     ).not.toBeNull();
+  });
+
+  it('loads a hero-adjacent picker without waiting for intersection', async () => {
+    await act(async () => {
+      render({ loadImmediately: true, hasSprint: true });
+    });
+    expect(
+      container!.querySelector('[data-testid="prediction-form"]'),
+    ).not.toBeNull();
+    expect(observerCallback).toBeNull();
+    expect(container!.textContent).toContain('all open sessions');
+    expect(container!.textContent).not.toContain('for qualifying and the race');
   });
 });

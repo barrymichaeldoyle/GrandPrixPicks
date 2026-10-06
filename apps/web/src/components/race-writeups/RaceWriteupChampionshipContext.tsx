@@ -92,19 +92,40 @@ export function RaceWriteupChampionshipContext({
             Championship standings
           </h2>
           <p className="gpp-reading-copy mt-4 text-text-muted">
-            After {championship.roundsScored} rounds, {leader.displayName} leads
-            the drivers&rsquo; table by {gap} {gap === 1 ? 'point' : 'points'}{' '}
-            from {formatList(chaserNames)}
+            After {championship.roundsScored}{' '}
+            {championship.roundsScored === 1 ? 'round' : 'rounds'},{' '}
+            {leader.displayName} leads the drivers&rsquo; table by {gap}{' '}
+            {gap === 1 ? 'point' : 'points'} from {formatList(chaserNames)}
             {chasers.length > 1 ? `, level on ${second.points}` : ''}.
             {pendingRaces.length > 0 ? (
               <>
                 {' '}
-                The <RaceList races={pendingRaces} /> still{' '}
-                {pendingRaces.length === 1 ? 'has' : 'have'} to be scored, so
-                this table will change before {venueName}.
+                {pendingRaces.length > 3 ? (
+                  <>{pendingRaces.length} rounds</>
+                ) : (
+                  <>
+                    The <RaceList races={pendingRaces} />
+                  </>
+                )}{' '}
+                still {pendingRaces.length === 1 ? 'has' : 'have'} to be scored,
+                so this table will change before {venueName}.
               </>
             ) : null}
           </p>
+          {pendingRaces.length > 3 ? (
+            <details className="mt-3 text-sm text-text-muted">
+              <summary className="min-h-11 cursor-pointer content-center rounded-sm font-medium text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+                Unscored rounds
+              </summary>
+              <ul className="mt-2 space-y-2">
+                {pendingRaces.map((race) => (
+                  <li key={race.slug}>
+                    <RaceNameLink race={race} />
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
           <Link
             to="/f1-standings"
             className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent hover:text-accent-hover"
@@ -117,7 +138,8 @@ export function RaceWriteupChampionshipContext({
           <div className="flex justify-between border-b border-border px-4 py-3">
             <h3 className="font-title font-medium text-text">Drivers</h3>
             <span className="gpp-mono text-xs text-text-muted">
-              After {championship.roundsScored} rounds
+              After {championship.roundsScored}{' '}
+              {championship.roundsScored === 1 ? 'round' : 'rounds'}
             </span>
           </div>
           <ol aria-label="Top six drivers">

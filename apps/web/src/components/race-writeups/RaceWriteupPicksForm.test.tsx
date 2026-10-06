@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RaceWriteupPicksForm } from './RaceWriteupPicksForm';
+import { getFunctionName } from 'convex/server';
 
 /**
  * The team-mate battles are offered to signed-in players only.
@@ -18,6 +19,10 @@ import { RaceWriteupPicksForm } from './RaceWriteupPicksForm';
  */
 
 let signedIn = false;
+let predictions: Record<string, string[]> | null = null;
+let h2hPicks: Record<string, Record<string, string>> | null = null;
+const top5Form = vi.fn();
+const h2hForm = vi.fn();
 
 vi.mock('@/integrations/clerk/useViewerSession', () => ({
   useViewerSession: () => ({
@@ -30,7 +35,7 @@ vi.mock('@/integrations/clerk/useViewerSession', () => ({
 // "the duels are missing" can only mean the gate withheld them — never that a
 // query was still loading or that the grid came back empty.
 vi.mock('@/integrations/convex/query', () => ({
-  useQuery: (_fn: unknown, args: unknown) => {
+  useQuery: (fn: Parameters<typeof getFunctionName>[0], args: unknown) => {
     if (args === 'skip') {
       return undefined;
     }
@@ -39,18 +44,28 @@ vi.mock('@/integrations/convex/query', () => ({
       return [];
     }
     if ('raceId' in shape) {
-      return null;
+      return getFunctionName(fn) === 'predictions:myWeekendPredictions'
+        ? predictions
+          ? { predictions }
+          : null
+        : h2hPicks;
     }
     return [{ _id: 'matchup_1', team: 'Ferrari' }];
   },
 }));
 
 vi.mock('@/components/PredictionForm/PredictionForm', () => ({
-  PredictionForm: () => <div data-testid="top-five-form" />,
+  PredictionForm: (props: unknown) => {
+    top5Form(props);
+    return <div data-testid="top-five-form" />;
+  },
 }));
 
 vi.mock('@/components/H2HPredictionForm', () => ({
-  H2HPredictionForm: () => <div data-testid="h2h-form" />,
+  H2HPredictionForm: (props: unknown) => {
+    h2hForm(props);
+    return <div data-testid="h2h-form" />;
+  },
 }));
 
 (
@@ -61,7 +76,9 @@ describe('race write-up picks form', () => {
   let container: HTMLDivElement | null = null;
   let root: Root | null = null;
 
-  function render() {
+  function render(
+    props: Partial<Parameters<typeof RaceWriteupPicksForm>[0]> = {},
+  ) {
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
@@ -73,6 +90,7 @@ describe('race write-up picks form', () => {
           raceId={'race_1' as Id<'races'>}
           round={13}
           season={2026}
+          {...props}
         />,
       );
     });
@@ -81,6 +99,9 @@ describe('race write-up picks form', () => {
 
   beforeEach(() => {
     signedIn = false;
+    predictions = null;
+    h2hPicks = null;
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -106,5 +127,62 @@ describe('race write-up picks form', () => {
     expect(view.querySelector('[data-testid="top-five-form"]')).not.toBeNull();
     expect(view.querySelector('[data-testid="h2h-form"]')).not.toBeNull();
     expect(view.textContent).toContain('Team-mate battles');
+  });
+
+  it('restores separate sprint picks and keeps the Top 5 and duels on the same session', () => {
+    signedIn = true;
+    predictions = {
+      sprint_quali: ['driver_sq'],
+      sprint: ['driver_s'],
+      quali: ['driver_q'],
+      race: ['driver_r'],
+    };
+    h2hPicks = {
+      sprint_quali: { duel: 'driver_sq' },
+      sprint: { duel: 'driver_s' },
+    };
+    const view = render({ hasSprint: true });
+    const select = view.querySelector('select')!;
+    expect([...select.options].map((option) => option.value)).toEqual([
+      'all',
+      'sprint_quali',
+      'sprint',
+      'quali',
+      'race',
+    ]);
+    expect(top5Form).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sessionType: undefined,
+        existingPicks: ['driver_sq'],
+      }),
+    );
+
+    for (const session of ['sprint_quali', 'sprint', 'race']) {
+      act(() => {
+        select.value = session;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      expect(top5Form).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          sessionType: session,
+          existingPicks: predictions[session],
+        }),
+      );
+      expect(h2hForm).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          sessionType: session,
+          existingPicks: h2hPicks[session],
+        }),
+      );
+    }
+  });
+
+  it('starts on the race set after qualifying locks', () => {
+    const view = render({ hasSprint: true, phase: 'race-picks' });
+    expect(view.querySelector('select')!.value).toBe('race');
+    expect(view.querySelector('option[value="all"]')).toBeNull();
+    expect(top5Form).toHaveBeenLastCalledWith(
+      expect.objectContaining({ sessionType: 'race' }),
+    );
   });
 });

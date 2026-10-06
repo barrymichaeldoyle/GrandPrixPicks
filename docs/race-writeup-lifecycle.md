@@ -145,6 +145,13 @@ readers never reach it. In September 2026 the median write-up visit scrolled
 about 60% of the page and about a quarter reached the end, and with the picker
 last only 1 of about 80 visits that landed on a write-up touched it.
 
+Singapore is the trial exception: show its picker immediately below the hero
+and a compact set of article links. The hero and public header jump to that
+picker, and another pick action follows the article. Load the picker immediately
+and keep the current-round eligibility guard. On sprint weekends, offer all
+open sessions together or a separate Top 5 for each session. Compare pick starts
+and saves with the article-first layout before applying this order elsewhere.
+
 Less is more. A section earns its place by telling a fan something no other
 section on the page does. Cut:
 

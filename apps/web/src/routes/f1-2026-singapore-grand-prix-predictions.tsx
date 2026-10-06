@@ -2,9 +2,11 @@ import { api } from '@convex-generated/api';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
+import { RACE_WRITEUP_PICKS_ANCHOR } from '@/components/race-writeups/DeferredRaceWriteupPicks';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
+import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
-import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
+import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
 import {
@@ -86,7 +88,7 @@ export const Route = createFileRoute(
   loader: async ({ context }) => {
     await setRaceDataCacheHeaders();
     const weatherNow = Date.now();
-    const [race, championship, weather, news, season, practice] =
+    const [race, championship, weather, news, season, practice, nextRace] =
       await Promise.all([
         context.queryClient.ensureQueryData(
           routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
@@ -111,11 +113,23 @@ export const Route = createFileRoute(
             raceSlug: RACE_SLUG,
           }),
         ),
+        context.queryClient.ensureQueryData(
+          routeQuery(api.races.getNextRace, {}),
+        ),
       ]);
     if (!race) {
       throw notFound();
     }
-    return { race, championship, weather, weatherNow, news, season, practice };
+    return {
+      race,
+      championship,
+      weather,
+      weatherNow,
+      news,
+      season,
+      practice,
+      nextRace,
+    };
   },
   head: ({ loaderData }) =>
     raceWriteupPageHead({
@@ -139,10 +153,33 @@ export const Route = createFileRoute(
 });
 
 function SingaporeGrandPrixPredictionsPage() {
-  const { race, championship, weather, weatherNow, news, season, practice } =
-    Route.useLoaderData();
+  const {
+    race,
+    championship,
+    weather,
+    weatherNow,
+    news,
+    season,
+    practice,
+    nextRace,
+  } = Route.useLoaderData();
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
+  const canPick = isLive && (!nextRace || nextRace.slug === RACE_SLUG);
+  const picks = (
+    <RaceWriteupFinish
+      isLive={isLive}
+      phase={phase}
+      raceId={race._id}
+      round={race.round}
+      season={race.season}
+      raceSlug={RACE_SLUG}
+      venueName="Singapore"
+      nextRace={nextRace}
+      hasSprint={race.hasSprint}
+      loadImmediately
+    />
+  );
 
   return (
     <RaceWriteupPage
@@ -173,6 +210,8 @@ function SingaporeGrandPrixPredictionsPage() {
         )}
         phase={phase}
         raceSlug={RACE_SLUG}
+        primaryActionTargetId={canPick ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
+        nextRace={phase === 'finished' ? nextRace : undefined}
         venueName="Singapore"
         signalsHeading={SIGNALS_HEADING}
         schedule={{
@@ -184,12 +223,40 @@ function SingaporeGrandPrixPredictionsPage() {
         }}
       />
 
-      {/* This weekend's news and practice lead the page while it is live:
-          they are what changes between visits. Both render nothing until they
-          have an item or a session. */}
+      <nav
+        aria-label="On this page"
+        className="mb-8 border-b border-border pb-4"
+      >
+        <ul className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+          {isLive && news.items.length > 0 ? (
+            <li>
+              <ArticleLink href="#weekend-news">Weekend news</ArticleLink>
+            </li>
+          ) : null}
+          <li>
+            <ArticleLink href="#saturday-evidence">Sprint format</ArticleLink>
+          </li>
+          <li>
+            <ArticleLink href={`#${RACE_WRITEUP_CIRCUIT_ANCHOR}`}>
+              Circuit
+            </ArticleLink>
+          </li>
+          <li>
+            <ArticleLink href="#tyre-choice">Tyres</ArticleLink>
+          </li>
+          <li>
+            <ArticleLink href="#common-questions">Common questions</ArticleLink>
+          </li>
+        </ul>
+      </nav>
+
+      {/* News gives arriving readers the weekend context before they make
+          picks. Practice follows the picker; both news and practice render
+          nothing until they have an item or a session. */}
       {isLive ? (
         <>
           <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
+          {picks}
           <WeekendPracticeSection
             results={practice}
             raceSlug={RACE_SLUG}
@@ -197,15 +264,24 @@ function SingaporeGrandPrixPredictionsPage() {
           />
         </>
       ) : null}
-      <SaturdayEvidence />
-      <Circuit />
-      <TyreChoice />
-      <RaceWriteupClosingPanel
-        phase={phase}
-        raceId={race._id}
-        raceSlug={RACE_SLUG}
-        venueName="Singapore"
-      />
+      <article
+        aria-label="Singapore weekend preview"
+        className="max-w-[68ch] [&>section]:py-8 sm:[&>section]:py-10"
+      >
+        <SaturdayEvidence />
+        <Circuit />
+        <TyreChoice />
+        {canPick ? (
+          <RaceWriteupActions
+            compact
+            phase={phase}
+            primaryActionTargetId={RACE_WRITEUP_PICKS_ANCHOR}
+            raceSlug={RACE_SLUG}
+            venueName="Singapore"
+          />
+        ) : null}
+      </article>
+      {!isLive ? picks : null}
 
       {isLive ? (
         <>
@@ -220,6 +296,17 @@ function SingaporeGrandPrixPredictionsPage() {
 
       <RaceFaqSection faqs={FAQS} />
     </RaceWriteupPage>
+  );
+}
+
+function ArticleLink({ href, children }: { href: string; children: string }) {
+  return (
+    <a
+      href={href}
+      className="inline-flex min-h-11 items-center rounded-sm text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    >
+      {children}
+    </a>
   );
 }
 
@@ -297,11 +384,12 @@ function SaturdayEvidence() {
   return (
     <RaceWriteupSection
       id="saturday-evidence"
-      heading="The Sprint is the only race-pace evidence before qualifying"
+      heading="What the Sprint tells us"
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
-        The Sprint starts four hours before Grand Prix Qualifying on Saturday,
-        and its result does not set the Grand Prix grid.{' '}
+        The Sprint is the only race-pace evidence before Grand Prix Qualifying.
+        It starts four hours earlier on Saturday, and its result does not set
+        the Grand Prix grid.{' '}
         <Link
           to="/how-to-play"
           className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"

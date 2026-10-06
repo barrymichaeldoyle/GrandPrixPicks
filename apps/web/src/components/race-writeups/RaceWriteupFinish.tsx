@@ -37,6 +37,8 @@ function RaceWriteupFinishContent({
   raceSlug,
   venueName,
   nextRace,
+  hasSprint,
+  loadImmediately,
 }: {
   isLive: boolean;
   phase: RaceWriteupPhase;
@@ -46,6 +48,8 @@ function RaceWriteupFinishContent({
   raceSlug: string;
   venueName: string;
   nextRace?: { slug: string; name: string; round: number } | null;
+  hasSprint?: boolean;
+  loadImmediately?: boolean;
 }) {
   // Only the next race on the calendar takes picks. A write-up published
   // weeks ahead is live long before its round opens, and the embedded picker
@@ -66,6 +70,8 @@ function RaceWriteupFinishContent({
         season={season}
         raceSlug={raceSlug}
         venueName={venueName}
+        hasSprint={hasSprint}
+        loadImmediately={loadImmediately}
       />
     );
   }

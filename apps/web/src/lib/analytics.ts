@@ -10,6 +10,32 @@ const posthogKey = import.meta.env.VITE_POSTHOG_KEY;
 let initialized = false;
 let posthogClient: PostHog | null = null;
 let posthogPromise: Promise<PostHog | null> | null = null;
+let consent: 'pending' | 'granted' | 'denied' = 'pending';
+const pendingOperations: ((posthog: PostHog) => void)[] = [];
+let identityNeedsReset = false;
+let currentIdentity: {
+  userId: string;
+  options?: { internal?: boolean; email?: string; name?: string };
+} | null = null;
+
+/** Keep early handoff events in memory until the CMP resolves; denial drops them. */
+function whenConsented(operation: (posthog: PostHog) => void) {
+  if (!isEnabled() || typeof window === 'undefined' || consent === 'denied') {
+    return;
+  }
+  if (consent === 'pending') {
+    // Bound memory even if a CMP never answers. Nothing is persisted or sent.
+    if (pendingOperations.length < 100) {
+      pendingOperations.push(operation);
+    }
+    return;
+  }
+  void getPostHog().then((posthog) => {
+    if (posthog && consent === 'granted') {
+      operation(posthog);
+    }
+  });
+}
 
 function isEnabled() {
   return import.meta.env.PROD && Boolean(posthogKey);
@@ -58,15 +84,6 @@ export function initAnalytics() {
       // Every event carries the locale, so any existing funnel or trend can be
       // broken down by it without instrumenting call sites one at a time.
       posthog.register({ ...localeProperties(), platform: 'web' });
-      // Person properties, set before anyone signs in: most visitors never do,
-      // and flags and experiments can only target the person, so a flag that
-      // decides which language the landing page speaks would otherwise be
-      // untargetable for exactly the audience it is for. These survive
-      // identify, which is what ties the anonymous session to the account.
-      posthog.setPersonProperties(
-        localeProperties(),
-        initialLocaleProperties(),
-      );
       return posthog;
     })
     .catch((error: unknown) => {
@@ -94,8 +111,9 @@ export function captureAnalyticsEvent(
     return;
   }
 
-  void getPostHog().then((posthog) => {
-    posthog?.capture(eventName, properties);
+  const timestamp = new Date();
+  whenConsented((posthog) => {
+    posthog.capture(eventName, properties, { timestamp });
   });
 }
 
@@ -184,18 +202,27 @@ export function identifyAnalyticsUser(
     return;
   }
 
-  void getPostHog().then((posthog) => {
-    posthog?.identify(
-      userId,
-      {
-        ...localeProperties(),
-        email: options?.email,
-        name: options?.name,
-        $internal_or_test_user: Boolean(options?.internal),
-      },
-      initialLocaleProperties(),
-    );
+  currentIdentity = { userId, options };
+  whenConsented((posthog) => {
+    identify(posthog, userId, options);
   });
+}
+
+function identify(
+  posthog: PostHog,
+  userId: string,
+  options?: { internal?: boolean; email?: string; name?: string },
+) {
+  posthog.identify(
+    userId,
+    {
+      ...localeProperties(),
+      email: options?.email,
+      name: options?.name,
+      $internal_or_test_user: Boolean(options?.internal),
+    },
+    initialLocaleProperties(),
+  );
 }
 
 /**
@@ -224,8 +251,8 @@ export function trackRegionalPreference(settings: {
       settings.locale != null && settings.locale !== device.locale,
   });
 
-  void getPostHog().then((posthog) => {
-    posthog?.setPersonProperties({
+  whenConsented((posthog) => {
+    posthog.setPersonProperties({
       preferred_locale: settings.locale ?? null,
       preferred_timezone: settings.timezone ?? null,
     });
@@ -237,11 +264,11 @@ export function resetAnalyticsUser() {
     return;
   }
 
-  void getPostHog().then((posthog) => {
-    if (!posthog) {
-      return;
-    }
+  currentIdentity = null;
+  identityNeedsReset = true;
+  whenConsented((posthog) => {
     posthog.reset();
+    identityNeedsReset = false;
     posthog.register({ ...localeProperties(), platform: 'web' });
     posthog.setPersonProperties(localeProperties(), initialLocaleProperties());
   });
@@ -252,8 +279,37 @@ export function optInToAnalytics() {
     return;
   }
 
+  if (consent === 'granted') {
+    return;
+  }
+  consent = 'granted';
   void getPostHog().then((posthog) => {
-    posthog?.opt_in_capturing();
+    if (!posthog || consent !== 'granted') {
+      return;
+    }
+    posthog.opt_in_capturing();
+    // Anonymous visitors need person locale too; identify retains it later.
+    posthog.setPersonProperties(localeProperties(), initialLocaleProperties());
+    const operations = pendingOperations.splice(0);
+    for (const operation of operations) {
+      operation(posthog);
+    }
+    // Sign-out during a denial must not leave the previous account's id on
+    // events captured if this visitor later grants consent.
+    if (identityNeedsReset) {
+      posthog.reset();
+      posthog.register({ ...localeProperties(), platform: 'web' });
+      posthog.setPersonProperties(
+        localeProperties(),
+        initialLocaleProperties(),
+      );
+      identityNeedsReset = false;
+    }
+    // Identity may have arrived while consent was denied and no operations
+    // were retained. Restore it before any newly captured events.
+    if (currentIdentity) {
+      identify(posthog, currentIdentity.userId, currentIdentity.options);
+    }
   });
 }
 
@@ -262,8 +318,12 @@ export function optOutOfAnalytics() {
     return;
   }
 
+  consent = 'denied';
+  pendingOperations.length = 0;
   void getPostHog().then((posthog) => {
-    posthog?.opt_out_capturing();
+    if (consent === 'denied') {
+      posthog?.opt_out_capturing();
+    }
   });
 }
 

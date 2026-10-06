@@ -78,11 +78,6 @@ const DeferredShellFeatures = lazy(() =>
     default: module.DeferredShellFeatures,
   })),
 );
-const DeferredObservabilityUserSync = lazy(() =>
-  import('@/integrations/clerk/runtime-bundle').then((module) => ({
-    default: module.DeferredObservabilityUserSync,
-  })),
-);
 const DeferredPredictionBanner = lazy(() =>
   import('@/integrations/clerk/runtime-bundle').then((module) => ({
     default: module.DeferredPredictionBanner,
@@ -396,9 +391,6 @@ function RootDocument({ children }: PropsWithChildren) {
               initialSignedIn={initialAuth.isSignedIn}
               pathname={pathname}
             >
-              <AuthenticatedDeferredFeature>
-                <DeferredObservabilityUserSync />
-              </AuthenticatedDeferredFeature>
               {/* Unread count in the tab title, tab icon and OS badge. Renders
                   no visible DOM, so it sits outside the shell rather than in
                   the header next to the bell it mirrors. */}

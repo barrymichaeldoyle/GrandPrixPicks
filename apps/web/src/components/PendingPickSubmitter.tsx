@@ -169,6 +169,14 @@ export function PendingPickSubmitter() {
             session_type: parsed.sessionType ?? 'cascade',
             source,
           });
+          captureAnalyticsEvent('prediction_saved', {
+            source,
+            prediction_type: parsed.kind,
+            scope: parsed.sessionType ? 'session' : 'cascade',
+            race_id: parsed.raceId,
+            session_type: parsed.sessionType ?? 'cascade',
+            after_sign_in: true,
+          });
           if (source === 'landing') {
             captureAnalyticsEvent('landing_prediction_saved', {
               source,

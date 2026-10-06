@@ -2,12 +2,16 @@
 
 Read this before adding a page, a page template, or a sitemap entry.
 
-Google AdSense has turned `grandprixpicks.com` down three times for **"low
-value content"** — 2026-08-02, 2026-08-13 and 2026-09-06. The console gives no
-dates, no per-URL detail and no reviewer notes beyond four boilerplate policy
-links, so the only way to know where the site stands is to measure prod
-yourself. The rules below are what those measurements said, and they are
-binding on SEO work until a review passes.
+Google AdSense turned `grandprixpicks.com` down four times for **"low value
+content"**: 2026-08-02, 2026-08-13, 2026-09-06 and once more by 2026-10-06.
+After the fourth we stopped applying for the foreseeable future; the site earns
+from the F1 Store affiliate instead. The console gave no dates, no per-URL
+detail and no reviewer notes beyond four boilerplate policy links, so the only
+way to know where the site stands is to measure prod yourself.
+
+The rules below are what those measurements said. They stay binding on SEO
+work: duplicate and templated pages hold back search ranking whether or not
+anyone is reviewing the site for ads.
 
 ## What the measurements found
 
@@ -106,7 +110,7 @@ pnpm --filter @grandprixpicks/web check:duplication
 ```
 
 That script is this section, made repeatable, and it is the one to run before
-requesting a review or adding a page. It reports content words per page with
+adding a page. It reports content words per page with
 the chrome subtracted, the templated ratio, worst sibling overlap inside each
 template, and every page's closest match anywhere on the site, and it exits
 non-zero on cross-template overlap at or above 50%.
@@ -197,6 +201,9 @@ Submitting URLs that did not change is how a site gets its quota throttled, so
 resist widening either list.
 
 ## Before requesting another review
+
+Not planned: applications stopped after the fourth rejection (October 2026).
+The checklist stays for if that changes.
 
 - Deploy first. The 2026-08-13 rejection graded the pre-fix site because the
   review was requested before the content deploy landed.

@@ -6,9 +6,10 @@ Do not invent helper text, headings, taglines, or explanatory prose unless the
 feature requires them.
 
 Before adding a page, a page template or a sitemap entry, read
-`docs/seo-content-policy.md`. AdSense has rejected the site three times for
-"low value content", and the measured cause is duplicate and templated pages,
-not short ones — so the answer is almost never another page.
+`docs/seo-content-policy.md`. AdSense rejected the site four times for "low
+value content" and we stopped applying in October 2026, but the measured cause
+(duplicate and templated pages, not short ones) is a search problem too, so the
+answer is still almost never another page.
 
 F1 prediction game where users pick their top 5 drivers for each session of a
 race weekend and earn points based on accuracy. Beyond the core Top 5 game it
@@ -132,8 +133,8 @@ because it reads like a specification.
 Beyond `pnpm lint` / `typecheck` / `test`, three checks are hand-run because
 they talk to the network:
 
-- `check:duplication` — the AdSense measurement in `docs/seo-content-policy.md`.
-  Run before adding any page or requesting a review.
+- `check:duplication` — the duplication measurement in
+  `docs/seo-content-policy.md`. Run before adding any page.
 - `check:writeup-links` — every citation on the race write-ups still resolves.
 - `check:baku-sources` — the same, for the Baku crash archive.
 

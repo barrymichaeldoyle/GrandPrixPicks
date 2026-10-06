@@ -103,9 +103,17 @@ describe('race write-up store link', () => {
       const view = await renderWith([cap]);
       const tile = view.querySelector(`a[href="${cap.url}"]`)!;
 
+      // Formatted in the visitor's locale, so the expectation is too: on an
+      // en-ZA machine the same price is "US$28,00", and that is correct.
+      function price(amount: number) {
+        return new Intl.NumberFormat(undefined, {
+          style: 'currency',
+          currency: cap.currency,
+        }).format(amount);
+      }
       expect(tile.getAttribute('rel')).toContain('sponsored');
-      expect(tile.textContent).toContain('$28.00');
-      expect(tile.querySelector('s')?.textContent).toBe('$56.00');
+      expect(tile.textContent).toContain(price(28));
+      expect(tile.querySelector('s')?.textContent).toBe(price(56));
       expect(tile.querySelector('img')?.getAttribute('src')).toContain('w=240');
     });
 

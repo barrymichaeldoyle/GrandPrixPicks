@@ -172,19 +172,6 @@ function LasVegasGrandPrixPredictionsPage() {
         </>
       }
     >
-      {/* This weekend's news and practice lead the page while it is live:
-          they are what changes between visits. Both render nothing until they
-          have an item or a session. */}
-      {isLive ? (
-        <>
-          <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
-          <WeekendPracticeSection
-            results={practice}
-            raceSlug={RACE_SLUG}
-            schedule={race}
-          />
-        </>
-      ) : null}
       <RaceWriteupArticle
         actions={{ phase, raceSlug: RACE_SLUG, venueName: 'Las Vegas' }}
       >
@@ -198,6 +185,21 @@ function LasVegasGrandPrixPredictionsPage() {
         raceSlug={RACE_SLUG}
         venueName="Las Vegas"
       />
+      {/* This weekend's news and practice follow the article and the call to
+          pick. They led the page until October 2026, and on a phone that put
+          three screens of cards and an advert between the hero and the prose
+          the page ranks for; most readers stopped before reaching it. Both
+          render nothing until they have an item or a session. */}
+      {isLive ? (
+        <>
+          <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
+          <WeekendPracticeSection
+            results={practice}
+            raceSlug={RACE_SLUG}
+            schedule={race}
+          />
+        </>
+      ) : null}
 
       {isLive ? (
         <>

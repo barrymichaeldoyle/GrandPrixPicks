@@ -274,3 +274,35 @@ describe('WeekendNewsSection store card', () => {
     expect(storeCard()?.className).not.toContain('sm:col-span-2');
   });
 });
+
+describe('WeekendNewsSection phone fold', () => {
+  function toggle(key: string) {
+    return container.querySelector<HTMLButtonElement>(`#news-${key} h3 button`);
+  }
+
+  it('folds a story behind its headline until it is tapped', () => {
+    render([item]);
+    const button = toggle(item.key);
+    expect(button?.getAttribute('aria-expanded')).toBe('false');
+    const body = container.querySelector(`#news-${item.key} h3 + div`);
+    expect(body?.className).toContain('max-sm:hidden');
+    // Folded, not dropped: the story is in the HTML for a crawler.
+    expect(body?.textContent).toContain(item.body);
+
+    act(() => button?.click());
+    expect(toggle(item.key)?.getAttribute('aria-expanded')).toBe('true');
+    expect(
+      container.querySelector(`#news-${item.key} h3 + div`)?.className,
+    ).not.toContain('max-sm:hidden');
+  });
+
+  it('never folds a grid, or the card a shared link points at', () => {
+    window.history.replaceState(null, '', `/#news-${penaltyItem.key}`);
+    Element.prototype.scrollIntoView = vi.fn();
+    render([gridItem, penaltyItem, item]);
+    expect(toggle(gridItem.key)).toBeNull();
+    expect(toggle(penaltyItem.key)).toBeNull();
+    expect(toggle(item.key)).not.toBeNull();
+    window.history.replaceState(null, '', '/');
+  });
+});

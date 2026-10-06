@@ -131,31 +131,36 @@ render in the finished phase only.
 
 A live write-up runs in three parts, in this order:
 
-1. **The weekend:** `RaceWriteupHero` (schedule and weather), then
-   `WeekendNewsSection` and practice. The news section shows the newest six
-   cards and folds the rest into a `<details>`.
+1. **The weekend:** `RaceWriteupHero` (schedule, weather, the call to pick).
 2. **The article:** the hand-written sections a fan came to read, wrapped in
    `RaceWriteupArticle`. At `xl` it adds a sticky margin column with the
    section list and the picks action (analytics placement
    `race_writeup_rail`). Keep full-width figures (a section's `extra`) out of
    the wrapper: the column sits in the margin they would run into, which is
    why the finished Monza, Madrid, Baku and Sepang pages do not use it yet.
-3. **The picks, then reference material:** `RaceWriteupFinish` (or
-   `RaceWriteupClosingPanel` on a page not yet next), then championship
-   standings and `RaceFaqSection`.
+3. **The picks, then the rest:** `RaceWriteupFinish` (or
+   `RaceWriteupClosingPanel` on a page not yet next), then
+   `WeekendNewsSection` and practice, championship standings and
+   `RaceFaqSection`.
 
-The picks come after the article because a reader who has read it is the one
-most likely to play. They come before the reference material because most
-readers never reach it. In September 2026 the median write-up visit scrolled
-about 60% of the page and about a quarter reached the end, and with the picker
-last only 1 of about 80 visits that landed on a write-up touched it.
+The picks come straight after the article because a reader who has read it is
+the one most likely to play. The news follows the picks rather than opening
+the page: until October 2026 it sat between the hero and the article, and on a
+phone four full cards, a photo and the F1 Store card were about three screens
+before the first hand-written paragraph. In September 2026 the median write-up
+visit scrolled about 60% of the page and about a quarter reached the end, so
+most phone readers never reached the article the page ranks for. One column
+wide the news cards now fold to headline, source and date until tapped
+(`WeekendNewsSection`); the section still shows the newest six and folds the
+rest into a `<details>`.
 
-Singapore is the trial exception: show its picker immediately below the hero
-and a compact set of article links. The hero and public header jump to that
-picker, and another pick action follows the article. Load the picker immediately
-and keep the current-round eligibility guard. On sprint weekends, offer all
-open sessions together or a separate Top 5 for each session. Compare pick starts
-and saves with the article-first layout before applying this order elsewhere.
+Singapore trialled a picker immediately below the hero from 21 September to
+6 October 2026, with a compact set of article links. It was ended for the
+same reason before it had enough visits to compare: on a phone the picker's
+empty state was itself a screen between the news and the article. The picker
+now loads immediately on the next round's page (`loadImmediately`), keeps the
+current-round eligibility guard, and on sprint weekends offers all open
+sessions together or a separate Top 5 for each.
 
 Less is more. A section earns its place by telling a fan something no other
 section on the page does. Cut:

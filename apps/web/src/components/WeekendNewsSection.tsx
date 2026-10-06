@@ -52,7 +52,7 @@ type NewsItem = {
 };
 
 /**
- * What changed this weekend, read from `raceNews` rather than written into the
+ * The weekend's news, read from `raceNews` rather than written into the
  * page.
  *
  * These items used to be hand-written sections here *and* published to the
@@ -93,7 +93,7 @@ const LEAD_ITEMS = 6;
 export function WeekendNewsSection({
   items,
   storePage,
-  heading = 'What changed this weekend',
+  heading = 'Weekend news',
   showStoreCard = true,
 }: {
   items: NewsItem[];
@@ -105,6 +105,23 @@ export function WeekendNewsSection({
   const sectionRef = useRef<HTMLElement>(null);
   const foldRef = useRef<HTMLDetailsElement>(null);
   const [targetId, setTargetId] = useState<string | null>(null);
+  // Cards a phone reader has opened. One column wide, a card is its headline,
+  // source and date until tapped; the body and photo are in the HTML for a
+  // crawler and from `sm` up are simply shown. Four full stories with a photo
+  // were three screens between the hero and the article, and most phone
+  // readers stopped in them.
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  function toggleExpanded(key: string) {
+    setExpanded((current) => {
+      const next = new Set(current);
+      if (!next.delete(key)) {
+        next.add(key);
+      }
+      return next;
+    });
+  }
 
   // A `#news-...` link has to land on its card, and the browser cannot be left
   // to do it alone:
@@ -202,6 +219,8 @@ export function WeekendNewsSection({
         items={lead}
         newsLink={newsLink}
         targetId={targetId}
+        expanded={expanded}
+        onToggle={toggleExpanded}
         className="mt-7"
         trailing={
           showStoreCard
@@ -232,6 +251,8 @@ export function WeekendNewsSection({
             items={earlier}
             newsLink={newsLink}
             targetId={targetId}
+            expanded={expanded}
+            onToggle={toggleExpanded}
             className="mt-4"
           />
         </details>
@@ -344,6 +365,8 @@ function NewsCards({
   items,
   newsLink,
   targetId,
+  expanded,
+  onToggle,
   className,
   trailing,
 }: {
@@ -351,6 +374,9 @@ function NewsCards({
   newsLink: (newsKey: string) => { href: string; headline: string } | undefined;
   /** The card the URL's hash points at, marked as `:target` would mark it. */
   targetId: string | null;
+  /** Cards whose body a phone reader has opened. */
+  expanded: ReadonlySet<string>;
+  onToggle: (key: string) => void;
   className: string;
   /**
    * One more card after the news. `wide` asks it to take both columns, when
@@ -410,6 +436,11 @@ function NewsCards({
         // team's story, and the badges already name both.
         const team = item.drivers?.[0]?.team ?? null;
         const teamColour = (team && TEAM_COLORS[team]) || 'var(--accent)';
+        // A grid card never folds (see the note on the table below), and the
+        // card a shared link points at opens, or the link lands on a headline.
+        const collapsible =
+          !item.startingGrid?.length && targetId !== cardId(item.key);
+        const isOpen = expanded.has(item.key);
 
         return (
           // A column so the source row can be pushed to the bottom: the
@@ -450,27 +481,52 @@ function NewsCards({
                 : undefined
             }
           >
+            {/* One column wide the headline is the toggle. It is rendered
+                twice, a button under `sm` and plain text from it, because
+                `aria-expanded` on a button that no longer toggles anything
+                would tell a desktop screen reader the open story is closed.
+                Only one is displayed, so only one is read. */}
             <h3 className="font-title text-lg font-medium text-text">
-              {item.headline}
+              {collapsible ? (
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  onClick={() => onToggle(item.key)}
+                  className="flex w-full items-start justify-between gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:hidden"
+                >
+                  {item.headline}
+                  <ChevronDown
+                    className={`mt-1.5 size-4 shrink-0 text-text-muted transition-transform ${
+                      isOpen ? 'rotate-180' : ''
+                    }`}
+                    aria-hidden
+                  />
+                </button>
+              ) : null}
+              <span className={collapsible ? 'max-sm:hidden' : undefined}>
+                {item.headline}
+              </span>
             </h3>
-            {item.writeUpImage ? (
-              <WriteUpNewsPhoto {...item.writeUpImage} />
-            ) : null}
-            <p className="gpp-reading-copy mt-2 text-text-muted sm:mt-3">
-              {item.body}
-            </p>
-            {/* Every place, never a disclosure: this is a public page, the
-                grid is what somebody searched for, and a crawler does not
-                press buttons. Two columns because eleven rows beside eleven
-                is a grid a reader can take in at once, where twenty-two in a
-                line is a scroll. */}
-            {item.startingGrid && item.startingGrid.length > 0 ? (
-              <StartingGridTable
-                entries={item.startingGrid}
-                columns={2}
-                newsLink={newsLink}
-              />
-            ) : null}
+            <div className={collapsible && !isOpen ? 'max-sm:hidden' : ''}>
+              {item.writeUpImage ? (
+                <WriteUpNewsPhoto {...item.writeUpImage} />
+              ) : null}
+              <p className="gpp-reading-copy mt-2 text-text-muted sm:mt-3">
+                {item.body}
+              </p>
+              {/* Every place, never a disclosure: this is a public page, the
+                  grid is what somebody searched for, and a crawler does not
+                  press buttons. Two columns because eleven rows beside eleven
+                  is a grid a reader can take in at once, where twenty-two in
+                  a line is a scroll. */}
+              {item.startingGrid && item.startingGrid.length > 0 ? (
+                <StartingGridTable
+                  entries={item.startingGrid}
+                  columns={2}
+                  newsLink={newsLink}
+                />
+              ) : null}
+            </div>
             {/* No rule above it. The grid already draws a line between every
                 card, and stacked one column wide that put a second hairline a
                 few lines above the first: the page read as a stack of rules

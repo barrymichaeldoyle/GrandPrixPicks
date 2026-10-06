@@ -836,10 +836,19 @@ export function PredictionForm({
             alone is wrong inside the dashboard's narrow center column. */}
         <div className="flex flex-col gap-4 sm:gap-6 @min-[875px]:flex-row @min-[875px]:items-start @min-[875px]:gap-8">
           {/* Your Picks - sortable list via @dnd-kit */}
+          {/* Stacked under the pool with nothing picked, this column is five
+              "Select a driver" rows and a disabled button: a screen of empty
+              state between the drivers and whatever follows the form. It
+              appears with the first pick, where the driver that was tapped
+              now has a row to land in. */}
           <div
             ref={yourPicksRef}
             data-testid="your-picks"
-            className={`${mobileActionFirst ? 'order-2 scroll-mt-28 @min-[875px]:order-1' : ''} @min-[875px]:w-[min(100%,380px)] @min-[875px]:min-w-0 @min-[875px]:shrink-0 ${hidePicksHeading ? '@min-[875px]:pt-10' : ''}`}
+            className={`${mobileActionFirst ? 'order-2 scroll-mt-28 @min-[875px]:order-1' : ''} ${
+              mobileActionFirst && picks.length === 0
+                ? '@max-[875px]:hidden'
+                : ''
+            } @min-[875px]:w-[min(100%,380px)] @min-[875px]:min-w-0 @min-[875px]:shrink-0 ${hidePicksHeading ? '@min-[875px]:pt-10' : ''}`}
           >
             <PicksListHeader
               hidePicksHeading={hidePicksHeading}

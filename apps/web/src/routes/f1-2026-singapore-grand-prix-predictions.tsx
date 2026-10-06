@@ -5,7 +5,6 @@ import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RACE_WRITEUP_PICKS_ANCHOR } from '@/components/race-writeups/DeferredRaceWriteupPicks';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
 import { RaceWriteupArticle } from '@/components/race-writeups/RaceWriteupArticle';
-import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
@@ -47,6 +46,11 @@ const TYRE_SOURCE =
   'https://press.pirelli.com/tyre-compound-selections-for-baku-sepang-and-singapore/';
 const HEAT_SOURCE =
   'https://press.pirelli.com/managing-the-heat-under-the-lights-in-singapore/';
+/** The official 2025 race and qualifying classifications. */
+const RESULT_2025_SOURCE =
+  'https://www.formula1.com/en/results/2025/races/1270/singapore/race-result';
+const QUALIFYING_2025_SOURCE =
+  'https://www.formula1.com/en/results/2025/races/1270/singapore/qualifying';
 
 /*
  * Weekend facts only.
@@ -223,48 +227,16 @@ function SingaporeGrandPrixPredictionsPage() {
           </ExternalSource>
           . Tyres: <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>.
           Heat and strategy:{' '}
-          <ExternalSource href={HEAT_SOURCE}>Pirelli</ExternalSource>.
+          <ExternalSource href={HEAT_SOURCE}>Pirelli</ExternalSource>. 2025
+          qualifying and race:{' '}
+          <ExternalSource href={QUALIFYING_2025_SOURCE}>
+            Formula 1
+          </ExternalSource>{' '}
+          and{' '}
+          <ExternalSource href={RESULT_2025_SOURCE}>Formula 1</ExternalSource>.
         </>
       }
     >
-      <nav aria-label="On this page" className="border-b border-border pb-4">
-        <ul className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-          {isLive && news.items.length > 0 ? (
-            <li>
-              <ArticleLink href="#weekend-news">Weekend news</ArticleLink>
-            </li>
-          ) : null}
-          <li>
-            <ArticleLink href="#saturday-evidence">Sprint format</ArticleLink>
-          </li>
-          <li>
-            <ArticleLink href={`#${RACE_WRITEUP_CIRCUIT_ANCHOR}`}>
-              Circuit
-            </ArticleLink>
-          </li>
-          <li>
-            <ArticleLink href="#tyre-choice">Tyres</ArticleLink>
-          </li>
-          <li>
-            <ArticleLink href="#common-questions">Common questions</ArticleLink>
-          </li>
-        </ul>
-      </nav>
-
-      {/* News gives arriving readers the weekend context before they make
-          picks. Practice follows the picker; both news and practice render
-          nothing until they have an item or a session. */}
-      {isLive ? (
-        <>
-          <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
-          {picks}
-          <WeekendPracticeSection
-            results={practice}
-            raceSlug={RACE_SLUG}
-            schedule={race}
-          />
-        </>
-      ) : null}
       <RaceWriteupArticle
         actions={{
           phase,
@@ -282,24 +254,24 @@ function SingaporeGrandPrixPredictionsPage() {
           <SaturdayEvidence />
           <Circuit />
           <TyreChoice />
-          {canPick ? (
-            // The rail carries this action at `xl`, beside the article.
-            <div className="xl:hidden">
-              <RaceWriteupActions
-                compact
-                phase={phase}
-                primaryActionTargetId={RACE_WRITEUP_PICKS_ANCHOR}
-                raceSlug={RACE_SLUG}
-                venueName="Singapore"
-              />
-            </div>
-          ) : null}
+          <LastYear />
         </article>
       </RaceWriteupArticle>
-      {!isLive ? picks : null}
-
+      {/* The picker directly after the prose: the article is what the page
+          ranks for, and finishing it is the moment a reader is ready to pick.
+          News and practice follow. They opened the page until October 2026,
+          and on a phone that was three screens of cards and an advert before
+          the article; most readers stopped in them. Both render nothing until
+          they have an item or a session. */}
+      {picks}
       {isLive ? (
         <>
+          <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
+          <WeekendPracticeSection
+            results={practice}
+            raceSlug={RACE_SLUG}
+            schedule={race}
+          />
           <RaceWriteupChampionshipContext
             championship={championship}
             races={season.races}
@@ -311,17 +283,6 @@ function SingaporeGrandPrixPredictionsPage() {
 
       <RaceFaqSection faqs={FAQS} />
     </RaceWriteupPage>
-  );
-}
-
-function ArticleLink({ href, children }: { href: string; children: string }) {
-  return (
-    <a
-      href={href}
-      className="inline-flex min-h-11 items-center rounded-sm text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-    >
-      {children}
-    </a>
   );
 }
 
@@ -355,6 +316,39 @@ function Circuit() {
         rather complicated.{' '}
         <ExternalSource href={HEAT_SOURCE}>
           Pirelli on racing in the heat
+        </ExternalSource>
+        .
+      </p>
+    </RaceWriteupSection>
+  );
+}
+
+/**
+ * Last year's result, and why starting position matters more here than at
+ * most circuits. Pirelli's figures are from its 2025 preview, so "before
+ * 2025" is the reading of its "to date".
+ */
+function LastYear() {
+  return (
+    <RaceWriteupSection id="last-year" heading="Russell won from pole in 2025">
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        George Russell took pole and led the race to win by 5.4 seconds from Max
+        Verstappen, with Lando Norris third and Oscar Piastri fourth. Kimi
+        Antonelli was fifth.{' '}
+        <ExternalSource href={RESULT_2025_SOURCE}>
+          The 2025 race result
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Pole counts for more at Marina Bay than at most circuits. Of the 15
+        Singapore Grands Prix before 2025, ten were won from pole. Verstappen
+        had never won here going into that race, and second place kept it that
+        way. The 2024 race was one of the few at this track to run without a
+        Safety Car, and the pit lane speed limit went up from 60 to 80 km/h in
+        2025, which Pirelli expected to make a one-stop race almost obligatory.{' '}
+        <ExternalSource href={HEAT_SOURCE}>
+          Pirelli&rsquo;s 2025 preview
         </ExternalSource>
         .
       </p>

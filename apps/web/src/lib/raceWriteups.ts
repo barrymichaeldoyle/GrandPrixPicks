@@ -88,11 +88,11 @@ const RACE_WRITEUPS = {
   },
   'singapore-2026': {
     to: '/f1-2026-singapore-grand-prix-predictions',
-    reviewedAt: '2026-09-08',
+    reviewedAt: '2026-10-06',
     venueName: 'Singapore',
     label: 'Singapore predictions',
     summary:
-      'Singapore’s first sprint weekend, the single practice session before competitive running, and racing in the heat at Marina Bay.',
+      'Singapore’s first sprint weekend, racing in the heat at Marina Bay, and why pole has won ten of fifteen races here.',
     cta: 'Read the Singapore predictions',
   },
   'azerbaijan-2026': {

@@ -36,10 +36,12 @@ function copyForPhase(
   }
 
   return {
+    // The lock rule is not repeated here: the picker says it under its
+    // save button, and this line said it a third time above the same form.
     heading: `Make your ${venueName} picks`,
     body: hasSprint
-      ? 'Choose a Top 5 for all open sessions, or make a separate set for each. Each set locks when its session starts.'
-      : 'Choose your Top 5 for qualifying and the race. You can change each set until that session locks.',
+      ? 'Choose a Top 5 for all open sessions, or make a separate set for each.'
+      : 'Choose your Top 5 for qualifying and the race.',
   };
 }
 

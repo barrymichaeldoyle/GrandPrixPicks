@@ -139,7 +139,7 @@ is what stops the agent needing to guess whether it already ran.
 
 **Report the news; do not instruct the reader.** These bodies have two
 surfaces, and the second one is public: the write-up page renders them under
-"What changed this weekend" for anyone arriving from a search, who has no picks
+"Weekend news" for anyone arriving from a search, who has no picks
 in front of them. So a body opens on what happened, and any line about how to
 read the session comes last and only when it changes something. "Treat Russell
 as unpenalised at Monza" and "Use FP2 for your first comparison" were both cut

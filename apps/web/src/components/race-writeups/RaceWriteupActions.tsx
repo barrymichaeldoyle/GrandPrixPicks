@@ -21,10 +21,10 @@ type RaceWriteupActionsProps = {
   raceSlug: string;
   nextRace?: { slug: string; name: string } | null;
   /**
-   * The heading of this page's circuit section, used verbatim as the
-   * secondary link's text. Passing it rather than composing a label here is
-   * what keeps the link and its destination from drifting apart: each write-up
-   * declares the heading once and hands the same string to both.
+   * The heading of this page's circuit section. Passed so the secondary link
+   * only renders on a page that has the section it scrolls to. The link's
+   * text is fixed ("About the circuit"): the heading itself was the link, and
+   * a noun beside a verb button read as a label rather than something to do.
    */
   signalsHeading?: string;
   venueName: string;
@@ -138,7 +138,7 @@ export function RaceWriteupActions({
           href={`#${RACE_WRITEUP_CIRCUIT_ANCHOR}`}
           className="order-2 inline-flex min-h-11 items-center px-1 text-sm font-semibold text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text sm:order-1"
         >
-          {signalsHeading}
+          About the circuit
         </a>
       ) : null}
     </div>

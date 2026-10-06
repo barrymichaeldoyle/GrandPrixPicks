@@ -921,6 +921,7 @@ export function PredictionForm({
               <SubmitRow
                 showSaving={isSubmitting && !suppressManualSave}
                 saved={isUnchangedFromSaved}
+                picksLeft={Math.max(0, 5 - picks.length)}
                 disabled={
                   picks.length !== 5 ||
                   isSubmitting ||

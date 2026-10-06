@@ -12,6 +12,8 @@ import { RACE_WRITEUP_CIRCUIT_ANCHOR } from './RaceWriteupSection';
 
 type RaceWriteupActionsProps = {
   compact?: boolean;
+  /** Overrides the analytics placement a compact action reports. */
+  placement?: 'race_writeup_rail';
   /** The viewer already has picks in for this round, so the label invites a review. */
   hasPicks?: boolean;
   phase: RaceWriteupPhase;
@@ -45,6 +47,7 @@ type RaceWriteupActionsProps = {
  */
 export function RaceWriteupActions({
   compact = false,
+  placement,
   hasPicks = false,
   phase,
   primaryActionTargetId,
@@ -62,7 +65,8 @@ export function RaceWriteupActions({
   ) {
     captureAnalyticsEvent('public_page_cta_clicked', {
       destination,
-      placement: compact ? 'race_writeup_closing' : 'race_writeup_hero',
+      placement:
+        placement ?? (compact ? 'race_writeup_closing' : 'race_writeup_hero'),
       phase,
       race_slug: raceSlug,
       ...(destination === 'next_race_page'
@@ -106,7 +110,12 @@ export function RaceWriteupActions({
           className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           {raceWriteupPrimaryAction(phase, venueName, compact, hasPicks)}
-          <ArrowDown className="h-4 w-4" aria-hidden />
+          {/* The rail does not know whether the picker is above or below it. */}
+          {placement === 'race_writeup_rail' ? (
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          ) : (
+            <ArrowDown className="h-4 w-4" aria-hidden />
+          )}
         </a>
       ) : (
         <Link

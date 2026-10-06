@@ -4,6 +4,7 @@ import { createFileRoute, notFound } from '@tanstack/react-router';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
+import { RaceWriteupArticle } from '@/components/race-writeups/RaceWriteupArticle';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
@@ -199,9 +200,13 @@ function MexicoCityGrandPrixPredictionsPage() {
           />
         </>
       ) : null}
-      <PerezHomeRace />
-      <Circuit />
-      <LastYear />
+      <RaceWriteupArticle
+        actions={{ phase, raceSlug: RACE_SLUG, venueName: 'Mexico City' }}
+      >
+        <PerezHomeRace />
+        <Circuit />
+        <LastYear />
+      </RaceWriteupArticle>
       <RaceWriteupClosingPanel
         phase={phase}
         raceId={race._id}

@@ -6,6 +6,7 @@ import { Button } from '../Button/Button';
 export function SubmitRow({
   showSaving,
   saved,
+  picksLeft,
   disabled,
   isAuthenticated,
   isEdit,
@@ -17,6 +18,12 @@ export function SubmitRow({
   showSaving: boolean;
   /** The picks on screen already match the saved ones. */
   saved: boolean;
+  /**
+   * Slots still empty. While any are, the button names what it is waiting
+   * for: a greyed "Sign in to save your picks" on an empty form read as a
+   * sign-in wall in front of a picker nobody had touched yet.
+   */
+  picksLeft: number;
   disabled: boolean;
   isAuthenticated: boolean;
   isEdit: boolean;
@@ -44,6 +51,8 @@ export function SubmitRow({
           </>
         ) : showSaving ? (
           'Saving...'
+        ) : picksLeft > 0 ? (
+          pickMoreLabel(picksLeft)
         ) : !isAuthenticated ? (
           'Sign in to save your picks'
         ) : isEdit ? (
@@ -70,4 +79,13 @@ export function SubmitRow({
       )}
     </div>
   );
+}
+
+function pickMoreLabel(picksLeft: number): string {
+  if (picksLeft >= 5) {
+    return 'Pick 5 drivers';
+  }
+  return picksLeft === 1
+    ? 'Pick 1 more driver'
+    : `Pick ${picksLeft} more drivers`;
 }

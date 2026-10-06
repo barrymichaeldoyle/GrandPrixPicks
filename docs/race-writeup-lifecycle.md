@@ -134,7 +134,12 @@ A live write-up runs in three parts, in this order:
 1. **The weekend:** `RaceWriteupHero` (schedule and weather), then
    `WeekendNewsSection` and practice. The news section shows the newest six
    cards and folds the rest into a `<details>`.
-2. **The article:** the hand-written sections a fan came to read.
+2. **The article:** the hand-written sections a fan came to read, wrapped in
+   `RaceWriteupArticle`. At `xl` it adds a sticky margin column with the
+   section list and the picks action (analytics placement
+   `race_writeup_rail`). Keep full-width figures (a section's `extra`) out of
+   the wrapper: the column sits in the margin they would run into, which is
+   why the finished Monza, Madrid, Baku and Sepang pages do not use it yet.
 3. **The picks, then reference material:** `RaceWriteupFinish` (or
    `RaceWriteupClosingPanel` on a page not yet next), then championship
    standings and `RaceFaqSection`.

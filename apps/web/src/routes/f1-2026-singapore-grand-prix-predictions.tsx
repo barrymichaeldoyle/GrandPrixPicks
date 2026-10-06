@@ -4,6 +4,7 @@ import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RACE_WRITEUP_PICKS_ANCHOR } from '@/components/race-writeups/DeferredRaceWriteupPicks';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
+import { RaceWriteupArticle } from '@/components/race-writeups/RaceWriteupArticle';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
@@ -226,10 +227,7 @@ function SingaporeGrandPrixPredictionsPage() {
         </>
       }
     >
-      <nav
-        aria-label="On this page"
-        className="mb-8 border-b border-border pb-4"
-      >
+      <nav aria-label="On this page" className="border-b border-border pb-4">
         <ul className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
           {isLive && news.items.length > 0 ? (
             <li>
@@ -267,23 +265,37 @@ function SingaporeGrandPrixPredictionsPage() {
           />
         </>
       ) : null}
-      <article
-        aria-label="Singapore weekend preview"
-        className="max-w-[68ch] [&>section]:py-8 sm:[&>section]:py-10"
+      <RaceWriteupArticle
+        actions={{
+          phase,
+          raceSlug: RACE_SLUG,
+          venueName: 'Singapore',
+          primaryActionTargetId: canPick
+            ? RACE_WRITEUP_PICKS_ANCHOR
+            : undefined,
+        }}
       >
-        <SaturdayEvidence />
-        <Circuit />
-        <TyreChoice />
-        {canPick ? (
-          <RaceWriteupActions
-            compact
-            phase={phase}
-            primaryActionTargetId={RACE_WRITEUP_PICKS_ANCHOR}
-            raceSlug={RACE_SLUG}
-            venueName="Singapore"
-          />
-        ) : null}
-      </article>
+        <article
+          aria-label="Singapore weekend preview"
+          className="max-w-[68ch] [&>section]:py-8 sm:[&>section]:py-10"
+        >
+          <SaturdayEvidence />
+          <Circuit />
+          <TyreChoice />
+          {canPick ? (
+            // The rail carries this action at `xl`, beside the article.
+            <div className="xl:hidden">
+              <RaceWriteupActions
+                compact
+                phase={phase}
+                primaryActionTargetId={RACE_WRITEUP_PICKS_ANCHOR}
+                raceSlug={RACE_SLUG}
+                venueName="Singapore"
+              />
+            </div>
+          ) : null}
+        </article>
+      </RaceWriteupArticle>
       {!isLive ? picks : null}
 
       {isLive ? (

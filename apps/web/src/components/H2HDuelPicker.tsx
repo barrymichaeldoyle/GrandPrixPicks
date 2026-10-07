@@ -1,6 +1,6 @@
 import { useReducedMotion } from 'framer-motion';
 import { ArrowLeft, Check, Swords } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
 import { tapHaptic } from '@/lib/haptics';
@@ -34,8 +34,11 @@ export function H2HDuelPicker({
   onExitPrevious,
   collapsedEdit = 'inline',
   sessionType,
+  renderInsight,
 }: {
   matchups: H2HMatchup[];
+  /** The form guide for the battle on screen; see `H2HDuelQuestion`. */
+  renderInsight?: (matchup: H2HMatchup) => ReactNode;
   selections: Record<string, H2HDriver['_id'] | undefined>;
   onSelect: (matchupId: H2HMatchup['_id'], driverId: H2HDriver['_id']) => void;
   /**
@@ -282,6 +285,7 @@ export function H2HDuelPicker({
         variant={modalEdit ? 'takeover' : 'inline'}
         // The takeover's own title already carries the team dot and name.
         showTeam={!modalEdit}
+        insight={renderInsight?.(matchup)}
         // Only in the takeover: mid-sequence the row under the card already
         // says where you are and what to do, and the dashboard's duel modal
         // says exactly this in exactly this place.

@@ -129,30 +129,47 @@ render in the finished phase only.
 
 ## Page order
 
-A live write-up runs in three parts, in this order:
+A live write-up runs in four parts, in this order:
 
 1. **The weekend:** `RaceWriteupHero` (schedule, weather, the call to pick).
-2. **The article:** the hand-written sections a fan came to read, wrapped in
+2. **The news:** `WeekendNewsSection`, the one part of the page that changes
+   between visits and what a returning reader is looking for. It leads only
+   because of its fold: one column wide each card is its headline, source and
+   date until tapped, and the section shows the newest six and folds the rest
+   into a `<details>`, so on a phone the block is a short list rather than a
+   screen of cards.
+3. **The article:** the hand-written sections a fan came to read, wrapped in
    `RaceWriteupArticle`. At `xl` it adds a sticky margin column with the
    section list and the picks action (analytics placement
    `race_writeup_rail`). Keep full-width figures (a section's `extra`) out of
    the wrapper: the column sits in the margin they would run into, which is
    why the finished Monza, Madrid, Baku and Sepang pages do not use it yet.
-3. **The picks, then the rest:** `RaceWriteupFinish` (or
-   `RaceWriteupClosingPanel` on a page not yet next), then
-   `WeekendNewsSection` and practice, championship standings and
-   `RaceFaqSection`.
+4. **The picks, then the rest:** `RaceWriteupFinish` (or
+   `RaceWriteupClosingPanel` on a page not yet next), then practice,
+   championship standings and `RaceFaqSection`.
 
 The picks come straight after the article because a reader who has read it is
-the one most likely to play. The news follows the picks rather than opening
-the page: until October 2026 it sat between the hero and the article, and on a
-phone four full cards, a photo and the F1 Store card were about three screens
-before the first hand-written paragraph. In September 2026 the median write-up
-visit scrolled about 60% of the page and about a quarter reached the end, so
-most phone readers never reached the article the page ranks for. One column
-wide the news cards now fold to headline, source and date until tapped
-(`WeekendNewsSection`); the section still shows the newest six and folds the
-rest into a `<details>`.
+the one most likely to play. The picker asks for one thing at a time: the Top
+5, and only once that has saved the team-mate battles (`RaceWriteupPicksForm`),
+the same progression as the race page and the dashboard. The duels open in the
+focus takeover (`PicksFocusOverlay` with the sequential `H2HPredictionForm`) the
+moment the fifth pick saves; afterwards they sit on the page as chips
+(`H2HPicksBar`), and a chip opens that one battle (`H2HDuelFocusModal`). They
+were briefly stacked inline under the Top 5 in October 2026, which made the
+picker a screen of controls, and nothing on this page is eleven rows again.
+
+Every duel, here and on the dashboard, carries a form guide under the two
+drivers (`H2HDuelFormGuide`): the pair's head-to-head record this season for
+the session being called and overall, and their positions in this weekend's
+practice sessions. It reports facts in the duel's order and says nothing about
+who to pick.
+
+The news used to be full cards. Until October 2026 four of them, a photo and
+the F1 Store card sat between the hero and the article, about three screens on
+a phone, and in September 2026 the median write-up visit scrolled about 60% of
+the page and about a quarter reached the end. For a few days the section was
+moved below the picks; the fold is what let it come back to the top as
+headlines.
 
 Singapore trialled a picker immediately below the hero from 21 September to
 6 October 2026, with a compact set of article links. It was ended for the

@@ -237,6 +237,16 @@ function SingaporeGrandPrixPredictionsPage() {
         </>
       }
     >
+      {/* The weekend's news opens the page, straight after the hero: it is
+          the one thing here that changes between visits, and the section a
+          returning reader is looking for. It can lead now because one column
+          wide the cards fold to their headlines (`WeekendNewsSection`), so the
+          block is a list of six lines rather than the three screens of full
+          cards and an advert it was until October 2026. Renders nothing until
+          there is an item. */}
+      {isLive ? (
+        <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
+      ) : null}
       <RaceWriteupArticle
         actions={{
           phase,
@@ -259,14 +269,11 @@ function SingaporeGrandPrixPredictionsPage() {
       </RaceWriteupArticle>
       {/* The picker directly after the prose: the article is what the page
           ranks for, and finishing it is the moment a reader is ready to pick.
-          News and practice follow. They opened the page until October 2026,
-          and on a phone that was three screens of cards and an advert before
-          the article; most readers stopped in them. Both render nothing until
-          they have an item or a session. */}
+          Practice and the standings follow; both render nothing until they
+          have a session or a round. */}
       {picks}
       {isLive ? (
         <>
-          <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
           <WeekendPracticeSection
             results={practice}
             raceSlug={RACE_SLUG}

@@ -3,7 +3,7 @@ import type { Id } from '@convex-generated/dataModel';
 import { colors } from '@grandprixpicks/shared/tokens';
 import { useMutation } from 'convex/react';
 import { Check } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { displayTeamName } from '@/lib/display';
@@ -43,6 +43,8 @@ export function H2HDuelFocusModal({
   matchup,
   selectedDriverId,
   topFivePositions,
+  renderInsight,
+  analyticsSource = 'dashboard',
 }: {
   open: boolean;
   onClose: () => void;
@@ -53,6 +55,10 @@ export function H2HDuelFocusModal({
   selectedDriverId?: Id<'drivers'>;
   /** Top 5 slot (1-5) per driver, so the duel shows what you already called. */
   topFivePositions?: Record<string, number | undefined>;
+  /** The form guide under the duel; see `H2HDuelQuestion`. */
+  renderInsight?: (matchup: H2HMatchup) => ReactNode;
+  /** Which surface opened the modal, for the `h2h_duel_edited` event. */
+  analyticsSource?: 'dashboard' | 'writeup' | 'predictions_hub';
 }) {
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
   const [pending, setPending] = useState<Id<'drivers'> | null>(null);
@@ -143,7 +149,7 @@ export function H2HDuelFocusModal({
         session_type: sessionType,
         team: matchup.team,
         changed_pick: isChange,
-        source: 'dashboard',
+        source: analyticsSource,
       });
       successHaptic();
       setSaved(true);
@@ -219,6 +225,7 @@ export function H2HDuelFocusModal({
           topFivePositions={topFivePositions}
           onPick={(driverId) => void pick(driverId)}
           variant="takeover"
+          insight={renderInsight?.(shownMatchup)}
           status={
             errorMessage ? (
               <span className="text-error">{errorMessage}</span>

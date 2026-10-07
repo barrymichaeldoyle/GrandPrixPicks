@@ -5,6 +5,7 @@ import { lazy, Suspense, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
 import { H2HDuelFocusModal } from '@/components/H2HDuelFocusModal';
+import { H2HDuelFormGuide } from '@/components/H2HDuelFormGuide';
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { H2HPicksBar } from '@/components/H2HPicksBar';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
@@ -94,6 +95,15 @@ export function DashboardPicksSummary({
   const hasCard = top5.length > 0;
 
   const detail = summaryDetail({ session, editable, hasCard });
+  function renderInsight(matchup: H2HMatchup) {
+    return (
+      <H2HDuelFormGuide
+        matchup={matchup}
+        sessionType={session.sessionType}
+        raceId={raceId}
+      />
+    );
+  }
   const action =
     !hasCard && editable ? (
       <Button
@@ -283,6 +293,7 @@ export function DashboardPicksSummary({
               // Eleven stacked rows in a full-screen takeover is a scroll, not
               // a decision.
               layout="sequential"
+              renderInsight={renderInsight}
             />
           </Suspense>
         ) : null}
@@ -298,6 +309,7 @@ export function DashboardPicksSummary({
           activeDuel ? h2hSelections[activeDuel._id] : undefined
         }
         topFivePositions={topFivePositions}
+        renderInsight={renderInsight}
       />
     </div>
   );

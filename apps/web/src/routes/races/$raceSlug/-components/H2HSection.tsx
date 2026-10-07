@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Button } from '@/components/Button/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
+import { H2HDuelFormGuide } from '@/components/H2HDuelFormGuide';
 import { H2HPredictionForm } from '@/components/H2HPredictionForm';
 import { H2HWinnersStrip } from '@/components/H2HWinnersStrip';
 import { InlineLoader } from '@/components/InlineLoader';
@@ -312,6 +313,14 @@ export function H2HSection({
             }
             onSuccess={closeOverlay}
             onDirtyChange={onEditingDirtyChange}
+            renderInsight={(matchup) => (
+              <H2HDuelFormGuide
+                matchup={matchup}
+                sessionType={editingSession ?? undefined}
+                raceId={race._id}
+                season={race.season}
+              />
+            )}
           />
         </PicksFocusOverlay>
       )}

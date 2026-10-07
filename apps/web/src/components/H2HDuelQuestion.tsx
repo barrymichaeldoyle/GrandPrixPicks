@@ -44,6 +44,7 @@ export function H2HDuelQuestion({
   variant = 'inline',
   showTeam = false,
   status,
+  insight,
 }: {
   matchup: H2HMatchup;
   selectedDriverId?: H2HDriver['_id'];
@@ -51,6 +52,12 @@ export function H2HDuelQuestion({
   topFivePositions?: Record<string, number | undefined>;
   onPick: (driverId: H2HDriver['_id']) => void;
   variant?: 'inline' | 'takeover';
+  /**
+   * What a fan might want to know before answering, under the two panels:
+   * the form guide (`H2HDuelFormGuide`). Owned by the caller because it needs
+   * the race and season this question does not know about.
+   */
+  insight?: ReactNode;
   /**
    * Name the team above the question. The takeover's own title already carries
    * the team dot and name, so repeating it there would head one card twice.
@@ -156,6 +163,8 @@ export function H2HDuelQuestion({
           />
         </BouncingDuelPanel>
       </div>
+
+      {insight ? <div className="mt-4 shrink-0">{insight}</div> : null}
 
       {status !== undefined ? (
         // A flex line, not a text line. Some statuses are bare text and some

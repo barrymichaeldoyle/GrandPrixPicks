@@ -187,6 +187,12 @@ function MexicoCityGrandPrixPredictionsPage() {
         </>
       }
     >
+      {/* The weekend's news opens the page: see the Singapore route and
+          `docs/race-writeup-lifecycle.md`. Renders nothing until there is an
+          item. */}
+      {isLive ? (
+        <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
+      ) : null}
       <RaceWriteupArticle
         actions={{ phase, raceSlug: RACE_SLUG, venueName: 'Mexico City' }}
       >
@@ -200,20 +206,14 @@ function MexicoCityGrandPrixPredictionsPage() {
         raceSlug={RACE_SLUG}
         venueName="Mexico City"
       />
-      {/* This weekend's news and practice follow the article and the call to
-          pick. They led the page until October 2026, and on a phone that put
-          three screens of cards and an advert between the hero and the prose
-          the page ranks for; most readers stopped before reaching it. Both
-          render nothing until they have an item or a session. */}
+      {/* Practice follows the article and the call to pick. It renders
+          nothing until there is a session. */}
       {isLive ? (
-        <>
-          <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
-          <WeekendPracticeSection
-            results={practice}
-            raceSlug={RACE_SLUG}
-            schedule={race}
-          />
-        </>
+        <WeekendPracticeSection
+          results={practice}
+          raceSlug={RACE_SLUG}
+          schedule={race}
+        />
       ) : null}
 
       {isLive ? (

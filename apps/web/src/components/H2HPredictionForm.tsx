@@ -32,7 +32,7 @@ import type { SessionType } from '@/lib/sessions';
 import { Button } from './Button/Button';
 import { DraftRestoredNotice } from './DraftRestoredNotice';
 import { H2HDuelPicker } from './H2HDuelPicker';
-import { H2HMatchupGrid } from './H2HMatchupGrid';
+import { H2HMatchupGrid, type H2HMatchup } from './H2HMatchupGrid';
 
 interface H2HPredictionFormProps {
   raceId: Id<'races'>;
@@ -93,6 +93,11 @@ interface H2HPredictionFormProps {
    * straight through to {@link H2HDuelPicker}; see its prop for why.
    */
   collapsedEdit?: 'inline' | 'modal';
+  /**
+   * The form guide under the duel on screen (`H2HDuelFormGuide`), passed to
+   * {@link H2HDuelPicker}. The grid has no room for one and does not take it.
+   */
+  renderInsight?: (matchup: H2HMatchup) => ReactNode;
 }
 
 type H2HDraft = {
@@ -144,6 +149,7 @@ export function H2HPredictionForm({
   onExitPrevious,
   layout = 'auto',
   collapsedEdit = 'inline',
+  renderInsight,
 }: H2HPredictionFormProps) {
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
   const draftKey = getWebH2HDraftStorageKey(raceId, sessionType);
@@ -664,6 +670,7 @@ export function H2HPredictionForm({
           onExitPrevious={onExitPrevious}
           collapsedEdit={collapsedEdit}
           sessionType={sessionType}
+          renderInsight={renderInsight}
         />
       ) : (
         <H2HMatchupGrid

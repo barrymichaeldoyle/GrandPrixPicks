@@ -18,6 +18,7 @@ import { Link } from '@tanstack/react-router';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
+import { H2HDuelFormGuide } from '@/components/H2HDuelFormGuide';
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { NoticeCard } from '@/components/NoticeCard';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
@@ -505,6 +506,12 @@ export function DashboardWeekendPicksReady({
                 topFivePositions={topFivePositions}
                 onSuccess={closePicker}
                 onExitPrevious={goBackToTop5}
+                renderInsight={(matchup) => (
+                  <H2HDuelFormGuide
+                    matchup={matchup}
+                    raceId={weekend.race._id}
+                  />
+                )}
                 renderCardIntro={() => (
                   <TopFiveStrip
                     topFivePicks={topFivePicks}

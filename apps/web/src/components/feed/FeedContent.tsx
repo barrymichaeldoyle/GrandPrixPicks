@@ -435,6 +435,16 @@ export function FeedContent({
       : undefined;
   }
 
+  // Every card a grid row links to, from every grid in the loaded pages
+  // including the current weekend's (filtered out above, but its rows still
+  // link here). Those cards stay open and out of `NewsGroup`'s fold.
+  const pinnedNewsKeys = new Set(
+    mergedEvents.flatMap(
+      (event) =>
+        event.newsStartingGrid?.flatMap((row) => row.newsKey ?? []) ?? [],
+    ),
+  );
+
   // Only the blocks whose group is actually here. The rest lead the stream:
   // under Load more was a position nobody opening the page for their next
   // pick would look.
@@ -482,6 +492,7 @@ export function FeedContent({
                 events={group.events}
                 newsLink={feedNewsLink}
                 onNoteSelect={scrollToFeedNews}
+                pinnedNewsKeys={pinnedNewsKeys}
               />
             </Fragment>
           );

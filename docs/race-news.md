@@ -148,9 +148,12 @@ for this. The section ends with the scoring-policy note and every card links
 on the card as well as the one that dates fastest.
 
 The write-up shows the newest six cards and folds the rest under "N earlier
-stories" (`WeekendNewsSection`). A starting grid, and any card a grid row links
-to, always stays visible. When a card says what a hand-written section of the
-write-up already says, keep it off the write-up with `writeUpSelected: false`.
+stories" (`WeekendNewsSection`), and so does each run of news in the feed
+(`NewsGroup`). On a phone a card on either surface folds to headline, date and
+source until tapped (`RaceNewsItem` in the feed). A starting grid, and any card
+a grid row links to, always stays visible and open. When a card says what a
+hand-written section of the write-up already says, keep it off the write-up
+with `writeUpSelected: false`.
 
 Three more rules, the first two earned the hard way on the Antonelli item.
 
@@ -198,10 +201,12 @@ an official Formula 1 report confirms the resulting order. Label the headline
 and write-up snippet **provisional**. Check the FIA grid and subsequent steward
 decisions before the race, then correct the same news key in place if needed.
 
-The two surfaces differ in one respect only. The write-up shows every place,
-because it is a public page, the grid is what the reader searched for, and a
-crawler does not press buttons. The feed closes on the top ten, because a card
-twenty-two rows tall pushes the sessions either side of it off the screen.
+Both surfaces show every place, never behind a disclosure: the write-up because
+it is a public page, the grid is what the reader searched for, and a crawler
+does not press buttons; the feed because the grid is the one card a reader
+scrolls back to. The feed's table is the compact one, two columns of codes with
+no names (`StartingGridTable` with `compact`), so twenty-two rows do not push
+the sessions either side of it off the screen.
 
 ## Why a driver starts where they do
 

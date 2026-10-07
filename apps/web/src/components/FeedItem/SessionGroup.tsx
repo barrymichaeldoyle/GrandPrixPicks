@@ -450,6 +450,25 @@ function SessionSeparator({
       : 'max-md:rounded-none md:rounded-t-sm'
     : 'max-md:rounded-none md:rounded-sm';
 
+  /*
+   * The duel winners sit under the pinned panel rather than in it. With them
+   * inside, the header pinned at 166px on a phone, under a 64px nav and above
+   * the tab bar, and about half a player row was left to scroll. The result
+   * row is the column key the rows below read against; the duels are a
+   * statement about the weekend, read once, so they scroll away like a row.
+   *
+   * Unstuck, the two bands share one raised surface with no rule between them,
+   * as before: the panel drops its bottom border and the band draws the frame's
+   * sides and bottom. Stuck, the panel takes its bottom border back, because
+   * the band has scrolled away under it and the edge is against the rows.
+   */
+  const h2h = hasResult && session.h2h && session.h2h.length > 0;
+  const h2hBand = h2h ? (
+    <div className="border border-t-0 border-border bg-surface-elevated px-2.5 pt-2.5 pb-2.5 max-md:border-x-0">
+      <H2HWinnersRow h2h={session.h2h!} />
+    </div>
+  ) : null;
+
   const content = (
     <div className="overflow-hidden">
       {/* Top row: flag + race name/session/time */}
@@ -509,16 +528,13 @@ function SessionSeparator({
         </div>
       </div>
 
-      {/* The published result and who won each teammate duel. Both belong to
-          the header panel, so they share its raised surface and are set apart
-          by spacing alone — a rule between two labelled bands is a separator
-          doing work the labels already did. */}
+      {/* The published result. The duel winners follow in `h2hBand`, outside
+          the pinned panel, on the same raised surface. */}
       {hasResult && (
-        <div className="space-y-2.5 bg-surface-elevated px-2.5 pt-2 pb-2.5">
+        <div
+          className={`bg-surface-elevated px-2.5 pt-2 ${h2h ? 'pb-0' : 'pb-2.5'}`}
+        >
           <ResultRow top5={session.top5} />
-          {session.h2h && session.h2h.length > 0 && (
-            <H2HWinnersRow h2h={session.h2h} />
-          )}
         </div>
       )}
     </div>
@@ -537,6 +553,7 @@ function SessionSeparator({
           grouped
             ? 'sticky top-(--nav-height) z-10 border border-border max-md:border-x-0'
             : 'border border-border',
+          h2h && !(grouped && isStuck) ? 'border-b-0' : '',
           roundedClass,
         ].join(' ')}
       >
@@ -548,6 +565,7 @@ function SessionSeparator({
           content
         )}
       </div>
+      {h2hBand}
     </>
   );
 }

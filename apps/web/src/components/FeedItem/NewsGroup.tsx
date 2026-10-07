@@ -1,4 +1,5 @@
 import { newsRunWeekend } from '@grandprixpicks/shared/feedGroups';
+import { ChevronDown } from 'lucide-react';
 
 import { Flag } from '@/components/Flag';
 import { ScoringPolicyNote } from '@/components/ScoringPolicyNote';
@@ -8,6 +9,17 @@ import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { FeedItem } from './FeedItem';
 import type { FeedNewsLink } from './RaceNewsItem';
 import type { FeedEvent } from './types';
+
+/**
+ * How many cards of a run show before the rest fold away.
+ *
+ * The same six the write-up leads with (`WeekendNewsSection`), for the same
+ * reason: a live weekend collects fifteen or more items, and in this stream
+ * they sit between a player and the scored session they opened the page for.
+ * On prod the race result sat under nine full cards, which on a phone is four
+ * screens of news before the first score.
+ */
+const LEAD_ITEMS = 6;
 
 /**
  * A run of consecutive news and grid-change cards, presented as one block.
@@ -27,16 +39,28 @@ import type { FeedEvent } from './types';
  * but news is chronological and the feed's order carries meaning: pulling a
  * Friday item up beside a Sunday one to sit under a shared heading would
  * reorder the weekend.
+ *
+ * The run shows its newest six and folds the rest under "N earlier stories",
+ * and on a phone each card folds to its headline until tapped (`RaceNewsItem`).
+ * A grid card, and any card a grid row elsewhere on the page links to, stays
+ * open and out of the fold: a link into a closed disclosure lands on nothing.
  */
 export function NewsGroup({
   events,
   newsLink,
   onNoteSelect,
+  pinnedNewsKeys,
 }: {
   events: FeedEvent[];
   /** Forwarded to each card's grid table; see `FeedContent`. */
   newsLink?: FeedNewsLink;
   onNoteSelect?: (newsKey: string) => void;
+  /**
+   * News keys a grid row somewhere on the page links to. Those cards never
+   * fold and never go behind "earlier stories". From `FeedContent`, because the
+   * grid that links to a card is often in another run (see `feedNewsLink`).
+   */
+  pinnedNewsKeys?: ReadonlySet<string>;
 }) {
   if (events.length === 0) {
     return null;
@@ -51,6 +75,43 @@ export function NewsGroup({
   const countryCode = raceSlug
     ? getCountryCodeForRace({ slug: raceSlug })
     : null;
+
+  function isPinned(event: FeedEvent) {
+    return (
+      event.type === 'race_news' &&
+      ((event.newsStartingGrid?.length ?? 0) > 0 ||
+        (event.newsKey !== undefined &&
+          (pinnedNewsKeys?.has(event.newsKey) ?? false)))
+    );
+  }
+
+  const lead = events.filter(
+    (event, index) => index < LEAD_ITEMS || isPinned(event),
+  );
+  const earlier = events.filter((event) => !lead.includes(event));
+
+  function cards(items: FeedEvent[]) {
+    return (
+      /* `gpp-lean-run` flips each card's team bar against the one above it, so
+         the wedges meet thick to thick and read as one shape carried down the
+         block. The bar is the divider: a hairline between stories was a second
+         mark doing the same job. No padding on these rows: the bar is drawn on
+         the card inside, and it only lines up with its neighbours if it runs
+         the full height of the row. The card supplies the padding. */
+      <div className="gpp-lean-run">
+        {items.map((event) => (
+          <FeedItem
+            key={event._id}
+            event={event}
+            grouped
+            newsLink={newsLink}
+            onNoteSelect={onNoteSelect}
+            newsFoldable={!isPinned(event)}
+          />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <section
@@ -81,23 +142,23 @@ export function NewsGroup({
         ) : null}
       </div>
 
-      {/* `gpp-lean-run` flips each card's team bar against the one above it, so
-          the wedges meet thick to thick and read as one shape carried down the
-          block. The bar is the divider: a hairline between stories was a second
-          mark doing the same job. No padding on these rows: the bar is drawn on
-          the card inside, and it only lines up with its neighbours if it runs
-          the full height of the row. The card supplies the padding. */}
-      <div className="gpp-lean-run">
-        {events.map((event) => (
-          <FeedItem
-            key={event._id}
-            event={event}
-            grouped
-            newsLink={newsLink}
-            onNoteSelect={onNoteSelect}
-          />
-        ))}
-      </div>
+      {cards(lead)}
+
+      {/* Native `<details>`, as on the write-up: the folded cards are still in
+          the HTML, and in-page search opens it. */}
+      {earlier.length > 0 ? (
+        <details className="group border-t border-border/80">
+          <summary className="gpp-touch-target flex cursor-pointer list-none items-center justify-between gap-2 px-2.5 py-2 text-sm font-medium text-text-muted marker:content-none hover:text-text focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent [&::-webkit-details-marker]:hidden">
+            {earlier.length} earlier{' '}
+            {earlier.length === 1 ? 'story' : 'stories'}
+            <ChevronDown
+              className="size-4 shrink-0 transition-transform group-open:rotate-180"
+              aria-hidden
+            />
+          </summary>
+          {cards(earlier)}
+        </details>
+      ) : null}
 
       {newsListMentionsGridPenalty(events) ? (
         <ScoringPolicyNote className="border-t border-border/80 px-2.5 py-2 text-xs text-text-muted" />

@@ -12,6 +12,7 @@ export function FeedItem({
   position,
   newsLink,
   onNoteSelect,
+  newsFoldable,
 }: {
   event: FeedEvent;
   grouped?: boolean;
@@ -19,6 +20,8 @@ export function FeedItem({
   /** Forwarded to `RaceNewsItem` for a `race_news` event; see `NewsGroup`. */
   newsLink?: FeedNewsLink;
   onNoteSelect?: (newsKey: string) => void;
+  /** Whether a `race_news` card may fold to its headline on a phone. */
+  newsFoldable?: boolean;
 }) {
   // Defensive fallback for legacy rows and stale cached responses. Neither
   // event is feed content at the query boundary anymore.
@@ -75,6 +78,7 @@ export function FeedItem({
           grouped={grouped}
           newsLink={newsLink}
           onNoteSelect={onNoteSelect}
+          foldable={newsFoldable}
         />
       ) : event.type === 'score_published' ||
         event.type === 'results_amended' ||

@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
-import { ExternalLink } from 'lucide-react';
-import type { CSSProperties } from 'react';
+import { ChevronDown, ExternalLink } from 'lucide-react';
+import { type CSSProperties, useState } from 'react';
 
 import {
   StartingGridTable,
@@ -37,14 +37,26 @@ export type FeedNewsLink = GridNewsLink;
  * the team bar is drawn on this element: with the padding outside, the bar was
  * inset from the block's edge and short of its neighbours, and a run of leaning
  * bars only lines up if each one runs the full height of its row.
+ *
+ * One column wide the card folds to headline, time and source until tapped,
+ * the same fold the write-up's cards take (`WeekendNewsSection`): a full story
+ * is about 220px on a phone, and a weekend's run of them sat between a player
+ * and the scored session they came for. The body stays in the HTML.
  */
 export function RaceNewsItem({
   event,
   grouped = false,
   newsLink,
   onNoteSelect,
+  foldable = false,
 }: {
   event: FeedEvent;
+  /**
+   * Whether the body may fold behind the headline on a phone. Off for a grid
+   * card and for a card a grid row links to, which `NewsGroup` decides: a link
+   * that lands on a closed card lands on nothing.
+   */
+  foldable?: boolean;
   /**
    * True when a `NewsGroup` already carries the label and the scoring link for
    * the whole run. Two consecutive news cards each repeated the eyebrow, the
@@ -65,6 +77,8 @@ export function RaceNewsItem({
   // bar at all rather than one painted in the generic accent. Two columns are
   // the separator here instead.
   const hasGrid = (event.newsStartingGrid?.length ?? 0) > 0;
+  const collapsible = foldable && !hasGrid;
+  const [open, setOpen] = useState(false);
 
   // The item's own colour, from the driver it is about. Same colour the badges
   // and `LineupChangeItem` use, so a run of news reads as a Williams story
@@ -95,31 +109,60 @@ export function RaceNewsItem({
         </p>
       )}
 
-      {/* Full-width headline so it wraps consistently with the body copy. */}
+      {/* Full-width headline so it wraps consistently with the body copy.
+          One column wide it is the toggle. Rendered twice, a button under `sm`
+          and plain text from it, because `aria-expanded` on a button that no
+          longer toggles anything would tell a desktop screen reader the open
+          story is closed. Only one is displayed, so only one is read. */}
       <p className="text-sm font-semibold text-text not-first:mt-1.5">
-        {event.newsHeadline}
-        <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-text-muted">
-          · {formatRelativeTime(event.createdAt)}
+        {collapsible ? (
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={() => setOpen((current) => !current)}
+            className="flex w-full items-start justify-between gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:hidden"
+          >
+            <span>
+              {event.newsHeadline}
+              <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-text-muted">
+                · {formatRelativeTime(event.createdAt)}
+              </span>
+            </span>
+            <ChevronDown
+              className={`mt-0.5 size-4 shrink-0 text-text-muted transition-transform ${
+                open ? 'rotate-180' : ''
+              }`}
+              aria-hidden
+            />
+          </button>
+        ) : null}
+        <span className={collapsible ? 'max-sm:hidden' : undefined}>
+          {event.newsHeadline}
+          <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-text-muted">
+            · {formatRelativeTime(event.createdAt)}
+          </span>
         </span>
       </p>
 
-      {event.newsBody ? (
-        <p className="gpp-reading-copy mt-2 text-sm text-text-muted">
-          {event.newsBody}
-        </p>
-      ) : null}
+      <div className={collapsible && !open ? 'max-sm:hidden' : undefined}>
+        {event.newsBody ? (
+          <p className="gpp-reading-copy mt-2 text-sm text-text-muted">
+            {event.newsBody}
+          </p>
+        ) : null}
 
-      {/* Two columns, no names, from the smallest screen: compact enough to
-          show the whole field without a disclosure, which is what used to
-          push the sessions either side of it off the screen. */}
-      {hasGrid ? (
-        <StartingGridTable
-          entries={event.newsStartingGrid!}
-          compact
-          newsLink={newsLink}
-          onNoteSelect={onNoteSelect}
-        />
-      ) : null}
+        {/* Two columns, no names, from the smallest screen: compact enough to
+            show the whole field without a disclosure, which is what used to
+            push the sessions either side of it off the screen. */}
+        {hasGrid ? (
+          <StartingGridTable
+            entries={event.newsStartingGrid!}
+            compact
+            newsLink={newsLink}
+            onNoteSelect={onNoteSelect}
+          />
+        ) : null}
+      </div>
 
       <div className="mt-3 flex items-center justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">

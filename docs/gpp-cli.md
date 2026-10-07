@@ -55,12 +55,15 @@ scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
   news check averaged 27 turns and 9 searches, and search results were a
   third of its tool output, paid again on every later turn.
 - **`page`** fetches the server-rendered HTML and prints the head (title,
-  description, canonical, robots) and the headings and text of `<main>`, one
+  description, canonical, robots, and an article's `published` date) and the
+  headings and text of `<main>`, one
   block per line. It answers "is the text there" without a screenshot, and
   shows exactly what a crawler or a signed-out visitor gets. It cannot judge
   layout: use a browser for that. `/path` means `http://localhost:3000` (the
   name Vite always answers, given its `--host ::`), and `--prod` means
-  grandprixpicks.com.
+  grandprixpicks.com. A full URL is fetched with a browser user agent,
+  because Motorsport.com and Autosport return a 403 to anything else; our own
+  pages, given as a `/path`, keep the plain `gpp-cli` one.
 - **`schema`** reads `apps/backend/convex/schema.ts` locally. With no table it
   prints every table and its index names, one line each; with tables, just
   their definitions, without comment lines unless given `--full`. `schema.ts`

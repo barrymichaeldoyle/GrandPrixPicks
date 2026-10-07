@@ -170,6 +170,8 @@ const DAY = 24 * 60 * 60 * 1000;
 // How long after a filed item's source a matching story must first break to
 // count as a development of it rather than the same report from elsewhere.
 const FOLLOW_UP_AFTER = 12 * 60 * 60 * 1000;
+const BROWSER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
 
 function when(ms) {
   if (ms == null) {
@@ -897,7 +899,12 @@ async function pageCommand(target, flags) {
   try {
     response = await fetch(url, {
       redirect: 'manual',
-      headers: { 'user-agent': 'gpp-cli' },
+      // Motorsport.com and Autosport answer a non-browser agent with a 403.
+      // A /path (our own site) keeps the plain one, out of our analytics.
+      headers: {
+        'user-agent': /^https?:\/\//.test(target) ? BROWSER_AGENT : 'gpp-cli',
+        'accept-language': 'en',
+      },
     });
   } catch (error) {
     fail(
@@ -919,6 +926,11 @@ async function pageCommand(target, flags) {
     description: attr(/<meta[^>]+name="description"[^>]+content="([^"]*)"/i),
     canonical: attr(/<link[^>]+rel="canonical"[^>]+href="([^"]*)"/i),
     robots: attr(/<meta[^>]+name="robots"[^>]+content="([^"]*)"/i),
+    // The source date a news item needs, so it is not a second fetch.
+    published:
+      attr(
+        /<meta[^>]+property="article:published_time"[^>]+content="([^"]*)"/i,
+      ) || attr(/"datePublished":\s*"([^"]*)"/),
   };
   for (const [k, value] of Object.entries(head)) {
     if (value) {

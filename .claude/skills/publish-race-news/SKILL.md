@@ -113,7 +113,14 @@ Bahrain's forecast, tyre or Mercedes-upgrade items came from a feed), or a
 specific story the user mentions. Every
 search result stays in context for the rest of the session, so one targeted
 search is worth more than a sweep. Read a candidate with `gpp page <url>`
-before writing it up.
+before writing it up. Its `published:` line is the `sourcePublishedAt`.
+
+**A blocked page is not a skipped story.** If `gpp page` still cannot give
+you the article text (a 403, a paywall, a page that only renders with
+JavaScript), open it in Chrome and read it with `get_page_text` (load the
+claude-in-chrome tools first). Only after that fails too, try another
+outlet's version of the same story. Never drop a story, or write it from a
+search summary, because the first fetch was refused.
 
 **2. Rehearse.** Write the item to a JSON file in your scratchpad (an array
 for several; they run one at a time in file order), then publish it. Without

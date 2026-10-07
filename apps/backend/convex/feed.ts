@@ -2,7 +2,7 @@ import { seatMovesForRound } from '@grandprixpicks/shared/teams';
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
-import type { Doc, Id } from './_generated/dataModel';
+import type { Doc, Id, TableNames } from './_generated/dataModel';
 import type {
   DatabaseReader,
   MutationCtx,
@@ -35,6 +35,36 @@ const FEED_BACKFILL_RACES_PER_BATCH = 1;
 type SessionType = Doc<'results'>['sessionType'];
 
 type DbCtx = { db: DatabaseReader };
+
+/**
+ * Each document read once per request. A feed page re-read the same ~22
+ * drivers for every event and the same 11 matchups for every session, so a
+ * profile with 50 scored sessions made about a thousand calls and Convex
+ * stopped it ("too many system operations", `getUserFeed`, October 2026).
+ * Keyed on the request's reader, so nothing outlives the query. Read-only
+ * callers only: a mutation would see a document as it was before its own write.
+ */
+const docsByReader = new WeakMap<
+  DatabaseReader,
+  Map<string, Promise<unknown>>
+>();
+
+function getOnce<T extends TableNames>(
+  ctx: DbCtx,
+  id: Id<T>,
+): Promise<Doc<T> | null> {
+  let docs = docsByReader.get(ctx.db);
+  if (!docs) {
+    docs = new Map();
+    docsByReader.set(ctx.db, docs);
+  }
+  let doc = docs.get(id);
+  if (!doc) {
+    doc = ctx.db.get(id);
+    docs.set(id, doc);
+  }
+  return doc as Promise<Doc<T> | null>;
+}
 
 export function getSessionLockAt(
   race: Pick<
@@ -814,7 +844,7 @@ async function buildSessionHeaders(
         .collect();
       const duels = await Promise.all(
         h2hResults.map(async (h2hResult) => {
-          const matchup = await ctx.db.get(h2hResult.matchupId);
+          const matchup = await getOnce(ctx, h2hResult.matchupId);
           if (!matchup) {
             return null;
           }
@@ -853,7 +883,7 @@ async function buildSessionHeaders(
   // Load all needed drivers in one pass
   const driverMap = new Map<string, SessionHeaderDriver>();
   const drivers = await Promise.all(
-    [...driverIdsNeeded].map((driverId) => ctx.db.get(driverId)),
+    [...driverIdsNeeded].map((driverId) => getOnce(ctx, driverId)),
   );
   for (const driver of drivers) {
     if (driver) {
@@ -985,7 +1015,7 @@ async function enrichScoreEvent(
   const userId = event.userId;
 
   if (event.type === 'session_locked') {
-    const race = await ctx.db.get(raceId);
+    const race = await getOnce(ctx, raceId);
     if (!race || !isSessionLockedAt(race, sessionType, Date.now())) {
       return { picks: undefined, h2hScore: null };
     }
@@ -1017,7 +1047,7 @@ async function enrichScoreEvent(
       }
     >();
     const drivers = await Promise.all(
-      driverIds.map((driverId) => ctx.db.get(driverId)),
+      driverIds.map((driverId) => getOnce(ctx, driverId)),
     );
     for (const driver of drivers) {
       if (driver) {
@@ -1085,7 +1115,7 @@ async function enrichScoreEvent(
       ...new Set(score.breakdown.map((pick) => pick.driverId)),
     ];
     const breakdownDrivers = await Promise.all(
-      breakdownDriverIds.map((driverId) => ctx.db.get(driverId)),
+      breakdownDriverIds.map((driverId) => getOnce(ctx, driverId)),
     );
     for (const driver of breakdownDrivers) {
       if (driver) {

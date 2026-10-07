@@ -24,6 +24,16 @@ const sentryTanstackClientEntry = join(
   dirname(sentryTanstackPackageJsonPath),
   'build/esm/index.client.js',
 );
+// liquidjs's Node build imports `fs`, `path` and `stream` at the top, and
+// Workers on our compatibility date have no `node:fs`, so the /trmnl chunk
+// failed to load during SSR and the page shipped an empty <main>. It names its
+// browser build only in the legacy `browser` field, which `conditions` does not
+// read. The TRMNL renderer passes its templates in memory, so it never needs
+// the filesystem loader the Node build adds.
+const liquidBrowserEntry = join(
+  dirname(require.resolve('liquidjs/package.json')),
+  'dist/liquid.browser.mjs',
+);
 
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
 const sentryOrg = process.env.VITE_SENTRY_ORG;
@@ -71,7 +81,10 @@ const config = defineConfig(({ mode }) => {
         ...(isVitest ? { '@/integrations/convex/query': 'convex/react' } : {}),
         '@': fileURLToPath(new URL('./src', import.meta.url)),
         ...(isCloudflarePages
-          ? { '@sentry/tanstackstart-react': sentryTanstackClientEntry }
+          ? {
+              '@sentry/tanstackstart-react': sentryTanstackClientEntry,
+              liquidjs: liquidBrowserEntry,
+            }
           : {}),
       },
     },

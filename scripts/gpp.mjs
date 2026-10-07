@@ -167,6 +167,9 @@ function convexRun(fn, args, { prod }) {
 // formatting
 
 const DAY = 24 * 60 * 60 * 1000;
+// How long after a filed item's source a matching story must first break to
+// count as a development of it rather than the same report from elsewhere.
+const FOLLOW_UP_AFTER = 12 * 60 * 60 * 1000;
 
 function when(ms) {
   if (ms == null) {
@@ -633,6 +636,7 @@ async function newsScan(slug, flags) {
       tokens: titleTokens(i.headline),
       textTokens: titleTokens(`${i.headline} ${i.body ?? ''}`),
       codes: i.driverCodes ?? i.drivers?.map((d) => d.code) ?? [],
+      at: i.sourcePublishedAt ?? i.publishedAt,
     }));
 
   // Names that tie a story to a weekend.
@@ -720,24 +724,32 @@ async function newsScan(slug, flags) {
       .map((d) => d.code);
     // Filed headlines name the venue ("Sepang") where outlets name the race
     // ("Bahrain GP"), so a story about the same drivers also matches on the
-    // filed body.
-    const covered = filedTokens.find((f) => {
-      const o = overlap(f.tokens, cluster.tokens);
-      if (o.shared >= 3 && o.jaccard >= 0.2) {
-        return true;
-      }
-      const body = overlap(f.textTokens, cluster.tokens).shared;
-      if (
-        f.codes.length > 0 &&
-        f.codes.every((c) => codes.includes(c)) &&
-        body >= 3
-      ) {
-        return true;
-      }
-      // Team and paddock stories carry no driver codes.
-      return o.shared >= 2 && body >= 4;
-    });
-    if (covered && !flags.all) {
+    // filed body. Each headline is matched on its own, as in clustering: five
+    // outlets' pooled words overlap almost any item about the same driver.
+    const covered = filedTokens.find((f) =>
+      cluster.items.some((member) => {
+        const o = overlap(f.tokens, member.tokens);
+        if (o.shared >= 3 && o.jaccard >= 0.2) {
+          return true;
+        }
+        const body = overlap(f.textTokens, member.tokens).shared;
+        if (
+          f.codes.length > 0 &&
+          f.codes.every((c) => codes.includes(c)) &&
+          body >= 3
+        ) {
+          return true;
+        }
+        // Team and paddock stories carry no driver codes.
+        return o.shared >= 2 && body >= 4;
+      }),
+    );
+    // A story that first broke well after the filed item is a development
+    // of it (a possible penalty confirmed, a ride finished), which is a
+    // republish under that key. Hiding it is how both of those went unseen.
+    const followUp =
+      covered && lead.date !== null && lead.date > covered.at + FOLLOW_UP_AFTER;
+    if (covered && !followUp && !flags.all) {
       counts.covered++;
       continue;
     }
@@ -761,6 +773,7 @@ async function newsScan(slug, flags) {
       lastRound,
       signal,
       covered,
+      followUp,
       score,
     });
   }
@@ -778,6 +791,7 @@ async function newsScan(slug, flags) {
           score: r.score,
           codes: r.codes,
           covered: r.covered?.key ?? null,
+          followUp: Boolean(r.followUp),
           items: r.cluster.items.map((i) => ({
             source: i.source,
             title: i.title,
@@ -809,7 +823,11 @@ async function newsScan(slug, flags) {
       r.place ? 'weekend' : null,
       r.signal ? 'signal' : null,
       r.codes.length ? r.codes.join(',') : null,
-      r.covered ? `≈${r.covered.key}` : null,
+      r.covered
+        ? r.followUp
+          ? `newer than ${r.covered.key}`
+          : `≈${r.covered.key}`
+        : null,
     ].filter(Boolean);
     const others = r.cluster.items.slice(1).map((i) => i.source);
     const outlets = [r.lead.source, ...new Set(others)].join('+');

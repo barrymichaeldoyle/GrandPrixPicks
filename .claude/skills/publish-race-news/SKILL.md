@@ -97,7 +97,8 @@ scripts/gpp.mjs news scan italy-2026 --prod
 It reads eight F1 feeds (formula1.com, Autosport, Motorsport.com, RaceFans, The
 Race, BBC, Sky, Crash), keeps what appeared since the race's newest item, and
 drops stories whose URL is already a `sourceUrl` or whose headline matches a
-filed one. It groups the same story across outlets and ranks by weekend terms,
+filed one. A match that broke well after the filed item stays in, tagged
+`newer than <key>`: read it, and if it firms the story up, republish that key. It groups the same story across outlets and ranks by weekend terms,
 drivers and pick signals such as penalties, power units and replacements. The
 score only sorts the list: whether a story belongs is still your call, under
 "What to publish". Aftermath of the previous round prints in its own

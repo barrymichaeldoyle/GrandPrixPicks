@@ -43,7 +43,10 @@ scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
   then the URL. The window starts a day before the race's newest item, and
   never goes back more than a week. Dropped: stories older than that,
   URLs already used as a `sourceUrl` (race or global news), listings and media
-  (`NEWS_NOISE`), and clusters whose headline overlaps a filed item. The
+  (`NEWS_NOISE`), and clusters with a headline that overlaps a filed item.
+  A matching cluster that first broke more than 12 hours after that item's
+  source is kept and tagged `newer than <key>`: it is usually a development
+  (a possible penalty confirmed), which is a republish under that key. The
   header line counts each group, so a quiet result can be told apart from a
   broken feed. Stories that name the previous round's venue and not this
   one's print in a separate "last round" section, and are checked against

@@ -9,6 +9,7 @@ import type { RaceWriteupPhase } from '@/lib/raceWriteupPhase';
 import { DeferredRaceWriteupPicks } from './DeferredRaceWriteupPicks';
 import { RaceWriteupClosingPanel } from './RaceWriteupClosingPanel';
 import { RaceWriteupNextRound } from './RaceWriteupNextRound';
+import { useInAppView } from '@/hooks/useInAppView';
 
 /**
  * How a write-up ends: the picks form while they can still be made, the
@@ -51,6 +52,13 @@ function RaceWriteupFinishContent({
   hasSprint?: boolean;
   loadImmediately?: boolean;
 }) {
+  const inApp = useInAppView();
+  // Opened from the app: the reader picks there, one tap back. Results after
+  // the race are reading, so they stay.
+  if (inApp && isLive) {
+    return null;
+  }
+
   // Only the next race on the calendar takes picks. A write-up published
   // weeks ahead is live long before its round opens, and the embedded picker
   // used to let a reader fill in a whole weekend that the backend then refused:

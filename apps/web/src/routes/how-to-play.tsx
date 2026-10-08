@@ -13,6 +13,7 @@ import { Button } from '@/components/Button/Button';
 import { PageHeader } from '@/components/PageHeader';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 import { PicksCallToAction } from '@/components/PicksCallToAction/PicksCallToAction';
+import { useInAppView } from '@/hooks/useInAppView';
 
 export const Route = createFileRoute('/how-to-play')({
   loader: setStaticContentCacheHeaders,
@@ -125,6 +126,7 @@ const sessionRows = [
 ] as const;
 
 function HowToPlayPage() {
+  const inApp = useInAppView();
   return (
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-5xl px-4 py-6">
@@ -132,16 +134,18 @@ function HowToPlayPage() {
           title="How to Play"
           subtitle="Pick the drivers you think will finish ahead, score points in every session, and climb the leaderboard."
           actions={
-            <div className="flex flex-wrap gap-3">
-              <Button asChild size="sm" rightIcon={ArrowRight}>
-                <Link to="/" hash="make-picks">
-                  Try the F1 picker
-                </Link>
-              </Button>
-              <Button asChild size="sm" variant="secondary">
-                <Link to="/leaderboard">View leaderboard</Link>
-              </Button>
-            </div>
+            inApp ? undefined : (
+              <div className="flex flex-wrap gap-3">
+                <Button asChild size="sm" rightIcon={ArrowRight}>
+                  <Link to="/" hash="make-picks">
+                    Try the F1 picker
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="secondary">
+                  <Link to="/leaderboard">View leaderboard</Link>
+                </Button>
+              </div>
+            )
           }
         />
 

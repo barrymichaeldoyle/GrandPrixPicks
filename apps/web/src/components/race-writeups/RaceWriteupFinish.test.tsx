@@ -6,6 +6,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { RaceWriteupFinish } from './RaceWriteupFinish';
 
+const inAppView = vi.hoisted(() => ({ value: false }));
+vi.mock('@/hooks/useInAppView', () => ({
+  useInAppView: () => inAppView.value,
+}));
+
 vi.mock('@/integrations/convex/query', () => ({
   useQuery: () => [],
 }));
@@ -51,6 +56,7 @@ describe('RaceWriteupFinish', () => {
     container?.remove();
     container = null;
     root = null;
+    inAppView.value = false;
   });
 
   function render(
@@ -100,6 +106,13 @@ describe('RaceWriteupFinish', () => {
     });
 
     expect(view.querySelector('[data-testid="picker"]')).not.toBeNull();
+  });
+
+  it('leaves picking to the app when opened inside it', () => {
+    inAppView.value = true;
+    const view = render(null);
+
+    expect(view.querySelector('[data-testid="picker"]')).toBeNull();
   });
 
   it('shows the picker when the next round is unknown', () => {

@@ -6,6 +6,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RaceWriteupActions } from './RaceWriteupActions';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
+const inAppView = vi.hoisted(() => ({ value: false }));
+vi.mock('@/hooks/useInAppView', () => ({
+  useInAppView: () => inAppView.value,
+}));
+
 vi.mock('@/lib/analytics', () => ({ captureAnalyticsEvent: vi.fn() }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -40,6 +45,7 @@ describe('race write-up actions', () => {
     container = null;
     root = null;
     vi.clearAllMocks();
+    inAppView.value = false;
   });
 
   function render(
@@ -65,6 +71,14 @@ describe('race write-up actions', () => {
 
   it('keeps an embedded picker CTA on the write-up page', () => {
     expect(render('make-picks').getAttribute('href')).toBe('#make-picks');
+  });
+
+  it('offers no picks action inside the mobile app', () => {
+    inAppView.value = true;
+    render('make-picks', { signalsHeading: 'What to watch' });
+
+    expect(container!.textContent).not.toMatch(/picks/i);
+    expect(container!.querySelector('a[href="#make-picks"]')).toBeNull();
   });
 
   it('uses the race page when there is no embedded action', () => {

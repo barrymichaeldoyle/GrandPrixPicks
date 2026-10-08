@@ -5,6 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RaceWriteupClosingPanel } from './RaceWriteupClosingPanel';
 
+const inAppView = vi.hoisted(() => ({ value: false }));
+vi.mock('@/hooks/useInAppView', () => ({
+  useInAppView: () => inAppView.value,
+}));
+
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,

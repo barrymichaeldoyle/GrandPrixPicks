@@ -9,6 +9,7 @@ import {
 } from '@/lib/raceWriteupPhase';
 
 import { RACE_WRITEUP_CIRCUIT_ANCHOR } from './RaceWriteupSection';
+import { useInAppView } from '@/hooks/useInAppView';
 
 type RaceWriteupActionsProps = {
   compact?: boolean;
@@ -57,6 +58,9 @@ export function RaceWriteupActions({
   venueName,
   note,
 }: RaceWriteupActionsProps) {
+  // Every primary action here leads to picking on the web; from the app the
+  // reader picks in the app. The circuit link and the note stay.
+  const inApp = useInAppView();
   // The only button above the fold on every write-up, and until this it was
   // invisible to analytics: nobody could tell whether a reader who never
   // reached the picker had tried the shortcut to it.
@@ -83,7 +87,7 @@ export function RaceWriteupActions({
           : 'mt-7 flex flex-wrap items-center gap-3'
       }
     >
-      {phase === 'finished' && nextRace ? (
+      {inApp ? null : phase === 'finished' && nextRace ? (
         <>
           <Link
             to="/races/$raceSlug"

@@ -67,7 +67,8 @@ import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
 import { clerkFrontendApiOrigin } from '@/lib/clerkOrigin';
 import { ensureAdSenseLoaded } from '@/lib/adsense';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
-import { isBareRoute, isInAppView } from '@/lib/bareRoutes';
+import { useInAppView } from '@/hooks/useInAppView';
+import { isBareRoute } from '@/lib/bareRoutes';
 import { showsGlobalFooter } from '@/lib/globalFooter';
 import { isNotificationArrival } from '@/lib/notificationArrival';
 import { routeQuery } from '@/lib/routeQuery';
@@ -300,9 +301,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 function RootDocument({ children }: PropsWithChildren) {
   const { initialAuth } = Route.useLoaderData();
   const pathname = useLocation({ select: (location) => location.pathname });
-  const inApp = useLocation({
-    select: (location) => isInAppView(location.searchStr),
-  });
+  const inApp = useInAppView();
   const bare = isBareRoute(pathname) || inApp;
 
   useEffect(() => {

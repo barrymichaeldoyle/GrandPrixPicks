@@ -7,6 +7,7 @@ import { Button } from '@/components/Button/Button';
 import { PageHeader } from '@/components/PageHeader';
 import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { pageMeta } from '@/lib/site';
+import { useInAppView } from '@/hooks/useInAppView';
 
 export const Route = createFileRoute('/terms')({
   loader: setStaticContentCacheHeaders,
@@ -21,6 +22,7 @@ export const Route = createFileRoute('/terms')({
 });
 
 function TermsPage() {
+  const inApp = useInAppView();
   return (
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
@@ -159,9 +161,11 @@ function TermsPage() {
           </section>
         </div>
 
-        <Button asChild size="sm" leftIcon={ArrowLeft} className="mt-8">
-          <Link to="/">Back to home</Link>
-        </Button>
+        {inApp ? null : (
+          <Button asChild size="sm" leftIcon={ArrowLeft} className="mt-8">
+            <Link to="/">Back to home</Link>
+          </Button>
+        )}
       </div>
     </div>
   );

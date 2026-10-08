@@ -71,6 +71,7 @@ import { useInAppView } from '@/hooks/useInAppView';
 import { isBareRoute } from '@/lib/bareRoutes';
 import { showsGlobalFooter } from '@/lib/globalFooter';
 import { isNotificationArrival } from '@/lib/notificationArrival';
+import { setDefaultPageCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { routeQuery } from '@/lib/routeQuery';
 import { CURRENT_SEASON, siteConfig } from '@/lib/site';
 import appCss from '@/styles.css?url';
@@ -277,6 +278,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       // canonical link is set per-route — do NOT add a global one here
     ],
   }),
+
+  // Runs before any loader, so a page that sets its own Cache-Control
+  // overrides this default rather than racing it.
+  beforeLoad: async () => {
+    await setDefaultPageCacheHeaders();
+  },
 
   // Resolve the viewer's signed-in/out state on the server (edge-safe Clerk
   // backend) so the header renders the correct nav on the first paint.

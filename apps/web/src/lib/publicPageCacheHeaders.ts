@@ -74,3 +74,30 @@ export async function setRaceDataCacheHeaders(): Promise<void> {
   }
   await applyRaceDataCacheHeaders();
 }
+
+/**
+ * The fallback for every page that sets nothing itself, applied from the root
+ * route's `beforeLoad` so a route's own loader overrides it.
+ *
+ * The edge Cache Rule is zone-wide and respects origin cache-control, so a
+ * document sent with no header at all falls back to Cloudflare's default edge
+ * TTL. On 2026-10-08 that had `/leaderboard`, `/pricing`, `/support`,
+ * `/leagues`, `/sign-in` and every profile serving signed-out visitors an
+ * 80-minute-old copy: stale standings, and HTML from the previous deploy
+ * after a push. Sixty seconds matches the race-data tier.
+ */
+const applyDefaultPageCacheHeaders = createServerFn({ method: 'GET' }).handler(
+  async (): Promise<void> => {
+    await applySsrCacheControl(
+      'public, max-age=0, s-maxage=60, stale-while-revalidate=300',
+    );
+  },
+);
+
+/** No-ops on the client: headers only exist during the SSR pass. */
+export async function setDefaultPageCacheHeaders(): Promise<void> {
+  if (typeof window !== 'undefined') {
+    return;
+  }
+  await applyDefaultPageCacheHeaders();
+}

@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { listGuideMeta } from '@/lib/guideMeta';
+
 /**
  * The rules that have to hold for every indexable route shape, checked against
  * every static route plus representative data for each dynamic route.
@@ -278,17 +280,20 @@ const ROUTES: {
     path: '/',
     args: { loaderData: { nextRace: { slug: 'netherlands-2026' } } },
   },
-  {
+  // Every guide, not one: each carries its own hand-written title and
+  // description, and the Haas guide's ran to 176 characters while only the
+  // points explainer was checked here.
+  ...listGuideMeta().map(({ slug }) => ({
     module: './guides/$guideSlug',
-    path: '/guides/f1-points-system-explained',
+    path: `/guides/${slug}`,
     loader: async () => {
       const { getGuide } = await import('@/lib/guides');
       return {
-        loaderData: { guide: getGuide('f1-points-system-explained') },
-        params: { guideSlug: 'f1-points-system-explained' },
+        loaderData: { guide: getGuide(slug) },
+        params: { guideSlug: slug },
       };
     },
-  },
+  })),
 ];
 
 async function headFor(

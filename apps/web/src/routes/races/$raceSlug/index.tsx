@@ -24,6 +24,7 @@ import { withLoaderSpan } from '@/lib/loaderSpan';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
 import { racePageWriteupHeadOptions } from '@/lib/raceWriteupSeo';
+import { racePageTitle } from '@/lib/racePageTitle';
 import { getCircuitSeoFacts } from '@/lib/circuitSeoFacts';
 import { isSyntheticRaceSlug } from '@grandprixpicks/shared/syntheticRaces';
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
@@ -275,8 +276,8 @@ export const Route = createFileRoute('/races/$raceSlug/')({
         ? `${SESSION_LABELS[shareCard.session]} ${shareCard.variant.startsWith('h2h_') ? 'H2H ' : ''}Results: ${race.name} | Grand Prix Picks`
         : race
           ? race.status === 'finished'
-            ? `${race.name} ${race.season} Results | Grand Prix Picks`
-            : `${race.name} ${race.season} Predictions | Grand Prix Picks`
+            ? racePageTitle(race.name, race.season, 'Results')
+            : racePageTitle(race.name, race.season, 'Predictions')
           : 'Race Predictions | Grand Prix Picks';
     const description =
       race && shareCard?.variant === 'result'

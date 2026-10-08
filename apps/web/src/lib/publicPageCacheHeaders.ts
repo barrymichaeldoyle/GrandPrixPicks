@@ -42,13 +42,19 @@ const applyStaticContentCacheHeaders = createServerFn({
  * Pages built from race data. Sixty seconds matches `/`, and for the same
  * reason: a countdown and a finishing order both move during a weekend, and
  * the client's Convex subscription corrects the document a moment after
- * hydration anyway. The stale window is short enough that a session's results
- * are never far behind for the one paint before that happens.
+ * hydration anyway.
+ *
+ * The stale window is a day, as on the championship tables. It was five
+ * minutes, and at this site's traffic an entry rarely survived that long, so
+ * crawlers and first visits to the write-ups (the pages that rank) mostly
+ * waited on a full SSR render: 0.7-1.1s to first byte against 0.1s from the
+ * edge, measured 2026-10-08. A stale paint is corrected by the subscription
+ * after hydration, and the request that served it refreshes the entry.
  */
 const applyRaceDataCacheHeaders = createServerFn({ method: 'GET' }).handler(
   async (): Promise<void> => {
     await applySsrCacheControl(
-      'public, max-age=0, s-maxage=60, stale-while-revalidate=300',
+      'public, max-age=0, s-maxage=60, stale-while-revalidate=86400',
     );
   },
 );

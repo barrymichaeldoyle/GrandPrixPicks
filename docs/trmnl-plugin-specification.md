@@ -2,7 +2,8 @@
 
 **Status:** Published as a public Recipe
 ([trmnl.com/recipes/485545](https://trmnl.com/recipes/485545)), approved 2
-October 2026 (section 9); listed in `usetrmnl/plugins` under Community plugins. The polling
+October 2026 (section 9); proposed for `usetrmnl/plugins`' Community plugins list in
+[PR #153](https://github.com/usetrmnl/plugins/pull/153) (8 October 2026). The polling
 endpoint is `apps/web/server/routes/api/trmnl/weekend.get.ts` (logic in
 `apps/web/server/lib/trmnl.ts`), and the Liquid plugin is `apps/trmnl/`.  
 **Product type:** Public TRMNL Recipe. No sign-in, no per-player data.  

@@ -20,6 +20,7 @@ import { useMobileConfig } from '../providers/mobile-config';
 import { useToast } from '../providers/ToastProvider';
 import { colors } from '../theme/tokens';
 import { FlatList, Pressable, RefreshControl, Text, View } from '../tw';
+import { userFacingMessage } from '../lib/userFacingError';
 
 type Notification = {
   _id: ConvexId<'inAppNotifications'>;
@@ -103,10 +104,7 @@ export function NotificationsScreen({
       await markAllRead({});
       showToast('All notifications marked read', 'success');
     } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : 'Could not mark all read',
-        'error',
-      );
+      showToast(userFacingMessage(err, 'Could not mark all read'), 'error');
     }
   }
 

@@ -33,6 +33,7 @@ import {
   TextInput,
   View,
 } from '../tw';
+import { userFacingMessage } from '../lib/userFacingError';
 
 type NotificationKey =
   | 'pushPredictionReminders'
@@ -210,7 +211,7 @@ export function SettingsScreen() {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       showToast('Display name saved', 'success');
     } catch (err) {
-      setNameError(err instanceof Error ? err.message : 'Failed to save.');
+      setNameError(userFacingMessage(err, 'Failed to save.'));
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsSavingName(false);
@@ -225,10 +226,7 @@ export function SettingsScreen() {
     });
     updateNotifications({ [key]: value }).catch((err) => {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      showToast(
-        err instanceof Error ? err.message : 'Could not update setting',
-        'error',
-      );
+      showToast(userFacingMessage(err, 'Could not update setting'), 'error');
     });
   }
 
@@ -240,10 +238,7 @@ export function SettingsScreen() {
       })
       .catch((err) => {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        showToast(
-          err instanceof Error ? err.message : 'Could not update timezone',
-          'error',
-        );
+        showToast(userFacingMessage(err, 'Could not update timezone'), 'error');
       });
   }
 
@@ -262,7 +257,7 @@ export function SettingsScreen() {
       .catch((err) => {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         showToast(
-          err instanceof Error ? err.message : 'Could not update time format',
+          userFacingMessage(err, 'Could not update time format'),
           'error',
         );
       });
@@ -296,9 +291,10 @@ export function SettingsScreen() {
                   Haptics.NotificationFeedbackType.Error,
                 );
                 showToast(
-                  err instanceof Error
-                    ? err.message
-                    : 'Could not delete your account. Please try again.',
+                  userFacingMessage(
+                    err,
+                    'Could not delete your account. Please try again.',
+                  ),
                   'error',
                 );
               })
@@ -539,9 +535,7 @@ export function SettingsScreen() {
                 updateNotifications({ newsPushPreference: value }).catch(
                   (err) =>
                     showToast(
-                      err instanceof Error
-                        ? err.message
-                        : 'Could not update setting',
+                      userFacingMessage(err, 'Could not update setting'),
                       'error',
                     ),
                 );

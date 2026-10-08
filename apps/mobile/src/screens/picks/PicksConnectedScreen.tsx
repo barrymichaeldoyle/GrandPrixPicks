@@ -7,7 +7,7 @@ import {
   getSessionsForWeekend,
   type SessionType,
 } from '@grandprixpicks/shared/sessions';
-import { useMutation } from 'convex/react';
+import { useConvexConnectionState, useMutation } from 'convex/react';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -53,6 +53,7 @@ import {
   type DriverId,
   type SessionCapability,
 } from './picksShared';
+import { OfflineSaveError } from '../../lib/userFacingError';
 
 export function PicksConnectedScreen({
   embedded = false,
@@ -97,6 +98,8 @@ function PredictForRace({
 }) {
   const now = useNow();
   const maybeOfferPush = useOfferPushAfterFirstSave();
+  // Saves refuse to start offline rather than queue (see OfflineSaveError).
+  const { isWebSocketConnected } = useConvexConnectionState();
   // Pinned to this race's round, and asking for the drivers who are not in a
   // car too: the picker filters those out of its pool, but a saved pick has to
   // be able to name one.
@@ -329,6 +332,9 @@ function PredictForRace({
       requireAccountToSave();
       return;
     }
+    if (!isWebSocketConnected) {
+      throw new OfflineSaveError();
+    }
     const isFirstSave = !hasAnyTop5;
     const scope = sessionType === undefined ? 'cascade' : 'session';
     try {
@@ -365,6 +371,9 @@ function PredictForRace({
     if (!isSignedIn) {
       requireAccountToSave();
       return;
+    }
+    if (!isWebSocketConnected) {
+      throw new OfflineSaveError();
     }
     const scope = sessionType === undefined ? 'cascade' : 'session';
     try {

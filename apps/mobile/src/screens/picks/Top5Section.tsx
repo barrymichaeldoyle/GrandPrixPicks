@@ -28,6 +28,7 @@ import {
   type RaceDoc,
   type DriverDoc,
 } from './picksShared';
+import { userFacingMessage } from '../../lib/userFacingError';
 
 /* The Top 5 section: editor, read-only view and the section that switches between them. */
 
@@ -239,7 +240,7 @@ export function Top5Editor({
     } catch (error) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast(
-        error instanceof Error ? error.message : 'Save failed',
+        userFacingMessage(error, 'Your picks weren’t saved. Try again.'),
         'error',
       );
     } finally {

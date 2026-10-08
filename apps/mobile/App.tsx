@@ -2,7 +2,6 @@ import { StatusBar } from 'expo-status-bar';
 import { LogBox } from 'react-native';
 
 import { AppErrorBoundary } from './src/components/AppErrorBoundary';
-import { OfflineBanner } from './src/components/ui/OfflineBanner';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { AppProviders } from './src/providers/AppProviders';
 import { Sentry, initSentry } from './src/lib/sentry';
@@ -31,9 +30,6 @@ function App() {
     <AppProviders>
       <View className="flex-1 bg-page">
         <StatusBar style="light" />
-        {/* Inside the providers so it can read the Convex socket, above the
-            navigator so it sits over every screen. */}
-        <OfflineBanner />
         <AppErrorBoundary>
           <AppNavigator />
         </AppErrorBoundary>

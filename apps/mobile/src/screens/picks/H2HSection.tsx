@@ -32,6 +32,7 @@ import {
   H2H_AUTO_SAVE_DELAY_MS,
   type RaceDoc,
 } from './picksShared';
+import { userFacingMessage } from '../../lib/userFacingError';
 
 /* The team-mate duels section: editor, read-only view and the section that switches between them. */
 
@@ -347,7 +348,7 @@ export function H2HEditor({
       setSaveFailed(true);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast(
-        error instanceof Error ? error.message : 'Save failed',
+        userFacingMessage(error, 'Your picks weren’t saved. Try again.'),
         'error',
       );
     } finally {

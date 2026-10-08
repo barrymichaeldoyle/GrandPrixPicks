@@ -5,6 +5,7 @@ import { TAB_CHROME_HEIGHT } from '../../lib/hideOnScroll';
 import { useTypography } from '../../theme/typography';
 import { Text, View } from '../../tw';
 import { BrandMark } from './BrandMark';
+import { OfflineBanner } from './OfflineBanner';
 
 type TabChromeProps = {
   /** Right-side action (e.g. Mark all read). Hides with the chrome. */
@@ -77,6 +78,9 @@ export function CollapsingChrome({
   return (
     <View className="flex-1 bg-page" style={{ overflow: 'hidden' }}>
       <Animated.View style={headerStyle}>{chrome}</Animated.View>
+      {/* Under the tab's own header: mounted above the navigator it drew
+          over the status bar, since nothing gave it the safe-area inset. */}
+      <OfflineBanner />
       {children}
     </View>
   );

@@ -918,7 +918,7 @@ export const submitH2HPredictions = mutation({
     const race = await ctx.db.get(args.raceId);
 
     if (!race) {
-      throw new Error('Race not found');
+      throw new ConvexError('Race not found');
     }
 
     const now = Date.now();
@@ -938,14 +938,14 @@ export const submitH2HPredictions = mutation({
       )
       .first();
     if (!mainPrediction) {
-      throw new Error('Submit your top 5 predictions first');
+      throw new ConvexError('Submit your top 5 predictions first');
     }
 
     // Validate each pick
     for (const pick of args.picks) {
       const matchup = await ctx.db.get(pick.matchupId);
       if (!matchup) {
-        throw new Error('Matchup not found');
+        throw new ConvexError('Matchup not found');
       }
       if (
         pick.predictedWinnerId !== matchup.driver1Id &&
@@ -988,7 +988,9 @@ export const submitH2HPredictions = mutation({
 
       if (lockTime && now >= lockTime) {
         if (isTargetedSessionUpdate) {
-          throw new Error(`H2H predictions are locked for ${sessionType}`);
+          throw new ConvexError(
+            `H2H predictions are locked for ${sessionType}`,
+          );
         }
         continue;
       }
@@ -1026,7 +1028,7 @@ export const submitH2HPredictions = mutation({
     }
 
     if (updatedCount === 0) {
-      throw new Error('All sessions are locked');
+      throw new ConvexError('All sessions are locked');
     }
 
     return { ok: true, updatedCount };

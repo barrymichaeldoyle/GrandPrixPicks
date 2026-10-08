@@ -392,11 +392,11 @@ export const getMyLatestScoredWeekend = query({
 
 function assertFiveUnique(ids: Array<string>) {
   if (ids.length !== 5) {
-    throw new Error('Pick exactly 5 drivers');
+    throw new ConvexError('Pick exactly 5 drivers');
   }
   const set = new Set(ids);
   if (set.size !== 5) {
-    throw new Error('Picks must be unique (no duplicates)');
+    throw new ConvexError('Picks must be unique (no duplicates)');
   }
 }
 
@@ -498,7 +498,7 @@ export const submitPrediction = mutation({
     const race = await ctx.db.get(args.raceId);
 
     if (!race) {
-      throw new Error('Race not found');
+      throw new ConvexError('Race not found');
     }
 
     const now = Date.now();
@@ -536,7 +536,7 @@ export const submitPrediction = mutation({
       if (lockTime && now >= lockTime) {
         if (args.sessionType) {
           // If user specifically requested this session, throw error
-          throw new Error(`Predictions are locked for ${sessionType}`);
+          throw new ConvexError(`Predictions are locked for ${sessionType}`);
         }
         // Otherwise skip silently (cascade mode)
         continue;
@@ -581,7 +581,7 @@ export const submitPrediction = mutation({
     }
 
     if (results.length === 0) {
-      throw new Error('All sessions are locked for this race');
+      throw new ConvexError('All sessions are locked for this race');
     }
 
     return results[0]; // Return first created/updated prediction ID
@@ -662,7 +662,7 @@ export const randomizePredictions = mutation({
     const race = await ctx.db.get(args.raceId);
 
     if (!race) {
-      throw new Error('Race not found');
+      throw new ConvexError('Race not found');
     }
 
     const now = Date.now();
@@ -725,7 +725,7 @@ export const randomizePredictions = mutation({
     }
 
     if (results.length === 0) {
-      throw new Error('All sessions are locked for this race');
+      throw new ConvexError('All sessions are locked for this race');
     }
 
     return results;

@@ -12,6 +12,13 @@ import { Text, View } from '../../tw';
 const OFFLINE_DELAY_MS = 3000;
 
 /**
+ * A cold start with no connection never connects, so `hasEverConnected`
+ * alone kept the banner off for exactly the launch that needed it. After this
+ * long without a first connection, say so.
+ */
+const FIRST_CONNECT_GRACE_MS = 8000;
+
+/**
  * Says so when the app cannot reach Convex.
  *
  * Mobile needs this more than the web does, and had none: connectivity drops
@@ -21,14 +28,15 @@ const OFFLINE_DELAY_MS = 3000;
  *
  * The signal is the Convex socket rather than a network library, because
  * reaching the backend is the thing that actually matters and it needs no new
- * dependency. `hasEverConnected` keeps the banner off during the first
- * connection on a cold start, which is not an outage.
+ * dependency. A cold start gets a longer grace period, since the first
+ * connection taking a few seconds is not an outage.
  */
 export function OfflineBanner() {
   const { isWebSocketConnected, hasEverConnected } = useConvexConnectionState();
   const [visible, setVisible] = useState(false);
 
-  const isOffline = hasEverConnected && !isWebSocketConnected;
+  const isOffline = !isWebSocketConnected;
+  const delayMs = hasEverConnected ? OFFLINE_DELAY_MS : FIRST_CONNECT_GRACE_MS;
 
   useEffect(() => {
     if (!isOffline) {
@@ -37,9 +45,9 @@ export function OfflineBanner() {
       setVisible(false);
       return;
     }
-    const timer = setTimeout(() => setVisible(true), OFFLINE_DELAY_MS);
+    const timer = setTimeout(() => setVisible(true), delayMs);
     return () => clearTimeout(timer);
-  }, [isOffline]);
+  }, [delayMs, isOffline]);
 
   if (!visible) {
     return null;

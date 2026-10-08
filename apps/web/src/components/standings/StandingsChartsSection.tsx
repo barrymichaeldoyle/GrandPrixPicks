@@ -123,6 +123,7 @@ function ChartPlaceholder({ height = 300 }: { height?: number }) {
 function ChartBlock({
   id,
   title,
+  unit,
   description,
   height,
   controls,
@@ -132,6 +133,12 @@ function ChartBlock({
 }: {
   id: string;
   title: string;
+  /**
+   * Read after the title by screen readers only. The drivers' and teams'
+   * tables each carry a "Championship gap" section, and two landmarks with
+   * one name are indistinguishable in a landmark or heading list.
+   */
+  unit: string;
   description: string;
   /** Reserved height for the chart, held before it loads. */
   height: number;
@@ -152,6 +159,7 @@ function ChartBlock({
         <div>
           <h3 id={id} className="text-base font-semibold text-text">
             {title}
+            <span className="sr-only"> ({unit}s)</span>
           </h3>
           <p className="mt-1 text-sm text-text-muted">{description}</p>
         </div>
@@ -302,6 +310,7 @@ export function StandingsChartsSection({
         className="mt-5"
       >
         <ChartBlock
+          unit={unit}
           hidden={tab !== 'gap'}
           height={gapSeries.length * GAP_CHART_ROW}
           id={`${idPrefix}-gap-chart`}
@@ -340,6 +349,7 @@ export function StandingsChartsSection({
         />
 
         <ChartBlock
+          unit={unit}
           hidden={tab !== 'progression'}
           height={PLOT_HEIGHT}
           id={`${idPrefix}-progression-chart`}
@@ -371,6 +381,7 @@ export function StandingsChartsSection({
         />
 
         <ChartBlock
+          unit={unit}
           hidden={tab !== 'positions'}
           height={PLOT_HEIGHT}
           id={`${idPrefix}-bump-chart`}

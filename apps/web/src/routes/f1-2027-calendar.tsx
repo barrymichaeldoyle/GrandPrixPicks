@@ -193,7 +193,12 @@ function F1Calendar2027Page() {
           >
             Every round
           </h2>
-          <div className="mt-6 overflow-x-auto rounded-xl border border-border">
+          <div
+            role="region"
+            aria-label="2027 calendar"
+            tabIndex={0}
+            className="mt-6 overflow-x-auto rounded-xl border border-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
             <table className="w-full min-w-[20rem] border-collapse text-sm sm:min-w-[40rem]">
               <caption className="sr-only">
                 The 2027 Formula 1 calendar: every round with its venue, dates
@@ -279,7 +284,12 @@ function F1Calendar2027Page() {
             </a>
             .
           </p>
-          <div className="mt-6 overflow-x-auto rounded-xl border border-border">
+          <div
+            role="region"
+            aria-label="2027 support-series weekends"
+            tabIndex={0}
+            className="mt-6 overflow-x-auto rounded-xl border border-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
             <table className="w-full min-w-[28rem] border-collapse text-sm">
               <caption className="sr-only">
                 2027 support-series weekends at F1 venues, with F2 and F3 round

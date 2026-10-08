@@ -61,12 +61,11 @@ export function DriverStandingsTable({
             </th>
             {/* Named in full for a screen reader; the column itself is three
                 characters wide and the glyphs in it say the same thing. */}
-            <th
-              scope="col"
-              aria-label="Position change since the previous round"
-              className="w-10 px-2 py-2.5 sm:w-16"
-            >
+            <th scope="col" className="w-10 px-2 py-2.5 sm:w-16">
               <span aria-hidden>+/−</span>
+              <span className="sr-only">
+                Position change since the previous round
+              </span>
             </th>
             <th scope="col" className="px-2 py-2.5 sm:px-3">
               Driver

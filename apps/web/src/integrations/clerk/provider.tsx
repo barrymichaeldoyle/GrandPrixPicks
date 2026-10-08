@@ -1,8 +1,9 @@
 import { ClerkProvider, useAuth, useClerk } from '@clerk/tanstack-react-start';
 import { dark } from '@clerk/ui/themes';
-import type { PropsWithChildren } from 'react';
+import { useEffect, type PropsWithChildren } from 'react';
 
 import { HEADER_NAV_TAB_CLASS } from '@/components/headerNavTabStyles';
+import { watchClerkDialogNames } from './clerkDialogName';
 import { useInitialAuth } from './initial-auth';
 import {
   deriveViewerSession,
@@ -142,6 +143,8 @@ function ClerkViewerSessionBridge({
   const { isLoaded, isSignedIn: clientSignedIn } = useAuth();
   const clerk = useClerk();
   const initialAuth = useInitialAuth();
+
+  useEffect(() => watchClerkDialogNames(), []);
 
   return (
     <ViewerSessionProvider

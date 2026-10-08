@@ -78,7 +78,7 @@ const SCORING_BANDS = [
     label: 'Exact position',
     detail: 'Your driver finishes exactly where you put them.',
     textClass: 'text-result-exact',
-    ruleClass: 'bg-result-exact',
+    ruleClass: 'after:bg-result-exact',
   },
   {
     points: '3',
@@ -86,7 +86,7 @@ const SCORING_BANDS = [
     label: 'One position away',
     detail: 'Your driver finishes one place above or below your pick.',
     textClass: 'text-result-near',
-    ruleClass: 'bg-result-near',
+    ruleClass: 'after:bg-result-near',
   },
   {
     points: '1',
@@ -94,7 +94,7 @@ const SCORING_BANDS = [
     label: 'Elsewhere in the top 5',
     detail: 'Your driver still finishes in the top 5, two or more places out.',
     textClass: 'text-result-top5',
-    ruleClass: 'bg-result-top5',
+    ruleClass: 'after:bg-result-top5',
   },
 ] as const;
 
@@ -434,28 +434,28 @@ function PredictionsThisWeekendPage() {
               facts: the sector colour is a thick strip closing each card, not
               a hairline floating above its heading. `border-b-0` plus a filled
               strip rather than `border-b-8`, because CSS miters adjacent
-              borders and the colour has to stay square-ended. */}
+              borders and the colour has to stay square-ended. The strip is a
+              pseudo-element because a `dl` group may hold only `dt` and `dd`:
+              a wrapper or a decorative `div` inside it breaks the term/detail
+              pairing for screen readers. */}
           <dl className="mt-5 grid gap-4 md:grid-cols-3">
             {SCORING_BANDS.map((band) => (
               <div
                 key={band.label}
-                className="flex flex-col border border-b-0 border-border bg-surface md:min-h-48"
+                className={`relative border border-b-0 border-border bg-surface p-5 pb-7 after:absolute after:inset-x-0 after:bottom-0 after:h-2 md:min-h-48 ${band.ruleClass}`}
               >
-                <div className="flex flex-1 flex-col p-5">
-                  <dt className={`flex items-end gap-2 ${band.textClass}`}>
-                    <span className="gpp-mono text-4xl leading-none font-semibold">
-                      {band.points}
-                    </span>
-                    <span className="gpp-label pb-0.5">{band.unit}</span>
-                  </dt>
-                  <dd>
-                    <p className="mt-5 font-semibold text-text">{band.label}</p>
-                    <p className="gpp-reading-copy mt-2 text-text-muted">
-                      {band.detail}
-                    </p>
-                  </dd>
-                </div>
-                <div aria-hidden className={`h-2 shrink-0 ${band.ruleClass}`} />
+                <dt className={`flex items-end gap-2 ${band.textClass}`}>
+                  <span className="gpp-mono text-4xl leading-none font-semibold">
+                    {band.points}
+                  </span>
+                  <span className="gpp-label pb-0.5">{band.unit}</span>
+                </dt>
+                <dd>
+                  <p className="mt-5 font-semibold text-text">{band.label}</p>
+                  <p className="gpp-reading-copy mt-2 text-text-muted">
+                    {band.detail}
+                  </p>
+                </dd>
               </div>
             ))}
           </dl>

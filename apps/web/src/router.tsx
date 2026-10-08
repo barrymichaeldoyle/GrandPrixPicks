@@ -4,6 +4,7 @@ import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query
 
 import { ErrorFallback } from './components/error/ErrorFallback';
 import * as TanstackQuery from './integrations/tanstack-query/root-provider';
+import { isCefSharpBridgeRejection } from './lib/cefSharpRejection';
 import { deferUntilAfterLoad } from './lib/deferUntilAfterLoad';
 import { classifyNetworkFailureEvent } from './lib/networkFailureEvent';
 import {
@@ -80,6 +81,9 @@ export function getRouter() {
         /fundingchoicesmessages\.google\.com/,
       ],
       beforeSend(event) {
+        if (isCefSharpBridgeRejection(event)) {
+          return null;
+        }
         // We have already called `reload()`; this page is being torn down and
         // is about to be replaced by one built from the new HTML. Anything it
         // raises on the way out is the teardown, not a defect — including the

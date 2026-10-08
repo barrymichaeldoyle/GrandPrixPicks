@@ -227,6 +227,13 @@ MVP settings:
 - On mutation failure, retain the draft and map known errors: race unavailable, not the next race, session locked, invalid/duplicate picks, Top 5 required, and unauthenticated.
 - Picks should show a saving state and confirm from the mutation/subscription result.
 
+How the app does it today:
+
+- Every `useQuery` result is kept in MMKV per viewer (`integrations/convex/query.ts`, `lib/persistedQueries.ts`) and stands in until the live value arrives; at most 80 entries, cleared for that viewer on sign-out and account deletion. Clerk starts offline from `resourceCache`, so the viewer is known with no connection.
+- Saves refuse to start while the Convex socket is down (`OfflineSaveError`), so nothing queues for replay; the editor keeps the picks as a draft.
+- `OfflineBanner` sits under each tab's header (`CollapsingChrome`), after 3s offline or 8s with no first connection.
+- Save errors go through `@grandprixpicks/shared/userFacingError`, shared with web; the mutations reject with `ConvexError` so the text survives production.
+
 ## Existing backend/API mapping
 
 | Capability           | Existing Convex API                                                                                                          |

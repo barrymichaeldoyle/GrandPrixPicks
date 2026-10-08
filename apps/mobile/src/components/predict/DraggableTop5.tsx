@@ -253,7 +253,10 @@ function PickedRow({
         ) : (
           <GestureDetector gesture={pan}>
             <RNView
-              accessibilityLabel="Drag to reorder"
+              // Five rows that all said "Drag to reorder" gave VoiceOver no
+              // way to tell the picks apart; the action belongs in the hint.
+              accessibilityHint="Drag to reorder"
+              accessibilityLabel={`P${index + 1}, ${item.driver.displayName}, ${displayTeamName(item.driver.team)}`}
               accessibilityRole="button"
               collapsable={false}
               style={{
@@ -339,7 +342,14 @@ function PoolDriverCard({
 
   return (
     <Pressable
+      // Read as the driver, not the code and surname on the card.
+      accessibilityLabel={
+        picked
+          ? `${driver.displayName}, picked at P${pickedPosition}`
+          : driver.displayName
+      }
       accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled && !picked }}
       className={`min-h-11 flex-row overflow-hidden rounded-sm border ${
         picked
           ? 'border-accent/40 bg-accent-muted/15'

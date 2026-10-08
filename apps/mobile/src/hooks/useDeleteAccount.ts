@@ -2,6 +2,7 @@ import { useUser } from '@clerk/expo';
 import { useMutation } from 'convex/react';
 
 import { api } from '../integrations/convex/api';
+import { clearPersistedQueries } from '../lib/persistedQueries';
 import {
   clearStoredExpoPushToken,
   getStoredExpoPushToken,
@@ -27,6 +28,9 @@ export function useDeleteAccount() {
       }
     } catch (err) {
       console.warn('[account] push token cleanup failed before deletion', err);
+    }
+    if (user) {
+      clearPersistedQueries(user.id);
     }
     await user?.delete();
   };

@@ -1,4 +1,5 @@
 import { ClerkProvider } from '@clerk/expo';
+import { resourceCache } from '@clerk/expo/resource-cache';
 import { tokenCache } from '@clerk/expo/token-cache';
 import type { ReactNode } from 'react';
 
@@ -12,7 +13,14 @@ export function MobileClerkProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey} tokenCache={tokenCache}>
+    // `resourceCache` lets Clerk start from its last known session with no
+    // connection. Without it an offline launch never learned who was signed
+    // in, so the stored Convex reads keyed by viewer could not be shown.
+    <ClerkProvider
+      __experimental_resourceCache={resourceCache}
+      publishableKey={clerkPublishableKey}
+      tokenCache={tokenCache}
+    >
       {children}
     </ClerkProvider>
   );

@@ -29,3 +29,23 @@ export async function removeStoredValue(key: string) {
 export async function listStoredKeys(prefix: string): Promise<string[]> {
   return storage.getAllKeys().filter((key) => key.startsWith(prefix));
 }
+
+/**
+ * Synchronous reads and writes, for the persisted query cache: a screen has
+ * to render its stored value on the first frame, not a tick later.
+ */
+export function getStoredStringSync(key: string): string | undefined {
+  return storage.getString(key);
+}
+
+export function setStoredStringSync(key: string, value: string) {
+  storage.set(key, value);
+}
+
+export function removeStoredValueSync(key: string) {
+  storage.remove(key);
+}
+
+export function listStoredKeysSync(prefix: string): string[] {
+  return storage.getAllKeys().filter((key) => key.startsWith(prefix));
+}

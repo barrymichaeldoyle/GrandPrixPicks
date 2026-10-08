@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 // `dates.ts` imports convex/react at module scope for its hook; we only test
 // the pure formatters, so stub the hook out to keep the module hermetic.
-vi.mock('convex/react', () => ({ useQuery: () => undefined }));
+// `dates.ts` reads through the app's query hook, which pulls in Clerk and
+// React Native; neither loads under node.
+vi.mock('../integrations/convex/query', () => ({ useQuery: () => undefined }));
 vi.mock('../integrations/convex/api', () => ({ api: {} }));
 
 import { formatRaceDate } from './dates';

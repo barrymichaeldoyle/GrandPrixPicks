@@ -19,6 +19,13 @@ const OFFLINE_DELAY_MS = 3000;
 const FIRST_CONNECT_GRACE_MS = 8000;
 
 /**
+ * Once one banner has waited out its delay, the app is known to be offline:
+ * each tab mounts its own banner, and making every one of them wait again
+ * read as the connection coming and going between tabs.
+ */
+let knownOffline = false;
+
+/**
  * Says so when the app cannot reach Convex.
  *
  * Mobile needs this more than the web does, and had none: connectivity drops
@@ -33,19 +40,22 @@ const FIRST_CONNECT_GRACE_MS = 8000;
  */
 export function OfflineBanner() {
   const { isWebSocketConnected, hasEverConnected } = useConvexConnectionState();
-  const [visible, setVisible] = useState(false);
-
   const isOffline = !isWebSocketConnected;
+  const [visible, setVisible] = useState(() => isOffline && knownOffline);
   const delayMs = hasEverConnected ? OFFLINE_DELAY_MS : FIRST_CONNECT_GRACE_MS;
 
   useEffect(() => {
     if (!isOffline) {
+      knownOffline = false;
       // Convex connection state is external; reconnecting cancels the delay.
       // oxlint-disable-next-line react/set-state-in-effect
       setVisible(false);
       return;
     }
-    const timer = setTimeout(() => setVisible(true), delayMs);
+    const timer = setTimeout(() => {
+      knownOffline = true;
+      setVisible(true);
+    }, delayMs);
     return () => clearTimeout(timer);
   }, [delayMs, isOffline]);
 

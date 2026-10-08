@@ -1,7 +1,8 @@
-import { useClerk } from '@clerk/expo';
+import { useAuth, useClerk } from '@clerk/expo';
 import { useMutation } from 'convex/react';
 
 import { api } from '../integrations/convex/api';
+import { clearPersistedQueries } from '../lib/persistedQueries';
 import {
   clearStoredExpoPushToken,
   getStoredExpoPushToken,
@@ -15,6 +16,7 @@ import {
  */
 export function useSignOutWithCleanup() {
   const { signOut } = useClerk();
+  const { userId } = useAuth();
   const deleteToken = useMutation(api.push.deleteExpoPushToken);
 
   return async function signOutWithCleanup() {
@@ -26,6 +28,10 @@ export function useSignOutWithCleanup() {
       }
     } catch (err) {
       console.warn('[auth] push token cleanup failed on sign-out', err);
+    }
+    // The next person to hold this phone should not open on these picks.
+    if (userId) {
+      clearPersistedQueries(userId);
     }
     await signOut();
   };

@@ -13,7 +13,8 @@ import { ConvexError } from 'convex/values';
 export class OfflineSaveError extends Error {
   constructor() {
     super(
-      'Your picks weren’t saved: no connection. They’re kept on this phone, so save again when you’re back online.',
+      // Short enough for the two lines a toast shows.
+      'Your picks weren’t saved: no connection. They’re kept here until you’re back online.',
     );
     this.name = 'OfflineSaveError';
   }

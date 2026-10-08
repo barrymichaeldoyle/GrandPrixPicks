@@ -17,7 +17,10 @@ export function SegmentedTabs<T extends string>({
   onChange,
 }: SegmentedTabsProps<T>) {
   return (
-    <View className="flex-row rounded-full border border-border bg-surface p-1">
+    <View
+      accessibilityRole="tablist"
+      className="flex-row rounded-full border border-border bg-surface p-1"
+    >
       {options.map((option) => {
         const isActive = option.value === value;
         return (

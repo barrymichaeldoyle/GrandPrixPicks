@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from './Ionicons';
 import * as Haptics from 'expo-haptics';
 
 import type { ConvexId } from '../../integrations/convex/api';

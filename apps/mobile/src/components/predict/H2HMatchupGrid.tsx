@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../ui/Ionicons';
 
 import { displayTeamName, getTeamColor } from '../../lib/teamColors';
 import { colors } from '../../theme/tokens';

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../ui/Ionicons';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { Dimensions } from 'react-native';
 

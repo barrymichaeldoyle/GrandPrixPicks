@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../components/ui/Ionicons';
 import { useMutation } from 'convex/react';
 import { useQuery } from '../integrations/convex/query';
 import Constants from 'expo-constants';

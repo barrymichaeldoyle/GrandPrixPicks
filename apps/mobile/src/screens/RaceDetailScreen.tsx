@@ -1,7 +1,7 @@
 import { PRACTICE_SESSION_LABELS } from '@grandprixpicks/shared/practice';
 import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../components/ui/Ionicons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';

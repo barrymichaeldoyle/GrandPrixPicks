@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../../components/ui/Ionicons';
 import {
   SESSION_LABELS,
   SESSION_LABELS_SHORT,

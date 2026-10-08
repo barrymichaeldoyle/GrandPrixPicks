@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from './ui/Ionicons';
 
 import { useSignInSheet } from '../lib/useSignInSheet';
 import { colors } from '../theme/tokens';

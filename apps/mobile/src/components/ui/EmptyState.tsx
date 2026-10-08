@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from './Ionicons';
 import type { ReactNode } from 'react';
 
 import { colors } from '../../theme/tokens';

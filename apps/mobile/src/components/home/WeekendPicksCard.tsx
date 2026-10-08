@@ -1,7 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../ui/Ionicons';
 import type { ComponentProps } from 'react';
 import { formatLockCountdown } from '@grandprixpicks/shared/picks';
 import {
+  SESSION_LABELS,
   SESSION_LABELS_SHORT,
   type SessionType,
 } from '@grandprixpicks/shared/sessions';
@@ -126,6 +127,7 @@ export function WeekendPicksCard({
 
       <View className="flex-row items-center gap-3 pl-4">
         <ScrollView
+          accessibilityRole={tabsInteractive ? 'tablist' : undefined}
           className="min-w-0 flex-1"
           contentContainerClassName="flex-row gap-x-4 pr-3"
           horizontal
@@ -341,12 +343,28 @@ function SessionChip({
     </>
   );
 
+  // The icon and colour carry the session's state, and neither reaches
+  // VoiceOver, so the label says it in words, with the full session name.
+  const accessibilityLabel = `${SESSION_LABELS[session.sessionType]}, ${
+    session.hasResult ? 'results published' : isOpen ? 'open' : 'locked'
+  }`;
+
   if (!onSelect) {
-    return <View className={className}>{label}</View>;
+    return (
+      <View
+        accessible
+        accessibilityLabel={accessibilityLabel}
+        className={className}
+      >
+        {label}
+      </View>
+    );
   }
 
   return (
     <Pressable
+      accessible
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="tab"
       accessibilityState={{ selected }}
       className={className}

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../components/ui/Ionicons';
 import { NOTIFICATION_PAGE_SIZE } from '@grandprixpicks/shared/notifications';
 import { useMutation } from 'convex/react';
 import { usePaginatedQuery, useQuery } from '../integrations/convex/query';

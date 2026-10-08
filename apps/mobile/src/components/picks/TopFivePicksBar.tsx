@@ -4,6 +4,8 @@ import { Pressable, Text, View } from '../../tw';
 type Driver = {
   _id: string;
   code: string;
+  /** What VoiceOver reads: a code like "NOR" is spoken as a word. */
+  displayName?: string | null;
   team?: string | null;
 };
 
@@ -58,7 +60,7 @@ export function TopFivePicksBar({
 
         return (
           <Pressable
-            accessibilityLabel={`Edit your Top 5. P${index + 1}, ${driver.code}`}
+            accessibilityLabel={`Edit your Top 5. P${index + 1}, ${driver.displayName ?? driver.code}`}
             accessibilityRole="button"
             className={className}
             key={driver._id}

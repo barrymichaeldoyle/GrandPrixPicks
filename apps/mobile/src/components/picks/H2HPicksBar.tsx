@@ -2,7 +2,12 @@ import { displayTeamName, getTeamColor } from '../../lib/teamColors';
 import { Pressable, Text, View } from '../../tw';
 import type { DimensionValue } from 'react-native';
 
-type H2HDriver = { _id: string; code: string };
+// `displayName` is what VoiceOver reads: a code like "LEC" is spoken as a word.
+type H2HDriver = {
+  _id: string;
+  code: string;
+  displayName?: string | null;
+};
 
 export type H2HBarMatchup = {
   _id: string;
@@ -43,7 +48,7 @@ export function H2HPicksBar({
           matchup.team,
         )}. ${
           picked
-            ? `${picked.code} picked${inferred ? ' from your Top 5' : ''}`
+            ? `${picked.displayName ?? picked.code} picked${inferred ? ' from your Top 5' : ''}`
             : 'Not called yet'
         }.`;
         const isActive = index === activeIndex;

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from './Ionicons';
 import { useConvexConnectionState } from 'convex/react';
 import { useEffect, useState } from 'react';
 

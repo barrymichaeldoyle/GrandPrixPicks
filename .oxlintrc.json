@@ -66,6 +66,29 @@
   },
   "overrides": [
     {
+      // VoiceOver read every icon glyph as part of its button's label.
+      // `components/ui/Ionicons.tsx` hides them; this keeps new code on it.
+      "files": ["apps/mobile/src/**/*.ts", "apps/mobile/src/**/*.tsx"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "importNames": ["useMemo", "useCallback"],
+                "message": "React Compiler is the default; avoid manual memoization hooks."
+              },
+              {
+                "name": "@expo/vector-icons",
+                "message": "Import Ionicons from components/ui/Ionicons, which hides the glyph from VoiceOver."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "files": [
         "apps/web/src/**/*.ts",
         "apps/web/src/**/*.tsx",

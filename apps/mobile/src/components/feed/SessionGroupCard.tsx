@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../ui/Ionicons';
 import { SESSION_LABELS_FULL } from '@grandprixpicks/shared/sessions';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import type { NavigationProp } from '@react-navigation/native';

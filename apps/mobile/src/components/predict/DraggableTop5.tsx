@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../ui/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { useLayoutEffect } from 'react';
 import { View as RNView } from 'react-native';

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../../components/ui/Ionicons';
 import {
   SESSION_LABELS,
   SESSION_LABELS_SHORT,
@@ -124,7 +124,10 @@ export function SessionTabs({
   onSelect: (session: SessionType) => void;
 }) {
   return (
-    <View className="flex-row gap-1 border-b border-border">
+    <View
+      accessibilityRole="tablist"
+      className="flex-row gap-1 border-b border-border"
+    >
       {sessions.map((session) => {
         const lock = lockState.find((s) => s.session === session);
         const active = session === selected;
@@ -133,6 +136,16 @@ export function SessionTabs({
         const hasPicks = predictionsBySession[session] !== null;
         return (
           <Pressable
+            // The flag, lock and dot below carry the state; say it in words.
+            accessibilityLabel={`${SESSION_LABELS[session]}, ${
+              hasResult
+                ? 'results published'
+                : isLocked
+                  ? 'locked'
+                  : hasPicks
+                    ? 'picks saved'
+                    : 'no picks yet'
+            }`}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             className="flex-1 items-center gap-1.5"

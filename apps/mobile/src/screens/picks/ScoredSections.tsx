@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../../components/ui/Ionicons';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { buildScoreShareText } from '@grandprixpicks/shared/share';
 import * as Haptics from 'expo-haptics';

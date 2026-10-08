@@ -1,5 +1,5 @@
 import { useRoute, type RouteProp } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../components/ui/Ionicons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useConvex } from 'convex/react';
@@ -26,6 +26,7 @@ import type { LeaderboardStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors } from '../theme/tokens';
 import { FlatList, Pressable, Text, View } from '../tw';
+import { leaderboardRowLabel } from '../lib/leaderboardRowLabel';
 
 type TimeScope = 'weekend' | 'season';
 type GameMode = 'combined' | 'top5' | 'h2h';
@@ -366,6 +367,8 @@ export function LeaderboardScreen() {
             const isSelected = race._id === selectedRaceId;
             return (
               <Pressable
+                // "R12" beside a flag is read as "R12"; say which race it is.
+                accessibilityLabel={`Round ${race.round}, ${race.name}`}
                 accessibilityRole="button"
                 accessibilityState={{ selected: isSelected }}
                 onLayout={({ nativeEvent }) => {
@@ -611,6 +614,13 @@ function PodiumRow({
 
   return (
     <Pressable
+      accessibilityLabel={leaderboardRowLabel({
+        rank: entry.rank,
+        name: entry.displayName ?? entry.username,
+        points: entry.points,
+        isViewer: entry.isViewer,
+        subline,
+      })}
       accessibilityRole="button"
       className={`mb-2 flex-row items-center gap-2.5 overflow-hidden border border-border py-3 pr-3 pl-4 ${
         entry.isViewer ? 'bg-accent/10' : ''
@@ -679,6 +689,13 @@ function BoardRow({
   const subline = modeSubline(entry, mode);
   return (
     <Pressable
+      accessibilityLabel={leaderboardRowLabel({
+        rank: entry.rank,
+        name: entry.displayName ?? entry.username,
+        points: entry.points,
+        isViewer: entry.isViewer,
+        subline,
+      })}
       accessibilityRole="button"
       className={`flex-row items-center gap-2.5 px-1 py-2.5 ${
         entry.isViewer ? 'bg-accent/10' : ''

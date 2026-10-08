@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import * as WebBrowser from 'expo-web-browser';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../ui/Ionicons';
 import { newsRunWeekend } from '@grandprixpicks/shared/feedGroups';
 
 import { getTeamColor } from '../../lib/teamColors';

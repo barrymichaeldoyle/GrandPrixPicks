@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../ui/Ionicons';
 import { Linking } from 'react-native';
 import { api } from '../../integrations/convex/api';
 import { useQuery } from '../../integrations/convex/query';

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../ui/Ionicons';
 import { useState } from 'react';
 
 import { colors } from '../../theme/tokens';
@@ -89,7 +89,12 @@ export function TimezonePickerModal({
           <Text className="text-foreground text-[17px] font-bold">
             Choose timezone
           </Text>
-          <Pressable accessibilityRole="button" hitSlop={10} onPress={onClose}>
+          <Pressable
+            accessibilityLabel="Close"
+            accessibilityRole="button"
+            hitSlop={10}
+            onPress={onClose}
+          >
             <Ionicons color={colors.text} name="close" size={22} />
           </Pressable>
         </View>

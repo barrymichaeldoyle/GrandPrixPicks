@@ -1,5 +1,5 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../ui/Ionicons';
 import { useEffect, useState } from 'react';
 
 import { captureAnalyticsEvent } from '../../lib/analytics';
@@ -144,6 +144,7 @@ export function PracticeResultsSheet({
           </Pressable>
         </View>
         <ScrollView
+          accessibilityRole="tablist"
           horizontal
           className="max-h-14 border-b border-border"
           contentContainerClassName="gap-2 px-4 py-2"

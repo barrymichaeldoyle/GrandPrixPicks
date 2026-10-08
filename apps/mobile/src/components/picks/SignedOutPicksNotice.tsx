@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../ui/Ionicons';
 
 import { colors } from '../../theme/tokens';
 import { Pressable, Text, View } from '../../tw';

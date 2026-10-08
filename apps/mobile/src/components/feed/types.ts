@@ -78,5 +78,7 @@ export type FeedEvent = {
     team: string | null;
     note?: string;
   }>;
+  /** Weekend-first sort key from the server; see `compareFeedOrder`. */
+  feedSort?: string;
   createdAt: number;
 };

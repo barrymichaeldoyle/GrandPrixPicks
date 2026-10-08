@@ -25,6 +25,7 @@
     "./h2hInference": "./src/h2hInference.ts",
     "./indexNow": "./src/indexNow.ts",
     "./internalPath": "./src/internalPath.ts",
+    "./liveSessionBoard": "./src/liveSessionBoard.ts",
     "./notifications": "./src/notifications.ts",
     "./pendingEntry": "./src/pendingEntry.ts",
     "./picks": "./src/picks.ts",

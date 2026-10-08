@@ -1,4 +1,5 @@
 import {
+  compareFeedOrder,
   groupFeedEvents,
   weekendStarts,
 } from '@grandprixpicks/shared/feedGroups';
@@ -9,6 +10,7 @@ import { useQuery } from '../../integrations/convex/query';
 import { useEffect, useRef, useState } from 'react';
 
 import type { FeedEvent } from '../../components/feed/FeedEventCard';
+import { FeedEmptyState } from '../../components/feed/FeedEmptyState';
 import { FeedEventCard } from '../../components/feed/FeedEventCard';
 import { NewsGroupCard } from '../../components/feed/NewsGroupCard';
 import { WeekendSplit } from '../../components/feed/WeekendSplit';
@@ -212,7 +214,14 @@ export function FeedScreen() {
     );
   }
 
-  const allEvents = loadedPages.flatMap((p) => p.events);
+  // Feed order (weekend, then time) across pages, and each event once: a
+  // reactive page refreshing can briefly hold the boundary event its
+  // neighbour also has. Same merge as web's `FeedContent`.
+  const allEvents = Array.from(
+    new Map(
+      loadedPages.flatMap((p) => p.events).map((event) => [event._id, event]),
+    ).values(),
+  ).sort(compareFeedOrder);
   const allSessions: Record<string, SessionHeader> = Object.assign(
     {},
     ...loadedPages.map((p) => p.sessions),
@@ -238,7 +247,9 @@ export function FeedScreen() {
               ? `news-${group.events[0]?._id}`
               : group.key
         }
-        ListEmptyComponent={null}
+        ListEmptyComponent={
+          isSignedIn && page0 != null ? <FeedEmptyState /> : null
+        }
         ListFooterComponent={
           isLoadingMore ? (
             <Text className="text-muted py-3 text-center text-xs">
@@ -302,7 +313,6 @@ export function FeedScreen() {
             ) : (
               <SessionGroupCard
                 events={item.events}
-                onPressEvent={openEvent}
                 session={
                   allSessions[item.key] ?? {
                     raceName: item.events[0]?.raceName ?? 'Race',

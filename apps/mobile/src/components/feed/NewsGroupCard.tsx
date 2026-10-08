@@ -16,6 +16,18 @@ import { siteUrl } from '../../lib/siteUrl';
 
 const GRID_COLLAPSED_ROWS = 10;
 
+/**
+ * How many stories of a run show before the rest fold away: the same six web's
+ * `NewsGroup` and the write-up lead with. A live weekend collects fifteen or
+ * more, and in this stream they sit above the scores a player opened the app
+ * for.
+ */
+const LEAD_ITEMS = 6;
+
+function isPinned(event: FeedEvent): boolean {
+  return (event.newsStartingGrid?.length ?? 0) > 0;
+}
+
 function newsMentionsGridPenalty(event: FeedEvent): boolean {
   if ((event.newsKey ?? '').includes('grid-penalty')) {
     return true;
@@ -128,13 +140,30 @@ function RaceNewsCard({
   event,
   grouped = false,
   reverse = false,
+  foldable = false,
 }: {
   event: FeedEvent;
   grouped?: boolean;
   reverse?: boolean;
+  /**
+   * Whether the story folds to its headline until tapped, as web's
+   * `RaceNewsItem` does one column wide. A full story is a third of a phone
+   * screen, and a weekend's run of them sat between a player and the scored
+   * session they came for. Never a grid card: the grid is the story.
+   */
+  foldable?: boolean;
 }) {
   const team = event.newsTeam ?? event.newsDrivers?.[0]?.team ?? null;
   const teamColour = team ? getTeamColor(team) : colors.accent;
+  const [open, setOpen] = useState(!foldable);
+  const headline = (
+    <Text className="text-foreground text-sm font-semibold">
+      {event.newsHeadline}
+      <Text className="text-muted text-xs font-normal">
+        {`  · ${formatRelativeTime(event.createdAt)}`}
+      </Text>
+    </Text>
+  );
 
   return (
     <View className="overflow-hidden">
@@ -145,44 +174,59 @@ function RaceNewsCard({
             {event.raceName ? 'Weekend news' : 'News'}
           </Text>
         )}
-        <Text className="text-foreground text-sm font-semibold">
-          {event.newsHeadline}
-          <Text className="text-muted text-xs font-normal">
-            {`  · ${formatRelativeTime(event.createdAt)}`}
-          </Text>
-        </Text>
-        {event.newsBody ? (
+        {foldable ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: open }}
+            className="flex-row items-start justify-between gap-3"
+            hitSlop={{ bottom: 10, top: 10 }}
+            onPress={() => setOpen((current) => !current)}
+          >
+            <View className="min-w-0 flex-1">{headline}</View>
+            <Ionicons
+              color={colors.textMuted}
+              name={open ? 'chevron-up' : 'chevron-down'}
+              size={16}
+              style={{ marginTop: 1 }}
+            />
+          </Pressable>
+        ) : (
+          headline
+        )}
+        {open && event.newsBody ? (
           <Text className="text-muted text-sm leading-5">{event.newsBody}</Text>
         ) : null}
         {event.newsStartingGrid && event.newsStartingGrid.length > 0 ? (
           <StartingGrid entries={event.newsStartingGrid} />
         ) : null}
-        <View className="flex-row items-center justify-between gap-3">
-          <View className="min-w-0 flex-1 flex-row flex-wrap items-center gap-x-3 gap-y-1.5">
-            {event.newsSourceUrl && event.newsSourceName ? (
-              <Pressable
-                accessibilityRole="link"
-                className="flex-row items-center gap-1"
-                hitSlop={6}
-                onPress={() => {
-                  void WebBrowser.openBrowserAsync(event.newsSourceUrl!);
-                }}
-              >
-                <Text className="text-muted text-xs underline">
-                  {event.newsSourceName}
-                </Text>
-                <Ionicons
-                  color={colors.textMuted}
-                  name="open-outline"
-                  size={12}
-                />
-              </Pressable>
-            ) : null}
-            {grouped || !newsMentionsGridPenalty(event) ? null : (
-              <ScoringPolicyNote />
-            )}
+        {open ? (
+          <View className="flex-row items-center justify-between gap-3">
+            <View className="min-w-0 flex-1 flex-row flex-wrap items-center gap-x-3 gap-y-1.5">
+              {event.newsSourceUrl && event.newsSourceName ? (
+                <Pressable
+                  accessibilityRole="link"
+                  className="flex-row items-center gap-1"
+                  hitSlop={6}
+                  onPress={() => {
+                    void WebBrowser.openBrowserAsync(event.newsSourceUrl!);
+                  }}
+                >
+                  <Text className="text-muted text-xs underline">
+                    {event.newsSourceName}
+                  </Text>
+                  <Ionicons
+                    color={colors.textMuted}
+                    name="open-outline"
+                    size={12}
+                  />
+                </Pressable>
+              ) : null}
+              {grouped || !newsMentionsGridPenalty(event) ? null : (
+                <ScoringPolicyNote />
+              )}
+            </View>
           </View>
-        </View>
+        ) : null}
       </View>
     </View>
   );
@@ -198,8 +242,31 @@ function RaceNewsCard({
  * padding stays.
  */
 export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
+  const [showEarlier, setShowEarlier] = useState(false);
   if (events.length === 0) {
     return null;
+  }
+  // A grid stays open and out of the fold: it is a table, not a story with a
+  // headline to stand in for it.
+  const lead = events.filter(
+    (event, index) => index < LEAD_ITEMS || isPinned(event),
+  );
+  const earlier = events.filter((event) => !lead.includes(event));
+
+  function cards(items: FeedEvent[], offset: number) {
+    return items.map((event, index) =>
+      event.type === 'lineup_change' ? (
+        <LineupChangeCard event={event} grouped key={event._id} />
+      ) : (
+        <RaceNewsCard
+          event={event}
+          foldable={events.length > 1 && !isPinned(event)}
+          grouped
+          key={event._id}
+          reverse={(index + offset) % 2 === 0}
+        />
+      ),
+    );
   }
   const weekend = newsRunWeekend(events);
   const raceName = weekend?.raceName;
@@ -221,18 +288,27 @@ export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
           </View>
         ) : null}
       </View>
-      {events.map((event, index) =>
-        event.type === 'lineup_change' ? (
-          <LineupChangeCard event={event} grouped key={event._id} />
-        ) : (
-          <RaceNewsCard
-            event={event}
-            grouped
-            key={event._id}
-            reverse={index % 2 === 0}
-          />
-        ),
-      )}
+      {cards(lead, 0)}
+      {earlier.length > 0 ? (
+        <View className="border-t border-border">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: showEarlier }}
+            className="flex-row items-center justify-between gap-2 px-3 py-3 active:bg-surface-elevated"
+            onPress={() => setShowEarlier((current) => !current)}
+          >
+            <Text className="text-muted text-sm font-medium">
+              {`${earlier.length} earlier ${earlier.length === 1 ? 'story' : 'stories'}`}
+            </Text>
+            <Ionicons
+              color={colors.textMuted}
+              name={showEarlier ? 'chevron-up' : 'chevron-down'}
+              size={16}
+            />
+          </Pressable>
+          {showEarlier ? cards(earlier, lead.length) : null}
+        </View>
+      ) : null}
       {events.some(newsMentionsGridPenalty) ? (
         <View className="border-t border-border px-3 py-2">
           <ScoringPolicyNote />

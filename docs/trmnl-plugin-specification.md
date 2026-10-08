@@ -1,7 +1,8 @@
 # Grand Prix Picks for TRMNL: Product Specification
 
-**Status:** Built and installed as a private plugin on Barry's device (22
-September 2026); not yet submitted as a Recipe (section 9). The polling
+**Status:** Published as a public Recipe
+([trmnl.com/recipes/485545](https://trmnl.com/recipes/485545)), approved 2
+October 2026 (section 9); listed in `usetrmnl/plugins` under Community plugins. The polling
 endpoint is `apps/web/server/routes/api/trmnl/weekend.get.ts` (logic in
 `apps/web/server/lib/trmnl.ts`), and the Liquid plugin is `apps/trmnl/`.  
 **Product type:** Public TRMNL Recipe. No sign-in, no per-player data.  

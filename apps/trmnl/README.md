@@ -9,7 +9,7 @@ From [GrandPrixPicks.com](https://grandprixpicks.com).
 
 **[Preview the screens](https://grandprixpicks.com/trmnl)** on TRMNL OG and
 TRMNL X, in landscape or portrait, with different palettes and headline counts.
-The plugin has not yet been published as a public Recipe.
+[Install it from the TRMNL Recipes directory](https://trmnl.com/recipes/485545).
 
 ## Source files
 

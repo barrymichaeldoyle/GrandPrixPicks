@@ -36,10 +36,9 @@ import {
   TextInput,
   View,
 } from '../../tw';
+import { siteUrl } from '../../lib/siteUrl';
 
 WebBrowser.maybeCompleteAuthSession();
-
-const WEB_URL = 'https://grandprixpicks.com';
 
 /** Shown when Clerk has not produced a client, so no button here can work. */
 const NOT_READY_MESSAGE =
@@ -797,7 +796,7 @@ export function SignInScreen() {
                 <Text
                   className="text-xs text-accent-hover underline"
                   onPress={() =>
-                    void WebBrowser.openBrowserAsync(`${WEB_URL}/terms`)
+                    void WebBrowser.openBrowserAsync(siteUrl('/terms'))
                   }
                 >
                   Terms of Service
@@ -806,7 +805,7 @@ export function SignInScreen() {
                 <Text
                   className="text-xs text-accent-hover underline"
                   onPress={() =>
-                    void WebBrowser.openBrowserAsync(`${WEB_URL}/privacy`)
+                    void WebBrowser.openBrowserAsync(siteUrl('/privacy'))
                   }
                 >
                   Privacy Policy

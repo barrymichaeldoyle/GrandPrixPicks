@@ -9,7 +9,7 @@ import {
 } from '@grandprixpicks/shared/sessions';
 import { useMutation } from 'convex/react';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { RaceRecapCard } from '../../components/home/RaceRecapCard';
 import { WeekendPicksCard } from '../../components/home/WeekendPicksCard';
@@ -206,6 +206,40 @@ function PredictForRace({
       setSelectedSession(nextOpenSession);
     }
   }, [nextOpenSession, selectedSession, weekendSessions]);
+
+  // When the session on screen locks, move on to the next open one: every
+  // save path checks the selected session's lock, so staying put would leave
+  // the rest of the weekend unsaveable from here. Only the transition moves
+  // it, so a locked session the player taps to read stays selected.
+  //
+  // Never while an editor is open: switching under it swapped the picks on
+  // screen and the Save button's session without a word. The move waits for
+  // the editor to close. The full picks screen keeps its editors inside the
+  // sections, out of sight of this screen, so it does not move at all.
+  const selectedIsLockedNow = Boolean(
+    sessionLockState.find((s) => s.session === selectedSession)?.isLocked,
+  );
+  const lastSeenRef = useRef({
+    session: selectedSession,
+    locked: selectedIsLockedNow,
+  });
+  const canMoveSelection = embedded && embeddedPicker === null;
+  useEffect(() => {
+    if (!canMoveSelection) {
+      return;
+    }
+    const last = lastSeenRef.current;
+    const justLocked =
+      last.session === selectedSession && !last.locked && selectedIsLockedNow;
+    lastSeenRef.current = {
+      session: selectedSession,
+      locked: selectedIsLockedNow,
+    };
+    if (justLocked && nextOpenSession !== selectedSession) {
+      // oxlint-disable-next-line react/set-state-in-effect
+      setSelectedSession(nextOpenSession);
+    }
+  }, [canMoveSelection, nextOpenSession, selectedIsLockedNow, selectedSession]);
 
   const selectedCapability = capabilities.find(
     (c) => c.sessionType === selectedSession,
@@ -410,8 +444,10 @@ function PredictForRace({
               lockAt: session.lockAt,
               isLocked: lock?.isLocked ?? session.isLocked,
               hasResult: session.hasResult,
-              canCreate: session.canCreate,
-              canEdit: session.canEdit,
+              // The server's answer was right when the query ran; the
+              // device clock catches the lock that landed since.
+              canCreate: session.canCreate && !lock?.isLocked,
+              canEdit: session.canEdit && !lock?.isLocked,
             };
           })}
           top5={predictionsBySession[selectedSession] ?? []}

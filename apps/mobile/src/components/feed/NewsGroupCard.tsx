@@ -12,8 +12,8 @@ import { Numeral } from '../ui/Numeral';
 import type { FeedEvent } from './types';
 import { formatRelativeTime } from './helpers';
 import { LineupChangeCard } from './lineup-change-card';
+import { siteUrl } from '../../lib/siteUrl';
 
-const SITE_URL = 'https://grandprixpicks.com';
 const GRID_COLLAPSED_ROWS = 10;
 
 function newsMentionsGridPenalty(event: FeedEvent): boolean {
@@ -38,9 +38,7 @@ function isPitLaneStart(note?: string): boolean {
 }
 
 function openScoringPolicy() {
-  void WebBrowser.openBrowserAsync(
-    `${SITE_URL}/results-policy#sessions-heading`,
-  );
+  void WebBrowser.openBrowserAsync(siteUrl('/results-policy#sessions-heading'));
 }
 
 function ScoringPolicyNote() {

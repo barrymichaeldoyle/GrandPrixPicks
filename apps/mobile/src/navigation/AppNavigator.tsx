@@ -24,6 +24,7 @@ import { captureAnalyticsEvent } from '../lib/analytics';
 import { useIsSignedIn } from '../lib/useIsSignedIn';
 import { colors } from '../theme/tokens';
 import { PendingPickSubmitter } from '../components/PendingPickSubmitter';
+import { ProfileSync } from '../components/ProfileSync';
 import { linking } from './linking';
 import { navigationRef } from './navigationRef';
 import type {
@@ -230,6 +231,7 @@ export function AppNavigator() {
         and it is omitted once they have a session, so a signed-in viewer
         cannot land on it via navigate, back-gesture, or a leftover modal.
       */}
+      <ProfileSync />
       <PendingPickSubmitter />
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         <RootStack.Screen component={TabsNavigator} name="Tabs" />

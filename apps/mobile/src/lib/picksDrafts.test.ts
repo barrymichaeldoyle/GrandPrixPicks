@@ -11,10 +11,14 @@ vi.mock('./storage', () => ({
   removeStoredValue: vi.fn(async (key: string) => {
     store.delete(key);
   }),
+  listStoredKeys: vi.fn(async (prefix: string) =>
+    [...store.keys()].filter((key) => key.startsWith(prefix)),
+  ),
 }));
 
 import {
   clearConnectedDraft,
+  listPendingDrafts,
   loadConnectedDraft,
   patchConnectedDraft,
   saveConnectedDraft,
@@ -111,5 +115,45 @@ describe('patchConnectedDraft merge semantics', () => {
     });
 
     expect(await loadConnectedDraft('monaco-gp', 'race')).toBeNull();
+  });
+});
+
+describe('listPendingDrafts', () => {
+  it('returns only drafts made while signed out', async () => {
+    await patchConnectedDraft('monaco-gp', 'race', {
+      top5: ['VER'],
+      awaitingAccount: true,
+    });
+    await patchConnectedDraft('monaco-gp', 'quali', {
+      top5: ['NOR'],
+      awaitingAccount: false,
+    });
+
+    const pending = await listPendingDrafts();
+    expect(pending.map((draft) => draft.session)).toEqual(['race']);
+  });
+
+  it('leaves unflagged drafts alone, since they predate the flag', async () => {
+    await saveConnectedDraft('monaco-gp', 'race', {
+      h2hByMatchup: {},
+      top5: ['VER'],
+      updatedAt: '2026-05-01T00:00:00.000Z',
+    });
+
+    expect(await listPendingDrafts()).toEqual([]);
+  });
+
+  it('keeps the flag through a patch that does not set it', async () => {
+    await patchConnectedDraft('monaco-gp', 'race', {
+      top5: ['VER'],
+      awaitingAccount: true,
+    });
+    await patchConnectedDraft('monaco-gp', 'race', {
+      h2hByMatchup: { m1: 'VER' },
+    });
+
+    const pending = await listPendingDrafts();
+    expect(pending).toHaveLength(1);
+    expect(pending[0]?.h2hByMatchup).toEqual({ m1: 'VER' });
   });
 });

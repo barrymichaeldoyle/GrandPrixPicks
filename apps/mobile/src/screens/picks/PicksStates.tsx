@@ -27,7 +27,7 @@ export function NotAvailableState() {
   return (
     <View className="flex-1 bg-page py-12">
       <EmptyState
-        body="Predictions need a live connection to the league. Please reconnect to make picks."
+        body="Picks can’t load without a connection. Reconnect to make your picks."
         icon="cloud-offline-outline"
         title="Predictions unavailable"
       />

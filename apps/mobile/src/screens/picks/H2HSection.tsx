@@ -272,8 +272,9 @@ export function H2HEditor({
     }
     void patchConnectedDraft(race.slug, draftSession, {
       h2hByMatchup: explicitPicks,
+      awaitingAccount: !isSignedIn,
     });
-  }, [draftSession, isDirty, race.slug, explicitPicks]);
+  }, [draftSession, isDirty, isSignedIn, race.slug, explicitPicks]);
 
   const isComplete =
     matchups.length > 0 &&
@@ -313,6 +314,7 @@ export function H2HEditor({
       if (!isSignedIn) {
         await patchConnectedDraft(race.slug, draftSession, {
           h2hByMatchup: picks,
+          awaitingAccount: true,
         });
         await onSubmit(picks, cascadeMode ? undefined : selectedSession);
         onCancel();

@@ -861,3 +861,45 @@ export const createLeagueSmokeFixture = internalMutation({
     };
   },
 });
+
+const SESSION_TIME_FIELDS = {
+  sprint_quali: { lockAt: 'sprintQualiLockAt', startAt: 'sprintQualiStartAt' },
+  sprint: { lockAt: 'sprintLockAt', startAt: 'sprintStartAt' },
+  quali: { lockAt: 'qualiLockAt', startAt: 'qualiStartAt' },
+  race: { lockAt: 'predictionLockAt', startAt: 'raceStartAt' },
+} as const;
+
+/**
+ * Move one session's start and lock to `minutes` from now, for watching a
+ * lock land while the picks screen is open. Later sessions are left alone, so
+ * a short value can put a session out of weekend order: dev only, and
+ * `seed:seedRaces` (or a reseed) puts the real calendar back.
+ */
+export const setSessionLockIn = internalMutation({
+  args: {
+    raceSlug: v.string(),
+    sessionType: v.union(
+      v.literal('sprint_quali'),
+      v.literal('sprint'),
+      v.literal('quali'),
+      v.literal('race'),
+    ),
+    minutes: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', args.raceSlug))
+      .unique();
+    if (!race) {
+      throw new Error(`Race not found: ${args.raceSlug}`);
+    }
+    const at = Date.now() + args.minutes * 60 * 1000;
+    const fields = SESSION_TIME_FIELDS[args.sessionType];
+    await ctx.db.patch(race._id, {
+      [fields.lockAt]: at,
+      [fields.startAt]: at,
+    });
+    return { raceId: race._id, lockAt: new Date(at).toISOString() };
+  },
+});

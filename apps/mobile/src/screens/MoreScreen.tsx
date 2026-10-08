@@ -7,14 +7,12 @@ import { Alert } from 'react-native';
 import { CollapsingChrome, TabChrome } from '../components/ui/TabChrome';
 import { useHideOnScroll } from '../hooks/useHideOnScroll';
 import { useSignOutWithCleanup } from '../hooks/useSignOutWithCleanup';
-import { captureAnalyticsEvent } from '../lib/analytics';
 import { useIsSignedIn } from '../lib/useIsSignedIn';
 import { useSignInSheet } from '../lib/useSignInSheet';
 import type { MoreStackParamList } from '../navigation/types';
 import { colors } from '../theme/tokens';
 import { Pressable, ScrollView, Text, View } from '../tw';
-
-const SITE_URL = 'https://grandprixpicks.com';
+import { siteUrl } from '../lib/siteUrl';
 
 export function MoreScreen() {
   const navigation = useNavigation<NavigationProp<MoreStackParamList>>();
@@ -25,7 +23,7 @@ export function MoreScreen() {
   const hide = useHideOnScroll();
 
   function openOnWeb(path: string) {
-    void WebBrowser.openBrowserAsync(`${SITE_URL}${path}`);
+    void WebBrowser.openBrowserAsync(siteUrl(path));
   }
 
   function confirmSignOut() {
@@ -64,21 +62,6 @@ export function MoreScreen() {
               label="Settings"
               onPress={() => navigation.navigate('Settings')}
               subtitle="Profile, notifications, timezone"
-            />
-          </View>
-        </View>
-
-        <View className="gap-2.5">
-          <Text className="text-muted text-xs font-medium">Leagues</Text>
-          <View>
-            <LinkRow
-              icon="people-outline"
-              label="Leagues are managed on the web"
-              onPress={() => {
-                captureAnalyticsEvent('leagues_web_handoff_opened');
-                openOnWeb('/leagues');
-              }}
-              subtitle="Open your leagues at grandprixpicks.com"
             />
           </View>
         </View>

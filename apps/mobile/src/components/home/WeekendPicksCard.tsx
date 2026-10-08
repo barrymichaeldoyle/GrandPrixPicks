@@ -25,8 +25,7 @@ import { TopFivePicksBar } from '../picks/TopFivePicksBar';
 import { PrimaryButton } from '../ui/PrimaryButton';
 import { SlantedStripe } from '../ui/SlantedStripe';
 import { Numeral } from '../ui/Numeral';
-
-const SITE_URL = 'https://grandprixpicks.com';
+import { siteUrl } from '../../lib/siteUrl';
 
 const LABEL = 'text-xs font-medium text-muted';
 
@@ -178,7 +177,7 @@ export function WeekendPicksCard({
           accessibilityRole="link"
           className="flex-row items-center gap-3 px-4 py-3 active:bg-surface-elevated"
           onPress={() => {
-            void WebBrowser.openBrowserAsync(`${SITE_URL}${writeup.to}`);
+            void WebBrowser.openBrowserAsync(siteUrl(writeup.to));
           }}
         >
           <Ionicons color={colors.textMuted} name="book-outline" size={16} />

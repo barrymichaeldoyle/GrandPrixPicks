@@ -648,14 +648,13 @@ export async function markSignupReported(
 /**
  * Sync the current user's profile from Clerk identity claims.
  *
- * Also answers whether this load is the account's registration. The web app
- * runs this once per load for signed-in users, which makes it the one place
+ * Also answers whether this load is the account's registration. Both apps run
+ * this once a signed-in session reaches Convex, which makes it the one place
  * that sees a new account without having to guess from `auth_completed`, an
  * event a returning player fires every time they sign in.
  *
- * Only the web app calls this. A player who registers on mobile and opens the
- * web app within the hour will be reported here instead, tagged with the wrong
- * platform; giving mobile its own call is what fixes that, not a wider window.
+ * It is also what creates the account row: queries cannot write, so until
+ * this runs a new account reads as signed out everywhere.
  */
 export const syncProfile = mutation({
   args: {

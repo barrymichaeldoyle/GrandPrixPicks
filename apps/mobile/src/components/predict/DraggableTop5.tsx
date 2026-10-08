@@ -48,7 +48,9 @@ type DraggableTop5Props = {
 };
 
 const MAX_PICKS = 5;
-const ROW_HEIGHT = 56;
+/** Slot height, shared with the P1–P5 rail so the two columns line up. `h-14` is
+ * not the same thing: NativeWind's rem is 14px, so it renders 49pt. */
+export const ROW_HEIGHT = 56;
 /** Same spring the web picker uses for layout (`stiffness: 350, damping: 30`). */
 const SPRING = { damping: 30, mass: 1, stiffness: 350 };
 /** Matches web `@dnd-kit` PointerSensor `activationConstraint.distance`. */
@@ -309,7 +311,10 @@ function PickedRow({
 
 function EmptySlot() {
   return (
-    <View className="h-14 justify-center border-b border-dashed border-border bg-surface px-3 last:border-b-0">
+    <View
+      className="justify-center border-b border-dashed border-border bg-surface px-3 last:border-b-0"
+      style={{ height: ROW_HEIGHT }}
+    >
       <Text className="text-muted text-sm">Select a driver</Text>
     </View>
   );

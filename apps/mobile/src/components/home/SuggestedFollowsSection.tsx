@@ -84,9 +84,16 @@ export function SuggestedFollowsSection() {
                   >
                     {user.displayName}
                   </Text>
-                  <Text className="text-muted mt-px text-xs" numberOfLines={1}>
-                    {reasonText(user)}
-                  </Text>
+                  {/* Leagues are web-only for now, so a shared-league
+                      reason would name something the app cannot show. */}
+                  {user.mutualFollowerCount > 0 ? (
+                    <Text
+                      className="text-muted mt-px text-xs"
+                      numberOfLines={1}
+                    >
+                      {reasonText(user)}
+                    </Text>
+                  ) : null}
                 </View>
               </Pressable>
               <FollowButton

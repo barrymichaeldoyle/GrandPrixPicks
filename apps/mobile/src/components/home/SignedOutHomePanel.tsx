@@ -18,9 +18,8 @@ import { Pressable, Text, View } from '../../tw';
  */
 const BEHIND = [
   'Your Top 5 scored against the real classification',
-  'Teammate head-to-heads on every session',
+  'Team-mate picks on every session',
   'Season and weekend leaderboards',
-  'Private leagues with your friends',
 ] as const;
 
 export function SignedOutHomePanel() {

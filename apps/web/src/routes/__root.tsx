@@ -3,6 +3,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import {
   createRootRouteWithContext,
+  retainSearchParams,
   HeadContent,
   Scripts,
   useLocation,
@@ -66,7 +67,7 @@ import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
 import { clerkFrontendApiOrigin } from '@/lib/clerkOrigin';
 import { ensureAdSenseLoaded } from '@/lib/adsense';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
-import { isBareRoute } from '@/lib/bareRoutes';
+import { isBareRoute, isInAppView } from '@/lib/bareRoutes';
 import { showsGlobalFooter } from '@/lib/globalFooter';
 import { isNotificationArrival } from '@/lib/notificationArrival';
 import { routeQuery } from '@/lib/routeQuery';
@@ -175,6 +176,12 @@ function clerkOriginHints(isSignedIn: boolean) {
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
+  // In-app view (`isInAppView`): keep `?app=1` on every link the page
+  // follows, or the first tap inside the app's browser brings back the full
+  // site, Season Pass link and all. The router parses `1` as a number.
+  validateSearch: (search: Record<string, unknown>): { app?: 1 } =>
+    search.app === 1 || search.app === '1' ? { app: 1 } : {},
+  search: { middlewares: [retainSearchParams(['app'])] },
   // `loaderData` is undefined while the root loader is still in flight, which
   // is the signed-out shape anyway: the cheaper hint is the safe default.
   head: ({ loaderData }: { loaderData?: RootLoaderData }) => ({
@@ -293,7 +300,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 function RootDocument({ children }: PropsWithChildren) {
   const { initialAuth } = Route.useLoaderData();
   const pathname = useLocation({ select: (location) => location.pathname });
-  const bare = isBareRoute(pathname);
+  const inApp = useLocation({
+    select: (location) => isInAppView(location.searchStr),
+  });
+  const bare = isBareRoute(pathname) || inApp;
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -412,9 +422,11 @@ function RootDocument({ children }: PropsWithChildren) {
                 </a>
                 {bare ? null : <Header />}
                 <OfflineBanner />
-                <DeferredFeaturesBoundary>
-                  <DeferredShellFeatures />
-                </DeferredFeaturesBoundary>
+                {bare ? null : (
+                  <DeferredFeaturesBoundary>
+                    <DeferredShellFeatures />
+                  </DeferredFeaturesBoundary>
+                )}
                 <div className="flex min-h-0 flex-1 flex-col">
                   {bare ? null : (
                     <AuthenticatedDeferredFeature>

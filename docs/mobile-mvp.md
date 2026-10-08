@@ -41,13 +41,11 @@ This document defines product scope and behavior. `docs/mobile-api-contract.md` 
 - Full global and Following leaderboards for weekend and season, split by Combined, Top 5, and H2H.
 - Lightweight player views needed by feed and leaderboard navigation.
 - In-app notifications and native push notifications.
-- Basic app settings and links to legal/support pages.
-- A Leagues web handoff that opens league management on the web.
+- Basic app settings and links to legal/support pages, opened with `?app=1` so the site drops its shell (`lib/siteUrl.ts`; web `isInAppView`).
 
 ### Explicitly excluded
 
-- Creating, joining, leaving, discovering, or managing leagues in the app.
-- League detail, league feed, and league leaderboards.
+- Leagues, entirely: no entry point, no web handoff, no league names in follow suggestions (`SuggestedFollowsSection` shows only the mutual-follower reason). Decided 2026-10-08, to be added later on purpose rather than as a link out.
 - Full profile editing, prediction-history profile, and followers/following management.
 - Billing and season-pass purchase. If a premium-gated surface is reachable in the app, show a neutral unavailable state — never "buy on the web" copy or a purchase link (App Store steering rules).
 - Admin tools, randomize, social sharing, and web/PWA concerns.
@@ -61,12 +59,12 @@ This document defines product scope and behavior. `docs/mobile-api-contract.md` 
 
 Use four native tabs, each with its own navigation stack:
 
-| Tab         | Root                               | Key destinations                                                                      |
-| ----------- | ---------------------------------- | ------------------------------------------------------------------------------------- |
-| Home        | Hero countdown + personalized feed | Feed-event detail, lightweight player view, notifications                             |
-| Picks       | Current weekend                    | Top 5 editor, H2H editor, session result detail, notifications                        |
-| Leaderboard | Rankings                           | Weekend/season filters, lightweight player view                                       |
-| More        | Utility menu                       | Notifications, settings, leagues web handoff, support/legal, delete account, sign out |
+| Tab         | Root                               | Key destinations                                                 |
+| ----------- | ---------------------------------- | ---------------------------------------------------------------- |
+| Home        | Hero countdown + personalized feed | Feed-event detail, lightweight player view, notifications        |
+| Picks       | Current weekend                    | Top 5 editor, H2H editor, session result detail, notifications   |
+| Leaderboard | Rankings                           | Weekend/season filters, lightweight player view                  |
+| More        | Utility menu                       | Notifications, settings, support/legal, delete account, sign out |
 
 Decision (2026-07-12): Home (next-race hero + feed) is the authenticated landing tab, with Picks second — the hero's countdown and Make Predictions CTA route into Picks, so the pick funnel stays one tap deep. The notification bell sits on the Home and Picks headers and pushes the inbox within the current tab's stack (never a cross-tab jump). Tab icons: home / flag / trophy / ellipsis. Notification and deep-link navigation may open a race session or feed event directly and must restore auth before resolving the destination.
 
@@ -175,7 +173,7 @@ Do not hide locked sessions. They establish continuity and explain why only late
 - Group `session_locked` and `score_published` events by race and session.
 - Render locked Top 5 picks, scored Top 5 breakdown, H2H summary, and streak milestones.
 - Feed-event detail must support notification deep links.
-- Empty feed recommends players from the global leaderboard. League-based recommendations may appear if already returned by the backend, but league management stays on web.
+- Empty feed recommends players from the global leaderboard. League-based recommendations may appear if already returned by the backend, but without naming the league.
 - `joined_league` events may be omitted from mobile MVP because their destination is not implemented.
 
 ### 6. Leaderboard
@@ -218,13 +216,6 @@ MVP settings:
 - Links to support, privacy, terms, and account management on web.
 - Sign out.
 - **Delete account** (in-app, required for App Store approval). Confirm destructively, then delete the Clerk user via the Clerk SDK (`user.delete()`); the existing Clerk webhook (`users.deleteUserFromClerkWebhook`) already cleans up Convex data. Sign the user out and return to the signed-out state on success.
-
-### 9. Leagues web handoff
-
-- Show `Leagues are managed on the web` — present-tense utility copy. Never use "coming soon" or placeholder framing: App Review rejects placeholder content under Guideline 2.1.
-- Explain that existing leagues and league management are available on web.
-- Primary action opens the authenticated web league page in the system browser.
-- Preserve a return/deep-link path if practical, but do not embed the web app in a WebView.
 
 ## Offline and failure behavior
 

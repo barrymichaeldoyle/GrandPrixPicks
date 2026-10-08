@@ -12,6 +12,14 @@ type ConnectedDraft = {
   h2hByMatchup: Record<string, string>;
   top5: Array<string>;
   updatedAt: string;
+  /**
+   * Written while signed out, so it is a card waiting for an account and
+   * `PendingPickSubmitter` should submit it after sign-in. A signed-in
+   * player's draft is only unsaved edits, kept so the editor can offer them
+   * back; submitting those on the next launch saved changes the player had
+   * walked away from.
+   */
+  awaitingAccount?: boolean;
 };
 
 export async function loadConnectedDraft(
@@ -48,13 +56,16 @@ export async function clearConnectedDraft(
 export async function patchConnectedDraft(
   raceSlug: string,
   session: SessionType,
-  patch: Partial<Pick<ConnectedDraft, 'h2hByMatchup' | 'top5'>>,
+  patch: Partial<
+    Pick<ConnectedDraft, 'h2hByMatchup' | 'top5' | 'awaitingAccount'>
+  >,
 ) {
   const existing = await loadConnectedDraft(raceSlug, session);
   const next: ConnectedDraft = {
     h2hByMatchup: patch.h2hByMatchup ?? existing?.h2hByMatchup ?? {},
     top5: patch.top5 ?? existing?.top5 ?? [],
     updatedAt: new Date().toISOString(),
+    awaitingAccount: patch.awaitingAccount ?? existing?.awaitingAccount,
   };
   const isEmpty =
     next.top5.length === 0 && Object.keys(next.h2hByMatchup).length === 0;
@@ -72,11 +83,11 @@ export type PendingDraft = ConnectedDraft & {
 };
 
 /**
- * Every draft currently on the device.
+ * Every draft made while signed out that is still on the device.
  *
- * Drafts are written as the reader edits, signed in or not, so after a
- * signed-out visitor makes picks and then signs in, this is what has to be
- * submitted on their behalf.
+ * Drafts are written as the reader edits, signed in or not. Only the
+ * signed-out ones are picks waiting for an account; after sign-in this is
+ * what has to be submitted on the reader's behalf.
  */
 export async function listPendingDrafts(): Promise<PendingDraft[]> {
   const keys = await listStoredKeys('gpp:draft:connected:');
@@ -97,7 +108,7 @@ export async function listPendingDrafts(): Promise<PendingDraft[]> {
     }
     const isEmpty =
       draft.top5.length === 0 && Object.keys(draft.h2hByMatchup).length === 0;
-    if (!isEmpty) {
+    if (!isEmpty && draft.awaitingAccount === true) {
       drafts.push({ ...draft, raceSlug, session });
     }
   }

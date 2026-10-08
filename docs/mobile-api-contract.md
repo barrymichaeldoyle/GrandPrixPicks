@@ -142,7 +142,7 @@ Use this as the implementation sequence and definition-of-done list.
 ### 1) App Boot / Auth Gate
 
 - [ ] Call `api.users.me` after auth state resolves.
-- [ ] If signed in, call `api.users.syncProfile` with device timezone/locale.
+- [x] If signed in, call `api.users.syncProfile` with device timezone/locale (`components/ProfileSync.tsx`; it also creates the account row).
 - [ ] Handle signed-out state and protected screen redirects.
 
 ### 2) Home Screen
@@ -197,6 +197,8 @@ Use this as the implementation sequence and definition-of-done list.
 - [ ] Update leaderboard privacy via `api.users.updatePrivacySettings`.
 
 ### 10) Leagues Screens
+
+Not in the MVP: leagues are hidden on mobile for v1 (`docs/mobile-mvp.md`).
 
 - [ ] My leagues: `api.leagues.getMyLeagues`.
 - [ ] Discover leagues: `api.leagues.listPublicLeagues`.

@@ -6,7 +6,10 @@ import {
 } from '@grandprixpicks/shared/sessions';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
-import { DraggableTop5 } from '../../components/predict/DraggableTop5';
+import {
+  DraggableTop5,
+  ROW_HEIGHT,
+} from '../../components/predict/DraggableTop5';
 import { Numeral } from '../../components/ui/Numeral';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { captureAnalyticsEvent } from '../../lib/analytics';
@@ -185,8 +188,11 @@ export function Top5Editor({
     if (!isDirty || hydratedRef.current !== key) {
       return;
     }
-    void patchConnectedDraft(race.slug, draftSession, { top5: picks });
-  }, [draftSession, isDirty, picks, race.slug]);
+    void patchConnectedDraft(race.slug, draftSession, {
+      top5: picks,
+      awaitingAccount: !isSignedIn,
+    });
+  }, [draftSession, isDirty, isSignedIn, picks, race.slug]);
 
   // No auto-save here, unlike H2H: picking the 5th driver is where
   // reordering STARTS, not where the interaction ends, and a timer-based
@@ -209,7 +215,10 @@ export function Top5Editor({
     setIsSubmitting(true);
     try {
       if (!isSignedIn) {
-        await patchConnectedDraft(race.slug, draftSession, { top5: picks });
+        await patchConnectedDraft(race.slug, draftSession, {
+          top5: picks,
+          awaitingAccount: true,
+        });
         await onSubmit(picks, cascadeMode ? undefined : selectedSession);
         onCancel();
         return;
@@ -252,6 +261,11 @@ export function Top5Editor({
     selectedLockAt - Date.now() < 30 * 60 * 1000;
 
   const canSave = picks.length === MAX_TOP5 && !sessionIsLocked && isDirty;
+  // A lock that lands while the editor is open freezes what was saved, not
+  // the draft on screen. Showing the draft read-only reads as "these are
+  // locked in" when they never reached the server.
+  const lostUnsavedChanges = sessionIsLocked && isDirty;
+  const shownPicks = sessionIsLocked ? [...existingPicks] : picks;
   const ctaLabel = cascadeMode
     ? 'Save weekend picks'
     : `Save ${SESSION_LABELS_SHORT[selectedSession]} picks`;
@@ -273,6 +287,13 @@ export function Top5Editor({
             <Text className="text-xs font-bold text-accent">Discard</Text>
           </Pressable>
         </View>
+      ) : null}
+
+      {lostUnsavedChanges ? (
+        <Text className="text-xs text-warning">
+          The session locked before your changes were saved. These are your
+          saved picks.
+        </Text>
       ) : null}
 
       {lockSoon ? (
@@ -303,7 +324,7 @@ export function Top5Editor({
         drivers={drivers}
         onChange={updatePicks}
         onDraggingChange={onDraggingChange}
-        picks={picks}
+        picks={shownPicks}
       />
     </View>
   );
@@ -336,7 +357,7 @@ function Top5Readonly({
             <View
               className="w-10 items-center justify-center border-b border-border last:border-b-0"
               key={n}
-              style={{ height: 56 }}
+              style={{ height: ROW_HEIGHT }}
             >
               <Numeral tone="accent" variant="small">
                 {`P${n}`}
@@ -349,7 +370,8 @@ function Top5Readonly({
             const driver = driverById.get(id);
             return (
               <View
-                className="h-14 flex-row items-stretch border-b border-border last:border-b-0"
+                className="flex-row items-stretch border-b border-border last:border-b-0"
+                style={{ height: ROW_HEIGHT }}
                 key={`${id}-${index}`}
               >
                 <View className="w-12 shrink-0 flex-row items-stretch border-r border-border">
@@ -393,8 +415,9 @@ function Top5Readonly({
           })}
           {Array.from({ length: Math.max(0, 5 - picks.length) }).map((_, i) => (
             <View
-              className="h-14 justify-center border-b border-dashed border-border bg-surface px-3 last:border-b-0"
+              className="justify-center border-b border-dashed border-border bg-surface px-3 last:border-b-0"
               key={`empty-${i}`}
+              style={{ height: ROW_HEIGHT }}
             >
               <Text className="text-muted text-sm">Select a driver</Text>
             </View>

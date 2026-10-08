@@ -27,19 +27,47 @@ import { isClerkSessionPresent } from '../../server/lib/auth';
  * presence check would lock those visitors out of the cache permanently —
  * see {@link isClerkSessionPresent}, which the rule has to mirror.
  *
- * @param publicCacheControl — the header value to use for signed-out visitors.
+ * Cloudflare gets its own header, `Cloudflare-CDN-Cache-Control`, rather than
+ * an `s-maxage`: Cloudflare reads `s-maxage` as `proxy-revalidate` and will not
+ * serve stale content beside it, so the first request after expiry waited on a
+ * full render (`EXPIRED`) instead of being served from cache while the entry
+ * refreshed (`UPDATING`). Browsers keep `max-age=0` and always revalidate.
+ *
+ * When the cookie cannot be read, the document is marked private. Sending no
+ * header is not neutral here: the zone's cache rule falls back to Cloudflare's
+ * default TTL for a response without one.
  */
-export async function applySsrCacheControl(
-  publicCacheControl: string,
-): Promise<void> {
+export async function applySsrCacheControl({
+  edgeMaxAge,
+  staleWhileRevalidate,
+}: {
+  /** Seconds Cloudflare treats the document as fresh. */
+  edgeMaxAge: number;
+  /** Seconds after that it may serve the stale copy while refreshing it. */
+  staleWhileRevalidate: number;
+}): Promise<void> {
+  let request: Request;
   try {
-    if (await isClerkSessionPresent(getRequest())) {
-      setResponseHeader('Cache-Control', 'private, no-store');
-    } else {
-      setResponseHeader('Cache-Control', publicCacheControl);
-    }
+    request = getRequest();
   } catch {
     // No request context (tests, prerender) — caching is a progressive
     // enhancement, never worth failing the render.
+    return;
   }
+  let signedIn = true;
+  try {
+    signedIn = await isClerkSessionPresent(request);
+  } catch {
+    // Fail closed: an unreadable cookie is treated as signed in.
+  }
+  if (signedIn) {
+    setResponseHeader('Cache-Control', 'private, no-store');
+    setResponseHeader('Cloudflare-CDN-Cache-Control', 'no-store');
+    return;
+  }
+  setResponseHeader('Cache-Control', 'public, max-age=0');
+  setResponseHeader(
+    'Cloudflare-CDN-Cache-Control',
+    `max-age=${edgeMaxAge}, stale-while-revalidate=${staleWhileRevalidate}`,
+  );
 }

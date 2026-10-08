@@ -46,7 +46,7 @@ export default defineHandler((event) => {
   const { pathname } = new URL(event.req.url);
 
   // Deliberately keyed on the path alone, NOT on the request's Accept header.
-  // These documents are edge-cached (`s-maxage=60`) and Cloudflare's cache key
+  // These documents are edge-cached (60s and up) and Cloudflare's cache key
   // does not include Accept, so whichever request fills the cache decides what
   // every later visitor gets. Gating on Accept meant one monitor or crawler
   // sending `*/*` would store a header-less response and silently strip the

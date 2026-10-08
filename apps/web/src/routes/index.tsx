@@ -96,7 +96,7 @@ const homeStructuredData = {
   ],
 };
 
-/** Matches the home HTML's `s-maxage` and `useNow`'s tick. */
+/** Matches the home HTML's edge max-age and `useNow`'s tick. */
 const HOME_NOW_BUCKET_MS = 60_000;
 
 export const Route = createFileRoute('/')({
@@ -109,7 +109,7 @@ export const Route = createFileRoute('/')({
     // fresh key and so a fresh HTTPS round trip for this whole aggregate.
     //
     // The bucket costs no accuracy that was not already spent: this HTML is
-    // edge-cached at `s-maxage=60`, so a served response's `now` is already up
+    // edge-cached for 60 seconds, so a served response's `now` is already up
     // to a minute old, and the client re-ticks at the same 60s granularity via
     // `useNow` below. Unlike the other migrated loaders this one deliberately
     // has no component-side observer — home is meant to be one query and a

@@ -18,9 +18,10 @@ import { applySsrCacheControl } from './ssrCacheHeaders';
  */
 const applyChampionshipCacheHeaders = createServerFn({ method: 'GET' }).handler(
   async (): Promise<void> => {
-    await applySsrCacheControl(
-      'public, max-age=0, s-maxage=600, stale-while-revalidate=86400',
-    );
+    await applySsrCacheControl({
+      edgeMaxAge: 600,
+      staleWhileRevalidate: 86400,
+    });
   },
 );
 

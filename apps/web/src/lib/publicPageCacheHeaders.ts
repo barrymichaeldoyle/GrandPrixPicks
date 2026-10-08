@@ -33,9 +33,10 @@ import { applySsrCacheControl } from './ssrCacheHeaders';
 const applyStaticContentCacheHeaders = createServerFn({
   method: 'GET',
 }).handler(async (): Promise<void> => {
-  await applySsrCacheControl(
-    'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400',
-  );
+  await applySsrCacheControl({
+    edgeMaxAge: 3600,
+    staleWhileRevalidate: 86400,
+  });
 });
 
 /**
@@ -53,9 +54,10 @@ const applyStaticContentCacheHeaders = createServerFn({
  */
 const applyRaceDataCacheHeaders = createServerFn({ method: 'GET' }).handler(
   async (): Promise<void> => {
-    await applySsrCacheControl(
-      'public, max-age=0, s-maxage=60, stale-while-revalidate=86400',
-    );
+    await applySsrCacheControl({
+      edgeMaxAge: 60,
+      staleWhileRevalidate: 86400,
+    });
   },
 );
 
@@ -88,9 +90,10 @@ export async function setRaceDataCacheHeaders(): Promise<void> {
  */
 const applyDefaultPageCacheHeaders = createServerFn({ method: 'GET' }).handler(
   async (): Promise<void> => {
-    await applySsrCacheControl(
-      'public, max-age=0, s-maxage=60, stale-while-revalidate=300',
-    );
+    await applySsrCacheControl({
+      edgeMaxAge: 60,
+      staleWhileRevalidate: 300,
+    });
   },
 );
 

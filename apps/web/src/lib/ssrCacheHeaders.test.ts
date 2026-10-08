@@ -2,9 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { applySsrCacheControl } from './ssrCacheHeaders';
 
-/** The directive `/` ships (see `homeCacheHeaders.ts`). */
-const PUBLIC_DIRECTIVE =
-  'public, max-age=0, s-maxage=60, stale-while-revalidate=300';
+/** The tier `/` ships (see `homeCacheHeaders.ts`). */
+const TIER = { edgeMaxAge: 60, staleWhileRevalidate: 300 };
 
 const mocks = vi.hoisted(() => ({
   getRequest: vi.fn(),
@@ -26,15 +25,31 @@ afterEach(() => {
 });
 
 describe('applySsrCacheControl', () => {
-  it('lets shared caches hold a signed-out document', async () => {
+  it('lets Cloudflare hold a signed-out document, and browsers revalidate', async () => {
     mocks.isClerkSessionPresent.mockResolvedValue(false);
 
-    await applySsrCacheControl(PUBLIC_DIRECTIVE);
+    await applySsrCacheControl(TIER);
 
     expect(mocks.setResponseHeader).toHaveBeenCalledWith(
       'Cache-Control',
-      PUBLIC_DIRECTIVE,
+      'public, max-age=0',
     );
+    expect(mocks.setResponseHeader).toHaveBeenCalledWith(
+      'Cloudflare-CDN-Cache-Control',
+      'max-age=60, stale-while-revalidate=300',
+    );
+  });
+
+  // Cloudflare reads s-maxage as proxy-revalidate and then refuses to serve
+  // stale, which is the whole point of the stale window.
+  it('never sends s-maxage', async () => {
+    mocks.isClerkSessionPresent.mockResolvedValue(false);
+
+    await applySsrCacheControl(TIER);
+
+    for (const [, value] of mocks.setResponseHeader.mock.calls) {
+      expect(String(value)).not.toContain('s-maxage');
+    }
   });
 
   // The one invariant worth a test: a signed-in document carries the viewer's
@@ -43,16 +58,17 @@ describe('applySsrCacheControl', () => {
   it('never marks a signed-in document publicly cacheable', async () => {
     mocks.isClerkSessionPresent.mockResolvedValue(true);
 
-    await applySsrCacheControl(PUBLIC_DIRECTIVE);
+    await applySsrCacheControl(TIER);
 
     expect(mocks.setResponseHeader).toHaveBeenCalledWith(
       'Cache-Control',
       'private, no-store',
     );
-    expect(mocks.setResponseHeader).not.toHaveBeenCalledWith(
-      'Cache-Control',
-      PUBLIC_DIRECTIVE,
+    expect(mocks.setResponseHeader).toHaveBeenCalledWith(
+      'Cloudflare-CDN-Cache-Control',
+      'no-store',
     );
+    expect(mocks.setResponseHeader).toHaveBeenCalledTimes(2);
   });
 
   it('sends no directive at all when there is no request context', async () => {
@@ -60,20 +76,23 @@ describe('applySsrCacheControl', () => {
       throw new Error('no request context');
     });
 
-    await expect(
-      applySsrCacheControl(PUBLIC_DIRECTIVE),
-    ).resolves.toBeUndefined();
+    await expect(applySsrCacheControl(TIER)).resolves.toBeUndefined();
     expect(mocks.setResponseHeader).not.toHaveBeenCalled();
   });
 
   // Failing closed matters more than caching: an unreadable cookie must not
-  // fall through to the public branch and publish a signed-in document.
-  it('sends no directive when the cookie read fails', async () => {
+  // fall through to the public branch and publish a signed-in document. Nor
+  // may it send nothing, because the zone's cache rule stores a header-less
+  // response for Cloudflare's default TTL.
+  it('marks the document private when the cookie read fails', async () => {
     mocks.isClerkSessionPresent.mockRejectedValue(new Error('cookie read'));
 
-    await expect(
-      applySsrCacheControl(PUBLIC_DIRECTIVE),
-    ).resolves.toBeUndefined();
-    expect(mocks.setResponseHeader).not.toHaveBeenCalled();
+    await applySsrCacheControl(TIER);
+
+    expect(mocks.setResponseHeader).toHaveBeenCalledWith(
+      'Cache-Control',
+      'private, no-store',
+    );
+    expect(mocks.setResponseHeader).toHaveBeenCalledTimes(2);
   });
 });

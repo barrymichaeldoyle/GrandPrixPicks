@@ -216,9 +216,10 @@ The lead is a session name in title weight over the value in large type
 left a big time with nothing saying what it was for.
 
 **Session names** are compact in the full layout's timeline ("FP1", "Quali",
-"Sprint Quali"). The featured lead keeps the full name ("Free Practice 1").
-The half-vertical timeline uses the shorter form ("FP1", "SQ"). "Free Practice"
-is this surface's wording; the rest of the site says "Practice 1".
+"SQ"), which leaves the width to the drivers and dates. The featured lead keeps
+the full name ("Free Practice 1"), except "Sprint Quali": "Sprint Qualifying"
+wrapped in the lead. "Free Practice" is this surface's wording; the rest of the
+site says "Practice 1".
 
 **Weather is per session.** Each timeline row carries its own forecast: one of
 TRMNL's weather icons, the temperature, the chance of rain when it is 20%

@@ -116,6 +116,26 @@ describe('between rounds', () => {
     expect(payload.upcoming).toEqual([]);
     expect(payload.lead?.label).toBe('Free Practice 1');
   });
+
+  it('shortens Sprint Qualifying in the lead and the schedule', () => {
+    const payload = buildTrmnlPayload(
+      input({
+        race: {
+          ...race,
+          hasSprint: true,
+          fp2StartAt: undefined,
+          fp3StartAt: undefined,
+          sprintQualiStartAt: at('2026-09-04T15:30:00Z'),
+          sprintStartAt: at('2026-09-05T10:00:00Z'),
+        },
+        now: at('2026-09-04T13:00:00Z'),
+      }),
+    );
+    expect(payload.lead?.label).toBe('Sprint Quali');
+    expect(
+      payload.schedule.find((row) => row.key === 'sprint_quali')?.label,
+    ).toBe('SQ');
+  });
 });
 
 describe('selectTrmnlRace', () => {

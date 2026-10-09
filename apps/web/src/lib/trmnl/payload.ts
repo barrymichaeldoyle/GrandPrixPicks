@@ -721,7 +721,11 @@ function buildLead(
         next.key as keyof typeof FREE_PRACTICE_FULL_LABELS
       ];
     return {
-      label: practiceLabel ?? SESSION_LABELS_FULL[next.key as SessionType],
+      label:
+        practiceLabel ??
+        (next.key === 'sprint_quali'
+          ? SPRINT_QUALI_LABEL
+          : SESSION_LABELS_FULL[next.key as SessionType]),
       // Not the row's time: the timeline stays weekday-only, the lead gains a
       // date when the session is more than six days off.
       value: when(next.startAt),
@@ -905,10 +909,7 @@ function buildTimeline(
     rows.push({
       startAt: at,
       key: session,
-      label:
-        session === 'sprint_quali'
-          ? 'Sprint Quali'
-          : SESSION_LABELS_SHORT[session],
+      label: SESSION_LABELS_SHORT[session],
       short: SESSION_LABELS_SHORT[session],
       when: when(at),
       ...scheduleParts(at),
@@ -941,6 +942,9 @@ function rowState(
   }
   return startAt <= now ? 'awaiting' : 'upcoming';
 }
+
+/** "Sprint Qualifying" wrapped in the lead; the schedule says "SQ". */
+const SPRINT_QUALI_LABEL = 'Sprint Quali';
 
 /** Compact practice labels for the full weekend schedule. */
 const FREE_PRACTICE_LABELS: Record<keyof typeof PRACTICE_LABELS, string> = {

@@ -211,8 +211,8 @@
       {% comment %}
         With `fill`, the name and time columns shrink to their content (`w--0`;
         a cell never goes narrower than that), so the spare width goes to the
-        drivers. Non-breaking spaces keep "Sprint Quali" and a 12-hour time
-        ("6:30 AM") on one line: a breakable space let the column shrink to
+        drivers. Non-breaking spaces keep a 12-hour time ("6:30 AM") on one
+        line: a breakable space let the column shrink to
         "6:30" and wrap the "AM", where the drivers should give way instead.
       {% endcomment %}
       <td{% if fill %} class="w--0"{% endif %}><span class="flex flex--row flex--left flex--center-y h--[22px] lg:h--[32px]"><span class="title title--small lg:title--base {{ schedule_pad }}">{% if fill %}{{ row[name] | replace: " ", "&nbsp;" }}{% else %}{{ row[name] }}{% endif %}</span></span></td>

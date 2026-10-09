@@ -1410,7 +1410,7 @@ export const getFeedEventByRef = query({
 });
 
 /**
- * The news cards in the feed from the last `days`, oldest first.
+ * The news cards in the feed from the last `days` (default 14), oldest first.
  *
  * Read by `/api/news/recent`, which the r/GPPicks app polls
  * (`docs/reddit-news-app.md`). A news item is here only while it has a feed
@@ -1419,9 +1419,9 @@ export const getFeedEventByRef = query({
  * list as retracted.
  */
 export const recentNews = query({
-  args: { days: v.number() },
+  args: { days: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    const days = Math.min(Math.max(args.days, 1), 30);
+    const days = Math.min(Math.max(args.days ?? 14, 1), 30);
     const since = Date.now() - days * 24 * 60 * 60 * 1000;
     // By time rather than by type: the type index orders by season and round,
     // and season-wide news has neither. A fortnight of the whole feed is a few

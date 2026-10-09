@@ -4,7 +4,7 @@ import { convexTest } from 'convex-test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { api, internal } from './_generated/api';
-import { bestLapOrder } from './liveClassification';
+import { bestLapOrder, qualifyingOrder } from './liveClassification';
 import schema from './schema';
 
 const modules = import.meta.glob('./**/*.ts');
@@ -25,6 +25,159 @@ describe('bestLapOrder', () => {
     ).toEqual([
       { driverNumber: 4, bestLapSeconds: 81.7 },
       { driverNumber: 1, bestLapSeconds: 81.9 },
+    ]);
+  });
+});
+
+describe('qualifyingOrder', () => {
+  const Q1_END = '2026-10-10T13:18:00+00:00';
+  const Q2_END = '2026-10-10T13:35:00+00:00';
+  const phase1 = { date: '2026-10-10T13:00:00+00:00', qualifying_phase: 1 };
+  const phase2 = { date: '2026-10-10T13:19:00+00:00', qualifying_phase: 2 };
+  const phase3 = { date: '2026-10-10T13:36:00+00:00', qualifying_phase: 3 };
+  function chequer(date: string) {
+    return { date, flag: 'CHEQUERED' };
+  }
+  function lap(
+    driver: number,
+    lapNumber: number,
+    start: string,
+    duration: number | null,
+  ) {
+    return {
+      driver_number: driver,
+      lap_number: lapNumber,
+      date_start: start,
+      lap_duration: duration,
+    };
+  }
+  // Ten cars reach Q3, so a twelve-car grid loses one in each of Q1 and Q2.
+  const grid = Array.from({ length: 12 }, (_, index) => index + 1);
+  const q1Laps = grid.map((driver) =>
+    lap(driver, 2, '2026-10-10T13:05:00+00:00', 90 + driver / 10),
+  );
+
+  it('returns null without segment data, so practice ordering applies', () => {
+    expect(qualifyingOrder(q1Laps, [], 12)).toBeNull();
+  });
+
+  it('marks the bottom of Q1 as out once the flag falls', () => {
+    const order = qualifyingOrder(q1Laps, [phase1, chequer(Q1_END)], 12);
+
+    expect(order?.phase).toBe(1);
+    expect(order?.entries.at(-1)).toEqual({
+      driverNumber: 12,
+      bestLapSeconds: 91.2,
+      knockedOutIn: 1,
+    });
+    expect(order?.entries.filter((entry) => entry.knockedOutIn)).toHaveLength(
+      1,
+    );
+  });
+
+  it('ranks Q2 by Q2 laps and keeps Q1 knockouts below, even when faster', () => {
+    const order = qualifyingOrder(
+      [
+        ...q1Laps,
+        // Car 12 tops Q1 with a lap quicker than anything in Q2 so far.
+        lap(12, 3, '2026-10-10T13:10:00+00:00', 80),
+        lap(5, 4, '2026-10-10T13:20:00+00:00', 89.5),
+        lap(2, 4, '2026-10-10T13:20:30+00:00', 89.9),
+      ],
+      [phase1, chequer(Q1_END), phase2],
+      12,
+    );
+
+    expect(order?.phase).toBe(2);
+    expect(order?.entries.map((entry) => entry.driverNumber)).toEqual([
+      5, 2, 12, 1, 3, 4, 6, 7, 8, 9, 10, 11,
+    ]);
+    // Car 12 was the quickest in Q1, so the Q1 knockout is car 11.
+    expect(order?.entries.at(-1)).toMatchObject({
+      driverNumber: 11,
+      knockedOutIn: 1,
+    });
+    // No Q2 lap yet: still through, below the Q2 times, in Q1 order.
+    expect(order?.entries[2]).toEqual({
+      driverNumber: 12,
+      bestLapSeconds: null,
+    });
+  });
+
+  it('keeps showing Q1 until Q2 opens, ignoring the in-laps between', () => {
+    const order = qualifyingOrder(
+      [...q1Laps, lap(5, 3, '2026-10-10T13:18:30+00:00', 122.8)],
+      [phase1, chequer(Q1_END)],
+      12,
+    );
+
+    expect(order?.phase).toBe(1);
+    expect(order?.entries[0]).toEqual({
+      driverNumber: 1,
+      bestLapSeconds: 90.1,
+    });
+  });
+
+  it('ignores deleted laps and pit-out laps', () => {
+    const order = qualifyingOrder(
+      [
+        ...q1Laps,
+        lap(12, 3, '2026-10-10T13:10:00+00:00', 80),
+        {
+          ...lap(11, 1, '2026-10-10T13:01:00+00:00', 70),
+          is_pit_out_lap: true,
+        },
+      ],
+      [
+        phase1,
+        {
+          date: '2026-10-10T13:11:00+00:00',
+          message:
+            'CAR 12 (BOT) TIME 1:20.000 DELETED - TRACK LIMITS AT TURN 4 LAP 3 21:10:00',
+        },
+      ],
+      12,
+    );
+
+    expect(order?.entries.slice(-2).map((entry) => entry.driverNumber)).toEqual(
+      [11, 12],
+    );
+  });
+
+  it('lists Q2 knockouts above Q1 knockouts during Q3', () => {
+    const order = qualifyingOrder(
+      [
+        ...q1Laps,
+        ...grid
+          .slice(0, 11)
+          .map((driver) =>
+            lap(driver, 4, '2026-10-10T13:22:00+00:00', 89 + driver / 10),
+          ),
+        lap(3, 6, '2026-10-10T13:40:00+00:00', 88),
+      ],
+      [phase1, chequer(Q1_END), phase2, chequer(Q2_END), phase3],
+      12,
+    );
+
+    expect(order?.phase).toBe(3);
+    expect(
+      order?.entries.map((entry) => [
+        entry.driverNumber,
+        entry.knockedOutIn ?? 0,
+      ]),
+    ).toEqual([
+      [3, 0],
+      [1, 0],
+      [2, 0],
+      [4, 0],
+      [5, 0],
+      [6, 0],
+      [7, 0],
+      [8, 0],
+      [9, 0],
+      [10, 0],
+      [11, 2],
+      [12, 1],
     ]);
   });
 });

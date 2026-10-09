@@ -484,9 +484,13 @@ export default defineSchema({
         code: v.string(),
         displayName: v.string(),
         team: v.union(v.string(), v.null()),
-        bestLapSeconds: v.number(),
+        // Null in qualifying for a driver still to set a lap in this segment.
+        bestLapSeconds: v.union(v.number(), v.null()),
+        knockedOutIn: v.optional(v.union(v.literal(1), v.literal(2))),
       }),
     ),
+    // Qualifying only: the segment on screen (Q1/Q2/Q3, SQ1/SQ2/SQ3).
+    phase: v.optional(v.union(v.literal(1), v.literal(2), v.literal(3))),
     updatedAt: v.number(),
   })
     .index('by_raceId_and_sessionType', ['raceId', 'sessionType'])

@@ -54,6 +54,205 @@ export function bestLapOrder(value: unknown) {
     .sort((a, b) => a.bestLapSeconds - b.bestLapSeconds);
 }
 
+/** Q1/Q2/Q3, or SQ1/SQ2/SQ3: the same three segments either way. */
+type QualifyingPhase = 1 | 2 | 3;
+
+interface QualifyingEntry {
+  driverNumber: number;
+  /** Best lap in the segment the driver is ranked by; null before they set one. */
+  bestLapSeconds: number | null;
+  knockedOutIn?: 1 | 2;
+}
+
+/** Ten cars reach the last segment; the first two cut the rest evenly. */
+function knockoutsPerSegment(gridSize: number) {
+  return Math.max(0, Math.floor((gridSize - 10) / 2));
+}
+
+/**
+ * "CAR 81 (PIA) TIME 1:53.171 DELETED - DOUBLE YELLOW AT TURN 5 LAP 3 20:34:06"
+ * → `81:3`. A reinstatement names the same car and lap, so it undoes one.
+ */
+function deletedLaps(raceControl: unknown[]) {
+  const deleted = new Set<string>();
+  for (const row of raceControl) {
+    if (!record(row) || typeof row.message !== 'string') {
+      continue;
+    }
+    const car = /^CAR (\d+)\b/.exec(row.message)?.[1];
+    const lap = /\bLAP (\d+)\b/.exec(row.message)?.[1];
+    if (!car || !lap) {
+      continue;
+    }
+    if (/\bDELETED\b/.test(row.message)) {
+      deleted.add(`${car}:${lap}`);
+    } else if (/\bREINSTATED\b/.test(row.message)) {
+      deleted.delete(`${car}:${lap}`);
+    }
+  }
+  return deleted;
+}
+
+/**
+ * The qualifying order as the timing screens show it mid-session.
+ *
+ * Ranking the whole session by best lap, as practice does, is wrong from Q2
+ * on: a car out in Q1 can hold a faster lap than one still running, and the
+ * eliminated drivers sat in the middle of the order. Here each lap belongs to
+ * the segment it started in, the segments are split by race control's
+ * chequered flags, and a driver is ranked by the last segment they reached.
+ *
+ * Returns null when race control has no segment data, so the caller falls back
+ * to the plain best-lap order rather than inventing one.
+ */
+export function qualifyingOrder(
+  laps: unknown,
+  raceControl: unknown,
+  gridSize: number,
+): { phase: QualifyingPhase; entries: QualifyingEntry[] } | null {
+  if (!Array.isArray(laps) || !Array.isArray(raceControl)) {
+    return null;
+  }
+  if (
+    !raceControl.some(
+      (row) => record(row) && typeof row.qualifying_phase === 'number',
+    )
+  ) {
+    return null;
+  }
+  const chequers = raceControl
+    .filter(
+      (row): row is Record<string, unknown> =>
+        record(row) && row.flag === 'CHEQUERED' && typeof row.date === 'string',
+    )
+    .map((row) => Date.parse(row.date as string))
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+  const ended = Math.min(3, chequers.length);
+  const deleted = deletedLaps(raceControl);
+  // A segment opens with race control's first row tagged with it: the green
+  // light at the pit exit. Segment 1 is open from the start of the data.
+  const opens = [1, 2, 3].map((segment) => {
+    const times = raceControl
+      .filter(
+        (row): row is Record<string, unknown> =>
+          record(row) &&
+          row.qualifying_phase === segment &&
+          typeof row.date === 'string',
+      )
+      .map((row) => Date.parse(row.date as string))
+      .filter(Number.isFinite);
+    return segment === 1 ? -Infinity : times.length ? Math.min(...times) : null;
+  });
+  /**
+   * The segment a lap started in, or null between segments. The in-laps after
+   * a chequered flag start after it, and counting them towards the next
+   * segment put a 2:02 at the top of Q2 before Q2 had started.
+   */
+  function segmentAt(started: number) {
+    for (let segment = 3; segment >= 1; segment -= 1) {
+      const open = opens[segment - 1];
+      const close = chequers[segment - 1];
+      if (
+        open !== null &&
+        started >= open &&
+        (close === undefined || started < close)
+      ) {
+        return segment;
+      }
+    }
+    return null;
+  }
+
+  // driver → segment → best lap
+  const best = new Map<number, Map<number, number>>();
+  const drivers = new Set<number>();
+  const lastSegment = new Map<number, number | null>();
+  const sorted = laps
+    .filter(record)
+    .filter((lap) => typeof lap.driver_number === 'number')
+    .sort((a, b) => Number(a.lap_number ?? 0) - Number(b.lap_number ?? 0));
+  for (const lap of sorted) {
+    const driver = lap.driver_number as number;
+    drivers.add(driver);
+    const started =
+      typeof lap.date_start === 'string' ? Date.parse(lap.date_start) : NaN;
+    // A lap with no start time inherits the segment of the driver's lap
+    // before it: it cannot have started in an earlier one.
+    const segment = Number.isFinite(started)
+      ? segmentAt(started)
+      : (lastSegment.get(driver) ?? 1);
+    lastSegment.set(driver, segment);
+    if (segment === null) {
+      continue;
+    }
+    if (
+      typeof lap.lap_duration !== 'number' ||
+      !Number.isFinite(lap.lap_duration) ||
+      // An out-lap starts in the pit lane: the timing screens never rank it.
+      lap.is_pit_out_lap === true ||
+      deleted.has(`${driver}:${String(lap.lap_number)}`)
+    ) {
+      continue;
+    }
+    const segments = best.get(driver) ?? new Map<number, number>();
+    const current = segments.get(segment);
+    if (current === undefined || lap.lap_duration < current) {
+      segments.set(segment, lap.lap_duration);
+    }
+    best.set(driver, segments);
+  }
+
+  // The segment on screen: the one now running once anyone has a lap in it,
+  // otherwise the one just finished, which still shows who it knocked out.
+  const next = Math.min(3, ended + 1);
+  const nextHasLaps = [...best.values()].some((segments) => segments.has(next));
+  const phase = (ended === 0 || nextHasLaps ? next : ended) as QualifyingPhase;
+
+  const cut = knockoutsPerSegment(Math.max(gridSize, drivers.size));
+  function lapIn(driver: number, segment: number) {
+    return best.get(driver)?.get(segment) ?? null;
+  }
+  function rank(contenders: number[], segment: number) {
+    // Stable sort: a driver with no lap yet keeps the order they arrived in.
+    return [...contenders].sort((a, b) => {
+      const lapA = lapIn(a, segment);
+      const lapB = lapIn(b, segment);
+      if (lapA === null || lapB === null) {
+        return lapA === lapB ? 0 : lapA === null ? 1 : -1;
+      }
+      return lapA - lapB;
+    });
+  }
+
+  // Q1 order starts from car number so the untimed tail is stable.
+  let contenders = rank(
+    [...drivers].sort((a, b) => a - b),
+    1,
+  );
+  const out: QualifyingEntry[][] = [];
+  for (let segment = 1; segment < phase; segment += 1) {
+    const advance = contenders.length - cut;
+    out.push(
+      contenders.slice(advance).map((driverNumber) => ({
+        driverNumber,
+        bestLapSeconds: lapIn(driverNumber, segment),
+        knockedOutIn: segment as 1 | 2,
+      })),
+    );
+    contenders = rank(contenders.slice(0, advance), segment + 1);
+  }
+  // Segment over and not the last: its bottom places are already out.
+  const settled = phase <= ended && phase < 3;
+  const advance = settled ? contenders.length - cut : contenders.length;
+  const running = contenders.map((driverNumber, index) => ({
+    driverNumber,
+    bestLapSeconds: lapIn(driverNumber, phase),
+    ...(index >= advance ? { knockedOutIn: phase as 1 | 2 } : {}),
+  }));
+  return { phase, entries: [...running, ...out.reverse().flat()] };
+}
+
 export const activeTask = internalQuery({
   args: { now: v.number() },
   returns: v.any(),
@@ -132,9 +331,13 @@ export const write = internalMutation({
         code: v.string(),
         displayName: v.string(),
         team: v.union(v.string(), v.null()),
-        bestLapSeconds: v.number(),
+        // Null in qualifying for a driver still to set a lap in this segment.
+        bestLapSeconds: v.union(v.number(), v.null()),
+        knockedOutIn: v.optional(v.union(v.literal(1), v.literal(2))),
       }),
     ),
+    // Qualifying only: the segment on screen (Q1/Q2/Q3, SQ1/SQ2/SQ3).
+    phase: v.optional(v.union(v.literal(1), v.literal(2), v.literal(3))),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -205,9 +408,15 @@ async function refreshTask(ctx: ActionCtx, task: ActiveTask): Promise<null> {
   lapsUrl.searchParams.set('session_key', String(session.session_key));
   const driversUrl = new URL('https://api.openf1.org/v1/drivers');
   driversUrl.searchParams.set('session_key', String(session.session_key));
-  const [order, rawDrivers] = await Promise.all([
-    fetchJson(lapsUrl).then(bestLapOrder),
+  const qualifying =
+    task.sessionType === 'quali' || task.sessionType === 'sprint_quali';
+  const raceControlUrl = new URL('https://api.openf1.org/v1/race_control');
+  raceControlUrl.searchParams.set('session_key', String(session.session_key));
+  const [rawLaps, rawDrivers, raceControl] = await Promise.all([
+    fetchJson(lapsUrl),
     fetchJson(driversUrl),
+    // Race control is a nicety: without it qualifying reads as practice does.
+    qualifying ? fetchJson(raceControlUrl).catch(() => null) : null,
   ]);
   const drivers = new Map<
     number,
@@ -225,6 +434,19 @@ async function refreshTask(ctx: ActionCtx, task: ActiveTask): Promise<null> {
       }
     }
   }
+  const segmented = qualifying
+    ? qualifyingOrder(rawLaps, raceControl, drivers.size)
+    : null;
+  const order = segmented
+    ? // Before their first lap a driver is only a name; keep the board to
+      // drivers with a time somewhere, as the practice order does.
+      segmented.entries.filter(
+        (entry) =>
+          entry.bestLapSeconds !== null ||
+          segmented.phase > 1 ||
+          entry.knockedOutIn !== undefined,
+      )
+    : bestLapOrder(rawLaps);
   await ctx.runMutation(internal.liveClassification.write, {
     raceId: task.raceId,
     raceName: task.raceName,
@@ -234,6 +456,7 @@ async function refreshTask(ctx: ActionCtx, task: ActiveTask): Promise<null> {
       const driver = drivers.get(entry.driverNumber);
       return driver ? [{ ...entry, ...driver, position: index + 1 }] : [];
     }),
+    ...(segmented ? { phase: segmented.phase } : {}),
   });
   return null;
 }

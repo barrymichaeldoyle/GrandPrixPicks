@@ -1,10 +1,17 @@
+import {
+  qualifyingSegmentLabel,
+  splitLiveOrder,
+} from '@grandprixpicks/shared/liveSessionBoard';
 import { PRACTICE_SESSION_LABELS } from '@grandprixpicks/shared/practice';
+import type { TextStyle } from 'react-native';
 
 import { api } from '../../integrations/convex/api';
 import { useQuery } from '../../integrations/convex/query';
+import { useTypography } from '../../theme/typography';
 import { Text, View } from '../../tw';
 import { CompactPracticeRow } from '../races/CompactPracticeRow';
 import { Card } from '../ui/Card';
+import { DriverBadge } from '../ui/DriverBadge';
 
 /**
  * Session names, in full. The practice three come from the shared map so this
@@ -28,6 +35,7 @@ type LiveEntry = {
   displayName: string;
   team?: string | null;
   bestLapSeconds: number | null;
+  knockedOutIn?: 1 | 2;
 };
 
 /**
@@ -56,6 +64,51 @@ function withGaps(entries: LiveEntry[]) {
 }
 
 /**
+ * Who a finished qualifying segment knocked out, as web shows it: a wrapped
+ * line of position and badge. The running order stops at P6, so these cars
+ * were otherwise missing from the card, and their laps belong to a segment
+ * that is over, so they carry no gap to the current leader.
+ */
+function KnockoutRow({
+  label,
+  entries,
+}: {
+  label: string;
+  entries: LiveEntry[];
+}) {
+  const { numeralFontFamily } = useTypography();
+  const mono: TextStyle = {
+    fontVariant: ['tabular-nums'],
+    ...(numeralFontFamily ? { fontFamily: numeralFontFamily } : null),
+  };
+  return (
+    <View className="gap-1.5 border-t border-border pt-2.5">
+      <Text className="text-muted text-xs font-medium">{label}</Text>
+      <View className="flex-row flex-wrap gap-x-3 gap-y-1.5">
+        {entries.map((entry) => (
+          <View
+            key={entry.driverNumber}
+            className="flex-row items-center gap-1.5"
+          >
+            <Text className="text-muted text-xs font-semibold" style={mono}>
+              P{entry.position}
+            </Text>
+            <DriverBadge
+              code={entry.code}
+              displayName={entry.displayName}
+              fill="sunken"
+              number={entry.driverNumber}
+              size="sm"
+              team={entry.team}
+            />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+/**
  * The session currently on track.
  *
  * Deliberately the practice card: same shell, same `CompactPracticeRow` with
@@ -77,14 +130,27 @@ export function LiveClassificationCard() {
   if (!live?.entries.length) {
     return null;
   }
-  const entries = withGaps((live.entries as LiveEntry[]).slice(0, LIVE_ROWS));
+  const { top, knockouts } = splitLiveOrder(
+    live.entries as LiveEntry[],
+    LIVE_ROWS,
+  );
+  const entries = withGaps(top);
   const label = SESSION_LABELS[live.sessionType] ?? live.sessionType;
+  const segment =
+    'phase' in live && live.phase !== undefined
+      ? qualifyingSegmentLabel(live.sessionType, live.phase)
+      : null;
 
   return (
     <View className="mx-4 mt-3">
       <Card>
         <View className="flex-row items-center justify-between">
-          <Text className="text-xs font-medium text-accent">{label}</Text>
+          <Text className="text-xs font-medium text-accent">
+            {label}
+            {segment ? (
+              <Text className="text-muted">{` ${segment}`}</Text>
+            ) : null}
+          </Text>
           <View className="flex-row items-center gap-1.5">
             <View className="h-1.5 w-1.5 rounded-full bg-accent" />
             <Text className="text-xs font-medium text-accent">Live</Text>
@@ -100,6 +166,13 @@ export function LiveClassificationCard() {
             </View>
           ))}
         </View>
+        {knockouts.map((group) => (
+          <KnockoutRow
+            key={group.segment}
+            label={`Out in ${qualifyingSegmentLabel(live.sessionType, group.segment)}`}
+            entries={group.entries}
+          />
+        ))}
         <Text className="text-muted text-xs">
           Live timing can change, including after the flag.
         </Text>

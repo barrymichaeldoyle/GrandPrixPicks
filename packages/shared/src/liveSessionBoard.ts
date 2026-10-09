@@ -78,3 +78,31 @@ export function rankLiveGroup<
     playerFor,
   };
 }
+
+/** "Q2", or "SQ2" in sprint qualifying. */
+export function qualifyingSegmentLabel(
+  sessionType: string,
+  segment: number,
+): string {
+  return `${sessionType === 'sprint_quali' ? 'SQ' : 'Q'}${segment}`;
+}
+
+/**
+ * A live qualifying order split the way the card shows it: the top of the
+ * segment still running, then who each finished segment knocked out, latest
+ * first. Practice and races have no knockouts, so they come back as `top`
+ * alone.
+ */
+export function splitLiveOrder<T extends { knockedOutIn?: 1 | 2 }>(
+  entries: T[],
+  topRows: number,
+): { top: T[]; knockouts: { segment: 1 | 2; entries: T[] }[] } {
+  const running = entries.filter((entry) => entry.knockedOutIn === undefined);
+  const knockouts = ([2, 1] as const)
+    .map((segment) => ({
+      segment,
+      entries: entries.filter((entry) => entry.knockedOutIn === segment),
+    }))
+    .filter((group) => group.entries.length > 0);
+  return { top: running.slice(0, topRows), knockouts };
+}

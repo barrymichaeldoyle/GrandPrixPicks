@@ -1,6 +1,11 @@
 import { api } from '@convex-generated/api';
+import {
+  qualifyingSegmentLabel,
+  splitLiveOrder,
+} from '@grandprixpicks/shared/liveSessionBoard';
 import { PRACTICE_SESSION_LABELS } from '@grandprixpicks/shared/practice';
 
+import { DriverBadge } from '@/components/DriverBadge';
 import {
   CompactColumns,
   CompactPracticeRow,
@@ -29,6 +34,7 @@ type LiveEntry = {
   displayName: string;
   team?: string | null;
   bestLapSeconds: number | null;
+  knockedOutIn?: 1 | 2;
 };
 
 /**
@@ -63,6 +69,47 @@ function withGaps(entries: LiveEntry[]) {
 }
 
 /**
+ * Who a finished qualifying segment knocked out, in classified order.
+ *
+ * The running order above stops at P6, so without this the eliminated cars,
+ * P11 to P22, never appeared on the card at all. They are a wrapped line of
+ * badges rather than more timing rows: their laps are from a segment that is
+ * over, and a gap measured to the current leader would compare two different
+ * sessions' worth of track.
+ */
+function KnockoutRow({
+  label,
+  entries,
+}: {
+  label: string;
+  entries: LiveEntry[];
+}) {
+  return (
+    <div className="border-t border-border px-4 py-2.5">
+      <h3 className="text-xs font-medium text-text-muted">{label}</h3>
+      <ul className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1.5">
+        {entries.map((entry) => (
+          <li key={entry.driverNumber} className="flex items-center gap-1.5">
+            <span className="gpp-mono text-xs font-semibold text-text-muted">
+              P{entry.position}
+            </span>
+            <DriverBadge
+              code={entry.code}
+              displayName={entry.displayName}
+              team={entry.team ?? undefined}
+              number={entry.driverNumber}
+              size="sm"
+              fill="sunken"
+              prerenderTooltip={false}
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/**
  * The session currently on track, above the feed.
  *
  * Deliberately the practice block's card: same chrome, same eyebrow, the same
@@ -81,8 +128,16 @@ export function LiveClassificationCard() {
   if (!live?.entries.length) {
     return null;
   }
-  const entries = withGaps((live.entries as LiveEntry[]).slice(0, LIVE_ROWS));
+  const { top, knockouts } = splitLiveOrder(
+    live.entries as LiveEntry[],
+    LIVE_ROWS,
+  );
+  const entries = withGaps(top);
   const label = SESSION_LABELS[live.sessionType] ?? live.sessionType;
+  const segment =
+    'phase' in live && live.phase !== undefined
+      ? qualifyingSegmentLabel(live.sessionType, live.phase)
+      : null;
 
   return (
     <section
@@ -96,6 +151,9 @@ export function LiveClassificationCard() {
           className="text-xs font-medium text-accent"
         >
           {label}
+          {segment ? (
+            <span className="ml-1.5 text-text-muted">{segment}</span>
+          ) : null}
         </h2>
         <p className="flex items-center gap-1.5 text-xs font-medium text-accent">
           {/* The one mark that says this order is still moving. `motion-safe`
@@ -120,6 +178,13 @@ export function LiveClassificationCard() {
           />
         )}
       />
+      {knockouts.map((group) => (
+        <KnockoutRow
+          key={group.segment}
+          label={`Out in ${qualifyingSegmentLabel(live.sessionType, group.segment)}`}
+          entries={group.entries}
+        />
+      ))}
       <p className="px-4 py-2 text-xs text-text-muted">
         Live timing can change, including after the flag.
       </p>

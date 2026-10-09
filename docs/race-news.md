@@ -350,6 +350,12 @@ npx convex run --prod raceNews:releaseToFeed '{"raceId":"jd7...","key":"..."}'
 
 ## Deliberately not doing
 
+**X coverage is selected after a sweep.** Choose one to three useful posts,
+normally 25 minutes apart, and check pending news posts for corrections.
+`scripts/gpp.mjs news social` uses Buffer and previews before scheduling.
+See [X posts after a news sweep](news-social.md). This is an operator step,
+separate from the publication mutation.
+
 **Publishing does not send notifications.** Selected stories can receive an
 editorially approved push through `newsNotifications:select`, separately from
 publication. News push is opt-in, limited to one story per user per 24 hours,

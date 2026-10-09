@@ -1,0 +1,18 @@
+{
+  "deployment": "prod",
+  "apply": false,
+  "reports": [
+    {
+      "action": "would_schedule",
+      "keys": ["verstappen-singapore-yellow-flag-investigation"],
+      "dueAt": "2026-10-09T19:15:00.000Z",
+      "text": "Verstappen keeps Singapore sprint pole.\n\nThe stewards found a yellow-flag breach but imposed no penalty, accepting that he had slowed and the closing-speed difference made the pass difficult to avoid safely.\n\nhttps://www.formula1.com/en/latest/article/stewards-deliver-verdict-after-verstappen-investigated-for-yellow-flag-incident-in-sprint-qualifying.1tKjwEbNYya8XF9mSJ5sFv"
+    },
+    {
+      "action": "would_schedule",
+      "keys": ["mercedes-singapore-upgrade-first-findings"],
+      "dueAt": "2026-10-09T19:40:00.000Z",
+      "text": "Antonelli is staying with Mercedes' upgraded package for the rest of the Singapore weekend.\n\nHe has switched back to the older front wing, but reverting the full car would take two days, says Bradley Lord.\n\nhttps://www.motorsport.com/f1/news/were-stuck-with-what-weve-got-why-antonelli-cant-revert-to-previous-mercedes-spec-in-singapore/10863572/"
+    }
+  ]
+}

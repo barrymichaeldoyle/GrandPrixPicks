@@ -25,6 +25,8 @@ const HELP = `gpp <command> [args] [--prod] [--json]
   news show <slug> <key>          one item in full
   news scan <slug>                unfiled F1 stories from RSS, clustered and ranked
                                   --days N  window   --all  include noise and covered
+  news social <selection.json>|check  preview selected X posts or check queued news
+                                  --apply schedules posts and cancels stale queued news
   news publish <file.json>        dry run; --apply to publish (object or array, run in order)
   news retract <slug> <key>       shows the item; --apply to retract
   news move <from> <to> <key>...  dry run; --apply to move
@@ -1239,8 +1241,35 @@ switch (command) {
       newsMove(rest[0], rest[1], rest.slice(2), flags);
     } else if (sub === 'scan') {
       await newsScan(rest[0], flags);
+    } else if (sub === 'social') {
+      try {
+        const { newsSocial } = await import('./news-social.mjs');
+        const result = await newsSocial(rest[0], flags, {
+          root: repoRoot,
+          convexRun,
+        });
+        if (flags.json) {
+          console.log(JSON.stringify(result, null, 2));
+        } else {
+          for (const report of result.reports) {
+            console.log(
+              `${report.action}  ${report.keys?.join(', ') ?? report.bufferPostId}  ${report.dueAt ?? report.reason ?? ''}`,
+            );
+            if (report.text) {
+              console.log(`  ${report.text.replaceAll('\n', '\n  ')}`);
+            }
+          }
+          console.log(
+            flags.apply
+              ? 'X news queue checked.'
+              : 'dry run. Re-run with --apply to schedule or cancel.',
+          );
+        }
+      } catch (error) {
+        fail(error.message);
+      }
     } else {
-      fail('news list|show|scan|publish|retract|move');
+      fail('news list|show|scan|publish|retract|move|social');
     }
     break;
   case 'page':

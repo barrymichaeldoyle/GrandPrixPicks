@@ -1,5 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
+  // Operator-installed CLI; its account credentials are outside this repository.
+  "ignoreBinaries": ["buffer"],
   "ignoreFiles": [
     ".agents/**",
     // Tooling for the claude.ai/design sync, none of which is imported by the

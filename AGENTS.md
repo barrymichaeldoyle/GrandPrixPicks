@@ -28,6 +28,11 @@ without changing a pick. Keep pick-related news identifiable so people can opt
 for pick-related pushes or all selected news. The current pick-only `raceNews`
 constraint is implementation history, not the product rule.
 
+Complete news sweeps with the X selection and pending-post checks in
+`docs/news-social.md` and `.claude/skills/publish-race-news/SKILL.md`. Select
+one to three useful posts for a substantial sweep and schedule them through
+Buffer, normally 25 minutes apart, within the task's distribution scope.
+
 ## Expo Mobile App
 
 This monorepo includes a WIP Expo app under `apps/mobile`.

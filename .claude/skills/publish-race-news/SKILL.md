@@ -157,8 +157,22 @@ correction of an existing key) posts to the Discord #news channel
 immediately, and to r/GPPicks within ten minutes — the dry run is the last
 chance to catch a mistake, not the publish itself.
 
-**4. Report what happened.** The return says `created`, `updated` or
+**4. Select X coverage.** A news sweep includes an editorial X selection after
+the news is published. Read [X posts after a news sweep](../../../docs/news-social.md)
+for the selection format, commands and correction behavior. Use one to three
+posts for a substantial sweep, with 25-minute spacing; select none when nothing
+merits a post. General event news is eligible alongside sporting developments.
+
+Run `scripts/gpp.mjs news social check --prod` to inspect pending news posts on
+every sweep, even one with no X selection. Apply stale cancellations and the
+reviewed selection within the task's authorized distribution scope. The
+command checks the live stories and existing Buffer queue before scheduling;
+do not automatically turn every publication or correction into an X post.
+Keep the selection and updated ledger with the sweep's artifacts.
+
+**5. Report what happened.** The return says `created`, `updated` or
 `republished`. Say which, and say which sessions it affects.
+Include X post times or the reason no posts were selected.
 
 ## Writing the fields
 

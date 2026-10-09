@@ -60,3 +60,6 @@ debug-storybook.log
 .lighthouseci-mobile
 
 .impeccable
+
+# Operator lock; inspect and remove manually after a hard interruption.
+/.gpp-news-social.lock/

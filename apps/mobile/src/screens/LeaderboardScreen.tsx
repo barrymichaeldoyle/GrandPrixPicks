@@ -487,7 +487,7 @@ export function LeaderboardScreen() {
           </View>
         }
         onEndReached={() => void loadMoreSeason()}
-        onEndReachedThreshold={0.4}
+        onEndReachedThreshold={1}
         {...hide.scrollProps}
         refreshControl={
           <RefreshControl

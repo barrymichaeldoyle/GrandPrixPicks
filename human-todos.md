@@ -119,9 +119,10 @@ entered by a human.
 The validated metadata is in `apps/mobile/store.config.json`; screenshots,
 review notes, and the data-disclosure inventory are in `apps/mobile/STORE.md`.
 
-Build 3 is needed before review: 2026-10-09 switched iOS Apple sign-in to
-the native sheet and added `expo-crypto` as a direct dependency (already in
-the native build as a transitive one).
+Build 1.0.0 (**build 11**) was built from `9590235e` and uploaded to App
+Store Connect on 2026-10-09 (EAS build `2525c0d0`, submission `cf3a3176`).
+It carries native Sign in with Apple and `expo-crypto`. Use it for the
+section 4 device QA and for review.
 
 Draft 6.9-inch screenshots (1320 x 2868, dev data, captured 2026-10-09) are
 in `apps/mobile/store-screenshots/`: home, Top 5 editor, season leaderboard,

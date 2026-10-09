@@ -31,10 +31,12 @@ export function useHideOnScroll() {
   }
 
   function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
-    const y = Math.max(0, event.nativeEvent.contentOffset.y);
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    const y = Math.max(0, contentOffset.y);
     const dy = y - lastY.current;
     lastY.current = y;
-    apply(nextHideOffset({ y, dy, current: offset.current }), y <= 8);
+    const maxY = Math.max(0, contentSize.height - layoutMeasurement.height);
+    apply(nextHideOffset({ y, dy, current: offset.current, maxY }), y <= 8);
   }
 
   function onScrollEndDrag(event: NativeSyntheticEvent<NativeScrollEvent>) {

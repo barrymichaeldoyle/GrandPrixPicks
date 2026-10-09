@@ -151,7 +151,7 @@ export function LiveClassificationCard() {
       : null;
 
   return (
-    <View className="mx-4 mt-3">
+    <View className="mt-3">
       <Card>
         <View className="flex-row items-center justify-between">
           <Text className="text-xs font-medium text-accent">

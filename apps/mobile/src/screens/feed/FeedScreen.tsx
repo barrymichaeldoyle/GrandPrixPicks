@@ -291,7 +291,9 @@ export function FeedScreen() {
           </View>
         }
         onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.4}
+        // A screen and a half ahead: at 0.4 a quick flick reached the end
+        // before the next page arrived, and the list stalled at the bottom.
+        onEndReachedThreshold={1.5}
         {...hide.scrollProps}
         refreshControl={
           <RefreshControl
@@ -324,14 +326,18 @@ export function FeedScreen() {
                 viewerId={me?._id as ConvexId<'users'> | undefined}
               />
             );
-          // The wrapper's own `pt-3` is the gap above the chequer, and `mb-3`
-          // is the one below it, so a weekend break sits evenly between the two
-          // cards it separates. Full bleed either way: the split runs wall to
-          // wall even where the card it precedes is inset.
+          // Joined, as on web's phone layout: no gap between blocks, and each
+          // block after the first sits 1px up so its top hairline lands on the
+          // one above instead of doubling it. Only a weekend break opens the
+          // sheet, with the chequer 12px from each side.
+          const split = startsWeekend[index];
           return (
-            <View className="pt-3">
-              {startsWeekend[index] ? <WeekendSplit className="mb-3" /> : null}
-              <View className={item.kind === 'standalone' ? 'px-4' : undefined}>
+            <View>
+              {split ? <WeekendSplit className="mt-3 mb-3" /> : null}
+              <View
+                className={index === 0 && !split ? 'mt-3' : undefined}
+                style={index > 0 && !split ? { marginTop: -1 } : undefined}
+              >
                 {card}
               </View>
             </View>

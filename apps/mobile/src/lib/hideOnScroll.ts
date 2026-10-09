@@ -15,15 +15,27 @@ export function nextHideOffset({
   y,
   dy,
   current,
+  maxY,
   height = TAB_CHROME_HEIGHT,
 }: {
   y: number;
   dy: number;
   current: number;
+  /**
+   * The furthest the list can scroll (content height minus viewport). At or
+   * past it, deltas are not the reader's: the end-of-list bounce reports an
+   * upward scroll, and showing the chrome shrinks the list, which clamps the
+   * offset and reports another. Together they pulled the chrome back in at
+   * the bottom of the feed and every time a page was loading, and could loop.
+   */
+  maxY?: number;
   height?: number;
 }): number {
   if (y <= SHOW_AT_TOP_Y) {
     return 0;
+  }
+  if (maxY !== undefined && y >= maxY - 1) {
+    return current;
   }
   return Math.min(height, Math.max(0, current + dy));
 }

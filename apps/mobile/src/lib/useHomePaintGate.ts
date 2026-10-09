@@ -32,5 +32,16 @@ export function useHomePaintGate(pending: boolean): boolean {
     return () => clearTimeout(timer);
   }, [knownOffline, pending, timeoutMs]);
 
-  return shouldHoldHomePaint({ knownOffline, pending, timedOut });
+  // Latch once the feed has painted. The inputs are live queries, and one
+  // going back to loading (the weather query's hourly bucket changes its
+  // arguments; the cached hook reads `undefined` for new arguments) swapped
+  // the whole list for a spinner mid-scroll: a flash, and the scroll position
+  // lost with the unmounted list.
+  const [painted, setPainted] = useState(false);
+  const hold = shouldHoldHomePaint({ knownOffline, pending, timedOut });
+  if (!hold && !painted) {
+    // Adjusting state while rendering, once: React re-renders immediately.
+    setPainted(true);
+  }
+  return painted ? false : hold;
 }

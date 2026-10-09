@@ -1,6 +1,6 @@
 # iOS release — human handoff
 
-Last audited: 2026-09-09
+Last audited: 2026-10-09
 
 The repository and simulator QA are complete. The items below need an Apple,
 EAS, Clerk, Convex, PostHog, or Sentry dashboard, a physical iPhone, or a
@@ -38,6 +38,17 @@ verified on 2026-09-07.
       "Grand Prix Picks" (`SU2XX6L8U4`) is a **Sign in with Apple** key, not
       APNs. `eas build` offers to reuse or create a push key interactively, so
       this can be settled during the first build.
+
+- [x] Native Sign in with Apple in Clerk (2026-10-09). Prod already had the
+      iOS app registered (team `LBZ6C9H52C`, bundle
+      `com.barrymichaeldoyle.grandprixpicks`); dev got the same registration
+      via the Platform API. Both Apple connections now carry that `bundle_id`.
+      Not yet proven end to end: that needs a device signed in to an Apple
+      Account (section 4). The app falls back to the browser flow if Clerk
+      rejects the native token.
+- [ ] Create the App Review demo account on **production** with picks for
+      the current round, and put its credentials in App Review Information
+      (see `apps/mobile/STORE.md`).
 
 ## 2. Configure EAS production variables
 
@@ -107,6 +118,15 @@ contact/demo credentials**, which need a real account's password and so must be
 entered by a human.
 The validated metadata is in `apps/mobile/store.config.json`; screenshots,
 review notes, and the data-disclosure inventory are in `apps/mobile/STORE.md`.
+
+Build 3 is needed before review: 2026-10-09 switched iOS Apple sign-in to
+the native sheet and added `expo-crypto` as a direct dependency (already in
+the native build as a transitive one).
+
+Draft 6.9-inch screenshots (1320 x 2868, dev data, captured 2026-10-09) are
+in `apps/mobile/store-screenshots/`: home, Top 5 editor, season leaderboard,
+race result, team-mate pick. Swap in production captures if you prefer real
+player names.
 
 ## 4. Physical-device TestFlight QA
 

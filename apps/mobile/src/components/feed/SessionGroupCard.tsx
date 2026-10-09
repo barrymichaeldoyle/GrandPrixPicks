@@ -196,8 +196,8 @@ function H2HWinnersRow({ h2h }: { h2h: NonNullable<SessionHeader['h2h']> }) {
             accessibilityHint="Shows the driver's number, name and team"
             accessibilityLabel={`${duel.winner.displayName} beat ${duel.loser.displayName} (${duel.team})`}
             accessibilityRole="button"
-            className="relative h-4 flex-row items-center pr-1 pl-1.5"
-            /* The chip is 16px tall inside a card that navigates when pressed,
+            className="relative min-h-4 flex-row items-center pr-1 pl-1.5"
+            /* The chip is 16px tall (more under large text) inside a card that navigates when pressed,
                so without the slop a near miss opens the race page instead. */
             hitSlop={{ bottom: 8, left: 4, right: 4, top: 8 }}
             key={`${duel.team}-${duel.winner.code}-${duel.loser.code}`}
@@ -297,7 +297,7 @@ function SessionSeparator({
   const sessionLine = live
     ? `${label} as it stands`
     : hasResult
-      ? `${label} Result`
+      ? `${label} result`
       : label;
   const header = (
     <View className="overflow-hidden">
@@ -457,7 +457,7 @@ function SessionLeaderboardRow({
               onPress={() => setH2hOpen(true)}
             >
               <Text
-                className="text-muted text-xs font-semibold tracking-wide uppercase"
+                className="text-muted text-xs font-semibold"
                 style={
                   numeralFontFamily
                     ? { fontFamily: numeralFontFamily }

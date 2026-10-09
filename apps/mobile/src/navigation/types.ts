@@ -15,8 +15,10 @@ export type LeaderboardStackParamList = {
 
 export type MoreStackParamList = {
   MoreMain: undefined;
-  Notifications: undefined;
   Settings: undefined;
+  Races: undefined;
+  RaceDetail: { raceSlug: string };
+  PublicProfile: { username: string };
 };
 
 export type RootTabParamList = {

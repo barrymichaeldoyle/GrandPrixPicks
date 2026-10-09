@@ -261,10 +261,10 @@ importers:
     dependencies:
       '@convex-dev/rate-limiter':
         specifier: ^0.4.0
-        version: 0.4.0(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)
+        version: 0.4.0(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(hono@4.13.7)(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)
       '@convex-dev/resend':
         specifier: 0.2.8
-        version: 0.2.8(@react-email/render@2.1.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(convex-helpers@0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.6.1))(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)
+        version: 0.2.8(@react-email/render@2.1.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(convex-helpers@0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(hono@4.13.7)(react@19.2.8)(typescript@7.0.2)(zod@4.6.1))(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)
       '@grandprixpicks/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -273,7 +273,7 @@ importers:
         version: 1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6)
       convex-helpers:
         specifier: 0.1.124
-        version: 0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)
+        version: 0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(hono@4.13.7)(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)
       dotenv-cli:
         specifier: 11.0.0
         version: 11.0.0
@@ -322,7 +322,7 @@ importers:
     dependencies:
       '@clerk/expo':
         specifier: 4.7.1
-        version: 4.7.1(df2168c9efd827b21efb6bf3eeff1145)
+        version: 4.7.1(42e818555205929b1657c1d8e6446cc9)
       '@expo-google-fonts/archivo':
         specifier: ^0.4.2
         version: 0.4.2
@@ -377,6 +377,9 @@ importers:
       expo-constants:
         specifier: ~57.0.20
         version: 57.0.20(expo@57.0.26)(react-native@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(bufferutil@4.1.0)(supports-color@10.2.2)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@10.2.2)(utf-8-validate@6.0.6))(supports-color@10.2.2)
+      expo-crypto:
+        specifier: ~57.0.3
+        version: 57.0.3(expo@57.0.26)
       expo-dev-client:
         specifier: ~57.0.19
         version: 57.0.19(expo@57.0.26)(react-native@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(bufferutil@4.1.0)(supports-color@10.2.2)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@10.2.2)(utf-8-validate@6.0.6))
@@ -582,7 +585,7 @@ importers:
         version: 1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@clerk/react@6.17.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(bufferutil@4.1.0)(react@19.3.0)
       convex-helpers:
         specifier: 0.1.124
-        version: 0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@clerk/react@6.17.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(bufferutil@4.1.0)(react@19.3.0))(react@19.3.0)(typescript@7.0.2)(zod@4.4.3)
+        version: 0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@clerk/react@6.17.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(bufferutil@4.1.0)(react@19.3.0))(hono@4.13.7)(react@19.3.0)(typescript@7.0.2)(zod@4.4.3)
       dotenv-cli:
         specifier: 11.0.0
         version: 11.0.0
@@ -6767,11 +6770,6 @@ packages:
       expo: '*'
       react-native: '*'
 
-  expo-crypto@57.0.2:
-    resolution: {integrity: sha512-OGLvHK7Hb7qsONMWGB9pJw3n+iY4OnZQmM/KwQEHRMrrOmNg0Lxj9+tp9bj46aAMMzXx0FTVA2jUKoplpXPnkA==}
-    peerDependencies:
-      expo: '*'
-
   expo-crypto@57.0.3:
     resolution: {integrity: sha512-SAWqEfF37nc8ot7bXsVmu9AFYwQdC2kGvH/eNAHiR3bmlcf1Vv8wu9AnGKT+a90r3T8YfwMpZP4QAYlo4vCn9w==}
     peerDependencies:
@@ -11503,7 +11501,7 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@clerk/expo@4.7.1(df2168c9efd827b21efb6bf3eeff1145)':
+  '@clerk/expo@4.7.1(42e818555205929b1657c1d8e6446cc9)':
     dependencies:
       '@clerk/clerk-js': 6.34.1(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bs58@6.0.0)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(react-dom@19.2.8(react@19.2.8))(react-native@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(bufferutil@4.1.0)(supports-color@10.2.2)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@10.2.2)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(use-sync-external-store@1.6.0(react@19.2.8))(utf-8-validate@6.0.6)(zod@4.4.3)
       '@clerk/react': 6.17.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -11518,7 +11516,7 @@ snapshots:
       expo-apple-authentication: 57.0.2(expo@57.0.26)(react-native@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(bufferutil@4.1.0)(supports-color@10.2.2)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@10.2.2)(utf-8-validate@6.0.6))(react@19.2.8)
       expo-auth-session: 57.0.13(expo@57.0.26)(react-native@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(bufferutil@4.1.0)(supports-color@10.2.2)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@10.2.2)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@10.2.2)
       expo-constants: 57.0.20(expo@57.0.26)(react-native@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(bufferutil@4.1.0)(supports-color@10.2.2)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@10.2.2)(utf-8-validate@6.0.6))(supports-color@10.2.2)
-      expo-crypto: 57.0.2(expo@57.0.26)
+      expo-crypto: 57.0.3(expo@57.0.26)
       expo-secure-store: 57.0.4(expo@57.0.26)
       expo-web-browser: 57.0.3(expo@57.0.26)(react-native@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(bufferutil@4.1.0)(supports-color@10.2.2)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@10.2.2)(utf-8-validate@6.0.6))
       react-dom: 19.2.8(react@19.2.8)
@@ -11694,10 +11692,10 @@ snapshots:
       convex: 1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6)
       react: 19.2.8
 
-  '@convex-dev/batch-worker@0.3.4(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)':
+  '@convex-dev/batch-worker@0.3.4(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(hono@4.13.7)(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)':
     dependencies:
       convex: 1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6)
-      convex-helpers: 0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)
+      convex-helpers: 0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(hono@4.13.7)(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)
     transitivePeerDependencies:
       - '@standard-schema/spec'
       - hono
@@ -11711,9 +11709,9 @@ snapshots:
     optionalDependencies:
       react: 19.2.8
 
-  '@convex-dev/rate-limiter@0.4.0(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)':
+  '@convex-dev/rate-limiter@0.4.0(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(hono@4.13.7)(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)':
     dependencies:
-      '@convex-dev/batch-worker': 0.3.4(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)
+      '@convex-dev/batch-worker': 0.3.4(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(hono@4.13.7)(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)
       convex: 1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6)
     optionalDependencies:
       react: 19.2.8
@@ -11728,12 +11726,12 @@ snapshots:
       '@tanstack/react-query': 5.104.0(react@19.3.0)
       convex: 1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@clerk/react@6.17.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(bufferutil@4.1.0)(react@19.3.0)
 
-  '@convex-dev/resend@0.2.8(@react-email/render@2.1.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(convex-helpers@0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.6.1))(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)':
+  '@convex-dev/resend@0.2.8(@react-email/render@2.1.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(convex-helpers@0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(hono@4.13.7)(react@19.2.8)(typescript@7.0.2)(zod@4.6.1))(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)':
     dependencies:
       '@convex-dev/rate-limiter': 0.3.2(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)
-      '@convex-dev/workpool': 0.4.11(convex-helpers@0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.6.1))(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)
+      '@convex-dev/workpool': 0.4.11(convex-helpers@0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(hono@4.13.7)(react@19.2.8)(typescript@7.0.2)(zod@4.6.1))(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)
       convex: 1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6)
-      convex-helpers: 0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)
+      convex-helpers: 0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(hono@4.13.7)(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)
       remeda: 2.39.0
       resend: 6.19.0(@react-email/render@2.1.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))
       svix: 1.99.1
@@ -11741,11 +11739,11 @@ snapshots:
       - '@react-email/render'
       - react
 
-  '@convex-dev/workpool@0.4.11(convex-helpers@0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.6.1))(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)':
+  '@convex-dev/workpool@0.4.11(convex-helpers@0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(hono@4.13.7)(react@19.2.8)(typescript@7.0.2)(zod@4.6.1))(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)':
     dependencies:
       '@convex-dev/batch-worker': 0.2.2(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)
       convex: 1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6)
-      convex-helpers: 0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)
+      convex-helpers: 0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(hono@4.13.7)(react@19.2.8)(typescript@7.0.2)(zod@4.6.1)
     transitivePeerDependencies:
       - react
 
@@ -17146,6 +17144,16 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
+  convex-helpers@0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(hono@4.13.7)(react@19.2.8)(typescript@7.0.2)(zod@4.6.1):
+    dependencies:
+      convex: 1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6)
+    optionalDependencies:
+      '@standard-schema/spec': 1.1.0
+      hono: 4.13.7
+      react: 19.2.8
+      typescript: 7.0.2
+      zod: 4.6.1
+
   convex-helpers@0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.4.3):
     dependencies:
       convex: 1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6)
@@ -17155,20 +17163,12 @@ snapshots:
       typescript: 7.0.2
       zod: 4.4.3
 
-  convex-helpers@0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(react@19.2.8)(typescript@7.0.2)(zod@4.6.1):
-    dependencies:
-      convex: 1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@clerk/react@6.15.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6)
-    optionalDependencies:
-      '@standard-schema/spec': 1.1.0
-      react: 19.2.8
-      typescript: 7.0.2
-      zod: 4.6.1
-
-  convex-helpers@0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@clerk/react@6.17.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(bufferutil@4.1.0)(react@19.3.0))(react@19.3.0)(typescript@7.0.2)(zod@4.4.3):
+  convex-helpers@0.1.124(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@clerk/react@6.17.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(bufferutil@4.1.0)(react@19.3.0))(hono@4.13.7)(react@19.3.0)(typescript@7.0.2)(zod@4.4.3):
     dependencies:
       convex: 1.46.0(@clerk/clerk-react@5.61.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@clerk/react@6.17.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(bufferutil@4.1.0)(react@19.3.0)
     optionalDependencies:
       '@standard-schema/spec': 1.1.0
+      hono: 4.13.7
       react: 19.3.0
       typescript: 7.0.2
       zod: 4.4.3
@@ -17748,11 +17748,6 @@ snapshots:
       react-native: 0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.6(supports-color@10.2.2))(bufferutil@4.1.0)(supports-color@10.2.2)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@10.2.2)(utf-8-validate@6.0.6)
     transitivePeerDependencies:
       - supports-color
-
-  expo-crypto@57.0.2(expo@57.0.26):
-    dependencies:
-      expo: 57.0.26(d7c9631d35ec4c754fe7b226aba6be24)
-    optional: true
 
   expo-crypto@57.0.3(expo@57.0.26):
     dependencies:

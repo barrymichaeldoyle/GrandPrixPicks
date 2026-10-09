@@ -1,4 +1,10 @@
-import { useAuth, useClerk, useSSO } from '@clerk/expo';
+import {
+  isClerkAPIResponseError,
+  useAuth,
+  useClerk,
+  useSSO,
+} from '@clerk/expo';
+import { useSignInWithApple } from '@clerk/expo/apple';
 /*
  * `useSignIn` / `useSignUp` come from `@clerk/expo/legacy`.
  *
@@ -19,7 +25,10 @@ import { useNavigation } from '@react-navigation/native';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useRef, useState } from 'react';
-import type { TextInput as RNTextInput } from 'react-native';
+import type {
+  ScrollView as RNScrollView,
+  TextInput as RNTextInput,
+} from 'react-native';
 import { Platform } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 
@@ -102,6 +111,7 @@ export function SignInScreen() {
   const { titleFontFamily } = useTypography();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { startSSOFlow } = useSSO();
+  const { startAppleAuthenticationFlow } = useSignInWithApple();
   const clerk = useClerk();
   const { isLoaded: authLoaded, isSignedIn, sessionId } = useAuth();
   const { signIn, isLoaded: signInLoaded } = useSignIn();
@@ -131,7 +141,16 @@ export function SignInScreen() {
    */
   const authReady = signInLoaded && signUpLoaded && !!signIn && !!signUp;
 
+  const emailRef = useRef<RNTextInput>(null);
   const passwordRef = useRef<RNTextInput>(null);
+  const scrollRef = useRef<RNScrollView>(null);
+
+  // The form sits at the bottom of the sheet, so the keyboard covered every
+  // field below the one focused (and the submit button). Scroll to the end
+  // once the keyboard has shrunk the view.
+  function revealForm() {
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 250);
+  }
   const confirmPasswordRef = useRef<RNTextInput>(null);
   const codeRef = useRef<RNTextInput>(null);
 
@@ -185,6 +204,67 @@ export function SignInScreen() {
   }
 
   // ── OAuth ──────────────────────────────────────────────────────────────────
+
+  /**
+   * Native Sign in with Apple on iOS: the system sheet, Face ID, no browser.
+   * The web OAuth flow it replaces opened appleid.apple.com in a browser
+   * session and asked for the Apple ID password, which App Review treats as a
+   * worse experience than the platform sheet (and which a reviewer notices).
+   * Android has no native Apple sheet, so it keeps the browser flow.
+   */
+  async function handleApple() {
+    if (Platform.OS !== 'ios') {
+      await handleSSO('oauth_apple');
+      return;
+    }
+    if (!authReady) {
+      setError(NOT_READY_MESSAGE);
+      return;
+    }
+    setError(null);
+    captureAnalyticsEvent('auth_started', { method: 'apple' });
+    setLoading(true);
+    try {
+      const { createdSessionId, setActive } =
+        await startAppleAuthenticationFlow();
+      if (createdSessionId) {
+        await (setActive ?? clerk.setActive)({ session: createdSessionId });
+        captureAnalyticsEvent('auth_completed', { method: 'apple' });
+      }
+      // No session and no throw is a cancelled sheet: say nothing.
+    } catch (err) {
+      if (isAlreadySignedInError(err)) {
+        await clearStuckSession();
+        setError('Cleared a stale session. Please try signing in again.');
+        return;
+      }
+      // Clerk rejected Apple's token, which is what happens until the iOS
+      // app is registered under Native applications in the Clerk dashboard
+      // (bundle ID + team ID). Fall back to the browser flow rather than
+      // leave Apple sign-in broken.
+      if (isClerkAPIResponseError(err)) {
+        console.warn('[auth] native Apple rejected, using browser flow', err);
+        setLoading(false);
+        await handleSSO('oauth_apple');
+        return;
+      }
+      console.warn('[auth] native Apple flow failed', err);
+      captureAnalyticsEvent('auth_failed', { method: 'apple' });
+      // expo-apple-authentication's errors carry a code and a Swift file
+      // path in the message; neither belongs on screen. "Unknown" is also what
+      // iOS returns when the device has no Apple Account and the player
+      // closes the prompt to add one.
+      const code =
+        err && typeof err === 'object' && 'code' in err ? err.code : null;
+      setError(
+        typeof code === 'string' && code.startsWith('ERR_REQUEST')
+          ? 'Apple sign-in did not complete. Try again.'
+          : clerkMessage(err, 'Apple sign-in failed'),
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleSSO(strategy: 'oauth_google' | 'oauth_apple') {
     if (!authReady) {
@@ -440,6 +520,7 @@ export function SignInScreen() {
       <ScrollView
         contentContainerClassName="grow"
         keyboardShouldPersistTaps="handled"
+        ref={scrollRef}
       >
         {/* Hero.
             Natural height, never `flex-1`. As a flex child it was the only
@@ -665,7 +746,7 @@ export function SignInScreen() {
                     authReady ? 'active:opacity-80' : 'opacity-50'
                   }`}
                   disabled={!authReady || loading}
-                  onPress={() => void handleSSO('oauth_apple')}
+                  onPress={() => void handleApple()}
                 >
                   <AppleLogo />
                   <Text className="text-[17px] font-semibold text-white">
@@ -703,11 +784,15 @@ export function SignInScreen() {
                   accessibilityLabel="Username"
                   autoCapitalize="none"
                   autoComplete="username-new"
+                  autoCorrect={false}
                   className="text-foreground h-[50px] rounded-md border border-border bg-surface px-3.5 text-[15px]"
                   onChangeText={(value) => {
                     setUsername(value);
                     setError(null);
                   }}
+                  onFocus={revealForm}
+                  onSubmitEditing={() => emailRef.current?.focus()}
+                  submitBehavior="submit"
                   placeholder="Username"
                   placeholderTextColor={colors.textMuted}
                   returnKeyType="next"
@@ -718,18 +803,24 @@ export function SignInScreen() {
                 accessibilityLabel="Email"
                 autoCapitalize="none"
                 autoComplete="email"
+                autoCorrect={false}
+                spellCheck={false}
                 className="text-foreground h-[50px] rounded-md border border-border bg-surface px-3.5 text-[15px]"
                 keyboardType="email-address"
                 onChangeText={(v) => {
                   setEmail(v);
                   setError(null);
                 }}
+                onFocus={revealForm}
                 onSubmitEditing={() => {
                   passwordRef.current?.focus();
                 }}
                 placeholder="Email"
                 placeholderTextColor={colors.textMuted}
+                ref={emailRef}
                 returnKeyType="next"
+                // Keep the keyboard up while focus moves to the password.
+                submitBehavior="submit"
                 value={email}
               />
               <TextInput
@@ -740,6 +831,7 @@ export function SignInScreen() {
                   setPassword(v);
                   setError(null);
                 }}
+                onFocus={revealForm}
                 onSubmitEditing={() => {
                   void (isSignUp ? handleSignUp() : handleSignIn());
                 }}

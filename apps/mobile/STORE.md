@@ -113,8 +113,8 @@ orders and are scored on accuracy.
 Sign in with Apple is supported. Accounts can be deleted from
 Settings > Delete account, which removes the account and its data.
 
-Private leagues are managed on grandprixpicks.com. The More tab opens that
-page; there is no league screen in the app.
+Private leagues are managed on grandprixpicks.com; there is no league
+screen in the app.
 ```
 
 ## Age rating

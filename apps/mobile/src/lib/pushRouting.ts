@@ -3,7 +3,7 @@ import { navigationRef } from '../navigation/navigationRef';
 /**
  * Routes a push-notification tap to the right screen. The backend sends a
  * site path in `data.url` (shared contract with web push): `/races/{slug}`,
- * `/leaderboard`, `/feed/{feedEventId}`, or `/feed`. Anything unrecognized is
+ * `/races`, `/leaderboard`, `/feed/{feedEventId}`, or `/feed`. Anything unrecognized is
  * ignored rather than guessed at.
  *
  * That last rule is why this file has to be updated in the same change as any
@@ -76,7 +76,15 @@ function navigateTo(url: string): boolean {
     return true;
   }
 
-  if (path === '/races' || path === '/predict') {
+  if (path === '/races') {
+    navigationRef.navigate('Tabs', {
+      screen: 'MoreTab',
+      params: { screen: 'Races' },
+    });
+    return true;
+  }
+
+  if (path === '/predict') {
     navigationRef.navigate('Tabs', {
       screen: 'HomeTab',
       params: { screen: 'HomeMain' },

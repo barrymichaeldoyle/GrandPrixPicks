@@ -449,11 +449,12 @@ export function LeaderboardScreen() {
         ListHeaderComponent={
           <View>
             <View className="flex-row items-center gap-2 py-3">
-              <View className="h-5 w-[30px] shrink-0">
-                {timeScope === 'weekend' && selectedRace ? (
+              {/* The season line has no flag; an empty slot indented it. */}
+              {timeScope === 'weekend' && selectedRace ? (
+                <View className="h-5 w-[30px] shrink-0">
                   <FlagImage raceSlug={selectedRace.slug} />
-                ) : null}
-              </View>
+                </View>
+              ) : null}
               <Text className="text-muted flex-1 text-[13px] leading-[18px]">
                 {subtitle}
               </Text>

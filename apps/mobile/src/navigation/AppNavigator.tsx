@@ -16,6 +16,7 @@ import { MoreScreen } from '../screens/MoreScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { PublicProfileScreen } from '../screens/PublicProfileScreen';
 import { RaceDetailScreen } from '../screens/RaceDetailScreen';
+import { RacesScreen } from '../screens/RacesScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { FeedScreen } from '../screens/feed/FeedScreen';
 import { SignInScreen } from '../screens/auth/SignInScreen';
@@ -51,6 +52,8 @@ const SCREEN_OPTIONS = {
   headerTintColor: colors.text,
 };
 
+const RACE_DETAIL_OPTIONS = { title: 'Race' };
+
 const TAB_ICONS: Record<
   keyof RootTabParamList,
   React.ComponentProps<typeof Ionicons>['name']
@@ -67,7 +70,7 @@ function HomeStackNavigator() {
       <HomeStack.Screen
         component={HomeTabScreen}
         name="HomeMain"
-        options={{ headerShown: false }}
+        options={{ headerShown: false, title: 'Home' }}
       />
       <HomeStack.Screen
         component={FeedEventDetailScreen}
@@ -82,7 +85,7 @@ function HomeStackNavigator() {
       <HomeStack.Screen
         component={RaceDetailScreen}
         name="RaceDetail"
-        options={{ title: 'Race Details' }}
+        options={RACE_DETAIL_OPTIONS}
       />
       <HomeStack.Screen
         component={NotificationsScreen}
@@ -99,7 +102,7 @@ function LeaderboardStackNavigator() {
       <LeaderboardStack.Screen
         component={LeaderboardTabScreen}
         name="LeaderboardMain"
-        options={{ headerShown: false }}
+        options={{ headerShown: false, title: 'Leaderboard' }}
       />
       <LeaderboardStack.Screen
         component={PublicProfileScreen}
@@ -116,17 +119,27 @@ function MoreStackNavigator() {
       <MoreStack.Screen
         component={MoreTabScreen}
         name="MoreMain"
-        options={{ headerShown: false }}
-      />
-      <MoreStack.Screen
-        component={NotificationsScreen}
-        name="Notifications"
-        options={{ title: 'Notifications' }}
+        options={{ headerShown: false, title: 'More' }}
       />
       <MoreStack.Screen
         component={SettingsScreen}
         name="Settings"
         options={{ title: 'Settings' }}
+      />
+      <MoreStack.Screen
+        component={RacesScreen}
+        name="Races"
+        options={{ title: 'Races' }}
+      />
+      <MoreStack.Screen
+        component={RaceDetailScreen}
+        name="RaceDetail"
+        options={RACE_DETAIL_OPTIONS}
+      />
+      <MoreStack.Screen
+        component={PublicProfileScreen}
+        name="PublicProfile"
+        options={({ route }) => ({ title: `@${route.params.username}` })}
       />
     </MoreStack.Navigator>
   );

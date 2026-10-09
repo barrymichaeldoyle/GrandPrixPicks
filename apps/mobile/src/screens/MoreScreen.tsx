@@ -2,10 +2,13 @@ import { Ionicons } from '../components/ui/Ionicons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
+import { useState } from 'react';
 import { Alert } from 'react-native';
 
 import { CollapsingChrome, TabChrome } from '../components/ui/TabChrome';
 import { useHideOnScroll } from '../hooks/useHideOnScroll';
+import { api } from '../integrations/convex/api';
+import { useQuery } from '../integrations/convex/query';
 import { useSignOutWithCleanup } from '../hooks/useSignOutWithCleanup';
 import { useIsSignedIn } from '../lib/useIsSignedIn';
 import { useSignInSheet } from '../lib/useSignInSheet';
@@ -19,8 +22,11 @@ export function MoreScreen() {
   const signOut = useSignOutWithCleanup();
 
   const isSignedIn = useIsSignedIn();
+  const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
+  const username = me?.username;
   const openSignIn = useSignInSheet();
   const hide = useHideOnScroll();
+  const [signingOut, setSigningOut] = useState(false);
 
   function openOnWeb(path: string) {
     void WebBrowser.openBrowserAsync(siteUrl(path));
@@ -30,7 +36,12 @@ export function MoreScreen() {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
       { style: 'cancel', text: 'Cancel' },
       {
-        onPress: () => void signOut(),
+        onPress: () => {
+          // Sign-out clears push tokens and caches first, which takes a
+          // couple of seconds with nothing else on screen changing.
+          setSigningOut(true);
+          void signOut().finally(() => setSigningOut(false));
+        },
         style: 'destructive',
         text: 'Sign out',
       },
@@ -48,23 +59,43 @@ export function MoreScreen() {
         {...hide.scrollProps}
       >
         <View className="gap-2.5">
-          <Text className="text-muted text-xs font-medium">Account</Text>
+          <Text className="text-muted text-xs font-medium">Season</Text>
           <View>
             <LinkRow
-              icon="notifications-outline"
-              label="Notifications"
-              onPress={() => navigation.navigate('Notifications')}
-              subtitle="Results and session locks"
-            />
-            <View className="ml-[30px] h-px bg-border" />
-            <LinkRow
-              icon="settings-outline"
-              label="Settings"
-              onPress={() => navigation.navigate('Settings')}
-              subtitle="Profile, notifications, timezone"
+              icon="calendar-outline"
+              label="Races"
+              onPress={() => navigation.navigate('Races')}
+              subtitle="Calendar, session times and results"
             />
           </View>
         </View>
+
+        {isSignedIn ? (
+          <View className="gap-2.5">
+            <Text className="text-muted text-xs font-medium">Account</Text>
+            <View>
+              {username ? (
+                <>
+                  <LinkRow
+                    icon="person-outline"
+                    label="Your profile"
+                    onPress={() =>
+                      navigation.navigate('PublicProfile', { username })
+                    }
+                    subtitle={`@${username}`}
+                  />
+                  <View className="ml-[30px] h-px bg-border" />
+                </>
+              ) : null}
+              <LinkRow
+                icon="settings-outline"
+                label="Settings"
+                onPress={() => navigation.navigate('Settings')}
+                subtitle="Profile, notifications, timezone"
+              />
+            </View>
+          </View>
+        ) : null}
 
         <View className="gap-2.5">
           <Text className="text-muted text-xs font-medium">
@@ -113,6 +144,7 @@ export function MoreScreen() {
             accessibilityLabel="Sign out"
             accessibilityRole="button"
             className="flex-row items-center gap-1.5 self-center py-2 active:opacity-70"
+            disabled={signingOut}
             hitSlop={8}
             onPress={confirmSignOut}
           >
@@ -121,7 +153,9 @@ export function MoreScreen() {
               name="log-out-outline"
               size={14}
             />
-            <Text className="text-muted text-xs font-semibold">Sign out</Text>
+            <Text className="text-muted text-xs font-semibold">
+              {signingOut ? 'Signing out…' : 'Sign out'}
+            </Text>
           </Pressable>
         ) : (
           <Pressable

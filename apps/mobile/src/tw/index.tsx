@@ -38,20 +38,40 @@ export const Modal = cssElement(RNModal);
 export const Pressable = cssElement(RNPressable);
 export const RefreshControl = cssElement(RNRefreshControl);
 export const Switch = cssElement(RNSwitch);
-export const Text = cssElement(RNText);
+const CssText = cssElement(RNText);
+
+/**
+ * Default ceiling on Dynamic Type for body text. 1.35 covers every standard
+ * iOS size (xxxL is ~1.35x); the accessibility sizes above it scaled labels
+ * past the fixed-height chips, pick slots and the 44pt tab chrome, truncating
+ * driver codes to one letter. A screen can still pass its own
+ * `maxFontSizeMultiplier` (Numeral does, per variant).
+ */
+const MAX_TEXT_SCALE = 1.35;
+
+export function Text(props: React.ComponentProps<typeof CssText>) {
+  return <CssText maxFontSizeMultiplier={MAX_TEXT_SCALE} {...props} />;
+}
 // React 19 forwards `ref` as a regular prop through the wrapper, but
 // TextInputProps doesn't declare it — widen the type so focus chaining works.
-export const TextInput = cssElement(RNTextInput) as React.ComponentType<
+const CssTextInput = cssElement(RNTextInput) as React.ComponentType<
   React.ComponentProps<typeof RNTextInput> &
     ClassNameProps & { ref?: React.Ref<RNTextInput> }
 >;
+export function TextInput(props: React.ComponentProps<typeof CssTextInput>) {
+  return <CssTextInput maxFontSizeMultiplier={MAX_TEXT_SCALE} {...props} />;
+}
 export const TouchableOpacity = cssElement(RNTouchableOpacity);
 export const View = cssElement(RNView);
 export const AnimatedView = Animated.createAnimatedComponent(View);
 
 export function ScrollView(
   props: React.ComponentProps<typeof RNScrollView> &
-    ClassNameProps & { contentContainerClassName?: string },
+    ClassNameProps & {
+      contentContainerClassName?: string;
+      // Forwarded as a plain prop under React 19, as with TextInput above.
+      ref?: React.Ref<RNScrollView>;
+    },
 ) {
   const renderCssElement = useCssElement as (
     component: React.ComponentType<React.ComponentProps<typeof RNScrollView>>,

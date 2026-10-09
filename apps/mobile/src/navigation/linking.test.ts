@@ -37,4 +37,12 @@ describe('mobile links', () => {
       'FeedEventDetail',
     ]);
   });
+  it('opens the race calendar and a race', () => {
+    expect(routeNames('/races')).toEqual(['Tabs', 'MoreTab', 'Races']);
+    expect(routeNames('/races/singapore-2026')).toEqual([
+      'Tabs',
+      'HomeTab',
+      'RaceDetail',
+    ]);
+  });
 });

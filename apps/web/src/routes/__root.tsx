@@ -427,7 +427,9 @@ function RootDocument({ children }: PropsWithChildren) {
                   Skip to main content
                 </a>
                 {bare ? null : <Header />}
-                <OfflineBanner />
+                {/* Shell chrome like the rest: the app's in-app browser read a
+                    false "No internet connection" over the privacy policy. */}
+                {bare ? null : <OfflineBanner />}
                 {bare ? null : (
                   <DeferredFeaturesBoundary>
                     <DeferredShellFeatures />

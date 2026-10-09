@@ -14,6 +14,7 @@ export const linking: LinkingOptions<RootStackParamList> = {
               HomeMain: { path: '', alias: [{ path: 'predict', exact: true }] },
               FeedEventDetail: ':feedEventId',
               PublicProfile: 'p/:username',
+              RaceDetail: { path: 'races/:raceSlug', exact: true },
             },
           },
           LeaderboardTab: {
@@ -25,10 +26,13 @@ export const linking: LinkingOptions<RootStackParamList> = {
           NotificationsTab: 'notifications',
           MoreTab: {
             path: 'more',
+            // Keeps More under a deep-linked Races screen so it has a back
+            // button. The nested config's types do not reach this far down.
+            initialRouteName: 'MoreMain' as never,
             screens: {
               MoreMain: '',
-              Notifications: 'notifications',
               Settings: 'settings',
+              Races: { path: 'races', exact: true },
             },
           },
         },

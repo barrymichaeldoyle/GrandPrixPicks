@@ -608,7 +608,6 @@ export function SettingsScreen() {
           <Ionicons color={colors.error} name="log-out-outline" size={18} />
           <Text className="text-[15px] font-bold text-error">Sign out</Text>
         </Pressable>
-        <View className="my-3 h-px bg-border" />
         <View className="gap-1.5">
           <Pressable
             accessibilityRole="button"

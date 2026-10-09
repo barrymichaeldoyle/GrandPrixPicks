@@ -59,12 +59,12 @@ This document defines product scope and behavior. `docs/mobile-api-contract.md` 
 
 Use four native tabs, each with its own navigation stack:
 
-| Tab         | Root                               | Key destinations                                                 |
-| ----------- | ---------------------------------- | ---------------------------------------------------------------- |
-| Home        | Hero countdown + personalized feed | Feed-event detail, lightweight player view, notifications        |
-| Picks       | Current weekend                    | Top 5 editor, H2H editor, session result detail, notifications   |
-| Leaderboard | Rankings                           | Weekend/season filters, lightweight player view                  |
-| More        | Utility menu                       | Notifications, settings, support/legal, delete account, sign out |
+| Tab         | Root                               | Key destinations                                                                  |
+| ----------- | ---------------------------------- | --------------------------------------------------------------------------------- |
+| Home        | Hero countdown + personalized feed | Feed-event detail, lightweight player view, notifications                         |
+| Picks       | Current weekend                    | Top 5 editor, H2H editor, session result detail, notifications                    |
+| Leaderboard | Rankings                           | Weekend/season filters, lightweight player view                                   |
+| More        | Utility menu                       | Race calendar, own player view, settings, support/legal, delete account, sign out |
 
 Decision (2026-07-12): Home (next-race hero + feed) is the authenticated landing tab, with Picks second — the hero's countdown and Make Predictions CTA route into Picks, so the pick funnel stays one tap deep. The notification bell sits on the Home and Picks headers and pushes the inbox within the current tab's stack (never a cross-tab jump). Tab icons: home / flag / trophy / ellipsis. Notification and deep-link navigation may open a race session or feed event directly and must restore auth before resolving the destination.
 

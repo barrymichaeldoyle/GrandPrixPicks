@@ -1,14 +1,21 @@
 import type { LockStatusViewModel } from '@grandprixpicks/shared/picks';
 import type { StyleProp, TextStyle } from 'react-native';
 
+import { formatCountdown } from '../../lib/lockTime';
 import { Numeral } from './Numeral';
 
 type CountdownTextProps = {
   lockStatus: LockStatusViewModel;
+  msRemaining: number;
   style?: StyleProp<TextStyle>;
 };
 
-export function CountdownText({ lockStatus, style }: CountdownTextProps) {
+/** Time left before a lock, toned to match the `LockBadge` beside it. */
+export function CountdownText({
+  lockStatus,
+  msRemaining,
+  style,
+}: CountdownTextProps) {
   const tone = lockStatus.isLocked
     ? 'muted'
     : lockStatus.badgeTone === 'warning'
@@ -17,7 +24,7 @@ export function CountdownText({ lockStatus, style }: CountdownTextProps) {
 
   return (
     <Numeral style={style} tone={tone} variant="small">
-      {lockStatus.label}
+      {formatCountdown(msRemaining)}
     </Numeral>
   );
 }

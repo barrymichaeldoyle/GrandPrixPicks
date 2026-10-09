@@ -108,3 +108,11 @@ it('opens the home feed for a session-lock link', () => {
     params: { screen: 'HomeMain' },
   });
 });
+
+it('opens the race calendar for /races', () => {
+  routePushUrl('/races');
+  expect(navigate).toHaveBeenCalledWith('Tabs', {
+    screen: 'MoreTab',
+    params: { screen: 'Races' },
+  });
+});

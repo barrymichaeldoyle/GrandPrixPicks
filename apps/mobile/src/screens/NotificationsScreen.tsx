@@ -20,6 +20,7 @@ import { useMobileConfig } from '../providers/mobile-config';
 import { useToast } from '../providers/ToastProvider';
 import { colors } from '../theme/tokens';
 import { FlatList, Pressable, RefreshControl, Text, View } from '../tw';
+import { routePushUrl } from '../lib/pushRouting';
 import { userFacingMessage } from '../lib/userFacingError';
 
 type Notification = {
@@ -224,6 +225,11 @@ export function NotificationsScreen({
               void Haptics.selectionAsync();
               void markRead({ notificationId: item._id });
             }
+            // Same destinations as the push for this notification.
+            routePushUrl(
+              item.linkPath ??
+                (item.raceSlug ? `/races/${item.raceSlug}` : undefined),
+            );
           }}
         />
       )}

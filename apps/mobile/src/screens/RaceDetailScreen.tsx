@@ -4,7 +4,8 @@ import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { Ionicons } from '../components/ui/Ionicons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useState } from 'react';
+
 import { useQuery } from '../integrations/convex/query';
 
 import { CompactPracticeRow } from '../components/races/CompactPracticeRow';
@@ -19,12 +20,18 @@ import { useUserDateFormat } from '../lib/dates';
 import { getLockStatusViewModel } from '../lib/lockTime';
 import { useNow } from '../lib/useNow';
 import { useRaceWeekends } from '../lib/useRaceWeekends';
-import type { HomeStackParamList, RootTabParamList } from '../navigation/types';
+import type { RootTabParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors } from '../theme/tokens';
 import { Pressable, ScrollView, Text, View } from '../tw';
 
-type Props = NativeStackScreenProps<HomeStackParamList, 'RaceDetail'>;
+// Registered in the Home and More stacks. Only the slug matters,
+// so it is typed independently of any one stack.
+type Props = {
+  route: { params: { raceSlug: string } };
+};
+
+const PRACTICE_PREVIEW_ROWS = 5;
 
 const SESSION_ORDER: SessionType[] = [
   'sprint_quali',
@@ -38,6 +45,7 @@ export function RaceDetailScreen({ route }: Props) {
   const now = useNow();
   const { formatRaceDate } = useUserDateFormat();
   const rootNav = useNavigation<NavigationProp<RootTabParamList>>();
+  const [expandedPractice, setExpandedPractice] = useState<string[]>([]);
 
   const raceIndex = races.findIndex(
     (item) => item.slug === route.params.raceSlug,
@@ -90,36 +98,7 @@ export function RaceDetailScreen({ route }: Props) {
       contentContainerClassName="gap-[22px] px-4 pb-8 pt-3"
       showsVerticalScrollIndicator={false}
     >
-      <RaceDetailHero race={race} round={raceIndex + 1} />
-
-      {(practiceResults?.length ?? 0) > 0 ? (
-        <View className="gap-2">
-          <Text className="text-muted pb-0.5 text-xs font-medium">
-            Free Practice
-          </Text>
-          <View className="overflow-hidden rounded-lg border border-border">
-            {practiceResults?.map((result) => (
-              <View key={result.sessionType}>
-                <Text className="bg-surface px-3 py-2 text-xs font-extrabold text-accent uppercase">
-                  {result.sessionType in PRACTICE_SESSION_LABELS
-                    ? PRACTICE_SESSION_LABELS[
-                        result.sessionType as keyof typeof PRACTICE_SESSION_LABELS
-                      ]
-                    : result.sessionType}
-                </Text>
-                <View className="px-3">
-                  {result.entries.map((entry, index) => (
-                    <View key={entry.driverNumber}>
-                      {index > 0 ? <View className="h-px bg-border" /> : null}
-                      <CompactPracticeRow entry={entry} fill="elevated" />
-                    </View>
-                  ))}
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
-      ) : null}
+      <RaceDetailHero race={race} round={race.round} />
 
       {publishedSessions.length > 0 ? (
         <View className="gap-2">
@@ -140,6 +119,57 @@ export function RaceDetailScreen({ route }: Props) {
                 </View>
               );
             })}
+          </View>
+        </View>
+      ) : null}
+
+      {(practiceResults?.length ?? 0) > 0 ? (
+        <View className="gap-2">
+          <Text className="text-muted pb-0.5 text-xs font-medium">
+            Practice
+          </Text>
+          <View className="overflow-hidden rounded-lg border border-border">
+            {practiceResults?.map((result) => (
+              <View key={result.sessionType}>
+                <Text className="bg-surface px-3 py-2 text-xs font-extrabold text-accent">
+                  {result.sessionType in PRACTICE_SESSION_LABELS
+                    ? PRACTICE_SESSION_LABELS[
+                        result.sessionType as keyof typeof PRACTICE_SESSION_LABELS
+                      ]
+                    : result.sessionType}
+                </Text>
+                <View className="px-3">
+                  {(expandedPractice.includes(result.sessionType)
+                    ? result.entries
+                    : result.entries.slice(0, PRACTICE_PREVIEW_ROWS)
+                  ).map((entry, index) => (
+                    <View key={entry.driverNumber}>
+                      {index > 0 ? <View className="h-px bg-border" /> : null}
+                      <CompactPracticeRow entry={entry} fill="elevated" />
+                    </View>
+                  ))}
+                </View>
+                {result.entries.length > PRACTICE_PREVIEW_ROWS ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    className="border-t border-border px-3 py-2.5 active:opacity-70"
+                    onPress={() =>
+                      setExpandedPractice((open) =>
+                        open.includes(result.sessionType)
+                          ? open.filter((s) => s !== result.sessionType)
+                          : [...open, result.sessionType],
+                      )
+                    }
+                  >
+                    <Text className="text-xs font-semibold text-accent">
+                      {expandedPractice.includes(result.sessionType)
+                        ? 'Show top 5'
+                        : `Show all ${result.entries.length}`}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ))}
           </View>
         </View>
       ) : null}
@@ -173,13 +203,16 @@ export function RaceDetailScreen({ route }: Props) {
                   <View className="items-end gap-1">
                     {isPublished ? (
                       <Text className="text-xs font-extrabold text-accent">
-                        PUBLISHED
+                        Finished
                       </Text>
                     ) : (
                       <>
                         <LockBadge lockStatus={lockStatus} />
                         {!lockStatus.isLocked ? (
-                          <CountdownText lockStatus={lockStatus} />
+                          <CountdownText
+                            lockStatus={lockStatus}
+                            msRemaining={msRemaining}
+                          />
                         ) : null}
                       </>
                     )}
@@ -195,11 +228,15 @@ export function RaceDetailScreen({ route }: Props) {
         <Pressable
           accessibilityRole="button"
           className="flex-row items-center justify-center gap-2 rounded-lg bg-button-accent py-3.5 active:bg-button-accent-hover"
-          onPress={() => rootNav.navigate('HomeTab')}
+          onPress={() => rootNav.navigate('HomeTab', { screen: 'HomeMain' })}
         >
-          <Ionicons color={colors.text} name="trophy-outline" size={16} />
+          <Ionicons
+            color={colors.textOnAccent}
+            name="trophy-outline"
+            size={16}
+          />
           <Text className="text-[15px] font-bold text-text-on-accent">
-            Make My Picks
+            Make your picks
           </Text>
         </Pressable>
       ) : null}

@@ -8,7 +8,7 @@ import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { ScrollView, Text, View } from '../tw';
 
-// Lightweight player view reachable from the Feed and Leaderboard stacks.
+// Lightweight player view reachable from the Home, Leaderboard and More stacks.
 // Only needs the username param, so it is typed independently of any stack.
 type Props = {
   route: { params: { username: string } };

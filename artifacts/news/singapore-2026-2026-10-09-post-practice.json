@@ -1,0 +1,38 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "russell-singapore-engine-penalty-risk",
+    "headline": "Russell starts the Singapore race from the back of the grid",
+    "body": "Russell starts Sunday's Singapore Grand Prix from the back of the grid after the FIA confirmed his penalty for exceeding his power unit allocation. Mercedes fitted fresh components following his engine failure at Sepang, and Russell expects another engine penalty later in the season.",
+    "category": "pick_related",
+    "affectsSessions": ["race"],
+    "driverCodes": ["RUS"],
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/news/1106742/1/george-russell-f1-grid-penalty-confirmed-singapore-grand-prix",
+    "sourcePublishedAt": "2026-10-09T09:48:28+01:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "singapore-fp1-russell-fastest",
+    "headline": "Russell fastest in Singapore's only practice session",
+    "body": "George Russell led Singapore's only practice session by 0.198s from Charles Leclerc, with Lando Norris third. Russell set his 1:32.274 on soft tyres; Max Verstappen and Kimi Antonelli were sixth and seventh with their best laps on mediums.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["RUS", "LEC", "NOR", "VER", "ANT"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/fp1-russell-beats-leclerc-and-norris-to-top-spot-in-sole-practice-ahead-of-singapore-gp.6gZxy1UbfI5R8VLWXUBwZu",
+    "sourcePublishedAt": "2026-10-09T09:46:50.627Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "hulkenberg-singapore-fp1-stoppage",
+    "headline": "Hülkenberg stops with a reported gearbox problem in Singapore practice",
+    "body": "Nico Hülkenberg stopped at the pit exit during Singapore's only practice session after reporting a gearbox problem over the radio. His Audi was rolled back into the pits under a brief Virtual Safety Car, and he finished 18th.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HUL"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/fp1-russell-beats-leclerc-and-norris-to-top-spot-in-sole-practice-ahead-of-singapore-gp.6gZxy1UbfI5R8VLWXUBwZu",
+    "sourcePublishedAt": "2026-10-09T09:46:50.627Z"
+  }
+]

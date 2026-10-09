@@ -1,0 +1,38 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "mercedes-singapore-upgrade-comparison",
+    "headline": "Antonelli switches back to Mercedes' older front wing",
+    "body": "Antonelli reverted to Mercedes' older front wing for sprint qualifying after trying the updated version in practice. Mercedes is running different car packages this weekend, with Russell using the older specification.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ANT", "RUS"],
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/live/1044267/f1-singapore-grand-prix-live-updates-fp1-ahead-sprint-qualifying",
+    "sourcePublishedAt": "2026-10-09T12:30:00+01:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "perez-singapore-sq1-crash",
+    "headline": "Perez crashes out of Singapore sprint qualifying in SQ1",
+    "body": "Perez hit the barriers in SQ1, leaving debris on track and bringing out a red flag. He was eliminated alongside Bottas, both Williams drivers, Stroll and Bortoleto.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["PER", "BOT"],
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/live/1044267/f1-singapore-grand-prix-live-updates-fp1-ahead-sprint-qualifying",
+    "sourcePublishedAt": "2026-10-09T12:30:00+01:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "verstappen-singapore-yellow-flag-investigation",
+    "headline": "Verstappen under investigation for passing Hamilton under yellow flags",
+    "body": "The stewards will investigate Verstappen after sprint qualifying for allegedly overtaking Hamilton under yellow flags following Perez's SQ1 crash. Verstappen said over the radio that he had let Hamilton back through; no penalty has been announced.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["VER", "HAM"],
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/news/1106834/1/max-verstappen-faces-investigation-lewis-hamilton-singapore-gp-sprint-qualifying",
+    "sourcePublishedAt": "2026-10-09T13:55:13+01:00"
+  }
+]

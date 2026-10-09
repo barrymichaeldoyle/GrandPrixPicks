@@ -1,0 +1,26 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "russell-singapore-engine-penalty-risk",
+    "headline": "Russell takes a 40-place grid penalty for the Singapore race",
+    "body": "Russell has a 40-place grid penalty for Sunday's Singapore Grand Prix. Mercedes fitted his fifth engine, turbocharger and exhaust set, plus his fourth MGU-K, exceeding his power unit allocation.",
+    "category": "pick_related",
+    "affectsSessions": ["race"],
+    "driverCodes": ["RUS"],
+    "sourceName": "FIA",
+    "sourceUrl": "https://www.fia.com/system/files/decision-document/2026_singapore_grand_prix_-_infringement_-_car_63_-_changes_to_pu_elements.pdf",
+    "sourcePublishedAt": "2026-10-09T14:03:00+02:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "mercedes-singapore-upgrade-first-findings",
+    "headline": "Mercedes finds its upgraded car trickier to drive in Singapore",
+    "body": "Mercedes' first comparison in Singapore suggests its upgraded car is trickier to drive, while the older version feels more stable and grippy. Toto Wolff said one practice session was too little to establish which package is faster; Russell and Antonelli used different tyre compounds.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ANT", "RUS"],
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/news/1106808/1/mercedes-reveals-early-findings-singapore-split-f1-car-experiment",
+    "sourcePublishedAt": "2026-10-09T12:46:19+01:00"
+  }
+]

@@ -14,7 +14,7 @@ import {
  * this stays down even if the socket drops. A timeout (and a known-offline
  * socket) exist so the first launch with no network is not an infinite wait.
  */
-export function useHomePaintGate(pending: boolean): boolean {
+export function useHomePaintGate(pending: boolean, viewerKey: string): boolean {
   const { hasEverConnected, isWebSocketConnected } = useConvexConnectionState();
   const [timedOut, setTimedOut] = useState(false);
   const knownOffline = hasEverConnected && !isWebSocketConnected;
@@ -37,11 +37,13 @@ export function useHomePaintGate(pending: boolean): boolean {
   // arguments; the cached hook reads `undefined` for new arguments) swapped
   // the whole list for a spinner mid-scroll: a flash, and the scroll position
   // lost with the unmounted list.
-  const [painted, setPainted] = useState(false);
+  // Per viewer: signing in or out is a new first paint, so the loader may
+  // show again while the new viewer's data arrives.
+  const [paintedFor, setPaintedFor] = useState<string | null>(null);
   const hold = shouldHoldHomePaint({ knownOffline, pending, timedOut });
-  if (!hold && !painted) {
-    // Adjusting state while rendering, once: React re-renders immediately.
-    setPainted(true);
+  if (!hold && paintedFor !== viewerKey) {
+    // Adjusting state while rendering: React re-renders immediately.
+    setPaintedFor(viewerKey);
   }
-  return painted ? false : hold;
+  return paintedFor === viewerKey ? false : hold;
 }

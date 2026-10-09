@@ -6,6 +6,7 @@ const ready = {
   convexEnabled: true,
   clerkEnabled: true,
   authLoaded: true,
+  signedIn: false,
   feed: { events: [] },
   racesLoading: false,
   recap: null,
@@ -16,6 +17,47 @@ const ready = {
 };
 
 describe('homePaintIsPending', () => {
+  it('holds while a fresh sign-in still has the signed-out answers', () => {
+    expect(
+      homePaintIsPending({
+        ...ready,
+        signedIn: true,
+        feed: null,
+        me: { _id: 'u' },
+      }),
+    ).toBe(true);
+    expect(homePaintIsPending({ ...ready, signedIn: true, me: null })).toBe(
+      true,
+    );
+    expect(
+      homePaintIsPending({ ...ready, signedIn: true, me: { _id: 'u' } }),
+    ).toBe(false);
+    const guestWeekend = {
+      sessions: [{ denialReason: 'sign_in' }, { denialReason: 'sign_in' }],
+    };
+    expect(
+      homePaintIsPending({
+        ...ready,
+        signedIn: true,
+        me: { _id: 'u' },
+        weekend: guestWeekend,
+      }),
+    ).toBe(true);
+    // An all-locked weekend for a real viewer is authoritative.
+    expect(
+      homePaintIsPending({
+        ...ready,
+        signedIn: true,
+        me: { _id: 'u' },
+        weekend: { sessions: [{ denialReason: 'session_locked' }] },
+      }),
+    ).toBe(false);
+    // Signed out, the guest weekend is the real answer.
+    expect(homePaintIsPending({ ...ready, weekend: guestWeekend })).toBe(false);
+    // Signed out, null is the real answer.
+    expect(homePaintIsPending({ ...ready, feed: null })).toBe(false);
+  });
+
   it('does not hold when Convex is off', () => {
     expect(homePaintIsPending({ ...ready, convexEnabled: false })).toBe(false);
   });

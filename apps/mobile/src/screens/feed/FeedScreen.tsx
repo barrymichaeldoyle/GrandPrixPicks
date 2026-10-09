@@ -179,6 +179,7 @@ export function FeedScreen() {
       authLoaded,
       clerkEnabled,
       convexEnabled,
+      signedIn: isSignedIn,
       discoveryPending,
       feed: page0,
       me,
@@ -187,6 +188,7 @@ export function FeedScreen() {
       weekend,
       weatherPending,
     }),
+    isSignedIn ? 'signed-in' : 'signed-out',
   );
   const hide = useHideOnScroll();
 

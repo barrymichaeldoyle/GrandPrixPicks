@@ -121,8 +121,11 @@ review notes, and the data-disclosure inventory are in `apps/mobile/STORE.md`.
 
 Build 1.0.0 (**build 11**) was built from `9590235e` and uploaded to App
 Store Connect on 2026-10-09 (EAS build `2525c0d0`, submission `cf3a3176`).
-It carries native Sign in with Apple and `expo-crypto`. Use it for the
-section 4 device QA and for review.
+It carries native Sign in with Apple and `expo-crypto`.
+
+Build **12** (from `ee2f16aa`, EAS build `6c5f0bac`, submission `155e5b47`)
+replaces it: smooth feed scrolling, no header flashing, and the joined feed.
+Use build 12 for the section 4 device QA and for review.
 
 Draft 6.9-inch screenshots (1320 x 2868, dev data, captured 2026-10-09) are
 in `apps/mobile/store-screenshots/`: home, Top 5 editor, season leaderboard,

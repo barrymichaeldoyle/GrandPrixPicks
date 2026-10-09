@@ -22,6 +22,8 @@ export function homePaintIsPending(input: {
   convexEnabled: boolean;
   clerkEnabled: boolean;
   authLoaded: boolean;
+  /** Clerk says signed in. */
+  signedIn: boolean;
   feed: unknown;
   racesLoading: boolean;
   recap: unknown;
@@ -51,7 +53,32 @@ export function homePaintIsPending(input: {
   if (input.me === undefined) {
     return true;
   }
+  // Clerk flips to signed in before Convex re-runs these with the new token,
+  // so for a moment they still hold their signed-out answer (null). Painting
+  // then put up an empty Home for two or three seconds after sign-in.
+  if (input.signedIn && (input.feed === null || input.me === null)) {
+    return true;
+  }
+  // Same race for the weekend: its first answer is the guest's, every session
+  // denied with `sign_in`, which painted "locked before you picked" over a
+  // player's saved picks. A real viewer's payload always has some other
+  // reason (or none) on at least one session.
+  if (input.signedIn && !weekendReflectsViewer(input.weekend)) {
+    return true;
+  }
   return input.discoveryPending || input.weatherPending;
+}
+
+function weekendReflectsViewer(weekend: unknown): boolean {
+  if (!weekend || typeof weekend !== 'object' || !('sessions' in weekend)) {
+    // No current weekend (null) is a real answer for anyone.
+    return true;
+  }
+  const sessions = (weekend as { sessions: { denialReason?: string | null }[] })
+    .sessions;
+  return (
+    sessions.length === 0 || sessions.some((s) => s.denialReason !== 'sign_in')
+  );
 }
 
 export function shouldHoldHomePaint(input: {

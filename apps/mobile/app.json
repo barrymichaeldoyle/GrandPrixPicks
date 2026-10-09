@@ -46,7 +46,8 @@
       "infoPlist": {
         "EXDevMenuIsOnboardingFinished": true,
         "EXDevMenuShowFloatingActionButton": false,
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": ["remote-notification"],
+        "CFBundleName": "Grand Prix Picks"
       },
       "appleTeamId": "LBZ6C9H52C",
       "associatedDomains": ["applinks:grandprixpicks.com"],

@@ -257,6 +257,11 @@ the list is centred vertically in the column. On race morning
 the grid fills the right column while the QR code stays in the header, with
 one-line headlines under it: two on the OG, one on the X. They come from
 `grid_news`, the headlines without the item that carried the grid.
+A qualifying or sprint qualifying result is laid out the same way: the
+classification at the top of the column, then one-line headlines from `news`
+(two on the OG, one on the X). A portrait OG has no room for them under the
+stacked field, so it shows the classification alone; with no news, the
+classification is centred.
 When there is no news, result or grid yet, the right column shows the whole
 Drivers' Championship by three-letter code (`championship` in `shared.liquid`):
 two columns, or four in portrait where it stacks under the timeline. That is
@@ -331,7 +336,15 @@ they can never change a classification, a score or a notification; the
 automatic poll, the admin fetch and applied rechecks all call it. Results
 from before timing was stored are filled by
 `npx convex run --prod resultsRecheck:backfillTiming '{"season":2026}'`. A
-result with no timing shows no gap rather than a made-up one. The
+result with no timing shows no gap rather than a made-up one. When OpenF1's
+`session_result` is late, the result publishes from live timing, which
+carries no gaps, so a race or sprint shows none until the first recheck
+(+3h). Qualifying and sprint qualifying get their part times at once from the
+laps feed (`recordLiveQualifyingTiming` in `openF1Results.ts`, split into
+parts by `lib/qualifyingSegments.ts`, the same split the live board uses),
+and the recheck replaces them with the official ones. Race control numbers
+laps one higher than OpenF1 does, so a deleted lap is matched by its stated
+time, or by lap N-1 when race control gives none. The
 payload carries the whole race classification; the halves still show their
 top five or ten.
 

@@ -10,8 +10,8 @@ import { defaultBrandTemplate } from '../src/lib/og/templates';
 /**
  * Renders the evergreen OG fallback into `public/og-default.png`.
  *
- * Same template as the live `/og/next` card — hook first, timing tower on the
- * right, mono strip along the bottom — without a race deadline. Built into
+ * Same template as the live `/og/next` card — accent ground, full-width ink headline, a row of
+ * five pick chips, mono data band along the bottom — without a race deadline. Built into
  * every web build so the static fallback cannot drift from the dynamic card:
  *
  *   pnpm --filter @grandprixpicks/web exec tsx scripts/render-og-default-png.mts

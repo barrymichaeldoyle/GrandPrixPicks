@@ -17,14 +17,17 @@ const e = createElement;
  * rather than a lookalike — the cards previously drew a Lucide flag, which was
  * never the brand.
  */
-export function brandMark(size: number): ReactNode {
+export function brandMark(
+  size: number,
+  fill: string = colors.accent,
+): ReactNode {
   return e(
     'svg',
     { width: size, height: size * (40 / 60), viewBox: '0 0 60 40' },
     e(
       'g',
       {
-        fill: colors.accent,
+        fill,
         transform: 'translate(28 20) skewX(-12) translate(-28 -20)',
       },
       e('rect', { x: 7, y: 14, width: 12, height: 24 }),
@@ -230,25 +233,47 @@ export interface NextRaceOgData {
 }
 
 /**
- * A five-slot pick sheet: the product itself, at the size it is played.
+ * The brand card is the one surface in the system set ON the accent.
  *
- * This replaces a "timing tower" of grey bars whose lengths were derived from
- * `(index * 67) % 240`. The comment above it argued that filled blocks would
- * not read as a loading skeleton. They did — random-length grey bars on a
- * near-black ground is the exact shape of a skeleton, and the site's own link
- * preview looked like a page that had not finished loading.
+ * Rule 3 of the design system says the accent is never a large fill except a
+ * primary button, and that is exactly what this card is: the only thing it
+ * exists to do is get tapped, and it competes in a feed of dark and white
+ * cards where a near-black card with a chartreuse word read as "boring and
+ * bland" (Barry, 2026-10-09). So the card is the button. Everything on it is
+ * ink: near-black type, near-black chips, a near-black rail. The player share
+ * cards stay on the dark ground, which is what makes this one the billboard.
  *
- * Real rows fix that, and they do a job the tower never did: a stranger who
- * has never heard of the site can see what playing it produces. Slot number,
- * team colour confined to 3px, driver code — the same three parts as a row in
- * `PredictionForm`.
+ * The ink-on-accent pairing is the same as the primary button's, so the
+ * contrast is already known to pass. There is no token for muted ink on
+ * accent (the app never sets secondary text on a button), so the two labels
+ * use the ink at reduced alpha rather than inventing a colour.
+ */
+const INK = colors.textOnAccent;
+const INK_MUTED = 'rgba(16, 17, 19, 0.62)';
+const INK_HAIRLINE = 'rgba(16, 17, 19, 0.28)';
+
+/**
+ * The five slots of a pick sheet, laid out as a row of chips under the
+ * headline: the product itself, at a size that survives a 500px preview.
+ *
+ * This replaces a boxed five-row table parked in the right-hand third of the
+ * card. At preview size that table was a grey form with 10px driver codes,
+ * and because it took a third of the width it also capped the headline at
+ * 68px light, which thinned to nothing in a group chat. Stacking the two
+ * instead of siding them lets the headline run the full width and gives each
+ * code 40px.
+ *
+ * The chips lean at the brand mark's own 12 degrees. The lean is the whole
+ * racing personality of the system (the mark, the stripe motif), and five
+ * upright boxes under a headline read as a form. The content is skewed back
+ * so the type stays upright.
  *
  * The codes are a fixed illustrative Top 5, not a house prediction and not
  * live data: this card is cached by scrapers for weeks, so anything that moves
- * with results would be wrong more often than right. `Your Top 5` in the
- * header is what keeps it reading as an example rather than as a tip. Update
- * the list when the grid changes, the same way any other hard-coded roster
- * fact is updated.
+ * with results would be wrong more often than right. The `P1`..`P5` labels are
+ * the picks form's own slot labels, which is what keeps it reading as a sheet
+ * rather than a tip. Update the list when the grid changes, the same way any
+ * other hard-coded roster fact is updated.
  */
 const SHEET_ROWS = [
   { code: 'VER', team: 'Red Bull Racing' },
@@ -258,36 +283,38 @@ const SHEET_ROWS = [
   { code: 'PIA', team: 'McLaren' },
 ] as const;
 
-function pickSheet(): ReactNode {
+const FRAME_INSET = 64;
+const SHEET_GAP = 12;
+const SHEET_LEAN_DEG = 12;
+const CHIP_HEIGHT = 112;
+/**
+ * How far a chip's bottom-left corner lands left of its top-left corner. The
+ * row is inset by this on both sides so the slanted envelope sits exactly on
+ * the 64px frame inset: without it P1's bottom corner overhung the headline's
+ * left edge and P5's top corner poked past the band's right edge.
+ */
+const SHEET_LEAN_PX = Math.round(
+  (CHIP_HEIGHT / 2) * Math.tan((SHEET_LEAN_DEG * Math.PI) / 180),
+);
+
+function pickSheet(top: number): ReactNode {
+  const { width } = getOgDimensions('og');
+  const rowInset = FRAME_INSET + SHEET_LEAN_PX;
+  const chipWidth =
+    (width - rowInset * 2 - SHEET_GAP * (SHEET_ROWS.length - 1)) /
+    SHEET_ROWS.length;
+
   return e(
     'div',
     {
       style: {
         display: 'flex',
-        flexDirection: 'column' as const,
         position: 'absolute' as const,
-        right: 64,
-        top: 128,
-        width: 396,
-        backgroundColor: colors.surface,
-        border: `1px solid ${colors.border}`,
+        left: rowInset,
+        top,
+        gap: SHEET_GAP,
       },
     },
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          padding: '17px 22px',
-          borderBottom: `1px solid ${colors.border}`,
-          fontFamily: 'IBM Plex Mono',
-          fontSize: 15,
-          fontWeight: 600,
-          color: colors.textMuted,
-        },
-      },
-      'Your Top 5',
-    ),
     ...SHEET_ROWS.map((row, index) =>
       e(
         'div',
@@ -295,34 +322,17 @@ function pickSheet(): ReactNode {
           key: row.code,
           style: {
             display: 'flex',
-            alignItems: 'center',
-            height: 61,
-            padding: '0 22px',
-            borderBottom:
-              index === SHEET_ROWS.length - 1
-                ? 'none'
-                : `1px solid ${colors.border}`,
+            width: chipWidth,
+            height: CHIP_HEIGHT,
+            backgroundColor: INK,
+            borderRadius: 2,
+            transform: `skewX(-${SHEET_LEAN_DEG}deg)`,
           },
         },
-        e(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              width: 38,
-              fontFamily: 'IBM Plex Mono',
-              fontSize: 21,
-              fontWeight: 600,
-              color: colors.textMuted,
-            },
-          },
-          String(index + 1),
-        ),
+        // Team colour confined to a bar, as everywhere else in the system.
         e('div', {
           style: {
-            width: 3,
-            height: 28,
-            marginRight: 18,
+            width: 4,
             backgroundColor: TEAM_COLORS[row.team] ?? FALLBACK_TEAM_COLOR,
           },
         }),
@@ -331,13 +341,40 @@ function pickSheet(): ReactNode {
           {
             style: {
               display: 'flex',
+              flexDirection: 'column' as const,
+              justifyContent: 'center',
               flex: 1,
-              fontSize: 25,
-              fontWeight: 600,
-              letterSpacing: 0.4,
+              paddingLeft: 24,
+              color: colors.text,
+              transform: `skewX(${SHEET_LEAN_DEG}deg)`,
             },
           },
-          row.code,
+          e(
+            'div',
+            {
+              style: {
+                fontFamily: 'IBM Plex Mono',
+                fontSize: 18,
+                fontWeight: 600,
+                color: colors.textMuted,
+              },
+            },
+            `P${index + 1}`,
+          ),
+          e(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                marginTop: 2,
+                fontSize: 44,
+                fontWeight: 600,
+                letterSpacing: 0.5,
+                lineHeight: 1.1,
+              },
+            },
+            row.code,
+          ),
         ),
       ),
     ),
@@ -347,15 +384,14 @@ function pickSheet(): ReactNode {
 function brandWordmark(): ReactNode {
   return e(
     'div',
-    { style: { display: 'flex', alignItems: 'center', gap: 12 } },
-    brandMark(24),
+    { style: { display: 'flex', alignItems: 'center', gap: 13 } },
+    brandMark(30, INK),
     e(
       'div',
       {
         style: {
-          fontSize: 18,
+          fontSize: 22,
           fontWeight: 600,
-          color: colors.textMuted,
         },
       },
       'Grand Prix Picks',
@@ -370,21 +406,21 @@ function brandHeadline(): ReactNode {
       style: {
         display: 'flex',
         flexDirection: 'column' as const,
-        fontSize: 68,
-        fontWeight: 300,
-        letterSpacing: -1.8,
-        lineHeight: 1.1,
-        maxWidth: 660,
+        fontSize: 104,
+        fontWeight: 600,
+        letterSpacing: -4.5,
+        lineHeight: 1.0,
       },
     },
     // Same two lines as the landing `h1`, and they have to stay that way: this
     // card is what the bare domain unfurls to, so a visitor meets the headline
-    // here and then again at the top of the page they land on.
+    // here and then again at the top of the page they land on. The page sets
+    // it light with the second line in accent; the card sets both lines in
+    // ink at semibold, because on an accent ground there is no accent word to
+    // give, and a 300-weight headline at the 500px a chat app renders
+    // previews at reads as grey.
     e('div', {}, 'Predict the F1 Top 5,'),
-    // The accent lands on a word rather than on chrome, the one place on this
-    // card that happens. Its own box rather than a nested span because satori's
-    // inline handling is not reliable enough to trust a colour change mid-line.
-    e('div', { style: { color: colors.accent } }, 'session by session.'),
+    e('div', {}, 'session by session.'),
   );
 }
 
@@ -408,17 +444,16 @@ function bandStat(
         display: 'flex',
         flexDirection: 'column' as const,
         alignItems: align,
-        // The same 3px accent rail the landing page puts beside its session
-        // clock. It is the one thing on the card marking why a reader should
-        // tap now rather than later.
+        // The same 3px rail the landing page puts beside its session clock,
+        // in ink here because the ground is already the accent. It is the one
+        // thing on the card marking why a reader should tap now rather than
+        // later.
         //
         // Spread rather than set to `undefined`: satori 0.29 runs every style
         // value through its own expander, and an undefined `borderLeft` throws
         // there. Every OG route catches its own errors and serves the static
         // fallback, so that mistake ships as a card that never names the race.
-        ...(rail
-          ? { borderLeft: `3px solid ${colors.accent}`, paddingLeft: 22 }
-          : {}),
+        ...(rail ? { borderLeft: `3px solid ${INK}`, paddingLeft: 22 } : {}),
       },
     },
     e(
@@ -426,8 +461,8 @@ function bandStat(
       {
         style: {
           fontFamily: 'IBM Plex Mono',
-          fontSize: 15,
-          color: colors.textMuted,
+          fontSize: 16,
+          color: INK_MUTED,
         },
       },
       label,
@@ -437,10 +472,11 @@ function bandStat(
       {
         style: {
           display: 'flex',
-          marginTop: 7,
+          marginTop: 6,
           fontFamily: mono ? 'IBM Plex Mono' : 'Archivo',
-          fontSize: 31,
+          fontSize: 32,
           fontWeight: 600,
+          lineHeight: 1.15,
         },
       },
       value,
@@ -449,21 +485,15 @@ function bandStat(
 }
 
 /**
- * Shared brand-card chrome: wordmark, headline, mechanic, pick sheet, and a
- * data band along the bottom. Priority for a stranger scrolling a group chat
- * is hook → what the game is → which race and by when.
+ * Shared brand-card chrome, stacked top to bottom: wordmark, headline, pick
+ * sheet, hairline, data band. Priority for a stranger scrolling a group chat
+ * is hook → what the game is → which race and by when, and the stack puts
+ * them in that order at sizes that hold up at preview scale.
  *
- * The band is the change that matters. The race and the lock deadline used to
- * be one 22px mono line under three explainer tiles, which put the only fact
- * on the card that expires — the reason somebody taps *now* rather than later
- * — at the bottom of the visual order. It is now a two-column figure row,
- * labelled the way the app labels timing data, and it is the second thing the
- * eye reaches after the headline.
- *
- * Laid out with absolute pins rather than flex space-between: Satori does not
+ * Laid out with absolute pins rather than flex spacing: Satori does not
  * reliably stretch an absolutely-positioned column to the full frame height,
- * which left the band floating under the headline and the bottom half empty.
- * Pins keep the hierarchy stable at thumbnail size.
+ * which left earlier versions of this band floating under the headline with
+ * the bottom half of the card empty. Pins keep the hierarchy stable.
  *
  * No drawn CTA button (not clickable in an OG image) and no domain (the
  * platform already shows it under the card).
@@ -479,9 +509,9 @@ function brandCardFrame(bandLeft: ReactNode, bandRight: ReactNode): ReactNode {
         position: 'relative' as const,
         width,
         height,
-        backgroundColor: colors.bg,
+        backgroundColor: colors.accent,
         fontFamily: 'Archivo',
-        color: colors.text,
+        color: INK,
         overflow: 'hidden' as const,
       },
     },
@@ -491,8 +521,8 @@ function brandCardFrame(bandLeft: ReactNode, bandRight: ReactNode): ReactNode {
         style: {
           display: 'flex',
           position: 'absolute' as const,
-          left: 64,
-          top: 48,
+          left: FRAME_INSET,
+          top: 44,
         },
       },
       brandWordmark(),
@@ -504,22 +534,22 @@ function brandCardFrame(bandLeft: ReactNode, bandRight: ReactNode): ReactNode {
           display: 'flex',
           flexDirection: 'column' as const,
           position: 'absolute' as const,
-          left: 64,
-          top: 196,
+          left: FRAME_INSET,
+          top: 108,
         },
       },
       brandHeadline(),
     ),
-    pickSheet(),
+    pickSheet(346),
     // The system's one elevation mechanism, separating the pitch from the data.
     e('div', {
       style: {
         position: 'absolute' as const,
-        left: 64,
-        right: 64,
-        bottom: 122,
+        left: FRAME_INSET,
+        right: FRAME_INSET,
+        bottom: 118,
         height: 1,
-        backgroundColor: colors.border,
+        backgroundColor: INK_HAIRLINE,
       },
     }),
     e(
@@ -530,9 +560,9 @@ function brandCardFrame(bandLeft: ReactNode, bandRight: ReactNode): ReactNode {
           alignItems: 'flex-end',
           justifyContent: 'space-between',
           position: 'absolute' as const,
-          left: 64,
-          right: 64,
-          bottom: 48,
+          left: FRAME_INSET,
+          right: FRAME_INSET,
+          bottom: 44,
         },
       },
       bandLeft,
@@ -576,16 +606,23 @@ export function nextRaceTemplate(data: NextRaceOgData): ReactNode {
       data.flagSrc
         ? e('img', {
             src: data.flagSrc,
-            width: 46,
-            height: 31,
-            style: { borderRadius: 1, objectFit: 'cover' as const },
+            width: 48,
+            height: 32,
+            // A hairline, because any flag with a white field (Singapore,
+            // Japan, Monaco) otherwise bleeds into the chartreuse ground.
+            style: {
+              borderRadius: 1,
+              objectFit: 'cover' as const,
+              border: `1px solid ${INK_HAIRLINE}`,
+            },
           })
         : null,
       bandStat(roundLabel, data.raceName, 'flex-start'),
     ),
+    // Same separator the landing clock uses for the same two facts.
     bandStat(
       'Picks lock',
-      `${data.lockDate}  ${data.lockTime}`,
+      `${data.lockDate} · ${data.lockTime}`,
       'flex-start',
       true,
       true,

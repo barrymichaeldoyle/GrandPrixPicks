@@ -28,6 +28,16 @@ const SESSION_LABELS: Record<string, string> = {
 /** The scoring-relevant top of a running order, as web shows it. */
 const LIVE_ROWS = 6;
 
+/**
+ * Qualifying shows every car still running: who is in the drop zone matters
+ * as much as who is on top, and six rows hid it.
+ */
+function liveRows(sessionType: string) {
+  return sessionType === 'quali' || sessionType === 'sprint_quali'
+    ? Infinity
+    : LIVE_ROWS;
+}
+
 type LiveEntry = {
   driverNumber: number;
   position: number;
@@ -65,9 +75,8 @@ function withGaps(entries: LiveEntry[]) {
 
 /**
  * Who a finished qualifying segment knocked out, as web shows it: a wrapped
- * line of position and badge. The running order stops at P6, so these cars
- * were otherwise missing from the card, and their laps belong to a segment
- * that is over, so they carry no gap to the current leader.
+ * line of position and badge. Their laps belong to a segment that is over,
+ * so they carry no gap to the current leader.
  */
 function KnockoutRow({
   label,
@@ -132,7 +141,7 @@ export function LiveClassificationCard() {
   }
   const { top, knockouts } = splitLiveOrder(
     live.entries as LiveEntry[],
-    LIVE_ROWS,
+    liveRows(live.sessionType),
   );
   const entries = withGaps(top);
   const label = SESSION_LABELS[live.sessionType] ?? live.sessionType;

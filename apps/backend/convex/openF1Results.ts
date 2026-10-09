@@ -19,6 +19,7 @@ import {
   query,
 } from './_generated/server';
 import { getViewer, requireAdmin, requireViewer } from './lib/auth';
+import { qualifyingSecondsByDriver } from './lib/qualifyingSegments';
 import type { PendingInvestigation } from './openF1LiveTiming';
 import {
   deriveFinalOrder,
@@ -1071,6 +1072,61 @@ export const pollDueResults = internalAction({
 });
 
 /**
+ * Lap times for a qualifying result published from live timing.
+ *
+ * That path has no `session_result`, so the result went out with no times and
+ * stayed that way until the +3h recheck: a sprint qualifying classification
+ * on the TRMNL with an empty time column all evening. The laps feed has the
+ * same facts, split into segments the way the live board splits them. The
+ * recheck still replaces them with the official ones. Display only, and never
+ * throws: a missing time is the state we were already in.
+ */
+async function recordLiveQualifyingTiming(
+  ctx: ActionCtx,
+  task: PollTask,
+  sessionKey: number | undefined,
+  driverByNumber: Map<number, Id<'drivers'>>,
+) {
+  if (
+    sessionKey === undefined ||
+    (task.sessionType !== 'quali' && task.sessionType !== 'sprint_quali')
+  ) {
+    return;
+  }
+  try {
+    const lapsUrl = new URL('https://api.openf1.org/v1/laps');
+    lapsUrl.searchParams.set('session_key', String(sessionKey));
+    const raceControlUrl = new URL('https://api.openf1.org/v1/race_control');
+    raceControlUrl.searchParams.set('session_key', String(sessionKey));
+    const [laps, raceControl] = await Promise.all([
+      fetchJson(lapsUrl),
+      fetchJson(raceControlUrl),
+    ]);
+    const byDriver = qualifyingSecondsByDriver(laps, raceControl);
+    if (!byDriver) {
+      return;
+    }
+    const timing: ResultTimingEntry[] = [...byDriver].flatMap(
+      ([number, qualifyingSeconds]) => {
+        const driverId = driverByNumber.get(number);
+        return driverId && qualifyingSeconds.some((lap) => lap !== null)
+          ? [{ driverId, qualifyingSeconds }]
+          : [];
+      },
+    );
+    await ctx.runMutation(internal.openF1Results.recordResultTiming, {
+      raceId: task.raceId,
+      sessionType: task.sessionType,
+      timing,
+    });
+  } catch (error) {
+    console.warn(
+      `Live qualifying times unavailable for ${task.raceName} ${task.sessionType}: ${errorMessage(error)}`,
+    );
+  }
+}
+
+/**
  * Try the live-timing path for one session. Never throws: a failure here just
  * means the caller records a retry and the next poll tries again.
  */
@@ -1117,6 +1173,14 @@ async function publishFromLiveTiming(
         classification: live.classification,
         dnfDriverIds: [],
       });
+    if (outcome.status === 'published') {
+      await recordLiveQualifyingTiming(
+        ctx,
+        task,
+        live.openF1SessionKey,
+        driverByNumber,
+      );
+    }
     const provisionalNote = live.provisional
       ? ` (provisional: stewards still hold ${live.pendingInZone
           .map((entry) => `#${entry.driverNumber}`)

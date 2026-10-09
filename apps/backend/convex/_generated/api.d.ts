@@ -50,6 +50,7 @@ import type * as lib_newsRss from "../lib/newsRss.js";
 import type * as lib_notificationChannels from "../lib/notificationChannels.js";
 import type * as lib_notificationEligibility from "../lib/notificationEligibility.js";
 import type * as lib_prodWeekendNewsSeed from "../lib/prodWeekendNewsSeed.js";
+import type * as lib_qualifyingSegments from "../lib/qualifyingSegments.js";
 import type * as lib_raceNewsStartingGrid from "../lib/raceNewsStartingGrid.js";
 import type * as lib_raceNewsWriteUpImage from "../lib/raceNewsWriteUpImage.js";
 import type * as lib_raceTimezones from "../lib/raceTimezones.js";
@@ -147,6 +148,7 @@ declare const fullApi: ApiFromModules<{
   "lib/notificationChannels": typeof lib_notificationChannels;
   "lib/notificationEligibility": typeof lib_notificationEligibility;
   "lib/prodWeekendNewsSeed": typeof lib_prodWeekendNewsSeed;
+  "lib/qualifyingSegments": typeof lib_qualifyingSegments;
   "lib/raceNewsStartingGrid": typeof lib_raceNewsStartingGrid;
   "lib/raceNewsWriteUpImage": typeof lib_raceNewsWriteUpImage;
   "lib/raceTimezones": typeof lib_raceTimezones;

@@ -1,0 +1,108 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "verstappen-singapore-yellow-flag-investigation",
+    "headline": "Verstappen keeps Singapore sprint pole after yellow-flag ruling",
+    "body": "Verstappen keeps pole for the Singapore sprint after the stewards imposed no penalty for passing Hamilton under yellow flags in SQ1. They found a breach of the regulations but accepted that he had slowed appropriately and that the large closing-speed difference made the pass difficult to avoid safely.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["VER", "HAM"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/stewards-deliver-verdict-after-verstappen-investigated-for-yellow-flag-incident-in-sprint-qualifying.1tKjwEbNYya8XF9mSJ5sFv",
+    "sourcePublishedAt": "2026-10-09T15:51:02.745Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "singapore-sprint-qualifying-verstappen-pole",
+    "headline": "Verstappen takes pole for the Singapore sprint",
+    "body": "The final sprint qualifying classification confirms Verstappen on pole with a 1:31.156, 0.120s ahead of Russell. Leclerc is third, Piastri fourth and Norris fifth, with Antonelli seventh.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["VER", "RUS", "LEC", "PIA", "NOR", "ANT"],
+    "sourceName": "FIA",
+    "sourceUrl": "https://www.fia.com/system/files/decision-document/2026_singapore_grand_prix_-_final_sprint_qualifying_classification.pdf",
+    "sourcePublishedAt": "2026-10-09T23:55:00+08:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "mercedes-singapore-upgrade-first-findings",
+    "headline": "Antonelli cannot revert Mercedes' full upgrade in Singapore",
+    "body": "Antonelli will keep Mercedes' upgraded car package for the rest of the Singapore weekend, despite switching back to the older front wing before sprint qualifying. Bradley Lord says converting the full car back would take two days; the new package has left its balance less stable and harder to manage through slow corners.",
+    "category": "pick_related",
+    "affectsSessions": ["sprint", "quali", "race"],
+    "driverCodes": ["ANT"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/were-stuck-with-what-weve-got-why-antonelli-cant-revert-to-previous-mercedes-spec-in-singapore/10863572/",
+    "sourcePublishedAt": "2026-10-09T16:58:04Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "norris-singapore-fuel-system-fix",
+    "headline": "Norris reports progress after McLaren's straight-line speed fix",
+    "body": "Norris says McLaren has taken a step forward after working on the straight-line speed issue he experienced at Sepang. He qualified fifth for the Singapore sprint and said the car looked better, although the team was still checking the data.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["NOR"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/norris-and-piastri-divided-over-mclarens-performance-in-very-tricky-sprint-qualifying-in-singapore.1myBR2fHEKECN8JHD3iFKW",
+    "sourcePublishedAt": "2026-10-09T15:26:37.763Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "hulkenberg-singapore-fp1-stoppage",
+    "headline": "Audi repairs Hülkenberg's gearbox issue before sprint qualifying",
+    "body": "Audi fixed the gearbox issue that stopped Hülkenberg in Singapore practice in time for sprint qualifying. Despite limited practice running, he reached SQ2 and qualified 12th, two places ahead of Bortoleto.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HUL", "BOR"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/what-the-teams-said-sprint-qualifying-in-singapore-2026.15FW4Oo4cNZdSNNfnTdyDp",
+    "sourcePublishedAt": "2026-10-09T16:52:25.231Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "singapore-sq1-overtake-mode-error",
+    "headline": "FIA error leaves some cars down on power in Singapore SQ1",
+    "body": "A race-control error left Overtake Mode disabled after SQ1's red flag, then enabled it for only 27 seconds. The FIA says some cars' performance was affected depending on when and where they ran; SQ2 and SQ3 were unaffected. A separate timing-system problem also failed to register some SQ1 laps.",
+    "category": "pick_related",
+    "affectsSessions": ["sprint_quali"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/singapore-sprint-qualifying-chaos-leaves-f1-teams-furious-as-aston-martin-considers-protest/10863520/",
+    "sourcePublishedAt": "2026-10-09T15:31:23Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "hadjar-singapore-sprint-qualifying-engine-issue",
+    "headline": "Hadjar reports engine trouble on his final Singapore SQ3 run",
+    "body": "Hadjar reported engine issues and a difficult car on his final sprint qualifying run in Singapore. His SQ3 lap was deleted for track limits, leaving him ninth after a practice session in which he had felt comfortable on the hard tyres.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HAD"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/i-dont-feel-like-its-driveable-hadjar-assesses-very-poor-performance-in-singapore-sprint-qualifying.3ITCXB4gJln2mODqwiFIoH",
+    "sourcePublishedAt": "2026-10-09T15:27:42.331Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "ferrari-singapore-sprint-qualifying-soft-tyres",
+    "headline": "Hamilton loses rear grip on soft tyres in Singapore SQ3",
+    "body": "Hamilton qualified sixth after Ferrari's switch from medium to soft tyres left him struggling with rear grip. He said his different run plan was the wrong choice, while Leclerc qualified third and felt he had extracted the car's available pace.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HAM", "LEC"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/just-not-fast-enough-to-fight-leclerc-reflects-on-ferraris-singapore-gp-sprint-qualifying.21EtqZ7mRhjgCybXJkEs5Y",
+    "sourcePublishedAt": "2026-10-09T15:16:44.242Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "pirelli-singapore-sprint-tyre-options",
+    "headline": "Pirelli sees medium and soft tyres as options for Singapore sprint",
+    "body": "Pirelli says both medium and soft tyres appear viable for the Singapore sprint after Friday's limited degradation. Tyre warm-up made a significant difference in qualifying, and the soft compound was around eight to nine tenths quicker than the medium.",
+    "category": "general",
+    "affectsSessions": [],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/what-the-teams-said-sprint-qualifying-in-singapore-2026.15FW4Oo4cNZdSNNfnTdyDp",
+    "sourcePublishedAt": "2026-10-09T16:52:25.231Z"
+  }
+]

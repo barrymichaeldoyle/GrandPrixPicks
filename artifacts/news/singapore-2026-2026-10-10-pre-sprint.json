@@ -1,0 +1,37 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "sainz-singapore-sprint-pit-lane-start",
+    "headline": "Sainz must start the Singapore sprint from the pit lane",
+    "body": "Williams changed Sainz's suspension setup under parc fermé without the technical delegate's approval. The stewards require him to start the sprint from the pit lane.",
+    "category": "pick_related",
+    "affectsSessions": ["sprint"],
+    "driverCodes": ["SAI"],
+    "sourceName": "FIA",
+    "sourceUrl": "https://api.fia.com/system/files/decision-document/2026_singapore_grand_prix_-_infringement_-_car_55_-_changes_made_during_parc_ferme.pdf",
+    "sourcePublishedAt": "2026-10-10T15:46:00+08:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "hadjar-singapore-sprint-power-unit-replacement",
+    "headline": "Red Bull replaces Hadjar's engine before the Singapore sprint",
+    "body": "Red Bull fitted Hadjar's car with a previously used engine and turbo, replaced the fuel collector assembly and adjusted the related power-unit parameters before the sprint. The changes were approved by the FIA technical delegate.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HAD"],
+    "sourceName": "FIA",
+    "sourceUrl": "https://api.fia.com/system/files/decision-document/2026_singapore_grand_prix_-_parts_and_parameters_been_replaced_and_or_changed_during_sprint_parc_ferme.pdf",
+    "sourcePublishedAt": "2026-10-10T15:50:00+08:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "singapore-sprint-rain-delay",
+    "headline": "Heavy rain delays the Singapore sprint",
+    "body": "Heavy rain delayed the sprint's scheduled 17:00 local start at Marina Bay. Marshals are clearing standing water from the circuit as the rain begins to ease.",
+    "category": "pick_related",
+    "affectsSessions": ["sprint"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-f1-sprint-in-singapore-2026.5TXFKG7uP5goYHSqUotcmZ",
+    "sourcePublishedAt": "2026-10-10T08:30:03.524Z"
+  }
+]

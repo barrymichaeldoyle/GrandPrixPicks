@@ -1,0 +1,19 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/singapore-2026-2026-10-10-pre-sprint.json",
+  "startAt": "2026-10-10T11:10:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["sainz-singapore-sprint-pit-lane-start"],
+      "text": "Sainz must start the Singapore sprint from the pit lane after Williams changed his suspension setup under parc fermé without FIA approval.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "expiresAt": "2026-10-10T09:30:00Z"
+    },
+    {
+      "keys": ["hadjar-singapore-sprint-power-unit-replacement"],
+      "text": "Red Bull replaced Hadjar's engine and turbo with previously used units before the Singapore sprint. The fuel collector assembly was also replaced, with the changes approved by the FIA.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "expiresAt": "2026-10-10T13:00:00Z"
+    }
+  ]
+}

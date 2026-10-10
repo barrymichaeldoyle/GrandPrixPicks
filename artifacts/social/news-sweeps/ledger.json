@@ -52,7 +52,7 @@
       "text": "Verstappen wins the Singapore sprint ahead of Hamilton and Leclerc. Antonelli finishes fourth, with Lawson, Bearman, Hülkenberg and Norris completing the points.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
       "dueAt": "2026-10-10T10:40:00.000Z",
       "expiresAt": "2026-10-10T12:30:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6aca1371d9cab260a7be33cc"
     },
     {
@@ -70,7 +70,7 @@
       "text": "Norris and Piastri collide at Turn 5 on the Singapore sprint's final lap. Piastri retires and Norris finishes eighth.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
       "dueAt": "2026-10-10T11:05:00.000Z",
       "expiresAt": "2026-10-10T12:30:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6aca1372f91f772d458cb15e"
     },
     {
@@ -98,8 +98,72 @@
       "text": "Russell crashed out of the Singapore sprint lead after passing Verstappen at the start. Hadjar retired with power trouble, while Colapinto's Alpine shut down during the Safety Car period.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
       "dueAt": "2026-10-10T11:30:00.000Z",
       "expiresAt": "2026-10-10T12:30:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6aca1373c4de2d2b1222c8db"
+    },
+    {
+      "id": "8fe4fefc51b1c6617b7d453694ad6e67969db7b2796f785b6ea5f82233765043",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "singapore-starting-grid",
+          "revision": "9042cda72746b051e402f46018568c18bf2681042102b655debc816c23c6cfed"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "singapore-grand-prix-verstappen-pole",
+          "revision": "6f04cab6b22b112cf076dd248e0083793f34d6ea99302c23f21a79b0c4c6b8c3"
+        }
+      ],
+      "text": "Verstappen takes Singapore GP pole by 0.054s from Leclerc. Hamilton and Antonelli share row two. Russell's engine penalty puts him on the back row with Hadjar.\n\nFull provisional grid: https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T16:45:00.000Z",
+      "expiresAt": "2026-10-11T11:30:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6aca6868c4de2d2b1232cba2"
+    },
+    {
+      "id": "5314f47de16fdd47d9f5542b60ce279b5c3718e3827e4162883e05949ae6136a",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "mclaren-singapore-sprint-final-lap-collision",
+          "revision": "db6d3cf7467e371f606c8e76003b3325843782753a1e965acbdbdeb60db304dd"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "mclaren-singapore-sprint-stella-response",
+          "revision": "4129b06b20fdf04492726ca9b7864a2d7ec7f8c6dff60ade340490a3020a11b0"
+        }
+      ],
+      "text": "No penalty for Norris or Piastri after their final-lap Singapore sprint collision. Stella calls the contact unacceptable and will speak to both privately.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T17:10:00.000Z",
+      "expiresAt": "2026-10-11T11:30:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6aca6869bba9419ccb0af48b"
+    },
+    {
+      "id": "cbc817a6663b7c988a4781731d782db4d8918d13ea16784b7057c0fad9ad5e17",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hadjar-singapore-qualifying-power-failure",
+          "revision": "0b6e9f4fbfc155d2fb469ba08e4258c47412b036910c92c5fcf3a3dc8a6d1181"
+        }
+      ],
+      "text": "More power trouble for Hadjar in Singapore: his engine switched off in Q1, and he failed to set a qualifying time. He also reported a gearbox failure and wants a fresh power unit for Sunday; no change is confirmed.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T17:35:00.000Z",
+      "expiresAt": "2026-10-11T11:30:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6aca686abba9419ccb0af4ca"
     }
   ]
 }

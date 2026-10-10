@@ -1,0 +1,25 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/singapore-2026-2026-10-10-post-qualifying.json",
+  "startAt": "2026-10-10T18:45:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["singapore-starting-grid", "singapore-grand-prix-verstappen-pole"],
+      "text": "Verstappen takes Singapore GP pole by 0.054s from Leclerc. Hamilton and Antonelli share row two. Russell's engine penalty puts him on the back row with Hadjar.\n\nFull provisional grid: https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "expiresAt": "2026-10-11T11:30:00Z"
+    },
+    {
+      "keys": ["mclaren-singapore-sprint-final-lap-collision", "mclaren-singapore-sprint-stella-response"],
+      "materialUpdate": true,
+      "text": "No penalty for Norris or Piastri after their final-lap Singapore sprint collision. Stella calls the contact unacceptable and will speak to both privately.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "expiresAt": "2026-10-11T11:30:00Z"
+    },
+    {
+      "keys": ["hadjar-singapore-qualifying-power-failure"],
+      "text": "More power trouble for Hadjar in Singapore: his engine switched off in Q1, and he failed to set a qualifying time. He also reported a gearbox failure and wants a fresh power unit for Sunday; no change is confirmed.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "expiresAt": "2026-10-11T11:30:00Z"
+    }
+  ]
+}

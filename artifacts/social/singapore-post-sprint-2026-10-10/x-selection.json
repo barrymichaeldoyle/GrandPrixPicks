@@ -1,0 +1,28 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/singapore-2026-2026-10-10-post-sprint.json",
+  "startAt": "2026-10-10T12:40:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["singapore-sprint-verstappen-win"],
+      "text": "Verstappen wins the Singapore sprint ahead of Hamilton and Leclerc. Antonelli finishes fourth, with Lawson, Bearman, Hülkenberg and Norris completing the points.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "expiresAt": "2026-10-10T12:30:00Z"
+    },
+    {
+      "keys": ["mclaren-singapore-sprint-final-lap-collision"],
+      "text": "Norris and Piastri collide at Turn 5 on the Singapore sprint's final lap. Piastri retires and Norris finishes eighth.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "expiresAt": "2026-10-10T12:30:00Z"
+    },
+    {
+      "keys": [
+        "russell-singapore-sprint-crash",
+        "hadjar-singapore-sprint-retirement",
+        "colapinto-singapore-sprint-retirement"
+      ],
+      "text": "Russell crashed out of the Singapore sprint lead after passing Verstappen at the start. Hadjar retired with power trouble, while Colapinto's Alpine shut down during the Safety Car period.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "expiresAt": "2026-10-10T12:30:00Z"
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "singapore-sprint-verstappen-win",
+    "headline": "Verstappen wins Singapore sprint ahead of Hamilton and Leclerc",
+    "body": "Verstappen won the rain-delayed Singapore sprint ahead of Hamilton and Leclerc. Antonelli finished fourth, followed by Lawson, Bearman, Hülkenberg and Norris in the remaining points places.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["VER", "HAM", "LEC", "ANT"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/f1-2026-singapore-grand-prix-sprint-race-result/",
+    "sourcePublishedAt": "2026-10-10T10:21:54.000Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "mclaren-singapore-sprint-final-lap-collision",
+    "headline": "Norris and Piastri collide on Singapore sprint's final lap",
+    "body": "Norris and Piastri collided at Turn 5 on the final lap, ending Piastri's sprint and dropping Norris to eighth. The stewards will investigate the collision after the sprint.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["NOR", "PIA"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-f1-sprint-in-singapore-2026.5TXFKG7uP5goYHSqUotcmZ",
+    "sourcePublishedAt": "2026-10-10T08:30:03.524Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "russell-singapore-sprint-crash",
+    "headline": "Russell crashes out of Singapore sprint lead",
+    "body": "Russell passed Verstappen at the start but lost control at the final corner and hit the wall, ending his sprint. His retirement brought out the Safety Car and returned the lead to Verstappen.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["RUS"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-f1-sprint-in-singapore-2026.5TXFKG7uP5goYHSqUotcmZ",
+    "sourcePublishedAt": "2026-10-10T08:30:03.524Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "stroll-perez-singapore-sprint-collision",
+    "headline": "Stroll and Perez retire after early Singapore sprint collision",
+    "body": "Stroll and Perez collided early in the Singapore sprint, with both retiring. Their incident is being investigated after the sprint.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["STR", "PER"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-f1-sprint-in-singapore-2026.5TXFKG7uP5goYHSqUotcmZ",
+    "sourcePublishedAt": "2026-10-10T08:30:03.524Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "hadjar-singapore-sprint-retirement",
+    "headline": "Hadjar retires from Singapore sprint with power trouble",
+    "body": "Hadjar retired early in the Singapore sprint after struggling with a lack of power from the start. Red Bull told him to stop the car.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HAD"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-f1-sprint-in-singapore-2026.5TXFKG7uP5goYHSqUotcmZ",
+    "sourcePublishedAt": "2026-10-10T08:30:03.524Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "colapinto-singapore-sprint-retirement",
+    "headline": "Colapinto stops on track in Singapore sprint",
+    "body": "Colapinto's Alpine shut down and stopped on track during the early Safety Car period, ending his sprint. The cause had yet to be diagnosed.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["COL"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-f1-sprint-in-singapore-2026.5TXFKG7uP5goYHSqUotcmZ",
+    "sourcePublishedAt": "2026-10-10T08:30:03.524Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "albon-bortoleto-bottas-singapore-sprint-contact",
+    "headline": "Albon, Bortoleto and Bottas retire after Singapore sprint contact",
+    "body": "Contact around the Safety Car restart involved Albon, Bortoleto and Bottas, with all three later retiring. The stewards will investigate the Turn 16 collision between Albon and Bortoleto after the sprint.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ALB", "BOR", "BOT"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-f1-sprint-in-singapore-2026.5TXFKG7uP5goYHSqUotcmZ",
+    "sourcePublishedAt": "2026-10-10T08:30:03.524Z"
+  }
+]

@@ -34,8 +34,72 @@
       "text": "Red Bull replaced Hadjar's engine and turbo with previously used units before the Singapore sprint. The fuel collector assembly was also replaced, with the changes approved by the FIA.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
       "dueAt": "2026-10-10T09:35:11.628Z",
       "expiresAt": "2026-10-10T13:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6ac9ffccf91f772d4589120f"
+    },
+    {
+      "id": "b71f151806036b70a9b216ffb8d40ced6a547cdd63726f20c8c9b49ebaba9b4d",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "singapore-sprint-verstappen-win",
+          "revision": "40e3258052029fd60b7e99b846cad772ff8a038db24eee1a03a5ee760c651115"
+        }
+      ],
+      "text": "Verstappen wins the Singapore sprint ahead of Hamilton and Leclerc. Antonelli finishes fourth, with Lawson, Bearman, Hülkenberg and Norris completing the points.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T10:40:00.000Z",
+      "expiresAt": "2026-10-10T12:30:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6aca1371d9cab260a7be33cc"
+    },
+    {
+      "id": "337da3d7ddda15bd3e3df338edff0b6de473ad5af30a2899216c550b572293fc",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "mclaren-singapore-sprint-final-lap-collision",
+          "revision": "1c33916cdcfac1d80cda65a7ef07fa3cc2f98e8928ef1f8c6a05aee7606188ae"
+        }
+      ],
+      "text": "Norris and Piastri collide at Turn 5 on the Singapore sprint's final lap. Piastri retires and Norris finishes eighth.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T11:05:00.000Z",
+      "expiresAt": "2026-10-10T12:30:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6aca1372f91f772d458cb15e"
+    },
+    {
+      "id": "4f3cc28cb3c186f2c11c4cb262f46303b48984b623a07e5babe8723ba89e1245",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "russell-singapore-sprint-crash",
+          "revision": "6ce8e973269291bf32d0ff407b3a33d56853f93cc4d71e0b4f95fc39c6bf1d38"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hadjar-singapore-sprint-retirement",
+          "revision": "09f008715e575b87e4df86d6e4e898fdd20d741427e08584eb7782cd8bafb433"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "colapinto-singapore-sprint-retirement",
+          "revision": "608caadb7ec5e4933d20579acd8c50e28196e5231f15aa4a8667330dfb3919d6"
+        }
+      ],
+      "text": "Russell crashed out of the Singapore sprint lead after passing Verstappen at the start. Hadjar retired with power trouble, while Colapinto's Alpine shut down during the Safety Car period.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T11:30:00.000Z",
+      "expiresAt": "2026-10-10T12:30:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6aca1373c4de2d2b1222c8db"
     }
   ]
 }

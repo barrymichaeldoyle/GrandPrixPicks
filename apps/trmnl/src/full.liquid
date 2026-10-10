@@ -98,13 +98,12 @@
             Headlines under the classification, as under the grid: it was
             centred in the column with the space above and below it unused.
             Not on a portrait OG, where the field stacks under the timeline
-            and a headline ran under the title bar. One line on the X too:
-            the timed rows are taller than the grid's, and a second line was
-            cut off at the title bar.
+            and a headline ran under the title bar. On the landscape X the
+            headline is a full-width row under both columns instead (below).
           {% endcomment %}
           {% if news.size > 0 %}
           <div class="grow lg:hidden portrait:hidden">{% render "news", news: news, limit: 2, headline_size: "title--small", clamp: 1, fill: true %}</div>
-          <div class="grow hidden lg:block">{% render "news", news: news, limit: 1, headline_size: "title--base", clamp: 1, strict_clamp: true, fill: true %}</div>
+          <div class="grow hidden lg:portrait:block">{% render "news", news: news, limit: 1, headline_size: "title--base", clamp: 1, strict_clamp: true, fill: true %}</div>
           {% endif %}
         {% elsif focus == "standings" %}
           {% comment %}Stacked under the timeline in portrait, where the full width takes four columns.{% endcomment %}
@@ -141,6 +140,14 @@
       </div>
     </div>
   </div>
+  {% comment %}
+    A qualifying result on the landscape X: the headline runs the full width
+    under both columns. Inside the result column it was cut off at half the
+    screen, beside timeline rows spread out to fill the height.
+  {% endcomment %}
+  {% if focus == "result" and news.size > 0 %}
+  <div class="hidden lg:block lg:portrait:hidden">{% render "news", news: news, limit: 1, headline_size: "title--base", clamp: 1, strict_clamp: true %}</div>
+  {% endif %}
   {% endif %}
 </div>
 {% elsif standings %}

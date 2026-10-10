@@ -258,10 +258,11 @@ the grid fills the right column while the QR code stays in the header, with
 one-line headlines under it: two on the OG, one on the X. They come from
 `grid_news`, the headlines without the item that carried the grid.
 A qualifying or sprint qualifying result is laid out the same way: the
-classification at the top of the column, then one-line headlines from `news`
-(two on the OG, one on the X). A portrait OG has no room for them under the
-stacked field, so it shows the classification alone; with no news, the
-classification is centred.
+classification at the top of the column, then one-line headlines from `news`:
+two on the OG, one on the portrait X. On the landscape X the headline is a
+full-width row under both columns, where it reads in full. A portrait OG has
+no room for one under the stacked field, so it shows the classification
+alone; with no news, the classification is centred.
 When there is no news, result or grid yet, the right column shows the whole
 Drivers' Championship by three-letter code (`championship` in `shared.liquid`):
 two columns, or four in portrait where it stacks under the timeline. That is

@@ -142,10 +142,11 @@ export function LeaderboardScreen() {
     api.races.getWeekendLeaderboardRace,
     convexEnabled ? {} : 'skip',
   ) as RaceLite | null | undefined;
-  const allRaces = useQuery(
-    api.races.listRaces,
-    convexEnabled ? { season: 2026 } : 'skip',
-  ) as RaceLite[] | undefined;
+  const currentSeason = useQuery(
+    api.races.listCurrentSeason,
+    convexEnabled ? {} : 'skip',
+  );
+  const allRaces = currentSeason?.races as RaceLite[] | undefined;
 
   const selectedRace =
     allRaces?.find((r) => r._id === chosenRaceId) ?? defaultRace ?? null;
@@ -326,7 +327,7 @@ export function LeaderboardScreen() {
   const subtitle =
     timeScope === 'weekend' && selectedRace
       ? selectedRace.name
-      : `2026 Season${
+      : `${currentSeason ? `${currentSeason.season} ` : ''}Season${
           totalCount > 0
             ? ` · ${totalCount.toLocaleString()} ${totalCount === 1 ? 'player' : 'players'}`
             : ''

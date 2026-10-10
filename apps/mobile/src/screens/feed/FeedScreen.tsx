@@ -4,6 +4,7 @@ import {
   weekendStarts,
 } from '@grandprixpicks/shared/feedGroups';
 import { useAuth } from '@clerk/expo';
+import { useConvex } from 'convex/react';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '../../integrations/convex/query';
@@ -67,6 +68,18 @@ export function FeedScreen() {
   const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
     Array(MAX_EXTRA_PAGES).fill(null),
   );
+  // Pages past the live ones. The first five pages are subscriptions so
+  // reactions and late scores update in place; older history is fetched once
+  // and appended. Without this the feed ended at 200 events, which a player
+  // following a couple of dozen people reaches inside three weekends.
+  const convex = useConvex();
+  // Tagged with the viewer they were fetched for, so a different account
+  // after sign-out/in never sees the previous player's history.
+  const [archive, setArchive] = useState<{
+    viewerId: string | undefined;
+    pages: NonNullable<FeedPage>[];
+  }>({ viewerId: undefined, pages: [] });
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   const page0 = useQuery(
     api.feed.getPersonalizedFeed,
@@ -136,21 +149,44 @@ export function FeedScreen() {
   const allPageData = [page0, page1, page2, page3, page4];
   const activePagesCount = 1 + extraCursors.filter((c) => c !== null).length;
   const activePages = allPageData.slice(0, activePagesCount);
+  const archivePages = archive.viewerId === me?._id ? archive.pages : [];
   const isLoadingMore =
-    activePagesCount > 1 && activePages.some((p) => p === undefined);
+    archiveLoading ||
+    (activePagesCount > 1 && activePages.some((p) => p === undefined));
 
-  const loadedPages = activePages.filter(
-    (p): p is NonNullable<FeedPage> => p != null,
-  );
+  const loadedPages = [
+    ...activePages.filter((p): p is NonNullable<FeedPage> => p != null),
+    ...archivePages,
+  ];
   const lastLoadedPage = loadedPages.at(-1);
-  const hasMore =
-    (lastLoadedPage?.hasMore ?? false) && activePagesCount <= MAX_EXTRA_PAGES;
+  const hasMore = lastLoadedPage?.hasMore ?? false;
 
   function handleLoadMore() {
     if (isLoadingMore || !hasMore || !lastLoadedPage?.nextCursor) {
       return;
     }
-    captureAnalyticsEvent('feed_paginated', { page: activePagesCount + 1 });
+    const nextCursor = lastLoadedPage.nextCursor;
+    captureAnalyticsEvent('feed_paginated', {
+      page: activePagesCount + archivePages.length + 1,
+    });
+    if (activePagesCount > MAX_EXTRA_PAGES) {
+      setArchiveLoading(true);
+      convex
+        .query(api.feed.getPersonalizedFeed, { paginationCursor: nextCursor })
+        .then((page) => {
+          if (page) {
+            setArchive({
+              viewerId: me?._id,
+              pages: [...archivePages, page as NonNullable<FeedPage>],
+            });
+          }
+        })
+        .catch(() => {
+          // Leave the list as it is; the next scroll to the end retries.
+        })
+        .finally(() => setArchiveLoading(false));
+      return;
+    }
     setExtraCursors((prev) => {
       const next = [...prev];
       const idx = next.findIndex((c) => c === null);

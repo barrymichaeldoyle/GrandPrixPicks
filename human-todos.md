@@ -125,7 +125,10 @@ It carries native Sign in with Apple and `expo-crypto`.
 
 Build **12** (from `ee2f16aa`, EAS build `6c5f0bac`, submission `155e5b47`)
 replaces it: smooth feed scrolling, no header flashing, and the joined feed.
-Use build 12 for the section 4 device QA and for review.
+Build **13** (from `438cf7cb`, EAS build `bb988f67`, submission `b0ada76d`)
+replaces 12: no empty Home after sign-in, and the system sign-in prompt names
+the app "Grand Prix Picks". Use build 13 for the section 4 device QA and for
+review.
 
 Draft 6.9-inch screenshots (1320 x 2868, dev data, captured 2026-10-09) are
 in `apps/mobile/store-screenshots/`: home, Top 5 editor, season leaderboard,

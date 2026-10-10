@@ -7,10 +7,14 @@ import { mapConvexRaceToWeekend } from './races';
 
 export function useRaceWeekends() {
   const { convexEnabled } = useMobileConfig();
-  const racesQuery = useQuery(
-    api.races.listRaces,
-    convexEnabled ? { season: 2026 } : 'skip',
+  // The season is the backend's call (`getCurrentSeason`: the next race that
+  // has not locked, else the latest), so the app rolls over with the data
+  // rather than showing 2026 forever.
+  const seasonQuery = useQuery(
+    api.races.listCurrentSeason,
+    convexEnabled ? {} : 'skip',
   );
+  const racesQuery = seasonQuery?.races;
 
   // Mock data exists only for the unconfigured-Convex dev shell. A connected
   // app must never show it — while loading, return nothing and let callers

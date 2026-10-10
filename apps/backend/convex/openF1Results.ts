@@ -363,6 +363,65 @@ export function buildSessionDiscoveryUrl(
   return url;
 }
 
+/**
+ * The sessions OpenF1 has near a scheduled start.
+ *
+ * OpenF1 answers a query that matches nothing with 404 "No results found.",
+ * the same words it uses for a session that exists but has no classification
+ * yet. Read raw, a discovery miss looked exactly like "result not ready" and
+ * nobody could tell the poller was looking in the wrong place. An empty window
+ * is an empty list, so callers report "OpenF1 has not exposed the session".
+ */
+export async function discoverSessions(
+  year: number,
+  sessionStartAt: number,
+): Promise<OpenF1Session[]> {
+  try {
+    return parseOpenF1Sessions(
+      await fetchJson(buildSessionDiscoveryUrl(year, sessionStartAt)),
+    );
+  } catch (error) {
+    if (isMissingSessionResults(error)) {
+      return [];
+    }
+    throw error;
+  }
+}
+
+async function findOpenF1Session(args: {
+  season: number;
+  sessionType: SessionType;
+  sessionStartAt: number;
+  raceName: string;
+}): Promise<OpenF1Session> {
+  const sessions = await discoverSessions(args.season, args.sessionStartAt);
+  const allowedNames = OPEN_F1_SESSION_NAMES[args.sessionType];
+  const session = sessions.find((candidate) =>
+    allowedNames.includes(candidate.session_name),
+  );
+  if (!session) {
+    throw new Error(`OpenF1 has not exposed the ${args.raceName} session yet`);
+  }
+  return session;
+}
+
+/**
+ * When OpenF1 says a session actually started, or null if it cannot say.
+ *
+ * The polling deadline is keyed to the scheduled start, so a long delay could
+ * run it out before the session had even finished. The deadline is moved to
+ * follow the real start instead; the discovery window bounds how far.
+ */
+async function findActualStartAt(task: PollTask): Promise<number | null> {
+  try {
+    const session = await findOpenF1Session(task);
+    const startAt = new Date(session.date_start).getTime();
+    return Number.isFinite(startAt) ? startAt : null;
+  } catch {
+    return null;
+  }
+}
+
 const RATE_LIMIT_RETRIES = 4;
 const RATE_LIMIT_BACKOFF_MS = 2_000;
 const TOKEN_EXPIRY_SKEW_MS = 30_000;
@@ -507,13 +566,18 @@ export function isPracticeSession(sessionName: string): boolean {
  */
 export async function fetchJson(url: URL): Promise<unknown> {
   let accessToken: string | null = null;
+  // Kept so a refusal of the anonymous fallback says why we were anonymous.
+  // Otherwise a broken paid login only shows up as a console warning, and the
+  // poll records OpenF1's live-session 401 as if that were the whole story.
+  let authFailure: string | null = null;
   try {
     accessToken = await fetchOpenF1AccessToken();
   } catch (error) {
     // Paid access is an enhancement to the existing ingestion path. If the
     // subscription, credentials, or token endpoint are unavailable, keep the
     // anonymous request working so post-session results still arrive.
-    console.warn(`OpenF1 authentication unavailable: ${errorMessage(error)}`);
+    authFailure = errorMessage(error);
+    console.warn(`OpenF1 authentication unavailable: ${authFailure}`);
   }
 
   let refreshedAfterUnauthorized = false;
@@ -533,8 +597,9 @@ export async function fetchJson(url: URL): Promise<unknown> {
       try {
         accessToken = await fetchOpenF1AccessToken(true);
       } catch (error) {
+        authFailure = errorMessage(error);
         console.warn(
-          `OpenF1 token refresh unavailable; retrying anonymously: ${errorMessage(error)}`,
+          `OpenF1 token refresh unavailable; retrying anonymously: ${authFailure}`,
         );
         accessToken = null;
       }
@@ -549,6 +614,10 @@ export async function fetchJson(url: URL): Promise<unknown> {
       throw new Error(
         `OpenF1 request failed with HTTP ${response.status}${
           detail ? `: ${detail.slice(0, 300)}` : ''
+        }${
+          response.status === 401 && authFailure
+            ? ` (sent anonymously: ${authFailure.slice(0, 200)})`
+            : ''
         }`,
       );
     }
@@ -636,18 +705,7 @@ export async function fetchOfficialClassification(args: {
   /** Automatic publication must wait for the whole session to finish. */
   requireSessionFinished?: boolean;
 }): Promise<OfficialClassification> {
-  const sessionsUrl = buildSessionDiscoveryUrl(
-    args.season,
-    args.sessionStartAt,
-  );
-  const sessions = parseOpenF1Sessions(await fetchJson(sessionsUrl));
-  const allowedNames = OPEN_F1_SESSION_NAMES[args.sessionType];
-  const session = sessions.find((candidate) =>
-    allowedNames.includes(candidate.session_name),
-  );
-  if (!session) {
-    throw new Error(`OpenF1 has not exposed the ${args.raceName} session yet`);
-  }
+  const session = await findOpenF1Session(args);
 
   const resultsUrl = new URL('https://api.openf1.org/v1/session_result');
   resultsUrl.searchParams.set('session_key', String(session.session_key));
@@ -751,18 +809,7 @@ export async function fetchLiveTimingClassification(args: {
   driverByNumber: Map<number, Id<'drivers'>>;
   now: number;
 }): Promise<LiveTimingClassification> {
-  const sessionsUrl = buildSessionDiscoveryUrl(
-    args.season,
-    args.sessionStartAt,
-  );
-  const sessions = parseOpenF1Sessions(await fetchJson(sessionsUrl));
-  const allowedNames = OPEN_F1_SESSION_NAMES[args.sessionType];
-  const session = sessions.find((candidate) =>
-    allowedNames.includes(candidate.session_name),
-  );
-  if (!session) {
-    throw new Error(`OpenF1 has not exposed the ${args.raceName} session yet`);
-  }
+  const session = await findOpenF1Session(args);
 
   const raceControlUrl = new URL('https://api.openf1.org/v1/race_control');
   raceControlUrl.searchParams.set('session_key', String(session.session_key));
@@ -1018,7 +1065,16 @@ export const pollDueResults = internalAction({
         deadlineAt: task.deadlineAt,
       });
 
-      if (task.kind === 'timeout') {
+      const actualStartAt =
+        task.kind === 'timeout' ? await findActualStartAt(task) : null;
+      const deadlineAt =
+        actualStartAt === null
+          ? task.deadlineAt
+          : Math.max(
+              task.deadlineAt,
+              getFallbackWindow(task.sessionType, actualStartAt).deadlineAt,
+            );
+      if (task.kind === 'timeout' && now > deadlineAt) {
         await ctx.runMutation(internal.openF1Results.recordOutcome, {
           raceId: task.raceId,
           sessionType: task.sessionType,
@@ -1425,11 +1481,10 @@ async function runSmokeTest(ctx: ActionCtx, sessionKey: number) {
   if (!Number.isFinite(sessionStartAt)) {
     throw new Error('OpenF1 returned an invalid session start time');
   }
-  const discoveryUrl = buildSessionDiscoveryUrl(
+  const discoveredSessions = await discoverSessions(
     new Date(sessionStartAt).getUTCFullYear(),
     sessionStartAt,
   );
-  const discoveredSessions = parseOpenF1Sessions(await fetchJson(discoveryUrl));
   if (
     !discoveredSessions.some(
       (session) =>
@@ -1649,13 +1704,45 @@ export const adminFetchResultsNow = action({
         openF1SessionKey,
       };
     } catch (error) {
-      const message = errorMessage(error);
+      // The official result can lag the flag by over an hour, which is exactly
+      // when an admin presses this. Take the same live-timing path the cron
+      // falls back to, with the same gate.
+      const fallback = await publishFromLiveTiming(
+        ctx,
+        {
+          raceId: args.raceId,
+          raceName: task.raceName,
+          season: task.season,
+          sessionType: args.sessionType,
+          sessionStartAt: task.sessionStartAt,
+          firstAttemptAt: task.firstAttemptAt,
+          deadlineAt: task.deadlineAt,
+          kind: 'poll',
+        },
+        driverByNumber,
+      );
+      if (fallback.status === 'published') {
+        await ctx.runMutation(internal.openF1Results.recordOutcome, {
+          raceId: args.raceId,
+          sessionType: args.sessionType,
+          status: 'published',
+          openF1SessionKey: fallback.openF1SessionKey ?? openF1SessionKey,
+        });
+        return {
+          ok: true,
+          status: 'published',
+          message: `Official result not out yet, so ${fallback.reason}. The recheck replaces it with the official classification.`,
+          openF1SessionKey: fallback.openF1SessionKey,
+        };
+      }
+
+      const message = `${errorMessage(error)} | live timing: ${fallback.reason}`;
       await ctx.runMutation(internal.openF1Results.recordOutcome, {
         raceId: args.raceId,
         sessionType: args.sessionType,
         status: 'retrying',
         error: message.slice(0, 500),
-        openF1SessionKey,
+        openF1SessionKey: fallback.openF1SessionKey ?? openF1SessionKey,
       });
 
       return {

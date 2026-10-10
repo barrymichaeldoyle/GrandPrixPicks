@@ -4,6 +4,8 @@ import type { Id } from './_generated/dataModel';
 
 import {
   buildSessionDiscoveryUrl,
+  discoverSessions,
+  fetchJson,
   fetchOfficialClassification,
   getFallbackWindow,
   isLiveSessionRestriction,
@@ -49,6 +51,60 @@ describe('OpenF1 fallback timing', () => {
     );
     expect(url.searchParams.has('date_start>=')).toBe(false);
     expect(url.searchParams.has('date_start<=')).toBe(false);
+  });
+});
+
+describe('OpenF1 session discovery', () => {
+  function noResults() {
+    return Response.json({ detail: 'No results found.' }, { status: 404 });
+  }
+
+  it('reads an empty window as no sessions, not as a missing result', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => noResults()),
+    );
+
+    await expect(
+      discoverSessions(2026, Date.UTC(2026, 9, 10, 13)),
+    ).resolves.toEqual([]);
+    await expect(
+      fetchOfficialClassification({
+        season: 2026,
+        sessionType: 'quali',
+        sessionStartAt: Date.UTC(2026, 9, 10, 13),
+        raceName: 'Singapore Grand Prix',
+        driverByNumber: new Map(),
+      }),
+    ).rejects.toThrow(
+      'OpenF1 has not exposed the Singapore Grand Prix session',
+    );
+  });
+
+  it('finds a qualifying session that started half an hour late', () => {
+    // Singapore 2026: scheduled 13:00Z, OpenF1 has it at 13:30Z.
+    const url = buildSessionDiscoveryUrl(2026, Date.UTC(2026, 9, 10, 13));
+    const actual = '2026-10-10T13:30:00.000Z';
+
+    expect(url.searchParams.get('date_start>')! < actual).toBe(true);
+    expect(url.searchParams.get('date_start<')! > actual).toBe(true);
+  });
+
+  it('names the failed login when an anonymous request is refused', async () => {
+    // No OPEN_F1_* credentials in tests, so the request goes out anonymously.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        Response.json(
+          { detail: 'Live F1 session in progress.' },
+          { status: 401 },
+        ),
+      ),
+    );
+
+    await expect(
+      fetchJson(new URL('https://api.openf1.org/v1/sessions')),
+    ).rejects.toThrow(/HTTP 401.*sent anonymously: OPEN_F1_USERNAME/);
   });
 });
 

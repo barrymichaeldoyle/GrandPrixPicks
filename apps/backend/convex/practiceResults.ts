@@ -9,11 +9,7 @@ import {
   internalQuery,
   query,
 } from './_generated/server';
-import {
-  buildSessionDiscoveryUrl,
-  fetchJson,
-  parseOpenF1Sessions,
-} from './openF1Results';
+import { discoverSessions, fetchJson } from './openF1Results';
 import { getViewer } from './lib/auth';
 import { insertFeedEvent } from './lib/feedSort';
 import { loadRacesInSessionWindow } from './lib/sessionWindows';
@@ -271,9 +267,7 @@ export function buildPracticeSessionSummaries(
 }
 
 async function fetchPracticeResult(args: PracticeTask) {
-  const sessions = parseOpenF1Sessions(
-    await fetchJson(buildSessionDiscoveryUrl(args.season, args.sessionStartAt)),
-  );
+  const sessions = await discoverSessions(args.season, args.sessionStartAt);
   const sessionName = OPEN_F1_SESSION_NAMES[args.sessionType];
   const session = sessions.find(
     (candidate) => candidate.session_name === sessionName,

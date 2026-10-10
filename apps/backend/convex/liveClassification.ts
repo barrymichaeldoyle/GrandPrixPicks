@@ -10,10 +10,9 @@ import {
   query,
 } from './_generated/server';
 import {
-  buildSessionDiscoveryUrl,
+  discoverSessions,
   fetchJson,
   isMissingSessionResults,
-  parseOpenF1Sessions,
 } from './openF1Results';
 import { qualifyingSegmentLaps } from './lib/qualifyingSegments';
 import { loadRacesInSessionWindow } from './lib/sessionWindows';
@@ -284,9 +283,7 @@ interface ActiveTask {
 }
 
 async function refreshTask(ctx: ActionCtx, task: ActiveTask): Promise<null> {
-  const sessions = parseOpenF1Sessions(
-    await fetchJson(buildSessionDiscoveryUrl(task.season, task.startAt)),
-  );
+  const sessions = await discoverSessions(task.season, task.startAt);
   const session = sessions.find((item) =>
     names[task.sessionType].includes(item.session_name),
   );

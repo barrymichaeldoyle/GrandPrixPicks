@@ -14,11 +14,10 @@ import {
 import { getViewer } from './lib/auth';
 import { scoreTopFive } from './lib/scoring';
 import {
-  buildSessionDiscoveryUrl,
+  discoverSessions,
   fetchJson,
   getFallbackWindow,
   isMissingSessionResults,
-  parseOpenF1Sessions,
 } from './openF1Results';
 // Re-exported so existing importers (and liveScoring.test.ts) keep their
 // entry point while the implementation lives in one place.
@@ -355,9 +354,7 @@ export const pollLiveSession = internalAction({
       let sessionKey = args.sessionKey;
       if (sessionKey === undefined) {
         const startAt = sessionStartAt(input.race, args.sessionType);
-        const sessions = parseOpenF1Sessions(
-          await fetchJson(buildSessionDiscoveryUrl(input.race.season, startAt)),
-        );
+        const sessions = await discoverSessions(input.race.season, startAt);
         const expectedName = args.sessionType === 'sprint' ? 'Sprint' : 'Race';
         sessionKey = sessions.find(
           (session) => session.session_name === expectedName,

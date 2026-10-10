@@ -307,3 +307,77 @@ export function deriveFinalOrder(rows: ReadonlyArray<PositionRow>): number[] {
   }
   return order.map((entry) => entry.driverNumber);
 }
+
+// ---------------------------------------------------------------------------
+// Intervals feed
+//
+// OpenF1 publishes `/v1/intervals` for races and sprints only, about every four
+// seconds per car. The running order comes from the position feed; this only
+// adds how far behind the leader each car is.
+// ---------------------------------------------------------------------------
+
+/** How far a car is behind the leader: seconds, or whole laps once lapped. */
+export type LiveGap = {
+  driverNumber: number;
+  gapToLeaderSeconds?: number;
+  lapsBehind?: number;
+};
+
+export type IntervalRow = LiveGap & { date: string };
+
+/** "+1 LAP", "+2 LAPS": how OpenF1 writes a lapped car's gap. */
+const LAPS_BEHIND = /^\+?\s*(\d+)\s*LAPS?$/i;
+
+/**
+ * Lenient where the position parser is strict: a malformed interval row costs
+ * one car its gap, and the order it would sit beside is still right.
+ */
+export function parseOpenF1IntervalRows(value: unknown): IntervalRow[] {
+  if (!Array.isArray(value)) {
+    throw new Error('OpenF1 intervals response was not an array');
+  }
+  return value.flatMap((item): IntervalRow[] => {
+    if (
+      !isRecord(item) ||
+      typeof item.driver_number !== 'number' ||
+      typeof item.date !== 'string' ||
+      !Number.isFinite(Date.parse(item.date))
+    ) {
+      return [];
+    }
+    const base = { driverNumber: item.driver_number, date: item.date };
+    const gap = item.gap_to_leader;
+    if (typeof gap === 'number' && Number.isFinite(gap)) {
+      return [{ ...base, gapToLeaderSeconds: gap }];
+    }
+    const lapped = typeof gap === 'string' ? LAPS_BEHIND.exec(gap) : null;
+    return lapped ? [{ ...base, lapsBehind: Number(lapped[1]) }] : [];
+  });
+}
+
+/** Merge an intervals page into the last-known gap for each driver. */
+export function reduceGaps(
+  existing: ReadonlyArray<LiveGap>,
+  rows: ReadonlyArray<IntervalRow>,
+): LiveGap[] {
+  const latest = new Map<number, IntervalRow>();
+  for (const row of rows) {
+    const previous = latest.get(row.driverNumber);
+    if (!previous || Date.parse(row.date) >= Date.parse(previous.date)) {
+      latest.set(row.driverNumber, row);
+    }
+  }
+  const byDriver = new Map(
+    existing.map((entry) => [entry.driverNumber, entry]),
+  );
+  for (const [driverNumber, row] of latest) {
+    byDriver.set(driverNumber, {
+      driverNumber,
+      ...(row.gapToLeaderSeconds === undefined
+        ? {}
+        : { gapToLeaderSeconds: row.gapToLeaderSeconds }),
+      ...(row.lapsBehind === undefined ? {} : { lapsBehind: row.lapsBehind }),
+    });
+  }
+  return [...byDriver.values()];
+}

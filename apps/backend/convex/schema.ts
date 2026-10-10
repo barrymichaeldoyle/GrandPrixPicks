@@ -451,6 +451,9 @@ export default defineSchema({
             v.literal('nc'),
           ),
         ),
+        // From OpenF1 intervals; absent until the feed has a gap for the car.
+        gapToLeaderSeconds: v.optional(v.number()),
+        lapsBehind: v.optional(v.number()),
       }),
     ),
     standings: v.array(

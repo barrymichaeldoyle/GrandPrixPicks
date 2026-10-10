@@ -1,4 +1,6 @@
 import {
+  liveRaceGap,
+  liveSessionType,
   qualifyingSegmentLabel,
   splitLiveOrder,
 } from '@grandprixpicks/shared/liveSessionBoard';
@@ -25,19 +27,6 @@ const SESSION_LABELS: Record<string, string> = {
   race: 'Race',
 };
 
-/** The scoring-relevant top of a running order, as web shows it. */
-const LIVE_ROWS = 6;
-
-/**
- * Qualifying shows every car still running: who is in the drop zone matters
- * as much as who is on top, and six rows hid it.
- */
-function liveRows(sessionType: string) {
-  return sessionType === 'quali' || sessionType === 'sprint_quali'
-    ? Infinity
-    : LIVE_ROWS;
-}
-
 type LiveEntry = {
   driverNumber: number;
   position: number;
@@ -46,6 +35,9 @@ type LiveEntry = {
   team?: string | null;
   bestLapSeconds: number | null;
   knockedOutIn?: 1 | 2;
+  /** Sprint and race only, from OpenF1 intervals. */
+  gapToLeaderSeconds?: number;
+  lapsBehind?: number;
 };
 
 /**
@@ -141,9 +133,16 @@ export function LiveClassificationCard() {
   }
   const { top, knockouts } = splitLiveOrder(
     live.entries as LiveEntry[],
-    liveRows(live.sessionType),
+    // The whole field: a fight for P12 is still a fight someone is watching.
+    Infinity,
   );
   const entries = withGaps(top);
+  // A race is ordered by track position, not lap time, so its rows carry the
+  // gap to the leader instead of the practice lap-or-gap figure.
+  const racing = liveSessionType(live.sessionType) !== null;
+  const gapFor = new Map(
+    top.map((entry) => [entry.driverNumber, liveRaceGap(entry)]),
+  );
   const label = SESSION_LABELS[live.sessionType] ?? live.sessionType;
   const segment =
     'phase' in live && live.phase !== undefined
@@ -171,7 +170,10 @@ export function LiveClassificationCard() {
               {/* Web separates these rows with `divide-y`; a hairline between
                   siblings is the same rule written out. */}
               {index > 0 ? <View className="h-px bg-border" /> : null}
-              <CompactPracticeRow entry={entry} />
+              <CompactPracticeRow
+                entry={entry}
+                figure={racing ? gapFor.get(entry.driverNumber) : undefined}
+              />
             </View>
           ))}
         </View>

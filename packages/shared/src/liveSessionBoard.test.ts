@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { qualifyingSegmentLabel, splitLiveOrder } from './liveSessionBoard';
+import {
+  liveRaceGap,
+  qualifyingSegmentLabel,
+  splitLiveOrder,
+} from './liveSessionBoard';
 
 describe('qualifyingSegmentLabel', () => {
   it('prefixes sprint qualifying segments with S', () => {
@@ -36,5 +40,17 @@ describe('splitLiveOrder', () => {
 
   it('has no knockouts for practice', () => {
     expect(splitLiveOrder([{ id: 'a' }], 6).knockouts).toEqual([]);
+  });
+});
+
+describe('liveRaceGap', () => {
+  it('names the leader and formats gaps and lapped cars', () => {
+    expect(liveRaceGap({ position: 1, gapToLeaderSeconds: 0 })).toBe('Leader');
+    expect(liveRaceGap({ position: 2, gapToLeaderSeconds: 1.2 })).toBe(
+      '+1.200',
+    );
+    expect(liveRaceGap({ position: 18, lapsBehind: 1 })).toBe('+1 lap');
+    expect(liveRaceGap({ position: 20, lapsBehind: 2 })).toBe('+2 laps');
+    expect(liveRaceGap({ position: 5 })).toBe('—');
   });
 });

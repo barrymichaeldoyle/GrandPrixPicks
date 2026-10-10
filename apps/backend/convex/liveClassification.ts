@@ -435,6 +435,8 @@ export const current = query({
             displayName: driver?.displayName ?? 'Unknown',
             team: driver?.team ?? null,
             bestLapSeconds: null,
+            gapToLeaderSeconds: entry.gapToLeaderSeconds,
+            lapsBehind: entry.lapsBehind,
           };
         }),
     );

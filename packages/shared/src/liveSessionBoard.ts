@@ -106,3 +106,24 @@ export function splitLiveOrder<T extends { knockedOutIn?: 1 | 2 }>(
     .filter((group) => group.entries.length > 0);
   return { top: running.slice(0, topRows), knockouts };
 }
+
+/**
+ * A race or sprint row's figure: the leader is "Leader", everyone else their
+ * gap to the leader, or laps once lapped. An em dash until the intervals feed
+ * has a gap for the car.
+ */
+export function liveRaceGap(entry: {
+  position: number;
+  gapToLeaderSeconds?: number | null;
+  lapsBehind?: number | null;
+}): string {
+  if (entry.position === 1) {
+    return 'Leader';
+  }
+  if (entry.lapsBehind != null) {
+    return `+${entry.lapsBehind} ${entry.lapsBehind === 1 ? 'lap' : 'laps'}`;
+  }
+  return entry.gapToLeaderSeconds == null
+    ? '—'
+    : `+${entry.gapToLeaderSeconds.toFixed(3)}`;
+}

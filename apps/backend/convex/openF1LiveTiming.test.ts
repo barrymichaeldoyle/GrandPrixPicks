@@ -6,9 +6,11 @@ import {
   findPendingInvestigations,
   findSessionFinishedAt,
   LIVE_TIMING_GATE_ZONE,
+  parseOpenF1IntervalRows,
   parseOpenF1PositionRows,
   parseRaceControlMessages,
   type RaceControlMessage,
+  reduceGaps,
 } from './openF1LiveTiming';
 
 function message(
@@ -350,5 +352,72 @@ describe('race control regressions from the 2026 season', () => {
     const gate = evaluateLiveTimingGate({ order, pending });
     expect(gate.provisional).toBe(true);
     expect(gate.pendingInZone.map((entry) => entry.driverNumber)).toEqual([6]);
+  });
+});
+
+describe('intervals feed', () => {
+  it('reads seconds and lapped gaps, skipping rows with neither', () => {
+    expect(
+      parseOpenF1IntervalRows([
+        { driver_number: 1, date: '2026-10-10T10:00:00Z', gap_to_leader: 0 },
+        {
+          driver_number: 4,
+          date: '2026-10-10T10:00:00Z',
+          gap_to_leader: 2.345,
+        },
+        {
+          driver_number: 18,
+          date: '2026-10-10T10:00:00Z',
+          gap_to_leader: '+1 LAP',
+        },
+        {
+          driver_number: 23,
+          date: '2026-10-10T10:00:00Z',
+          gap_to_leader: '+2 LAPS',
+        },
+        {
+          driver_number: 44,
+          date: '2026-10-10T10:00:00Z',
+          gap_to_leader: null,
+        },
+        { driver_number: 'x', date: '2026-10-10T10:00:00Z', gap_to_leader: 1 },
+      ]),
+    ).toEqual([
+      { driverNumber: 1, date: '2026-10-10T10:00:00Z', gapToLeaderSeconds: 0 },
+      {
+        driverNumber: 4,
+        date: '2026-10-10T10:00:00Z',
+        gapToLeaderSeconds: 2.345,
+      },
+      { driverNumber: 18, date: '2026-10-10T10:00:00Z', lapsBehind: 1 },
+      { driverNumber: 23, date: '2026-10-10T10:00:00Z', lapsBehind: 2 },
+    ]);
+  });
+
+  it('keeps the latest gap per car and carries cars missing from the page', () => {
+    expect(
+      reduceGaps(
+        [
+          { driverNumber: 4, gapToLeaderSeconds: 1 },
+          { driverNumber: 81, gapToLeaderSeconds: 5 },
+        ],
+        [
+          {
+            driverNumber: 4,
+            date: '2026-10-10T10:00:04Z',
+            gapToLeaderSeconds: 1.5,
+          },
+          {
+            driverNumber: 4,
+            date: '2026-10-10T10:00:00Z',
+            gapToLeaderSeconds: 1.2,
+          },
+          { driverNumber: 81, date: '2026-10-10T10:00:04Z', lapsBehind: 1 },
+        ],
+      ),
+    ).toEqual([
+      { driverNumber: 4, gapToLeaderSeconds: 1.5 },
+      { driverNumber: 81, lapsBehind: 1 },
+    ]);
   });
 });

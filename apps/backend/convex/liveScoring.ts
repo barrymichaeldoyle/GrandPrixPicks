@@ -17,6 +17,7 @@ import {
   buildSessionDiscoveryUrl,
   fetchJson,
   getFallbackWindow,
+  isMissingSessionResults,
   parseOpenF1Sessions,
 } from './openF1Results';
 // Re-exported so existing importers (and liveScoring.test.ts) keep their
@@ -25,8 +26,11 @@ export {
   parseOpenF1PositionRows,
   reduceRunningOrder,
 } from './openF1LiveTiming';
+import type { LiveGap } from './openF1LiveTiming';
 import {
+  parseOpenF1IntervalRows,
   parseOpenF1PositionRows,
+  reduceGaps,
   reduceRunningOrder,
 } from './openF1LiveTiming';
 
@@ -40,6 +44,31 @@ const workerPositionValidator = v.object({
   driverNumber: v.number(),
   position: v.number(),
 });
+const workerGapValidator = v.object({
+  driverNumber: v.number(),
+  gapToLeaderSeconds: v.optional(v.number()),
+  lapsBehind: v.optional(v.number()),
+});
+const snapshotOrderValidator = v.object({
+  driverId: v.id('drivers'),
+  position: v.number(),
+  gapToLeaderSeconds: v.optional(v.number()),
+  lapsBehind: v.optional(v.number()),
+});
+
+/**
+ * How far back the first intervals request reaches. Only the latest gap per
+ * car is kept, so a poller that starts mid-race has no use for the hours
+ * before it.
+ */
+const INTERVALS_FIRST_WINDOW_MS = 2 * 60_000;
+
+type SnapshotOrderEntry = {
+  driverId: Id<'drivers'>;
+  position: number;
+  gapToLeaderSeconds?: number;
+  lapsBehind?: number;
+};
 
 type LiveSessionType = 'sprint' | 'race';
 type LiveInput = {
@@ -68,16 +97,19 @@ function liveDeadlineAt(race: Doc<'races'>, sessionType: LiveSessionType) {
   return expectedEndAt + LIVE_WINDOW_AFTER_EXPECTED_END_MS;
 }
 
+/** Gaps count: a board whose order holds still is still moving on track. */
 function sameOrder(
-  left: ReadonlyArray<{ driverId: Id<'drivers'>; position: number }>,
-  right: ReadonlyArray<{ driverId: Id<'drivers'>; position: number }>,
+  left: ReadonlyArray<SnapshotOrderEntry>,
+  right: ReadonlyArray<SnapshotOrderEntry>,
 ) {
   return (
     left.length === right.length &&
     left.every(
       (entry, index) =>
         entry.driverId === right[index]?.driverId &&
-        entry.position === right[index]?.position,
+        entry.position === right[index]?.position &&
+        entry.gapToLeaderSeconds === right[index]?.gapToLeaderSeconds &&
+        entry.lapsBehind === right[index]?.lapsBehind,
     )
   );
 }
@@ -273,9 +305,7 @@ export const getLiveInput = internalQuery({
 export const writeSnapshot = internalMutation({
   args: {
     snapshotId: v.id('liveSnapshots'),
-    order: v.array(
-      v.object({ driverId: v.id('drivers'), position: v.number() }),
-    ),
+    order: v.array(snapshotOrderValidator),
     standings: v.array(
       v.object({
         userId: v.id('users'),
@@ -304,6 +334,8 @@ export const pollLiveSession = internalAction({
     sessionKey: v.optional(v.number()),
     latestDate: v.optional(v.string()),
     positions: v.array(workerPositionValidator),
+    intervalsDate: v.optional(v.string()),
+    gaps: v.optional(v.array(workerGapValidator)),
   },
   returns: v.null(),
   handler: async (ctx, args): Promise<null> => {
@@ -334,6 +366,8 @@ export const pollLiveSession = internalAction({
 
       let positions = args.positions;
       let latestDate = args.latestDate;
+      let gaps: LiveGap[] = args.gaps ?? [];
+      let intervalsDate = args.intervalsDate;
       if (sessionKey !== undefined) {
         const positionUrl = new URL('https://api.openf1.org/v1/position');
         positionUrl.searchParams.set('session_key', String(sessionKey));
@@ -366,10 +400,27 @@ export const pollLiveSession = internalAction({
               .join(', ')}`,
           );
         }
-        const order = positions.map((entry) => ({
-          driverId: driverByNumber.get(entry.driverNumber)!,
-          position: entry.position,
-        }));
+        ({ gaps, intervalsDate } = await pollGaps(
+          sessionKey,
+          gaps,
+          intervalsDate,
+        ));
+        const gapByDriver = new Map(
+          gaps.map((entry) => [entry.driverNumber, entry]),
+        );
+        const order = positions.map((entry): SnapshotOrderEntry => {
+          const gap = gapByDriver.get(entry.driverNumber);
+          return {
+            driverId: driverByNumber.get(entry.driverNumber)!,
+            position: entry.position,
+            ...(gap?.gapToLeaderSeconds === undefined
+              ? {}
+              : { gapToLeaderSeconds: gap.gapToLeaderSeconds }),
+            ...(gap?.lapsBehind === undefined
+              ? {}
+              : { lapsBehind: gap.lapsBehind }),
+          };
+        });
         if (order.length > 0 && !sameOrder(input.snapshot.order, order)) {
           await ctx.runMutation(internal.liveScoring.writeSnapshot, {
             snapshotId: input.snapshot._id,
@@ -394,6 +445,8 @@ export const pollLiveSession = internalAction({
           sessionKey,
           latestDate,
           positions,
+          intervalsDate,
+          gaps,
         },
       );
     } catch (error) {
@@ -411,6 +464,48 @@ export const pollLiveSession = internalAction({
     return null;
   },
 });
+
+/**
+ * The latest gap to the leader for each car.
+ *
+ * A failure here keeps the gaps from the last tick rather than failing the
+ * tick: the running order and the live scores do not depend on them.
+ */
+async function pollGaps(
+  sessionKey: number,
+  gaps: LiveGap[],
+  intervalsDate: string | undefined,
+): Promise<{ gaps: LiveGap[]; intervalsDate: string | undefined }> {
+  const url = new URL('https://api.openf1.org/v1/intervals');
+  url.searchParams.set('session_key', String(sessionKey));
+  url.searchParams.set(
+    'date>',
+    intervalsDate ??
+      new Date(Date.now() - INTERVALS_FIRST_WINDOW_MS).toISOString(),
+  );
+  try {
+    const rows = parseOpenF1IntervalRows(await fetchJson(url));
+    return {
+      gaps: reduceGaps(gaps, rows),
+      intervalsDate: rows.reduce(
+        (latest, row) =>
+          !latest || Date.parse(row.date) > Date.parse(latest)
+            ? row.date
+            : latest,
+        intervalsDate,
+      ),
+    };
+  } catch (error) {
+    if (!isMissingSessionResults(error)) {
+      console.warn(
+        `OpenF1 intervals failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+    return { gaps, intervalsDate };
+  }
+}
 
 /**
  * The snapshot a race should currently be shown with, or null.

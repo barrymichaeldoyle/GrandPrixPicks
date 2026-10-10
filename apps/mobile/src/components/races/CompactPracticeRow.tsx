@@ -32,10 +32,13 @@ export function CompactPracticeRow({
   entry,
   size = 'md',
   fill = 'sunken',
+  figure,
 }: {
   entry: PracticeEntry;
   size?: 'sm' | 'md';
   fill?: 'elevated' | 'sunken';
+  /** Replaces the lap-or-gap figure: a race row carries its race gap. */
+  figure?: string;
 }) {
   const { numeralFontFamily } = useTypography();
   const mono: TextStyle = {
@@ -61,7 +64,7 @@ export function CompactPracticeRow({
         numberOfLines={1}
         style={mono}
       >
-        {practiceGapOrLap(entry)}
+        {figure ?? practiceGapOrLap(entry)}
       </Text>
     </View>
   );

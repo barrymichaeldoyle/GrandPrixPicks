@@ -4,6 +4,7 @@ import {
   formatPracticeLap,
   PRACTICE_SESSION_LABELS,
   practiceGapOrLap,
+  resultsTabOnOpen,
 } from './practice';
 
 describe('PRACTICE_SESSION_LABELS', () => {
@@ -66,5 +67,32 @@ describe('practiceGapOrLap', () => {
 
   it('returns an em dash when a non-leader has no gap', () => {
     expect(practiceGapOrLap({ position: 5 })).toBe('—');
+  });
+});
+
+describe('resultsTabOnOpen', () => {
+  it('opens on the most recent result by default', () => {
+    expect(resultsTabOnOpen(['fp1', 'fp2', 'fp3', 'quali'], null)).toBe(
+      'quali',
+    );
+  });
+
+  it('keeps the reader’s tab while nothing newer has been published', () => {
+    expect(
+      resultsTabOnOpen(['fp1', 'fp2', 'fp3'], { tab: 'fp1', latest: 'fp3' }),
+    ).toBe('fp1');
+  });
+
+  it('jumps to a result published since the reader chose a tab', () => {
+    expect(
+      resultsTabOnOpen(['fp1', 'fp2', 'fp3', 'quali'], {
+        tab: 'fp1',
+        latest: 'fp3',
+      }),
+    ).toBe('quali');
+  });
+
+  it('has no tab before any result exists', () => {
+    expect(resultsTabOnOpen([], null)).toBeUndefined();
   });
 });

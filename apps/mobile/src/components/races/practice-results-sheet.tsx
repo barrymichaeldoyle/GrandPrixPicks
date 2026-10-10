@@ -1,3 +1,7 @@
+import {
+  resultsTabOnOpen,
+  type RememberedResultsTab,
+} from '@grandprixpicks/shared/practice';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { Ionicons } from '../ui/Ionicons';
 import { useEffect, useState } from 'react';
@@ -91,8 +95,20 @@ export function PracticeResultsSheet({
     hasSprint,
   ).filter((type) => (competitive[type]?.length ?? 0) > 0);
   const tabs: ResultTab[] = [...practiceTabs, ...competitionTabs];
-  const [selected, setSelected] = useState<ResultTab>(tabs[0] ?? 'fp1');
-  const active = tabs.includes(selected) ? selected : (tabs[0] ?? 'fp1');
+  const [remembered, setRemembered] =
+    useState<RememberedResultsTab<ResultTab> | null>(null);
+  const [selected, setSelected] = useState<ResultTab | undefined>();
+  // The tab is chosen as the sheet opens, not on mount: the sheet stays
+  // mounted while hidden, and a session published in between should lead.
+  const [wasVisible, setWasVisible] = useState(visible);
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
+    if (visible) {
+      setSelected(resultsTabOnOpen(tabs, remembered));
+    }
+  }
+  const active =
+    selected && tabs.includes(selected) ? selected : (tabs.at(-1) ?? 'fp1');
 
   useEffect(() => {
     if (visible) {
@@ -160,6 +176,7 @@ export function PracticeResultsSheet({
               key={tab}
               onPress={() => {
                 setSelected(tab);
+                setRemembered({ tab, latest: tabs.at(-1) ?? tab });
                 captureAnalyticsEvent('session_results_tab_selected', {
                   session_type: tab,
                   platform: 'mobile',

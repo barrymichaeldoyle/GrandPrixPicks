@@ -8,8 +8,14 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/Button/Button';
 import { Flag } from '@/components/Flag';
 import {
+  resultsTabOnOpen,
+  type RememberedResultsTab,
+} from '@grandprixpicks/shared/practice';
+import {
   PracticeResultsPanel,
   resultsSheetHeading,
+  resultsTabs,
+  type ResultsTab,
 } from '@/components/PracticeResultsCard';
 import { useModalDialog } from '@/hooks/useModalDialog';
 import { captureAnalyticsEvent } from '@/lib/analytics';
@@ -102,7 +108,17 @@ export function PracticeResultsModal({
   }, [hasSprint, open, predictionSession, raceId, raceSlug]);
 
   const [heading, setHeading] = useState('Session results');
+  // Held here rather than in the panel, which remounts on every open. The
+  // modal itself stays mounted while closed, so this lasts across reopens.
+  const [rememberedTab, setRememberedTab] =
+    useState<RememberedResultsTab<ResultsTab> | null>(null);
   const countryCode = getCountryCodeForRace({ slug: raceSlug });
+  const competitiveResults = {
+    sprint_quali: sprintQualifyingResult ?? undefined,
+    sprint: sprintResult ?? undefined,
+    quali: qualifyingResult ?? undefined,
+  };
+  const tabs = resultsTabs(results ?? [], competitiveResults);
 
   if (!open) {
     return null;
@@ -163,14 +179,17 @@ export function PracticeResultsModal({
             <PracticeResultsPanel
               results={results}
               layout="compact"
+              initialSession={resultsTabOnOpen(tabs, rememberedTab)}
               onSessionChange={(session) =>
                 setHeading(resultsSheetHeading(session))
               }
-              competitiveResults={{
-                sprint_quali: sprintQualifyingResult ?? undefined,
-                sprint: sprintResult ?? undefined,
-                quali: qualifyingResult ?? undefined,
+              onSessionSelect={(session) => {
+                const latest = tabs.at(-1);
+                if (latest) {
+                  setRememberedTab({ tab: session, latest });
+                }
               }}
+              competitiveResults={competitiveResults}
             />
           )}
         </div>

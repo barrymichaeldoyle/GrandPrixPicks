@@ -56,3 +56,34 @@ export function practiceGapOrLap(entry: {
     ? NO_VALUE
     : `+${entry.gapToLeaderSeconds.toFixed(3)}`;
 }
+
+/**
+ * The results tab a reader last chose, and the newest tab that existed when
+ * they chose it. The second half is what tells "nothing new since" apart from
+ * "a session has been published since".
+ */
+export type RememberedResultsTab<T extends string> = { tab: T; latest: T };
+
+/**
+ * Which tab the session results sheet opens on.
+ *
+ * `tabs` is in weekend order (FP1 → … → Quali), so the last one is the most
+ * recent result. That is the default: the oldest session is the one a reader
+ * is least likely to have opened the sheet for. Their own choice wins on a
+ * reopen, but only while no newer session has been published since they made
+ * it; a new result is the reason to open the sheet again.
+ */
+export function resultsTabOnOpen<T extends string>(
+  tabs: readonly T[],
+  remembered: RememberedResultsTab<T> | null,
+): T | undefined {
+  const latest = tabs.at(-1);
+  if (
+    remembered &&
+    remembered.latest === latest &&
+    tabs.includes(remembered.tab)
+  ) {
+    return remembered.tab;
+  }
+  return latest;
+}

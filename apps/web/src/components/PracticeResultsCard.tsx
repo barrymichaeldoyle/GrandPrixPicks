@@ -19,7 +19,7 @@ import { captureAnalyticsEvent } from '@/lib/analytics';
 
 type PracticeSessionType = 'fp1' | 'fp2' | 'fp3';
 type CompetitiveSessionType = 'sprint_quali' | 'sprint' | 'quali';
-type ResultsTab = PracticeSessionType | CompetitiveSessionType;
+export type ResultsTab = PracticeSessionType | CompetitiveSessionType;
 
 type PracticeResult = FunctionReturnType<
   typeof api.practiceResults.getPracticeResultsForRace
@@ -72,6 +72,7 @@ export function CompactPracticeRow({
   size = 'sm',
   fill = 'elevated',
   gutter = 'tight',
+  figure,
 }: {
   entry: PracticeResult['entries'][number];
   size?: 'sm' | 'md';
@@ -83,6 +84,8 @@ export function CompactPracticeRow({
    * screen, which on a phone read as text with nowhere to go.
    */
   gutter?: 'tight' | 'card';
+  /** Replaces the lap-or-gap figure: a race row carries its race gap. */
+  figure?: string;
 }) {
   const pad = gutter === 'card' ? 'px-4' : 'px-2 sm:px-3';
   return (
@@ -106,7 +109,7 @@ export function CompactPracticeRow({
         />
       </span>
       <span className="gpp-mono min-w-0 text-right text-xs font-semibold whitespace-nowrap text-text">
-        {practiceGapOrLap(entry)}
+        {figure ?? practiceGapOrLap(entry)}
       </span>
     </div>
   );
@@ -256,12 +259,30 @@ function PracticeResultsTable({ result }: { result: PracticeResult }) {
   );
 }
 
+/** The tabs the results panel shows, in weekend order: the last is newest. */
+export function resultsTabs(
+  results: PracticeResult[],
+  competitiveResults?: Partial<
+    Record<CompetitiveSessionType, CompetitiveResult>
+  >,
+): ResultsTab[] {
+  const practiceSessions = (['fp1', 'fp2', 'fp3'] as const).filter(
+    (sessionType) =>
+      results.some((result) => result.sessionType === sessionType),
+  );
+  const availableCompetitiveSessions = (
+    ['sprint_quali', 'sprint', 'quali'] as const
+  ).filter((sessionType) => competitiveResults?.[sessionType]);
+  return [...practiceSessions, ...availableCompetitiveSessions];
+}
+
 export function PracticeResultsPanel({
   results,
   initialSession,
   competitiveResults,
   layout = 'full',
   onSessionChange,
+  onSessionSelect,
 }: {
   results: PracticeResult[];
   initialSession?: ResultsTab;
@@ -276,18 +297,10 @@ export function PracticeResultsPanel({
    */
   layout?: 'full' | 'compact';
   onSessionChange?: (session: ResultsTab) => void;
+  /** Only the reader's own tab presses, unlike `onSessionChange`. */
+  onSessionSelect?: (session: ResultsTab) => void;
 }) {
-  const practiceSessions = (['fp1', 'fp2', 'fp3'] as const).filter(
-    (sessionType) =>
-      results.some((result) => result.sessionType === sessionType),
-  );
-  const availableCompetitiveSessions = (
-    ['sprint_quali', 'sprint', 'quali'] as const
-  ).filter((sessionType) => competitiveResults?.[sessionType]);
-  const availableSessions: ResultsTab[] = [
-    ...practiceSessions,
-    ...availableCompetitiveSessions,
-  ];
+  const availableSessions = resultsTabs(results, competitiveResults);
   const [selectedSessionState, setSelectedSession] = useState<ResultsTab>(
     initialSession ?? availableSessions[0] ?? 'fp1',
   );
@@ -324,6 +337,7 @@ export function PracticeResultsPanel({
             value={selectedSession}
             onChange={(session) => {
               setSelectedSession(session);
+              onSessionSelect?.(session);
               captureAnalyticsEvent('session_results_tab_selected', {
                 session_type: session,
               });

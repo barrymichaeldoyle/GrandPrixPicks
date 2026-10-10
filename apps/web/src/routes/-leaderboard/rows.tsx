@@ -1,25 +1,23 @@
 import { Link } from '@tanstack/react-router';
+import { Avatar } from '@/components/Avatar';
 import { InlineLoader } from '@/components/InlineLoader';
 
 import type { LeaderboardEntry } from './types';
 import { podiumClasses } from '@/lib/podium';
 
+/**
+ * Every rank sits in the same fixed box, podium or not, so the numbers line up
+ * down the column. A podium rank tints the box; the rest leave it bare.
+ */
 function RankMarker({ rank, isViewer }: { rank: number; isViewer?: boolean }) {
   const podiumClass = podiumClasses(rank);
-
-  if (podiumClass) {
-    return (
-      <span
-        className={`gpp-mono inline-flex h-6 min-w-6 items-center justify-center rounded-sm border px-1.5 text-xs ${podiumClass}`}
-      >
-        {rank}
-      </span>
-    );
-  }
+  const tone =
+    podiumClass ??
+    `border-transparent ${isViewer ? 'text-accent' : 'text-text-muted'}`;
 
   return (
     <span
-      className={`gpp-mono text-sm ${isViewer ? 'text-accent' : 'text-text-muted'}`}
+      className={`gpp-mono inline-flex h-7 w-7 items-center justify-center rounded-sm border text-sm ${tone}`}
     >
       {rank}
     </span>
@@ -27,6 +25,10 @@ function RankMarker({ rank, isViewer }: { rank: number; isViewer?: boolean }) {
 }
 
 export function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
+  // Present once a viewer is signed in. Unsigned responses strip it (see
+  // `toBoardEntry`). The fallback is that rule, not defensive coding.
+  const name = entry.displayName ?? entry.username;
+
   return (
     <tr
       className={`border-b border-border transition-colors last:border-0 ${
@@ -34,33 +36,34 @@ export function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
       }`}
       data-testid="leaderboard-entry"
     >
+      {/* The stripe is absolutely positioned, so the viewer's cell keeps the
+          same padding as every other row. Padding it to clear the stripe
+          pushed their rank out of line with the column. */}
       <td
-        className={`px-4 py-3 ${entry.isViewer ? 'gpp-stripe pl-5' : ''}`}
+        className={`w-14 py-2.5 pr-2 pl-4 ${entry.isViewer ? 'gpp-stripe' : ''}`}
         data-testid="position"
       >
         <RankMarker rank={entry.rank} isViewer={entry.isViewer} />
       </td>
-      <td className="px-4 py-3" data-testid="username">
+      <td className="max-w-0 py-2.5 pr-2" data-testid="username">
         <Link
           to="/p/$username"
           params={{ username: entry.username }}
           search={{ from: undefined, fromLabel: undefined }}
-          className="flex items-center gap-2 font-medium text-text"
+          className="flex min-w-0 items-center gap-3 font-medium text-text"
         >
-          {/* Present once a viewer is signed in. Unsigned responses strip
-              it (see `toBoardEntry`). The fallback is that rule, not
-              defensive coding. */}
-          <span className="font-medium text-text">
-            {entry.displayName ?? entry.username}
-          </span>
+          <Avatar avatarUrl={entry.avatarUrl} username={name} size="sm" />
+          <span className="truncate">{name}</span>
+          {/* Screen-reader only on a phone: the stripe and raised row already
+              mark it, and the chip cost a long name its last few letters. */}
           {entry.isViewer && (
-            <span className="rounded-sm bg-accent px-1.5 py-0.5 text-xs font-semibold text-text-on-accent">
+            <span className="sr-only shrink-0 rounded-sm border border-accent/50 text-xs leading-5 font-medium text-accent sm:not-sr-only sm:px-1.5">
               You
             </span>
           )}
         </Link>
       </td>
-      <td className="px-4 py-3 text-right" data-testid="points">
+      <td className="py-2.5 pr-4 pl-2 text-right" data-testid="points">
         <span className="gpp-mono font-medium text-text">{entry.points}</span>
       </td>
     </tr>
@@ -71,59 +74,6 @@ export function LeaderboardContentLoader() {
   return (
     <div className="py-15.25">
       <InlineLoader />
-    </div>
-  );
-}
-
-export function SmallLeaderboard({ entries }: { entries: LeaderboardEntry[] }) {
-  return (
-    <div className="p-4">
-      {entries.map((entry) => (
-        <Link
-          key={entry.userId}
-          to="/p/$username"
-          params={{ username: entry.username }}
-          search={{ from: undefined, fromLabel: undefined }}
-          // Opacity is never used to signal hover; a surface step is.
-          className={`flex cursor-pointer items-center justify-between border-b border-border py-2 transition-colors last:border-0 hover:bg-surface-elevated ${
-            entry.isViewer
-              ? 'gpp-stripe rounded-sm bg-surface-elevated px-2 pl-3'
-              : ''
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <span
-              className={`gpp-mono flex h-7 w-7 items-center justify-center rounded-sm text-sm ${
-                entry.isViewer
-                  ? 'bg-accent text-text-on-accent'
-                  : 'bg-surface-elevated text-text-muted'
-              }`}
-            >
-              {entry.rank}
-            </span>
-            <span className="flex items-center gap-2 font-medium text-text">
-              <span className="font-medium text-text">
-                {entry.displayName ?? entry.username}
-              </span>
-              {entry.isViewer && (
-                <span className="rounded-sm bg-accent px-1.5 py-0.5 text-xs font-semibold text-text-on-accent">
-                  You
-                </span>
-              )}
-            </span>
-          </div>
-          <div className="text-right">
-            <div className="gpp-mono font-medium text-text">
-              {entry.points} pts
-            </div>
-            {entry.raceCount !== undefined && (
-              <div className="text-xs text-text-muted">
-                {entry.raceCount} race{entry.raceCount !== 1 ? 's' : ''}
-              </div>
-            )}
-          </div>
-        </Link>
-      ))}
     </div>
   );
 }

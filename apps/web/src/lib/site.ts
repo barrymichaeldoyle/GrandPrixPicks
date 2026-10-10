@@ -79,6 +79,39 @@ export function raceOgImageUrl(raceSlug: string) {
 }
 
 /**
+ * Absolute URL for a race write-up's own OG card: the Grand Prix and its
+ * session times, rather than the game's brand card.
+ *
+ * @param raceSlug — slug of the race the write-up covers
+ */
+export function raceWriteupOgImageUrl(raceSlug: string) {
+  return `${ogBaseUrl}/og/writeup?race=${raceSlug}`;
+}
+
+/**
+ * Absolute URL for one race news story's OG card.
+ *
+ * `revision` is the story's last headline change, so a corrected headline is
+ * a new URL and a scraper holding the old image fetches the new one.
+ *
+ * @param raceSlug — slug of the race the story belongs to
+ * @param key — the story's `raceNews` key
+ * @param revision — `headlineUpdatedAt ?? publishedAt`
+ */
+export function raceNewsOgImageUrl(
+  raceSlug: string,
+  key: string,
+  revision: number,
+) {
+  const search = new URLSearchParams({
+    race: raceSlug,
+    story: key,
+    v: String(revision),
+  });
+  return `${ogBaseUrl}/og/news?${search.toString()}`;
+}
+
+/**
  * Absolute URL for a dynamically rendered share-card OG image.
  * @param search — query string params for the /og/share endpoint
  */

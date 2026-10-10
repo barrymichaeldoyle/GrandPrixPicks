@@ -369,6 +369,7 @@ describe('SEO head metadata', () => {
     const { head } = madridRoute as unknown as {
       head: (args: {
         loaderData: { race: { raceStartAt: number; status: string } };
+        match: { search: object };
       }) => HeadResult;
     };
 
@@ -376,6 +377,7 @@ describe('SEO head metadata', () => {
       loaderData: {
         race: { status: 'upcoming', raceStartAt: 1_789_304_400_000 },
       },
+      match: { search: {} },
     });
     expect(result.meta?.find((tag) => tag.title)?.title).toBe(
       '2026 Spanish Grand Prix Predictions | Madrid',
@@ -390,6 +392,7 @@ describe('SEO head metadata', () => {
     const { head } = Route as unknown as {
       head: (args: {
         loaderData: { race: { raceStartAt: number; status: string } };
+        match: { search: object };
       }) => HeadResult;
     };
     const result = head({
@@ -399,6 +402,7 @@ describe('SEO head metadata', () => {
           raceStartAt: Date.parse('2026-10-04T07:00:00Z'),
         },
       },
+      match: { search: {} },
     });
     expect(result.meta?.find((tag) => tag.title)?.title).toBe(
       '2026 Bahrain Grand Prix Results & Picks | Sepang',
@@ -412,6 +416,63 @@ describe('SEO head metadata', () => {
     const schema = result.scripts?.map((script) => script.children).join(' ');
     expect(schema).toContain('Formula 1 returned to Sepang on 4 October 2026');
     expect(schema).toContain('Bahrain Grand Prix results');
+  });
+
+  it("gives a write-up link with ?story= that story's card, on the same canonical", async () => {
+    const { Route } =
+      await import('./f1-2026-singapore-grand-prix-predictions');
+    const { head } = Route as unknown as {
+      head: (args: {
+        loaderData: {
+          race: { raceStartAt: number; status: string };
+          news: {
+            items: {
+              key: string;
+              headline: string;
+              publishedAt: number;
+              headlineUpdatedAt?: number;
+            }[];
+          };
+        };
+        match: { search: object };
+      }) => HeadResult;
+    };
+    const loaderData = {
+      race: { status: 'upcoming', raceStartAt: 1_791_720_000_000 },
+      news: {
+        items: [
+          {
+            key: 'hadjar-power',
+            headline: 'Hadjar fails to set a qualifying time',
+            publishedAt: 1_000,
+            headlineUpdatedAt: 2_000,
+          },
+        ],
+      },
+    };
+    function tags(search: object) {
+      const result = head({ loaderData, match: { search } });
+      return {
+        image: result.meta?.find((tag) => tag.property === 'og:image')?.content,
+        alt: result.meta?.find((tag) => tag.property === 'og:image:alt')
+          ?.content,
+        canonical: result.links?.find((link) => link.rel === 'canonical')?.href,
+      };
+    }
+
+    expect(tags({ story: 'hadjar-power' })).toEqual({
+      image:
+        'https://grandprixpicks.com/og/news?race=singapore-2026&story=hadjar-power&v=2000',
+      alt: 'Hadjar fails to set a qualifying time',
+      canonical:
+        'https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions',
+    });
+    // A plain link, or a story no longer on the page, gets the write-up card.
+    for (const search of [{}, { story: 'retracted' }]) {
+      expect(tags(search).image).toBe(
+        'https://grandprixpicks.com/og/writeup?race=singapore-2026',
+      );
+    }
   });
 
   it('only promises Baku qualifying and grid details after they are published', async () => {
@@ -431,6 +492,7 @@ describe('SEO head metadata', () => {
             items: { key: string; startingGrid?: { position: number }[] }[];
           };
         };
+        match: { search: object };
       }) => HeadResult;
     };
     const race = {
@@ -444,6 +506,7 @@ describe('SEO head metadata', () => {
     ) {
       return head({
         loaderData: { race, weatherNow: 2_500, news: { items } },
+        match: { search: {} },
       }).meta?.find((tag) => tag.title)?.title;
     }
 

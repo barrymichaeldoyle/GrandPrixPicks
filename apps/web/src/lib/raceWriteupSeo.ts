@@ -9,7 +9,8 @@ import { getRaceWriteup, listRaceWriteups } from '@/lib/raceWriteups';
 import {
   breadcrumbSchema,
   pageMeta,
-  raceOgImageUrl,
+  raceNewsOgImageUrl,
+  raceWriteupOgImageUrl,
   siteConfig,
   sportsEventSchema,
 } from '@/lib/site';
@@ -93,6 +94,36 @@ type WriteupHeadRace = {
   status: string;
 };
 
+type WriteupHeadStory = {
+  key: string;
+  headline: string;
+  publishedAt: number;
+  headlineUpdatedAt?: number;
+};
+
+/**
+ * The story a shared write-up link names with `?story=<key>`, if it is still
+ * on the page.
+ *
+ * News posts on X all link to the write-up, and X caches a link preview by
+ * URL. The query string gives each post its own URL, and so its own card
+ * showing that story's headline, while the canonical stays the bare write-up:
+ * this is a different preview of one page, not a second page. A key that is
+ * unknown, retracted or off the write-up falls back to the write-up's card.
+ */
+function sharedStory(
+  search: unknown,
+  news: readonly WriteupHeadStory[] | undefined,
+): WriteupHeadStory | undefined {
+  if (!search || typeof search !== 'object' || !('story' in search)) {
+    return undefined;
+  }
+  const key = search.story;
+  return typeof key === 'string'
+    ? news?.find((item) => item.key === key)
+    : undefined;
+}
+
 type WriteupHeadFaq = {
   question: string;
   answer: string;
@@ -116,6 +147,8 @@ export function raceWriteupPageHead({
   eventAlternateName,
   breadcrumbName,
   race,
+  news,
+  search,
   faqs,
   extraGraph = [],
 }: {
@@ -135,6 +168,10 @@ export function raceWriteupPageHead({
   eventAlternateName?: string;
   breadcrumbName: string;
   race?: WriteupHeadRace | null;
+  /** The write-up's news items, to resolve a `?story=` link's card. */
+  news?: readonly WriteupHeadStory[];
+  /** The route match's search params. */
+  search?: unknown;
   faqs: readonly WriteupHeadFaq[];
   extraGraph?: readonly object[];
 }) {
@@ -145,13 +182,20 @@ export function raceWriteupPageHead({
         ? description.cancelled
         : description.live;
   const circuit = getCircuitForRace(raceSlug);
-  const image = raceOgImageUrl(raceSlug);
+  const image = raceWriteupOgImageUrl(raceSlug);
+  const story = sharedStory(search, news);
   const meta = pageMeta({
     title,
     description: resolvedDescription,
     path,
-    image,
-    imageAlt,
+    image: story
+      ? raceNewsOgImageUrl(
+          raceSlug,
+          story.key,
+          story.headlineUpdatedAt ?? story.publishedAt,
+        )
+      : image,
+    imageAlt: story ? story.headline : imageAlt,
   });
   const event =
     race && circuit

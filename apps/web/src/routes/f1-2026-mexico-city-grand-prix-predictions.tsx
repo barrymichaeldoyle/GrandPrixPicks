@@ -112,7 +112,7 @@ export const Route = createFileRoute(
     }
     return { race, championship, weather, weatherNow, news, season, practice };
   },
-  head: ({ loaderData }) =>
+  head: ({ loaderData, match }) =>
     raceWriteupPageHead({
       path: PATH,
       raceSlug: RACE_SLUG,
@@ -129,6 +129,8 @@ export const Route = createFileRoute(
       eventName: '2026 Mexico City Grand Prix',
       breadcrumbName: 'Mexico City Grand Prix predictions',
       race: loaderData?.race,
+      news: loaderData?.news?.items,
+      search: match.search,
       faqs: FAQS,
     }),
 });

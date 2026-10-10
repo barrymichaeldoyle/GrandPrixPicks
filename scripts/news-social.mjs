@@ -11,6 +11,9 @@ import {
 import path from 'node:path';
 
 const MINUTE = 60_000;
+/** A race write-up link in post copy, capturing its query string. */
+const WRITEUP_LINK =
+  /https:\/\/grandprixpicks\.com\/f1-\d{4}-[a-z-]+-grand-prix-predictions(\?[^\s#]*)?/g;
 const ACTIVE = new Set(['scheduled', 'sending', 'needs_approval']);
 
 function digest(value) {
@@ -256,6 +259,17 @@ async function run(file, flags, { convexRun, buffer, now, ledgerFile }) {
           revision: revision(item),
         };
       });
+      // X caches a link preview by URL. A bare write-up link unfurls as the
+      // write-up's card on every post; `?story=<key>` shows that story's
+      // headline instead (docs/news-social.md).
+      for (const [, query] of post.text.matchAll(WRITEUP_LINK)) {
+        const story = new URLSearchParams(query).get('story');
+        if (!story || !post.keys.includes(story)) {
+          throw new Error(
+            `Write-up links need ?story=<one of this post's keys>: ${post.keys.join(', ')}`,
+          );
+        }
+      }
       return { ...post, stories, expiresAt };
     });
   }

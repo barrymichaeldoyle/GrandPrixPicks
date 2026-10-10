@@ -280,7 +280,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
       nextRace,
     };
   },
-  head: ({ loaderData }) =>
+  head: ({ loaderData, match }) =>
     raceWriteupPageHead({
       path: PATH,
       raceSlug: RACE_SLUG,
@@ -298,6 +298,8 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
       eventAlternateName: '2026 Madrid Grand Prix',
       breadcrumbName: 'Spanish Grand Prix predictions',
       race: loaderData?.race,
+      news: loaderData?.news?.items,
+      search: match.search,
       faqs: faqs(loaderData?.race?.status === 'finished'),
     }),
 });

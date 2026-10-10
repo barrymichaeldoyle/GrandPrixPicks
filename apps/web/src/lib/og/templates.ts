@@ -2211,3 +2211,374 @@ export function guideTemplate({
     ),
   );
 }
+
+// ────────── Race write-up and news cards ──────────
+
+/**
+ * The write-up and news cards share one frame: dark ground, the race named
+ * across the top beside its flag, the wordmark opposite, and a single accent
+ * mark. They front editorial pages, so unlike the chartreuse brand card they
+ * lead with the race or the story rather than the game.
+ */
+const EDITORIAL_INSET = 72;
+
+function editorialFlag(flagSrc: string | undefined, width: number): ReactNode {
+  return flagSrc
+    ? e('img', {
+        src: flagSrc,
+        width,
+        height: Math.round(width * (2 / 3)),
+        // A hairline, so a flag with a white field (Singapore, Japan) keeps
+        // its edge on the dark ground too.
+        style: {
+          borderRadius: 1,
+          objectFit: 'cover' as const,
+          border: `1px solid ${colors.borderStrong}`,
+        },
+      })
+    : null;
+}
+
+/**
+ * A short label on an accent chip, leaning at the mark's 12 degrees. This is
+ * the card's one accent element. The text is skewed back so it stays upright.
+ */
+function accentTag(text: string): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        alignSelf: 'flex-start',
+        backgroundColor: colors.accent,
+        borderRadius: 2,
+        padding: '7px 18px',
+        transform: 'skewX(-12deg)',
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          fontSize: 20,
+          fontWeight: 600,
+          color: colors.textOnAccent,
+          transform: 'skewX(12deg)',
+        },
+      },
+      text,
+    ),
+  );
+}
+
+function editorialFrame({
+  raceName,
+  raceMeta,
+  flagSrc,
+  body,
+  footer,
+}: {
+  raceName: string;
+  raceMeta: string;
+  flagSrc?: string;
+  body: ReactNode;
+  footer: ReactNode;
+}): ReactNode {
+  const { width, height } = getOgDimensions('og');
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column' as const,
+        width,
+        height,
+        padding: `48px ${EDITORIAL_INSET}px 46px`,
+        backgroundColor: colors.bg,
+        fontFamily: 'Archivo',
+        color: colors.text,
+        overflow: 'hidden' as const,
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', alignItems: 'center', gap: 16 } },
+        editorialFlag(flagSrc, 42),
+        e('div', { style: { fontSize: 24, fontWeight: 600 } }, raceName),
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 20,
+              fontFamily: 'IBM Plex Mono',
+              color: colors.textMuted,
+            },
+          },
+          raceMeta,
+        ),
+      ),
+      e(
+        'div',
+        { style: { display: 'flex', alignItems: 'center', gap: 12 } },
+        brandMark(28),
+        e(
+          'div',
+          { style: { fontSize: 20, fontWeight: 600 } },
+          'Grand Prix Picks',
+        ),
+      ),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column' as const,
+          justifyContent: 'center',
+          flex: 1,
+        },
+      },
+      body,
+    ),
+    e('div', {
+      style: { height: 1, backgroundColor: colors.border, marginBottom: 24 },
+    }),
+    footer,
+  );
+}
+
+export interface RaceWriteupOgData {
+  raceName: string;
+  round: number;
+  season: number;
+  /** Town the circuit is in, e.g. "Monza". */
+  venue?: string;
+  hasSprint: boolean;
+  flagSrc?: string;
+  /** Track-local session starts in weekend order, e.g. "Sun 20:00". */
+  sessions: readonly { label: string; day: string; time: string }[];
+  /** The zone the session times are in, e.g. "GMT+8". */
+  timeZone?: string;
+}
+
+/**
+ * The card for a race write-up: the Grand Prix named large and the weekend's
+ * session times beneath it.
+ *
+ * Write-ups used to share the site's brand card ("Predict the F1 Top 5"),
+ * which is right for the bare domain and wrong for a preview article: a news
+ * post on X linking here unfurled as an advert. The schedule is the one fact
+ * every reader of a preview wants, and it never goes stale for a given slug.
+ */
+export function raceWriteupTemplate(data: RaceWriteupOgData): ReactNode {
+  return editorialFrame({
+    raceName: data.raceName,
+    // "Singapore" beside "Singapore Grand Prix" says it twice.
+    raceMeta:
+      data.venue && !data.raceName.includes(data.venue) ? data.venue : '',
+    flagSrc: data.flagSrc,
+    body: e(
+      'div',
+      { style: { display: 'flex', flexDirection: 'column' as const } },
+      accentTag(
+        data.hasSprint
+          ? `Round ${data.round} · Sprint weekend`
+          : `Round ${data.round}`,
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            flexDirection: 'column' as const,
+            marginTop: 26,
+            fontSize: 92,
+            fontWeight: 600,
+            letterSpacing: -3.5,
+            lineHeight: 1.0,
+          },
+        },
+        e('div', {}, data.raceName),
+        e(
+          'div',
+          { style: { fontWeight: 300, color: colors.textMuted } },
+          `${data.season} predictions`,
+        ),
+      ),
+    ),
+    footer: e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', gap: 44 } },
+        ...data.sessions.map((session) =>
+          e(
+            'div',
+            {
+              key: session.label,
+              style: { display: 'flex', flexDirection: 'column' as const },
+            },
+            e(
+              'div',
+              {
+                style: {
+                  fontFamily: 'IBM Plex Mono',
+                  fontSize: 17,
+                  color: colors.textMuted,
+                },
+              },
+              session.label,
+            ),
+            e(
+              'div',
+              {
+                style: {
+                  display: 'flex',
+                  marginTop: 6,
+                  fontFamily: 'IBM Plex Mono',
+                  fontSize: 28,
+                  fontWeight: 600,
+                },
+              },
+              `${session.day} ${session.time}`,
+            ),
+          ),
+        ),
+      ),
+      data.timeZone
+        ? e(
+            'div',
+            {
+              style: {
+                fontFamily: 'IBM Plex Mono',
+                fontSize: 17,
+                color: colors.textMuted,
+              },
+            },
+            `Local time · ${data.timeZone}`,
+          )
+        : null,
+    ),
+  });
+}
+
+export interface RaceNewsOgData {
+  raceName: string;
+  round: number;
+  flagSrc?: string;
+  headline: string;
+  sourceName: string;
+  /** e.g. "10 Oct 2026". */
+  dateLabel: string;
+  drivers: readonly { code: string; teamColor: string }[];
+}
+
+/**
+ * Headline size by length, so a short story fills the card and a long one
+ * still fits in four lines at 1200px wide.
+ */
+function newsHeadlineSize(headline: string): number {
+  const length = headline.length;
+  if (length <= 48) {
+    return 84;
+  }
+  if (length <= 72) {
+    return 72;
+  }
+  if (length <= 100) {
+    return 60;
+  }
+  if (length <= 135) {
+    return 52;
+  }
+  return 44;
+}
+
+/**
+ * The card for one news story, served when a write-up link carries
+ * `?story=<key>`. X caches a preview by URL, so each story's link unfurls as
+ * its own headline while the canonical page stays the write-up.
+ *
+ * The headline is the story's own, verbatim. Drivers the story names appear
+ * as chips with their team bar, as they do beside the story on the page.
+ */
+export function raceNewsTemplate(data: RaceNewsOgData): ReactNode {
+  return editorialFrame({
+    raceName: data.raceName,
+    raceMeta: `Round ${data.round}`,
+    flagSrc: data.flagSrc,
+    body: e(
+      'div',
+      { style: { display: 'flex', flexDirection: 'column' as const } },
+      accentTag('News'),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            marginTop: 26,
+            fontSize: newsHeadlineSize(data.headline),
+            fontWeight: 600,
+            letterSpacing: -1.5,
+            lineHeight: 1.08,
+          },
+        },
+        data.headline,
+      ),
+    ),
+    footer: e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          height: 48,
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', gap: 10 } },
+        ...data.drivers.slice(0, 5).map((driver) =>
+          e(
+            'div',
+            { key: driver.code, style: { display: 'flex' } },
+            driverChip(driver.code, driver.teamColor, {
+              width: 96,
+              height: 48,
+              fontSize: 22,
+            }),
+          ),
+        ),
+      ),
+      e(
+        'div',
+        {
+          style: {
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 19,
+            color: colors.textMuted,
+          },
+        },
+        `${data.sourceName} · ${data.dateLabel}`,
+      ),
+    ),
+  });
+}

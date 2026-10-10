@@ -241,7 +241,7 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
         nextRace,
       };
     },
-    head: ({ loaderData }) =>
+    head: ({ loaderData, match }) =>
       raceWriteupPageHead({
         title: '2026 Italian Grand Prix Predictions & Picks',
         eventName: '2026 Italian Grand Prix',
@@ -249,6 +249,8 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
         raceSlug: RACE_SLUG,
         breadcrumbName: 'Italian Grand Prix predictions',
         race: loaderData?.race,
+        news: loaderData?.news?.items,
+        search: match.search,
         reviewedAt: PROSE_REVIEWED_AT,
         faqs: faqs(loaderData?.race?.status === 'finished'),
         imageAlt:

@@ -186,7 +186,7 @@ export const Route = createFileRoute(
       nextRace,
     };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, match }) => {
     const qualifyingPublished = loaderData?.news?.items.some(
       (item) => item.key === 'baku-2026-qualifying',
     );
@@ -230,6 +230,8 @@ export const Route = createFileRoute(
       eventName: '2026 Azerbaijan Grand Prix',
       breadcrumbName: 'Azerbaijan Grand Prix predictions',
       race: loaderData?.race,
+      news: loaderData?.news?.items,
+      search: match.search,
       faqs: FAQS,
       extraGraph: [bakuCrashDatasetSchema(PATH)],
     });

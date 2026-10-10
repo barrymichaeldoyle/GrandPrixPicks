@@ -178,7 +178,7 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
         nextRace,
       };
     },
-    head: ({ loaderData }) =>
+    head: ({ loaderData, match }) =>
       raceWriteupPageHead({
         path: PATH,
         raceSlug: RACE_SLUG,
@@ -202,6 +202,8 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
             ? 'Bahrain Grand Prix results'
             : 'Bahrain Grand Prix predictions',
         race: loaderData?.race,
+        news: loaderData?.news?.items,
+        search: match.search,
         faqs: FAQS,
       }),
   },

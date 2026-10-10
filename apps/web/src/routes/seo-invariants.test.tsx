@@ -304,7 +304,11 @@ async function headFor(
     Route: { head: (args?: unknown) => Head };
   };
   const args = entry.loader ? await entry.loader() : entry.args;
-  return module.Route.head(status ? withRaceStatus(args, status) : args);
+  // Write-up heads read `match.search` for a shared story's card.
+  const withMatch = { match: { search: {} }, ...(args as object) };
+  return module.Route.head(
+    status ? withRaceStatus(withMatch, status) : withMatch,
+  );
 }
 
 /**

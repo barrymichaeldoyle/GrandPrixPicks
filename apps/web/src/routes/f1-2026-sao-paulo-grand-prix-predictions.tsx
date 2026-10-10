@@ -122,7 +122,7 @@ export const Route = createFileRoute(
       practice,
     };
   },
-  head: ({ loaderData }) =>
+  head: ({ loaderData, match }) =>
     raceWriteupPageHead({
       path: PATH,
       raceSlug: RACE_SLUG,
@@ -139,6 +139,8 @@ export const Route = createFileRoute(
       eventName: '2026 São Paulo Grand Prix',
       breadcrumbName: 'São Paulo Grand Prix predictions',
       race: loaderData?.race,
+      news: loaderData?.news?.items,
+      search: match.search,
       faqs: FAQS,
     }),
 });

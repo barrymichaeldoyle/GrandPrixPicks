@@ -22,8 +22,9 @@ the next available slot; set its requested start time accordingly.
 
 3. Select the strongest developments and write independent, factual X copy.
    Include a useful link to the source, the race write-up or the exact feed
-   card. Avoid forced calls to action, hashtags and repeated versions of the
-   same update. Review any result spoilers in the social selection separately
+   card. A write-up link carries `?story=<key>` for one of the post's stories
+   (see Link previews below); the CLI refuses a bare one. Avoid forced calls
+   to action, hashtags and repeated versions of the same update. Review any result spoilers in the social selection separately
    from push eligibility.
 4. Save the selection alongside the campaign in `artifacts/social/`. Point
    `newsFile` at the JSON batch that was published; paths are relative to the
@@ -51,7 +52,7 @@ the next available slot; set its requested start time accordingly.
   "posts": [
     {
       "keys": ["<published-story-key>"],
-      "text": "<Reviewed X copy and link>",
+      "text": "<Reviewed X copy> https://grandprixpicks.com/f1-2026-<race>-grand-prix-predictions?story=<published-story-key>",
       "expiresAt": "2026-10-10T09:00:00Z"
     }
   ]
@@ -69,6 +70,22 @@ least five minutes in the future and finds the first available slots. Choose
 the sprint for a sprint-grid story. The entire batch is refused if any post
 cannot fit before its expiry. The expiry limits scheduling; it is not a
 Buffer-side automatic cancellation timer.
+
+## Link previews
+
+X caches a link preview by URL, so every post linking the bare write-up shows
+the same card. `?story=<key>` gives each post its own URL and its own card:
+the write-up head (`raceWriteupPageHead` in `apps/web/src/lib/raceWriteupSeo.ts`)
+swaps `og:image` to `/og/news?race=<slug>&story=<key>&v=<revision>`, rendered by
+`raceNewsTemplate`, with the story's headline, its drivers and its source. The
+canonical stays the bare write-up, so this is not a new page. A key that is not
+on the write-up (retracted, unselected, misspelt) falls back to the write-up's
+own card, `/og/writeup?race=<slug>` (`raceWriteupTemplate`: race name, round
+and the weekend's session times).
+
+The `v` revision is the story's last headline change, so a corrected headline
+is a new image URL. X may still hold the old card for a post that already
+went out.
 
 ## Corrections and retries
 

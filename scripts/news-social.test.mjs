@@ -196,6 +196,21 @@ test('rejects changed, retracted, unselected and embargoed news before any creat
   }
 });
 
+test("requires write-up links to name one of the post's stories", async (t) => {
+  const f = fixture(t, 1);
+  const writeup =
+    'https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions';
+  for (const link of [writeup, `${writeup}?story=story-9`]) {
+    f.plan.posts[0].text = `Story 0. ${link}`;
+    f.write();
+    await assert.rejects(f.run(true), /need \?story=<one of this post's keys>/);
+  }
+  assert.equal(f.calls.length, 0);
+  f.plan.posts[0].text = `Story 0. ${writeup}?story=story-0`;
+  f.write();
+  await f.run(false);
+});
+
 test('rejects a slot beyond expiry before scheduling any part of the batch', async (t) => {
   const f = fixture(t);
   f.plan.posts[1].expiresAt = '2026-10-09T18:30:00Z';

@@ -136,7 +136,7 @@ export const Route = createFileRoute(
       nextRace,
     };
   },
-  head: ({ loaderData }) =>
+  head: ({ loaderData, match }) =>
     raceWriteupPageHead({
       path: PATH,
       raceSlug: RACE_SLUG,
@@ -153,6 +153,8 @@ export const Route = createFileRoute(
       eventName: '2026 Singapore Grand Prix',
       breadcrumbName: 'Singapore Grand Prix predictions',
       race: loaderData?.race,
+      news: loaderData?.news?.items,
+      search: match.search,
       faqs: FAQS,
     }),
 });

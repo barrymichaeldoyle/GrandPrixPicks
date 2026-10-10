@@ -62,6 +62,7 @@ export function H2HDuelQuestion({
   variant = 'inline',
   showTeam = false,
   status,
+  insight,
   disabled = false,
 }: {
   matchup: H2HDuelMatchup;
@@ -74,6 +75,11 @@ export function H2HDuelQuestion({
   showTeam?: boolean;
   /** The invitation to tap, and what happened when you did. */
   status?: ReactNode;
+  /**
+   * The form guide under the panels (`H2HDuelFormGuide`). Owned by the caller
+   * because it needs the race this question does not know about.
+   */
+  insight?: ReactNode;
   disabled?: boolean;
 }) {
   const isTakeover = variant === 'takeover';
@@ -139,6 +145,8 @@ export function H2HDuelQuestion({
           {renderPanel(matchup.driver2)}
         </View>
       )}
+
+      {insight ?? null}
 
       {status !== undefined ? (
         <View

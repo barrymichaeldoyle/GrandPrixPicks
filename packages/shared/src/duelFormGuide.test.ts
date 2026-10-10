@@ -99,6 +99,59 @@ describe('duelFormGuideRows', () => {
     ]);
   });
 
+  it('adds this weekend’s scored sessions after practice, in running order', () => {
+    const rows = duelFormGuideRows({
+      driver1,
+      driver2,
+      sessionType: 'quali',
+      battle: undefined,
+      practice: [practice[0]!],
+      sessions: [
+        {
+          sessionType: 'sprint_quali',
+          entries: [
+            { driverId: 'had', position: 4, status: null },
+            { driverId: 'ver', position: 6, status: null },
+          ],
+        },
+        {
+          sessionType: 'sprint',
+          entries: [
+            { driverId: 'ver', position: 2, status: null },
+            { driverId: 'had', position: 19, status: 'dnf' },
+          ],
+        },
+      ],
+    });
+    expect(rows.map((row) => [row.label, ...row.values, row.edge])).toEqual([
+      ['FP1', 'P3', 'P7', 'driver1'],
+      ['Sprint Quali', 'P6', 'P4', 'driver2'],
+      ['Sprint', 'P2', 'DNF', 'driver1'],
+    ]);
+  });
+
+  it('gives a non-starter no edge either way', () => {
+    const rows = duelFormGuideRows({
+      driver1,
+      driver2,
+      sessionType: 'race',
+      battle: undefined,
+      practice: [],
+      sessions: [
+        {
+          sessionType: 'quali',
+          entries: [
+            { driverId: 'ver', position: 9, status: null },
+            { driverId: 'had', position: 22, status: 'dns' },
+          ],
+        },
+      ],
+    });
+    expect(rows).toEqual([
+      { key: 'quali', label: 'Qualifying', values: ['P9', 'DNS'], edge: null },
+    ]);
+  });
+
   it('draws nothing before the season or the weekend has data', () => {
     expect(
       duelFormGuideRows({

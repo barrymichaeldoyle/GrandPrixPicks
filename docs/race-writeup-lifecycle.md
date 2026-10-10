@@ -160,9 +160,11 @@ picker a screen of controls, and nothing on this page is eleven rows again.
 
 Every duel, here and on the dashboard, carries a form guide under the two
 drivers (`H2HDuelFormGuide`): the pair's head-to-head record this season for
-the session being called and overall, and their positions in this weekend's
-practice sessions. It reports facts in the duel's order and says nothing about
-who to pick.
+the session being called and overall, and their positions in every session
+this weekend that has a result (practice, then Sprint Quali, Sprint and
+Qualifying). It reports facts in the duel's order and says nothing about who to
+pick. Mobile's duels carry the same guide, built from the same rows
+(`packages/shared/src/duelFormGuide.ts`).
 
 The news used to be full cards. Until October 2026 four of them, a photo and
 the F1 Store card sat between the hero and the article, about three screens on

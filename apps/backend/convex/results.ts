@@ -629,6 +629,50 @@ export const getResultForRace = query({
   },
 });
 
+/**
+ * Where each driver finished in every session of the weekend that has a
+ * result, in weekend order. Positions and statuses only, no driver details:
+ * the H2H form guide already has both team-mates and reads them by id, so
+ * this is one light subscription for every duel on the picker.
+ */
+export const getWeekendSessionPositions = query({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    const results = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
+      .take(8);
+    // Chronological on both weekend shapes: a regular weekend just has no
+    // sprint rows.
+    const order: Array<SessionType> = [
+      'sprint_quali',
+      'sprint',
+      'quali',
+      'race',
+    ];
+    return results
+      .map((result) => {
+        const statusByDriver = new Map(
+          (result.driverStatuses ?? []).map((entry) => [
+            entry.driverId,
+            entry.status,
+          ]),
+        );
+        return {
+          sessionType: result.sessionType,
+          entries: result.classification.map((driverId, index) => ({
+            driverId,
+            position: index + 1,
+            status: statusByDriver.get(driverId) ?? null,
+          })),
+        };
+      })
+      .sort(
+        (a, b) => order.indexOf(a.sessionType) - order.indexOf(b.sessionType),
+      );
+  },
+});
+
 // Get all available results for a race (for tabs)
 export const getAllResultsForRace = query({
   args: { raceId: v.id('races') },

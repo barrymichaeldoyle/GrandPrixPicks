@@ -20,6 +20,7 @@
     "./dates": "./src/dates.ts",
     "./displayName": "./src/displayName.ts",
     "./driverStatus": "./src/driverStatus.ts",
+    "./duelFormGuide": "./src/duelFormGuide.ts",
     "./feedGroups": "./src/feedGroups.ts",
     "./follows": "./src/follows.ts",
     "./h2hInference": "./src/h2hInference.ts",

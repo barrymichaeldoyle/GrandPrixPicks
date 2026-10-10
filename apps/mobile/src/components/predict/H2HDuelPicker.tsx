@@ -1,5 +1,6 @@
 import { Ionicons } from '../ui/Ionicons';
 import * as Haptics from 'expo-haptics';
+import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useReducedMotion } from 'react-native-reanimated';
 
@@ -31,6 +32,7 @@ export function H2HDuelPicker({
   topFivePositions,
   inferredMatchupIds,
   disabled = false,
+  renderInsight,
 }: {
   matchups: ReadonlyArray<H2HDuelMatchup>;
   selections: Record<string, string | undefined>;
@@ -48,6 +50,8 @@ export function H2HDuelPicker({
    */
   inferredMatchupIds?: ReadonlySet<string>;
   disabled?: boolean;
+  /** The form guide under the duel on screen (`H2HDuelFormGuide`). */
+  renderInsight?: (matchup: H2HDuelMatchup) => ReactNode;
 }) {
   const reduceMotion = useReducedMotion();
   const firstOpenIndex = (() => {
@@ -211,6 +215,7 @@ export function H2HDuelPicker({
           <View className="rounded-xl border border-border bg-surface p-3">
             <H2HDuelQuestion
               disabled={disabled}
+              insight={renderInsight?.(matchup)}
               matchup={matchup}
               onPick={pick}
               selectedDriverId={selections[matchup._id]}

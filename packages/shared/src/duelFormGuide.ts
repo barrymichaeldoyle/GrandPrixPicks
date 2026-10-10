@@ -1,4 +1,5 @@
-import type { SessionType } from '@/lib/sessions';
+import { DRIVER_STATUS_LABELS, type DriverStatus } from './driverStatus';
+import { SESSION_LABELS, type SessionType } from './sessions';
 
 /**
  * One line of the form guide under a team-mate duel: a label and a value per
@@ -47,6 +48,16 @@ const SESSION_TALLY: Record<
   race: { key: 'race', label: 'Races this season' },
 };
 
+/** The shape `results.getWeekendSessionPositions` returns per session. */
+export type DuelFormGuideSession = {
+  sessionType: SessionType;
+  entries: readonly {
+    driverId: string;
+    position: number;
+    status: DriverStatus | null;
+  }[];
+};
+
 const PRACTICE_LABEL = { fp1: 'FP1', fp2: 'FP2', fp3: 'FP3' } as const;
 
 function edgeFor(
@@ -64,7 +75,8 @@ function edgeFor(
 /**
  * The facts worth a glance before calling a duel: how the pair have split
  * this kind of session so far this year, and where each of them finished in
- * this weekend's practice.
+ * every session of this weekend that has a result, practice first and then
+ * the scored sessions, in the order they ran.
  *
  * Nothing here says who to pick. A 9–4 qualifying record is a fact a fan
  * weighs for themselves; the guide reports it and stops. Rows with nothing in
@@ -78,6 +90,7 @@ export function duelFormGuideRows({
   sessionType,
   battle,
   practice,
+  sessions,
 }: {
   driver1: { _id: string; code: string };
   driver2: { _id: string; code: string };
@@ -85,6 +98,8 @@ export function duelFormGuideRows({
   sessionType: SessionType | undefined;
   battle: DuelFormGuideBattle | undefined;
   practice: readonly DuelFormGuidePractice[] | undefined;
+  /** This weekend's published sessions: Sprint Quali, Sprint, Qualifying. */
+  sessions?: readonly DuelFormGuideSession[] | undefined;
 }): DuelFormGuideRow[] {
   const rows: DuelFormGuideRow[] = [];
 
@@ -141,5 +156,41 @@ export function duelFormGuideRows({
     });
   }
 
+  for (const session of sessions ?? []) {
+    const entry1 = session.entries.find(
+      (entry) => entry.driverId === driver1._id,
+    );
+    const entry2 = session.entries.find(
+      (entry) => entry.driverId === driver2._id,
+    );
+    if (!entry1 && !entry2) {
+      continue;
+    }
+    // A non-starter's tail position is not a result, so it neither shows nor
+    // counts. A retirement keeps its place for the comparison (the classified
+    // order is what settles the duel) but reads as DNF.
+    const position1 =
+      entry1 && entry1.status !== 'dns' ? entry1.position : null;
+    const position2 =
+      entry2 && entry2.status !== 'dns' ? entry2.position : null;
+    rows.push({
+      key: session.sessionType,
+      label: SESSION_LABELS[session.sessionType],
+      values: [weekendValue(entry1), weekendValue(entry2)],
+      edge: edgeFor(position1, position2, false),
+    });
+  }
+
   return rows;
+}
+
+function weekendValue(
+  entry: DuelFormGuideSession['entries'][number] | undefined,
+): string {
+  if (!entry) {
+    return '–';
+  }
+  return entry.status
+    ? DRIVER_STATUS_LABELS[entry.status]
+    : `P${entry.position}`;
 }

@@ -7,6 +7,7 @@ import {
 import { inferH2HPicks } from '@grandprixpicks/shared/h2hInference';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
+import { H2HDuelFormGuide } from '../../components/predict/H2HDuelFormGuide';
 import { H2HDuelPicker } from '../../components/predict/H2HDuelPicker';
 import {
   DUEL_CONFIRM_HOLD_MS,
@@ -387,6 +388,16 @@ export function H2HEditor({
     setRestoredDraftAt(null);
   }
 
+  function renderInsight(matchup: H2HDuelMatchup) {
+    return (
+      <H2HDuelFormGuide
+        matchup={matchup}
+        raceId={race._id}
+        sessionType={cascadeMode ? undefined : selectedSession}
+      />
+    );
+  }
+
   return (
     <View className={`mt-1 gap-3.5 ${visibleMatchup ? 'flex-1' : ''}`}>
       {restoredDraftAt ? (
@@ -410,6 +421,7 @@ export function H2HEditor({
         <View className="flex-1 pb-4">
           <H2HDuelQuestion
             disabled={sessionIsLocked || duelStatus !== 'idle'}
+            insight={renderInsight(visibleMatchup)}
             matchup={visibleMatchup}
             onPick={(driverId) => {
               void Haptics.selectionAsync();
@@ -447,6 +459,7 @@ export function H2HEditor({
           matchups={matchups}
           onSelect={selectMatchup}
           inferredMatchupIds={inferredMatchupIds}
+          renderInsight={renderInsight}
           selections={selections}
           topFivePositions={topFivePositions}
         />

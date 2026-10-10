@@ -1,15 +1,18 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 
+import { duelFormGuideRows } from '@grandprixpicks/shared/duelFormGuide';
+
 import { useQuery } from '@/integrations/convex/query';
-import { duelFormGuideRows } from '@/lib/duelFormGuide';
 import type { SessionType } from '@/lib/sessions';
 
 import type { H2HMatchup } from './H2HMatchupGrid';
 
 /**
  * The form guide under a duel: the pair's head-to-head record this season and
- * their practice positions this weekend, one line each, in the duel's order.
+ * their positions in every session this weekend that has a result (practice,
+ * then Sprint Quali, Sprint and Qualifying), one line each, in the duel's
+ * order.
  *
  * A duel used to be two names and a question. A fan deciding it has the
  * season's record and Friday's times in their head anyway, or opens another
@@ -22,9 +25,11 @@ import type { H2HMatchup } from './H2HMatchupGrid';
  * colour and the other muted. The table is the only chrome; a card around a
  * four-line table in a takeover that already is a card was a frame in a frame.
  *
- * Both reads are cached and shared: the season record is the same query the
- * team-mate battles page runs, and practice is the same payload the dashboard
- * card subscribes to, so stepping through eleven duels costs nothing more.
+ * Every read is cached and shared: the season record is the same query the
+ * team-mate battles page runs, practice is the same payload the dashboard
+ * card subscribes to, and the weekend's positions are one race-wide query,
+ * so stepping through eleven duels costs nothing more. Mobile's
+ * `H2HDuelFormGuide` reads the same three and the same rows.
  */
 export function H2HDuelFormGuide({
   matchup,
@@ -46,6 +51,9 @@ export function H2HDuelFormGuide({
   const practice = useQuery(api.practiceResults.getPracticeResultsForRace, {
     raceId,
   });
+  const sessions = useQuery(api.results.getWeekendSessionPositions, {
+    raceId,
+  });
 
   const rows = duelFormGuideRows({
     driver1: matchup.driver1,
@@ -53,6 +61,7 @@ export function H2HDuelFormGuide({
     sessionType,
     battle: battles?.teams?.find((team) => team.matchupId === matchup._id),
     practice: practice ?? undefined,
+    sessions,
   });
 
   if (rows.length === 0) {

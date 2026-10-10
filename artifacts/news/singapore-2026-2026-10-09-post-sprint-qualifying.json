@@ -1,0 +1,61 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "perez-singapore-sq1-crash",
+    "headline": "Perez damages his front wing in Singapore SQ1",
+    "body": "Perez hit the barriers in SQ1, broke his front wing and brought out a red flag with debris on the track. He rejoined and qualified 20th, ahead of Bottas; Lindblad, Stroll, Albon and Sainz were also eliminated in SQ1.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["PER", "BOT"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/verstappen-beats-russells-old-spec-mercedes-to-singapore-sprint-pole/",
+    "sourcePublishedAt": "2026-10-09T13:57:57Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "verstappen-singapore-yellow-flag-investigation",
+    "headline": "Verstappen's Singapore sprint pole awaits yellow-flag verdict",
+    "body": "Verstappen's provisional sprint pole remains subject to a stewards' investigation into an alleged pass on Hamilton under yellow flags in SQ1. Both drivers were summoned for a hearing at 22:15 local time; no verdict has been published.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["VER", "HAM"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/verstappen-sprint-pole-in-jeopardy-over-hamilton-yellow-flag-incident/",
+    "sourcePublishedAt": "2026-10-09T14:19:14Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "mercedes-singapore-upgrade-first-findings",
+    "headline": "Antonelli struggles with Mercedes' upgraded car in Singapore",
+    "body": "Antonelli described Mercedes' upgraded car as difficult and unpredictable after qualifying seventh for the sprint, while Russell was second in the older car. He said there was still work to understand the package and hoped overnight changes could help.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ANT", "RUS"],
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/news/1106873/1/kimi-antonelli-makes-very-unpredictable-admission-about-new-mercedes-f1-car",
+    "sourcePublishedAt": "2026-10-09T15:25:00+01:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "singapore-sprint-qualifying-verstappen-pole",
+    "headline": "Verstappen takes provisional pole for the Singapore sprint",
+    "body": "Verstappen set a 1:31.156 to beat Russell by 0.120s, with Leclerc third and Piastri and Norris completing the top five. Antonelli qualified seventh, while Verstappen's pole remains provisional pending the yellow-flag investigation.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["VER", "RUS", "LEC", "PIA", "NOR", "ANT"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/verstappen-clinches-pole-position-in-singapore-sprint-qualifying-ahead-of-russell.4dvkvpkCXftdhX7sLI2dcQ",
+    "sourcePublishedAt": "2026-10-09T13:54:09.937Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "singapore-sq1-overtake-mode-error",
+    "headline": "FIA error leaves some cars down on power in Singapore SQ1",
+    "body": "The FIA says a race-control error left Overtake Mode disabled after SQ1's red flag, then enabled it for only 27 seconds. Some cars' performance was affected depending on when and where they ran; SQ2 and SQ3 were unaffected.",
+    "category": "pick_related",
+    "affectsSessions": ["sprint_quali"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/10/09/fia-confirmed-overtake-mode-error-affected-some-cars-in-sprint-race-qualifying/",
+    "sourcePublishedAt": "2026-10-09T15:08:23+01:00"
+  }
+]

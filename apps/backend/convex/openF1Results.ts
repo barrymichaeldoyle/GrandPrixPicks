@@ -330,6 +330,20 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/**
+ * How far OpenF1's `date_start` may sit from our scheduled start.
+ *
+ * OpenF1 records when a session actually started, so a delay moves it. The
+ * window was ±10 minutes until Singapore 2026 qualifying started 30 minutes
+ * late: discovery matched nothing, OpenF1 answered that with 404 "No results
+ * found.", and both the official and live-timing paths (plus the admin fetch)
+ * read it as "result not ready yet" until the poll deadline. Every caller picks
+ * its session by name, and no two sessions in this span share one, so a wide
+ * window costs nothing. Late is the realistic direction (red flags, rain).
+ */
+const SESSION_DISCOVERY_EARLY = 60 * MINUTE;
+const SESSION_DISCOVERY_LATE = 4 * 60 * MINUTE;
+
 export function buildSessionDiscoveryUrl(
   year: number,
   sessionStartAt: number,
@@ -340,11 +354,11 @@ export function buildSessionDiscoveryUrl(
   // name and `=` is the standard query delimiter.
   url.searchParams.set(
     'date_start>',
-    new Date(sessionStartAt - 10 * MINUTE).toISOString(),
+    new Date(sessionStartAt - SESSION_DISCOVERY_EARLY).toISOString(),
   );
   url.searchParams.set(
     'date_start<',
-    new Date(sessionStartAt + 10 * MINUTE).toISOString(),
+    new Date(sessionStartAt + SESSION_DISCOVERY_LATE).toISOString(),
   );
   return url;
 }

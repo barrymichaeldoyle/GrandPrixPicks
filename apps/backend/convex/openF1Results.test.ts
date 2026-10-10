@@ -42,10 +42,10 @@ describe('OpenF1 fallback timing', () => {
     const url = buildSessionDiscoveryUrl(2026, start);
 
     expect(url.searchParams.get('date_start>')).toBe(
-      '2026-07-19T12:50:00.000Z',
+      '2026-07-19T12:00:00.000Z',
     );
     expect(url.searchParams.get('date_start<')).toBe(
-      '2026-07-19T13:10:00.000Z',
+      '2026-07-19T17:00:00.000Z',
     );
     expect(url.searchParams.has('date_start>=')).toBe(false);
     expect(url.searchParams.has('date_start<=')).toBe(false);

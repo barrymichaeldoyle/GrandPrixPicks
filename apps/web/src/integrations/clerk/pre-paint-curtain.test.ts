@@ -91,6 +91,20 @@ describe('prePaintCurtainScript', () => {
     expect(marked()[PRE_PAINT_TIMEOUT_GLOBAL]).toBe(1);
   });
 
+  it('restarts the clock rather than marking a timeout when the tab was frozen', () => {
+    vi.useFakeTimers();
+    runScript('__client_uat_i2Gq7zuC=1787759969');
+    vi.setSystemTime(Date.now() + 20_000);
+    vi.advanceTimersByTime(8_000);
+    expect(document.documentElement.hasAttribute(AUTH_HANDOFF_ATTRIBUTE)).toBe(
+      true,
+    );
+    expect(marked()[PRE_PAINT_TIMEOUT_GLOBAL]).toBeUndefined();
+
+    vi.advanceTimersByTime(8_000);
+    expect(marked()[PRE_PAINT_TIMEOUT_GLOBAL]).toBe(1);
+  });
+
   it('leaves no mark when React took the curtain down in time', () => {
     vi.useFakeTimers();
     runScript('__client_uat_i2Gq7zuC=1787759969');

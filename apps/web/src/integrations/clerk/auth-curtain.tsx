@@ -14,6 +14,7 @@ import { useBodyScrollLock } from '@/hooks/useModalDialog';
 
 import {
   AUTH_HANDOFF_ATTRIBUTE,
+  CURTAIN_FROZEN_GRACE_MS,
   PRE_PAINT_TIMEOUT_GLOBAL,
 } from './pre-paint-curtain';
 import { useViewerSession } from './useViewerSession';
@@ -250,10 +251,19 @@ export function AuthCurtainHost({
       document.documentElement.removeAttribute(AUTH_HANDOFF_ATTRIBUTE);
       return;
     }
-    const timer = window.setTimeout(() => {
-      setExpired(true);
-      reportTimeout();
-    }, CURTAIN_TIMEOUT_MS);
+    let timer: number;
+    function arm() {
+      const due = Date.now() + CURTAIN_TIMEOUT_MS;
+      timer = window.setTimeout(() => {
+        if (Date.now() - due > CURTAIN_FROZEN_GRACE_MS) {
+          arm();
+          return;
+        }
+        setExpired(true);
+        reportTimeout();
+      }, CURTAIN_TIMEOUT_MS);
+    }
+    arm();
     return () => window.clearTimeout(timer);
   }, [active, label]);
 

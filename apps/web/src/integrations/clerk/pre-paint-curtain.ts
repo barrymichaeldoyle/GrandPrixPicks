@@ -60,8 +60,25 @@ export const APP_SHELL_ATTRIBUTE = 'data-app-shell';
  * failed chunk, a parse error, a browser that never runs the app. A visitor
  * must not be left staring at a loader over a page that is fully rendered
  * underneath it.
+ *
+ * A timer that fires more than `CURTAIN_FROZEN_GRACE_MS` late means iOS froze
+ * the tab, so the script starts a fresh window rather than marking a timeout.
  */
 const PRE_PAINT_CURTAIN_TIMEOUT_MS = 8_000;
+
+/**
+ * How late a ceiling timer may fire before we treat the page as having been
+ * frozen rather than slow.
+ *
+ * iOS suspends a backgrounded tab's event loop. When it resumes, the overdue
+ * timer and the Convex results that had been waiting arrive in the same few
+ * milliseconds, so the ceiling fired over a page that was about to finish:
+ * GRAND-PRIX-PICKS-32 reported a 27-second "stuck" dashboard read, and the 8s
+ * timer ran 19 seconds late. The time the visitor spent away from the tab is
+ * not time they spent watching the loader, so a late timer starts a fresh
+ * window instead of expiring.
+ */
+export const CURTAIN_FROZEN_GRACE_MS = 2_000;
 
 /**
  * Where this script publishes the cookie name it was given, for the rest of the
@@ -96,7 +113,7 @@ export const PRE_PAINT_TIMEOUT_GLOBAL = '__gppPrePaintCurtainTimedOut';
  * the landing page from a genuinely signed-out visitor for eight seconds.
  */
 export function prePaintCurtainScript(sessionCookieName: string | null) {
-  return `(function(){try{var n=${JSON.stringify(sessionCookieName)};window.${SESSION_COOKIE_NAME_GLOBAL}=n;var s=null,p=null,c=document.cookie?document.cookie.split(';'):[];for(var i=0;i<c.length;i++){var e=c[i].indexOf('=');if(e<0)continue;var k=c[i].slice(0,e).trim(),v=c[i].slice(e+1).trim();if(n&&k===n)s=v;else if(k==='__client_uat')p=v;}var u=s!==null?s:p;if(!u||u==='0')return;var d=document.documentElement;d.setAttribute('${AUTH_HANDOFF_ATTRIBUTE}','');setTimeout(function(){if(!d.hasAttribute('${AUTH_HANDOFF_ATTRIBUTE}'))return;d.removeAttribute('${AUTH_HANDOFF_ATTRIBUTE}');window.${PRE_PAINT_TIMEOUT_GLOBAL}=1},${PRE_PAINT_CURTAIN_TIMEOUT_MS})}catch(_){}})()`;
+  return `(function(){try{var n=${JSON.stringify(sessionCookieName)};window.${SESSION_COOKIE_NAME_GLOBAL}=n;var s=null,p=null,c=document.cookie?document.cookie.split(';'):[];for(var i=0;i<c.length;i++){var e=c[i].indexOf('=');if(e<0)continue;var k=c[i].slice(0,e).trim(),v=c[i].slice(e+1).trim();if(n&&k===n)s=v;else if(k==='__client_uat')p=v;}var u=s!==null?s:p;if(!u||u==='0')return;var d=document.documentElement;d.setAttribute('${AUTH_HANDOFF_ATTRIBUTE}','');var t,f=function(){if(!d.hasAttribute('${AUTH_HANDOFF_ATTRIBUTE}'))return;if(Date.now()-t>${PRE_PAINT_CURTAIN_TIMEOUT_MS + CURTAIN_FROZEN_GRACE_MS}){t=Date.now();setTimeout(f,${PRE_PAINT_CURTAIN_TIMEOUT_MS});return}d.removeAttribute('${AUTH_HANDOFF_ATTRIBUTE}');window.${PRE_PAINT_TIMEOUT_GLOBAL}=1};t=Date.now();setTimeout(f,${PRE_PAINT_CURTAIN_TIMEOUT_MS})}catch(_){}})()`;
 }
 
 /**

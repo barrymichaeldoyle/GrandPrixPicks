@@ -213,6 +213,23 @@ describe('AuthCurtainHost', () => {
     expect(container.textContent).toContain('page content');
   });
 
+  it('restarts the clock rather than expiring when the tab was frozen', () => {
+    // iOS suspends a backgrounded tab: the overdue timer and the reads it was
+    // waiting on land together on resume (GRAND-PRIX-PICKS-32).
+    vi.useFakeTimers();
+    captureMessage.mockClear();
+    render({ handoff: true, confirmedSignedIn: false, gate: false });
+
+    vi.setSystemTime(Date.now() + 20_000);
+    act(() => void vi.advanceTimersByTime(8_000));
+    expect(curtain()).not.toBeNull();
+    expect(captureMessage).not.toHaveBeenCalled();
+
+    act(() => void vi.advanceTimersByTime(8_000));
+    expect(curtain()).toBeNull();
+    expect(captureMessage).toHaveBeenCalledTimes(1);
+  });
+
   /**
    * The ceiling exists so nobody is stranded, which is exactly why it hid a
    * two-week bug. Reaching it is never normal, so it has to be reported.

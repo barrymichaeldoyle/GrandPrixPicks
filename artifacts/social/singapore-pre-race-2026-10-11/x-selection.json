@@ -6,7 +6,10 @@
   "intervalMinutes": 25,
   "posts": [
     {
-      "keys": ["hulkenberg-singapore-qualifying-impeding-decision", "hadjar-singapore-permission-to-start"],
+      "keys": [
+        "hulkenberg-singapore-qualifying-impeding-decision",
+        "hadjar-singapore-permission-to-start"
+      ],
       "text": "No penalty for Hülkenberg after impeding Sainz: inconsistent timing data had misled both teams. Hadjar has also been cleared to race in Singapore.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hulkenberg-singapore-qualifying-impeding-decision",
       "expiresAt": "2026-10-11T11:30:00Z"
     },

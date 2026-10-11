@@ -56,13 +56,13 @@ const GUIDE_META: readonly GuideMeta[] = [
   {
     slug: 'f1-2027-haas-second-seat',
     publishedAt: '2026-09-09',
-    updatedAt: '2026-10-01',
+    updatedAt: '2026-10-11',
     title: 'The 2027 Haas seat: who replaces Esteban Ocon',
     metaTitle: '2027 Haas Seat: Who Replaces Ocon? | Grand Prix Picks',
     metaDescription:
-      'Esteban Ocon leaves Haas at the end of 2026. Rafael Câmara is the favourite to replace him, with Doohan, Hirakawa and Fornaroli also in contention.',
+      'Esteban Ocon leaves Haas at the end of 2026. Haas has not named his replacement. PlanetF1 reported the choice is between Rafael Câmara and Jack Doohan.',
     summary:
-      'Esteban Ocon leaves Haas at the end of 2026. Rafael Câmara, Jack Doohan, Ryo Hirakawa and Leonardo Fornaroli are the drivers left in contention to partner Oliver Bearman.',
+      'Esteban Ocon leaves Haas at the end of 2026. PlanetF1 reported the choice is between Rafael Câmara and Jack Doohan, and Haas has not named a replacement.',
   },
   {
     slug: 'f1-points-system-explained',

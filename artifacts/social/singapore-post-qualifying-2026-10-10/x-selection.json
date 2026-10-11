@@ -6,12 +6,18 @@
   "intervalMinutes": 25,
   "posts": [
     {
-      "keys": ["singapore-starting-grid", "singapore-grand-prix-verstappen-pole"],
+      "keys": [
+        "singapore-starting-grid",
+        "singapore-grand-prix-verstappen-pole"
+      ],
       "text": "Verstappen takes Singapore GP pole by 0.054s from Leclerc. Hamilton and Antonelli share row two. Russell's engine penalty puts him on the back row with Hadjar.\n\nFull provisional grid: https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
       "expiresAt": "2026-10-11T11:30:00Z"
     },
     {
-      "keys": ["mclaren-singapore-sprint-final-lap-collision", "mclaren-singapore-sprint-stella-response"],
+      "keys": [
+        "mclaren-singapore-sprint-final-lap-collision",
+        "mclaren-singapore-sprint-stella-response"
+      ],
       "materialUpdate": true,
       "text": "No penalty for Norris or Piastri after their final-lap Singapore sprint collision. Stella calls the contact unacceptable and will speak to both privately.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
       "expiresAt": "2026-10-11T11:30:00Z"

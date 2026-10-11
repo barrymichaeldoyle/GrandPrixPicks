@@ -134,7 +134,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
   // retain the shortlist as dated context, and bump guideMeta.updatedAt.
   'f1-2027-haas-second-seat': {
     status:
-      'As of 1 October 2026, Esteban Ocon is leaving Haas at the end of the season and Haas has not named his replacement. Rafael Câmara is the favourite.',
+      'As of 11 October 2026, Esteban Ocon is leaving Haas at the end of the season and Haas has not named his replacement. PlanetF1 reported the choice is between Rafael Câmara and Jack Doohan.',
     hero: {
       src: '/images/guides/haas-monza-2025.jpg',
       width: 1280,
@@ -194,19 +194,24 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
       {
         heading: 'Where the contest stands',
         paragraphs: [
-          'Grandprix.com reported on 17 September 2026 that reporting in Europe and Brazil places Câmara at the front of the queue to partner Bearman, and that neither Haas nor Ferrari has announced an agreement. GPblog puts the move at 90 percent through its paddock sources, and Grande Prêmio suggests he could be announced around his home Grand Prix in São Paulo.',
-          'Câmara’s case rests on a private Haas test at Portimão in late August. Brazilian reports say he produced the strongest comparison of the candidates who drove the car, though Haas has not published the times. With Ocon leaving, four of the five remain, and Formula 1 names Câmara as the favourite for the seat.',
+          'PlanetF1 reported on 10 October 2026 that the choice is between Rafael Câmara and Jack Doohan, with Ayao Komatsu expected to decide after Singapore and a possible announcement before Austin. Haas has not named a replacement.',
+          'Câmara’s case rests on a private Haas test at Portimão in late August. Brazilian reports said he produced the strongest comparison of the candidates who drove the car, though Haas has not published the times. The Stint reported on 5 October that Leonardo Fornaroli is set to join McLaren’s WEC Hypercar programme in 2027.',
         ],
         sources: [
           {
             label:
-              'Grandprix.com: Câmara moves to the front of the Haas queue (17 September 2026)',
-            url: 'https://www.grandprix.com/news/camara-moves-to-front-of-haas-queue-for-2027-seat.html',
+              'PlanetF1: Doohan and Câmara in the Haas 2027 driver battle (10 October 2026)',
+            url: 'https://www.planetf1.com/news/jack-doohan-rafa-camara-haas-2027-f1-driver-battle',
           },
           {
             label:
-              'Formula 1: Câmara the favourite for Ocon’s seat (30 September 2026)',
-            url: 'https://www.formula1.com/en/latest/article/ocon-confirms-he-will-leave-haas-at-end-of-2026-season.cJjg9W9Om5ZW6Mn9GZ75v',
+              'The Stint: Fornaroli set for McLaren Hypercar (5 October 2026)',
+            url: 'https://www.thestint.com/eonardo-fornaroli-set-for-mclaren-hypercar-move-and-why-it-makes-sense/',
+          },
+          {
+            label:
+              'Grandprix.com: Câmara moves to the front of the Haas queue (17 September 2026)',
+            url: 'https://www.grandprix.com/news/camara-moves-to-front-of-haas-queue-for-2027-seat.html',
           },
         ],
       },
@@ -369,12 +374,17 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
         },
         paragraphs: [
-          'Fornaroli won the 2024 FIA Formula 3 championship, then the 2025 Formula 2 title with Invicta in his rookie season. Haas has run him in its private testing.',
+          'Fornaroli won the 2024 FIA Formula 3 championship, then the 2025 Formula 2 title with Invicta in his rookie season. Haas has run him in its private testing. The Stint reported on 5 October 2026 that he is set to join McLaren’s WEC Hypercar programme in 2027.',
         ],
         sources: [
           {
             label: 'Formula 2: Fornaroli’s 2025 championship',
             url: 'https://www.fiaformula2.com/en/information/leonardo-fornaroli-2025-champion.58mcDM3UGmtXFSBwj3qPHn',
+          },
+          {
+            label:
+              'The Stint: Fornaroli set for McLaren Hypercar (5 October 2026)',
+            url: 'https://www.thestint.com/eonardo-fornaroli-set-for-mclaren-hypercar-move-and-why-it-makes-sense/',
           },
           {
             label: 'Grandprix.com: Haas’s candidate testing',
@@ -385,13 +395,13 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
       {
         heading: 'When will Haas decide?',
         paragraphs: [
-          'Haas has named no date. On 24 September, Komatsu said the evaluations were complete and he expected a decision within about two weeks, after discussing the findings with Gene Haas. When it confirmed Ocon’s exit on 30 September, Haas said it would not share further driver news at that time. Grande Prêmio has suggested an announcement around Câmara’s home race in São Paulo on 8 November. This guide will be updated when Haas names Ocon’s replacement, and the shortlist will stay as the field it considered.',
+          'Haas has named no date. PlanetF1 reported on 10 October that Komatsu is expected to decide after Singapore, with a possible announcement before Austin. When it confirmed Ocon’s exit on 30 September, Haas said it would not share further driver news at that time. This guide will be updated when Haas names Ocon’s replacement, and the shortlist will stay as the field it considered.',
         ],
         sources: [
           {
             label:
-              'Formula 1: Komatsu on the decision timeline (24 September 2026)',
-            url: 'https://www.formula1.com/en/latest/article/within-the-next-couple-of-weeks-komatsu-reveals-timeline-for-haas-2027-driver-line-up-decision.3BCkQ2eO3S0dCAynRFkTgA.3BCkQ2eO3S0dCAynRFkTgA',
+              'PlanetF1: Doohan and Câmara in the Haas 2027 driver battle (10 October 2026)',
+            url: 'https://www.planetf1.com/news/jack-doohan-rafa-camara-haas-2027-f1-driver-battle',
           },
           {
             label: 'Formula 1: Haas confirms Ocon’s exit (30 September 2026)',

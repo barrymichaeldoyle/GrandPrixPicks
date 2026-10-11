@@ -1,4 +1,12 @@
-const SYNTHETIC_SLUG_PREFIXES = ['scenario-race-', 'social-race-'] as const;
+/*
+ * `scenario-`, not `scenario-race-`: a fixture's slug comes from its test
+ * namespace, and `scenario__a11y_authed__…` or `scenario__seo_smoke__…`
+ * become `scenario-a11y-…` / `scenario-seo-…`. The narrower prefix missed
+ * those, so they sat on the dev calendar as the "next race" and, in CI, the
+ * a11y picks test met "Not yet open". It matches the backend's own scenario
+ * cleanup (`clearAllScenarioData`), which has always used `scenario-`.
+ */
+const SYNTHETIC_SLUG_PREFIXES = ['scenario-', 'social-race-'] as const;
 
 /**
  * Playwright and seed fixtures, which only ever exist in dev. Their lock

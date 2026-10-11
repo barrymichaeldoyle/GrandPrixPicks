@@ -20,7 +20,7 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
       <>
         <div className="mb-2 flex items-center gap-2">
           <Ban className="h-5 w-5 text-error" />
-          <h2 className="text-xl font-semibold text-text">Race Called Off</h2>
+          <h2 className="text-xl font-semibold text-text">Race called off</h2>
         </div>
         <p className="text-sm text-text-muted">
           This race has been cancelled. No predictions or results will be

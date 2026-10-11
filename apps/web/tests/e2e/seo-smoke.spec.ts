@@ -99,33 +99,26 @@ test.describe('[public] seo smoke', () => {
     }
   });
 
-  test('serves sitemap XML including seeded public race routes', async ({
+  test('serves sitemap XML with race routes and without test fixtures', async ({
     request,
   }) => {
+    // A seeded fixture is the control: fixtures are kept off the calendar
+    // (`isSyntheticRaceSlug`), so a sitemap that listed one would be handing
+    // search engines a test race.
     const summary = applyScenario('race_partial_results_sprint', {
       namespace: 'scenario__seo_smoke__sitemap',
     });
 
     expect(summary.race?.slug).toBeTruthy();
 
-    await expect
-      .poll(
-        async () => {
-          const response = await request.get('/sitemap.xml');
-          return {
-            body: await response.text(),
-            contentType: response.headers()['content-type'],
-            status: response.status(),
-          };
-        },
-        { timeout: 15_000 },
-      )
-      .toMatchObject({
-        status: 200,
-        contentType: expect.stringContaining('application/xml'),
-        body: expect.stringContaining(
-          `<loc>https://grandprixpicks.com/races/${summary.race!.slug}</loc>`,
-        ),
-      });
+    const response = await request.get('/sitemap.xml');
+    const body = await response.text();
+
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toContain('application/xml');
+    expect(body).toMatch(
+      /<loc>https:\/\/grandprixpicks\.com\/races\/[a-z0-9-]+-\d{4}<\/loc>/,
+    );
+    expect(body).not.toContain(`/races/${summary.race!.slug}<`);
   });
 });

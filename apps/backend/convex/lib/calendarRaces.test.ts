@@ -14,6 +14,11 @@ describe('isSyntheticRaceSlug', () => {
       ),
     ).toBe(true);
     expect(isSyntheticRaceSlug('social-race-feed-preview')).toBe(true);
+    // Namespaces that do not start with a scenario name still make
+    // `scenario-…` slugs.
+    expect(isSyntheticRaceSlug('scenario-a11y-authed-picks-overlay-race')).toBe(
+      true,
+    );
   });
 
   it('leaves the real calendar alone', () => {

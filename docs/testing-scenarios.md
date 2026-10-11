@@ -61,9 +61,11 @@ Use this as the supported QA matrix for the current system.
 - The namespace should be stable when you want repeatability.
 - Visual-only state coverage should stay out of e2e.
 - New scenarios should be added to the catalog first, then implemented as builders.
-- Product queries skip `scenario-race-*` and `social-race-*` slugs. Leftover
-  fixtures must not steal the next GP, the season, or reminder fanout from the
-  real calendar. Clear them when you are done (`pnpm scenario -- clear`).
+- Product queries skip `scenario-*` and `social-race-*` slugs
+  (`isSyntheticRaceSlug` in `packages/shared/src/syntheticRaces.ts`), and those
+  races still take picks when opened directly. Leftover fixtures must not steal
+  the next GP, the season, or reminder fanout from the real calendar. Clear
+  them when you are done (`pnpm scenario -- clear`).
 
 ## Namespace Model
 

@@ -1,0 +1,24 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/singapore-2026-2026-10-11-pre-race.json",
+  "startAt": "2026-10-11T06:15:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["hulkenberg-singapore-qualifying-impeding-decision", "hadjar-singapore-permission-to-start"],
+      "text": "No penalty for Hülkenberg after impeding Sainz: inconsistent timing data had misled both teams. Hadjar has also been cleared to race in Singapore.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hulkenberg-singapore-qualifying-impeding-decision",
+      "expiresAt": "2026-10-11T11:30:00Z"
+    },
+    {
+      "keys": ["pirelli-singapore-race-strategy"],
+      "text": "Pirelli favours starting Singapore on soft tyres, then switching to mediums or hards. Low degradation could let drivers wait for a Safety Car; two stops are estimated to cost about ten seconds more.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=pirelli-singapore-race-strategy",
+      "expiresAt": "2026-10-11T11:30:00Z"
+    },
+    {
+      "keys": ["verstappen-singapore-race-start-concern"],
+      "text": "Verstappen questions Red Bull's second-gear approach after poor wet starts at Sepang and in the Singapore sprint. He would consider a different gear if today's start is wet, while hoping for a dry race.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=verstappen-singapore-race-start-concern",
+      "expiresAt": "2026-10-11T11:30:00Z"
+    }
+  ]
+}

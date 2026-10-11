@@ -47,10 +47,10 @@ export type TeamLineUp = {
 };
 
 /** Bumped by hand whenever the seats below are re-checked against reporting. */
-export const LINE_UP_2027_REVIEWED_AT = '2026-10-01';
+export const LINE_UP_2027_REVIEWED_AT = '2026-10-11';
 
 /** For prose. Kept next to the ISO date so the two cannot drift apart. */
-export const LINE_UP_2027_REVIEWED_LABEL = '1 October 2026';
+export const LINE_UP_2027_REVIEWED_LABEL = '11 October 2026';
 
 /**
  * Alphabetical by team. A championship order would be more flattering and
@@ -144,7 +144,7 @@ export const LINE_UP_2027: TeamLineUp[] = [
       {
         driver: 'Esteban Ocon',
         status: 'out-of-contract',
-        note: 'Leaves Haas at the end of 2026, announced on 30 September. Haas has not named his replacement, and Rafael Camara is the favourite.',
+        note: 'Leaves Haas at the end of 2026, announced on 30 September. Haas has not named his replacement, and PlanetF1 reported on 10 October that the choice is between Rafael Camara and Jack Doohan.',
       },
     ],
   },
@@ -231,15 +231,16 @@ export const LINE_UP_2027: TeamLineUp[] = [
  * Ordered by where the contest stands rather than alphabetically, because the
  * page numbers them and a number that means nothing is worse than no number.
  * Komatsu named five on 4 September 2026, Ocon among them; Ocon left the list
- * when he announced his exit on 30 September. The order is how reporting
- * ranked them after the Portimão test. `claim` is why the driver is in the
- * room, which is the only part of this that stays true whoever wins.
+ * when he announced his exit on 30 September. PlanetF1 reported on 10 October
+ * that the choice is between Camara and Doohan. The order follows that
+ * reporting. `claim` is why the driver is in the room, which is the only
+ * part of this that stays true whoever wins.
  */
 export const HAAS_2027_CONTENDERS = [
   {
     driver: 'Rafael Camara',
     claim:
-      'Ferrari academy, leading Formula 2, and the favourite for the seat. Brazilian reports make him the quickest of the candidates who drove the Haas at Portimão, though the team has not published the times. Signing him would give Haas two Ferrari juniors.',
+      'Ferrari academy, leading Formula 2. Brazilian reports make him the quickest of the candidates who drove the Haas at Portimão, though the team has not published the times. Signing him would give Haas two Ferrari juniors.',
   },
   {
     driver: 'Jack Doohan',
@@ -249,7 +250,7 @@ export const HAAS_2027_CONTENDERS = [
   {
     driver: 'Leonardo Fornaroli',
     claim:
-      "The 2025 Formula 2 champion and McLaren's reserve, and the driver Camara was measured against at Portimão. A letter of intent exists that would let Haas take him on loan.",
+      "The 2025 Formula 2 champion and McLaren's reserve, and the driver Camara was measured against at Portimão. The Stint reported on 5 October that he is set to join McLaren's WEC Hypercar programme in 2027.",
   },
   {
     driver: 'Ryo Hirakawa',

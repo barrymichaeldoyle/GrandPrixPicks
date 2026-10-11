@@ -35,7 +35,7 @@ import { PicksCallToAction } from '@/components/PicksCallToAction/PicksCallToAct
 
 const PAGE_TITLE = 'F1 2027 Driver Line-Up | Grand Prix Picks';
 const PAGE_DESCRIPTION =
-  'Every 2027 F1 seat, team by team: who has signed, who is expected back, and who replaces Esteban Ocon at Haas, with Rafael Camara the favourite.';
+  'Every 2027 F1 seat, team by team: who has signed, who is expected back, and the Haas seat Esteban Ocon leaves, which Haas has not filled.';
 
 const FAQS = [
   {
@@ -51,17 +51,17 @@ const FAQS = [
   {
     question: 'Who will replace Esteban Ocon at Haas?',
     answer:
-      'Rafael Camara, Jack Doohan, Leonardo Fornaroli and Ryo Hirakawa. Ayao Komatsu named them with Ocon on 4 September 2026, and Ocon announced his exit on 30 September. Camara is the favourite.',
+      'Haas has not named anyone. PlanetF1 reported on 10 October that the choice is between Rafael Camara and Jack Doohan. Leonardo Fornaroli and Ryo Hirakawa remain on the shortlist Komatsu named on 4 September.',
   },
   {
     question: 'Is Rafael Camara driving in F1 in 2027?',
     answer:
-      'No signing has been announced. The Ferrari junior leads Formula 2 and is the favourite to replace Esteban Ocon at Haas, but neither Haas nor Ferrari has confirmed it.',
+      'No signing has been announced. The Ferrari junior leads Formula 2, and PlanetF1 reported on 10 October that the Haas choice is between him and Jack Doohan. Neither Haas nor Ferrari has confirmed a deal.',
   },
   {
     question: 'When will Haas announce its 2027 driver line-up?',
     answer:
-      'Haas has not given a date. On 24 September 2026, Ayao Komatsu said he expected a decision within about two weeks, after discussing the findings with Gene Haas. Confirming Ocon’s exit on 30 September, Haas said it would not share further driver news at that time.',
+      'Haas has not given a date. PlanetF1 reported on 10 October that Ayao Komatsu is expected to decide after Singapore, with a possible announcement before Austin.',
   },
   {
     question: 'Is Fernando Alonso racing in 2027?',
@@ -278,19 +278,30 @@ function F1LineUp2027Page() {
             .
           </p>
           <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
-            The contest has narrowed since. Brazilian reports make Rafael Camara
-            the quickest of the candidates who drove the 2025 car at Portimão,
-            and reporting in Europe and Brazil now puts the Ferrari junior in
-            front. Haas has not announced a signing. On 24 September, Komatsu
-            said the evaluations were complete and he expected a decision within
-            two weeks, after discussing the findings with Gene Haas.{' '}
+            PlanetF1 reported on 10 October that the choice is between Rafael
+            Camara and Jack Doohan, with Komatsu expected to decide after
+            Singapore and a possible announcement before Austin. Haas has not
+            named a replacement.{' '}
             <a
               className="text-link underline decoration-border underline-offset-4 hover:decoration-current"
-              href="https://www.formula1.com/en/latest/article/within-the-next-couple-of-weeks-komatsu-reveals-timeline-for-haas-2027-driver-line-up-decision.3BCkQ2eO3S0dCAynRFkTgA.3BCkQ2eO3S0dCAynRFkTgA"
+              href="https://www.planetf1.com/news/jack-doohan-rafa-camara-haas-2027-f1-driver-battle"
               target="_blank"
               rel="noreferrer"
             >
-              Komatsu on the Haas decision timeline
+              PlanetF1 on the Haas 2027 driver battle
+            </a>
+            .
+          </p>
+          <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
+            The Stint reported on 5 October that Leonardo Fornaroli is set to
+            join McLaren&rsquo;s WEC Hypercar programme in 2027.{' '}
+            <a
+              className="text-link underline decoration-border underline-offset-4 hover:decoration-current"
+              href="https://www.thestint.com/eonardo-fornaroli-set-for-mclaren-hypercar-move-and-why-it-makes-sense/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              The Stint on Fornaroli and McLaren Hypercar
             </a>
             .
           </p>

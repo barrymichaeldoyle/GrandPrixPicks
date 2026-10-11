@@ -323,7 +323,7 @@
       "text": "Verstappen wins his first Singapore Grand Prix on his 250th Grand Prix start, completing a weekend of two poles and two wins. Leclerc and Antonelli complete the podium; Norris and Piastri round out the top five.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=singapore-grand-prix-verstappen-win",
       "dueAt": "2026-10-11T14:05:00.000Z",
       "expiresAt": "2026-10-12T08:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acb94ded9cab260a7fc7dee"
     },
     {
@@ -346,8 +346,44 @@
       "text": "Hamilton slips from third to sixth as his soft tyres fade in Singapore. Piastri recovers from an extra stop for a puncture and passes him at Turn 16 on the final lap for fifth.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hamilton-singapore-race-tyre-fade",
       "dueAt": "2026-10-11T14:30:00.000Z",
       "expiresAt": "2026-10-12T08:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acb94dfbba9419ccb39b5ce"
+    },
+    {
+      "id": "44eb3625c92a95874777b6c2c3ce3dc441c0560757dfdef044e3a4c81f5cd661",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "antonelli-singapore-title-chance",
+          "revision": "724dde932e1043db8ac2a78e51a649f54f02b7106acf977ec40d5911f5942126"
+        }
+      ],
+      "text": "Antonelli has his first chance to seal the F1 title at Austin. He needs to win, with Russell and Hamilton’s finishes also deciding whether the championship is settled with five races left.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=antonelli-singapore-title-chance",
+      "dueAt": "2026-10-11T14:55:00.000Z",
+      "expiresAt": "2026-10-12T10:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acba091ed92ed8fa50731ab"
+    },
+    {
+      "id": "0de2738e680fce7b5c958f41be957aad15dace9a25f87e43dcc62bb07bb77c97",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hamilton-singapore-race-tyre-fade",
+          "revision": "79da3bd312f7bb5df858f555901a50ff53141265a5fc179d51622116171a84c4"
+        }
+      ],
+      "text": "Hamilton apologised to Ferrari after his Singapore strategy left him sixth. He took responsibility for staying out under the VSC; Vasseur says the team called him in, but he missed the pit entry.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hamilton-singapore-race-tyre-fade",
+      "dueAt": "2026-10-11T15:20:00.000Z",
+      "expiresAt": "2026-10-12T10:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acba092b07d37ac97ad118f"
     }
   ]
 }

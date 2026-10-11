@@ -1,0 +1,20 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/singapore-2026-2026-10-11-post-race-followup.json",
+  "startAt": "2026-10-11T16:55:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["antonelli-singapore-title-chance"],
+      "text": "Antonelli has his first chance to seal the F1 title at Austin. He needs to win, with Russell and Hamilton’s finishes also deciding whether the championship is settled with five races left.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=antonelli-singapore-title-chance",
+      "expiresAt": "2026-10-12T10:00:00Z"
+    },
+    {
+      "keys": ["hamilton-singapore-race-tyre-fade"],
+      "text": "Hamilton apologised to Ferrari after his Singapore strategy left him sixth. He took responsibility for staying out under the VSC; Vasseur says the team called him in, but he missed the pit entry.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hamilton-singapore-race-tyre-fade",
+      "materialUpdate": true,
+      "expiresAt": "2026-10-12T10:00:00Z"
+    }
+  ]
+}

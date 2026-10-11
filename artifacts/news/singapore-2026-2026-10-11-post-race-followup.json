@@ -1,0 +1,86 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "hamilton-singapore-race-tyre-fade",
+    "headline": "Hamilton takes blame for Singapore strategy after falling to sixth",
+    "body": "Hamilton took responsibility for staying out under the Virtual Safety Car and apologised to Ferrari after finishing sixth. Vasseur said the team had called him in, but he missed the pit entry.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HAM"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/10/11/hamilton-apologises-to-ferrari-for-strategy-call-after-falling-to-sixth/",
+    "sourcePublishedAt": "2026-10-11T15:06:51+01:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "hamilton-singapore-race-turn-one-decision",
+    "headline": "No penalty for Hamilton after Singapore Turn 1 incident",
+    "body": "Hamilton faces no penalty after he and Norris both ran off at Turn 1 while fighting for position. They rejoined in the correct order and both subsequently lost out to Antonelli.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HAM", "NOR"],
+    "sourceName": "FIA",
+    "sourceUrl": "https://www.fia.com/system/files/decision-document/2026_singapore_grand_prix_-_decision_-_car_44_-_alleged_leaving_the_track_and_gaining_an_advantage.pdf",
+    "sourcePublishedAt": "2026-10-11T14:02:00Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "stroll-singapore-practice-start-warning",
+    "headline": "Stroll receives a warning for a Singapore pre-race infringement",
+    "body": "Stroll received a warning after leaving the pit lane on a reconnaissance lap without performing a practice start or crossing the white line at the exit.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["STR"],
+    "sourceName": "FIA",
+    "sourceUrl": "https://www.fia.com/system/files/decision-document/2026_singapore_grand_prix_-_infringement_-_car_18_-_failure_to_follow_race_directors_instructions_-_practice_start.pdf",
+    "sourcePublishedAt": "2026-10-11T14:06:00Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "albon-singapore-race-retirement",
+    "headline": "Albon retires late in Singapore but is classified 18th",
+    "body": "Albon retired after completing 59 of Singapore’s 62 laps. He is classified 18th in the provisional race result.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ALB"],
+    "sourceName": "FIA",
+    "sourceUrl": "https://www.fia.com/system/files/decision-document/2026_singapore_grand_prix_-_provisional_race_classification.pdf",
+    "sourcePublishedAt": "2026-10-11T14:02:00Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "stroll-singapore-race-retirement",
+    "headline": "Stroll retires from Singapore Grand Prix with suspected clutch trouble",
+    "body": "Stroll retired at Turn 15 with a suspected clutch issue, bringing out a Virtual Safety Car.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["STR"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/verstappen-seals-commanding-singapore-grand-prix-victory-from-leclerc-and-antonelli.49wDzysiVqi5cloGjle40A",
+    "sourcePublishedAt": "2026-10-11T14:06:47.067Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "bortoleto-singapore-race-retirement",
+    "headline": "Bortoleto’s Audi catches fire after his Singapore retirement",
+    "body": "Bortoleto stopped with a suspected gearbox issue, triggering a Virtual Safety Car. His Audi later caught fire in the pit lane; marshals extinguished it and the pit lane entry was briefly closed.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["BOR"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/verstappen-seals-commanding-singapore-grand-prix-victory-from-leclerc-and-antonelli.49wDzysiVqi5cloGjle40A",
+    "sourcePublishedAt": "2026-10-11T14:06:47.067Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "antonelli-singapore-title-chance",
+    "headline": "Antonelli has his first title chance at Austin after Singapore",
+    "body": "Antonelli can clinch his first drivers’ title at the next round in Austin. He would need to win, with Russell and Hamilton’s finishes also deciding whether he can seal the championship with five races remaining.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ANT"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/10/11/how-antonelli-can-clinch-the-f1-world-championship-at-the-next-race-in-austin/",
+    "sourcePublishedAt": "2026-10-11T15:15:03+01:00"
+  }
+]

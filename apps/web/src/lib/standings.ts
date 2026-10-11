@@ -1,7 +1,8 @@
 import { api } from '@convex-generated/api';
 import type { FunctionReturnType } from 'convex/server';
 
-import { abbreviateGrandPrix, displayTeamName } from '@/lib/display';
+import { displayTeamName } from '@/lib/display';
+import { partialRoundLabel } from '@/lib/standingsPartialRound';
 
 /**
  * The championship tables as the page reads them.
@@ -149,28 +150,6 @@ export function teamHistoryNote(driver: DriverRow): string | null {
   });
   const sentence = spans.join(', ');
   return `${driver.displayName}: ${sentence[0].toUpperCase()}${sentence.slice(1)}.`;
-}
-
-const COUNTED_SESSION_PROSE: Record<string, string> = {
-  sprint: 'sprint',
-  sprint_quali: 'sprint qualifying',
-  quali: 'qualifying',
-  race: 'race',
-};
-
-/**
- * "Singapore GP sprint" when the table already holds part of the next round,
- * which on a sprint weekend it does from Saturday until the Grand Prix.
- */
-export function partialRoundLabel(standings: Championship): string | null {
-  const counted = standings.nextRoundCounted ?? [];
-  if (!standings.nextRound || counted.length === 0) {
-    return null;
-  }
-  const sessions = counted
-    .map((session) => COUNTED_SESSION_PROSE[session] ?? session)
-    .join(' and ');
-  return `${abbreviateGrandPrix(standings.nextRound.name)} ${sessions}`;
 }
 
 /**

@@ -24,9 +24,9 @@ import { formatDateLong, type UserDateSettings } from '@/lib/date';
 import { abbreviateGrandPrix, displayTeamName } from '@/lib/display';
 import { routeQuery } from '@/lib/routeQuery';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
+import { partialRoundLabel } from '@/lib/standingsPartialRound';
 import {
   type Championship,
-  partialRoundLabel,
   summarySentence,
   teamHistoryNote,
   tieGroups,

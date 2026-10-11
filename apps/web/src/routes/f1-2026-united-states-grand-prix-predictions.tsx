@@ -13,6 +13,7 @@ import {
   RaceWriteupFigure as Figure,
   RaceWriteupSection,
 } from '@/components/race-writeups/RaceWriteupSection';
+import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { lastReviewedAt } from '@/lib/lastReviewed';
@@ -43,6 +44,8 @@ const SPRINT_2026_SOURCE =
 /** Pirelli's 2025 Austin preview: circuit, 2024 heat and resurfacing, and the 2025 compounds. */
 const PIRELLI_2025_SOURCE =
   'https://press.pirelli.com/a-texas-rodeo-with-a-jump-in-compounds/';
+const TYRE_SOURCE =
+  'https://press.pirelli.com/the-compound-selection-for-austin-mexico-city-and-so-paulo/';
 const SPRINT_2025_SOURCE =
   'https://www.formula1.com/en/latest/article/verstappen-wins-dramatic-austin-sprint-as-both-mclarens-retire-in-lap-1.2cOAGwv5tyMmpmiGlzZiUW';
 const RACE_2025_SOURCE =
@@ -205,6 +208,7 @@ function UnitedStatesGrandPrixPredictionsPage() {
       >
         <StandardWeekend />
         <Circuit />
+        <TyreChoice />
         <Upgrades />
         <LastYear />
       </RaceWriteupArticle>
@@ -346,6 +350,31 @@ function Upgrades() {
   );
 }
 
+/**
+ * The 2026 nomination against the 2025 one. Last year's C1 Hard went largely
+ * unused, which is the story of this year's choice.
+ */
+function TyreChoice() {
+  return (
+    <TyreCompoundSection
+      heading="Austin gets the middle three tyres"
+      venue="Austin"
+      hardest="C2"
+    >
+      <p className="gpp-reading-copy mt-7 text-text-muted">
+        Pirelli has nominated C2, C3 and C4, closing the gap it left last year.
+        In 2025 the Hard was the C1, a step further from the Medium, to make one
+        stop on the Hard worth trying. Teams relied on the two softer compounds
+        instead. Mexico City and São Paulo get the softest three.{' '}
+        <ExternalSource href={TYRE_SOURCE}>
+          Pirelli&rsquo;s compound selection
+        </ExternalSource>
+        .
+      </p>
+    </TyreCompoundSection>
+  );
+}
+
 function LastYear() {
   return (
     <RaceWriteupSection
@@ -359,14 +388,6 @@ function LastYear() {
         Every driver made one pit stop.{' '}
         <ExternalSource href={RACE_2025_SOURCE}>
           The 2025 race report
-        </ExternalSource>
-        .
-      </p>
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        Pirelli brought C1, C3 and C4 that year, skipping a step between the
-        Hard and the Medium to open up the choice between one stop and two.{' '}
-        <ExternalSource href={PIRELLI_2025_SOURCE}>
-          Pirelli&rsquo;s 2025 selection
         </ExternalSource>
         .
       </p>

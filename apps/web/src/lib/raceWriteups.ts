@@ -106,7 +106,7 @@ const RACE_WRITEUPS = {
   },
   'usa-2026': {
     to: '/f1-2026-united-states-grand-prix-predictions',
-    reviewedAt: '2026-09-21',
+    reviewedAt: '2026-10-11',
     venueName: 'Austin',
     label: 'Austin predictions',
     summary:
@@ -115,7 +115,7 @@ const RACE_WRITEUPS = {
   },
   'mexico-2026': {
     to: '/f1-2026-mexico-city-grand-prix-predictions',
-    reviewedAt: '2026-10-01',
+    reviewedAt: '2026-10-11',
     venueName: 'Mexico City',
     label: 'Mexico City predictions',
     summary:
@@ -124,7 +124,7 @@ const RACE_WRITEUPS = {
   },
   'brazil-2026': {
     to: '/f1-2026-sao-paulo-grand-prix-predictions',
-    reviewedAt: '2026-10-01',
+    reviewedAt: '2026-10-11',
     venueName: 'São Paulo',
     label: 'São Paulo predictions',
     summary:

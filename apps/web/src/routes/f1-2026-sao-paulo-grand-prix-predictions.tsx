@@ -13,6 +13,7 @@ import {
   RaceWriteupFigure as Figure,
   RaceWriteupSection,
 } from '@/components/race-writeups/RaceWriteupSection';
+import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { lastReviewedAt } from '@/lib/lastReviewed';
@@ -46,6 +47,8 @@ const PIRELLI_2025_SOURCE =
 /** The 2025 partial resurface and drainage grooves. */
 const RESURFACE_2025_SOURCE = 'https://www.f1technical.net/news/27985';
 /** Formula 1's driver profile: Audi kept Bortoleto for its first works season. */
+const TYRE_SOURCE =
+  'https://press.pirelli.com/the-compound-selection-for-austin-mexico-city-and-so-paulo/';
 const BORTOLETO_SOURCE =
   'https://www.formula1.com/en/drivers/gabriel-bortoleto';
 const RACE_2025_SOURCE =
@@ -214,6 +217,7 @@ function SaoPauloGrandPrixPredictionsPage() {
       >
         <BortoletoHomeRace />
         <Circuit />
+        <TyreChoice />
         <Rain />
         <LastYear />
       </RaceWriteupArticle>
@@ -342,6 +346,40 @@ function Rain() {
   );
 }
 
+/**
+ * The 2026 nomination against the 2025 one: a step softer, because the Hard
+ * went largely unused last year.
+ */
+function TyreChoice() {
+  return (
+    <TyreCompoundSection
+      heading="São Paulo gets the softest three tyres"
+      venue="São Paulo"
+      hardest="C3"
+    >
+      <p className="gpp-reading-copy mt-7 text-text-muted">
+        Pirelli has nominated C3, C4 and C5, one step softer than last year.{' '}
+        <ExternalSource href={TYRE_SOURCE}>
+          Pirelli&rsquo;s compound selection
+        </ExternalSource>
+        . It had gone a step harder for 2025, to C2, C3 and C4, after heavy wear
+        and graining on Friday and Saturday morning in 2024.{' '}
+        <ExternalSource href={PIRELLI_2025_SOURCE}>
+          Pirelli&rsquo;s 2025 selection
+        </ExternalSource>
+        . The Hard then saw little use in the race, with teams favouring two
+        stops on the Medium and Soft. Pirelli says the softer set could widen
+        the strategies open to teams, including races where all three compounds
+        are used.{' '}
+        <ExternalSource href={TYRE_SOURCE}>
+          Pirelli&rsquo;s compound selection
+        </ExternalSource>
+        .
+      </p>
+    </TyreCompoundSection>
+  );
+}
+
 function LastYear() {
   return (
     <RaceWriteupSection
@@ -367,15 +405,6 @@ function LastYear() {
         10-second penalty and finished fifth, behind George Russell.{' '}
         <ExternalSource href={RACE_2025_SOURCE}>
           The 2025 race report
-        </ExternalSource>
-        .
-      </p>
-      <p className="gpp-reading-copy mt-3 text-text-muted">
-        Pirelli brought C2, C3 and C4, one step harder than in 2024, after the
-        dry tyres had shown heavy wear and graining on Friday and Saturday
-        morning that year.{' '}
-        <ExternalSource href={PIRELLI_2025_SOURCE}>
-          Pirelli&rsquo;s 2025 selection
         </ExternalSource>
         .
       </p>

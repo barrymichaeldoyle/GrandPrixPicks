@@ -13,6 +13,7 @@ import {
   RaceWriteupFigure as Figure,
   RaceWriteupSection,
 } from '@/components/race-writeups/RaceWriteupSection';
+import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSection';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { lastReviewedAt } from '@/lib/lastReviewed';
@@ -44,6 +45,8 @@ const SPRINT_2026_SOURCE =
 const PIRELLI_2025_SOURCE =
   'https://press.pirelli.com/once-again-a-skip-in-compounds-for-the-mexico-city-weekend/';
 /** Cadillac's announcement of the Reforma show run and Pérez's 300th start. */
+const TYRE_SOURCE =
+  'https://press.pirelli.com/the-compound-selection-for-austin-mexico-city-and-so-paulo/';
 const CADILLAC_PEREZ_SOURCE =
   'https://www.cadillacf1team.com/news/sergio-perez-returns-to-mexico-and-celebrates-300-formula-1-grands-prix-with-show-run-on-paseo-de-la-reforma';
 const RACE_2025_SOURCE =
@@ -200,6 +203,7 @@ function MexicoCityGrandPrixPredictionsPage() {
       >
         <PerezHomeRace />
         <Circuit />
+        <TyreChoice />
         <LastYear />
       </RaceWriteupArticle>
       <RaceWriteupClosingPanel
@@ -301,6 +305,31 @@ function Circuit() {
   );
 }
 
+/**
+ * The 2026 nomination against the 2025 one, where the C2 Hard went largely
+ * unused.
+ */
+function TyreChoice() {
+  return (
+    <TyreCompoundSection
+      heading="Mexico City gets the softest three tyres"
+      venue="Mexico City"
+      hardest="C3"
+    >
+      <p className="gpp-reading-copy mt-7 text-text-muted">
+        Pirelli has nominated C3, C4 and C5, the same three as São Paulo a week
+        later. In 2025 the Hard was the C2, a step further from the Medium, but
+        teams relied on the two softer compounds rather than try to save a stop
+        on it.{' '}
+        <ExternalSource href={TYRE_SOURCE}>
+          Pirelli&rsquo;s compound selection
+        </ExternalSource>
+        .
+      </p>
+    </TyreCompoundSection>
+  );
+}
+
 function LastYear() {
   return (
     <RaceWriteupSection id="last-year" heading="Norris won from pole in 2025">
@@ -326,11 +355,6 @@ function LastYear() {
         Soft.{' '}
         <ExternalSource href={RACE_2025_SOURCE}>
           The 2025 race report
-        </ExternalSource>
-        . Pirelli brought C2, C4 and C5, skipping a step between the Hard and
-        the Medium as it had in Austin the week before.{' '}
-        <ExternalSource href={PIRELLI_2025_SOURCE}>
-          Pirelli&rsquo;s 2025 selection
         </ExternalSource>
         .
       </p>

@@ -1,5 +1,5 @@
 import { api } from '@convex-generated/api';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { useMutation } from 'convex/react';
 import { useEffect, useState } from 'react';
 
@@ -32,9 +32,15 @@ export const Route = createFileRoute('/poc/chinwag/')({
     k: typeof search.k === 'string' ? search.k : undefined,
   }),
   loaderDeps: ({ search }) => ({ k: search.k }),
-  loader: async ({ deps }) => ({
-    allowed: await isCreatorPollPreviewAllowed(deps.k),
-  }),
+  // A real 404 without the preview key: the page used to render the
+  // not-found screen with a 200, which reads as a soft 404.
+  loader: async ({ deps }) => {
+    const allowed = await isCreatorPollPreviewAllowed(deps.k);
+    if (!allowed) {
+      throw notFound();
+    }
+    return { allowed };
+  },
   head: () => {
     // Phase-neutral: `head` runs before the poll is loaded, and a title that
     // says "pre race" on the Race Report vote is worse than a general one.

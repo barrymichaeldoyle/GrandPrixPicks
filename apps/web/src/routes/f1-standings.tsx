@@ -26,6 +26,7 @@ import { routeQuery } from '@/lib/routeQuery';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 import {
   type Championship,
+  partialRoundLabel,
   summarySentence,
   teamHistoryNote,
   tieGroups,
@@ -97,9 +98,12 @@ export const Route = createFileRoute('/f1-standings')({
     // dropped rather than truncated when the head terms plus the name would
     // run past the length a SERP shows.
     const base = `${SEASON} F1 Standings: Drivers & Constructors`;
-    const dated = lastRound
-      ? `${base} (After ${abbreviateGrandPrix(lastRound.name)})`
-      : base;
+    const partial = standings ? partialRoundLabel(standings) : null;
+    const dated = partial
+      ? `${base} (After ${partial})`
+      : lastRound
+        ? `${base} (After ${abbreviateGrandPrix(lastRound.name)})`
+        : base;
     const title = dated.length <= 60 ? dated : base;
 
     const roundsLeft =
@@ -203,6 +207,7 @@ const LAST_UPDATED_FORMAT: UserDateSettings = {
 function StandingsMeta({
   lastUpdated,
   lastRound,
+  partialRound,
   nextRound,
   pointsRemaining,
   roundsScored,
@@ -210,6 +215,7 @@ function StandingsMeta({
 }: {
   lastUpdated: number | null;
   lastRound: Championship['lastRound'];
+  partialRound: string | null;
   nextRound: Championship['nextRound'];
   pointsRemaining: number;
   roundsScored: number;
@@ -236,6 +242,11 @@ function StandingsMeta({
             Round {lastRound?.round ?? roundsScored}
             {roundsTotal > 0 ? ` of ${roundsTotal}` : ''}
           </span>
+          {partialRound ? (
+            <span className="mt-0.5 block text-xs text-text-muted">
+              Plus the {partialRound}
+            </span>
+          ) : null}
         </dd>
       </div>
 
@@ -480,6 +491,7 @@ function F1StandingsPage() {
           <StandingsMeta
             lastUpdated={lastUpdated}
             lastRound={lastRound}
+            partialRound={partialRoundLabel(standings)}
             nextRound={nextRound}
             pointsRemaining={pointsRemaining}
             roundsScored={roundsScored}

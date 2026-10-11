@@ -55,7 +55,7 @@ export function WeekendScheduleList({ race }: { race: Doc<'races'> }) {
       <div className="flex items-center justify-between gap-2">
         <p className="flex items-center gap-1.5 text-xs font-medium text-text-muted">
           <Calendar size={13} aria-hidden />
-          Weekend Schedule
+          Weekend schedule
         </p>
         {timezoneLabel ? (
           <span

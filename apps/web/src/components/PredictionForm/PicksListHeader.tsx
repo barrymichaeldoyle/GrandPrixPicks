@@ -36,7 +36,7 @@ export function PicksListHeader({
 }) {
   if (hidePicksHeading) {
     return (
-      // Side by side, the status moves up beside "Select Drivers" (see
+      // Side by side, the status moves up beside "Select drivers" (see
       // the pool's heading) and the column's top padding stands in for
       // it, so the list starts level with the driver grid.
       <div className="mb-2 space-y-1 sm:mb-3 @min-[875px]:hidden">
@@ -53,7 +53,7 @@ export function PicksListHeader({
   }
   return (
     <div className="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 sm:mb-3">
-      <h3 className="text-lg font-semibold text-text">Your Picks</h3>
+      <h3 className="text-lg font-semibold text-text">Your picks</h3>
       {/* The status belongs to this list: it counts these slots and
           the change it asks for happens here. */}
       {pickStatus}

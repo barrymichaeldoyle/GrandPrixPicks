@@ -125,7 +125,7 @@ function LeagueDetailPage() {
             description="This league doesn't exist or may have been deleted."
             action={
               <Button asChild size="sm" leftIcon={ArrowLeft}>
-                <Link to="/leagues">Back to Leagues</Link>
+                <Link to="/leagues">Back to leagues</Link>
               </Button>
             }
           />

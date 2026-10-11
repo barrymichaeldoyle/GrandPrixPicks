@@ -199,7 +199,7 @@ test.describe('[public] signed-out race detail', () => {
     // The preview is the point of leaving this route Clerk-free: a signed-out
     // visitor gets real content and a way in, not a gate.
     await expect(
-      page.getByRole('button', { name: 'Make your free picks' }),
+      page.getByRole('button', { name: 'Make your picks', exact: true }),
     ).toBeVisible();
 
     // Prompting for sign-in must not need a provider on the page. This is the

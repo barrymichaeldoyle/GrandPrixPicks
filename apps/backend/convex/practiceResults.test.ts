@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   parseOpenF1PracticeDrivers,
   parseOpenF1PracticeResults,
+  readableOpenF1Name,
 } from './practiceResults';
 
 describe('OpenF1 practice result validation', () => {
@@ -70,5 +71,14 @@ describe('OpenF1 practice result validation', () => {
         team: 'Aston Martin',
       },
     ]);
+  });
+});
+
+describe('readableOpenF1Name', () => {
+  it('title-cases the timing-screen surname', () => {
+    expect(readableOpenF1Name('George RUSSELL')).toBe('George Russell');
+    expect(readableOpenF1Name('Nico HÜLKENBERG')).toBe('Nico Hülkenberg');
+    expect(readableOpenF1Name('Jean-Eric VERGNE')).toBe('Jean-Eric Vergne');
+    expect(readableOpenF1Name('Max Verstappen')).toBe('Max Verstappen');
   });
 });

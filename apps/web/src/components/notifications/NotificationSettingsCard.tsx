@@ -16,8 +16,8 @@ export function NotificationSettingsCard() {
         <h2 className="gpp-label text-text-muted">Delivery</h2>
       </div>
       <p className="text-xs leading-relaxed text-text-muted">
-        Choose what reaches you by push and email: session locks, published
-        results and session locks.
+        Choose what reaches you by push and email: pick reminders, session locks
+        and published results.
       </p>
       <Link
         to="/settings"

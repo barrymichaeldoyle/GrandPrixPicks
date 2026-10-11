@@ -49,7 +49,9 @@ export function NextRaceCta({ nextRace }: NextRaceCtaProps) {
         </p>
         <p className="mt-1.5 text-sm text-text-muted" suppressHydrationWarning>
           Round {nextRace.round}
-          <span aria-hidden="true"> · </span>
+          {/* Spaces outside the hidden dot, so a screen reader still hears a
+              break between the two parts. */}{' '}
+          <span aria-hidden="true">·</span>{' '}
           {formatDateLong(nextRace.raceStartAt)}
         </p>
       </div>

@@ -398,20 +398,40 @@ function NewsCards({
   // A grid card takes both columns, so it is two of those cells rather than
   // one: counting cards instead of cells here would read the parity backwards
   // on any weekend that publishes a grid, and open the hole it exists to close.
+  // A grid card needs a row to itself, so a single card sitting alone in the
+  // left column before one leaves the cell beside it empty, mid-section, and
+  // no parity count sees it. That card takes both columns instead.
+  const widenedKeys = new Set<string>();
+  let column = 0;
+  let lastSingleKey: string | undefined;
+  for (const item of items) {
+    if (item.startingGrid?.length) {
+      if (column === 1 && lastSingleKey !== undefined) {
+        widenedKeys.add(lastSingleKey);
+      }
+      column = 0;
+    } else {
+      lastSingleKey = item.key;
+      column = column === 0 ? 1 : 0;
+    }
+  }
+  function isWide(item: (typeof items)[number]) {
+    return Boolean(item.startingGrid?.length) || widenedKeys.has(item.key);
+  }
+
   const cells = items.reduce(
-    (total, item) => total + (item.startingGrid?.length ? 2 : 1),
+    (total, item) => total + (isWide(item) ? 2 : 1),
     trailing ? 1 : 0,
   );
   const spanningKey =
     items.length >= 3 && cells % 2 === 1
-      ? items.find((item) => item.writeUpImage && !item.startingGrid?.length)
-          ?.key
+      ? items.find((item) => item.writeUpImage && !isWide(item))?.key
       : undefined;
   const trailingWide = cells % 2 === 1 && spanningKey === undefined;
 
   const leans = twoColumnLeans([
     ...items.map((item) => ({
-      cols: item.startingGrid?.length ? 2 : 1,
+      cols: isWide(item) ? 2 : 1,
       rows: item.key === spanningKey ? 2 : 1,
     })),
     ...(trailing ? [{ cols: trailingWide ? 2 : 1, rows: 1 }] : []),
@@ -458,7 +478,7 @@ function NewsCards({
             id={cardId(item.key)}
             data-hash-target={targetId === cardId(item.key) ? '' : undefined}
             className={`flex flex-col bg-surface p-4 target:outline-2 target:outline-offset-[-2px] target:outline-accent data-hash-target:outline-2 data-hash-target:outline-offset-[-2px] data-hash-target:outline-accent sm:p-6 ${
-              item.startingGrid?.length
+              isWide(item)
                 ? // Both columns. Eleven rows beside eleven only fits if the
                   // card is the full width of the section.
                   'sm:col-span-2'

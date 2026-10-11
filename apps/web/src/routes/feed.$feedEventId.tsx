@@ -79,7 +79,7 @@ function FeedEventPage() {
         {isSignedIn && !isNews ? (
           <div className="mb-5">
             <Button asChild variant="text" size="sm" leftIcon={ArrowLeft}>
-              <Link to="/feed">Back to feed</Link>
+              <Link to="/">Back to dashboard</Link>
             </Button>
           </div>
         ) : null}
@@ -157,7 +157,7 @@ function WeekendLink({
   if (isSignedIn) {
     return (
       <Button asChild variant="text" size="sm" leftIcon={ArrowLeft}>
-        <Link to="/feed">Back to feed</Link>
+        <Link to="/">Back to dashboard</Link>
       </Button>
     );
   }

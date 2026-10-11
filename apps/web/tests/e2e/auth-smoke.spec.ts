@@ -87,7 +87,7 @@ test.describe('[auth] smoke', () => {
     await expect(resultsSummary).toContainText('All sessions scored');
     // ...and it defers the viewer's own total to the recap rather than printing
     // the same number twice.
-    await expect(resultsSummary).not.toContainText('Weekend Total');
+    await expect(resultsSummary).not.toContainText('Weekend total');
     await expect(resultsSummary).not.toContainText('pts');
 
     // The recap owns the personal result.
@@ -95,7 +95,7 @@ test.describe('[auth] smoke', () => {
     await expect(recap).toBeVisible();
     await expect(recap).toContainText('pts');
 
-    // By test id, not copy: the heading is now the neutral "Session Results"
+    // By test id, not copy: the heading is now the neutral "Session results"
     // for every viewer (H2HResultsSection.test.tsx asserts the old wording is
     // gone), and this assertion is about the block being there at all.
     await expect(page.getByTestId('session-points-breakdown')).toBeVisible();

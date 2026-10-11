@@ -269,6 +269,15 @@ describe('WeekendNewsSection store card', () => {
     expect(storeCard()?.className).toContain('sm:col-span-2');
   });
 
+  it('widens a lone card rather than leave a hole beside the grid card', () => {
+    render([...stories(3), gridItem]);
+    function card(key: string) {
+      return container.querySelector(`#news-${key}`);
+    }
+    expect(card('story-2')?.className).toContain('sm:col-span-2');
+    expect(card('story-0')?.className).not.toContain('sm:col-span-2');
+  });
+
   it('takes one cell when that fills the last row', () => {
     render(stories(5));
     expect(storeCard()?.className).not.toContain('sm:col-span-2');

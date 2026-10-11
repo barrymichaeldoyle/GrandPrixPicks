@@ -101,7 +101,9 @@ function NextEvent({ race }: { race: NonNullable<RaceDoc> }) {
       </div>
       <p className="gpp-reading-meta mt-1 text-text-muted">
         Round {race.round}
-        {circuit ? ` · ${circuit.locality}` : ''}
+        {circuit && !race.name.includes(circuit.locality)
+          ? ` · ${circuit.locality}`
+          : ''}
       </p>
 
       <div className="mt-4 border-t border-border pt-4">

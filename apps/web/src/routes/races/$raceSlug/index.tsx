@@ -661,7 +661,7 @@ function RaceDetailPage() {
 
   // A scenario fixture is never the next calendar race, but it takes picks
   // when opened on purpose, as the backend allows (`isRaceAcceptingPredictions`).
-  // Without this every e2e picks test met "Not Yet Open".
+  // Without this every e2e picks test met "Not yet open".
   const isNextRace =
     Boolean(nextRace && nextRace._id === currentRace._id) ||
     isSyntheticRaceSlug(currentRace.slug);

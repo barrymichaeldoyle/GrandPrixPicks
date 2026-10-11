@@ -69,7 +69,7 @@ export function DraggableDriverCard({
           value={driverId}
           excludedIds={excludedIds}
           onChange={(id) => setPosition(index, id)}
-          placeholder="Search by name or code…"
+          placeholder="Name or code"
           inputRef={registerInput}
         />
       </div>

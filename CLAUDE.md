@@ -166,7 +166,7 @@ routes/                # TanStack Router file-based routes
     -hooks/             # Page-private hooks (useRaceWeekendData)
   leaderboard.tsx      # Season + weekend standings (Top 5 / H2H / combined)
   leagues/             # Private leagues: index, create, $slug, $slug/settings
-  feed.tsx + feed/     # Activity feed (+ feed.$feedEventId.tsx detail)
+  feed.tsx + feed/     # /feed 301s to / (retired); feed.$feedEventId.tsx serves old notification links
   p/$username/         # Public profiles (+ followers / following lists)
   me.tsx               # Redirect to the signed-in user's profile
   settings.tsx         # Account settings (profile, regional, notifications)

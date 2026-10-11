@@ -167,6 +167,12 @@ describe('picks call to action', () => {
     expect(container!.textContent).not.toContain('needs a free account');
   });
 
+  it('does not link the scoring page to itself', () => {
+    render({ placement: 'how_to_play' });
+
+    expect(hrefs()).not.toContain('/how-to-play');
+  });
+
   it('offers scoring to a newcomer and nothing extra to a player', () => {
     render({ placement: 'about' });
     expect(hrefs()).toContain('/how-to-play');

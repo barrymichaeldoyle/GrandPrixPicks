@@ -126,7 +126,7 @@ function SupportPage() {
     <div className="bg-page">
       <div className="mx-auto max-w-3xl px-4 py-8">
         <PageHeader
-          title="Contact Support"
+          title="Contact support"
           subtitle="Found a bug, need help, or have feedback? Send a message directly to Barry."
         />
 
@@ -269,7 +269,7 @@ function SupportPage() {
                 {isSubmitting && (
                   <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                 )}
-                Send Message
+                Send message
               </Button>
             </div>
           )}

@@ -292,10 +292,15 @@ function PredictionsThisWeekendPage() {
                 </span>
                 {circuit ? (
                   <>
-                    <span aria-hidden className="text-text-muted">
+                    {/* Own line on a phone: wrapping left the dot dangling
+                        at the end of the round. */}
+                    <span
+                      aria-hidden
+                      className="hidden text-text-muted sm:inline"
+                    >
                       ·
                     </span>
-                    <span className="text-text-muted">
+                    <span className="basis-full text-text-muted sm:basis-auto">
                       {circuit.name}, {circuit.locality}
                     </span>
                   </>

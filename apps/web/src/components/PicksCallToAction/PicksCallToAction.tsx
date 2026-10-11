@@ -9,13 +9,14 @@ import { Button } from '@/components/Button/Button';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { Flag } from '@/components/Flag';
 import { InlineLoader } from '@/components/InlineLoader';
+import { LockDateText } from '@/components/LockDateText';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { type PicksCtaState, picksCtaCopy } from '@/lib/picksCta';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
-import { formatViewerLockDate } from '@/lib/raceLockTime';
+import { formatRaceLocalLockDate } from '@/lib/raceLockTime';
 import { getNextSessionLock } from '@/lib/raceSessions';
 import { getRaceWriteupPhase, isRaceWriteupLive } from '@/lib/raceWriteupPhase';
 import { routeQuery } from '@/lib/routeQuery';
@@ -222,7 +223,14 @@ export function PicksCallToAction({
           is absent until the round resolves, and once the whole weekend is
           locked, so it never counts down to a deadline that has gone. */}
       {deadline ? (
-        <p className="gpp-reading-meta mt-1 text-text-muted">{deadline}</p>
+        <p className="gpp-reading-meta mt-1 text-text-muted">
+          {deadline.label} picks lock{' '}
+          <LockDateText
+            lockAt={deadline.lockAt}
+            trackDate={deadline.trackDate}
+            separator=", "
+          />
+        </p>
       ) : null}
       <p className="gpp-reading-copy mx-auto mt-2 max-w-xl text-text-muted">
         {copy.body}
@@ -247,7 +255,8 @@ export function PicksCallToAction({
           it under the one button that matters competed with that button
           instead of helping. The signed-out line survives because scoring is
           the question a stranger actually has before they pick. */}
-      {isSignedIn ? null : (
+      {/* Not on /how-to-play itself, where the link would lead back here. */}
+      {isSignedIn || placement === 'how_to_play' ? null : (
         <p className="mt-4 text-sm leading-6 text-text-muted">
           <Link
             to="/how-to-play"
@@ -295,23 +304,29 @@ export function PicksCallToAction({
 }
 
 /**
- * "Qualifying picks lock Sat 12 Sept, 16:00", in the reader's own timezone.
+ * "Qualifying picks lock Sat 12 Sept, 16:00", ending in the reader's own
+ * timezone once hydrated.
  *
- * Client-only by construction: the server runs in UTC, so formatting a local
- * instant there formats it for the wrong person. The line only exists once the
- * round has resolved on the client, so there is no server rendering of it to
- * mismatch.
+ * The round is primed by the root loader, so this line is server-rendered.
+ * The server runs in UTC, so it carries the track-local date and
+ * `LockDateText` swaps in the viewer's zone after hydration. Formatting the
+ * viewer's zone directly made the server and browser text differ, and React
+ * threw away the server HTML on every page that ends with this panel.
  */
-function nextLockLine(race: Doc<'races'>, now: number): string | null {
+function nextLockLine(race: Doc<'races'>, now: number) {
   const next = getNextSessionLock(race, now);
   if (!next) {
     return null;
   }
 
-  const lock = formatViewerLockDate(next.lockAt);
-  if (!lock) {
+  const trackDate = formatRaceLocalLockDate(next.lockAt, race.slug);
+  if (!trackDate) {
     return null;
   }
 
-  return `${SESSION_LABELS[next.session]} picks lock ${lock.date}, ${lock.time}`;
+  return {
+    label: SESSION_LABELS[next.session],
+    lockAt: next.lockAt,
+    trackDate,
+  };
 }

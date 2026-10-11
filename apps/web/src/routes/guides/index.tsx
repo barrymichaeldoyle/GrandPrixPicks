@@ -13,9 +13,9 @@ export const Route = createFileRoute('/guides/')({
   component: GuidesIndexPage,
   head: () => {
     const meta = pageMeta({
-      title: 'F1 Guides | Formats, Scoring and Prediction Strategy',
+      title: 'F1 Guides | Race Weekends, Points and the 2027 Grid',
       description:
-        'Plain-English guides to Formula 1: how sprint weekends work, how championship points are awarded, and how to predict a top five.',
+        'Plain-English guides to Formula 1: how a race weekend runs, how championship points are awarded, and who could take the 2027 Haas seat.',
       path: '/guides',
     });
     return {
@@ -55,7 +55,7 @@ function GuidesIndexPage() {
       <div className="mx-auto max-w-4xl px-4 py-6">
         <PageHeader
           title="Formula 1, explained"
-          subtitle="How the weekend is structured, how points are awarded, and how to turn all of that into a better prediction."
+          subtitle="How a race weekend runs, how points are awarded, and who could take the 2027 Haas seat."
         />
 
         <section className="mt-2 border-t border-border pt-8">
@@ -69,19 +69,15 @@ function GuidesIndexPage() {
             weekend and still not know why the fast car finished fourth.
           </p>
           <p className="gpp-reading-copy mt-4 text-text-muted">
-            These guides are written to close that gap. They cover the shape of
-            a race weekend and how it changes on a sprint weekend, how the sport
-            awards its own championship points, and how to read the signals that
-            actually predict a finishing order. They are deliberately
-            plain-English: no lap-time tables, no engineering jargon left
-            undefined.
+            These guides are written to close that gap. They cover each session
+            of a race weekend and how the sport awards its own championship
+            points, in plain English: no lap-time tables, no engineering jargon
+            left undefined.
           </p>
           <p className="gpp-reading-copy mt-4 text-text-muted">
-            If you play Grand Prix Picks, the last one is the useful one.
-            Picking a top five well is a different skill from knowing which car
-            is quickest, because the points reward getting the order right
-            rather than picking winners. If you are just here to understand the
-            sport, start with the weekend format and work down.
+            If you play Grand Prix Picks, the points guide also covers how the
+            game scores a pick, which rewards getting the order right rather
+            than picking winners.
           </p>
         </section>
 

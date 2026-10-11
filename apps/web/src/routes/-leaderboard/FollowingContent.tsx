@@ -30,7 +30,7 @@ export function FollowingGuard({ children }: PropsWithChildren) {
         icon={Users}
         title="Sign in to see your friends"
         description="Follow other players to compete against them on a private leaderboard."
-        action={<SignInActionButton size="sm">Sign In</SignInActionButton>}
+        action={<SignInActionButton size="sm">Sign in</SignInActionButton>}
       />
     );
   }

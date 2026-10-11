@@ -13,15 +13,15 @@ export function RaceStatusHeader({
   onRestore: () => void;
 }) {
   return (
-    <div className="mb-6 rounded-xl border border-slate-700 bg-slate-800/50 p-6">
-      <div className="flex items-center justify-between gap-4">
+    <div className="mb-6 rounded-xl border border-slate-700 bg-slate-800/50 p-4 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <span className="text-sm font-medium text-slate-500">
             Round {race.round} - {race.season}
           </span>
           <h1 className="mt-1 text-2xl font-bold text-white">{race.name}</h1>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span
             className={`rounded-full px-3 py-1 text-sm ${
               race.status === 'upcoming'

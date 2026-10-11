@@ -228,7 +228,7 @@ export function PracticeResultsButton({
       {results === undefined
         ? 'Checking Results…'
         : hasResults
-          ? 'View Session Results'
+          ? 'View session results'
           : 'Results Pending'}
     </Button>
   );

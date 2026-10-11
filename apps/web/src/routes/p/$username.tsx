@@ -352,13 +352,16 @@ function ProfilePage() {
 
         {scoredWeekends.length > 0 ? (
           <section className="mb-7">
-            <div className="mb-3 flex items-baseline justify-between gap-3">
-              <h2 className="font-title text-sm font-semibold tracking-label text-text uppercase">
+            <div className="mb-2 flex items-baseline justify-between gap-3">
+              <h2 className="font-title text-sm font-semibold text-text">
                 Weekend finishes
               </h2>
               <span className="text-xs text-text-muted">Top 5 scoring</span>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            {/* Flat rows: a card per weekend holding three bordered cells was
+                two levels of border and ran past two thousand pixels on a
+                phone by the end of a season. */}
+            <ul className="grid border-t border-border sm:grid-cols-2 sm:gap-x-8">
               {scoredWeekends.map((weekend) => {
                 const countryCode = getCountryCodeForRace({
                   slug: weekend.raceSlug,
@@ -368,62 +371,52 @@ function ProfilePage() {
                 ).filter((session) => session?.points != null).length;
 
                 return (
-                  <Link
-                    key={weekend.raceId}
-                    to="/races/$raceSlug"
-                    params={{ raceSlug: weekend.raceSlug }}
-                    className="group overflow-hidden rounded-sm border border-border bg-surface transition-colors hover:border-border-strong"
-                  >
-                    <div className="flex items-center gap-3 px-3 py-3">
+                  <li key={weekend.raceId} className="border-b border-border">
+                    <Link
+                      to="/races/$raceSlug"
+                      params={{ raceSlug: weekend.raceSlug }}
+                      className="group flex items-center gap-3 py-2.5"
+                    >
                       {countryCode ? (
-                        <RaceFlag countryCode={countryCode} size="md" />
+                        <RaceFlag countryCode={countryCode} size="sm" />
                       ) : null}
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                          Round {weekend.raceRound}
-                        </p>
-                        <p className="truncate font-semibold text-text group-hover:text-accent">
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-medium text-text group-hover:text-accent">
                           {weekend.raceName}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-px bg-border text-center">
-                      <div className="bg-surface-elevated px-2 py-2.5">
-                        <p className="font-title text-lg font-semibold text-accent">
+                        </span>
+                        <span className="block text-xs text-text-muted">
+                          Round {weekend.raceRound} · {scoredSessionCount}{' '}
+                          {scoredSessionCount === 1 ? 'session' : 'sessions'}
+                        </span>
+                      </span>
+                      <span className="w-14 shrink-0 text-right">
+                        <span className="gpp-mono block font-semibold text-accent">
                           {weekend.top5Rank != null
                             ? `P${weekend.top5Rank}`
-                            : '—'}
-                        </p>
-                        <p className="text-xs tracking-label text-text-muted uppercase">
+                            : '–'}
+                        </span>
+                        <span className="block text-xs text-text-muted">
                           of {weekend.top5FieldSize}
-                        </p>
-                      </div>
-                      <div className="bg-surface-elevated px-2 py-2.5">
-                        <p className="font-title text-lg font-semibold text-text">
+                        </span>
+                      </span>
+                      <span className="w-14 shrink-0 text-right">
+                        <span className="gpp-mono block font-semibold text-text">
                           {weekend.totalPoints}
-                        </p>
-                        <p className="text-xs tracking-label text-text-muted uppercase">
-                          points
-                        </p>
-                      </div>
-                      <div className="bg-surface-elevated px-2 py-2.5">
-                        <p className="font-title text-lg font-semibold text-text">
-                          {scoredSessionCount}
-                        </p>
-                        <p className="text-xs tracking-label text-text-muted uppercase">
-                          sessions
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
+                        </span>
+                        <span className="block text-xs text-text-muted">
+                          pts
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </section>
         ) : null}
 
         <div className="mt-7 mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="font-title text-sm font-semibold tracking-label text-text uppercase">
+          <h2 className="font-title text-sm font-semibold text-text">
             {isOwner ? 'My recent results' : 'Recent results'}
           </h2>
           {weekends && weekends.length > 0 ? (

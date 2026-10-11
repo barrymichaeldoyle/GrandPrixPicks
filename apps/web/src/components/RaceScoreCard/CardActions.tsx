@@ -35,7 +35,7 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
       <>
         <div className="mb-2 flex items-center gap-2">
           <Lock className="h-5 w-5 text-text-muted" />
-          <h2 className="text-xl font-semibold text-text">Not Yet Open</h2>
+          <h2 className="text-xl font-semibold text-text">Not yet open</h2>
         </div>
         {/* No fallback line when the date is unknown: "Check back soon" is
             filler, and this is the only copy a visitor who cannot play yet
@@ -71,7 +71,7 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
           Pick your Top 5 for each session and choose who finishes ahead in each
           team. It&apos;s free to play.
         </p>
-        <SignInActionButton size="sm">Sign In</SignInActionButton>
+        <SignInActionButton size="sm">Sign in</SignInActionButton>
       </div>
     );
   }

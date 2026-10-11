@@ -27,14 +27,14 @@ function TermsPage() {
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
         <PageHeader
-          title="Terms of Service"
+          title="Terms of service"
           subtitle="Last updated: October 2026"
         />
 
         <div className="reveal-up reveal-delay-1 prose prose-invert max-w-none space-y-6 text-text-muted">
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              1. Acceptance of Terms
+              1. Acceptance of terms
             </h2>
             <p>
               These Terms of Service govern your use of Grand Prix Picks and are
@@ -47,7 +47,7 @@ function TermsPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              2. Description of Service
+              2. Description of service
             </h2>
             <p>
               Grand Prix Picks is a fan-made prediction game where users predict
@@ -64,7 +64,7 @@ function TermsPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              3. Eligibility and Account
+              3. Eligibility and account
             </h2>
             <p>
               You must be old enough to form a binding contract in your
@@ -79,7 +79,7 @@ function TermsPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              4. Acceptable Use
+              4. Acceptable use
             </h2>
             <p>
               You agree to use the app in good faith and not to cheat, abuse
@@ -94,7 +94,7 @@ function TermsPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              5. Predictions and Scoring
+              5. Predictions and scoring
             </h2>
             <p>
               Predictions must be submitted before the deadline for each session
@@ -121,7 +121,7 @@ function TermsPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              7. Changes to Terms or Service
+              7. Changes to the terms or service
             </h2>
             <p>
               We may change these terms or the app at any time. The &quot;Last
@@ -133,13 +133,13 @@ function TermsPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              8. Refund Policy
+              8. Refund policy
             </h2>
             <p>
               Refunds for paid products are handled in accordance with
               Paddle&apos;s refund policy and buyer terms. Please see our{' '}
               <Link to="/refund-policy" className="text-accent underline">
-                Refund Policy
+                refund policy
               </Link>{' '}
               page for details on how to request a refund.
             </p>

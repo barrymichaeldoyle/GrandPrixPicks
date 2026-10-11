@@ -20,7 +20,7 @@ export const Route = createFileRoute('/leagues/create')({
   component: CreateLeaguePage,
   head: () =>
     pageMeta({
-      title: 'Create League | Grand Prix Picks',
+      title: 'Create a League | Grand Prix Picks',
       description: `Create a private or public league for the ${CURRENT_SEASON} Grand Prix Picks season.`,
       path: '/leagues/create',
       // A signed-in form, nothing for a crawler to land on.
@@ -189,7 +189,7 @@ function CreateLeagueContent() {
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-3xl px-4 py-6">
         <PageHeader
-          title="Create League"
+          title="Create a league"
           subtitle={`Set up a league for the ${season} season and invite friends.`}
         />
 
@@ -260,10 +260,6 @@ function CreateLeagueContent() {
               <p id="league-slug-help" className="mt-1 text-xs text-text-muted">
                 grandprixpicks.com/leagues/{slug || '...'}
               </p>
-              <p className="mt-0.5 text-xs text-text-muted">
-                Use 3-30 characters (lowercase letters, numbers, hyphens). Slug
-                is stored in lowercase for the URL.
-              </p>
               {slug.length > 0 && slug.length < 3 ? (
                 <p
                   id="league-slug-status"
@@ -276,7 +272,7 @@ function CreateLeagueContent() {
                   id="league-slug-status"
                   className="mt-0.5 text-xs text-text-muted"
                 >
-                  Minimum length: 3 characters.
+                  3–30 characters: lowercase letters, numbers and hyphens.
                 </p>
               )}
             </div>
@@ -385,7 +381,7 @@ function CreateLeagueContent() {
                   (visibility === 'private' && privateCreateLimitReached)
                 }
               >
-                Create League
+                Create league
               </Button>
             </div>
           </form>

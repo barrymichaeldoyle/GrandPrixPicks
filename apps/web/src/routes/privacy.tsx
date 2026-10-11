@@ -28,7 +28,7 @@ function PrivacyPage() {
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
         <PageHeader
-          title="Privacy Policy"
+          title="Privacy policy"
           subtitle="Last updated: August 2026"
         />
 
@@ -47,7 +47,7 @@ function PrivacyPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              2. Information We Collect
+              2. Information we collect
             </h2>
             <p>
               We use Clerk for authentication. When you sign in, we receive and
@@ -62,7 +62,7 @@ function PrivacyPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              3. How We Use Your Information
+              3. How we use your information
             </h2>
             <p>
               Your information is used to run the game: to associate your
@@ -85,7 +85,7 @@ function PrivacyPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              4. Data Storage and Security
+              4. Data storage and security
             </h2>
             <p>
               Account and authentication data are handled by Clerk. Prediction
@@ -98,7 +98,7 @@ function PrivacyPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              5. Your Rights and Choices
+              5. Your rights and choices
             </h2>
             <p>
               You can update your display name and account details through your
@@ -110,7 +110,7 @@ function PrivacyPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              6. Advertising and Cookies
+              6. Advertising and cookies
             </h2>
             <p>
               We use Google AdSense to display advertising in the app. Google
@@ -139,7 +139,7 @@ function PrivacyPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              7. Changes to This Policy
+              7. Changes to this policy
             </h2>
             <p>
               We may update this privacy policy from time to time. The

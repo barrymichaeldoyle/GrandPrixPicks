@@ -846,6 +846,17 @@ export function rankChampionship(
     races.find(
       (race) => lastScoredRound === null || race.round > lastScoredRound,
     ) ?? null;
+  // On a sprint weekend the sprint is in the table before the Grand Prix is,
+  // so "after Bahrain" undersells a table that already has Singapore's sprint.
+  const nextRoundCounted = nextRound
+    ? [
+        ...new Set(
+          sessions
+            .filter((session) => session.round === nextRound.round)
+            .map((session) => session.sessionType),
+        ),
+      ]
+    : [];
 
   return {
     lastUpdated: lastUpdated || null,
@@ -860,6 +871,8 @@ export function rankChampionship(
     /** The round the table is current to, and the Grand Prix that ran there. */
     lastRound,
     nextRound,
+    /** Sessions of `nextRound` already in the table (its sprint, say). */
+    nextRoundCounted,
     pointsRemaining: remainingPoints(races, sessions, sessionTypes),
     drivers: driverStandings,
     constructors: constructorStandings,

@@ -45,11 +45,14 @@ export function Avatar({
   const name = username || '?';
   const initial = name[0].toUpperCase();
 
+  // Decorative everywhere: every avatar sits beside the player's name, so
+  // naming the picture as well made a screen reader say each name twice, and
+  // the initial alone read "O OvercutKing" down the leaderboard.
   if (avatarUrl) {
     return (
       <img
         src={sizedAvatarUrl(avatarUrl, px)}
-        alt={username || 'User avatar'}
+        alt=""
         width={px}
         height={px}
         loading="lazy"
@@ -63,6 +66,7 @@ export function Avatar({
     // Avatars keep their circle: `rounded-full` is reserved for these and the
     // 5px team dot.
     <span
+      aria-hidden="true"
       className={`${sizeClass} inline-flex shrink-0 items-center justify-center rounded-full border border-border bg-surface-elevated font-medium text-text-muted`}
     >
       {initial}

@@ -141,9 +141,7 @@ function PayPage() {
         captureAnalyticsEvent('checkout_open_failed', {
           reason: 'missing_transaction_id',
         });
-        setErrorMessage(
-          'This link is missing the details Paddle needs to take a payment. Start from the pricing page and it will be built for you.',
-        );
+        setErrorMessage('Start again from the pricing page.');
         setStatusMessage('This checkout link is incomplete.');
         return;
       }

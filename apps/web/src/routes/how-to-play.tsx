@@ -131,7 +131,7 @@ function HowToPlayPage() {
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-5xl px-4 py-6">
         <PageHeader
-          title="How to Play"
+          title="How to play"
           subtitle="Pick the drivers you think will finish ahead, score points in every session, and climb the leaderboard."
           actions={
             inApp ? undefined : (

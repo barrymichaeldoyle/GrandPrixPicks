@@ -54,7 +54,7 @@ export function CircuitGuide({ raceSlug, raceName }: CircuitGuideProps) {
       */}
       <p className="gpp-label">Circuit guide</p>
       {/*
-        Headline role, matching "Session Results" above it. At `2xl`/600 this
+        Headline role, matching "Session results" above it. At `2xl`/600 this
         heading outweighed both of them and, before the race name was given
         its display role, it was the largest text on the page.
       */}
@@ -66,7 +66,10 @@ export function CircuitGuide({ raceSlug, raceName }: CircuitGuideProps) {
       </h2>
       {circuit && (
         <p className="mt-1 text-sm text-text-muted">
-          {circuit.locality}, {circuit.country}
+          {/* City-states (Singapore, Monaco) would read "Singapore, Singapore". */}
+          {circuit.locality === circuit.country
+            ? circuit.country
+            : `${circuit.locality}, ${circuit.country}`}
         </p>
       )}
 

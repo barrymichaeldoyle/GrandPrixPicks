@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 type PageHeaderProps = {
-  title: string;
+  title: ReactNode;
   /**
    * Show the title as a placeholder because the data behind it has not arrived.
    *

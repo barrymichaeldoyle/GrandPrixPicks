@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, notFound } from '@tanstack/react-router';
 
 import { isCreatorPollPreviewAllowed } from '@/lib/creatorPollGate';
 
@@ -15,9 +15,15 @@ export const Route = createFileRoute('/poc/chinwag/demo')({
     k: typeof search.k === 'string' ? search.k : undefined,
   }),
   loaderDeps: ({ search }) => ({ k: search.k }),
-  loader: async ({ deps }) => ({
-    allowed: await isCreatorPollPreviewAllowed(deps.k),
-  }),
+  // A real 404 without the preview key: the page used to render the
+  // not-found screen with a 200, which reads as a soft 404.
+  loader: async ({ deps }) => {
+    const allowed = await isCreatorPollPreviewAllowed(deps.k);
+    if (!allowed) {
+      throw notFound();
+    }
+    return { allowed };
+  },
   head: () => chinwagHead('Chinwag results'),
 });
 

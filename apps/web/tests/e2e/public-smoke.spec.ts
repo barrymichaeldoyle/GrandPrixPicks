@@ -156,12 +156,12 @@ test.describe('[public] smoke', () => {
     await expect(resultsSummary).toBeVisible();
     await expect(resultsSummary).toContainText('All sessions scored');
     await expect(resultsSummary).not.toContainText('pts');
-    await expect(resultsSummary).not.toContainText('Weekend Total');
+    await expect(resultsSummary).not.toContainText('Weekend total');
 
     // Same split for the breakdown: the classification is public, the
     // viewer's per-session points are not.
     await expect(page.getByTestId('session-points-breakdown')).toBeVisible();
-    await expect(page.getByText('Session Results')).toBeVisible();
+    await expect(page.getByText('Session results')).toBeVisible();
     await expect(page.getByText('Session Points Breakdown')).toHaveCount(0);
   });
 });

@@ -1,15 +1,12 @@
 import { formatLockCountdown } from '@grandprixpicks/shared/picks';
-import { Suspense, use, type ReactNode } from 'react';
-import { browser } from 'react-dom';
+import type { ReactNode } from 'react';
 
 import { Flag } from '@/components/Flag';
+import { LockDateText } from '@/components/LockDateText';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
-import {
-  formatRaceLocalLockDate,
-  formatViewerLockDate,
-} from '@/lib/raceLockTime';
+import { formatRaceLocalLockDate } from '@/lib/raceLockTime';
 
 /**
  * The lock deadline as a session clock, not a badge.
@@ -83,57 +80,6 @@ function segmentsFor(msRemaining: number): ClockSegment[] {
   ];
 }
 
-type LockDate = NonNullable<ReturnType<typeof formatRaceLocalLockDate>>;
-
-function ViewerLockDate({
-  lockAt,
-  separator,
-  trackDate,
-}: {
-  lockAt: number;
-  separator: string;
-  trackDate: LockDate;
-}) {
-  use(browser());
-  const date = formatViewerLockDate(lockAt) ?? trackDate;
-  return (
-    <>
-      {date.date}
-      {separator}
-      {date.time}
-    </>
-  );
-}
-
-/** Keep the track-local date in server HTML while hydrating the viewer's zone. */
-function LockDateText({
-  lockAt,
-  trackDate,
-  separator = ' · ',
-}: {
-  lockAt: number;
-  trackDate: LockDate;
-  separator?: string;
-}) {
-  return (
-    <Suspense
-      fallback={
-        <>
-          {trackDate.date}
-          {separator}
-          {trackDate.time}
-        </>
-      }
-    >
-      <ViewerLockDate
-        lockAt={lockAt}
-        separator={separator}
-        trackDate={trackDate}
-      />
-    </Suspense>
-  );
-}
-
 export function SessionClock({
   raceName,
   raceSlug,
@@ -168,7 +114,8 @@ export function SessionClock({
   const circuit = getCircuitForRace(raceSlug);
   const contextLine = [
     round === undefined ? null : `Round ${round}`,
-    circuit?.locality ?? null,
+    // "Singapore Grand Prix · Round 17 · Singapore" says the city twice.
+    circuit && !raceName.includes(circuit.locality) ? circuit.locality : null,
   ]
     .filter(Boolean)
     .join(' · ');

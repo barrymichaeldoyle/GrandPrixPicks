@@ -179,7 +179,9 @@ function SessionLeaderboardRow({
             params={{ username: event.username ?? '' }}
             search={{ from: undefined, fromLabel: undefined }}
             className="shrink-0"
-            tabIndex={event.username ? 0 : -1}
+            // The name beside it is the same link; this one is for pointers.
+            tabIndex={-1}
+            aria-hidden="true"
           >
             <Avatar
               avatarUrl={event.avatarUrl}

@@ -68,7 +68,7 @@ type RaceEventPageLayoutProps = {
   /**
    * Circuit briefing. Rendered last so it never displaces the picks flow,
    * except on a weekend that has neither opened nor been scored, where the
-   * picks flow is only a "Not Yet Open" notice and the briefing is the whole
+   * picks flow is only a "Not yet open" notice and the briefing is the whole
    * reason the page is worth loading. See `leadWithCircuitGuide` below.
    */
   circuitGuideContent?: ReactNode;
@@ -173,13 +173,13 @@ export function RaceEventPageLayout({
             //   once results exist, and must not disappear when the weekend
             //   finishes scoring, or the header block would vanish mid-flow.
             // - The points total is the viewer's own. It is always zero when
-            //   signed out (which made a public page read "Weekend Total
+            //   signed out (which made a public page read "Weekend total
             //   +0 pts"), and once the recap is up the recap owns it — showing
             //   it here too would duplicate the recap's hero number.
             hasPublishedResults
               ? {
                   showViewerPoints: isSignedIn && !recapContent,
-                  label: allEventsScored ? 'Weekend Total' : 'Points So Far',
+                  label: allEventsScored ? 'Weekend total' : 'Points so far',
                   points: pointsSoFar,
                   showResultsPendingBadge,
                   scoredEventCount,

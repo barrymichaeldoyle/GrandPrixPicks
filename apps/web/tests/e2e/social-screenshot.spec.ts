@@ -27,9 +27,10 @@ test('captures partially completed Top 5 gameplay', async ({ page }) => {
       element.textContent = 'Spanish Grand Prix';
     });
   await page
-    .getByText('Round -17 · Next Race', { exact: true })
+    // The eyebrow is "<season> · Round <n> · Next race" (RaceDetailHeader).
+    .getByText(/^\d{4} · Round -?\d+ · Next race$/)
     .evaluate((element) => {
-      element.textContent = 'Round 7 · Next Race';
+      element.textContent = '2026 · Round 7 · Next race';
     });
   await page.getByText('On track', { exact: true }).evaluate((element) => {
     const value = element.nextElementSibling;

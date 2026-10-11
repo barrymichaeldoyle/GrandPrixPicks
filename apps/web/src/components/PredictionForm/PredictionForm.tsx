@@ -776,7 +776,7 @@ export function PredictionForm({
   // This status leads the compact instruction row when parent chrome already
   // names the Top 5, and supports the local heading on standalone forms.
   const pickStatusClassName = 'text-sm font-normal text-text-muted';
-  // `withTestIds` is off for the copy beside "Select Drivers": only one of the
+  // `withTestIds` is off for the copy beside "Select drivers": only one of the
   // two is ever displayed, but both are in the DOM, and tests find one.
   //
   // One node whose text changes, rather than two that swap, so the live region
@@ -835,7 +835,7 @@ export function PredictionForm({
         {/* Side-by-side only when *this* form is wide enough. Viewport `lg`
             alone is wrong inside the dashboard's narrow center column. */}
         <div className="flex flex-col gap-4 sm:gap-6 @min-[875px]:flex-row @min-[875px]:items-start @min-[875px]:gap-8">
-          {/* Your Picks - sortable list via @dnd-kit */}
+          {/* Your picks - sortable list via @dnd-kit */}
           {/* Stacked under the pool with nothing picked, this column is five
               "Select a driver" rows and a disabled button: a screen of empty
               state between the drivers and whatever follows the form. It

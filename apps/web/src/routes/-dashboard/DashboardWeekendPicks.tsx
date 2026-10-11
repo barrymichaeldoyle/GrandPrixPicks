@@ -380,6 +380,25 @@ export function DashboardWeekendPicksReady({
     tabs[next].click();
   }
 
+  // On a phone the strip scrolls, and it opened scrolled to the left: on a
+  // sprint weekend the selected Race tab sat clipped to "R" beside the clock.
+  // Only the strip moves, never the page, so this is not `scrollIntoView`.
+  const activeSessionType = activeSession?.sessionType;
+  useEffect(() => {
+    const strip = tabStripRef.current;
+    const chip = strip?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!strip || !chip) {
+      return;
+    }
+    const stripRect = strip.getBoundingClientRect();
+    const chipRect = chip.getBoundingClientRect();
+    if (chipRect.right > stripRect.right) {
+      strip.scrollLeft += chipRect.right - stripRect.right;
+    } else if (chipRect.left < stripRect.left) {
+      strip.scrollLeft -= stripRect.left - chipRect.left;
+    }
+  }, [activeSessionType]);
+
   // Countdown, tabs and card all describe the same session: switching a tab
   // moves the clock with it rather than leaving the header talking about a
   // session the card below is no longer showing.

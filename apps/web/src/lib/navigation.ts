@@ -22,7 +22,7 @@ export const primaryNavLinks: SiteNavLink[] = [
  * header, which is just brand + notifications + account.
  */
 export const publicNavLinks: SiteNavLink[] = [
-  { to: '/how-to-play', label: 'How to Play' },
+  { to: '/how-to-play', label: 'How to play' },
   ...primaryNavLinks,
   { to: '/guides', label: 'Guides' },
 ];
@@ -40,18 +40,18 @@ export const footerPrimaryLink: SiteNavLink = {
 };
 
 export const footerPlayLinks: SiteNavLink[] = [
-  { to: '/how-to-play', label: 'How to Play' },
-  { to: '/races', label: 'Race Calendar', exact: true },
-  { to: '/leaderboard', label: 'Global Leaderboard' },
-  { to: '/leagues', label: 'Prediction Leagues' },
+  { to: '/how-to-play', label: 'How to play' },
+  { to: '/races', label: 'Race calendar', exact: true },
+  { to: '/leaderboard', label: 'Global leaderboard' },
+  { to: '/leagues', label: 'Prediction leagues' },
 ];
 
 export const footerF1Links: SiteNavLink[] = [
-  { to: '/f1-standings', label: 'F1 Standings' },
-  { to: '/f1-qualifying-standings', label: 'Qualifying Championship' },
-  { to: '/f1-team-mate-battles', label: 'Team-mate Battles' },
-  { to: '/f1-2027-driver-line-up', label: '2027 Driver Line-Up' },
-  { to: '/f1-2027-calendar', label: '2027 Calendar' },
+  { to: '/f1-standings', label: 'F1 standings' },
+  { to: '/f1-qualifying-standings', label: 'Qualifying championship' },
+  { to: '/f1-team-mate-battles', label: 'Team-mate battles' },
+  { to: '/f1-2027-driver-line-up', label: '2027 driver line-up' },
+  { to: '/f1-2027-calendar', label: '2027 calendar' },
   { to: '/trmnl', label: 'F1 on TRMNL' },
 ];
 
@@ -59,7 +59,7 @@ export const footerSupportLinks: SiteNavLink[] = [
   { to: '/about', label: 'About' },
   { to: '/support', label: 'Support' },
   { to: '/pricing', label: 'Season Pass' },
-  { to: '/results-policy', label: 'Results & Penalties' },
+  { to: '/results-policy', label: 'Results and penalties' },
 ];
 
 /**
@@ -69,19 +69,19 @@ export const footerSupportLinks: SiteNavLink[] = [
  * anything duplicated there is dropped.
  */
 export const railFooterLinks: SiteNavLink[] = [
-  { to: '/how-to-play', label: 'How to Play' },
-  { to: '/guides', label: 'F1 Guides' },
+  { to: '/how-to-play', label: 'How to play' },
+  { to: '/guides', label: 'F1 guides' },
   { to: '/about', label: 'About' },
   { to: '/support', label: 'Support' },
   { to: '/pricing', label: 'Season Pass' },
-  { to: '/results-policy', label: 'Results & Penalties' },
+  { to: '/results-policy', label: 'Results and penalties' },
   { to: '/terms', label: 'Terms' },
   { to: '/privacy', label: 'Privacy' },
   { to: '/refund-policy', label: 'Refunds' },
 ];
 
 export const footerLegalLinks: SiteNavLink[] = [
-  { to: '/refund-policy', label: 'Refund Policy' },
-  { to: '/terms', label: 'Terms of Service' },
-  { to: '/privacy', label: 'Privacy Policy' },
+  { to: '/refund-policy', label: 'Refund policy' },
+  { to: '/terms', label: 'Terms of service' },
+  { to: '/privacy', label: 'Privacy policy' },
 ];

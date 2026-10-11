@@ -160,6 +160,25 @@ describe('summarySentence', () => {
     );
   });
 
+  it('names the next round sprint once it is in the table', () => {
+    expect(
+      summarySentence(
+        standings({
+          nextRound: {
+            name: 'Singapore Grand Prix',
+          } as Championship['nextRound'],
+          nextRoundCounted: ['sprint'],
+          drivers: [
+            driver({ displayName: 'Antonelli', points: 325, gapToLeader: 0 }),
+            driver({ displayName: 'Russell', points: 236, gapToLeader: 89 }),
+          ],
+        }),
+      ),
+    ).toBe(
+      'After 14 of 24 rounds and the Singapore GP sprint, Antonelli leads Russell by 89 points.',
+    );
+  });
+
   it('has nothing to summarise before a round is scored', () => {
     expect(summarySentence(standings({ roundsScored: 0 }))).toBeNull();
   });

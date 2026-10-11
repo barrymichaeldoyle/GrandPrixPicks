@@ -1,7 +1,7 @@
 import { api } from '@convex-generated/api';
 import type { FunctionReturnType } from 'convex/server';
 
-import { displayTeamName } from '@/lib/display';
+import { abbreviateGrandPrix, displayTeamName } from '@/lib/display';
 
 /**
  * The championship tables as the page reads them.
@@ -151,6 +151,28 @@ export function teamHistoryNote(driver: DriverRow): string | null {
   return `${driver.displayName}: ${sentence[0].toUpperCase()}${sentence.slice(1)}.`;
 }
 
+const COUNTED_SESSION_PROSE: Record<string, string> = {
+  sprint: 'sprint',
+  sprint_quali: 'sprint qualifying',
+  quali: 'qualifying',
+  race: 'race',
+};
+
+/**
+ * "Singapore GP sprint" when the table already holds part of the next round,
+ * which on a sprint weekend it does from Saturday until the Grand Prix.
+ */
+export function partialRoundLabel(standings: Championship): string | null {
+  const counted = standings.nextRoundCounted ?? [];
+  if (!standings.nextRound || counted.length === 0) {
+    return null;
+  }
+  const sessions = counted
+    .map((session) => COUNTED_SESSION_PROSE[session] ?? session)
+    .join(' and ');
+  return `${abbreviateGrandPrix(standings.nextRound.name)} ${sessions}`;
+}
+
 /**
  * The sentence under the page title: who leads, by how much, and how much of
  * the season is left to change it.
@@ -160,9 +182,12 @@ export function summarySentence(standings: Championship): string | null {
   if (!leader || standings.roundsScored === 0) {
     return null;
   }
-  const rounds = standings.roundsTotal
-    ? `After ${standings.roundsScored} of ${standings.roundsTotal} rounds`
-    : `After ${standings.roundsScored} ${standings.roundsScored === 1 ? 'round' : 'rounds'}`;
+  const partial = partialRoundLabel(standings);
+  const rounds =
+    (standings.roundsTotal
+      ? `After ${standings.roundsScored} of ${standings.roundsTotal} rounds`
+      : `After ${standings.roundsScored} ${standings.roundsScored === 1 ? 'round' : 'rounds'}`) +
+    (partial ? ` and the ${partial}` : '');
 
   const driverGap =
     second && second.gapToLeader > 0

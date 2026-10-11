@@ -27,14 +27,14 @@ function RefundPolicyPage() {
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
         <PageHeader
-          title="Refund Policy"
+          title="Refund policy"
           subtitle="Last updated: August 2026"
         />
 
         <div className="reveal-up reveal-delay-1 prose prose-invert max-w-none space-y-6 text-text-muted">
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              What You Can Buy
+              What you can buy
             </h2>
             <p>
               Grand Prix Picks is free to play. The only paid product is the
@@ -48,7 +48,7 @@ function RefundPolicyPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              Paddle-Handled Refunds
+              Refunds handled by Paddle
             </h2>
             <p>
               Grand Prix Picks sells digital products via Paddle as Merchant of
@@ -63,7 +63,7 @@ function RefundPolicyPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              How to Request a Refund
+              How to request a refund
             </h2>
             <p>
               Use Paddle&apos;s customer support channels from your purchase
@@ -84,7 +84,7 @@ function RefundPolicyPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              Duplicate or Accidental Purchases
+              Duplicate or accidental purchases
             </h2>
             <p>
               If you were charged twice for the same season, or bought a Season
@@ -101,7 +101,7 @@ function RefundPolicyPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              What Happens to Your Access
+              What happens to your access
             </h2>
             <p>
               When a refund is approved, the Season Pass for that season ends
@@ -115,7 +115,7 @@ function RefundPolicyPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              Refund Processing
+              Refund processing
             </h2>
             <p>
               Approved refunds are returned to the original payment method.

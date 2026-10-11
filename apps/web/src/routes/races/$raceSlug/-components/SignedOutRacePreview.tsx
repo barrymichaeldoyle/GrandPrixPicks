@@ -54,13 +54,12 @@ export function SignedOutRacePreview({
           Predict the {race.name} top 5
         </h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-text-muted">
-          Rank who you think finishes ahead and score points every session. It's
-          free to play. Try the picker now, then create a free account to save
-          your picks and earn points.
+          Rank five drivers for each session. Free to play. No account needed
+          until you save.
         </p>
         <div className="mt-4 flex flex-col items-center gap-2">
           <Button size="md" rightIcon={ArrowRight} onClick={onStartPicks}>
-            Make your free picks
+            Make your picks
           </Button>
           <button
             type="button"
@@ -74,20 +73,23 @@ export function SignedOutRacePreview({
       </div>
 
       {drivers.length > 0 && (
-        <section aria-label="Driver grid" className="space-y-3">
-          <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
-            {race.season} Driver Grid
-          </p>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <section aria-label="Driver grid" className="space-y-2">
+          <h2 className="text-sm font-semibold text-text-muted">
+            {race.season} driver grid
+          </h2>
+          {/* Flat rows on the page background: a card per team holding
+              bordered driver chips was two nested borders and ran a
+              thousand pixels tall on a phone. */}
+          <ul className="grid grid-cols-1 border-t border-border sm:grid-cols-2 sm:gap-x-8">
             {teams.map(({ team, drivers: teamDrivers }) => (
-              <div
+              <li
                 key={team}
-                className="rounded-lg border border-border bg-surface p-3"
+                className="flex items-center justify-between gap-3 border-b border-border py-2"
               >
-                <p className="mb-2 text-xs font-medium text-text-muted">
+                <span className="min-w-0 truncate text-sm text-text-muted">
                   {team}
-                </p>
-                <div className="flex flex-wrap gap-2">
+                </span>
+                <span className="flex shrink-0 gap-2">
                   {teamDrivers.map((driver) => (
                     <DriverBadge
                       key={driver._id}
@@ -99,10 +101,10 @@ export function SignedOutRacePreview({
                       size="md"
                     />
                   ))}
-                </div>
-              </div>
+                </span>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       )}
 

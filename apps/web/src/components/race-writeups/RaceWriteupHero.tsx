@@ -112,7 +112,7 @@ export function RaceWriteupHero({
               // before the button: does it cost anything, and must I sign up
               // first.
               isRaceWriteupLive(phase) || (phase === 'finished' && nextRace)
-                ? 'Free to play. Sign in only to save your picks.'
+                ? 'Free to play. No account needed until you save.'
                 : undefined
             }
           />

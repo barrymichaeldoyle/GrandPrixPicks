@@ -216,7 +216,7 @@ function JoinSection({
             loading={isJoining}
             onClick={() => void handleJoin()}
           >
-            Join League
+            Join
           </Button>
         </>
       )}

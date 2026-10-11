@@ -50,13 +50,19 @@ describe('Avatar', () => {
       <Avatar avatarUrl="https://example.com/a.png" username="barry" />,
     ).querySelector('img');
     expect(img).not.toBeNull();
-    expect(img?.getAttribute('alt')).toBe('barry');
   });
 
-  it('gives an image with no username a descriptive alt', () => {
+  // The name is always printed beside the avatar, so the avatar itself says
+  // nothing to a screen reader.
+  it('is decorative, as an image or an initial', () => {
     const img = render(
-      <Avatar avatarUrl="https://example.com/a.png" username="" />,
+      <Avatar avatarUrl="https://example.com/a.png" username="barry" />,
     ).querySelector('img');
-    expect(img?.getAttribute('alt')).toBe('User avatar');
+    expect(img?.getAttribute('alt')).toBe('');
+
+    act(() => root?.unmount());
+    container?.remove();
+    const initial = render(<Avatar username="barry" />).firstElementChild;
+    expect(initial?.getAttribute('aria-hidden')).toBe('true');
   });
 });

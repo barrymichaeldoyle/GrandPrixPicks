@@ -62,7 +62,7 @@ function LeaguesExplainer() {
     {
       icon: Users,
       title: 'League standings',
-      body: 'Every league has its own leaderboard and activity feed, scored from the same Top 5 and Head-to-Head picks you already make.',
+      body: 'Every league has its own leaderboard and activity feed.',
     },
     {
       icon: Crown,
@@ -80,9 +80,9 @@ function LeaguesExplainer() {
         How F1 prediction leagues work
       </h2>
       <p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">
-        A league is a private scoreboard for the same picks you already make
-        each race weekend. Your Top 5 and Head-to-Head predictions are scored
-        once, then counted towards every league you belong to.
+        A league is a separate scoreboard for the picks you already make each
+        race weekend. Your Top 5 and Head-to-Head picks are scored once and
+        count in every league you belong to.
       </p>
       <dl className="mt-6 grid gap-5 sm:grid-cols-2">
         {points.map((point) => (
@@ -244,7 +244,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
               onClick={() => setActiveTab('my')}
               className="h-8 max-h-8 min-h-8 flex-1"
             >
-              My Leagues
+              My leagues
             </Button>
             <Button
               type="button"
@@ -267,11 +267,10 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                 Sign in to manage your leagues
               </h2>
               <p className="text-sm text-text-muted">
-                Sign in to create leagues and track your standings with other
-                players.
+                Create a league or join one from an invite link.
               </p>
               <SignInActionButton className="mt-4" leftIcon={LogIn} size="sm">
-                Sign In
+                Sign in
               </SignInActionButton>
             </div>
           </>
@@ -346,7 +345,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
           <section className={isSignedIn ? '' : 'mt-2'}>
             <div className="mb-4">
               <h2 className="text-xl font-semibold text-text">
-                Discover Public Leagues
+                Discover public leagues
               </h2>
               <p className="text-sm text-text-muted">
                 Browse public leagues and join one to compete.

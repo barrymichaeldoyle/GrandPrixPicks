@@ -115,7 +115,8 @@ function SuggestionRow({
   } as const;
   return (
     <li className="flex items-center gap-3 px-4 py-2.5 sm:px-5">
-      <Link {...profile} className="shrink-0">
+      {/* The name beside it is the same link; this one is for pointers. */}
+      <Link {...profile} className="shrink-0" tabIndex={-1} aria-hidden="true">
         <Avatar avatarUrl={avatarUrl} username={username} size="sm" />
       </Link>
       <div className="min-w-0 flex-1">

@@ -260,7 +260,7 @@ export function H2HResultsSection({
         which put it level with the race name in the page header above it.
       */}
       <h2 className="mb-4 text-2xl leading-tight font-normal tracking-tight text-text sm:text-3xl">
-        Session Results
+        Session results
       </h2>
 
       {!isSelectedSessionScored ? (

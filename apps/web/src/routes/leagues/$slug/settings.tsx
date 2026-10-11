@@ -87,7 +87,7 @@ function LeagueSettingsPage() {
             description="This league doesn't exist or may have been deleted."
             action={
               <Button asChild size="sm" leftIcon={ArrowLeft}>
-                <Link to="/leagues">Back to Leagues</Link>
+                <Link to="/leagues">Back to leagues</Link>
               </Button>
             }
           />
@@ -105,12 +105,11 @@ function LeagueSettingsPage() {
         <div className="mx-auto max-w-3xl px-4 py-6">
           <NoticeCard
             icon={Settings}
-            title="Join this league to access settings"
-            description="Settings are only available to league members."
+            title="League settings are for members"
             action={
               <Button asChild size="sm" leftIcon={ArrowLeft}>
                 <Link to="/leagues/$slug" params={{ slug: league.slug }}>
-                  Back to League
+                  Back to league
                 </Link>
               </Button>
             }

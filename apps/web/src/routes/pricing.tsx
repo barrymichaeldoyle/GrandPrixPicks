@@ -1,13 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import {
-  ArrowLeft,
-  ArrowRight,
-  CalendarDays,
-  CheckCircle2,
-  HelpCircle,
-  ShieldCheck,
-  Users,
-} from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
@@ -112,16 +104,12 @@ function PricingPage() {
   return (
     <div className="mx-auto max-w-5xl bg-page px-4 py-6 sm:py-8">
       <div className="reveal-up mb-8 text-center sm:mb-10">
-        <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-surface-muted/70 px-3 py-1 text-xs font-semibold text-text-muted">
-          <CalendarDays className="h-3.5 w-3.5 text-accent" aria-hidden />
-          2026 Season Pricing
-        </p>
         <h1 className="mb-2 text-3xl font-semibold text-text sm:text-4xl">
           Pricing
         </h1>
         <p className="mx-auto max-w-2xl text-text-muted">
-          Grand Prix Picks is free to play. Upgrade for full-season league
-          access.
+          Grand Prix Picks is free to play. The Season Pass raises your league
+          limits.
         </p>
       </div>
 
@@ -246,11 +234,11 @@ function PricingPage() {
             Secure checkout via Paddle. No subscriptions, no gambling, and no
             real-money betting in gameplay.
           </p>
-          <p className="mt-1 text-xs text-text-muted">
-            {isSignedIn
-              ? 'You will be redirected to Paddle to complete payment.'
-              : 'Sign in first, then you can complete checkout in under a minute.'}
-          </p>
+          {isSignedIn ? (
+            <p className="mt-1 text-xs text-text-muted">
+              You will be redirected to Paddle to complete payment.
+            </p>
+          ) : null}
           {checkoutError ? (
             <p className="mt-2 text-sm text-error">{checkoutError}</p>
           ) : null}
@@ -260,54 +248,15 @@ function PricingPage() {
               Refund policy
             </h3>
             <p className="mb-2 text-sm text-text-muted">
-              If you purchase and change your mind, refunds are handled in
-              accordance with Paddle&apos;s refund policy. See our{' '}
+              Refunds follow Paddle&apos;s refund policy. The details are in our{' '}
               <Link to="/refund-policy" className="text-accent underline">
                 Refund Policy
               </Link>{' '}
               and{' '}
               <Link to="/terms" className="text-accent underline">
                 Terms of Service
-              </Link>{' '}
-              for details.
-            </p>
-          </div>
-        </section>
-
-        <section className="grid gap-3 sm:grid-cols-3">
-          <div className="reveal-up reveal-delay-1 rounded-xl border border-border bg-surface p-4">
-            <p className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent/15 text-accent">
-              <Users className="h-4 w-4" aria-hidden />
-            </p>
-            <h3 className="text-sm font-semibold text-text">
-              League Flexibility
-            </h3>
-            <p className="mt-1 text-sm text-text-muted">
-              Create and join as many leagues as you want all season.
-            </p>
-          </div>
-
-          <div className="reveal-up reveal-delay-2 rounded-xl border border-border bg-surface p-4">
-            <p className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-success/15 text-success">
-              <ShieldCheck className="h-4 w-4" aria-hidden />
-            </p>
-            <h3 className="text-sm font-semibold text-text">
-              Fair Competition
-            </h3>
-            <p className="mt-1 text-sm text-text-muted">
-              Session locks and transparent scoring keep competition clean.
-            </p>
-          </div>
-
-          <div className="reveal-up reveal-delay-3 rounded-xl border border-border bg-surface p-4">
-            <p className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-warning/15 text-warning">
-              <CalendarDays className="h-4 w-4" aria-hidden />
-            </p>
-            <h3 className="text-sm font-semibold text-text">
-              Full-Season Access
-            </h3>
-            <p className="mt-1 text-sm text-text-muted">
-              One purchase covers the entire 2026 campaign. No monthly plan.
+              </Link>
+              .
             </p>
           </div>
         </section>

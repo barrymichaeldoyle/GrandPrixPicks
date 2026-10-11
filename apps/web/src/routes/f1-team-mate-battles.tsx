@@ -334,7 +334,14 @@ function TeammateBattlesPage() {
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-5xl px-4 py-6">
         <PageHeader
-          title={`${SEASON} F1 team-mate head-to-head`}
+          title={
+            // The hyphen is a break opportunity, and on a phone the heading
+            // split as "team- / mate".
+            <>
+              {SEASON} F1 <span className="whitespace-nowrap">team-mate</span>{' '}
+              head-to-head
+            </>
+          }
           subtitle={
             <p className="text-base">
               The season-long record for every team-mate pairing, based on
@@ -416,8 +423,12 @@ function TeammateBattlesPage() {
                       className="text-base font-semibold text-text"
                     >
                       {displayTeamName(team.team)}
+                      {/* A real space, not only a margin, so the heading's
+                          text reads "Red Bull Rounds 1–11" and not
+                          "Red BullRounds 1–11". */}
+                      {spanLabel ? ' ' : null}
                       {spanLabel ? (
-                        <span className="ml-2 font-normal text-text-muted">
+                        <span className="ml-1 font-normal text-text-muted">
                           {spanLabel}
                         </span>
                       ) : null}

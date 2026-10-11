@@ -129,6 +129,26 @@ export function parseOpenF1PracticeResults(
   return rows.sort((a, b) => a.position - b.position);
 }
 
+/**
+ * OpenF1's `full_name` is the timing-screen form, "George RUSSELL". Title-case
+ * any all-caps word so it reads as a name; mixed-case words are left alone.
+ */
+export function readableOpenF1Name(fullName: string): string {
+  return fullName
+    .split(' ')
+    .map((word) =>
+      word.length > 1 && word === word.toUpperCase() && /\p{L}/u.test(word)
+        ? word
+            .toLowerCase()
+            .replace(
+              /(^|[-'])(\p{L})/gu,
+              (_, sep, letter) => sep + letter.toUpperCase(),
+            )
+        : word,
+    )
+    .join(' ');
+}
+
 export function parseOpenF1PracticeDrivers(
   value: unknown,
 ): OpenF1PracticeDriver[] {
@@ -148,7 +168,7 @@ export function parseOpenF1PracticeDrivers(
       {
         driverNumber: item.driver_number,
         code: item.name_acronym,
-        displayName: item.full_name,
+        displayName: readableOpenF1Name(item.full_name),
         team: typeof item.team_name === 'string' ? item.team_name : undefined,
       },
     ];
@@ -722,6 +742,14 @@ export async function loadPracticeResultsForRace(
       driver.number === undefined ? [] : [driver.number],
     ),
   );
+  // Rows stored before ingest normalised OpenF1's "George RUSSELL" still carry
+  // it, so names are resolved here too: the roster's own name for a race
+  // driver, a title-cased one for a reserve.
+  const rosterNames = new Map(
+    drivers.flatMap((driver) =>
+      driver.number === undefined ? [] : [[driver.number, driver.displayName]],
+    ),
+  );
   return results.map((result) => {
     const video = videos.find((video) => video.kind === result.sessionType);
     return {
@@ -730,6 +758,9 @@ export async function loadPracticeResultsForRace(
       publishedAt: result.publishedAt,
       entries: result.entries.map((entry) => ({
         ...entry,
+        displayName:
+          rosterNames.get(entry.driverNumber) ??
+          readableOpenF1Name(entry.displayName),
         team: entry.team ?? null,
         isReserve: !canonicalNumbers.has(entry.driverNumber),
       })),

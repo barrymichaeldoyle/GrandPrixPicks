@@ -196,7 +196,7 @@ describe('H2HResultsSection SSR fallback', () => {
     // The actual results table renders (not the "no results yet" placeholder).
     // Signed-out, so the heading is the neutral one and the viewer's own
     // score pills are absent.
-    expect(text).toContain('Session Results');
+    expect(text).toContain('Session results');
     expect(text).not.toContain('Session Points Breakdown');
     expect(text).toContain('Actual');
     expect(text).not.toContain('No results published yet');

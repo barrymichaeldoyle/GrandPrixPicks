@@ -122,6 +122,7 @@ function table(
     calendar: [],
     lastRound: null,
     nextRound: null,
+    nextRoundCounted: [],
     pointsRemaining: 0,
     drivers: drivers as unknown as ChampionshipTable['drivers'],
     constructors: constructors.map((entry) => ({

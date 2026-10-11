@@ -113,7 +113,7 @@ describe('SignedOutRacePreview', () => {
       );
     });
 
-    expect(container.textContent).toContain('Make your free picks');
+    expect(container.textContent).toContain('Make your picks');
     expect(container.textContent).toContain(
       'Predict the Spanish Grand Prix top 5',
     );
@@ -186,8 +186,8 @@ describe('SignedOutRacePreview', () => {
       );
     });
 
-    expect(container.textContent).toContain('Make your free picks');
-    expect(container.textContent).not.toContain('Driver Grid');
+    expect(container.textContent).toContain('Make your picks');
+    expect(container.textContent).not.toContain('driver grid');
   });
 
   it('opens the picker (not a sign-in wall) when the primary CTA is clicked', () => {
@@ -203,7 +203,7 @@ describe('SignedOutRacePreview', () => {
     });
 
     const cta = Array.from(container.querySelectorAll('button')).find((btn) =>
-      btn.textContent?.includes('Make your free picks'),
+      btn.textContent?.includes('Make your picks'),
     );
     expect(cta).toBeDefined();
     act(() => {

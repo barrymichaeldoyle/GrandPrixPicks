@@ -20,7 +20,7 @@ import { leagueRouteApi } from './routeApi';
 import type { GameMode, TimeScope } from './types';
 
 const TIME_SCOPE_OPTIONS = [
-  { value: 'weekend' as const, label: 'Race Weekend', leftIcon: CalendarDays },
+  { value: 'weekend' as const, label: 'Race weekend', leftIcon: CalendarDays },
   { value: 'season' as const, label: 'Season', leftIcon: Trophy },
 ];
 

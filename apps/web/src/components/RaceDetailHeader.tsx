@@ -75,7 +75,7 @@ export function RaceDetailHeader({
           {/*
             The race name is the page hero, and the type scale names it as
             such (`5xl`, weight 300). It previously rendered at `xl`/600 — the
-            *title* role — which put it level with the "Session Results"
+            *title* role — which put it level with the "Session results"
             heading below it and a step under the circuit guide's own h2.
           */}
           <h1 className="mt-1 text-3xl leading-none font-light tracking-display text-balance text-text sm:text-5xl">
@@ -83,7 +83,9 @@ export function RaceDetailHeader({
           </h1>
           <p className="mt-3 text-sm text-text-muted" suppressHydrationWarning>
             {formatDateLong(race.raceStartAt)}
-            <span aria-hidden="true"> · </span>
+            {/* Spaces outside the hidden dot, so a screen reader still hears a
+                break between the two parts. */}{' '}
+            <span aria-hidden="true">·</span>{' '}
             <span className="gpp-mono">{formatTime(race.raceStartAt)}</span>
             {timeZoneLabel ? (
               <span className="gpp-mono"> {timeZoneLabel}</span>

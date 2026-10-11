@@ -307,7 +307,7 @@ describe('PredictionForm try-before-signup', () => {
     });
 
     const heading = Array.from(container.querySelectorAll('h3')).find(
-      (element) => element.textContent === 'Your Picks',
+      (element) => element.textContent === 'Your picks',
     );
 
     expect(heading?.parentElement?.textContent).toContain(
@@ -330,7 +330,7 @@ describe('PredictionForm try-before-signup', () => {
       );
     });
 
-    expect(container.textContent).not.toContain('Your Picks');
+    expect(container.textContent).not.toContain('Your picks');
     const picks = container.querySelector('[data-testid="your-picks"]');
     expect(picks?.firstElementChild?.textContent).toContain(
       'Remove a pick to change',
@@ -352,7 +352,7 @@ describe('PredictionForm try-before-signup', () => {
     });
 
     const heading = Array.from(container.querySelectorAll('h3')).find(
-      (element) => element.textContent === 'Your Picks',
+      (element) => element.textContent === 'Your picks',
     );
 
     expect(heading?.parentElement?.textContent).toContain(

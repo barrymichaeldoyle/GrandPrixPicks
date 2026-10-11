@@ -172,12 +172,12 @@ export function DriverPoolSection({
       className={`${mobileActionFirst ? 'order-1 @min-[875px]:order-2' : ''} @min-[875px]:min-w-0 @min-[875px]:flex-1`}
     >
       {/* The label only earns its line in the side-by-side layout, where
-          it names the right-hand column against "Your Picks". Stacked it
+          it names the right-hand column against "Your picks". Stacked it
           just repeats the section heading, so it stays sr-only then. */}
       <div className="mb-0 flex flex-wrap items-baseline gap-x-3 gap-y-1 @min-[875px]:mb-3">
         <h3 className="text-lg font-semibold text-text">
           <span className="sr-only @min-[875px]:not-sr-only">
-            Select Drivers
+            Select drivers
           </span>
         </h3>
         {pickStatus ? (

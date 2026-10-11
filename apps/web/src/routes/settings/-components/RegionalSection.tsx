@@ -40,9 +40,8 @@ export function RegionalSection({
     >
       <div className="space-y-4">
         <p className="text-sm text-text-muted">
-          The app always uses your browser&apos;s timezone and time format.
-          <br />
-          These settings only affect how times appear in email notifications.
+          Emails, the race calendar and race pages use these settings. The
+          dashboard and race write-ups follow your browser.
         </p>
 
         <div className="grid gap-4 md:grid-cols-2">

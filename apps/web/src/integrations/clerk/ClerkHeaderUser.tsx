@@ -2,7 +2,7 @@ import { SignInButton, useAuth, useClerk, UserButton } from '@clerk/react';
 import { ShieldCheck, SlidersHorizontal, User } from 'lucide-react';
 import { useEffect } from 'react';
 
-import { returnHereAfterAuth } from './returnHereAfterAuth';
+import { signInOptions } from './signInOptions';
 
 const signInButtonClasses =
   'inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-sm border border-border-strong bg-surface-elevated text-text hover:border-accent/55 hover:bg-accent-muted/35 hover:text-accent-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-50';
@@ -27,7 +27,7 @@ export function ClerkHeaderUser({
       <>
         {openSignInOnMount && <OpenSignInOnMount signInOpened={signInOpened} />}
         <div data-testid="header-user-anonymous">
-          <SignInButton mode="modal">
+          <SignInButton mode="modal" withSignUp>
             <button
               type="button"
               className={signInButtonClasses}
@@ -121,7 +121,7 @@ function OpenSignInOnMount({ signInOpened }: { signInOpened: () => void }) {
 
     const observer = new MutationObserver(finishWhenModalExists);
     observer.observe(document.body, { childList: true, subtree: true });
-    clerk.openSignIn(returnHereAfterAuth());
+    clerk.openSignIn(signInOptions());
     finishWhenModalExists();
     // Never leave the anonymous shell disabled if Clerk fails to create its
     // modal. A normal second click can retry after this safety release.

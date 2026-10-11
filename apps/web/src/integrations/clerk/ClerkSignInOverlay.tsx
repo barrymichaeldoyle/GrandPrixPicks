@@ -2,7 +2,7 @@ import { useAuth, useClerk } from '@clerk/react';
 import { useEffect, useRef } from 'react';
 
 import { AppClerkProvider } from './provider';
-import { returnHereAfterAuth } from './returnHereAfterAuth';
+import { signInOptions } from './signInOptions';
 
 /**
  * Clerk mounted beside the page rather than around it.
@@ -74,7 +74,7 @@ function SignInModalController({
 
     const observer = new MutationObserver(releaseWhenModalExists);
     observer.observe(document.body, { childList: true, subtree: true });
-    clerk.openSignIn(returnHereAfterAuth());
+    clerk.openSignIn(signInOptions());
     releaseWhenModalExists();
     // Never strand the trigger in its pending state if Clerk fails to build a
     // modal. A normal second click can retry after this safety release.

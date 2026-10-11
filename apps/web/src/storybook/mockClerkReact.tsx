@@ -34,7 +34,7 @@ export function useUser() {
 
 export function SignInButton({
   children,
-}: PropsWithChildren<{ mode?: string }>) {
+}: PropsWithChildren<{ mode?: string; withSignUp?: boolean }>) {
   return <>{children}</>;
 }
 

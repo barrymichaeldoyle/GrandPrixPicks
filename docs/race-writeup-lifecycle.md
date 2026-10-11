@@ -123,9 +123,12 @@ Use one source for each kind of information:
 - race page: submitted picks, official results and player scores;
 - circuit guide: facts that remain useful across seasons.
 
-Time-sensitive sections render only while a pick can still change. Durable
-circuit analysis remains in the archive. Aggregated player picks, when built,
-render in the finished phase only.
+Forecasts and decision prompts render only while a pick can still change.
+Published news remains accessible after picks lock: retirements, punctures and
+post-race decisions are still weekend news, and distributed story links need a
+visible card. After results publish, retain the dated news or a curated account
+of what decided the race. Durable circuit analysis remains in the archive.
+Aggregated player picks, when built, render in the finished phase only.
 
 ## Page order
 
@@ -252,8 +255,9 @@ Review the pattern after three race weekends using:
    hero goes in `RaceWriteupPage`'s `hero` prop, which draws it as a
    full-bleed band above the page frame; it is not a child. Put labelled
    sections in `RaceWriteupSection` or the photo shells.
-5. Put weather, weekend news and other expiring sections behind
-   `isRaceWriteupLive()`, and follow the page order above.
+5. Put weather and other expiring decision sections behind
+   `isRaceWriteupLive()`. Keep published news accessible after picks lock and
+   in the finished archive, and follow the page order above.
 6. Pass cancellation state into SportsEvent structured data.
 7. Verify the preview, evidence, race-picks, picks-locked, finished and
    cancelled states.

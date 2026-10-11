@@ -259,7 +259,7 @@
       "text": "Singapore's final grid: Alonso, Stroll and Hadjar start from the pit lane. Russell starts P19 despite a combined 60-place penalty. Verstappen and Leclerc share the front row.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=singapore-starting-grid",
       "dueAt": "2026-10-11T11:25:00.000Z",
       "expiresAt": "2026-10-11T11:55:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acb6f57ed92ed8fa5fe7217"
     },
     {
@@ -277,8 +277,36 @@
       "text": "The FIA admits its Singapore SQ1 error compromised fairness. A missed prompt left Overtake Mode off after the red flag; briefly enabling it for 27 seconds affected drivers unequally.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=singapore-sq1-overtake-mode-error",
       "dueAt": "2026-10-11T11:50:00.000Z",
       "expiresAt": "2026-10-11T18:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acb6f58f91f772d45c5b010"
+    },
+    {
+      "id": "d604c65f593a50ed61abf75ad77fd46524306696bd4799a75382d065efa240ba",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "bortoleto-singapore-race-retirement",
+          "revision": "32d7e94da01036a97d68cac7693ee3c06c5800c2d82c943d01d6d4a9036c2bef"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "colapinto-singapore-race-retirement",
+          "revision": "04d5a44049428d3193da7a0aea3f752b11e0d45a38108972a79ab5097e11d4ce"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "stroll-singapore-race-retirement",
+          "revision": "6d946589593b4c7eb32cbb86335423f8f7561f1b693fd7a76dd64e23c43bed24"
+        }
+      ],
+      "text": "Bortoleto, Colapinto and Stroll have retired from the Singapore Grand Prix. Audi suspects gearbox trouble for Bortoleto; Alpine suspects a driveline issue for Colapinto.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=bortoleto-singapore-race-retirement",
+      "dueAt": "2026-10-11T13:40:00.000Z",
+      "expiresAt": "2026-10-11T18:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acb8e2cbba9419ccb389049"
     }
   ]
 }

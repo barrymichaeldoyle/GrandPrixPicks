@@ -1,0 +1,50 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "bortoleto-singapore-race-retirement",
+    "headline": "Bortoleto retires from Singapore Grand Prix with suspected gearbox trouble",
+    "body": "Bortoleto stopped near the pit exit with a suspected gearbox issue, triggering a Virtual Safety Car. Audi will investigate the cause after the race.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["BOR"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-formula-1-singapore-airlines-singapore-grand-prix-2026.64UBFhKsSsN0V9RoD8JQqx",
+    "sourcePublishedAt": "2026-10-11T12:28:17Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "colapinto-singapore-race-retirement",
+    "headline": "Colapinto retires from Singapore Grand Prix with suspected driveline trouble",
+    "body": "Colapinto stopped on track before moving his Alpine into a run-off area to retire. Alpine suspects a driveline issue and will investigate when the car is recovered.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["COL"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-formula-1-singapore-airlines-singapore-grand-prix-2026.64UBFhKsSsN0V9RoD8JQqx",
+    "sourcePublishedAt": "2026-10-11T13:05:48Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "stroll-singapore-race-retirement",
+    "headline": "Stroll retires from the Singapore Grand Prix",
+    "body": "Stroll locked up, ran off and parked his Aston Martin at Turn 15. His retirement brought out a Virtual Safety Car.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["STR"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-formula-1-singapore-airlines-singapore-grand-prix-2026.64UBFhKsSsN0V9RoD8JQqx",
+    "sourcePublishedAt": "2026-10-11T13:11:25Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "piastri-singapore-race-puncture",
+    "headline": "Piastri makes an extra Singapore pit stop after a puncture",
+    "body": "Piastri reported a front-right puncture and made an extra pit stop. He rejoined in sixth, further behind the fight for fourth and fifth.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["PIA"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-formula-1-singapore-airlines-singapore-grand-prix-2026.64UBFhKsSsN0V9RoD8JQqx",
+    "sourcePublishedAt": "2026-10-11T13:13:33Z"
+  }
+]

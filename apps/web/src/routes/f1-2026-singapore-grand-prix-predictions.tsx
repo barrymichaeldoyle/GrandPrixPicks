@@ -217,7 +217,7 @@ function SingaporeGrandPrixPredictionsPage() {
           }}
         />
       }
-      storeLinkInFooter={!(isLive && news.items.length > 0)}
+      storeLinkInFooter={news.items.length === 0}
       reviewedAt={PROSE_REVIEWED_AT}
       sources={
         <>
@@ -246,9 +246,8 @@ function SingaporeGrandPrixPredictionsPage() {
           block is a list of six lines rather than the three screens of full
           cards and an advert it was until October 2026. Renders nothing until
           there is an item. */}
-      {isLive ? (
-        <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
-      ) : null}
+      {/* Race updates and shared story links remain useful after picks lock. */}
+      <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
       <RaceWriteupArticle
         actions={{
           phase,

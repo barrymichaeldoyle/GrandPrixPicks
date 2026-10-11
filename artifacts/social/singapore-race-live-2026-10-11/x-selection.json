@@ -1,0 +1,18 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/singapore-2026-2026-10-11-race-live.json",
+  "startAt": "2026-10-11T15:40:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": [
+        "bortoleto-singapore-race-retirement",
+        "colapinto-singapore-race-retirement",
+        "stroll-singapore-race-retirement"
+      ],
+      "text": "Bortoleto, Colapinto and Stroll have retired from the Singapore Grand Prix. Audi suspects gearbox trouble for Bortoleto; Alpine suspects a driveline issue for Colapinto.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=bortoleto-singapore-race-retirement",
+      "expiresAt": "2026-10-11T18:00:00Z"
+    }
+  ]
+}

@@ -87,8 +87,8 @@ export const LINE_UP_2027: TeamLineUp[] = [
     seats: [
       {
         driver: 'Nico Hulkenberg',
-        status: 'expected',
-        note: 'His 2024 deal carries a 2027 option, and both sides speak as though it is being taken.',
+        status: 'signed',
+        note: 'Audi team principal Mattia Binotto said on 24 September 2026 that he is contracted for 2027, under the multi-year deal he signed in 2024.',
       },
       {
         driver: 'Gabriel Bortoleto',

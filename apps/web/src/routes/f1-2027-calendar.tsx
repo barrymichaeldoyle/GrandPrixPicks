@@ -3,13 +3,12 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { CalendarClock, ChevronRight, Flag } from 'lucide-react';
 
+import { CALENDAR_2027, sprintRounds } from '@/lib/calendar2027';
 import {
-  CALENDAR_2027,
   CALENDAR_2027_ANNOUNCED_LABEL,
   CALENDAR_2027_REVIEWED_AT,
   CALENDAR_2027_REVIEWED_LABEL,
-  sprintRounds,
-} from '@/lib/calendar2027';
+} from '@/lib/reviewedDates';
 import { getCountryCodeForRaceSlug } from '@grandprixpicks/shared/raceCountries';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 import { RaceFlag } from '@/components/RaceFlag';

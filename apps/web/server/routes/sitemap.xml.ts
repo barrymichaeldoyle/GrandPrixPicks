@@ -3,8 +3,10 @@ import { ConvexHttpClient } from 'convex/browser';
 
 import { captureServerException, startServerSpan } from '../lib/sentry';
 import { listGuideMeta } from '../../src/lib/guideMeta';
-import { CALENDAR_2027_REVIEWED_AT } from '../../src/lib/calendar2027';
-import { LINE_UP_2027_REVIEWED_AT } from '../../src/lib/lineUp2027';
+import {
+  CALENDAR_2027_REVIEWED_AT,
+  LINE_UP_2027_REVIEWED_AT,
+} from '../../src/lib/reviewedDates';
 import { listRaceWriteups, getRaceWriteup } from '../../src/lib/raceWriteups';
 import { siteConfig } from '../../src/lib/site';
 

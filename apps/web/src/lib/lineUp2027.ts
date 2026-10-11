@@ -10,7 +10,7 @@
  *
  * When a seat is announced: move it to `signed`, rewrite the note to name the
  * announcement and its date, drop the driver from any `contenders` list, and
- * bump {@link LINE_UP_2027_REVIEWED_AT}. The reviewed date is the page's
+ * bump `LINE_UP_2027_REVIEWED_AT` in `reviewedDates.ts`. The reviewed date is the page's
  * honesty stamp and the sitemap's `lastmod`; a data edit without it tells a
  * crawler nothing changed.
  */
@@ -45,12 +45,6 @@ export type TeamLineUp = {
   team: string;
   seats: [Seat, Seat];
 };
-
-/** Bumped by hand whenever the seats below are re-checked against reporting. */
-export const LINE_UP_2027_REVIEWED_AT = '2026-10-11';
-
-/** For prose. Kept next to the ISO date so the two cannot drift apart. */
-export const LINE_UP_2027_REVIEWED_LABEL = '11 October 2026';
 
 /**
  * Alphabetical by team. A championship order would be more flattering and

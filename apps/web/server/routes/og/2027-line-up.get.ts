@@ -3,9 +3,9 @@ import { lineUp2027Template } from '../../../src/lib/og/templates';
 import {
   countSeats,
   LINE_UP_2027,
-  LINE_UP_2027_REVIEWED_LABEL,
   totalSeats,
 } from '../../../src/lib/lineUp2027';
+import { LINE_UP_2027_REVIEWED_LABEL } from '../../../src/lib/reviewedDates';
 import { displayTeamName } from '../../../src/lib/display';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../../../src/lib/teamColors';
 import { captureServerException, startServerSpan } from '../../lib/sentry';

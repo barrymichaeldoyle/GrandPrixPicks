@@ -5,14 +5,16 @@ import { displayTeamName } from '@/lib/display';
 import {
   HAAS_2027_CONTENDERS,
   LINE_UP_2027,
-  LINE_UP_2027_REVIEWED_AT,
-  LINE_UP_2027_REVIEWED_LABEL,
   type Seat,
   SEAT_STATUS_LABELS,
   type SeatStatus,
   countSeats,
   totalSeats,
 } from '@/lib/lineUp2027';
+import {
+  LINE_UP_2027_REVIEWED_AT,
+  LINE_UP_2027_REVIEWED_LABEL,
+} from '@/lib/reviewedDates';
 import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';

@@ -271,7 +271,8 @@ describe('TRMNL layouts', () => {
     expect(full).toContain('>DNF<');
     expect(full).toContain('>1:17:32.207<');
     expect(full).toContain('>+2.873<');
-    expect(full).toContain('>+1 lap<');
+    // A no-break space: a plain one let the gap cell wrap to "+1" over "lap".
+    expect(full).toContain('>+1&nbsp;lap<');
     expect(full).toContain('Next race');
     expect(full).toContain(finished.payload.next_race!.name);
     // The weekend is over: no timeline.

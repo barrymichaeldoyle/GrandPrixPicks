@@ -316,6 +316,14 @@ a step smaller than the build-up's lead label on the X. The next round is a
 small race header: its flag
 beside "Next race · 2 – 4 Oct" with the name under it (`next_race`, from
 `selectTrmnlNextRace`; absent after the season's last race).
+The two columns are equal halves on every device: at three fifths and two
+fifths on the landscape X, the classification's gap column wrapped "+1 lap"
+onto two lines, and the winner's name fits the half through value fitting.
+The gap's space is a no-break space for the same reason. Both the `h--0`
+fix and the all-headlines overflow were reverted by a TRMNL sync commit
+three minutes after they landed on 4 October 2026 and reached devices
+(the next race ran under the title bar on an X on 11 October), which is
+why the README says to import before saving anything in TRMNL.
 The right column, or the bottom in portrait, has the whole classification in
 two columns (`classification` in `shared.liquid`): "P1" and the driver code,
 as the championship reads, and the official gap, the winner's race time

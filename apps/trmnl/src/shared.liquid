@@ -556,7 +556,9 @@
   code with "P1" positions, as the championship reads, and the official gap
   (the winner's race time, then "+0.196", "+1 lap"). A driver who did not
   finish shows "DNF", "DNS" or "DSQ" in place of a position, so the tail of
-  the list does not read as finishing places.
+  the list does not read as finishing places. The gap's space is a no-break
+  space: the code's cell takes the width, so a plain space let the gap cell
+  shrink to "+1" over "lap".
 {% endcomment %}
 {% template classification %}
 {% assign per_column = result.rows.size | plus: 1 | divided_by: 2 %}
@@ -573,7 +575,7 @@
           <tr>
             <td><span class="label label--small lg:label--base w--[28px] lg:w--[44px]">{% if row.status != "" %}{{ row.status }}{% else %}P{{ row.pos }}{% endif %}</span></td>
             <td class="w--full"><span class="title title--small lg:title--base">{{ row.code }}</span></td>
-            <td class="text--right"><span class="label label--small lg:label--base">{{ row.gap }}</span></td>
+            <td class="text--right"><span class="label label--small lg:label--base">{{ row.gap | replace: " ", "&nbsp;" }}</span></td>
           </tr>
           {% endfor %}
         </tbody>

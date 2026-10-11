@@ -1,0 +1,22 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/singapore-2026-2026-10-11-post-race.json",
+  "startAt": "2026-10-11T16:05:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["singapore-grand-prix-verstappen-win"],
+      "text": "Verstappen wins his first Singapore Grand Prix on his 250th Grand Prix start, completing a weekend of two poles and two wins. Leclerc and Antonelli complete the podium; Norris and Piastri round out the top five.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=singapore-grand-prix-verstappen-win",
+      "expiresAt": "2026-10-12T08:00:00Z"
+    },
+    {
+      "keys": [
+        "hamilton-singapore-race-tyre-fade",
+        "piastri-singapore-race-puncture"
+      ],
+      "text": "Hamilton slips from third to sixth as his soft tyres fade in Singapore. Piastri recovers from an extra stop for a puncture and passes him at Turn 16 on the final lap for fifth.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hamilton-singapore-race-tyre-fade",
+      "expiresAt": "2026-10-12T08:00:00Z"
+    }
+  ]
+}

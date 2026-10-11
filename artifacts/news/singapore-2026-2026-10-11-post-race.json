@@ -1,0 +1,50 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "singapore-grand-prix-verstappen-win",
+    "headline": "Verstappen wins Singapore ahead of Leclerc and Antonelli",
+    "body": "Verstappen took his first Singapore Grand Prix victory on his 250th Grand Prix start, completing a weekend of two poles and two wins. Leclerc and Antonelli completed the podium, with Norris fourth and Piastri fifth.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["VER", "LEC", "ANT", "NOR", "PIA"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-formula-1-singapore-airlines-singapore-grand-prix-2026.64UBFhKsSsN0V9RoD8JQqx",
+    "sourcePublishedAt": "2026-10-11T13:46:44Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "hamilton-singapore-race-tyre-fade",
+    "headline": "Hamilton drops from third to sixth as his Singapore tyres fade",
+    "body": "Hamilton finished sixth after losing third to Antonelli and then places to both McLarens late in the race. He stayed out on soft tyres fitted early in the Grand Prix, and Piastri passed him on the final lap.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HAM"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-formula-1-singapore-airlines-singapore-grand-prix-2026.64UBFhKsSsN0V9RoD8JQqx",
+    "sourcePublishedAt": "2026-10-11T13:46:44Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "russell-hadjar-singapore-race-recovery",
+    "headline": "Russell and Hadjar recover to Singapore points from the back",
+    "body": "Russell finished ninth after starting 19th, with Hülkenberg holding him off for eighth. Hadjar recovered from a pit-lane start to take tenth and the final point.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["RUS", "HAD"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-formula-1-singapore-airlines-singapore-grand-prix-2026.64UBFhKsSsN0V9RoD8JQqx",
+    "sourcePublishedAt": "2026-10-11T13:48:06Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "piastri-singapore-race-puncture",
+    "headline": "Piastri recovers from a puncture to take fifth on Singapore’s final lap",
+    "body": "Piastri made an extra pit stop after reporting a slow front-right puncture. He passed Hamilton at Turn 16 on the final lap to finish fifth, behind team-mate Norris.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["PIA"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/live-coverage-formula-1-singapore-airlines-singapore-grand-prix-2026.64UBFhKsSsN0V9RoD8JQqx",
+    "sourcePublishedAt": "2026-10-11T13:46:44Z"
+  }
+]

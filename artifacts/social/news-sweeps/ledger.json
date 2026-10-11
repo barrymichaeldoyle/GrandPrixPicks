@@ -305,8 +305,49 @@
       "text": "Bortoleto, Colapinto and Stroll have retired from the Singapore Grand Prix. Audi suspects gearbox trouble for Bortoleto; Alpine suspects a driveline issue for Colapinto.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=bortoleto-singapore-race-retirement",
       "dueAt": "2026-10-11T13:40:00.000Z",
       "expiresAt": "2026-10-11T18:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acb8e2cbba9419ccb389049"
+    },
+    {
+      "id": "26546037ece7b70df9f8dfa732901c8a86f8cdaf8d720ba9d004bb200ddc434d",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "singapore-grand-prix-verstappen-win",
+          "revision": "5696e0d9737e2755dfdab5595dac3951ccb0f670923f0ec462a3863164fb3f9e"
+        }
+      ],
+      "text": "Verstappen wins his first Singapore Grand Prix on his 250th Grand Prix start, completing a weekend of two poles and two wins. Leclerc and Antonelli complete the podium; Norris and Piastri round out the top five.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=singapore-grand-prix-verstappen-win",
+      "dueAt": "2026-10-11T14:05:00.000Z",
+      "expiresAt": "2026-10-12T08:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acb94ded9cab260a7fc7dee"
+    },
+    {
+      "id": "aaf0c947d345b47883dfe474b74d0c8f648950aaa48fd908d2a98b2531d1a773",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hamilton-singapore-race-tyre-fade",
+          "revision": "7481eadb0cde10316616e60b6561c847727de5089f9fcf8b6f0c4c5422dd6bf5"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "piastri-singapore-race-puncture",
+          "revision": "98c4239949284027605e986caed645ba540f2f051c41439800a85fee2378e4c1"
+        }
+      ],
+      "text": "Hamilton slips from third to sixth as his soft tyres fade in Singapore. Piastri recovers from an extra stop for a puncture and passes him at Turn 16 on the final lap for fifth.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hamilton-singapore-race-tyre-fade",
+      "dueAt": "2026-10-11T14:30:00.000Z",
+      "expiresAt": "2026-10-12T08:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acb94dfbba9419ccb39b5ce"
     }
   ]
 }

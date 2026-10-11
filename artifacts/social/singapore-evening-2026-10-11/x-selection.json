@@ -1,0 +1,27 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/singapore-2026-2026-10-11-evening.json",
+  "startAt": "2026-10-11T19:00:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["verstappen-singapore-race-radio-issue"],
+      "text": "Verstappen won in Singapore despite struggling to speak to Red Bull. His engineer used coded messages, while early energy-deployment trouble gave Leclerc a chance to attack.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=verstappen-singapore-race-radio-issue",
+      "expiresAt": "2026-10-12T10:00:00Z"
+    },
+    {
+      "keys": ["albon-singapore-race-retirement"],
+      "text": "Williams explains Albon's late Singapore retirement: he managed fuel and brake issues, then stopped to protect the car. He remains classified 18th.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=albon-singapore-race-retirement",
+      "expiresAt": "2026-10-12T10:00:00Z"
+    },
+    {
+      "keys": [
+        "leclerc-singapore-race-upgrade-call",
+        "norris-singapore-race-pace-assessment"
+      ],
+      "text": "Leclerc wants more Ferrari upgrades after his first Grand Prix podium since Belgium. Norris says McLaren is now fourth fastest and also needs more upgrades after finishing 40 seconds behind Verstappen in Singapore.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=norris-singapore-race-pace-assessment",
+      "expiresAt": "2026-10-12T10:00:00Z"
+    }
+  ]
+}

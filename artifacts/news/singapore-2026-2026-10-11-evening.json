@@ -1,0 +1,110 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "category": "general",
+    "affectsSessions": [],
+    "key": "hamilton-singapore-post-race-medical-check",
+    "headline": "Hamilton misses post-race interviews after feeling unwell",
+    "body": "Hamilton felt unwell after the Singapore Grand Prix and was seen by the FIA medical team. He was excused from his post-race media duties.",
+    "driverCodes": ["HAM"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/why-lewis-hamilton-singapore-gp-really-imploded/",
+    "sourcePublishedAt": "2026-10-11T16:27:28.000Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "category": "general",
+    "affectsSessions": [],
+    "key": "verstappen-singapore-race-radio-issue",
+    "headline": "Verstappen wins Singapore despite radio and deployment trouble",
+    "body": "Verstappen struggled to speak to Red Bull during the race and had to respond to coded messages from his engineer. Early energy-deployment problems also gave Leclerc a chance to attack before Verstappen brought them under control.",
+    "driverCodes": ["VER"],
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/news/1107500/1/max-verstappen-reveals-singapore-gp-radio-issue-has-plagued-him-all-year",
+    "sourcePublishedAt": "2026-10-11T16:34:48+01:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "category": "general",
+    "affectsSessions": [],
+    "key": "leclerc-singapore-race-upgrade-call",
+    "headline": "Leclerc calls for more Ferrari upgrades after Singapore podium",
+    "body": "Leclerc took his first Grand Prix podium since Belgium but said Ferrari still needs more upgrades to match its rivals. He pushed hard after his final stop in Singapore, then suffered more tyre degradation as Verstappen held on to win.",
+    "driverCodes": ["LEC"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/i-dont-regret-anything-leclerc-gave-it-all-to-secure-p2-in-singapore.4TemKhORmVtudPgWO2Uiw4",
+    "sourcePublishedAt": "2026-10-11T15:05:28.202Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "category": "general",
+    "affectsSessions": [],
+    "key": "norris-singapore-race-pace-assessment",
+    "headline": "Norris says McLaren is fourth fastest after Singapore",
+    "body": "Norris finished fourth but said McLaren has slipped behind Red Bull, Ferrari and Mercedes on pace. He wants more upgrades after finishing 40 seconds behind Verstappen, while Piastri also felt the car lacked the speed to finish higher.",
+    "driverCodes": ["NOR", "PIA"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/we-want-to-fight-for-wins-norris-not-happy-with-a-p4-finish-in-singapore-gp.7KagAh8STy3D0lYmIV5fOx",
+    "sourcePublishedAt": "2026-10-11T15:37:23.036Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "category": "general",
+    "affectsSessions": [],
+    "key": "mercedes-singapore-race-upgrade-assessment",
+    "headline": "Wolff says Mercedes' upgrade needs a different setup approach",
+    "body": "Wolff said Mercedes' new package needs a different setup approach and has yet to deliver the performance the team expected. Singapore helped the team learn, with Austin the next test of whether it can find more pace.",
+    "driverCodes": ["ANT", "RUS"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/toto-wolff-praises-max-verstappen-and-red-bull-as-mercedes-faces-upgrade-concerns/10864424/",
+    "sourcePublishedAt": "2026-10-11T16:28:39Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "category": "general",
+    "affectsSessions": [],
+    "key": "russell-singapore-future-engine-penalty",
+    "headline": "Russell expects another engine penalty later this season",
+    "body": "Russell expects to take another engine-related grid penalty before the end of the season. Mercedes may choose Las Vegas, but the round has not been settled.",
+    "driverCodes": ["RUS"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/the-story-of-the-season-russell-assesses-very-difficult-recovery-drive-in-singapore-grand-prix.bdIuyUxGaD3yWI4SpS7zZ",
+    "sourcePublishedAt": "2026-10-11T15:52:20.992Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "category": "general",
+    "affectsSessions": [],
+    "key": "sainz-singapore-race-battery-issue",
+    "headline": "Sainz loses early Singapore gains after battery trouble",
+    "body": "Sainz climbed to tenth at the start but lost two places after battery trouble in the opening laps. Williams then lacked the pace to fight for points, and he finished 14th.",
+    "driverCodes": ["SAI"],
+    "sourceName": "Williams",
+    "sourceUrl": "https://www.williamsf1.com/articles/52b77be8-b17a-4913-862a-1c6a58b82cb0/report-singapore-grand-prix-2026",
+    "sourcePublishedAt": "2026-10-11T14:22:04.536Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "category": "general",
+    "affectsSessions": [],
+    "key": "albon-singapore-race-retirement",
+    "headline": "Fuel and brake issues force Albon's late Singapore retirement",
+    "body": "Albon managed fuel and brake issues throughout the race, backing off when his brakes overheated behind other cars. Williams retired him late to protect the car; he is classified 18th.",
+    "driverCodes": ["ALB"],
+    "sourceName": "Williams",
+    "sourceUrl": "https://www.williamsf1.com/articles/52b77be8-b17a-4913-862a-1c6a58b82cb0/report-singapore-grand-prix-2026",
+    "sourcePublishedAt": "2026-10-11T14:22:04.536Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "category": "general",
+    "affectsSessions": [],
+    "key": "antonelli-singapore-title-chance",
+    "headline": "Antonelli has his first title chance at Austin after Singapore",
+    "body": "Antonelli leaves Singapore 102 points clear of Russell, with six races and 150 points still available. He has his first chance to clinch the drivers' title at the next round in Austin.",
+    "driverCodes": ["ANT"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/can-i-really-antonelli-reacts-as-he-gives-himself-first-chance-of-sealing-world-title-after-singapore-podium.2BhiC6Exd2Jtm9uT3xZ2Rb",
+    "sourcePublishedAt": "2026-10-11T15:37:23.222Z"
+  }
+]

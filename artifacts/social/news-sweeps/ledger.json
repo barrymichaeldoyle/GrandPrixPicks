@@ -364,7 +364,7 @@
       "text": "Antonelli has his first chance to seal the F1 title at Austin. He needs to win, with Russell and Hamilton’s finishes also deciding whether the championship is settled with five races left.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=antonelli-singapore-title-chance",
       "dueAt": "2026-10-11T14:55:00.000Z",
       "expiresAt": "2026-10-12T10:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acba091ed92ed8fa50731ab"
     },
     {
@@ -382,8 +382,67 @@
       "text": "Hamilton apologised to Ferrari after his Singapore strategy left him sixth. He took responsibility for staying out under the VSC; Vasseur says the team called him in, but he missed the pit entry.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hamilton-singapore-race-tyre-fade",
       "dueAt": "2026-10-11T15:20:00.000Z",
       "expiresAt": "2026-10-12T10:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acba092b07d37ac97ad118f"
+    },
+    {
+      "id": "f6cc51d69fbf273298001931c87b3e9253a2474c2564bf90f5ebf92477ca6b61",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "verstappen-singapore-race-radio-issue",
+          "revision": "c231a5687e603ae1ca80d68918c7489b2e24a6c5d1dcd2529103551e4c580015"
+        }
+      ],
+      "text": "Verstappen won in Singapore despite struggling to speak to Red Bull. His engineer used coded messages, while early energy-deployment trouble gave Leclerc a chance to attack.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=verstappen-singapore-race-radio-issue",
+      "dueAt": "2026-10-11T17:00:00.000Z",
+      "expiresAt": "2026-10-12T10:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acbbe0ba9411fbcc55144d6"
+    },
+    {
+      "id": "451f8c465a57d5b5e5bdd179f68a8db5a63bb4f2185c5b5dd5373a2310cccfec",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "albon-singapore-race-retirement",
+          "revision": "a6fec0988dd79c19d29a3f91128b4bdaee3895b8edf95b52ed710f44241471b2"
+        }
+      ],
+      "text": "Williams explains Albon's late Singapore retirement: he managed fuel and brake issues, then stopped to protect the car. He remains classified 18th.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=albon-singapore-race-retirement",
+      "dueAt": "2026-10-11T17:25:00.000Z",
+      "expiresAt": "2026-10-12T10:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acbbe0c8e8dd50ffc4bfdce"
+    },
+    {
+      "id": "7d994ce974cc33a513c33c014efed62f2d0703a7f4d7b0b535ea14b518aceee2",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "leclerc-singapore-race-upgrade-call",
+          "revision": "d14efc08041b14a6f09430819d7747cd92a6aff3c1c4e2ed7ec04d128602ccd2"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "norris-singapore-race-pace-assessment",
+          "revision": "4067a61530035af73f310d2918c6ee20b0827aa50c5bafbe7222b14fee6e8c17"
+        }
+      ],
+      "text": "Leclerc wants more Ferrari upgrades after his first Grand Prix podium since Belgium. Norris says McLaren is now fourth fastest and also needs more upgrades after finishing 40 seconds behind Verstappen in Singapore.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=norris-singapore-race-pace-assessment",
+      "dueAt": "2026-10-11T17:50:00.000Z",
+      "expiresAt": "2026-10-12T10:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acbbe0de6b5023b6dd5256c"
     }
   ]
 }

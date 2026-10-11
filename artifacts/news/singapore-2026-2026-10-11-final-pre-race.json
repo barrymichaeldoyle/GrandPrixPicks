@@ -1,0 +1,182 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "alonso-singapore-race-pit-lane-start",
+    "headline": "Alonso starts the Singapore Grand Prix from the pit lane",
+    "body": "Alonso moves from 16th on the provisional grid to a pit-lane start after Aston Martin changed his suspension setup under parc fermé and worked beyond the covers-on time. He also has a new turbocharger, his sixth of the season.",
+    "category": "pick_related",
+    "affectsSessions": ["race"],
+    "sourceName": "FIA",
+    "sourceUrl": "https://www.fia.com/system/files/decision-document/2026_singapore_grand_prix_-_infringement_-_car_14_-_pu_element_and_changes_made_during_parc_ferme.pdf",
+    "sourcePublishedAt": "2026-10-11T10:25:00Z",
+    "driverCodes": ["ALO"]
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "stroll-singapore-race-pit-lane-start",
+    "headline": "Stroll starts the Singapore Grand Prix from the pit lane",
+    "body": "Stroll moves from 18th on the provisional grid to a pit-lane start after Aston Martin changed his suspension setup under parc fermé. The team also continued working on his car beyond the covers-on time.",
+    "category": "pick_related",
+    "affectsSessions": ["race"],
+    "sourceName": "FIA",
+    "sourceUrl": "https://www.fia.com/system/files/decision-document/2026_singapore_grand_prix_-_infringement_-_car_18_-_changes_made_during_parc_ferme.pdf",
+    "sourcePublishedAt": "2026-10-11T10:27:00Z",
+    "driverCodes": ["STR"]
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "hadjar-singapore-race-pit-lane-start",
+    "headline": "Hadjar starts the Singapore Grand Prix from the pit lane",
+    "body": "Hadjar must start from the pit lane after Red Bull changed his car under parc fermé and fitted additional power-unit elements. He retains permission to race after failing to set a qualifying time.",
+    "category": "pick_related",
+    "affectsSessions": ["race"],
+    "sourceName": "FIA",
+    "sourceUrl": "https://www.fia.com/system/files/decision-document/2026_singapore_grand_prix_-_final_starting_grid.pdf",
+    "sourcePublishedAt": "2026-10-11T11:01:00Z",
+    "driverCodes": ["HAD"]
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "russell-singapore-engine-penalty-risk",
+    "headline": "Russell’s Singapore grid penalty rises to 60 places",
+    "body": "Russell has received another 20-place grid penalty for using his fourth energy store and control electronics unit. That brings his combined Singapore penalty to 60 places.",
+    "category": "pick_related",
+    "affectsSessions": ["race"],
+    "sourceName": "FIA",
+    "sourceUrl": "https://www.fia.com/system/files/decision-document/2026_singapore_grand_prix_-_infringement_-_car_63_-_additional_changes_to_pu_elements.pdf",
+    "sourcePublishedAt": "2026-10-11T09:47:00Z",
+    "driverCodes": ["RUS"]
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "singapore-sq1-overtake-mode-error",
+    "headline": "FIA admits Singapore SQ1 error compromised fairness",
+    "body": "The FIA says a missed race-control prompt left Overtake Mode disabled after the SQ1 red flag. Briefly switching it back on for 27 seconds affected drivers unequally; single-seater director Nikolas Tombazis acknowledged that the error interfered with the results and said it is being analysed to prevent a repeat.",
+    "category": "pick_related",
+    "affectsSessions": ["sprint_quali"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/fia-admits-fairness-was-compromised-in-singapore-f1-sprint-qualifying-mess/10864037/",
+    "sourcePublishedAt": "2026-10-11T06:59:21Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "gasly-singapore-sprint-stewarding-response",
+    "headline": "Gasly questions no penalty for Norris after the sprint collision",
+    "body": "Gasly questioned the decision to take no action over Norris and Piastri's sprint collision, saying he would have scored a point if Norris had been penalised. He wants to discuss consistency with the stewards after Colapinto received a penalty for hitting him in Baku; Singapore's ruling remains unchanged.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["GAS", "NOR", "PIA"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/gasly-questions-fia-stewards-decision-not-to-penalise-norris-after-singapore-crash/10864257/",
+    "sourcePublishedAt": "2026-10-11T10:58:52Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "singapore-starting-grid",
+    "headline": "Final starting grid for the Singapore Grand Prix",
+    "body": "Verstappen and Leclerc share the front row, ahead of Hamilton and Antonelli. Russell starts 19th with a combined 60-place power-unit penalty. Alonso, Stroll and Hadjar start from the pit lane after car changes under parc fermé.",
+    "category": "pick_related",
+    "affectsSessions": ["race"],
+    "sourceName": "FIA",
+    "sourceUrl": "https://www.fia.com/system/files/decision-document/2026_singapore_grand_prix_-_final_starting_grid.pdf",
+    "sourcePublishedAt": "2026-10-11T11:01:00Z",
+    "startingGrid": [
+      {
+        "position": 1,
+        "code": "VER"
+      },
+      {
+        "position": 2,
+        "code": "LEC"
+      },
+      {
+        "position": 3,
+        "code": "HAM"
+      },
+      {
+        "position": 4,
+        "code": "ANT"
+      },
+      {
+        "position": 5,
+        "code": "NOR"
+      },
+      {
+        "position": 6,
+        "code": "PIA"
+      },
+      {
+        "position": 7,
+        "code": "GAS"
+      },
+      {
+        "position": 8,
+        "code": "LAW"
+      },
+      {
+        "position": 9,
+        "code": "LIN"
+      },
+      {
+        "position": 10,
+        "code": "HUL"
+      },
+      {
+        "position": 11,
+        "code": "BEA"
+      },
+      {
+        "position": 12,
+        "code": "OCO"
+      },
+      {
+        "position": 13,
+        "code": "SAI"
+      },
+      {
+        "position": 14,
+        "code": "BOR"
+      },
+      {
+        "position": 15,
+        "code": "COL"
+      },
+      {
+        "position": 16,
+        "code": "ALB"
+      },
+      {
+        "position": 17,
+        "code": "PER"
+      },
+      {
+        "position": 18,
+        "code": "BOT"
+      },
+      {
+        "position": 19,
+        "code": "RUS",
+        "note": "60-place penalty",
+        "newsKey": "russell-singapore-engine-penalty-risk"
+      },
+      {
+        "position": 20,
+        "code": "ALO",
+        "note": "Pit lane",
+        "newsKey": "alonso-singapore-race-pit-lane-start"
+      },
+      {
+        "position": 21,
+        "code": "STR",
+        "note": "Pit lane",
+        "newsKey": "stroll-singapore-race-pit-lane-start"
+      },
+      {
+        "position": 22,
+        "code": "HAD",
+        "note": "Pit lane",
+        "newsKey": "hadjar-singapore-race-pit-lane-start"
+      }
+    ]
+  }
+]

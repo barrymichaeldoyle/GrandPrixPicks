@@ -40,10 +40,10 @@ const sessionTypesValidator = v.array(sessionTypeValidator);
 /**
  * A read bound rather than an editorial one. There is no cap on how much news a
  * weekend may carry — a busy weekend with several real items is a better feed
- * than a quiet one — but a read still has to be bounded, and fifty is far above
- * any weekend that has ever happened.
+ * than a quiet one. Read the newest items first so a busy weekend never hides
+ * its latest developments behind the bound.
  */
-const MAX_NEWS_PER_RACE = 50;
+const MAX_NEWS_PER_RACE = 200;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -355,6 +355,7 @@ async function listRaceNews(
   const rows = await ctx.db
     .query('raceNews')
     .withIndex('by_race', (q) => q.eq('raceId', race._id))
+    .order('desc')
     .take(MAX_NEWS_PER_RACE);
 
   const visible = (
@@ -470,6 +471,7 @@ export async function loadActiveRaceNews(
   const rows = await ctx.db
     .query('raceNews')
     .withIndex('by_race', (q) => q.eq('raceId', raceId))
+    .order('desc')
     .take(MAX_NEWS_PER_RACE);
   return rows
     .filter((row) => row.active)
@@ -988,8 +990,16 @@ async function findMissingGridNewsKeys(
   const published = await ctx.db
     .query('raceNews')
     .withIndex('by_race', (q) => q.eq('raceId', race._id))
+    .order('desc')
     .take(MAX_NEWS_PER_RACE);
-  const activeByKey = new Map(published.map((row) => [row.key, row.active]));
+  const referenced = await Promise.all(
+    [...new Set(linked.map((entry) => entry.newsKey as string))].map((key) =>
+      newsByKey(ctx, race._id, key),
+    ),
+  );
+  const activeByKey = new Map(
+    referenced.flatMap((row) => (row ? [[row.key, row.active] as const] : [])),
+  );
   const missing = linked.flatMap((entry) => {
     const newsKey = entry.newsKey as string;
     const active = activeByKey.get(newsKey);

@@ -185,7 +185,7 @@
       "text": "No penalty for Hülkenberg after impeding Sainz: inconsistent timing data had misled both teams. Hadjar has also been cleared to race in Singapore.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hulkenberg-singapore-qualifying-impeding-decision",
       "dueAt": "2026-10-11T04:15:00.000Z",
       "expiresAt": "2026-10-11T11:30:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acb08bbc4de2d2b124b4607"
     },
     {
@@ -203,7 +203,7 @@
       "text": "Pirelli favours starting Singapore on soft tyres, then switching to mediums or hards. Low degradation could let drivers wait for a Safety Car; two stops are estimated to cost about ten seconds more.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=pirelli-singapore-race-strategy",
       "dueAt": "2026-10-11T04:40:00.000Z",
       "expiresAt": "2026-10-11T11:30:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acb08bcbba9419ccb2319a2"
     },
     {
@@ -221,8 +221,64 @@
       "text": "Verstappen questions Red Bull's second-gear approach after poor wet starts at Sepang and in the Singapore sprint. He would consider a different gear if today's start is wet, while hoping for a dry race.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=verstappen-singapore-race-start-concern",
       "dueAt": "2026-10-11T05:05:00.000Z",
       "expiresAt": "2026-10-11T11:30:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acb08bdf91f772d45b5a01b"
+    },
+    {
+      "id": "b03a215ef83f1458891198355a1751ed4b7bec6038329fd720500e139f664e57",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "singapore-starting-grid",
+          "revision": "c774e91a92450fbbd042d79b8d3d2bd1e0624b3b1b1368fcb9dfc2cd6d032c27"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "alonso-singapore-race-pit-lane-start",
+          "revision": "b4bb95d16feafa664c277f74c7fe7d985caed9058cd5f31034e79d5dc65d9252"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "stroll-singapore-race-pit-lane-start",
+          "revision": "7c9198fad801cc0467fad4a1ebaccf0e8bf481d46fa517b5b1cdc500446996f6"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hadjar-singapore-race-pit-lane-start",
+          "revision": "86072ebe0db640655270a809e6ec2a914b0f4864b66acbc140de35a83285c91d"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "russell-singapore-engine-penalty-risk",
+          "revision": "160548b58770d6ae36fb83aeffa052e5eb88b3395a76e51435239b6275e77cdf"
+        }
+      ],
+      "text": "Singapore's final grid: Alonso, Stroll and Hadjar start from the pit lane. Russell starts P19 despite a combined 60-place penalty. Verstappen and Leclerc share the front row.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=singapore-starting-grid",
+      "dueAt": "2026-10-11T11:25:00.000Z",
+      "expiresAt": "2026-10-11T11:55:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acb6f57ed92ed8fa5fe7217"
+    },
+    {
+      "id": "382b4ac59612cf06421ed632f38c6d8b61f9dcf26cd27b0241ce7c39ea223ba8",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "singapore-sq1-overtake-mode-error",
+          "revision": "9fb4cef28a08d4ec3211a4f7db54cf8ef39fab079d546ca4c9d6a84be2a08a42"
+        }
+      ],
+      "text": "The FIA admits its Singapore SQ1 error compromised fairness. A missed prompt left Overtake Mode off after the red flag; briefly enabling it for 27 seconds affected drivers unequally.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=singapore-sq1-overtake-mode-error",
+      "dueAt": "2026-10-11T11:50:00.000Z",
+      "expiresAt": "2026-10-11T18:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acb6f58f91f772d45c5b010"
     }
   ]
 }

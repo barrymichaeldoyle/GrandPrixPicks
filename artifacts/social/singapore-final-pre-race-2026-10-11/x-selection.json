@@ -1,0 +1,26 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/singapore-2026-2026-10-11-final-pre-race.json",
+  "startAt": "2026-10-11T13:25:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": [
+        "singapore-starting-grid",
+        "alonso-singapore-race-pit-lane-start",
+        "stroll-singapore-race-pit-lane-start",
+        "hadjar-singapore-race-pit-lane-start",
+        "russell-singapore-engine-penalty-risk"
+      ],
+      "text": "Singapore's final grid: Alonso, Stroll and Hadjar start from the pit lane. Russell starts P19 despite a combined 60-place penalty. Verstappen and Leclerc share the front row.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=singapore-starting-grid",
+      "materialUpdate": true,
+      "expiresAt": "2026-10-11T11:55:00Z"
+    },
+    {
+      "keys": ["singapore-sq1-overtake-mode-error"],
+      "text": "The FIA admits its Singapore SQ1 error compromised fairness. A missed prompt left Overtake Mode off after the red flag; briefly enabling it for 27 seconds affected drivers unequally.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=singapore-sq1-overtake-mode-error",
+      "expiresAt": "2026-10-11T18:00:00Z"
+    }
+  ]
+}

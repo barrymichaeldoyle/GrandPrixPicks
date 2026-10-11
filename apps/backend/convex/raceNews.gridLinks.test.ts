@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-import { convexTest } from 'convex-test';
+import { convexTest, type TestConvex } from 'convex-test';
 import { ConvexError } from 'convex/values';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -67,14 +67,73 @@ function gridItem(newsKey?: string) {
   };
 }
 
-let t: ReturnType<typeof convexTest>;
+let t: TestConvex<typeof schema>;
 
 beforeEach(async () => {
   t = convexTest(schema, modules);
   await seed(t);
 });
 
+async function seedOlderNews(count: number) {
+  await t.run(async (ctx) => {
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', RACE))
+      .unique();
+    if (!race) {
+      throw new Error('Missing test race');
+    }
+    for (let index = 0; index < count; index++) {
+      await ctx.db.insert('raceNews', {
+        raceId: race._id,
+        key: `older-story-${index}`,
+        headline: 'Earlier weekend news',
+        body: 'Earlier weekend news.',
+        category: 'general',
+        affectsSessions: [],
+        sourceName: 'Example',
+        sourceUrl: 'https://example.com/earlier',
+        active: true,
+        publishedAt: index,
+        updatedAt: index,
+      });
+    }
+  });
+}
+
 describe('linking a grid row to the story behind it', () => {
+  it('shows and links late news after more than fifty weekend stories', async () => {
+    await seedOlderNews(60);
+    await t.mutation(internal.raceNews.publish, penalty);
+    const preview = await t.mutation(internal.raceNews.publish, {
+      ...gridItem(penalty.key),
+      dryRun: true,
+    });
+    expect(preview.missingNewsKeys).toEqual([]);
+    await t.mutation(internal.raceNews.publish, gridItem(penalty.key));
+    const { items } = await t.query(api.raceNews.list, { raceSlug: RACE });
+    expect(items.some((row) => row.key === penalty.key)).toBe(true);
+    expect(
+      items.find((row) => row.key === 'monza-starting-grid')?.startingGrid?.[1]
+        ?.newsKey,
+    ).toBe(penalty.key);
+  });
+
+  it('resolves an older linked story beyond the bounded news list', async () => {
+    await t.mutation(internal.raceNews.publish, penalty);
+    await seedOlderNews(210);
+    const preview = await t.mutation(internal.raceNews.publish, {
+      ...gridItem(penalty.key),
+      dryRun: true,
+    });
+    expect(preview.missingNewsKeys).toEqual([]);
+    await t.mutation(internal.raceNews.publish, gridItem(penalty.key));
+    const { items } = await t.query(api.raceNews.list, { raceSlug: RACE });
+    expect(items).toHaveLength(200);
+    expect(items.some((row) => row.key === 'monza-starting-grid')).toBe(true);
+    expect(items.some((row) => row.key === 'older-story-0')).toBe(false);
+  });
+
   it('refuses a key this weekend has no item for', async () => {
     // The same loudness as an unknown driver code: a row whose link goes
     // nowhere looks exactly like every other row until somebody taps it.

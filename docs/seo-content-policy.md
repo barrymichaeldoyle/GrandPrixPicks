@@ -161,7 +161,14 @@ server: Las Vegas reads 28% against Qatar and Qatar 22% against Las Vegas, the
 worst figure anywhere is still 38% between two race pages, and nothing crosses
 50%. Its circuit section carries the numbers and the weekend format rather
 than the character of the track, because `circuitGuides.ts` already says
-Lusail is fast, flowing and hard on tyres on the race page.
+Lusail is fast, flowing and hard on tyres on the race page. Measured on prod
+the same day: 22% and 28%, the same as locally.
+
+The Abu Dhabi write-up followed the same day, seven and a half weeks out, so
+every remaining 2026 round has one and the sitemap test's example of a race
+page still advertised is now a finished early-season race. Locally it reads
+27% against Qatar and Qatar 26% against it, the consecutive-rounds figure
+again; nothing crosses 50%.
 
 The manual version, if the script is ever in doubt:
 

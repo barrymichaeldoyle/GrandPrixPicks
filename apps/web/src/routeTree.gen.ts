@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as F12026AbuDhabiGrandPrixPredictionsRouteImport } from './routes/f1-2026-abu-dhabi-grand-prix-predictions'
 import { Route as F12026AzerbaijanGrandPrixPredictionsRouteImport } from './routes/f1-2026-azerbaijan-grand-prix-predictions'
 import { Route as F12026BahrainGrandPrixPredictionsRouteImport } from './routes/f1-2026-bahrain-grand-prix-predictions'
 import { Route as F12026ItalianGrandPrixPredictionsRouteImport } from './routes/f1-2026-italian-grand-prix-predictions'
@@ -75,6 +76,12 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const F12026AbuDhabiGrandPrixPredictionsRoute =
+  F12026AbuDhabiGrandPrixPredictionsRouteImport.update({
+    id: '/f1-2026-abu-dhabi-grand-prix-predictions',
+    path: '/f1-2026-abu-dhabi-grand-prix-predictions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const F12026AzerbaijanGrandPrixPredictionsRoute =
   F12026AzerbaijanGrandPrixPredictionsRouteImport.update({
     id: '/f1-2026-azerbaijan-grand-prix-predictions',
@@ -355,6 +362,7 @@ const RacesRaceSlugPracticeRoute = RacesRaceSlugPracticeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/f1-2026-abu-dhabi-grand-prix-predictions': typeof F12026AbuDhabiGrandPrixPredictionsRoute
   '/f1-2026-azerbaijan-grand-prix-predictions': typeof F12026AzerbaijanGrandPrixPredictionsRoute
   '/f1-2026-bahrain-grand-prix-predictions': typeof F12026BahrainGrandPrixPredictionsRoute
   '/f1-2026-italian-grand-prix-predictions': typeof F12026ItalianGrandPrixPredictionsRoute
@@ -412,6 +420,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/f1-2026-abu-dhabi-grand-prix-predictions': typeof F12026AbuDhabiGrandPrixPredictionsRoute
   '/f1-2026-azerbaijan-grand-prix-predictions': typeof F12026AzerbaijanGrandPrixPredictionsRoute
   '/f1-2026-bahrain-grand-prix-predictions': typeof F12026BahrainGrandPrixPredictionsRoute
   '/f1-2026-italian-grand-prix-predictions': typeof F12026ItalianGrandPrixPredictionsRoute
@@ -469,6 +478,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/f1-2026-abu-dhabi-grand-prix-predictions': typeof F12026AbuDhabiGrandPrixPredictionsRoute
   '/f1-2026-azerbaijan-grand-prix-predictions': typeof F12026AzerbaijanGrandPrixPredictionsRoute
   '/f1-2026-bahrain-grand-prix-predictions': typeof F12026BahrainGrandPrixPredictionsRoute
   '/f1-2026-italian-grand-prix-predictions': typeof F12026ItalianGrandPrixPredictionsRoute
@@ -528,6 +538,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/f1-2026-abu-dhabi-grand-prix-predictions'
     | '/f1-2026-azerbaijan-grand-prix-predictions'
     | '/f1-2026-bahrain-grand-prix-predictions'
     | '/f1-2026-italian-grand-prix-predictions'
@@ -585,6 +596,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/f1-2026-abu-dhabi-grand-prix-predictions'
     | '/f1-2026-azerbaijan-grand-prix-predictions'
     | '/f1-2026-bahrain-grand-prix-predictions'
     | '/f1-2026-italian-grand-prix-predictions'
@@ -641,6 +653,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/f1-2026-abu-dhabi-grand-prix-predictions'
     | '/f1-2026-azerbaijan-grand-prix-predictions'
     | '/f1-2026-bahrain-grand-prix-predictions'
     | '/f1-2026-italian-grand-prix-predictions'
@@ -699,6 +712,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  F12026AbuDhabiGrandPrixPredictionsRoute: typeof F12026AbuDhabiGrandPrixPredictionsRoute
   F12026AzerbaijanGrandPrixPredictionsRoute: typeof F12026AzerbaijanGrandPrixPredictionsRoute
   F12026BahrainGrandPrixPredictionsRoute: typeof F12026BahrainGrandPrixPredictionsRoute
   F12026ItalianGrandPrixPredictionsRoute: typeof F12026ItalianGrandPrixPredictionsRoute
@@ -763,6 +777,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/f1-2026-abu-dhabi-grand-prix-predictions': {
+      id: '/f1-2026-abu-dhabi-grand-prix-predictions'
+      path: '/f1-2026-abu-dhabi-grand-prix-predictions'
+      fullPath: '/f1-2026-abu-dhabi-grand-prix-predictions'
+      preLoaderRoute: typeof F12026AbuDhabiGrandPrixPredictionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/f1-2026-azerbaijan-grand-prix-predictions': {
@@ -1180,6 +1201,8 @@ const PUsernameRouteWithChildren = PUsernameRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  F12026AbuDhabiGrandPrixPredictionsRoute:
+    F12026AbuDhabiGrandPrixPredictionsRoute,
   F12026AzerbaijanGrandPrixPredictionsRoute:
     F12026AzerbaijanGrandPrixPredictionsRoute,
   F12026BahrainGrandPrixPredictionsRoute:

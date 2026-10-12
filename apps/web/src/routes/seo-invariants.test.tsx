@@ -268,6 +268,17 @@ const ROUTES: {
     },
   },
   {
+    module: './f1-2026-abu-dhabi-grand-prix-predictions',
+    path: '/f1-2026-abu-dhabi-grand-prix-predictions',
+    statuses: RACE_STATUSES,
+    writeup: true,
+    args: {
+      loaderData: {
+        race: { raceStartAt: 1_796_562_000_000 },
+      },
+    },
+  },
+  {
     module: './f1-2026-madrid-grand-prix-predictions',
     path: '/f1-2026-madrid-grand-prix-predictions',
     statuses: RACE_STATUSES,

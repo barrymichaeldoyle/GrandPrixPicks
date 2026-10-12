@@ -53,8 +53,9 @@ const RACES = [
     _creationTime: 1_700_000_000_800,
     _id: 'race_3',
     round: 8,
-    // Abu Dhabi has no write-up, so its race page is the one still advertised.
-    slug: 'abu-dhabi-2026',
+    // Every remaining 2026 round has a write-up, so a race page is only
+    // advertised for a round without one: a finished early-season race.
+    slug: 'australia-2026',
     status: 'upcoming',
     updatedAt: 1_700_000_300_000,
   },
@@ -174,7 +175,7 @@ describe('sitemap.xml route', () => {
 
     expect(xml).not.toContain('/practice</loc>');
     expect(xml).toContain(
-      '<loc>https://grandprixpicks.com/races/abu-dhabi-2026</loc>',
+      '<loc>https://grandprixpicks.com/races/australia-2026</loc>',
     );
   });
 });

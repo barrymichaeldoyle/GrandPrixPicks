@@ -149,6 +149,15 @@ const RACE_WRITEUPS = {
       'A night race in Doha heat on a bike circuit that wears tyres out, the 25-lap limit that forced two stops in 2025, and how Verstappen won from third while McLaren stayed out.',
     cta: 'Read the Lusail predictions',
   },
+  'abu-dhabi-2026': {
+    to: '/f1-2026-abu-dhabi-grand-prix-predictions',
+    reviewedAt: '2026-10-12',
+    venueName: 'Abu Dhabi',
+    label: 'Abu Dhabi predictions',
+    summary:
+      'Yas Marina from daylight into night, why the softest tyres and a one-stop suit it, and how Norris finished third behind Verstappen and Piastri to take the 2025 title by two points.',
+    cta: 'Read the Abu Dhabi predictions',
+  },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
     reviewedAt: '2026-09-21',

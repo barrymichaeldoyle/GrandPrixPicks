@@ -24,12 +24,16 @@
     before overflow measures the news; otherwise the grid expands to fit it
     and the next race ends up under the title bar (seen on a device on
     11 October 2026, after a TRMNL sync had reverted this). Portrait keeps
-    its natural height for the classification below. Equal columns: at two
-    fifths the classification's gap column wrapped "+1 lap" onto two lines;
-    the winner's name fits the narrower column through value fitting.
+    its natural height for the classification below. The landscape X splits
+    7:5 (measured 12 October 2026 at 1872px: the wider classification table
+    needs 330px for "P1 HAM 1:42:00.785" and gets 373, the other needs 303
+    and gets 312, so nothing wraps; 8:4 would wrap the winner's time). Half
+    and half, most headlines wrapped onto two lines. The OG stays equal
+    halves: at two fifths of its 800px the gap column wrapped "+1 lap". The
+    winner's name fits either column through value fitting.
   {% endcomment %}
-  <div class="grid grid--cols-2 portrait:grid--cols-1 gap--large grow lg:h--0 lg:portrait:h--auto">
-    <div class="flex flex--col flex--stretch-x gap--medium">
+  <div class="grid grid--cols-2 portrait:grid--cols-1 lg:landscape:grid--cols-12 gap--large grow lg:h--0 lg:portrait:h--auto">
+    <div class="flex flex--col flex--stretch-x gap--medium lg:landscape:col--span-7">
       <div class="flex flex--col flex--center gap--xsmall">
         {% comment %}"Race winner" a step below the build-up's lead label on the X, for a fifth headline.{% endcomment %}
         {% render "lead", lead: lead, size: "value--large lg:value--xxlarge", label_size: "lg:title--xlarge" %}
@@ -46,7 +50,7 @@
       {% endif %}
       {% if next_race %}{% render "next_race", next_race: next_race, theme: theme %}{% endif %}
     </div>
-    <div class="flex flex--col flex--stretch-x flex--center-y h--full portrait:h--auto">
+    <div class="flex flex--col flex--stretch-x flex--center-y h--full portrait:h--auto lg:landscape:col--span-5">
       <div class="portrait:hidden">{% render "classification", result: result, size: "table--xsmall lg:table--base" %}</div>
       <div class="hidden portrait:block">{% render "classification", result: result, size: "table--xsmall lg:table--small" %}</div>
     </div>

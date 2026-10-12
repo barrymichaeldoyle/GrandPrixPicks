@@ -316,10 +316,14 @@ a step smaller than the build-up's lead label on the X. The next round is a
 small race header: its flag
 beside "Next race · 2 – 4 Oct" with the name under it (`next_race`, from
 `selectTrmnlNextRace`; absent after the season's last race).
-The two columns are equal halves on every device: at three fifths and two
-fifths on the landscape X, the classification's gap column wrapped "+1 lap"
-onto two lines, and the winner's name fits the half through value fitting.
-The gap's space is a no-break space for the same reason. Both the `h--0`
+The columns are equal halves on the OG and in portrait, and 7:5 on the
+landscape X (`lg:landscape:col--span-7` / `col--span-5`): at half and half,
+most headlines wrapped onto two lines; at 7:5 (measured 12 October 2026) the
+classification's tables keep 9 to 43px to spare beside their widest cells
+("1:42:00.785", "+1:30.862"), and 8:4 would wrap the winner's time. An
+earlier 3:2 wrapped "+1 lap" onto two lines because the gap's space was a
+plain space; it is a no-break space now. The winner's name fits either column
+through value fitting. Both the `h--0`
 fix and the all-headlines overflow were reverted by a TRMNL sync commit
 three minutes after they landed on 4 October 2026 and reached devices
 (the next race ran under the title bar on an X on 11 October), which is
@@ -787,7 +791,7 @@ Also check:
 
 - **Responsive breakpoints.** TRMNL Framework 3.3 uses device size classes,
   rather than viewport pixel thresholds. The finished view uses two equal
-  columns on OG and a 3:2 split on X, stacking in portrait. A generic 900px
+  columns on OG and a 7:5 split on the landscape X, stacking in portrait. A generic 900px
   tablet is not a reason to add a custom intermediate breakpoint. See the
   [Framework responsive guide](https://trmnl.com/framework/docs/3.3/responsive).
 - **Date, weather, and units checks.** Payload tests cover London spring and

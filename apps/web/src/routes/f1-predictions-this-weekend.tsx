@@ -163,7 +163,10 @@ export const Route = createFileRoute('/f1-predictions-this-weekend')({
   },
   head: ({ loaderData }) => {
     const race = loaderData?.race ?? null;
-    const title = 'F1 Predictions This Weekend | Grand Prix Picks';
+    // "Free" because "free f1 predictions this weekend" is the page's
+    // second query on Search Console (position 5 in October 2026) and the
+    // word was only in the description.
+    const title = 'Free F1 Predictions This Weekend | Grand Prix Picks';
     const description = descriptionFor(race);
     const circuit = race ? getCircuitForRace(race.slug) : null;
 

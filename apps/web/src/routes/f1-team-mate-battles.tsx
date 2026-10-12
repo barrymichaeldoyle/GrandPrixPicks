@@ -344,8 +344,9 @@ function TeammateBattlesPage() {
           }
           subtitle={
             <p className="text-base">
-              The season-long record for every team-mate pairing, based on
-              official qualifying, sprint and race classifications.
+              Head-to-head (H2H) is which driver finished ahead of their
+              team-mate in a session. The season-long record for every pairing,
+              based on official qualifying, sprint and race classifications.
             </p>
           }
           actions={

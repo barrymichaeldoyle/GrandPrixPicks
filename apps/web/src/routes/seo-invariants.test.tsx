@@ -257,6 +257,17 @@ const ROUTES: {
     },
   },
   {
+    module: './f1-2026-qatar-grand-prix-predictions',
+    path: '/f1-2026-qatar-grand-prix-predictions',
+    statuses: RACE_STATUSES,
+    writeup: true,
+    args: {
+      loaderData: {
+        race: { raceStartAt: 1_795_968_000_000 },
+      },
+    },
+  },
+  {
     module: './f1-2026-madrid-grand-prix-predictions',
     path: '/f1-2026-madrid-grand-prix-predictions',
     statuses: RACE_STATUSES,

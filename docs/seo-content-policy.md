@@ -155,6 +155,14 @@ the same reason; re-measure it on prod once it ships. The standings block is
 now the main thing live write-ups share, so it is the first place to look if
 this figure climbs.
 
+The Qatar write-up (2026-10-12, seven weeks out) swaps its race page the same
+way. Measured locally on dev data with the whole sitemap served from the dev
+server: Las Vegas reads 28% against Qatar and Qatar 22% against Las Vegas, the
+worst figure anywhere is still 38% between two race pages, and nothing crosses
+50%. Its circuit section carries the numbers and the weekend format rather
+than the character of the track, because `circuitGuides.ts` already says
+Lusail is fast, flowing and hard on tyres on the race page.
+
 The manual version, if the script is ever in doubt:
 
 ```

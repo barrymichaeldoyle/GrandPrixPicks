@@ -1,0 +1,96 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "leclerc-singapore-race-braking-issue",
+    "headline": "Leclerc reports unexpected braking during Singapore race",
+    "body": "Leclerc's Ferrari slowed without warning at a slow corner on lap 46, prompting him to warn that a repeat elsewhere could send him into the wall. His engineer supplied a settings change two laps later, and Leclerc reported no further recurrence.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["LEC"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/10/12/the-car-started-to-brake-on-its-own-leclerc-shocked-by-mid-race-ferrari-fault/",
+    "sourcePublishedAt": "2026-10-12T14:17:40+01:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "hamilton-singapore-hold-position-order",
+    "headline": "Hamilton asked Ferrari to let him past Leclerc in Singapore",
+    "body": "Ferrari told Hamilton to hold position when Leclerc rejoined ahead after their first pit stops. Hamilton, on soft tyres while Leclerc warmed his mediums, repeatedly asked to pass and offered to give the place back if he could not pull away. Ferrari kept the order unchanged.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HAM", "LEC"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/10/12/hamilton-repeatedly-urged-ferrari-to-let-him-past-leclerc-after-hold-position-order/",
+    "sourcePublishedAt": "2026-10-12T10:08:27+01:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "alonso-singapore-race-energy-frustration",
+    "headline": "Alonso frustrated by power and energy delivery in Singapore",
+    "body": "Alonso passed Hadjar on the opening lap but lost the position when racing resumed after the first virtual safety car. He repeatedly complained about power and energy delivery over the radio, alongside understeer after pushing his tyres early in the race.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ALO"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/10/12/its-so-ridiculous-this-engine-alonsos-dismay-at-hadjars-easy-re-pass/",
+    "sourcePublishedAt": "2026-10-12T15:49:15+01:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "lawson-singapore-double-points-weekend",
+    "headline": "Lawson scores ten points in Singapore as seat decision approaches",
+    "body": "Lawson scored in both the sprint and Grand Prix, taking ten points from Singapore after finishing fifth in the sprint. He says his focus remains on scoring each weekend, with Racing Bulls expected to decide its 2027 driver line-up in the coming weeks.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["LAW"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/you-tell-me-lawson-assesses-odds-of-keeping-his-racing-bulls-seat-after-mighty-singapore-showing.BaSVOgDL3bgtO4WT94pl2",
+    "sourcePublishedAt": "2026-10-12T09:39:58.108Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "singapore-2026-sellout-attendance",
+    "headline": "Singapore draws its second-largest crowd with 301,294 attendance",
+    "body": "The sold-out Singapore weekend drew an attendance of 301,294, the event's second-highest total and its largest since the 2023 track change. Hospitality attendance also reached a record as Singapore hosted its first F1 sprint.",
+    "category": "general",
+    "affectsSessions": [],
+    "sourceName": "Singapore GP",
+    "sourceUrl": "https://singaporegp.sg/en/news/26/another-sell-out-at-the-formula-1-singapore-airlines-singapore-grand-prix-2026/"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "mercedes-singapore-race-upgrade-assessment",
+    "headline": "Mercedes says Antonelli's upgrade was faster by the end of Singapore",
+    "body": "Mercedes' comparison of its two specifications showed Antonelli's updated package was faster by the end of the weekend. The team found more performance in qualifying and the race as it moved closer to the right setup window, but says further work is needed ahead of Austin.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ANT", "RUS"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/what-the-teams-said-race-day-in-singapore-2026.3lLHolVW3aIRAl7Ohxlxf6",
+    "sourcePublishedAt": "2026-10-11T17:19:15.959Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "mclaren-singapore-sprint-final-lap-collision",
+    "headline": "Norris apologises to McLaren for Singapore sprint collision",
+    "body": "Norris has taken responsibility for attempting the move that caused his final-lap collision with Piastri at Turn 5 and apologised to McLaren. Piastri retired and Norris finished eighth; the stewards treated the contact as a racing incident and imposed no penalty.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["NOR", "PIA"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/i-let-down-the-team-norris-apologises-to-mclaren-for-singapore-sprint-intra-team-clash.4ZzwKsV0z0lmQWXrlwAbV2",
+    "sourcePublishedAt": "2026-10-12T08:29:43.283Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "mclaren-singapore-sprint-stella-response",
+    "headline": "Stella says McLaren drivers agree their sprint clash was unacceptable",
+    "body": "Stella says both McLaren drivers agree their Singapore sprint collision was unacceptable. Further discussions will focus on putting the team's interests first, and he welcomed Norris' offer to help Piastri during the Grand Prix.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["NOR", "PIA"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/what-the-teams-said-race-day-in-singapore-2026.3lLHolVW3aIRAl7Ohxlxf6",
+    "sourcePublishedAt": "2026-10-11T17:19:15.959Z"
+  }
+]

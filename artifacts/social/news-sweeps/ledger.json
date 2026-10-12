@@ -400,7 +400,7 @@
       "text": "Verstappen won in Singapore despite struggling to speak to Red Bull. His engineer used coded messages, while early energy-deployment trouble gave Leclerc a chance to attack.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=verstappen-singapore-race-radio-issue",
       "dueAt": "2026-10-11T17:00:00.000Z",
       "expiresAt": "2026-10-12T10:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acbbe0ba9411fbcc55144d6"
     },
     {
@@ -418,7 +418,7 @@
       "text": "Williams explains Albon's late Singapore retirement: he managed fuel and brake issues, then stopped to protect the car. He remains classified 18th.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=albon-singapore-race-retirement",
       "dueAt": "2026-10-11T17:25:00.000Z",
       "expiresAt": "2026-10-12T10:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acbbe0c8e8dd50ffc4bfdce"
     },
     {
@@ -441,8 +441,67 @@
       "text": "Leclerc wants more Ferrari upgrades after his first Grand Prix podium since Belgium. Norris says McLaren is now fourth fastest and also needs more upgrades after finishing 40 seconds behind Verstappen in Singapore.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=norris-singapore-race-pace-assessment",
       "dueAt": "2026-10-11T17:50:00.000Z",
       "expiresAt": "2026-10-12T10:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acbbe0de6b5023b6dd5256c"
+    },
+    {
+      "id": "58b9bd5fc663f5384c46a07b173268466101ab3cd245f24ed4d08e7f3e17b3d2",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "leclerc-singapore-race-braking-issue",
+          "revision": "88bed157c15c2a1c852fa65704d87a08796cc029ef23e92ab44545593bcbf3a2"
+        }
+      ],
+      "text": "Leclerc reported his Ferrari slowing without warning on lap 46 in Singapore. His engineer supplied a settings change two laps later, with no further recurrence reported.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=leclerc-singapore-race-braking-issue",
+      "dueAt": "2026-10-12T15:30:00.000Z",
+      "expiresAt": "2026-10-13T10:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6accfa14a9fd76c926c91cae"
+    },
+    {
+      "id": "8c0f2e1e177e5d7cd162ed63da8d0a4bcb8415cb51ea430a1539c410ea8d280a",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "mercedes-singapore-race-upgrade-assessment",
+          "revision": "c2b8a3b737c3b000c9675225d1cde3912d0d511d61421870a8072929e12fcc3e"
+        }
+      ],
+      "text": "Mercedes says Antonelli's upgraded package was faster than the older specification by the end of Singapore. Finding the right setup window remains the task ahead of Austin.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=mercedes-singapore-race-upgrade-assessment",
+      "dueAt": "2026-10-12T15:55:00.000Z",
+      "expiresAt": "2026-10-13T10:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6accfa15d38ece527cc0adcc"
+    },
+    {
+      "id": "c920ba6decd5b6ee96b641b20c57687c1eb5e692a022924b065ba434aac17696",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "mclaren-singapore-sprint-final-lap-collision",
+          "revision": "cb8af36a1c6941299c8e84522ca2ce8d1e988d68c224aa59bf716acc3aa198fe"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "mclaren-singapore-sprint-stella-response",
+          "revision": "d648c97dbcc97001ce0798b0803e45c6a6fef6eb21eade66d7112d8c03f32744"
+        }
+      ],
+      "text": "Norris has apologised to McLaren and taken responsibility for his Singapore sprint move on Piastri. Stella says both drivers agree the clash was unacceptable and further talks will put the team's interests first.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=mclaren-singapore-sprint-final-lap-collision",
+      "dueAt": "2026-10-12T16:20:00.000Z",
+      "expiresAt": "2026-10-13T10:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6accfa16e506958eb5c5a665"
     }
   ]
 }

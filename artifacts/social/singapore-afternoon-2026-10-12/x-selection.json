@@ -1,0 +1,25 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/singapore-2026-2026-10-12-afternoon.json",
+  "startAt": "2026-10-12T17:30:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["leclerc-singapore-race-braking-issue"],
+      "text": "Leclerc reported his Ferrari slowing without warning on lap 46 in Singapore. His engineer supplied a settings change two laps later, with no further recurrence reported.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=leclerc-singapore-race-braking-issue",
+      "expiresAt": "2026-10-13T10:00:00Z"
+    },
+    {
+      "keys": ["mercedes-singapore-race-upgrade-assessment"],
+      "text": "Mercedes says Antonelli's upgraded package was faster than the older specification by the end of Singapore. Finding the right setup window remains the task ahead of Austin.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=mercedes-singapore-race-upgrade-assessment",
+      "expiresAt": "2026-10-13T10:00:00Z"
+    },
+    {
+      "keys": ["mclaren-singapore-sprint-final-lap-collision", "mclaren-singapore-sprint-stella-response"],
+      "materialUpdate": true,
+      "text": "Norris has apologised to McLaren and taken responsibility for his Singapore sprint move on Piastri. Stella says both drivers agree the clash was unacceptable and further talks will put the team's interests first.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=mclaren-singapore-sprint-final-lap-collision",
+      "expiresAt": "2026-10-13T10:00:00Z"
+    }
+  ]
+}

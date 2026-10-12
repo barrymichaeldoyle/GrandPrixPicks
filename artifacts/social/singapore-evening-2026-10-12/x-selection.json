@@ -1,0 +1,24 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "published-news.json",
+  "startAt": "2026-10-12T20:45:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["red-bull-singapore-development-programme"],
+      "text": "Red Bull has finished its major 2026 upgrade programme. Mekies says development now focuses on 2027, while the remaining races will help the team learn and improve how it uses the car.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=red-bull-singapore-development-programme",
+      "expiresAt": "2026-10-13T14:00:00Z"
+    },
+    {
+      "keys": ["hulkenberg-singapore-best-weekend"],
+      "text": "Hülkenberg had his highest-scoring weekend of 2026 in Singapore: seventh in the sprint and eighth in the Grand Prix. A tow from Lawson helped him hold off Russell in the closing laps.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hulkenberg-singapore-best-weekend",
+      "expiresAt": "2026-10-13T14:00:00Z"
+    },
+    {
+      "keys": ["verstappen-portimao-gt-world-finale-2026"],
+      "text": "Verstappen races his team's Mercedes-AMG GT3 at Portimão this Saturday, 17 October. The three-hour GT World Challenge finale starts at 17:00 local time, with free coverage on GT World YouTube.\n\nhttps://gt-world-challenge-europe.com/news/3336/battle-royale-at-portimao-as-gt-world-concludes-2026-with-spectacular-finale",
+      "expiresAt": "2026-10-17T16:00:00Z"
+    }
+  ]
+}

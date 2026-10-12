@@ -1,0 +1,37 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "hulkenberg-singapore-best-weekend",
+    "headline": "Hülkenberg takes his highest-scoring weekend of the season",
+    "body": "Hülkenberg finished seventh in the sprint and eighth in the Grand Prix, making Singapore his highest-scoring round of 2026. He held off Russell in the closing laps, using a tow from Lawson ahead to help defend on the straights.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HUL"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/how-hulkenberg-secured-his-best-weekend-of-the-season-in-singapore.32ws4MpzmxyQXtGLqjt8rf",
+    "sourcePublishedAt": "2026-10-12T15:39:43.362Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "leclerc-singapore-early-deployment-opportunity",
+    "headline": "Leclerc says he missed an early chance to pass Verstappen",
+    "body": "Leclerc held back his battery power because he thought Verstappen's early deployment problems would be brief. By the time he recognised another chance to attack, it was too late to use his energy. He still believes Red Bull's stronger race pace would probably have decided the result.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["LEC", "VER"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/charles-leclerc-admits-he-missed-a-chance-against-max-verstappen-but-not-the-obvious-one/10864610/",
+    "sourcePublishedAt": "2026-10-12T15:53:13Z"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "red-bull-singapore-development-programme",
+    "headline": "Red Bull completes its major 2026 upgrade programme",
+    "body": "Mekies says Red Bull will bring no further substantial upgrades this season as development turns to 2027. The team will keep improving how it uses the car and learning from the remaining races, but rivals' upgrades could change the order after its recent wins.",
+    "category": "general",
+    "affectsSessions": [],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/its-a-massive-boost-mekies-hails-outstanding-verstappen-in-red-bull-resurgence.1SJ9jPPGYuqQ8X7ASQo2KY",
+    "sourcePublishedAt": "2026-10-12T14:59:03.074Z"
+  }
+]

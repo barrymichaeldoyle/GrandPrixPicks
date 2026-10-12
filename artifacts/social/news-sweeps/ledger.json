@@ -459,7 +459,7 @@
       "text": "Leclerc reported his Ferrari slowing without warning on lap 46 in Singapore. His engineer supplied a settings change two laps later, with no further recurrence reported.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=leclerc-singapore-race-braking-issue",
       "dueAt": "2026-10-12T15:30:00.000Z",
       "expiresAt": "2026-10-13T10:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6accfa14a9fd76c926c91cae"
     },
     {
@@ -477,7 +477,7 @@
       "text": "Mercedes says Antonelli's upgraded package was faster than the older specification by the end of Singapore. Finding the right setup window remains the task ahead of Austin.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=mercedes-singapore-race-upgrade-assessment",
       "dueAt": "2026-10-12T15:55:00.000Z",
       "expiresAt": "2026-10-13T10:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6accfa15d38ece527cc0adcc"
     },
     {
@@ -500,8 +500,62 @@
       "text": "Norris has apologised to McLaren and taken responsibility for his Singapore sprint move on Piastri. Stella says both drivers agree the clash was unacceptable and further talks will put the team's interests first.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=mclaren-singapore-sprint-final-lap-collision",
       "dueAt": "2026-10-12T16:20:00.000Z",
       "expiresAt": "2026-10-13T10:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6accfa16e506958eb5c5a665"
+    },
+    {
+      "id": "22e30e27922eb0b3d530f2c6bdde674436e837ba1a1db9926c4a362d3f626fa3",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "red-bull-singapore-development-programme",
+          "revision": "0c586242fe3870b48d95f9c58cf3bed2b785ad02619ea8e61eea4c1e11bd42c8"
+        }
+      ],
+      "text": "Red Bull has finished its major 2026 upgrade programme. Mekies says development now focuses on 2027, while the remaining races will help the team learn and improve how it uses the car.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=red-bull-singapore-development-programme",
+      "dueAt": "2026-10-12T18:45:00.000Z",
+      "expiresAt": "2026-10-13T14:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acd282ffc09a06c324d47d3"
+    },
+    {
+      "id": "962669d0fed96d4cafd124efc2fc5f009143576f8b76923e8c6edb338ffbc3db",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hulkenberg-singapore-best-weekend",
+          "revision": "066302674498d3f5531a887f4e516a43b30b0531ab08220763bcdc688859de89"
+        }
+      ],
+      "text": "Hülkenberg had his highest-scoring weekend of 2026 in Singapore: seventh in the sprint and eighth in the Grand Prix. A tow from Lawson helped him hold off Russell in the closing laps.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hulkenberg-singapore-best-weekend",
+      "dueAt": "2026-10-12T19:10:00.000Z",
+      "expiresAt": "2026-10-13T14:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acd2830ae14ce433eb15b45"
+    },
+    {
+      "id": "4e264ca726ddb3abb5203ab6238e47530b9e8ce1750df08772da322b689c2f76",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "verstappen-portimao-gt-world-finale-2026",
+          "revision": "766b2020cdd5db0d30fe44f9109577097220064ed3a80dc700c070e1f48f6fb2"
+        }
+      ],
+      "text": "Verstappen races his team's Mercedes-AMG GT3 at Portimão this Saturday, 17 October. The three-hour GT World Challenge finale starts at 17:00 local time, with free coverage on GT World YouTube.\n\nhttps://gt-world-challenge-europe.com/news/3336/battle-royale-at-portimao-as-gt-world-concludes-2026-with-spectacular-finale",
+      "dueAt": "2026-10-12T19:35:00.000Z",
+      "expiresAt": "2026-10-17T16:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acd2831fc09a06c324d480a"
     }
   ]
 }

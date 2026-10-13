@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { footerWeekendPreview, listRaceWriteups } from './raceWriteups';
+import {
+  followingRound,
+  footerWeekendPreview,
+  listRaceWriteups,
+} from './raceWriteups';
 
 describe('footerWeekendPreview', () => {
   it('names the current write-up so the footer link stands on its own', () => {
@@ -29,5 +33,24 @@ describe('footerWeekendPreview', () => {
       expect(preview!.label).toBe(`${writeup.venueName} Weekend News`);
       expect(preview!.countryCode).toBeTruthy();
     }
+  });
+});
+
+describe('followingRound', () => {
+  const races = [
+    { slug: 'usa-2026', name: 'United States Grand Prix', round: 19 },
+    { slug: 'mexico-2026', name: 'Mexico City Grand Prix', round: 20 },
+  ];
+
+  it('returns the next round on the calendar', () => {
+    expect(followingRound(races, 19)).toEqual({
+      slug: 'mexico-2026',
+      name: 'Mexico City Grand Prix',
+      round: 20,
+    });
+  });
+
+  it('returns null after the last round', () => {
+    expect(followingRound(races, 20)).toBeNull();
   });
 });

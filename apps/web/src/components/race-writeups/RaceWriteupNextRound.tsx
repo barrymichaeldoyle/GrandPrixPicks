@@ -5,7 +5,13 @@ import { captureAnalyticsEvent } from '@/lib/analytics';
 import { getRaceWriteup } from '@/lib/raceWriteups';
 
 /**
- * Where the season goes after this weekend, on a finished write-up.
+ * Where the season goes after this weekend.
+ *
+ * The Austin-onward write-ups render it while live too (`followingRound`),
+ * because a write-up is published weeks ahead and search crawls them in
+ * calendar order: in October 2026 Google had crawled Austin and still listed
+ * Mexico City, São Paulo and Las Vegas as "Discovered, currently not indexed"
+ * twelve days after they shipped, with no write-up linking forward to them.
  *
  * `race-writeup-lifecycle.md` asks an archived page to link the next round,
  * and it was the one instruction the finished pages did not follow: a reader

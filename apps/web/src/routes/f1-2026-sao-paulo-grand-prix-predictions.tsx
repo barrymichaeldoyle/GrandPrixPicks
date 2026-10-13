@@ -7,6 +7,7 @@ import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceW
 import { RaceWriteupArticle } from '@/components/race-writeups/RaceWriteupArticle';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
+import { RaceWriteupNextRound } from '@/components/race-writeups/RaceWriteupNextRound';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
 import {
   RACE_WRITEUP_CIRCUIT_ANCHOR,
@@ -24,7 +25,7 @@ import {
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
 import { raceWriteupPageHead } from '@/lib/raceWriteupSeo';
-import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
+import { followingRound, getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
 import { routeQuery } from '@/lib/routeQuery';
 
 const RACE_SLUG = 'brazil-2026';
@@ -249,6 +250,10 @@ function SaoPauloGrandPrixPredictionsPage() {
       ) : null}
 
       <RaceFaqSection faqs={FAQS} />
+
+      <RaceWriteupNextRound
+        nextRace={followingRound(season.races, race.round)}
+      />
     </RaceWriteupPage>
   );
 }

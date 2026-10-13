@@ -238,9 +238,56 @@ write-up beside the official result.
 Do not write a sixth guide or a page that duplicates a template. See
 `seo-content-policy.md`.
 
+### Checkpoint 2026-10-13
+
+Read from the Search Console UI, not the PostHog sync, so clicks are real. The
+2026-09-21 checkpoint was recorded only in project notes: 47 clicks, 3.59K
+impressions, position 35.2 over 28 days.
+
+| Metric       | 28 days to 2026-10-13 |
+| ------------ | --------------------- |
+| Clicks       | 146                   |
+| Impressions  | 4.4K                  |
+| CTR          | 3.3%                  |
+| Avg position | 17.3                  |
+
+| Page                                         | Clicks | Impr | CTR   | Position |
+| -------------------------------------------- | ------ | ---- | ----- | -------- |
+| `/`                                          | 40     | 716  | 5.6%  | 10.5     |
+| `/f1-2026-azerbaijan-grand-prix-predictions` | 37     | 553  | 6.7%  | 8.1      |
+| `/f1-2026-bahrain-grand-prix-predictions`    | 24     | 338  | 7.1%  | 8.1      |
+| `/f1-predictions-this-weekend`               | 20     | 468  | 4.3%  | 13.9     |
+| `/leaderboard`                               | 12     | 62   | 19.4% | 6.1      |
+| `/f1-2026-singapore-grand-prix-predictions`  | 6      | 173  | 3.5%  | 9.4      |
+| `/f1-team-mate-battles`                      | 1      | 212  | 0.5%  | 6.6      |
+| `/results-policy`                            | 2      | 117  | 1.7%  | 6.8      |
+| `/f1-2027-driver-line-up`                    | 0      | 200  | 0%    | 11.0     |
+| `/guides/f1-points-system-explained`         | 0      | 728  | 0%    | 41.6     |
+| `/f1-standings`                              | 0      | 357  | 0%    | 34.0     |
+
+Queries: `f1 predictions this weekend` 7.9, `free f1 predictions this weekend`
+5.0, `f1 picks` 14.6 (45.2 on 2026-09-01). `f1 predictions` 97 impressions at
+21.9 with no clicks. `h2h f1 meaning` 48 impressions at 4.6 with no clicks.
+
+Indexing: 50 indexed, 139 not. The noindex group (50) is profiles and the
+race pages that canonicalise to their write-ups, as intended. The Mexico City,
+São Paulo and Las Vegas write-ups were "Discovered, currently not indexed",
+never crawled twelve days after publishing. The 404s are template URLs found in
+June and July (`/races/$raceSlug/`, `/p/$username/followers`); prod no longer
+emits them.
+
+Changes made the same day:
+
+- Every write-up from Austin on links the following round's write-up
+  (`RaceWriteupNextRound` with `followingRound`), so the crawled write-up leads
+  to the uncrawled one.
+- `/f1-team-mate-battles` title adds "(H2H)" and the description opens by
+  saying what H2H means.
+
+Decision: wait. Re-read the write-up indexing status and the H2H page CTR at
+the next checkpoint.
+
 ### Next checkpoint
 
-**2026-09-21**, roughly 28 days after the 2026-08-24 baseline, is the
-meaningful evaluation of the rows above. Compare complete days where possible;
-Search Console commonly lags, so move the check by a day if the latest data is
-incomplete.
+**2026-10-27**, two days after Austin. Check that Mexico City is indexed and
+ranking before its 1 November race, and the `/f1-team-mate-battles` CTR.

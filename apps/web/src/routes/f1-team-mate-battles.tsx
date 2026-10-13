@@ -112,7 +112,7 @@ export const Route = createFileRoute('/f1-team-mate-battles')({
     // with 0 clicks from 48 impressions while the snippet never said.
     const description = biggestGap
       ? `H2H is head-to-head: F1 drivers against their team-mates. ${biggestGap.drivers[0].displayName} leads ${biggestGap.drivers[1].displayName} ${biggestGap.drivers[0].total}-${biggestGap.drivers[1].total}. Qualifying, sprint and race records for every pairing.`
-      : `H2H is head-to-head: F1 drivers against their team-mates. Qualifying, sprint and race records for every ${SEASON} pairing.`;
+      : `H2H is head-to-head: F1 drivers against their team-mates. Qualifying, sprint and race records for every ${SEASON} Formula 1 pairing.`;
 
     const meta = pageMeta({
       title: `${SEASON} F1 Team-mate Head-to-Head (H2H) | Grand Prix Picks`,

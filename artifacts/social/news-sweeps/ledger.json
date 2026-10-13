@@ -572,7 +572,7 @@
       "text": "Rafael Câmara is set to replace Ocon at Haas alongside Bearman in 2027, RacingNews365 reports. The deal was agreed in Singapore, with a formal announcement expected this week.\n\nhttps://racingnews365.com/haas-finalise-new-f1-driver-line-up-with-esteban-ocon-replacement-chosen",
       "dueAt": "2026-10-13T06:15:00.000Z",
       "expiresAt": "2026-10-13T12:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acdc9bd5229b40e86973681"
     },
     {
@@ -590,7 +590,7 @@
       "text": "Tom Hart will be Verstappen's race engineer in Austin, Brazil and Las Vegas. Lambiase will still attend as Head of Racing, with no date announced for the permanent handover.\n\nhttps://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=verstappen-hart-race-engineer-austin",
       "dueAt": "2026-10-13T06:40:00.000Z",
       "expiresAt": "2026-10-14T12:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acdc9be5229b40e869736e8"
     },
     {
@@ -608,8 +608,26 @@
       "text": "McLaren plans upgrades in stages to fight for podiums and test aerodynamic concepts for 2027. Stella says the final three races should give a clearer view of whether wins are possible.\n\nhttps://www.motorsport.com/f1/news/mclaren-to-phase-upgrades-for-2026-fight-and-next-years-f1-development/10864787/",
       "dueAt": "2026-10-13T07:05:00.000Z",
       "expiresAt": "2026-10-14T12:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acdc9c0c210c8c6dd4e960a"
+    },
+    {
+      "id": "1a5c0174907567dc72c4afc81539465ac4fa838381e1ecdd70467a1b83299651",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "rwanda-african-grand-prix-ten-year-deal",
+          "revision": "05368e544a0110f769a838fb81b9b6bf25ab90b5ad55884c0b5d550908e0a5fe"
+        }
+      ],
+      "text": "F1 has agreed a ten-year deal for an African Grand Prix in Rwanda from the early 2030s. A new circuit is planned in Bugesera, south of Kigali. The first race date is still to be announced. https://www.formula1.com/en/latest/article/everything-we-know-about-f1s-all-new-race-in-rwanda.3Mde3s9FqIOTbkzKs0Puwo",
+      "dueAt": "2026-10-13T12:25:00.000Z",
+      "expiresAt": "2026-10-14T12:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6ace1f7e7c54ccc397c0f7e3"
     }
   ]
 }

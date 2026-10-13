@@ -283,6 +283,9 @@ Changes made the same day:
   to the uncrawled one.
 - `/f1-team-mate-battles` title adds "(H2H)" and the description opens by
   saying what H2H means.
+- Indexing requested by hand for Mexico City and São Paulo. Both inspected as
+  "URL is on Google" within the hour (Mexico City crawled 14:09). São Paulo
+  had shown "Referring page: None detected" before the request.
 
 Decision: wait. Re-read the write-up indexing status and the H2H page CTR at
 the next checkpoint.

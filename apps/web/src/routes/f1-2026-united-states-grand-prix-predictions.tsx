@@ -53,7 +53,9 @@ const RACE_2025_SOURCE =
 const FERRARI_UPGRADE_SOURCE =
   'https://www.the-race.com/formula-1/ferrari-f1-2026-development-latest-stalled-whats-going-on/';
 const MERCEDES_ENGINE_SOURCE =
-  'https://www.the-race.com/formula-1/george-russell-mercedes-f1-engine-penalty-delay/';
+  'https://www.formula1.com/en/latest/article/the-story-of-the-season-russell-assesses-very-difficult-recovery-drive-in-singapore-grand-prix.bdIuyUxGaD3yWI4SpS7zZ';
+const MCLAREN_UPGRADE_SOURCE =
+  'https://www.motorsport.com/f1/news/mclaren-to-phase-upgrades-for-2026-fight-and-next-years-f1-development/10864787/';
 
 /*
  * Weekend facts only, per the note on the Singapore write-up: the scoring
@@ -191,7 +193,11 @@ function UnitedStatesGrandPrixPredictionsPage() {
           </ExternalSource>{' '}
           and{' '}
           <ExternalSource href={MERCEDES_ENGINE_SOURCE}>
-            The Race
+            Formula 1
+          </ExternalSource>{' '}
+          and{' '}
+          <ExternalSource href={MCLAREN_UPGRADE_SOURCE}>
+            Motorsport.com
           </ExternalSource>
           .
         </>
@@ -322,7 +328,7 @@ function Upgrades() {
   return (
     <RaceWriteupSection
       id="upgrades"
-      heading="Ferrari and Mercedes are both bringing new parts"
+      heading="Development plans for the closing races"
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         Ferrari has scheduled its main aerodynamic update for Austin, partly for
@@ -335,14 +341,22 @@ function Upgrades() {
         .
       </p>
       <p className="gpp-reading-copy mt-3 text-text-muted">
-        Mercedes&rsquo; upgraded power unit was first expected for Baku, Sepang
-        and Singapore, and is now reported to be more likely to arrive for this
-        triple-header. George Russell has used up several of his engine
-        components for the season and plans to take his grid penalty when the
-        new specification arrives, so the race where it appears is likely to be
-        the one where he starts further back.{' '}
+        Russell served an engine-related grid penalty in Singapore and expects
+        another before the season ends. He named Las Vegas as a possibility,
+        with Mercedes still able to choose the round. His comments do not
+        confirm a penalty for Austin.{' '}
         <ExternalSource href={MERCEDES_ENGINE_SOURCE}>
-          The Race on Russell&rsquo;s penalty
+          Formula 1 on Russell&rsquo;s engine allocation
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        McLaren plans to introduce upgrades in stages over the closing races,
+        both to regain podium contention and to test aerodynamic concepts for
+        2027. Stella says the final three races should show whether wins are
+        possible. The report does not specify which parts will arrive in Austin.{' '}
+        <ExternalSource href={MCLAREN_UPGRADE_SOURCE}>
+          Motorsport.com on McLaren&rsquo;s development plan
         </ExternalSource>
         .
       </p>

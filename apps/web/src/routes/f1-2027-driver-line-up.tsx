@@ -37,33 +37,33 @@ import { PicksCallToAction } from '@/components/PicksCallToAction/PicksCallToAct
 
 const PAGE_TITLE = 'F1 2027 Driver Line-Up | Grand Prix Picks';
 const PAGE_DESCRIPTION =
-  'Every 2027 F1 seat, team by team: who has signed, who is expected back, and the Haas seat Esteban Ocon leaves, which Haas has not filled.';
+  'Every 2027 F1 seat, team by team, including Rafael Câmara’s reported Haas deal. Confirmed drivers, expected line-ups and announcements still pending.';
 
 const FAQS = [
   {
     question: 'Is the 2027 F1 driver line-up confirmed?',
     answer:
-      'Not fully. Most seats are either announced or covered by a contract option. Esteban Ocon is leaving Haas, and Haas has not named who replaces him.',
+      'Not fully. Rafael Câmara is expected to replace Esteban Ocon at Haas following a reported agreement, but a formal announcement is pending. Several other seats also remain unannounced.',
   },
   {
-    question: 'Which 2027 F1 seats are still open?',
+    question: 'Which 2027 F1 seats are still unconfirmed?',
     answer:
-      'The Haas seat Esteban Ocon leaves at the end of 2026. Ocon announced his exit on 30 September.',
+      'The Haas, Mercedes and Racing Bulls pairings still await formal announcements. RacingNews365 reports that Câmara will replace Ocon at Haas; the other five drivers are expected to stay.',
   },
   {
     question: 'Who will replace Esteban Ocon at Haas?',
     answer:
-      'Haas has not named anyone. PlanetF1 reported on 10 October that the choice is between Rafael Camara and Jack Doohan. Leonardo Fornaroli and Ryo Hirakawa remain on the shortlist Komatsu named on 4 September.',
+      'Rafael Câmara, according to RacingNews365’s 11 October report. It says Haas and Ferrari agreed the move in Singapore, with a formal announcement expected in the week beginning 12 October.',
   },
   {
-    question: 'Is Rafael Camara driving in F1 in 2027?',
+    question: 'Is Rafael Câmara driving in F1 in 2027?',
     answer:
-      'No signing has been announced. The Ferrari junior leads Formula 2, and PlanetF1 reported on 10 October that the Haas choice is between him and Jack Doohan. Neither Haas nor Ferrari has confirmed a deal.',
+      'He is expected to join Haas alongside Oliver Bearman. RacingNews365 reports that the deal is agreed, but Haas has yet to announce the signing.',
   },
   {
     question: 'When will Haas announce its 2027 driver line-up?',
     answer:
-      'Haas has not given a date. PlanetF1 reported on 10 October that Ayao Komatsu is expected to decide after Singapore, with a possible announcement before Austin.',
+      'Haas has not given a date. RacingNews365’s 11 October report expects a formal announcement in the week beginning 12 October.',
   },
   {
     question: 'Is Fernando Alonso racing in 2027?',
@@ -221,40 +221,39 @@ function F1LineUp2027Page() {
           </p>
           <p className="gpp-reading-copy mt-4 text-text-muted">
             {counts.signed} of the {total} seats have been announced for 2027.
-            Another {counts.expected} are covered by a contract or an option the
-            team has not made public. {counts['out-of-contract']}{' '}
-            {counts['out-of-contract'] === 1 ? 'driver' : 'drivers'} on the
-            current grid {counts['out-of-contract'] === 1 ? 'has' : 'have'}{' '}
-            nothing for next year.
+            Another {counts.expected} are expected from reported agreements or
+            contract terms, with formal announcements still pending.
           </p>
         </header>
 
-        <section aria-labelledby="still-open" className="mt-10 sm:mt-12">
-          <h2
-            id="still-open"
-            className="font-title text-2xl font-semibold text-text sm:text-3xl"
-          >
-            The seats still to be decided
-          </h2>
-          <ul className="mt-6 grid gap-4 sm:grid-cols-2">
-            {unsettled.map((seat) => (
-              <li
-                key={seat.driver}
-                className="rounded-xl border border-border bg-surface p-5"
-              >
-                <p className="gpp-label text-text-muted">
-                  {displayTeamName(seat.team)}
-                </p>
-                <p className="font-title mt-1.5 text-xl font-semibold text-text">
-                  {seat.driver}
-                </p>
-                <p className="gpp-reading-meta mt-3 text-text-muted">
-                  {seat.note}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
+        {unsettled.length > 0 && (
+          <section aria-labelledby="still-open" className="mt-10 sm:mt-12">
+            <h2
+              id="still-open"
+              className="font-title text-2xl font-semibold text-text sm:text-3xl"
+            >
+              The seats still to be decided
+            </h2>
+            <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+              {unsettled.map((seat) => (
+                <li
+                  key={seat.driver}
+                  className="rounded-xl border border-border bg-surface p-5"
+                >
+                  <p className="gpp-label text-text-muted">
+                    {displayTeamName(seat.team)}
+                  </p>
+                  <p className="font-title mt-1.5 text-xl font-semibold text-text">
+                    {seat.driver}
+                  </p>
+                  <p className="gpp-reading-meta mt-3 text-text-muted">
+                    {seat.note}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section aria-labelledby="haas-fight" className="mt-12 sm:mt-16">
           <h2
@@ -268,7 +267,8 @@ function F1LineUp2027Page() {
             at the end of the season, and Haas confirmed it. Ayao Komatsu had
             put the contest on the record on 4 September: five drivers, Ocon
             among them, and a choice he said would be settled on speed rather
-            than on what a driver brings with him. Four remain.{' '}
+            than on what a driver brings with him. The shortlist below records
+            the four candidates who remained after Ocon announced his exit.{' '}
             <a
               className="text-link underline decoration-border underline-offset-4 hover:decoration-current"
               href="https://www.formula1.com/en/latest/article/ocon-confirms-he-will-leave-haas-at-end-of-2026-season.cJjg9W9Om5ZW6Mn9GZ75v"
@@ -280,17 +280,17 @@ function F1LineUp2027Page() {
             .
           </p>
           <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
-            PlanetF1 reported on 10 October that the choice is between Rafael
-            Camara and Jack Doohan, with Komatsu expected to decide after
-            Singapore and a possible announcement before Austin. Haas has not
-            named a replacement.{' '}
+            RacingNews365 reported on 11 October that Haas and Ferrari agreed in
+            Singapore for Rafael Câmara to replace Ocon alongside Bearman. Its
+            report expects an announcement in the week beginning 12 October.
+            Haas has yet to announce the signing.{' '}
             <a
               className="text-link underline decoration-border underline-offset-4 hover:decoration-current"
-              href="https://www.planetf1.com/news/jack-doohan-rafa-camara-haas-2027-f1-driver-battle"
+              href="https://racingnews365.com/haas-finalise-new-f1-driver-line-up-with-esteban-ocon-replacement-chosen"
               target="_blank"
               rel="noreferrer"
             >
-              PlanetF1 on the Haas 2027 driver battle
+              RacingNews365 on Câmara’s reported Haas deal
             </a>
             .
           </p>
@@ -436,8 +436,8 @@ function F1LineUp2027Page() {
                 <StatusPill status="expected" />
               </dt>
               <dd className="gpp-reading-meta mt-1.5 text-text-muted sm:mt-0.5">
-                A contract or an option covers 2027, but nobody has announced
-                it. These rarely change; they are just not facts yet.
+                Reporting or contract terms point to this driver taking the
+                seat. A formal announcement is still pending.
               </dd>
             </div>
             <div className="sm:flex sm:gap-4">

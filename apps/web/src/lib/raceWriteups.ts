@@ -106,11 +106,11 @@ const RACE_WRITEUPS = {
   },
   'usa-2026': {
     to: '/f1-2026-united-states-grand-prix-predictions',
-    reviewedAt: '2026-10-11',
+    reviewedAt: '2026-10-13',
     venueName: 'Austin',
     label: 'Austin predictions',
     summary:
-      'Austin returns to a standard weekend, Ferrari and Mercedes bring new parts, and Verstappen won from pole last year.',
+      'Austin returns to a standard weekend, Ferrari targets an aerodynamic update, and Verstappen won from pole last year.',
     cta: 'Read the Austin predictions',
   },
   'mexico-2026': {

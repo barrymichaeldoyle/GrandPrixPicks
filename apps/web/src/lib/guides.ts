@@ -134,14 +134,14 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
   // retain the shortlist as dated context, and bump guideMeta.updatedAt.
   'f1-2027-haas-second-seat': {
     status:
-      'As of 11 October 2026, Esteban Ocon is leaving Haas at the end of the season and Haas has not named his replacement. PlanetF1 reported the choice is between Rafael Câmara and Jack Doohan.',
+      'As of 13 October 2026, RacingNews365 reports that Haas and Ferrari agreed the Câmara deal in Singapore. Haas has yet to announce the signing.',
     hero: {
       src: '/images/guides/haas-monza-2025.jpg',
       width: 1280,
       height: 853,
       alt: 'Oliver Bearman driving the Haas VF-25 during qualifying at Monza in 2025',
       caption:
-        'Bearman at Monza in 2025. Haas is choosing his team-mate for 2027.',
+        'Bearman at Monza in 2025. Câmara is reported to be his 2027 team-mate.',
       credit: 'Eustace Bagge',
       sourceUrl:
         'https://commons.wikimedia.org/wiki/File:Oliver_Bearman_2025_Italian_Grand_Prix_qualifying.jpg',
@@ -192,16 +192,15 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         ],
       },
       {
-        heading: 'Where the contest stands',
+        heading: 'Câmara deal reported',
         paragraphs: [
-          'PlanetF1 reported on 10 October 2026 that the choice is between Rafael Câmara and Jack Doohan, with Ayao Komatsu expected to decide after Singapore and a possible announcement before Austin. Haas has not named a replacement.',
+          'RacingNews365 reported on 11 October 2026 that Haas and Ferrari reached an agreement in Singapore for Rafael Câmara to replace Esteban Ocon alongside Oliver Bearman. Its report says Câmara and Jack Doohan emerged as the final two candidates after testing, before the decision went to Câmara.',
           'Câmara’s case rests on a private Haas test at Portimão in late August. Brazilian reports said he produced the strongest comparison of the candidates who drove the car, though Haas has not published the times. The Stint reported on 5 October that Leonardo Fornaroli is set to join McLaren’s WEC Hypercar programme in 2027.',
         ],
         sources: [
           {
-            label:
-              'PlanetF1: Doohan and Câmara in the Haas 2027 driver battle (10 October 2026)',
-            url: 'https://www.planetf1.com/news/jack-doohan-rafa-camara-haas-2027-f1-driver-battle',
+            label: 'RacingNews365: Haas chooses Câmara (11 October 2026)',
+            url: 'https://racingnews365.com/haas-finalise-new-f1-driver-line-up-with-esteban-ocon-replacement-chosen',
           },
           {
             label:
@@ -292,12 +291,16 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
             'https://creativecommons.org/publicdomain/zero/1.0/deed.en',
         },
         paragraphs: [
-          'Doohan joined Haas as a reserve driver in February 2026. He finished third in Formula 2 in 2023, made his F1 debut with Alpine at Abu Dhabi in 2024, and raced the opening six Grands Prix of 2025. He is the only remaining candidate who has started a Grand Prix.',
+          'Doohan joined Haas as a reserve driver in February 2026. He finished third in Formula 2 in 2023, made his F1 debut with Alpine at Abu Dhabi in 2024, and raced the opening six Grands Prix of 2025. RacingNews365 reports that he and Câmara were the final two candidates.',
         ],
         sources: [
           {
             label: 'Haas: Jack Doohan’s reserve role and junior record',
             url: 'https://www.haasf1team.com/season/team/jack-doohan',
+          },
+          {
+            label: 'RacingNews365: Haas chooses Câmara (11 October 2026)',
+            url: 'https://racingnews365.com/haas-finalise-new-f1-driver-line-up-with-esteban-ocon-replacement-chosen',
           },
         ],
       },
@@ -393,15 +396,14 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         ],
       },
       {
-        heading: 'When will Haas decide?',
+        heading: 'When will Haas announce the signing?',
         paragraphs: [
-          'Haas has named no date. PlanetF1 reported on 10 October that Komatsu is expected to decide after Singapore, with a possible announcement before Austin. When it confirmed Ocon’s exit on 30 September, Haas said it would not share further driver news at that time. This guide will be updated when Haas names Ocon’s replacement, and the shortlist will stay as the field it considered.',
+          'RacingNews365 expects a formal announcement in the week beginning 12 October. Haas has not given a date or announced the signing. The five driver profiles above record the original shortlist Komatsu named in September.',
         ],
         sources: [
           {
-            label:
-              'PlanetF1: Doohan and Câmara in the Haas 2027 driver battle (10 October 2026)',
-            url: 'https://www.planetf1.com/news/jack-doohan-rafa-camara-haas-2027-f1-driver-battle',
+            label: 'RacingNews365: Haas chooses Câmara (11 October 2026)',
+            url: 'https://racingnews365.com/haas-finalise-new-f1-driver-line-up-with-esteban-ocon-replacement-chosen',
           },
           {
             label: 'Formula 1: Haas confirms Ocon’s exit (30 September 2026)',

@@ -19,7 +19,7 @@
  * How firm a seat is.
  *
  * Three states, because that is how many distinctions a reader can act on:
- * the team has said so, the team has not said so but holds the paperwork, or
+ * the team has said so, a deal is expected from reporting or contract terms, or
  * there is no 2027 paperwork at all. "Out of contract" is deliberately not
  * called "open": a driver without a deal can still be kept, as Alonso was by
  * Aston Martin, so the label says what is missing rather than who is out.
@@ -136,9 +136,9 @@ export const LINE_UP_2027: TeamLineUp[] = [
         note: 'Haas holds a one-year option on him for 2027 and is expected to take it. He is reported to have turned down Aston Martin.',
       },
       {
-        driver: 'Esteban Ocon',
-        status: 'out-of-contract',
-        note: 'Leaves Haas at the end of 2026, announced on 30 September. Haas has not named his replacement, and PlanetF1 reported on 10 October that the choice is between Rafael Camara and Jack Doohan.',
+        driver: 'Rafael Câmara',
+        status: 'expected',
+        note: 'RacingNews365 reported on 11 October that Haas and Ferrari agreed his move to replace Ocon in 2027. A formal announcement is pending.',
       },
     ],
   },
@@ -220,26 +220,25 @@ export const LINE_UP_2027: TeamLineUp[] = [
 ];
 
 /**
- * The drivers Haas is choosing between to replace Ocon.
+ * The drivers Haas considered to replace Ocon.
  *
  * Ordered by where the contest stands rather than alphabetically, because the
  * page numbers them and a number that means nothing is worse than no number.
  * Komatsu named five on 4 September 2026, Ocon among them; Ocon left the list
- * when he announced his exit on 30 September. PlanetF1 reported on 10 October
- * that the choice is between Camara and Doohan. The order follows that
- * reporting. `claim` is why the driver is in the room, which is the only
- * part of this that stays true whoever wins.
+ * when he announced his exit on 30 September. RacingNews365 reported on
+ * 11 October that Camara was chosen. Retain the shortlist as dated context;
+ * `claim` records each driver's background and the latest reported outcome.
  */
 export const HAAS_2027_CONTENDERS = [
   {
-    driver: 'Rafael Camara',
+    driver: 'Rafael Câmara',
     claim:
-      'Ferrari academy, leading Formula 2. Brazilian reports make him the quickest of the candidates who drove the Haas at Portimão, though the team has not published the times. Signing him would give Haas two Ferrari juniors.',
+      'The Ferrari junior chosen to replace Ocon, according to RacingNews365’s 11 October report. Haas has yet to announce the signing.',
   },
   {
     driver: 'Jack Doohan',
     claim:
-      'The Haas reserve, with 2025 races for Alpine behind him. He completed his own test at Jerez in September, his first Formula 1 running since Alpine dropped him, and the last of the runs Haas said it wanted before deciding.',
+      'The Haas reserve, with 2025 races for Alpine behind him. RacingNews365 reports that he and Câmara emerged as the final two candidates after testing.',
   },
   {
     driver: 'Leonardo Fornaroli',

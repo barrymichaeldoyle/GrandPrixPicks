@@ -98,9 +98,9 @@
     <tbody>
       {% for round in upcoming limit: limit %}
       <tr>
-        <td class="w--0"><span class="label lg:label--large pr--2">R{{ round.round }}</span></td>
+        <td class="w--0"><span class="label lg:label--large value--tnums pr--2">R{{ round.round }}</span></td>
         <td><span class="title title--small lg:title--base pr--2">{{ round.short_name }}</span></td>
-        <td class="w--0 text--right"><span class="label lg:label--large">{{ round.dates | replace: " ", "&nbsp;" | replace: "–", "&#8288;–&#8288;" }}</span></td>
+        <td class="w--0 text--right"><span class="label lg:label--large value--tnums">{{ round.dates | replace: " ", "&nbsp;" | replace: "–", "&#8288;–&#8288;" }}</span></td>
       </tr>
       {% endfor %}
     </tbody>
@@ -220,10 +220,10 @@
         {% if aligned %}
         <span class="flex flex--row flex--left flex--center-y gap--xsmall">
           <span class="label label--base lg:label--large w--[32px] lg:w--[40px] shrink-0">{{ row.weekday }}</span>
-          <span class="label label--base lg:label--large {{ schedule_pad }}">{{ row.time | replace: " ", "&nbsp;" }}</span>
+          <span class="label label--base lg:label--large value--tnums {{ schedule_pad }}">{{ row.time | replace: " ", "&nbsp;" }}</span>
         </span>
         {% else %}
-        <span class="label label--base lg:label--large {{ schedule_pad }}">{{ row.when | replace: " ", "&nbsp;" }}</span>
+        <span class="label label--base lg:label--large value--tnums {{ schedule_pad }}">{{ row.when | replace: " ", "&nbsp;" }}</span>
         {% endif %}
       </td>
       {% comment %}
@@ -244,11 +244,15 @@
             (`rounded--none` is the Framework's `overflow: hidden`). `w--0
             w--min-full` fills the cell without adding to the table's own
             width calculation, so a long session never squeezes the name and
-            time columns.
+            time columns. Each code sits in a slot as wide as the widest
+            ("OCO" on the OG, "HAM" on the X), so the rows line up in columns:
+            the Framework has no monospace face, and its fonts run from "LIN"
+            at 17px to "OCO" at 30px. Numbers elsewhere use `value--tnums`,
+            whose tabular figures both TRMNL16 and Inter carry.
           {% endcomment %}
           <span class="block w--0 w--min-full h--[22px] lg:h--[32px] rounded--none">
             <span class="flex flex--row flex--wrap flex--left gap--xsmall lg:gap--small">
-              {% for code in row.codes %}<span class="flex flex--center-y h--[22px] lg:h--[32px]"><span class="label label--small lg:label--base">{{ code }}</span></span>{% endfor %}
+              {% for code in row.codes %}<span class="flex flex--center-y shrink-0 w--[30px] lg:w--[38px] h--[22px] lg:h--[32px]"><span class="label label--small lg:label--base">{{ code }}</span></span>{% endfor %}
             </span>
           </span>
         {% elsif row.state == "done" %}
@@ -264,10 +268,10 @@
         </span>
       </td>
       {% else %}
-      <td class="{{ schedule_cell_pad }}">{% if row.weather %}<span class="label label--small {{ schedule_forecast_size }}">{{ row.weather.temp }}</span>{% endif %}</td>
+      <td class="{{ schedule_cell_pad }}">{% if row.weather %}<span class="label label--small {{ schedule_forecast_size }} value--tnums">{{ row.weather.temp }}</span>{% endif %}</td>
       <td class="{{ schedule_cell_pad }}">{% if row.weather %}<img class="image image-dither w--[22px] h--[22px] lg:w--[32px] lg:h--[32px]{% if theme == "dark" %} invert{% endif %}" src="{{ row.weather.icon }}" alt="">{% endif %}</td>
-      {% if schedule_rain_column %}<td class="{{ schedule_cell_pad }}">{% if row.weather and row.weather.rain != "" %}<span class="label label--small {{ schedule_forecast_size }}">{{ row.weather.rain }}</span>{% endif %}</td>{% endif %}
-      {% unless no_rainfall %}<td class="{{ schedule_cell_pad }}">{% if row.weather %}<span class="label label--small {{ schedule_forecast_size }}">{{ row.weather.rainAmount | replace: " ", "&nbsp;" }}</span>{% endif %}</td>{% endunless %}
+      {% if schedule_rain_column %}<td class="{{ schedule_cell_pad }}">{% if row.weather and row.weather.rain != "" %}<span class="label label--small {{ schedule_forecast_size }} value--tnums">{{ row.weather.rain }}</span>{% endif %}</td>{% endif %}
+      {% unless no_rainfall %}<td class="{{ schedule_cell_pad }}">{% if row.weather %}<span class="label label--small {{ schedule_forecast_size }} value--tnums">{{ row.weather.rainAmount | replace: " ", "&nbsp;" }}</span>{% endif %}</td>{% endunless %}
       {% unless no_next %}<td>{% if row.next %}<span class="label label--small lg:label--base label--filled">Next</span>{% endif %}</td>{% endunless %}
       {% endif %}
     </tr>
@@ -360,7 +364,7 @@
   <tbody>
     {% for row in rows limit: limit offset: offset %}
     <tr>
-      <td><span class="label label--small">{{ row.pos }}</span></td>
+      <td><span class="label label--small value--tnums">{{ row.pos }}</span></td>
       <td><span class="title title--small">{{ row.code }}</span></td>
       <td><span class="label label--small">{{ row.note }}</span></td>
     </tr>
@@ -481,9 +485,9 @@
     <tbody>
       {% for row in rows limit: limit offset: offset %}
       <tr>
-        <td><span class="label label--small">{{ row.pos }}</span></td>
+        <td><span class="label label--small value--tnums">{{ row.pos }}</span></td>
         <td><span class="title title--small">{{ row.name }}</span></td>
-        <td><span class="label label--small">{{ row.points }}</span></td>
+        <td><span class="label label--small value--tnums">{{ row.points }}</span></td>
       </tr>
       {% endfor %}
     </tbody>
@@ -513,9 +517,9 @@
         <tbody>
           {% for row in rows limit: per_column offset: column_offset %}
           <tr>
-            <td><span class="label label--small lg:label--base w--[28px] lg:w--[44px]">P{{ row.pos }}</span></td>
+            <td><span class="label label--small lg:label--base w--[28px] lg:w--[44px] value--tnums">P{{ row.pos }}</span></td>
             <td class="w--full"><span class="title title--small lg:title--base">{{ row.code }}</span></td>
-            <td class="text--right"><span class="label label--small lg:label--base">{{ row.points }}</span></td>
+            <td class="text--right"><span class="label label--small lg:label--base value--tnums">{{ row.points }}</span></td>
           </tr>
           {% endfor %}
         </tbody>
@@ -573,9 +577,9 @@
         <tbody>
           {% for row in result.rows limit: per_column offset: column_offset %}
           <tr>
-            <td><span class="label label--small lg:label--base w--[28px] lg:w--[44px]">{% if row.status != "" %}{{ row.status }}{% else %}P{{ row.pos }}{% endif %}</span></td>
+            <td><span class="label label--small lg:label--base w--[28px] lg:w--[44px] value--tnums">{% if row.status != "" %}{{ row.status }}{% else %}P{{ row.pos }}{% endif %}</span></td>
             <td class="w--full"><span class="title title--small lg:title--base">{{ row.code }}</span></td>
-            <td class="text--right"><span class="label label--small lg:label--base">{{ row.gap | replace: " ", "&nbsp;" }}</span></td>
+            <td class="text--right"><span class="label label--small lg:label--base value--tnums">{{ row.gap | replace: " ", "&nbsp;" }}</span></td>
           </tr>
           {% endfor %}
         </tbody>

@@ -6,9 +6,7 @@
     "body": "Hülkenberg finished seventh in the sprint and eighth in the Grand Prix, making Singapore his highest-scoring round of 2026. He held off Russell in the closing laps, using a tow from Lawson ahead to help defend on the straights.",
     "category": "general",
     "affectsSessions": [],
-    "driverCodes": [
-      "HUL"
-    ],
+    "driverCodes": ["HUL"],
     "sourceName": "Formula 1",
     "sourceUrl": "https://www.formula1.com/en/latest/article/how-hulkenberg-secured-his-best-weekend-of-the-season-in-singapore.32ws4MpzmxyQXtGLqjt8rf",
     "sourcePublishedAt": "2026-10-12T15:39:43.362Z"
@@ -20,10 +18,7 @@
     "body": "Leclerc held back his battery power because he thought Verstappen's early deployment problems would be brief. By the time he recognised another chance to attack, it was too late to use his energy. He still believes Red Bull's stronger race pace would probably have decided the result.",
     "category": "general",
     "affectsSessions": [],
-    "driverCodes": [
-      "LEC",
-      "VER"
-    ],
+    "driverCodes": ["LEC", "VER"],
     "sourceName": "Motorsport.com",
     "sourceUrl": "https://www.motorsport.com/f1/news/charles-leclerc-admits-he-missed-a-chance-against-max-verstappen-but-not-the-obvious-one/10864610/",
     "sourcePublishedAt": "2026-10-12T15:53:13Z"

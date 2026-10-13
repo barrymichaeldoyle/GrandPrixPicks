@@ -1,0 +1,24 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "published-news.json",
+  "startAt": "2026-10-13T08:15:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["camara-haas-2027-seat"],
+      "text": "Rafael Câmara is set to replace Ocon at Haas alongside Bearman in 2027, RacingNews365 reports. The deal was agreed in Singapore, with a formal announcement expected this week.\n\nhttps://racingnews365.com/haas-finalise-new-f1-driver-line-up-with-esteban-ocon-replacement-chosen",
+      "expiresAt": "2026-10-13T12:00:00Z"
+    },
+    {
+      "keys": ["verstappen-hart-race-engineer-austin"],
+      "text": "Tom Hart will be Verstappen's race engineer in Austin, Brazil and Las Vegas. Lambiase will still attend as Head of Racing, with no date announced for the permanent handover.\n\nhttps://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=verstappen-hart-race-engineer-austin",
+      "expiresAt": "2026-10-14T12:00:00Z"
+    },
+    {
+      "keys": ["mclaren-late-2026-phased-upgrades"],
+      "text": "McLaren plans upgrades in stages to fight for podiums and test aerodynamic concepts for 2027. Stella says the final three races should give a clearer view of whether wins are possible.\n\nhttps://www.motorsport.com/f1/news/mclaren-to-phase-upgrades-for-2026-fight-and-next-years-f1-development/10864787/",
+      "expiresAt": "2026-10-14T12:00:00Z"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "key": "camara-haas-2027-seat",
+    "headline": "Câmara set to replace Ocon at Haas in 2027",
+    "body": "RacingNews365 reports that Haas and Ferrari agreed in Singapore for Rafael Câmara to replace Esteban Ocon alongside Oliver Bearman in 2027. A formal announcement is expected this week; Haas has yet to announce the signing.",
+    "team": "Haas",
+    "sourceName": "RacingNews365",
+    "sourceUrl": "https://racingnews365.com/haas-finalise-new-f1-driver-line-up-with-esteban-ocon-replacement-chosen",
+    "sourcePublishedAt": 1791740700000
+  },
+  {
+    "key": "mclaren-late-2026-phased-upgrades",
+    "headline": "McLaren plans phased upgrades for the closing races",
+    "body": "McLaren will introduce upgrades in stages to close the gap to the leading cars and test aerodynamic concepts for 2027. Stella hopes they will restore podium contention, with the final three races offering a clearer view of whether wins are possible.",
+    "team": "McLaren",
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/mclaren-to-phase-upgrades-for-2026-fight-and-next-years-f1-development/10864787/",
+    "sourcePublishedAt": 1791851703000
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "verstappen-hart-race-engineer-austin",
+    "headline": "Tom Hart takes over Verstappen's radio in Austin",
+    "body": "Tom Hart will be Verstappen's race engineer in Austin, Brazil and Las Vegas as Red Bull prepares for Gianpiero Lambiase's departure. Lambiase will attend those weekends as Head of Racing. A date for Hart to take over permanently has not been announced.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["VER"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/max-verstappen-jokes-about-coded-messages-as-red-bull-plans-first-races-for-lambiases-successor/10864449/",
+    "sourcePublishedAt": 1791739067000
+  }
+]

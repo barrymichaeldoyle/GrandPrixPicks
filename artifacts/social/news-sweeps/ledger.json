@@ -518,7 +518,7 @@
       "text": "Red Bull has finished its major 2026 upgrade programme. Mekies says development now focuses on 2027, while the remaining races will help the team learn and improve how it uses the car.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=red-bull-singapore-development-programme",
       "dueAt": "2026-10-12T18:45:00.000Z",
       "expiresAt": "2026-10-13T14:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acd282ffc09a06c324d47d3"
     },
     {
@@ -536,7 +536,7 @@
       "text": "Hülkenberg had his highest-scoring weekend of 2026 in Singapore: seventh in the sprint and eighth in the Grand Prix. A tow from Lawson helped him hold off Russell in the closing laps.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hulkenberg-singapore-best-weekend",
       "dueAt": "2026-10-12T19:10:00.000Z",
       "expiresAt": "2026-10-13T14:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acd2830ae14ce433eb15b45"
     },
     {
@@ -554,8 +554,62 @@
       "text": "Verstappen races his team's Mercedes-AMG GT3 at Portimão this Saturday, 17 October. The three-hour GT World Challenge finale starts at 17:00 local time, with free coverage on GT World YouTube.\n\nhttps://gt-world-challenge-europe.com/news/3336/battle-royale-at-portimao-as-gt-world-concludes-2026-with-spectacular-finale",
       "dueAt": "2026-10-12T19:35:00.000Z",
       "expiresAt": "2026-10-17T16:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acd2831fc09a06c324d480a"
+    },
+    {
+      "id": "9acf7dff1ece3ecca180261b9d62a8cdaa55e02ccf4087d5ead363e3e65155cd",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "camara-haas-2027-seat",
+          "revision": "5debc9b02eda20e44d3245da4b8d09149cff534207fea8731b70d73b00b6ac9f"
+        }
+      ],
+      "text": "Rafael Câmara is set to replace Ocon at Haas alongside Bearman in 2027, RacingNews365 reports. The deal was agreed in Singapore, with a formal announcement expected this week.\n\nhttps://racingnews365.com/haas-finalise-new-f1-driver-line-up-with-esteban-ocon-replacement-chosen",
+      "dueAt": "2026-10-13T06:15:00.000Z",
+      "expiresAt": "2026-10-13T12:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acdc9bd5229b40e86973681"
+    },
+    {
+      "id": "44033c5ddc5eeb35482d347fe297b64ea6ca1dbb3ad96345302822cac7ef9e0b",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "verstappen-hart-race-engineer-austin",
+          "revision": "b47377d9668d05cdca1a5ff2ca7cbd5160f622a527e9a1e8bb401da1f10d389c"
+        }
+      ],
+      "text": "Tom Hart will be Verstappen's race engineer in Austin, Brazil and Las Vegas. Lambiase will still attend as Head of Racing, with no date announced for the permanent handover.\n\nhttps://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=verstappen-hart-race-engineer-austin",
+      "dueAt": "2026-10-13T06:40:00.000Z",
+      "expiresAt": "2026-10-14T12:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acdc9be5229b40e869736e8"
+    },
+    {
+      "id": "ad7834520ebe4716b48474fd4410036c93c14baa2ecb3f3279e6fa098df59c2f",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "mclaren-late-2026-phased-upgrades",
+          "revision": "7a0c11ab7ef9e8c2adbbb6e241955fba50cc55642db4d5bf0433ee107d706da0"
+        }
+      ],
+      "text": "McLaren plans upgrades in stages to fight for podiums and test aerodynamic concepts for 2027. Stella says the final three races should give a clearer view of whether wins are possible.\n\nhttps://www.motorsport.com/f1/news/mclaren-to-phase-upgrades-for-2026-fight-and-next-years-f1-development/10864787/",
+      "dueAt": "2026-10-13T07:05:00.000Z",
+      "expiresAt": "2026-10-14T12:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acdc9c0c210c8c6dd4e960a"
     }
   ]
 }

@@ -1,0 +1,19 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "published-news.json",
+  "startAt": "2026-10-13T17:00:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["mclaren-2026-handling-change-2027"],
+      "text": "McLaren's remaining 2026 upgrades will add downforce, but Andrea Stella says the car's demanding handling needs more fundamental changes. He expects those to arrive with the 2027 car at the earliest. https://www.autosport.com/f1/news/why-mclaren-cannot-fix-its-f1-car-handling-until-2027/10864932/",
+      "expiresAt": "2026-10-14T14:00:00Z"
+    },
+    {
+      "keys": ["antonelli-singapore-brake-temperature-data", "cadillac-singapore-brake-temperature-management"],
+      "text": "Singapore's heat tested the brakes too. Antonelli raced without brake-temperature data after a sensor issue. Bottas had to lift and coast from lap two, despite Cadillac's cooling upgrades. https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=antonelli-singapore-brake-temperature-data",
+      "expiresAt": "2026-10-14T14:00:00Z"
+    }
+  ]
+}

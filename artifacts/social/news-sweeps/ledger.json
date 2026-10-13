@@ -626,8 +626,49 @@
       "text": "F1 has agreed a ten-year deal for an African Grand Prix in Rwanda from the early 2030s. A new circuit is planned in Bugesera, south of Kigali. The first race date is still to be announced. https://www.formula1.com/en/latest/article/everything-we-know-about-f1s-all-new-race-in-rwanda.3Mde3s9FqIOTbkzKs0Puwo",
       "dueAt": "2026-10-13T12:25:00.000Z",
       "expiresAt": "2026-10-14T12:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6ace1f7e7c54ccc397c0f7e3"
+    },
+    {
+      "id": "c36cc5970a06f1bc962b11f9595258f6c66faa3f74cf79f2b4afbe29f1898b3d",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "mclaren-2026-handling-change-2027",
+          "revision": "4235c37644f4aeef9bb0a843b45563613eddda0c605dd40bfd660113464646c4"
+        }
+      ],
+      "text": "McLaren's remaining 2026 upgrades will add downforce, but Andrea Stella says the car's demanding handling needs more fundamental changes. He expects those to arrive with the 2027 car at the earliest. https://www.autosport.com/f1/news/why-mclaren-cannot-fix-its-f1-car-handling-until-2027/10864932/",
+      "dueAt": "2026-10-13T15:00:00.000Z",
+      "expiresAt": "2026-10-14T14:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6ace441226f0b7a27e9a5f7f"
+    },
+    {
+      "id": "d5d61981e28050009bb56a92ed1d407a9fe6c7ce8366811c416f254bba22f596",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "antonelli-singapore-brake-temperature-data",
+          "revision": "980a23d9cf9c7b1ed22ff4b2ea14c0b9ae08a7371a067070f04e8c6f547c957e"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "cadillac-singapore-brake-temperature-management",
+          "revision": "3580bc74db3f28e14275f68cf4bd45b497ec8dca4920d53e0924b214d8252b6e"
+        }
+      ],
+      "text": "Singapore's heat tested the brakes too. Antonelli raced without brake-temperature data after a sensor issue. Bottas had to lift and coast from lap two, despite Cadillac's cooling upgrades. https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=antonelli-singapore-brake-temperature-data",
+      "dueAt": "2026-10-13T15:25:00.000Z",
+      "expiresAt": "2026-10-14T14:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6ace44130e025f0122f63fb9"
     }
   ]
 }

@@ -1,0 +1,26 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "antonelli-singapore-brake-temperature-data",
+    "headline": "Antonelli raced without brake-temperature data in Singapore",
+    "body": "A brake sensor issue left Antonelli without temperature data as he followed other cars in Singapore's heat. He reported a long pedal and poor stopping power after a virtual safety car restart, then lifted and coasted before braking to manage the problem on his way to third.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ANT"],
+    "sourceName": "FIA",
+    "sourceUrl": "https://api.fia.com/news/f1-2026-singapore-grand-prix-post-race-press-conference-transcript",
+    "sourcePublishedAt": "2026-10-11T17:53:00+02:00"
+  },
+  {
+    "raceSlug": "singapore-2026",
+    "key": "cadillac-singapore-brake-temperature-management",
+    "headline": "Bottas still had to manage Cadillac's brake temperatures in Singapore",
+    "body": "Bottas began lifting and coasting on lap two to control brake temperatures, despite Cadillac's recent cooling upgrades. Both cars finished, and he believes the problem is nearly resolved for the remaining races, with a different brake design planned for 2027.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["BOT", "PER"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/cadillacs-f1-brakes-are-still-a-problem-i-had-to-lift-and-coast-on-lap-two/10864720/",
+    "sourcePublishedAt": "2026-10-13T14:41:29Z"
+  }
+]

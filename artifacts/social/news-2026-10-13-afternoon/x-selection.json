@@ -1,0 +1,14 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/global-2026-10-13-afternoon.json",
+  "startAt": "2026-10-13T14:25:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["rwanda-african-grand-prix-ten-year-deal"],
+      "text": "F1 has agreed a ten-year deal for an African Grand Prix in Rwanda from the early 2030s. A new circuit is planned in Bugesera, south of Kigali. The first race date is still to be announced. https://www.formula1.com/en/latest/article/everything-we-know-about-f1s-all-new-race-in-rwanda.3Mde3s9FqIOTbkzKs0Puwo",
+      "expiresAt": "2026-10-14T12:00:00Z"
+    }
+  ]
+}

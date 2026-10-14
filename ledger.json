@@ -705,6 +705,23 @@
       "expiresAt": "2026-10-15T05:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6acf12b9b610c3011fa10a14"
+    },
+    {
+      "id": "ec6dc11863b75e6ec1b767eda0d4405666917c4c74325923be0cb5313a043c30",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "gasly-singapore-traction-tyre-overheating",
+          "revision": "e5d447b1bf048118e0087a70adba13d8c59b40b21953b5e24392fdc4f125f88f"
+        }
+      ],
+      "text": "Gasly says Alpine's tyres overheated within three laps in Singapore, leaving him struggling for traction. He finished 11th after starting seventh. https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=gasly-singapore-traction-tyre-overheating",
+      "dueAt": "2026-10-14T13:45:00.000Z",
+      "expiresAt": "2026-10-16T16:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

@@ -1,0 +1,19 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/global-2026-10-14-morning.json",
+  "startAt": "2026-10-14T07:35:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["rwanda-african-grand-prix-circuit-design"],
+      "text": "Rwanda's proposed F1 circuit: 6km, 17 corners and 197 metres of elevation change across a lap. Wurz and Tilke are designing it around two hills and a lake. The full layout is still to come. https://www.formula1.com/en/latest/article/hills-a-lake-and-a-roller-coaster-inside-rwandas-plan-for-the-african-grand-prix.76LEZDItQYH362QElcHoY1",
+      "expiresAt": "2026-10-15T05:00:00Z"
+    },
+    {
+      "keys": ["fia-floor-support-geometry-2027"],
+      "text": "The FIA's 2027 rules tighten floor-support geometry: a 5mm limit on the rounded junction with bodywork, plus restrictions on where supports can meet it. The changes apply next season. https://www.fia.com/system/files/documents/fia_2027_f1_regulations_-_section_c_technical_-_iss_3_-_2026-10-01.pdf",
+      "expiresAt": "2026-10-15T05:00:00Z"
+    }
+  ]
+}

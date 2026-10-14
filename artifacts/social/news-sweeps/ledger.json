@@ -644,7 +644,7 @@
       "text": "McLaren's remaining 2026 upgrades will add downforce, but Andrea Stella says the car's demanding handling needs more fundamental changes. He expects those to arrive with the 2027 car at the earliest. https://www.autosport.com/f1/news/why-mclaren-cannot-fix-its-f1-car-handling-until-2027/10864932/",
       "dueAt": "2026-10-13T15:00:00.000Z",
       "expiresAt": "2026-10-14T14:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6ace441226f0b7a27e9a5f7f"
     },
     {
@@ -667,8 +667,44 @@
       "text": "Singapore's heat tested the brakes too. Antonelli raced without brake-temperature data after a sensor issue. Bottas had to lift and coast from lap two, despite Cadillac's cooling upgrades. https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=antonelli-singapore-brake-temperature-data",
       "dueAt": "2026-10-13T15:25:00.000Z",
       "expiresAt": "2026-10-14T14:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6ace44130e025f0122f63fb9"
+    },
+    {
+      "id": "b7d1567833d8230bb6a86d6b41ffcc56dfa7fa496001d7542adcda530a2dc0ab",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "rwanda-african-grand-prix-circuit-design",
+          "revision": "5ec59209d598a5fdeeee60007ef74a767ab0771cd4e5716e4416d988bd280736"
+        }
+      ],
+      "text": "Rwanda's proposed F1 circuit: 6km, 17 corners and 197 metres of elevation change across a lap. Wurz and Tilke are designing it around two hills and a lake. The full layout is still to come. https://www.formula1.com/en/latest/article/hills-a-lake-and-a-roller-coaster-inside-rwandas-plan-for-the-african-grand-prix.76LEZDItQYH362QElcHoY1",
+      "dueAt": "2026-10-14T05:35:00.000Z",
+      "expiresAt": "2026-10-15T05:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acf12b80d20fd15277f930c"
+    },
+    {
+      "id": "fb2486318f891f7acc07c713bfedbb430a5444f1be13037d708f033fd13b738d",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "fia-floor-support-geometry-2027",
+          "revision": "eb8cdc4e173f7b7278b6bac14d01b5fb751f7af1b563708ed7352568ef8c9ee4"
+        }
+      ],
+      "text": "The FIA's 2027 rules tighten floor-support geometry: a 5mm limit on the rounded junction with bodywork, plus restrictions on where supports can meet it. The changes apply next season. https://www.fia.com/system/files/documents/fia_2027_f1_regulations_-_section_c_technical_-_iss_3_-_2026-10-01.pdf",
+      "dueAt": "2026-10-14T06:00:00.000Z",
+      "expiresAt": "2026-10-15T05:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acf12b9b610c3011fa10a14"
     }
   ]
 }

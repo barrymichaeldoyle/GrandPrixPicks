@@ -16,8 +16,10 @@ cloud environment's setup script, install the tools with
 the dedicated cloud environment's network secrets, not real keys in ordinary
 environment variables. GPP_CONVEX_PROXY_URL must equal
 https://cheery-tern-274.convex.cloud; BUFFER_API_KEY is the nonsecret placeholder
-cloud-network-secret. NODE_USE_ENV_PROXY must be `1` so Node's fetch routes
-through the secret-injection proxy; stop Buffer work if this is missing. Run
+cloud-network-secret. For direct Buffer CLI calls use `NODE_USE_ENV_PROXY=1`
+on that command so Node's fetch uses the cloud secret-injection proxy. The
+`pnpm gpp news social` commands set this on their Buffer subprocesses themselves.
+Do not change proxy URLs or global network settings. Run
 `pnpm gpp race --prod` and the read-only Buffer channel
 list to verify actual service access. Stop affected service work if these fail.
 Never assume the connected Buffer MCP connector also authenticates the CLI.

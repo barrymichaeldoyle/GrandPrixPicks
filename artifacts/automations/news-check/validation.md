@@ -37,7 +37,11 @@ append-only acquisition/release commits and passed focused tests and CI checks.
 Diagnostic `cse_01EAfDL5raqueqJHTQBEzAjp` proved the Buffer key works in the
 cloud via curl and via CLI with `NODE_USE_ENV_PROXY=1`. Node v22.22.0 otherwise
 bypasses `HTTPS_PROXY`, sending the placeholder instead of receiving the proxy's
-real header. The environment is being updated with `NODE_USE_ENV_PROXY=1`.
+real header. Claude's browser permission check rejected setting this for the
+entire environment as "Traffic Redirection". The narrower fix scopes
+`NODE_USE_ENV_PROXY=1` to direct Buffer CLI commands and the scheduler's Buffer
+subprocesses, as demonstrated successfully in the diagnostic. Global environment
+proxy settings remain unchanged.
 
 The results below describe the earlier test against the old Default environment.
 

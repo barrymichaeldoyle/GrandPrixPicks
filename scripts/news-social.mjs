@@ -77,6 +77,11 @@ function bufferCommand(
   const result = spawnSync('buffer', args, {
     encoding: 'utf8',
     maxBuffer: 8 * 1024 * 1024,
+    // Only the cloud Buffer subprocess needs Node's opt-in to HTTPS_PROXY.
+    // The platform proxy injects its host-scoped network secret outside the VM.
+    env: process.env.GPP_CONVEX_PROXY_URL === 'https://cheery-tern-274.convex.cloud'
+      ? { ...process.env, NODE_USE_ENV_PROXY: '1' }
+      : process.env,
   });
   if (result.error || result.status !== 0) {
     throw new Error(

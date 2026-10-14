@@ -1,0 +1,710 @@
+{
+  "version": 1,
+  "posts": [
+    {
+      "id": "f56bb4030f54f227f496bef865dbe89d3938d3f0bb07f3834a5825e382c1d695",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "sainz-singapore-sprint-pit-lane-start",
+          "revision": "2ab587050a121569a71357c6ea72c1d900b5301b9a9dfa9d83e15a7e8ecc090a"
+        }
+      ],
+      "text": "Sainz must start the Singapore sprint from the pit lane after Williams changed his suspension setup under parc fermé without FIA approval.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T09:10:11.628Z",
+      "expiresAt": "2026-10-10T09:30:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6ac9ffcbbba9419ccbf710e2"
+    },
+    {
+      "id": "5c4f161b1008b438a91d224d834a15aba8641020b3a05e0a6d6f84a262d61225",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hadjar-singapore-sprint-power-unit-replacement",
+          "revision": "38ad22d165098bb16d450f7bf78bc0a05b05763c052f9f0fe52ac4d6c235f5fb"
+        }
+      ],
+      "text": "Red Bull replaced Hadjar's engine and turbo with previously used units before the Singapore sprint. The fuel collector assembly was also replaced, with the changes approved by the FIA.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T09:35:11.628Z",
+      "expiresAt": "2026-10-10T13:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6ac9ffccf91f772d4589120f"
+    },
+    {
+      "id": "b71f151806036b70a9b216ffb8d40ced6a547cdd63726f20c8c9b49ebaba9b4d",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "singapore-sprint-verstappen-win",
+          "revision": "40e3258052029fd60b7e99b846cad772ff8a038db24eee1a03a5ee760c651115"
+        }
+      ],
+      "text": "Verstappen wins the Singapore sprint ahead of Hamilton and Leclerc. Antonelli finishes fourth, with Lawson, Bearman, Hülkenberg and Norris completing the points.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T10:40:00.000Z",
+      "expiresAt": "2026-10-10T12:30:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6aca1371d9cab260a7be33cc"
+    },
+    {
+      "id": "337da3d7ddda15bd3e3df338edff0b6de473ad5af30a2899216c550b572293fc",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "mclaren-singapore-sprint-final-lap-collision",
+          "revision": "1c33916cdcfac1d80cda65a7ef07fa3cc2f98e8928ef1f8c6a05aee7606188ae"
+        }
+      ],
+      "text": "Norris and Piastri collide at Turn 5 on the Singapore sprint's final lap. Piastri retires and Norris finishes eighth.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T11:05:00.000Z",
+      "expiresAt": "2026-10-10T12:30:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6aca1372f91f772d458cb15e"
+    },
+    {
+      "id": "4f3cc28cb3c186f2c11c4cb262f46303b48984b623a07e5babe8723ba89e1245",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "russell-singapore-sprint-crash",
+          "revision": "6ce8e973269291bf32d0ff407b3a33d56853f93cc4d71e0b4f95fc39c6bf1d38"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hadjar-singapore-sprint-retirement",
+          "revision": "09f008715e575b87e4df86d6e4e898fdd20d741427e08584eb7782cd8bafb433"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "colapinto-singapore-sprint-retirement",
+          "revision": "608caadb7ec5e4933d20579acd8c50e28196e5231f15aa4a8667330dfb3919d6"
+        }
+      ],
+      "text": "Russell crashed out of the Singapore sprint lead after passing Verstappen at the start. Hadjar retired with power trouble, while Colapinto's Alpine shut down during the Safety Car period.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T11:30:00.000Z",
+      "expiresAt": "2026-10-10T12:30:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6aca1373c4de2d2b1222c8db"
+    },
+    {
+      "id": "8fe4fefc51b1c6617b7d453694ad6e67969db7b2796f785b6ea5f82233765043",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "singapore-starting-grid",
+          "revision": "9042cda72746b051e402f46018568c18bf2681042102b655debc816c23c6cfed"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "singapore-grand-prix-verstappen-pole",
+          "revision": "6f04cab6b22b112cf076dd248e0083793f34d6ea99302c23f21a79b0c4c6b8c3"
+        }
+      ],
+      "text": "Verstappen takes Singapore GP pole by 0.054s from Leclerc. Hamilton and Antonelli share row two. Russell's engine penalty puts him on the back row with Hadjar.\n\nFull provisional grid: https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T16:45:00.000Z",
+      "expiresAt": "2026-10-11T11:30:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6aca6868c4de2d2b1232cba2"
+    },
+    {
+      "id": "5314f47de16fdd47d9f5542b60ce279b5c3718e3827e4162883e05949ae6136a",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "mclaren-singapore-sprint-final-lap-collision",
+          "revision": "db6d3cf7467e371f606c8e76003b3325843782753a1e965acbdbdeb60db304dd"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "mclaren-singapore-sprint-stella-response",
+          "revision": "4129b06b20fdf04492726ca9b7864a2d7ec7f8c6dff60ade340490a3020a11b0"
+        }
+      ],
+      "text": "No penalty for Norris or Piastri after their final-lap Singapore sprint collision. Stella calls the contact unacceptable and will speak to both privately.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T17:10:00.000Z",
+      "expiresAt": "2026-10-11T11:30:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6aca6869bba9419ccb0af48b"
+    },
+    {
+      "id": "cbc817a6663b7c988a4781731d782db4d8918d13ea16784b7057c0fad9ad5e17",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hadjar-singapore-qualifying-power-failure",
+          "revision": "0b6e9f4fbfc155d2fb469ba08e4258c47412b036910c92c5fcf3a3dc8a6d1181"
+        }
+      ],
+      "text": "More power trouble for Hadjar in Singapore: his engine switched off in Q1, and he failed to set a qualifying time. He also reported a gearbox failure and wants a fresh power unit for Sunday; no change is confirmed.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions",
+      "dueAt": "2026-10-10T17:35:00.000Z",
+      "expiresAt": "2026-10-11T11:30:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6aca686abba9419ccb0af4ca"
+    },
+    {
+      "id": "eb0d60ea6fe02ca3f6b8a26c22d48dfe6ab056029abca96d2d51de9dd09fcde5",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hulkenberg-singapore-qualifying-impeding-decision",
+          "revision": "31a7c7f65a132b85cdc5f2d3dda1f4341c78143f266229965ce0dc274f63f03f"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hadjar-singapore-permission-to-start",
+          "revision": "4906500aadadff0c886b6c1c2b5579c2763a2aa19acc3e4551a7b953606d8d56"
+        }
+      ],
+      "text": "No penalty for Hülkenberg after impeding Sainz: inconsistent timing data had misled both teams. Hadjar has also been cleared to race in Singapore.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hulkenberg-singapore-qualifying-impeding-decision",
+      "dueAt": "2026-10-11T04:15:00.000Z",
+      "expiresAt": "2026-10-11T11:30:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acb08bbc4de2d2b124b4607"
+    },
+    {
+      "id": "c81b35874c96a1c0f2df0d116a3e67d7c98c9881b1264e743eb95e19808d58ca",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "pirelli-singapore-race-strategy",
+          "revision": "5f8e066eb66f5e91d995cf8b8adbeff75cb021be6dc53872f2a26ca264f58dec"
+        }
+      ],
+      "text": "Pirelli favours starting Singapore on soft tyres, then switching to mediums or hards. Low degradation could let drivers wait for a Safety Car; two stops are estimated to cost about ten seconds more.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=pirelli-singapore-race-strategy",
+      "dueAt": "2026-10-11T04:40:00.000Z",
+      "expiresAt": "2026-10-11T11:30:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acb08bcbba9419ccb2319a2"
+    },
+    {
+      "id": "aca0c2ffd90c6884d5d40d4fc29feccac9c3e5ab331a62fc210ab72b3c871050",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "verstappen-singapore-race-start-concern",
+          "revision": "946b47abef4982d0429a7fb0ab178ade9f3cac3f443fa6937cff66d41e2852a8"
+        }
+      ],
+      "text": "Verstappen questions Red Bull's second-gear approach after poor wet starts at Sepang and in the Singapore sprint. He would consider a different gear if today's start is wet, while hoping for a dry race.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=verstappen-singapore-race-start-concern",
+      "dueAt": "2026-10-11T05:05:00.000Z",
+      "expiresAt": "2026-10-11T11:30:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acb08bdf91f772d45b5a01b"
+    },
+    {
+      "id": "b03a215ef83f1458891198355a1751ed4b7bec6038329fd720500e139f664e57",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "singapore-starting-grid",
+          "revision": "c774e91a92450fbbd042d79b8d3d2bd1e0624b3b1b1368fcb9dfc2cd6d032c27"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "alonso-singapore-race-pit-lane-start",
+          "revision": "b4bb95d16feafa664c277f74c7fe7d985caed9058cd5f31034e79d5dc65d9252"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "stroll-singapore-race-pit-lane-start",
+          "revision": "7c9198fad801cc0467fad4a1ebaccf0e8bf481d46fa517b5b1cdc500446996f6"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hadjar-singapore-race-pit-lane-start",
+          "revision": "86072ebe0db640655270a809e6ec2a914b0f4864b66acbc140de35a83285c91d"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "russell-singapore-engine-penalty-risk",
+          "revision": "160548b58770d6ae36fb83aeffa052e5eb88b3395a76e51435239b6275e77cdf"
+        }
+      ],
+      "text": "Singapore's final grid: Alonso, Stroll and Hadjar start from the pit lane. Russell starts P19 despite a combined 60-place penalty. Verstappen and Leclerc share the front row.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=singapore-starting-grid",
+      "dueAt": "2026-10-11T11:25:00.000Z",
+      "expiresAt": "2026-10-11T11:55:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acb6f57ed92ed8fa5fe7217"
+    },
+    {
+      "id": "382b4ac59612cf06421ed632f38c6d8b61f9dcf26cd27b0241ce7c39ea223ba8",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "singapore-sq1-overtake-mode-error",
+          "revision": "9fb4cef28a08d4ec3211a4f7db54cf8ef39fab079d546ca4c9d6a84be2a08a42"
+        }
+      ],
+      "text": "The FIA admits its Singapore SQ1 error compromised fairness. A missed prompt left Overtake Mode off after the red flag; briefly enabling it for 27 seconds affected drivers unequally.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=singapore-sq1-overtake-mode-error",
+      "dueAt": "2026-10-11T11:50:00.000Z",
+      "expiresAt": "2026-10-11T18:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acb6f58f91f772d45c5b010"
+    },
+    {
+      "id": "d604c65f593a50ed61abf75ad77fd46524306696bd4799a75382d065efa240ba",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "bortoleto-singapore-race-retirement",
+          "revision": "32d7e94da01036a97d68cac7693ee3c06c5800c2d82c943d01d6d4a9036c2bef"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "colapinto-singapore-race-retirement",
+          "revision": "04d5a44049428d3193da7a0aea3f752b11e0d45a38108972a79ab5097e11d4ce"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "stroll-singapore-race-retirement",
+          "revision": "6d946589593b4c7eb32cbb86335423f8f7561f1b693fd7a76dd64e23c43bed24"
+        }
+      ],
+      "text": "Bortoleto, Colapinto and Stroll have retired from the Singapore Grand Prix. Audi suspects gearbox trouble for Bortoleto; Alpine suspects a driveline issue for Colapinto.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=bortoleto-singapore-race-retirement",
+      "dueAt": "2026-10-11T13:40:00.000Z",
+      "expiresAt": "2026-10-11T18:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acb8e2cbba9419ccb389049"
+    },
+    {
+      "id": "26546037ece7b70df9f8dfa732901c8a86f8cdaf8d720ba9d004bb200ddc434d",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "singapore-grand-prix-verstappen-win",
+          "revision": "5696e0d9737e2755dfdab5595dac3951ccb0f670923f0ec462a3863164fb3f9e"
+        }
+      ],
+      "text": "Verstappen wins his first Singapore Grand Prix on his 250th Grand Prix start, completing a weekend of two poles and two wins. Leclerc and Antonelli complete the podium; Norris and Piastri round out the top five.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=singapore-grand-prix-verstappen-win",
+      "dueAt": "2026-10-11T14:05:00.000Z",
+      "expiresAt": "2026-10-12T08:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acb94ded9cab260a7fc7dee"
+    },
+    {
+      "id": "aaf0c947d345b47883dfe474b74d0c8f648950aaa48fd908d2a98b2531d1a773",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hamilton-singapore-race-tyre-fade",
+          "revision": "7481eadb0cde10316616e60b6561c847727de5089f9fcf8b6f0c4c5422dd6bf5"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "piastri-singapore-race-puncture",
+          "revision": "98c4239949284027605e986caed645ba540f2f051c41439800a85fee2378e4c1"
+        }
+      ],
+      "text": "Hamilton slips from third to sixth as his soft tyres fade in Singapore. Piastri recovers from an extra stop for a puncture and passes him at Turn 16 on the final lap for fifth.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hamilton-singapore-race-tyre-fade",
+      "dueAt": "2026-10-11T14:30:00.000Z",
+      "expiresAt": "2026-10-12T08:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acb94dfbba9419ccb39b5ce"
+    },
+    {
+      "id": "44eb3625c92a95874777b6c2c3ce3dc441c0560757dfdef044e3a4c81f5cd661",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "antonelli-singapore-title-chance",
+          "revision": "724dde932e1043db8ac2a78e51a649f54f02b7106acf977ec40d5911f5942126"
+        }
+      ],
+      "text": "Antonelli has his first chance to seal the F1 title at Austin. He needs to win, with Russell and Hamilton’s finishes also deciding whether the championship is settled with five races left.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=antonelli-singapore-title-chance",
+      "dueAt": "2026-10-11T14:55:00.000Z",
+      "expiresAt": "2026-10-12T10:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acba091ed92ed8fa50731ab"
+    },
+    {
+      "id": "0de2738e680fce7b5c958f41be957aad15dace9a25f87e43dcc62bb07bb77c97",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hamilton-singapore-race-tyre-fade",
+          "revision": "79da3bd312f7bb5df858f555901a50ff53141265a5fc179d51622116171a84c4"
+        }
+      ],
+      "text": "Hamilton apologised to Ferrari after his Singapore strategy left him sixth. He took responsibility for staying out under the VSC; Vasseur says the team called him in, but he missed the pit entry.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hamilton-singapore-race-tyre-fade",
+      "dueAt": "2026-10-11T15:20:00.000Z",
+      "expiresAt": "2026-10-12T10:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acba092b07d37ac97ad118f"
+    },
+    {
+      "id": "f6cc51d69fbf273298001931c87b3e9253a2474c2564bf90f5ebf92477ca6b61",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "verstappen-singapore-race-radio-issue",
+          "revision": "c231a5687e603ae1ca80d68918c7489b2e24a6c5d1dcd2529103551e4c580015"
+        }
+      ],
+      "text": "Verstappen won in Singapore despite struggling to speak to Red Bull. His engineer used coded messages, while early energy-deployment trouble gave Leclerc a chance to attack.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=verstappen-singapore-race-radio-issue",
+      "dueAt": "2026-10-11T17:00:00.000Z",
+      "expiresAt": "2026-10-12T10:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acbbe0ba9411fbcc55144d6"
+    },
+    {
+      "id": "451f8c465a57d5b5e5bdd179f68a8db5a63bb4f2185c5b5dd5373a2310cccfec",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "albon-singapore-race-retirement",
+          "revision": "a6fec0988dd79c19d29a3f91128b4bdaee3895b8edf95b52ed710f44241471b2"
+        }
+      ],
+      "text": "Williams explains Albon's late Singapore retirement: he managed fuel and brake issues, then stopped to protect the car. He remains classified 18th.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=albon-singapore-race-retirement",
+      "dueAt": "2026-10-11T17:25:00.000Z",
+      "expiresAt": "2026-10-12T10:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acbbe0c8e8dd50ffc4bfdce"
+    },
+    {
+      "id": "7d994ce974cc33a513c33c014efed62f2d0703a7f4d7b0b535ea14b518aceee2",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "leclerc-singapore-race-upgrade-call",
+          "revision": "d14efc08041b14a6f09430819d7747cd92a6aff3c1c4e2ed7ec04d128602ccd2"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "norris-singapore-race-pace-assessment",
+          "revision": "4067a61530035af73f310d2918c6ee20b0827aa50c5bafbe7222b14fee6e8c17"
+        }
+      ],
+      "text": "Leclerc wants more Ferrari upgrades after his first Grand Prix podium since Belgium. Norris says McLaren is now fourth fastest and also needs more upgrades after finishing 40 seconds behind Verstappen in Singapore.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=norris-singapore-race-pace-assessment",
+      "dueAt": "2026-10-11T17:50:00.000Z",
+      "expiresAt": "2026-10-12T10:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acbbe0de6b5023b6dd5256c"
+    },
+    {
+      "id": "58b9bd5fc663f5384c46a07b173268466101ab3cd245f24ed4d08e7f3e17b3d2",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "leclerc-singapore-race-braking-issue",
+          "revision": "88bed157c15c2a1c852fa65704d87a08796cc029ef23e92ab44545593bcbf3a2"
+        }
+      ],
+      "text": "Leclerc reported his Ferrari slowing without warning on lap 46 in Singapore. His engineer supplied a settings change two laps later, with no further recurrence reported.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=leclerc-singapore-race-braking-issue",
+      "dueAt": "2026-10-12T15:30:00.000Z",
+      "expiresAt": "2026-10-13T10:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6accfa14a9fd76c926c91cae"
+    },
+    {
+      "id": "8c0f2e1e177e5d7cd162ed63da8d0a4bcb8415cb51ea430a1539c410ea8d280a",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "mercedes-singapore-race-upgrade-assessment",
+          "revision": "c2b8a3b737c3b000c9675225d1cde3912d0d511d61421870a8072929e12fcc3e"
+        }
+      ],
+      "text": "Mercedes says Antonelli's upgraded package was faster than the older specification by the end of Singapore. Finding the right setup window remains the task ahead of Austin.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=mercedes-singapore-race-upgrade-assessment",
+      "dueAt": "2026-10-12T15:55:00.000Z",
+      "expiresAt": "2026-10-13T10:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6accfa15d38ece527cc0adcc"
+    },
+    {
+      "id": "c920ba6decd5b6ee96b641b20c57687c1eb5e692a022924b065ba434aac17696",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "mclaren-singapore-sprint-final-lap-collision",
+          "revision": "cb8af36a1c6941299c8e84522ca2ce8d1e988d68c224aa59bf716acc3aa198fe"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "mclaren-singapore-sprint-stella-response",
+          "revision": "d648c97dbcc97001ce0798b0803e45c6a6fef6eb21eade66d7112d8c03f32744"
+        }
+      ],
+      "text": "Norris has apologised to McLaren and taken responsibility for his Singapore sprint move on Piastri. Stella says both drivers agree the clash was unacceptable and further talks will put the team's interests first.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=mclaren-singapore-sprint-final-lap-collision",
+      "dueAt": "2026-10-12T16:20:00.000Z",
+      "expiresAt": "2026-10-13T10:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6accfa16e506958eb5c5a665"
+    },
+    {
+      "id": "22e30e27922eb0b3d530f2c6bdde674436e837ba1a1db9926c4a362d3f626fa3",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "red-bull-singapore-development-programme",
+          "revision": "0c586242fe3870b48d95f9c58cf3bed2b785ad02619ea8e61eea4c1e11bd42c8"
+        }
+      ],
+      "text": "Red Bull has finished its major 2026 upgrade programme. Mekies says development now focuses on 2027, while the remaining races will help the team learn and improve how it uses the car.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=red-bull-singapore-development-programme",
+      "dueAt": "2026-10-12T18:45:00.000Z",
+      "expiresAt": "2026-10-13T14:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acd282ffc09a06c324d47d3"
+    },
+    {
+      "id": "962669d0fed96d4cafd124efc2fc5f009143576f8b76923e8c6edb338ffbc3db",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "hulkenberg-singapore-best-weekend",
+          "revision": "066302674498d3f5531a887f4e516a43b30b0531ab08220763bcdc688859de89"
+        }
+      ],
+      "text": "Hülkenberg had his highest-scoring weekend of 2026 in Singapore: seventh in the sprint and eighth in the Grand Prix. A tow from Lawson helped him hold off Russell in the closing laps.\n\nhttps://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=hulkenberg-singapore-best-weekend",
+      "dueAt": "2026-10-12T19:10:00.000Z",
+      "expiresAt": "2026-10-13T14:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acd2830ae14ce433eb15b45"
+    },
+    {
+      "id": "4e264ca726ddb3abb5203ab6238e47530b9e8ce1750df08772da322b689c2f76",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "verstappen-portimao-gt-world-finale-2026",
+          "revision": "766b2020cdd5db0d30fe44f9109577097220064ed3a80dc700c070e1f48f6fb2"
+        }
+      ],
+      "text": "Verstappen races his team's Mercedes-AMG GT3 at Portimão this Saturday, 17 October. The three-hour GT World Challenge finale starts at 17:00 local time, with free coverage on GT World YouTube.\n\nhttps://gt-world-challenge-europe.com/news/3336/battle-royale-at-portimao-as-gt-world-concludes-2026-with-spectacular-finale",
+      "dueAt": "2026-10-12T19:35:00.000Z",
+      "expiresAt": "2026-10-17T16:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acd2831fc09a06c324d480a"
+    },
+    {
+      "id": "9acf7dff1ece3ecca180261b9d62a8cdaa55e02ccf4087d5ead363e3e65155cd",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "camara-haas-2027-seat",
+          "revision": "5debc9b02eda20e44d3245da4b8d09149cff534207fea8731b70d73b00b6ac9f"
+        }
+      ],
+      "text": "Rafael Câmara is set to replace Ocon at Haas alongside Bearman in 2027, RacingNews365 reports. The deal was agreed in Singapore, with a formal announcement expected this week.\n\nhttps://racingnews365.com/haas-finalise-new-f1-driver-line-up-with-esteban-ocon-replacement-chosen",
+      "dueAt": "2026-10-13T06:15:00.000Z",
+      "expiresAt": "2026-10-13T12:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acdc9bd5229b40e86973681"
+    },
+    {
+      "id": "44033c5ddc5eeb35482d347fe297b64ea6ca1dbb3ad96345302822cac7ef9e0b",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "verstappen-hart-race-engineer-austin",
+          "revision": "b47377d9668d05cdca1a5ff2ca7cbd5160f622a527e9a1e8bb401da1f10d389c"
+        }
+      ],
+      "text": "Tom Hart will be Verstappen's race engineer in Austin, Brazil and Las Vegas. Lambiase will still attend as Head of Racing, with no date announced for the permanent handover.\n\nhttps://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=verstappen-hart-race-engineer-austin",
+      "dueAt": "2026-10-13T06:40:00.000Z",
+      "expiresAt": "2026-10-14T12:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acdc9be5229b40e869736e8"
+    },
+    {
+      "id": "ad7834520ebe4716b48474fd4410036c93c14baa2ecb3f3279e6fa098df59c2f",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "mclaren-late-2026-phased-upgrades",
+          "revision": "7a0c11ab7ef9e8c2adbbb6e241955fba50cc55642db4d5bf0433ee107d706da0"
+        }
+      ],
+      "text": "McLaren plans upgrades in stages to fight for podiums and test aerodynamic concepts for 2027. Stella says the final three races should give a clearer view of whether wins are possible.\n\nhttps://www.motorsport.com/f1/news/mclaren-to-phase-upgrades-for-2026-fight-and-next-years-f1-development/10864787/",
+      "dueAt": "2026-10-13T07:05:00.000Z",
+      "expiresAt": "2026-10-14T12:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acdc9c0c210c8c6dd4e960a"
+    },
+    {
+      "id": "1a5c0174907567dc72c4afc81539465ac4fa838381e1ecdd70467a1b83299651",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "rwanda-african-grand-prix-ten-year-deal",
+          "revision": "05368e544a0110f769a838fb81b9b6bf25ab90b5ad55884c0b5d550908e0a5fe"
+        }
+      ],
+      "text": "F1 has agreed a ten-year deal for an African Grand Prix in Rwanda from the early 2030s. A new circuit is planned in Bugesera, south of Kigali. The first race date is still to be announced. https://www.formula1.com/en/latest/article/everything-we-know-about-f1s-all-new-race-in-rwanda.3Mde3s9FqIOTbkzKs0Puwo",
+      "dueAt": "2026-10-13T12:25:00.000Z",
+      "expiresAt": "2026-10-14T12:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6ace1f7e7c54ccc397c0f7e3"
+    },
+    {
+      "id": "c36cc5970a06f1bc962b11f9595258f6c66faa3f74cf79f2b4afbe29f1898b3d",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "mclaren-2026-handling-change-2027",
+          "revision": "4235c37644f4aeef9bb0a843b45563613eddda0c605dd40bfd660113464646c4"
+        }
+      ],
+      "text": "McLaren's remaining 2026 upgrades will add downforce, but Andrea Stella says the car's demanding handling needs more fundamental changes. He expects those to arrive with the 2027 car at the earliest. https://www.autosport.com/f1/news/why-mclaren-cannot-fix-its-f1-car-handling-until-2027/10864932/",
+      "dueAt": "2026-10-13T15:00:00.000Z",
+      "expiresAt": "2026-10-14T14:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6ace441226f0b7a27e9a5f7f"
+    },
+    {
+      "id": "d5d61981e28050009bb56a92ed1d407a9fe6c7ce8366811c416f254bba22f596",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "antonelli-singapore-brake-temperature-data",
+          "revision": "980a23d9cf9c7b1ed22ff4b2ea14c0b9ae08a7371a067070f04e8c6f547c957e"
+        },
+        {
+          "raceSlug": "singapore-2026",
+          "key": "cadillac-singapore-brake-temperature-management",
+          "revision": "3580bc74db3f28e14275f68cf4bd45b497ec8dca4920d53e0924b214d8252b6e"
+        }
+      ],
+      "text": "Singapore's heat tested the brakes too. Antonelli raced without brake-temperature data after a sensor issue. Bottas had to lift and coast from lap two, despite Cadillac's cooling upgrades. https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=antonelli-singapore-brake-temperature-data",
+      "dueAt": "2026-10-13T15:25:00.000Z",
+      "expiresAt": "2026-10-14T14:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6ace44130e025f0122f63fb9"
+    },
+    {
+      "id": "b7d1567833d8230bb6a86d6b41ffcc56dfa7fa496001d7542adcda530a2dc0ab",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "rwanda-african-grand-prix-circuit-design",
+          "revision": "5ec59209d598a5fdeeee60007ef74a767ab0771cd4e5716e4416d988bd280736"
+        }
+      ],
+      "text": "Rwanda's proposed F1 circuit: 6km, 17 corners and 197 metres of elevation change across a lap. Wurz and Tilke are designing it around two hills and a lake. The full layout is still to come. https://www.formula1.com/en/latest/article/hills-a-lake-and-a-roller-coaster-inside-rwandas-plan-for-the-african-grand-prix.76LEZDItQYH362QElcHoY1",
+      "dueAt": "2026-10-14T05:35:00.000Z",
+      "expiresAt": "2026-10-15T05:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acf12b80d20fd15277f930c"
+    },
+    {
+      "id": "fb2486318f891f7acc07c713bfedbb430a5444f1be13037d708f033fd13b738d",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "fia-floor-support-geometry-2027",
+          "revision": "eb8cdc4e173f7b7278b6bac14d01b5fb751f7af1b563708ed7352568ef8c9ee4"
+        }
+      ],
+      "text": "The FIA's 2027 rules tighten floor-support geometry: a 5mm limit on the rounded junction with bodywork, plus restrictions on where supports can meet it. The changes apply next season. https://www.fia.com/system/files/documents/fia_2027_f1_regulations_-_section_c_technical_-_iss_3_-_2026-10-01.pdf",
+      "dueAt": "2026-10-14T06:00:00.000Z",
+      "expiresAt": "2026-10-15T05:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6acf12b9b610c3011fa10a14"
+    }
+  ]
+}

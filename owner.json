@@ -1,4 +1,5 @@
 {
-  "owner": "b371a240-ed5f-488f-850e-a05814136c23",
-  "acquiredAt": "2026-10-14T12:34:21.928Z"
+  "owner": null,
+  "releasedAt": "2026-10-14T12:39:02.253Z",
+  "reason": "Confirmed completed cloud validation; no Buffer writes occurred."
 }

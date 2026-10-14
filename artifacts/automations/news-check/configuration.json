@@ -1,0 +1,20 @@
+{
+  "name": "Grand Prix Picks — twice-daily news check",
+  "routineId": "trig_01TLdwgdGNYpQdvAKGMC2ovC",
+  "url": "https://claude.ai/code/routines/trig_01TLdwgdGNYpQdvAKGMC2ovC",
+  "enabled": false,
+  "cronUtc": "0 6,16 * * *",
+  "reportTimezone": "Africa/Johannesburg",
+  "repository": "barrymichaeldoyle/GrandPrixPicks",
+  "environmentId": "env_01Nxy8opLNojyPHqVfznQLrK",
+  "connectors": ["Buffer"],
+  "validationRoutineId": "trig_01WW6GiGa6kS1g21vVdzzuwz",
+  "validationRoutineUrl": "https://claude.ai/code/routines/trig_01WW6GiGa6kS1g21vVdzzuwz",
+  "activationRequirements": [
+    "Cloud dependencies installed",
+    "Production Convex CLI access verified",
+    "Buffer CLI access verified",
+    "Shared ledger freshness and persistence verified",
+    "Cross-run exclusive operator access verified"
+  ]
+}

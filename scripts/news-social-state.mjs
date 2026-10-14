@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 // A separate Git repository keeps operator state away from the app checkout.
-// Orphan lock commits make simultaneous non-forced pushes mutually exclusive.
+// Append-only lock commits make simultaneous non-forced pushes mutually exclusive.
 export function openNewsSocialState({ remote, branch, apply = false, seed }) {
   if (!/^claude\/[a-z0-9][a-z0-9/-]*$/.test(branch ?? '')) {
     throw new Error('Shared news state must use a claude/ branch.');
@@ -63,22 +63,30 @@ export function openNewsSocialState({ remote, branch, apply = false, seed }) {
     }
     return ledger;
   };
+  const readLock = () => {
+    if (!remoteHead(lockRef)) return null;
+    git(['fetch', '--no-tags', 'origin', `${lockRef}:refs/lock/current`]);
+    const sha = git(['rev-parse', 'refs/lock/current']).stdout.trim();
+    const record = JSON.parse(git(['show', `${sha}:owner.json`]).stdout);
+    if (record?.owner !== null && typeof record?.owner !== 'string') {
+      throw new Error('Invalid shared news lock record.');
+    }
+    return { sha, record };
+  };
   const close = () => {
     if (closed) return;
     closed = true;
     try {
       if (lock) {
-        git(
-          [
-            'push',
-            `--force-with-lease=${lockRef}:${lock}`,
-            'origin',
-            `:${lockRef}`,
-          ],
-          undefined,
-          true,
-        );
-        if (remoteHead(lockRef) === lock) {
+        if (remoteHead(lockRef) !== lock) {
+          throw new Error('Shared news lock ownership changed before release.');
+        }
+        const released = commit('owner.json', {
+          owner: null,
+          releasedAt: new Date().toISOString(),
+        }, lock);
+        git(['push', 'origin', `${released}:${lockRef}`], undefined, true);
+        if (remoteHead(lockRef) !== released) {
           throw new Error(
             'Could not release shared news lock. Inspect it before another apply.',
           );
@@ -94,14 +102,15 @@ export function openNewsSocialState({ remote, branch, apply = false, seed }) {
     git(['config', 'user.email', 'news-operator@grandprixpicks.com']);
     git(['remote', 'add', 'origin', remote]);
     if (apply) {
-      if (remoteHead(lockRef))
+      const previous = readLock();
+      if (previous?.record.owner)
         throw new Error(
           'Another operator holds the shared news lock. Inspect interrupted work before releasing it.',
         );
       const candidate = commit('owner.json', {
         owner: randomUUID(),
         acquiredAt: new Date().toISOString(),
-      });
+      }, previous?.sha);
       git(['push', 'origin', `${candidate}:${lockRef}`], undefined, true);
       if (remoteHead(lockRef) !== candidate)
         throw new Error('Could not acquire exclusive shared news lock.');

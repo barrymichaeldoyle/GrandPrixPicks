@@ -120,6 +120,9 @@ clones and uses their authenticated Git proxy. The local ledger is a snapshot;
 the state branch is authoritative. Missing state, lock contention, an uncertain
 push or an external state edit stops the operation. Locks are never stolen on
 expiry: inspect interrupted Buffer work before manually releasing a stale lock.
+The lock branch retains an append-only history: acquisition and release use
+ordinary fast-forward pushes, and a released record has `owner: null`. Neither
+branch deletion nor force-push is needed for normal operations.
 
 These freshness checks run during sweeps and explicit `news social check`
 calls. Buffer sends the scheduled copy independently; there is no background

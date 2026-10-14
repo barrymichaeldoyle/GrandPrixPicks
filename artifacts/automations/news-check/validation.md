@@ -28,6 +28,17 @@ script is being reduced to the global tool install; the task already installs
 repository dependencies after checking out the operator branch. No service or
 state checks ran in that failed attempt.
 
+Retry `cse_017WKxiWWPMzgXAFGVxo5DBk` confirmed production Convex access and
+unchanged 35-record journal persistence, but Buffer authentication and lock
+release failed. The completed test lock was safely released by an ordinary
+child commit. Operator branch commit `8c195e4f` replaces branch deletion with
+append-only acquisition/release commits and passed focused tests and CI checks.
+
+Diagnostic `cse_01EAfDL5raqueqJHTQBEzAjp` proved the Buffer key works in the
+cloud via curl and via CLI with `NODE_USE_ENV_PROXY=1`. Node v22.22.0 otherwise
+bypasses `HTTPS_PROXY`, sending the placeholder instead of receiving the proxy's
+real header. The environment is being updated with `NODE_USE_ENV_PROXY=1`.
+
 The results below describe the earlier test against the old Default environment.
 
 Routine: https://claude.ai/code/routines/trig_01TLdwgdGNYpQdvAKGMC2ovC

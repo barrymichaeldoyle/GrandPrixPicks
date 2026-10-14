@@ -4,7 +4,9 @@ set -euo pipefail
 # Run at task start, not during a cached dependency setup. Never echo secrets.
 : "${GPP_CONVEX_PROXY_URL:?Production Convex network-secret proxy is missing}"
 : "${BUFFER_API_KEY:?Buffer CLI credential is missing}"
+: "${NODE_USE_ENV_PROXY:?Node must use the cloud network-secret proxy}"
 test "$GPP_CONVEX_PROXY_URL" = 'https://cheery-tern-274.convex.cloud'
+test "$NODE_USE_ENV_PROXY" = '1'
 command -v node >/dev/null
 command -v pnpm >/dev/null
 command -v buffer >/dev/null

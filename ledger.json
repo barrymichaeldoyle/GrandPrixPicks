@@ -723,6 +723,23 @@
       "expiresAt": "2026-10-16T16:00:00.000Z",
       "status": "scheduled",
       "bufferPostId": "6acf8404e8f6b2321c1f237a"
+    },
+    {
+      "id": "8bce45b328df1e1f1ebfac7bebb0dc67e506823ece1ea8b5fa8764f43da91c86",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "cadillac-bottas-operational-progress-2026",
+          "revision": "aa1731024285ad9a942e451e24fa7000db591b7f4d6b07e8865501ce139284f2"
+        }
+      ],
+      "text": "Bottas says Cadillac is improving how it operates each weekend, even though the team is still chasing its first point. https://www.racefans.net/2026/10/14/spotlight-cadillac-already-has-better-facilities-than-mercedes-says-bottas/",
+      "dueAt": "2026-10-14T14:10:00.000Z",
+      "expiresAt": "2026-10-16T16:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

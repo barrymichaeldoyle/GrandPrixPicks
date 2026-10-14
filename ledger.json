@@ -739,7 +739,8 @@
       "text": "Bottas says Cadillac is improving how it operates each weekend, even though the team is still chasing its first point. https://www.racefans.net/2026/10/14/spotlight-cadillac-already-has-better-facilities-than-mercedes-says-bottas/",
       "dueAt": "2026-10-14T14:10:00.000Z",
       "expiresAt": "2026-10-16T16:00:00.000Z",
-      "status": "creating"
+      "status": "creating",
+      "bufferPostId": "6acf841858a7fbe013d6ca10"
     }
   ]
 }

@@ -21,7 +21,7 @@ function DriverPickBadge({ driver }: { driver: Driver }) {
     // The team colour is the 3px edge bar on this block, not its fill. The
     // number and code are data, so they are mono and tabular.
     <div
-      className="gpp-team-bar flex h-full w-12 shrink-0 items-center justify-center border-r border-border py-1 pl-1 sm:w-14"
+      className="gpp-team-bar flex h-full w-10 shrink-0 items-center justify-center border-r border-border py-1 pl-1 sm:w-14"
       style={
         {
           '--team-colour':
@@ -81,7 +81,7 @@ export function SortablePickRow({
         layout: { type: 'spring', stiffness: 350, damping: 30 },
       }}
       data-testid={`picked-driver-${position}`}
-      className={`relative flex h-14 shrink-0 items-stretch gap-0 border-b border-transparent bg-surface-muted sm:h-16 ${isDragging ? 'z-10 opacity-60' : ''}`}
+      className={`relative flex h-24 shrink-0 scroll-mt-[calc(var(--nav-height)+9rem)] items-stretch gap-0 border-b border-transparent bg-surface-muted sm:h-16 pointer-coarse:h-24 ${isDragging ? 'z-10 opacity-60' : ''}`}
     >
       <div
         {...attributes}
@@ -96,9 +96,13 @@ export function SortablePickRow({
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-0 px-2 py-1.5 sm:px-3 sm:py-2">
           <div className="flex items-center gap-2">
             {driver.nationality && (
-              <Flag code={driver.nationality} size="xs" className="shrink-0" />
+              <Flag
+                code={driver.nationality}
+                size="xs"
+                className="hidden shrink-0 sm:inline-flex"
+              />
             )}
-            <span className="truncate font-medium text-text">
+            <span className="text-sm leading-tight font-medium text-text sm:truncate sm:text-base">
               {driver.displayName}
             </span>
           </div>
@@ -140,7 +144,7 @@ export function SortablePickRow({
               moveUp(index);
             }}
             disabled={index === 0}
-            className="flex h-6 w-6 items-center justify-center transition-colors hover:bg-accent-muted/40 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none disabled:opacity-30"
+            className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-accent-muted/40 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none disabled:opacity-30 sm:h-6 sm:w-6 pointer-coarse:h-11 pointer-coarse:w-11"
             aria-label={`Move ${driver.displayName} up`}
           >
             <ChevronUp size={14} className="text-accent" aria-hidden />
@@ -152,7 +156,7 @@ export function SortablePickRow({
               moveDown(index);
             }}
             disabled={index >= picksLength - 1}
-            className="flex h-6 w-6 items-center justify-center transition-colors hover:bg-accent-muted/40 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none disabled:opacity-30"
+            className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-accent-muted/40 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none disabled:opacity-30 sm:h-6 sm:w-6 pointer-coarse:h-11 pointer-coarse:w-11"
             aria-label={`Move ${driver.displayName} down`}
           >
             <ChevronDown size={14} className="text-accent" aria-hidden />
@@ -164,7 +168,7 @@ export function SortablePickRow({
             e.stopPropagation();
             removeDriver(driver._id);
           }}
-          className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-error-muted focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
+          className="flex h-11 w-11 items-center justify-center rounded transition-colors hover:bg-error-muted focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none sm:h-6 sm:w-6 pointer-coarse:h-11 pointer-coarse:w-11"
           aria-label={`Remove ${driver.displayName}`}
           data-testid={`remove-pick-${position}`}
         >
@@ -188,7 +192,7 @@ export function EmptySlotDroppable({
     <Tooltip content={driverSlotTooltip}>
       <div
         ref={setNodeRef}
-        className={`flex h-14 w-full shrink-0 cursor-default items-center border-b border-dashed border-border bg-surface text-left last:border-b-0 sm:h-16 sm:cursor-help ${isOver ? 'bg-accent-muted/30' : ''}`}
+        className={`flex h-24 w-full shrink-0 cursor-default items-center border-b border-dashed border-border bg-surface text-left last:border-b-0 sm:h-16 sm:cursor-help pointer-coarse:h-24 ${isOver ? 'bg-accent-muted/30' : ''}`}
       >
         <span className="flex-1 px-2 py-1.5 text-sm text-text-muted sm:px-3 sm:py-2">
           <span className="sr-only">P{slotIndex + 1}, </span>

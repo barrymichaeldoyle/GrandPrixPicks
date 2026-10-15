@@ -112,6 +112,18 @@ inspect Buffer and the ledger before removing `.gpp-news-social.lock`. If a
 post was edited or removed manually in Buffer, reconcile its ledger record
 before retrying; the CLI will stop rather than overwrite that intervention.
 
+When `artifacts/automations/news-check/state.json` exists, the CLI additionally
+loads the journal from its configured Git branch using the checkout's origin
+remote. Applies acquire an exclusive remote lock and persist each journal
+transition before continuing with Buffer writes. This supports fresh cloud
+clones and uses their authenticated Git proxy. The local ledger is a snapshot;
+the state branch is authoritative. Missing state, lock contention, an uncertain
+push or an external state edit stops the operation. Locks are never stolen on
+expiry: inspect interrupted Buffer work before manually releasing a stale lock.
+The lock branch retains an append-only history: acquisition and release use
+ordinary fast-forward pushes, and a released record has `owner: null`. Neither
+branch deletion nor force-push is needed for normal operations.
+
 These freshness checks run during sweeps and explicit `news social check`
 calls. Buffer sends the scheduled copy independently; there is no background
 news watcher or check at send time. Recheck pending posts when news changes,

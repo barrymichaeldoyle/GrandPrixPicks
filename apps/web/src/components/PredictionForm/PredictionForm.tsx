@@ -46,7 +46,11 @@ import {
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { getRaceSessionLockAt } from '@/lib/raceSessions';
-import type { SessionType } from '@/lib/sessions';
+import {
+  getSessionsForWeekend,
+  SESSION_LABELS,
+  type SessionType,
+} from '@/lib/sessions';
 import { useNow } from '@/lib/testing/now';
 import { pickPool, resolvePicks } from '@/lib/roster';
 import { ConfirmDialog } from '../ConfirmDialog';
@@ -725,6 +729,17 @@ export function PredictionForm({
       : hasChanges
         ? 'unsaved'
         : 'saved';
+  const openSessionLabels = race
+    ? getSessionsForWeekend(Boolean(race.hasSprint))
+        .filter((session) => getRaceSessionLockAt(race, session) > now)
+        .map((session) => SESSION_LABELS[session])
+    : [];
+  const scopeLabel =
+    openSessionLabels.length > 0
+      ? new Intl.ListFormat('en', { type: 'conjunction' }).format(
+          openSessionLabels,
+        )
+      : 'every open session this weekend';
 
   // Completing the set writes itself. Lighting up the big save button for
   // that beat is what used to flash under the player's thumb while the
@@ -829,6 +844,17 @@ export function PredictionForm({
       onDragEnd={handleDragEnd}
     >
       <div className="@container space-y-4 sm:space-y-6">
+        {!sessionType && (
+          <p
+            className="text-sm text-text-muted"
+            data-testid="prediction-save-scope"
+          >
+            {isAuthenticated && picks.length === 5 && saveState === 'saved'
+              ? 'Saved for'
+              : 'Applies to'}{' '}
+            {scopeLabel}. You can edit each session until it starts.
+          </p>
+        )}
         {restoredDraftAt ? (
           <DraftRestoredNotice
             target={draftNoticeTarget}
@@ -839,15 +865,28 @@ export function PredictionForm({
           <MobilePickSummary
             drivers={pickedDrivers}
             reviewId={reviewId}
-            onReview={() => {
-              yourPicksRef.current?.scrollIntoView({
+            onReview={(position) => {
+              const target = position
+                ? yourPicksRef.current?.querySelector<HTMLElement>(
+                    `[data-testid="picked-driver-${position}"]`,
+                  )
+                : yourPicksRef.current;
+              target?.scrollIntoView({
                 behavior: window.matchMedia('(prefers-reduced-motion: reduce)')
                   .matches
                   ? 'auto'
                   : 'smooth',
                 block: 'start',
               });
-              yourPicksRef.current?.focus({ preventScroll: true });
+              if (position) {
+                target
+                  ?.querySelector<HTMLElement>(
+                    '[aria-roledescription="sortable"], [data-testid^="remove-pick-"]',
+                  )
+                  ?.focus({ preventScroll: true });
+              } else {
+                yourPicksRef.current?.focus({ preventScroll: true });
+              }
             }}
           />
         )}
@@ -889,7 +928,7 @@ export function PredictionForm({
                 {[1, 2, 3, 4, 5].map((n) => (
                   <div
                     key={n}
-                    className="gpp-mono flex h-14 w-10 shrink-0 items-center justify-center border-b border-border text-sm font-semibold text-accent last:border-b-0 sm:h-16 sm:w-12"
+                    className={`gpp-mono h-24 w-8 shrink-0 items-center justify-center border-b border-border text-sm font-semibold text-accent last:border-b-0 sm:h-16 sm:w-12 pointer-coarse:h-24 ${mobileActionFirst && n > picks.length ? 'hidden @min-[875px]:flex' : 'flex'}`}
                     aria-hidden
                   >
                     P{n}
@@ -927,11 +966,19 @@ export function PredictionForm({
                   {Array.from({ length: emptySlots }).map((_, i) => {
                     const slotIndex = picks.length + i;
                     return (
-                      <EmptySlotDroppable
+                      <div
+                        className={
+                          mobileActionFirst
+                            ? 'hidden @min-[875px]:contents'
+                            : 'contents'
+                        }
                         key={emptySlotId(slotIndex)}
-                        slotIndex={slotIndex}
-                        driverSlotTooltip={driverSlotTooltip}
-                      />
+                      >
+                        <EmptySlotDroppable
+                          slotIndex={slotIndex}
+                          driverSlotTooltip={driverSlotTooltip}
+                        />
+                      </div>
                     );
                   })}
                 </div>

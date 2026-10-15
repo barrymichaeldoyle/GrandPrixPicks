@@ -1,0 +1,25 @@
+[
+  {
+    "raceSlug": "singapore-2026",
+    "key": "gasly-singapore-traction-tyre-overheating",
+    "headline": "Gasly says Alpine's tyre overheating cost Singapore points",
+    "body": "Gasly finished 11th after starting seventh in Singapore. He says Alpine's tyres overheated within three laps of a stint, leaving him short of traction out of slow corners. Hadjar took the final point as Gasly's pace fell away late in the race.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": [
+      "GAS"
+    ],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/im-sideways-all-the-time-how-alpines-feral-f1-car-plagued-pierre-gasly-in-singapore/10864744/",
+    "sourcePublishedAt": "2026-10-14T09:19:00Z"
+  },
+  {
+    "key": "cadillac-bottas-operational-progress-2026",
+    "headline": "Bottas sees Cadillac improving its operations each weekend",
+    "body": "Bottas says Cadillac is improving how it operates in different areas each weekend, although the progress has yet to show in its results. The team remains without a point in its first Formula 1 season. He also rates its facilities above those he knew at Mercedes.",
+    "team": "Cadillac",
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/10/14/spotlight-cadillac-already-has-better-facilities-than-mercedes-says-bottas/",
+    "sourcePublishedAt": 1791973365000
+  }
+]

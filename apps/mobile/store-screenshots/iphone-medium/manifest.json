@@ -1,0 +1,55 @@
+{
+  "appId": "6810265048",
+  "version": "1.0.0",
+  "locale": "en-US",
+  "capturedOn": "2026-10-15",
+  "source": "production, dedicated review account",
+  "width": 1206,
+  "height": 2622,
+  "alpha": false,
+  "placementGroup": "IPHONE_DYNAMIC_ISLAND_MEDIUM_PROFILE",
+  "images": [
+    {
+      "file": "02-top5.png",
+      "sha256": "d207dd96cb65df22999582a4a652431fee20d7a1d0c3cdbb90aa451f59a82e9e",
+      "assetId": "dec00019-5ec6-85d8-803d-f3c5a88ba8ba",
+      "assetState": "PREPARE_FOR_SUBMISSION",
+      "placementId": "32c00019-5ec6-85d8-8f03-8dfc338cbafd",
+      "placementState": "ACTIVE"
+    },
+    {
+      "file": "01-home.png",
+      "sha256": "19231aa8f4028dbeb7bb0ad0b7929c60768b3368012296e04f8dc011ab75c4d7",
+      "assetId": "8e400019-5ec6-85d8-800d-d7248720e98f",
+      "assetState": "PREPARE_FOR_SUBMISSION",
+      "placementId": "db800019-5ec6-85d8-8f02-144559e93b1f",
+      "placementState": "ACTIVE"
+    },
+    {
+      "file": "05-team-mate-pick.png",
+      "sha256": "ae8a73ca1ad95c89639d16d0e7bcd5352034a4e79507a6b4b07a1add339a6e5e",
+      "assetId": "a8c00019-5ec6-85d8-8030-eecd90997f07",
+      "assetState": "PREPARE_FOR_SUBMISSION",
+      "placementId": "ad400019-5ec6-85d8-8f15-e8a63e80f830",
+      "placementState": "ACTIVE"
+    },
+    {
+      "file": "03-leaderboard.png",
+      "sha256": "82b3d3d16abeeb6f6a0d31ec69e69735dd3e9445a02cbe779cb3106a7eb5e3eb",
+      "assetId": "5f800019-5ec6-85d8-8022-fd0b57acf7df",
+      "assetState": "PREPARE_FOR_SUBMISSION",
+      "placementId": "50400019-5ec6-85d8-8f2f-d6272c10e5ab",
+      "placementState": "ACTIVE"
+    },
+    {
+      "file": "04-race-result.png",
+      "sha256": "d68ebc35fee7efd17e2b88b5df6eddc77f0610b5875e4df6eec35439cd2f15f4",
+      "assetId": "cf800019-5ec6-85d8-8022-e94cc73a4e1a",
+      "assetState": "PREPARE_FOR_SUBMISSION",
+      "placementId": "a7000019-5ec6-85d8-8f38-f7da404c0c52",
+      "placementState": "ACTIVE"
+    }
+  ],
+  "verifiedAt": "2026-10-15T15:32:21.293Z",
+  "appStoreState": "PREPARE_FOR_SUBMISSION"
+}

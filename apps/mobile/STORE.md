@@ -29,6 +29,14 @@ search results, so both are written to survive that rather than to fit exactly.
 | Marketing URL      | `https://grandprixpicks.com`                            |              |
 | Privacy Policy URL | `https://grandprixpicks.com/privacy`                    | verified 200 |
 
+Launch pricing is free, with no ads or in-app subscription in version 1.0.0.
+App Store Connect was configured and verified on 2026-10-15: free in all 175
+territories, with new territories enabled automatically. Build 14 is selected
+for version 1.0.0; the draft remains unsubmitted with manual release selected.
+A possible later release may add ads and a monthly in-app subscription to
+remove them, separate from web subscriptions. That later plan is not part of
+the launch listing or its current advertising/privacy declarations.
+
 ### Keywords (100 characters)
 
 ```
@@ -103,6 +111,13 @@ standing and the notification bell. Create a real account with picks against
 the current round, put the credentials in App Review Information, and the
 reviewer sees a populated app rather than empty states.
 
+The current, ready-to-paste notes are in `APP_REVIEW_NOTES.txt`. Review
+contact details and these notes were saved to App Store Connect on
+2026-10-15. The dedicated production review account's supplied credentials
+were also saved in App Store Connect. Keep credentials there or in a password
+manager, rather than this repository. Its populated picks and fresh-device
+sign-in still need verification.
+
 Notes worth adding for the reviewer:
 
 ```
@@ -157,8 +172,55 @@ for tracking, so the app needs no ATT prompt.
 
 ## Screenshots
 
-Apple requires one 6.9 inch set (1320 x 2868). Everything else can scale from
-it, so start there and add more only if you want device-specific framing.
+As checked on 2026-10-15, Apple's required iPhone set is **Dynamic Island
+medium display** (1206 × 2622 or 1179 × 2556). Capture on an iPhone 17 Pro
+simulator for 1206 × 2622. The existing 1320 × 2868 images cover the large
+display and can be used as an additional set. Do not assume the old
+large-display-only checklist satisfies the current requirements.
+
+Source: https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications
+
+**Completed 2026-10-15:** five production captures from the dedicated review
+account are in `store-screenshots/iphone-medium/`. They are 1206 × 2622 RGB
+PNGs with no alpha channel. All five processed successfully in Apple's asset
+library and were placed on the English (US) version 1.0.0 draft under
+`IPHONE_DYNAMIC_ISLAND_MEDIUM_PROFILE`. Their verified order is Top 5, Home,
+team-mate pick, season leaderboard, race result. `manifest.json` records the
+file hashes, asset IDs, and placement IDs. The app remains a draft.
+
+For repeat captures:
+
+- Start a fresh Metro session with `--clear` and screenshot mode enabled.
+  A week-old Metro/app session was the source of the disconnected/loading
+  capture failure. Explicitly reconnect the simulator's development client.
+- Confirm the bundled backend and Clerk instance agree. For production
+  captures, use the dedicated review account and production public variables;
+  back up and restore the ignored local env file afterward. In this run,
+  shell-only overrides with a second Metro process still served dev values;
+  changing the local env file and restarting with a clean cache resolved it.
+- Use simulator-scoped input, such as AXe (`brew install
+cameroncooke/axe/axe`), with an explicit simulator UDID. Inspect the current
+  accessibility tree and wait for the destination before capturing. Avoid
+  desktop mouse/keyboard events, which depend on window focus.
+- Check every image for loading indicators, offline banners, alerts, and
+  development fixture names. Capture the interface itself, without replacing
+  text or compositing synthetic results.
+- Simulator PNGs include an alpha channel even when the visible image is
+  opaque. Remove it before upload and verify dimensions and alpha:
+
+```sh
+cd apps/mobile
+swift scripts/prepare-store-screenshots.swift store-screenshots/iphone-medium/*.png
+sips -g pixelWidth -g pixelHeight -g hasAlpha store-screenshots/iphone-medium/*.png
+```
+
+For uploads, use Apple's current asset-library image/placement API and its
+live reference-data catalog. The old screenshot-set API is deprecated.
+Verify processed assets, display order, and the version's draft state after
+uploading. This does not submit the app for review.
+
+The following older workflow creates development fixtures, rather than the
+production capture set above:
 
 The app can put itself into a signed-in, populated state without anyone typing
 a password, so this is repeatable rather than a manual ritual:
@@ -167,9 +229,9 @@ a password, so this is repeatable rather than a manual ritual:
 # 1. Populate the dev deployment (once).
 pnpm --filter @grandprixpicks/web dev:setup-scenarios
 
-# 2. Boot a 6.9 inch simulator and install a dev build.
-xcrun simctl boot "iPhone 17 Pro Max"
-pnpm --filter @grandprixpicks/mobile exec expo run:ios --device "iPhone 17 Pro Max"
+# 2. Boot the required medium-display simulator and install a dev build.
+xcrun simctl boot "iPhone 17 Pro"
+pnpm --filter @grandprixpicks/mobile exec expo run:ios --device "iPhone 17 Pro"
 
 # 3. Mint a Clerk sign-in token and start Metro holding it. The app signs
 #    itself in on mount, and screenshot mode hides the LogBox banner that
@@ -212,8 +274,7 @@ Tokens expire after 300 seconds, so mint one per run. `simctl openurl` with
 sheet in front of custom-scheme opens, which is why the environment variable
 exists.
 
-Output is 1320 x 2868, exactly the 6.9 inch requirement, with no cropping or
-scaling needed.
+Output on iPhone 17 Pro is 1206 × 2622, with no cropping or scaling needed.
 
 Suggested order, because the first two are what people actually see in search:
 
@@ -224,9 +285,8 @@ Suggested order, because the first two are what people actually see in search:
 4. **Leaderboard.** Season standings with a few real names.
 5. **The feed.** Activity from the players you follow.
 
-Leagues are deliberately absent from this list: they are managed on the web,
-and the More tab links out rather than rendering them. There is no league
-screen in the app to photograph.
+Leagues are deliberately absent from this list. There is no league screen
+or league entry point in this iOS release.
 
 Captions should say what the screen does, not name it: "Rank the top five
 before the session locks" beats "Picks".

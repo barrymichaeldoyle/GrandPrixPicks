@@ -88,6 +88,17 @@ const PROD_CREDENTIALS_HINT =
   'For --prod, set CONVEX_DEPLOY_KEY (or CONVEX_DEPLOYMENT) in the environment.';
 
 function convexRun(fn, args, { prod }) {
+  // Claude's network-secret proxy attaches the real admin credential after
+  // the request leaves the VM. Never put that credential in the prompt/env.
+  const proxyUrl = process.env.GPP_CONVEX_PROXY_URL;
+  if (
+    proxyUrl &&
+    (!prod || proxyUrl !== 'https://cheery-tern-274.convex.cloud')
+  ) {
+    fail(
+      'Network-secret Convex access is restricted to Grand Prix Picks production.',
+    );
+  }
   // The backend's own convex binary, run from its directory so it picks up
   // apps/backend/.env.local, the same as `pnpm dev:backend`.
   const convexBin = path.join(backendDir, 'node_modules/.bin/convex');
@@ -101,7 +112,11 @@ function convexRun(fn, args, { prod }) {
       'disable',
       '--codegen',
       'disable',
-      ...(prod ? ['--prod'] : []),
+      ...(proxyUrl
+        ? ['--url', proxyUrl, '--admin-key', 'cloud-network-secret']
+        : prod
+          ? ['--prod']
+          : []),
     ],
     { cwd: backendDir, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
   );

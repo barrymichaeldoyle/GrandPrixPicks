@@ -12,9 +12,12 @@ import { SESSION_LABELS, formatRelativeTime, getScoreComment } from './helpers';
 export function ScorePublishedItem({
   event,
   grouped,
+  hideIdentity = false,
 }: {
   event: FeedEvent;
   grouped?: boolean;
+  /** A profile already identifies the player and groups these by race. */
+  hideIdentity?: boolean;
 }) {
   const [h2hOpen, setH2hOpen] = useState(false);
   // Subscribed here rather than inside the dialog: the order has to be in hand
@@ -28,56 +31,64 @@ export function ScorePublishedItem({
     <>
       <div className={isLocked ? 'space-y-2' : 'space-y-2.5'}>
         {/* Header: avatar + name */}
-        <div className="flex items-center gap-2">
-          <Link
-            to="/p/$username"
-            params={{ username: event.username ?? '' }}
-            search={{ from: undefined, fromLabel: undefined }}
-            className="shrink-0"
-            // The name beside it is the same link; this one is for pointers.
-            tabIndex={-1}
-            aria-hidden="true"
-          >
-            <Avatar
-              avatarUrl={event.avatarUrl}
-              username={event.username}
-              size="sm"
-            />
-          </Link>
-          <div className="min-w-0 flex-1">
-            <p className="flex flex-wrap items-baseline gap-x-1.5 text-sm leading-snug">
-              <UserLink
+        {hideIdentity ? (
+          <h3 className="text-sm font-semibold text-text">
+            {SESSION_LABELS[event.sessionType ?? ''] ??
+              event.sessionType ??
+              'Session result'}
+          </h3>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Link
+              to="/p/$username"
+              params={{ username: event.username ?? '' }}
+              search={{ from: undefined, fromLabel: undefined }}
+              className="shrink-0"
+              // The name beside it is the same link; this one is for pointers.
+              tabIndex={-1}
+              aria-hidden="true"
+            >
+              <Avatar
+                avatarUrl={event.avatarUrl}
                 username={event.username}
-                displayName={event.displayName}
+                size="sm"
               />
-              {event.username && (
-                <span className="text-xs text-text-muted">
-                  @{event.username}
-                </span>
-              )}
-            </p>
-            {!grouped && event.raceName && (
-              <p className="text-xs text-text-muted">
-                in{' '}
-                {event.raceSlug ? (
-                  <Link
-                    to="/races/$raceSlug"
-                    params={{ raceSlug: event.raceSlug }}
-                    className="font-medium text-text hover:text-accent"
-                  >
-                    {event.raceName}
-                  </Link>
-                ) : (
-                  <span className="font-medium text-text">
-                    {event.raceName}
+            </Link>
+            <div className="min-w-0 flex-1">
+              <p className="flex flex-wrap items-baseline gap-x-1.5 text-sm leading-snug">
+                <UserLink
+                  username={event.username}
+                  displayName={event.displayName}
+                />
+                {event.username && (
+                  <span className="text-xs text-text-muted">
+                    @{event.username}
                   </span>
                 )}
-                {' · '}
-                {SESSION_LABELS[event.sessionType ?? ''] ?? event.sessionType}
               </p>
-            )}
+              {!grouped && event.raceName && (
+                <p className="text-xs text-text-muted">
+                  in{' '}
+                  {event.raceSlug ? (
+                    <Link
+                      to="/races/$raceSlug"
+                      params={{ raceSlug: event.raceSlug }}
+                      className="font-medium text-text hover:text-accent"
+                    >
+                      {event.raceName}
+                    </Link>
+                  ) : (
+                    <span className="font-medium text-text">
+                      {event.raceName}
+                    </span>
+                  )}
+                  {' · '}
+                  {SESSION_LABELS[event.sessionType ?? ''] ?? event.sessionType}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Picks */}
         {event.picks && event.picks.length > 0 && (
@@ -191,7 +202,7 @@ export function ScorePublishedItem({
             return (
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                 <span className="gpp-mono text-sm font-semibold text-accent">
-                  +{total} {total === 1 ? 'point' : 'points'}
+                  +{total} Combined {total === 1 ? 'point' : 'points'}
                 </span>
                 <p className="text-xs text-text-muted italic">
                   {getScoreComment(event.points, event.picks)}

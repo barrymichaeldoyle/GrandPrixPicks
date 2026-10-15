@@ -9,6 +9,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import path from 'node:path';
+import { openNewsSocialState } from './news-social-state.mjs';
 
 const MINUTE = 60_000;
 /** A race write-up link in post copy, capturing its query string. */
@@ -76,6 +77,11 @@ function bufferCommand(
   const result = spawnSync('buffer', args, {
     encoding: 'utf8',
     maxBuffer: 8 * 1024 * 1024,
+    // Only the cloud Buffer subprocess needs Node's opt-in to HTTPS_PROXY.
+    // The platform proxy injects its host-scoped network secret outside the VM.
+    env: process.env.GPP_CONVEX_PROXY_URL === 'https://cheery-tern-274.convex.cloud'
+      ? { ...process.env, NODE_USE_ENV_PROXY: '1' }
+      : process.env,
   });
   if (result.error || result.status !== 0) {
     throw new Error(
@@ -89,13 +95,14 @@ function loadJson(file) {
   return JSON.parse(readFileSync(file, 'utf8'));
 }
 
-function saveLedger(file, ledger) {
+function saveLedger(file, ledger, sharedState) {
   mkdirSync(path.dirname(file), { recursive: true });
   const temporary = `${file}.${process.pid}.tmp`;
   writeFileSync(temporary, `${JSON.stringify(ledger, null, 2)}\n`, {
     mode: 0o600,
   });
   renameSync(temporary, file);
+  sharedState?.save(ledger);
 }
 
 // Conservative for non-ASCII characters; Buffer performs its own validation too.
@@ -157,6 +164,14 @@ export async function newsSocial(
     'artifacts/social/news-sweeps/ledger.json',
   );
   const lock = path.join(root, '.gpp-news-social.lock');
+  const stateConfigFile = path.join(
+    root,
+    'artifacts/automations/news-check/state.json',
+  );
+  const stateConfig = existsSync(stateConfigFile)
+    ? loadJson(stateConfigFile)
+    : null;
+  let sharedState;
   if (flags.apply) {
     try {
       mkdirSync(lock);
@@ -170,15 +185,49 @@ export async function newsSocial(
     }
   }
   try {
-    return await run(file, flags, { root, convexRun, buffer, now, ledgerFile });
+    if (stateConfig) {
+      const origin = spawnSync('git', ['remote', 'get-url', 'origin'], {
+        cwd: root,
+        encoding: 'utf8',
+      });
+      if (origin.status !== 0 || !origin.stdout.trim()) {
+        throw new Error(
+          'Shared news state needs the repository origin remote.',
+        );
+      }
+      sharedState = openNewsSocialState({
+        ...stateConfig,
+        // Cloud clones use an authenticated Git proxy in their origin URL.
+        remote: origin.stdout.trim(),
+        apply: Boolean(flags.apply),
+      });
+      // Always replace the checkout snapshot with the authoritative journal.
+      saveLedger(ledgerFile, sharedState.ledger);
+    }
+    return await run(file, flags, {
+      root,
+      convexRun,
+      buffer,
+      now,
+      ledgerFile,
+      sharedState,
+    });
   } finally {
-    if (flags.apply) {
-      rmSync(lock, { recursive: true });
+    try {
+      sharedState?.close();
+    } finally {
+      if (flags.apply) {
+        rmSync(lock, { recursive: true });
+      }
     }
   }
 }
 
-async function run(file, flags, { convexRun, buffer, now, ledgerFile }) {
+async function run(
+  file,
+  flags,
+  { convexRun, buffer, now, ledgerFile, sharedState },
+) {
   if (!file) {
     throw new Error('news social <selection.json>|check [--prod] [--apply]');
   }
@@ -519,7 +568,7 @@ async function run(file, flags, { convexRun, buffer, now, ledgerFile }) {
   // Validate the entire batch before any external mutation. Every create is
   // journalled first because Buffer does not support idempotency keys.
   if (apply) {
-    saveLedger(ledgerFile, ledger);
+    saveLedger(ledgerFile, ledger, sharedState);
     for (const entry of cancellations) {
       await buffer(
         ['posts', 'delete'],
@@ -528,7 +577,7 @@ async function run(file, flags, { convexRun, buffer, now, ledgerFile }) {
       );
       await buffer(['posts', 'delete'], { id: entry.bufferPostId });
       entry.status = 'cancelled';
-      saveLedger(ledgerFile, ledger);
+      saveLedger(ledgerFile, ledger, sharedState);
     }
   }
   for (const post of prepared) {
@@ -545,7 +594,7 @@ async function run(file, flags, { convexRun, buffer, now, ledgerFile }) {
     };
     if (apply) {
       ledger.posts.push(record);
-      saveLedger(ledgerFile, ledger);
+      saveLedger(ledgerFile, ledger, sharedState);
       const result = await buffer(['posts', 'create'], post.payload, {
         fields: 'post.id,post.status,post.text,post.dueAt',
       });
@@ -555,7 +604,7 @@ async function run(file, flags, { convexRun, buffer, now, ledgerFile }) {
         );
       }
       record.bufferPostId = result.post.id;
-      saveLedger(ledgerFile, ledger);
+      saveLedger(ledgerFile, ledger, sharedState);
       const verified = await buffer(
         ['posts', 'get'],
         { id: record.bufferPostId },
@@ -572,7 +621,7 @@ async function run(file, flags, { convexRun, buffer, now, ledgerFile }) {
         );
       }
       record.status = 'scheduled';
-      saveLedger(ledgerFile, ledger);
+      saveLedger(ledgerFile, ledger, sharedState);
     }
     reports.push({
       action: apply ? 'scheduled' : 'would_schedule',

@@ -19,7 +19,7 @@ import {
 
 import { Avatar } from '@/components/Avatar';
 import { Button, primaryButtonStyles } from '@/components/Button/Button';
-import { FeedItem } from '@/components/FeedItem/FeedItem';
+import { ProfileResultHistory } from '@/components/ProfileResultHistory';
 import { FeedEmptyState } from '@/components/FeedItem/states';
 import { InlineLoader } from '@/components/InlineLoader';
 import { FollowButton } from '@/components/FollowButton';
@@ -309,7 +309,7 @@ function ProfilePage() {
                   {stats?.totalPoints ?? '—'}
                 </div>
                 <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                  Total points
+                  Top 5 points
                 </div>
               </div>
               <div className="bg-surface px-3 py-4 text-center">
@@ -419,11 +419,8 @@ function ProfilePage() {
           <h2 className="font-title text-sm font-semibold text-text">
             {isOwner ? 'My recent results' : 'Recent results'}
           </h2>
-          {weekends && weekends.length > 0 ? (
-            <span className="text-xs text-text-muted">
-              {weekends.length} race{' '}
-              {weekends.length === 1 ? 'weekend' : 'weekends'}
-            </span>
+          {userFeed && userFeed.events.length > 0 ? (
+            <span className="text-xs text-text-muted">Combined scoring</span>
           ) : null}
         </div>
 
@@ -458,11 +455,10 @@ function ProfilePage() {
             />
           )
         ) : (
-          <div className="space-y-4">
-            {userFeed.events.map((event) => (
-              <FeedItem key={event._id} event={event} />
-            ))}
-          </div>
+          <ProfileResultHistory
+            key={currentProfile._id}
+            events={userFeed.events}
+          />
         )}
       </div>
     </div>

@@ -1,0 +1,11 @@
+Grand Prix Picks is a free Formula 1 prediction game. There is no wagering, entry fee, purchase, or prize. Players earn points for predicting finishing positions and team-mate results.
+
+Home, the feed, race results, and leaderboards can be browsed without signing in. Sign in to save Top 5 and team-mate picks, follow players, and manage notifications. Sign in with Apple and Google are supported.
+
+Picks are available from Home for the current race weekend. The first save applies to every session still open that weekend. Later edits apply only to the selected session. Each session locks at its start time; locked picks remain visible. If the current weekend is locked, previous results are available under More > Races.
+
+Accounts can be permanently deleted in the app under More > Settings > Delete account. Please use a separate account to test deletion so that the supplied review account remains available.
+
+Notifications are optional. The app offers pick reminders after the first saved pick; notification preferences are under More > Settings.
+
+Private leagues and purchases are outside this iOS release.

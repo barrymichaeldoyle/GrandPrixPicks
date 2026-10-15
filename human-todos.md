@@ -1,6 +1,6 @@
 # iOS release — human handoff
 
-Last audited: 2026-10-09
+Last audited: 2026-10-15
 
 The repository and simulator QA are complete. The items below need an Apple,
 EAS, Clerk, Convex, PostHog, or Sentry dashboard, a physical iPhone, or a
@@ -32,12 +32,11 @@ verified on 2026-09-07.
       (derived from that domain; confirm it against the Clerk dashboard before
       pasting). A `pk_test_…` key is intentionally rejected for a production
       build.
-- [ ] Configure APNs credentials in EAS. Note: the only APNs key on the team is
-      `R6TX8G2A5N` ("Expo Push Notifications Key", team-scoped, all topics,
-      Sandbox & Production), which EAS can reuse for this app. The key named
-      "Grand Prix Picks" (`SU2XX6L8U4`) is a **Sign in with Apple** key, not
-      APNs. `eas build` offers to reuse or create a push key interactively, so
-      this can be settled during the first build.
+- [x] Configure APNs credentials in EAS. Verified 2026-10-15 with
+      `eas credentials --platform ios`, production profile: push key
+      `R6TX8G2A5N` is attached to this app. Distribution certificate and
+      provisioning profile are active through 2027-09-09. This verifies
+      configuration; production push delivery still needs the device checks.
 
 - [x] Native Sign in with Apple in Clerk (2026-10-09). Prod already had the
       iOS app registered (team `LBZ6C9H52C`, bundle
@@ -46,9 +45,19 @@ verified on 2026-09-07.
       Not yet proven end to end: that needs a device signed in to an Apple
       Account (section 4). The app falls back to the browser flow if Clerk
       rejects the native token.
-- [ ] Create the App Review demo account on **production** with picks for
-      the current round, and put its credentials in App Review Information
-      (see `apps/mobile/STORE.md`).
+- [x] Confirm the dedicated App Review account exists in **production**
+      (`apple.review@grandprixpicks.com`) and save its supplied credentials in
+      App Review Information. Completed 2026-10-15. The account is verified,
+      password-enabled, unlocked, and has no MFA enabled. Credentials are
+      stored in App Store Connect, not this repository. Clerk's password
+      verification endpoint confirmed the supplied password.
+- [x] Populate the review account for the current round. On 2026-10-15,
+      Top 5 and all 11 team-mate picks were saved through the app for the
+      United States Grand Prix, applying to Qualifying and Race.
+- [ ] Test a fresh sign-in on the physical-device candidate, including any
+      new-device email challenge (see `apps/mobile/STORE.md`). The simulator
+      capture session used a short-lived Clerk ticket, so it does not certify
+      the physical-device password flow.
 
 ## 2. Configure EAS production variables
 
@@ -107,15 +116,25 @@ eas submit --profile production --platform ios --latest
 
 Confirm the build log shows successful Sentry source-map and dSYM uploads.
 
-App Store Connect metadata is **done as of 2026-09-09**: name, subtitle,
+App Store Connect listing metadata was completed on **2026-09-09**: name, subtitle,
 promotional text, description, keywords, support/marketing/privacy URLs,
 copyright, Sports/Entertainment categories, the age-rating questionnaire (4+)
-and the five published privacy nutrition labels. What is still outstanding
-there is **screenshots** (one 6.9 inch set, see `STORE.md`), **export
-compliance** (answered at submission; `usesNonExemptEncryption` is already
-false in `app.json`), **Pricing and Availability**, and **App Review
-contact/demo credentials**, which need a real account's password and so must be
-entered by a human.
+and the five published privacy nutrition labels. The 2026-10-15 API audit
+confirms build 13 is `VALID` and has `usesNonExemptEncryption: false`, so its
+export compliance is already answered. Review contact information supplied
+by Barry and the notes from
+`apps/mobile/APP_REVIEW_NOTES.txt` are now saved in App Store Connect.
+The dedicated demo credentials were saved on 2026-10-15. Five production
+screenshots for the required iPhone Dynamic Island medium display have now
+been uploaded and verified in the version 1.0.0 draft. Their asset IDs,
+placement IDs, hashes, and display order are recorded in
+`apps/mobile/store-screenshots/iphone-medium/manifest.json`. Pricing and
+availability were configured and read back on 2026-10-15: free in all 175
+App Store territories, with availability enabled for new territories too.
+The US base price and all 174 automatically equalized prices are zero.
+Barry confirmed the initial release will be free, with no launch ads or
+in-app subscription; possible later ad removal would use a separate mobile
+monthly subscription.
 The validated metadata is in `apps/mobile/store.config.json`; screenshots,
 review notes, and the data-disclosure inventory are in `apps/mobile/STORE.md`.
 
@@ -127,17 +146,44 @@ Build **12** (from `ee2f16aa`, EAS build `6c5f0bac`, submission `155e5b47`)
 replaces it: smooth feed scrolling, no header flashing, and the joined feed.
 Build **13** (from `438cf7cb`, EAS build `bb988f67`, submission `b0ada76d`)
 replaces 12: no empty Home after sign-in, and the system sign-in prompt names
-the app "Grand Prix Picks". Use build 13 for the section 4 device QA and for
-review.
+the app "Grand Prix Picks". Build 14 below supersedes it for device QA.
 
 Draft 6.9-inch screenshots (1320 x 2868, dev data, captured 2026-10-09) are
 in `apps/mobile/store-screenshots/`: home, Top 5 editor, season leaderboard,
 race result, team-mate pick. Swap in production captures if you prefer real
 player names.
 
+Build **14** completed on 2026-10-15 from `de47aa45` to include the mobile
+changes after build 13 (season/feed history, live gaps, and results). EAS build:
+https://expo.dev/accounts/barrymichaeldoyle/projects/grand-prix-picks/builds/3386f354-c091-416d-827d-a9eac00556eb
+The build log confirms source-map and main app dSYM uploads to Sentry. TestFlight
+upload was scheduled as submission `b038d5ea-a92e-4c47-9321-8e91473d502b`:
+https://expo.dev/accounts/barrymichaeldoyle/projects/grand-prix-picks/submissions/b038d5ea-a92e-4c47-9321-8e91473d502b
+Apple processing and device QA remain separate gates. EAS `--what-to-test`
+requires the Enterprise plan on this account; upload without that optional
+flag and enter beta test notes in App Store Connect instead.
+The submission subsequently completed successfully. Apple now reports build
+14 as `VALID` with `usesNonExemptEncryption: false`; it is ready for TestFlight
+device QA. Build 14 is selected for version 1.0.0 in App Store Connect,
+verified by API readback on 2026-10-15. The version remains
+`PREPARE_FOR_SUBMISSION`, with manual release selected. Physical-device QA
+and the final App Review submission remain outstanding.
+
+The disconnected/loading capture issue was resolved on 2026-10-15 by
+restarting the week-old Metro process with a clean cache and reconnecting the
+simulator. The final set uses production services and the dedicated review
+account. All five images are 1206 × 2622 opaque RGB PNGs and processed
+successfully in Apple's asset library. The placements are active, ordered
+Top 5 / Home / team-mate pick / leaderboard / result, and the app version
+remains `PREPARE_FOR_SUBMISSION`. No App Review submission was made.
+The old large-display development screenshots remain unchanged. Local
+development environment settings were restored after capturing.
+
 ## 4. Physical-device TestFlight QA
 
 The simulator cannot certify these:
+
+Use `docs/ios-device-qa.md` for the step-by-step checks and expected results.
 
 - [ ] Sign in with Apple and Google, including cancellation and error paths.
 - [ ] Push permission pre-prompt after the first saved pick.

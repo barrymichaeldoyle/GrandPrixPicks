@@ -8,7 +8,7 @@ export function MobilePickSummary({
 }: {
   drivers: RosterDriver[];
   reviewId: string;
-  onReview: () => void;
+  onReview: (position?: number) => void;
 }) {
   return (
     <div
@@ -25,7 +25,7 @@ export function MobilePickSummary({
           className="min-h-11 px-2 text-sm font-medium text-text underline underline-offset-4 hover:text-accent disabled:text-text-disabled disabled:no-underline"
           disabled={drivers.length === 0}
           aria-controls={reviewId}
-          onClick={onReview}
+          onClick={() => onReview()}
         >
           Review picks
         </button>
@@ -37,21 +37,29 @@ export function MobilePickSummary({
         {Array.from({ length: 5 }, (_, index) => {
           const driver = drivers[index];
           return (
-            <li
-              key={index}
-              className={`min-w-0 rounded-sm border px-2 py-1.5 ${driver ? 'border-border bg-surface' : 'border-dashed border-border'}`}
-            >
-              <span className="gpp-mono block text-xs text-text-muted">
-                P{index + 1}
-              </span>
-              <span
-                className={`gpp-mono mt-1 block text-sm ${driver ? 'text-text' : 'text-text-disabled'}`}
+            <li key={index} className="min-w-0">
+              <button
+                type="button"
+                onClick={() => onReview(index + 1)}
+                disabled={!driver}
+                aria-controls={reviewId}
+                aria-label={
+                  driver
+                    ? `Edit P${index + 1} ${driver.code}, ${driver.displayName}`
+                    : `P${index + 1}, empty`
+                }
+                className={`min-h-14 w-full rounded-sm border px-2 py-1.5 text-left ${driver ? 'border-border bg-surface hover:border-border-strong hover:bg-surface-hover' : 'border-dashed border-border'}`}
               >
-                <span className="sr-only">
-                  {driver ? `${driver.displayName}, ` : 'Empty'}
+                <span className="sr-only">{driver?.displayName}</span>
+                <span className="gpp-mono block text-xs text-text-muted">
+                  P{index + 1}
                 </span>
-                <span aria-hidden="true">{driver?.code ?? '—'}</span>
-              </span>
+                <span
+                  className={`gpp-mono mt-1 block text-sm ${driver ? 'text-text' : 'text-text-disabled'}`}
+                >
+                  <span aria-hidden="true">{driver?.code ?? '—'}</span>
+                </span>
+              </button>
             </li>
           );
         })}

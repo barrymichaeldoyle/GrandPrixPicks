@@ -36,7 +36,15 @@ vi.mock('@/lib/analytics', () => ({ captureAnalyticsEvent: () => {} }));
 // `m`, not `motion`: the app renders through LazyMotion so the animation
 // features load in their own chunk instead of on the critical path.
 vi.mock('framer-motion', () => ({
-  m: { div: ({ children }: { children?: ReactNode }) => children },
+  m: {
+    div: ({
+      children,
+      'data-testid': testId,
+    }: {
+      children?: ReactNode;
+      'data-testid'?: string;
+    }) => <div data-testid={testId}>{children}</div>,
+  },
 }));
 
 const draggableOnKeyDown = vi.fn((event: Event) => {
@@ -540,6 +548,13 @@ describe('PredictionForm try-before-signup', () => {
       expect(document.activeElement).toBe(
         container.querySelector('[data-testid="your-picks"]'),
       );
+      act(() =>
+        summary.querySelectorAll<HTMLButtonElement>('li button')[1].click(),
+      );
+      expect(document.activeElement).toBe(
+        container.querySelector('[data-testid="remove-pick-2"]'),
+      );
+      expect(scrollIntoView).toHaveBeenCalledTimes(2);
       expect(requestSignInSpy).not.toHaveBeenCalled();
       expect(submitSpy).not.toHaveBeenCalled();
     } finally {

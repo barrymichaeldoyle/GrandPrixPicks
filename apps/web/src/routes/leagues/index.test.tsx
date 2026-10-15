@@ -81,6 +81,12 @@ describe('leagues page for signed-out visitors', () => {
     expect(text).toContain('Private leagues');
     expect(text).toContain('Public leagues');
     expect(text).toContain('Sign in to manage your leagues');
+    expect(text.indexOf('Discover public leagues')).toBeLessThan(
+      text.indexOf('How F1 prediction leagues work'),
+    );
+    expect(container.querySelector('input')?.getAttribute('aria-label')).toBe(
+      'Search public leagues',
+    );
   });
 
   it('gives the page enough durable copy to be worth indexing', () => {

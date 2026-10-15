@@ -58,7 +58,7 @@ const CORNER_SOURCE =
 const VERSTAPPEN_SIM_SOURCE =
   'https://racingnews365.com/max-verstappen-predicts-big-shunts-at-madrid-f1-weekend';
 const SAINZ_WEDNESDAY_SOURCE =
-  'https://www.local10.com/sports/2026/09/09/sainz-expects-fun-but-intense-new-track-as-spanish-gp-returns-to-madrid-to-sold-out-crowd/';
+  'https://www.tsn.ca/motorsports/formula-1/article/sainz-expects-fun-but-intense-new-track-as-spanish-gp-returns-to-sold-out-crowd-in-madrid/';
 const MADRID_ATTENDANCE_SOURCE =
   'https://www.madring.com/notas-prensa/madring-ya-esta-listo';
 const WILLIAMS_UPGRADE_SOURCE =

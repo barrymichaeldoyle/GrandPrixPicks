@@ -258,22 +258,6 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
               Discover
             </Button>
           </div>
-        ) : !isSignedIn ? (
-          <>
-            <LeaguesExplainer />
-            <div className="reveal-up reveal-delay-1 mb-8 rounded-xl border border-border bg-surface p-6 text-center">
-              <Shield className="mx-auto mb-3 h-10 w-10 text-text-muted" />
-              <h2 className="mb-1 text-lg font-semibold text-text">
-                Sign in to manage your leagues
-              </h2>
-              <p className="text-sm text-text-muted">
-                Create a league or join one from an invite link.
-              </p>
-              <SignInActionButton className="mt-4" leftIcon={LogIn} size="sm">
-                Sign in
-              </SignInActionButton>
-            </div>
-          </>
         ) : null}
 
         {isSignedIn && activeTab === 'my' ? (
@@ -341,21 +325,20 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
           </section>
         ) : null}
 
-        {hasPublicLeagues && (!isSignedIn || activeTab === 'discover') ? (
+        {!isSignedIn || (hasPublicLeagues && activeTab === 'discover') ? (
           <section className={isSignedIn ? '' : 'mt-2'}>
             <div className="mb-4">
               <h2 className="text-xl font-semibold text-text">
                 Discover public leagues
               </h2>
               <p className="text-sm text-text-muted">
-                Browse public leagues and join one to compete.
+                Your existing picks count in every league you join.
               </p>
             </div>
 
             {!isSignedIn ? (
               <div className="mb-4 rounded-lg border border-border bg-surface p-3 text-sm text-text-muted">
-                Sign in to join public leagues and track your joined-league
-                limit.
+                Sign in when you’re ready to join a league.
               </div>
             ) : publicJoinLimitReached && leagueUsage ? (
               <div className="mb-4 flex flex-col gap-3 rounded-lg border border-warning/40 bg-warning/10 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -382,6 +365,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                 type="text"
                 value={discoverQuery}
                 onChange={(e) => setDiscoverQuery(e.target.value)}
+                aria-label="Search public leagues"
                 placeholder="Search public leagues..."
                 className="w-full rounded-lg border border-border bg-surface py-2 pr-3 pl-9 text-base text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
               />
@@ -458,6 +442,24 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
           </section>
         ) : null}
 
+        {!isSignedIn && (
+          <div className="mt-8 border-t border-border pt-6">
+            <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-text">
+                  Sign in to manage your leagues
+                </h2>
+                <p className="mt-1 text-sm text-text-muted">
+                  Create a league or join one from an invite link.
+                </p>
+              </div>
+              <SignInActionButton leftIcon={LogIn} size="sm">
+                Sign in
+              </SignInActionButton>
+            </div>
+            <LeaguesExplainer />
+          </div>
+        )}
         <LeaguesLongform />
       </div>
     </AppPageLayout>

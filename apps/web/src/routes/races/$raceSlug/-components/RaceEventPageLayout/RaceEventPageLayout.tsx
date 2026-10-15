@@ -150,6 +150,7 @@ export function RaceEventPageLayout({
    * `entryComplete` is what switches the block between those two jobs.
    */
   const entryComplete = showReadonlyPredictions && top5Done && h2hDone;
+  const referenceAfterResults = hasPublishedResults;
 
   return (
     <div className="min-h-full bg-page">
@@ -189,9 +190,9 @@ export function RaceEventPageLayout({
           }
         />
 
-        {!isPredictable && writeupContent}
+        {!isPredictable && !referenceAfterResults && writeupContent}
 
-        {raceReportContent}
+        {!referenceAfterResults && raceReportContent}
 
         {recapContent}
 
@@ -335,7 +336,9 @@ export function RaceEventPageLayout({
           </div>
         )}
 
-        {isPredictable && writeupContent}
+        {referenceAfterResults && raceReportContent}
+
+        {(isPredictable || referenceAfterResults) && writeupContent}
 
         {nextRaceCtaContent}
 

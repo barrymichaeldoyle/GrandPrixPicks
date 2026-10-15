@@ -70,4 +70,21 @@ describe('open race page priorities', () => {
     expect(html).toContain('Published results');
     expect(html).not.toContain('Try picks');
   });
+
+  it('places published results above the report and write-up on a finished race', () => {
+    const props = pageProps();
+    props.race.status = 'finished';
+    props.isPredictable = false;
+    props.weekendStatus.hasPublishedResults = true;
+    props.schedule.isPublished = () => true;
+    props.raceReportContent = <p>Race report</p>;
+    const html = renderToStaticMarkup(<RaceEventPageLayout {...props} />);
+    expect(html.indexOf('Published results')).toBeGreaterThan(-1);
+    expect(html.indexOf('Published results')).toBeLessThan(
+      html.indexOf('Race report'),
+    );
+    expect(html.indexOf('Published results')).toBeLessThan(
+      html.indexOf('Write-up'),
+    );
+  });
 });

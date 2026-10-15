@@ -421,6 +421,7 @@ export function LandingPicks({
     <section
       ref={sectionRef}
       id={LANDING_PICKS_ANCHOR}
+      tabIndex={-1}
       // Top padding stays deliberately short of the section rhythm used lower
       // down the page: this section has to start above the fold on a laptop, so
       // the first pick slots are visible rather than merely reachable.

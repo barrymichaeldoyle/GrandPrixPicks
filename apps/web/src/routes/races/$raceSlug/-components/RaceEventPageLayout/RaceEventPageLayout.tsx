@@ -45,9 +45,8 @@ type RaceEventPageLayoutProps = {
    * comes from the shared circuit guide.
    */
   /**
-   * The weekend write-up callout. Sits directly under the header, above the
-   * race report, because on an upcoming weekend it is the most substantial
-   * thing on the page and the reason the race page links out at all.
+   * The weekend write-up callout. Open rounds put picks first; other rounds
+   * keep the briefing beside the race report.
    */
   writeupContent?: ReactNode;
   raceReportContent?: ReactNode;
@@ -190,7 +189,7 @@ export function RaceEventPageLayout({
           }
         />
 
-        {writeupContent}
+        {!isPredictable && writeupContent}
 
         {raceReportContent}
 
@@ -207,6 +206,11 @@ export function RaceEventPageLayout({
           // out the full timeout waiting for markup that was never coming.
           <div className="py-8" data-testid="race-page-loading">
             <InlineLoader />
+          </div>
+        ) : isPredictable && !isSignedIn && !showResultsView ? (
+          <div className="mt-5 space-y-6">
+            {top5MainContent}
+            <WeekendScheduleList race={race} />
           </div>
         ) : isPredictable && isSignedIn && !hasPredictions ? (
           <div className="relative mt-6">
@@ -330,6 +334,8 @@ export function RaceEventPageLayout({
             </div>
           </div>
         )}
+
+        {isPredictable && writeupContent}
 
         {nextRaceCtaContent}
 

@@ -11,6 +11,7 @@ import { BrandMark } from './BrandMark.tsx';
 import { CommandPaletteShortcut } from './CommandPalette/CommandPaletteShortcut.tsx';
 import { APP_NAV_TABS, NavTab } from './NavTab.tsx';
 import { NotificationBell } from './NotificationBell.tsx';
+import { PublicNavigation } from './PublicNavigation';
 
 /**
  * Nav items are sentence case, like every other destination and heading in the
@@ -193,10 +194,10 @@ export function Header() {
               </nav>
             )}
             {showSignedOutNav ? <HeaderUser /> : null}
+            {showSignedOutNav ? <PublicNavigation /> : null}
             {showSignedOutNav ? (
               <a
                 href={hasOwnPicker ? `#${PICKS_ANCHOR}` : `/#${PICKS_ANCHOR}`}
-                aria-label="Make your picks"
                 className={`${primaryButtonStyles('sm')} gpp-public-header-cta px-2.5 whitespace-nowrap min-[390px]:px-4`}
                 onClick={() => {
                   captureAnalyticsEvent('public_header_cta_clicked', {
@@ -210,8 +211,13 @@ export function Header() {
                   }
                 }}
               >
-                <span aria-hidden="true">Make your picks</span>
-                <ArrowRight size={14} aria-hidden="true" />
+                <span className="min-[390px]:hidden">Make picks</span>
+                <span className="hidden min-[390px]:inline">
+                  Make your picks
+                </span>
+                <span className="hidden min-[390px]:block">
+                  <ArrowRight size={14} aria-hidden="true" />
+                </span>
               </a>
             ) : null}
           </div>

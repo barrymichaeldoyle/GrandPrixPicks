@@ -30,14 +30,51 @@ const scoringBands = [
   },
 ] as const;
 
-/**
- * The three bands as one flat row, each under a rule in its result colour.
- *
- * They were three bordered cards with a 48-unit floor and an 8px colour strip,
- * which made the rules the tallest block on the landing page while almost
- * nobody acted on them (one "Full scoring rules" click in 90 days). The facts
- * are the same; the space goes to the weekend's news above.
- */
+// Illustrative finishing order, not a past or forecast race classification.
+const scoringExample = [
+  {
+    driver: 'Norris',
+    predicted: 1,
+    actual: 1,
+    points: 5,
+    result: 'Exact position',
+    color: 'text-result-exact',
+  },
+  {
+    driver: 'Leclerc',
+    predicted: 2,
+    actual: 3,
+    points: 3,
+    result: 'One position away',
+    color: 'text-result-near',
+  },
+  {
+    driver: 'Verstappen',
+    predicted: 3,
+    actual: 5,
+    points: 1,
+    result: 'In the actual Top 5',
+    color: 'text-result-top5',
+  },
+  {
+    driver: 'Piastri',
+    predicted: 4,
+    actual: 2,
+    points: 1,
+    result: 'In the actual Top 5',
+    color: 'text-result-top5',
+  },
+  {
+    driver: 'Russell',
+    predicted: 5,
+    actual: 8,
+    points: 0,
+    result: 'Outside the scoring positions',
+    color: 'text-text-muted',
+  },
+] as const;
+
+/** Result-colour rules beside a worked example, stacked on smaller screens. */
 export function ScoringSection() {
   return (
     <section
@@ -56,27 +93,94 @@ export function ScoringSection() {
           finished.
         </p>
 
-        <dl className="mt-7 grid gap-x-8 gap-y-5 sm:grid-cols-3">
-          {scoringBands.map((band) => (
-            <div
-              key={band.points}
-              className={`border-t-2 pt-3 ${band.ruleClass}`}
-            >
-              <dt className="flex items-baseline gap-3">
-                <span
-                  className={`gpp-mono text-3xl leading-none font-semibold ${band.textClass}`}
-                >
-                  {band.points}
-                  <span className="sr-only"> {band.unit}</span>
+        <div className="mt-7 grid gap-8 lg:grid-cols-2 lg:gap-12">
+          <dl className="grid content-start gap-x-8 gap-y-5 sm:grid-cols-3 lg:grid-cols-1">
+            {scoringBands.map((band) => (
+              <div
+                key={band.points}
+                className={`border-t-2 pt-3 ${band.ruleClass}`}
+              >
+                <dt className="flex items-baseline gap-3">
+                  <span
+                    className={`gpp-mono text-3xl leading-none font-semibold ${band.textClass}`}
+                  >
+                    {band.points}
+                    <span className="sr-only"> {band.unit}</span>
+                  </span>
+                  <span className="font-semibold text-text">{band.title}</span>
+                </dt>
+                <dd className="gpp-reading-copy mt-2 text-text-muted">
+                  {band.copy}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="max-w-2xl">
+            <table className="w-full text-left text-sm">
+              <caption className="pb-3 text-left font-medium text-text">
+                Example Top 5 score
+                <span className="mt-1 block text-sm font-normal text-text-muted">
+                  Illustrative results
                 </span>
-                <span className="font-semibold text-text">{band.title}</span>
-              </dt>
-              <dd className="gpp-reading-copy mt-2 text-text-muted">
-                {band.copy}
-              </dd>
-            </div>
-          ))}
-        </dl>
+              </caption>
+              <thead className="border-y border-border text-xs text-text-muted">
+                <tr>
+                  <th scope="col" className="py-3 pr-2 font-medium">
+                    Driver
+                  </th>
+                  <th scope="col" className="px-2 py-3 text-right font-medium">
+                    Your pick
+                  </th>
+                  <th scope="col" className="px-2 py-3 text-right font-medium">
+                    Finish
+                  </th>
+                  <th scope="col" className="py-3 pl-2 text-right font-medium">
+                    Points
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {scoringExample.map((row) => (
+                  <tr key={row.driver}>
+                    <th scope="row" className="py-3 pr-2 font-medium text-text">
+                      {row.driver}
+                    </th>
+                    <td className="gpp-mono px-2 py-3 text-right text-text-muted">
+                      P{row.predicted}
+                    </td>
+                    <td className="gpp-mono px-2 py-3 text-right text-text">
+                      P{row.actual}
+                    </td>
+                    <td
+                      className={`gpp-mono py-3 pl-2 text-right ${row.color}`}
+                    >
+                      {row.points}
+                      <span className="sr-only">
+                        {' '}
+                        {row.points === 1 ? 'point' : 'points'} · {row.result}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="border-t border-border-strong">
+                <tr>
+                  <th
+                    scope="row"
+                    colSpan={3}
+                    className="py-3 font-medium text-text"
+                  >
+                    Top 5 total
+                  </th>
+                  <td className="gpp-mono py-3 pl-2 text-right font-semibold text-text">
+                    11<span className="sr-only"> points</span>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
 
         <div className="mt-7 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="gpp-reading-copy text-text-muted">

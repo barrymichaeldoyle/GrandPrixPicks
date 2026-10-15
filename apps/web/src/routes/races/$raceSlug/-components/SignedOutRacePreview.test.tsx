@@ -23,6 +23,15 @@ vi.mock('@/integrations/clerk/runtime-control', () => ({
   useClerkWarmHandlers: () => ({}),
 }));
 
+vi.mock('@/lib/useUserDateFormat', () => ({
+  useUserDateFormat: () => ({
+    settings: { timezone: 'UTC' },
+    formatDate: () => 'Sat 24 Oct',
+    formatTime: () => '21:00',
+    formatTimeZoneAbbreviation: () => 'UTC',
+  }),
+}));
+
 // The standings link only needs its rendered label in these component tests.
 // Routing behavior is covered by the router-level suite.
 vi.mock('@tanstack/react-router', () => ({
@@ -117,6 +126,9 @@ describe('SignedOutRacePreview', () => {
     expect(container.textContent).toContain(
       'Predict the Spanish Grand Prix top 5',
     );
+    expect(container.textContent).toContain('Qualifying locks Sat 24 Oct');
+    expect(container.querySelector('details')?.open).toBe(false);
+    expect(container.querySelector('#make-picks')).not.toBeNull();
   });
 
   it('renders the driver grid grouped by team', () => {

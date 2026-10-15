@@ -787,9 +787,8 @@
 
   /*
    * Same condition, opposite effect: with the header CTA gone the bar is just the
-   * mark and "Sign in", so the name fits on a phone. The full wordmark needs a
-   * 334px viewport, so it runs from 360px (41px of slack on an iPhone SE) and
-   * "GP Picks" covers the 320px-class screens below that.
+   * mark, "Sign in" and the browse menu, so the name fits on a phone. The full
+   * wordmark starts at 430px; "GP Picks" leaves room for the menu below that.
    */
   html:has([data-landing-hero-cta]) .gpp-public-wordmark {
     display: inline;
@@ -804,7 +803,7 @@
     display: none;
   }
 
-  @media (width >= 360px) {
+  @media (width >= 430px) {
     html:has([data-landing-hero-cta]) .gpp-public-wordmark {
       display: none;
     }

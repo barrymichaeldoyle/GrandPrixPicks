@@ -1,10 +1,16 @@
 import type { Doc } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Trophy } from 'lucide-react';
+import { ArrowRight, ChevronDown } from 'lucide-react';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { Button } from '@/components/Button/Button';
 import { pickPool, type RosterDriver } from '@/lib/roster';
+import { PICKS_ANCHOR, useRegisterPicksAnchor } from '@/lib/picksAnchor';
+import { getNextSessionLock } from '@/lib/raceSessions';
+import { SESSION_LABELS } from '@/lib/sessions';
+import { useNow } from '@/lib/testing/now';
+import { useUserDateFormat } from '@/lib/useUserDateFormat';
+import { PredictionCountdownBadge } from '@/components/PredictionCountdownBadge';
 import {
   useClerkRuntimeControl,
   useClerkWarmHandlers,
@@ -45,19 +51,35 @@ export function SignedOutRacePreview({
   const teams = groupByTeam(pickPool(drivers));
   const { requestSignIn } = useClerkRuntimeControl();
   const warmHandlers = useClerkWarmHandlers();
+  const now = useNow();
+  const nextLock = getNextSessionLock(race, now);
+  const { settings, formatDate, formatTime, formatTimeZoneAbbreviation } =
+    useUserDateFormat();
+  const timezone =
+    settings.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  useRegisterPicksAnchor();
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-xl border border-accent/25 bg-accent-muted/10 p-5 text-center sm:p-6">
-        <Trophy className="mx-auto mb-3 h-9 w-9 text-accent" />
+    <div id={PICKS_ANCHOR} tabIndex={-1} className="space-y-6">
+      <div className="border-y border-border py-5 sm:py-6">
         <h2 className="text-lg font-semibold text-text sm:text-xl">
           Predict the {race.name} top 5
         </h2>
-        <p className="mx-auto mt-2 max-w-md text-sm text-text-muted">
+        <p className="mt-2 max-w-md text-sm text-text-muted">
           Rank five drivers for each session. Free to play. No account needed
           until you save.
         </p>
-        <div className="mt-4 flex flex-col items-center gap-2">
+        {nextLock && (
+          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+            <p className="text-text-muted" suppressHydrationWarning>
+              {SESSION_LABELS[nextLock.session]} locks{' '}
+              {formatDate(nextLock.lockAt)} · {formatTime(nextLock.lockAt)}{' '}
+              {formatTimeZoneAbbreviation(nextLock.lockAt, timezone)}
+            </p>
+            <PredictionCountdownBadge predictionLockAt={nextLock.lockAt} />
+          </div>
+        )}
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
           <Button size="md" rightIcon={ArrowRight} onClick={onStartPicks}>
             Make your picks
           </Button>
@@ -65,7 +87,7 @@ export function SignedOutRacePreview({
             type="button"
             {...warmHandlers}
             onClick={() => requestSignIn()}
-            className="text-xs font-medium text-text-muted underline-offset-2 hover:text-text hover:underline"
+            className="min-h-11 text-sm font-medium text-text-muted underline-offset-2 hover:text-text hover:underline"
           >
             Already playing? Sign in
           </button>
@@ -73,10 +95,15 @@ export function SignedOutRacePreview({
       </div>
 
       {drivers.length > 0 && (
-        <section aria-label="Driver grid" className="space-y-2">
-          <h2 className="text-sm font-semibold text-text-muted">
+        <details className="group">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium text-text-muted hover:text-text [&::-webkit-details-marker]:hidden">
             {race.season} driver grid
-          </h2>
+            <ChevronDown
+              size={16}
+              aria-hidden="true"
+              className="group-open:rotate-180"
+            />
+          </summary>
           {/* Flat rows on the page background: a card per team holding
               bordered driver chips was two nested borders and ran a
               thousand pixels tall on a phone. */}
@@ -105,19 +132,17 @@ export function SignedOutRacePreview({
               </li>
             ))}
           </ul>
-        </section>
+          <p className="mt-4 text-sm text-text-muted">
+            <Link
+              to="/f1-standings"
+              className="font-medium text-accent underline-offset-2 hover:underline"
+            >
+              See the {race.season} F1 championship standings
+            </Link>
+            .
+          </p>
+        </details>
       )}
-
-      <p className="text-sm text-text-muted">
-        Following the season?{' '}
-        <Link
-          to="/f1-standings"
-          className="font-medium text-accent underline-offset-2 hover:underline"
-        >
-          See the {race.season} F1 championship standings
-        </Link>
-        .
-      </p>
     </div>
   );
 }

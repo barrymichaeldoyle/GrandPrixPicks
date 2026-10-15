@@ -69,13 +69,7 @@ function DraggableDriverCard({
        * both identically made a picked driver read as "unavailable for some
        * reason" against twenty-one lookalikes.
        */
-      /*
-       * `@container` is on the button itself so the code/surname layout tracks
-       * *this* cell's width, not the form's. At 5 columns the dashboard rail
-       * leaves ~75px per pill — enough for "ANT" but not "ANT Antonelli" on
-       * one line — so below 7.5rem the surname stacks under the code.
-       */
-      className={`gpp-team-bar @container flex min-h-11 w-full items-center justify-start gap-2 rounded-sm border py-2.5 pr-2 pl-3 text-left transition-colors duration-150 ease-out ${
+      className={`gpp-team-bar flex min-h-14 w-full items-center justify-start gap-2 rounded-sm border py-2.5 pr-2 pl-3 text-left transition-colors duration-150 ease-out ${
         picked
           ? 'cursor-not-allowed border-accent/40 bg-accent-muted/15'
           : 'border-border bg-surface-elevated hover:border-border-strong hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface-elevated'
@@ -94,23 +88,16 @@ function DraggableDriverCard({
           P{pickedPosition}
         </span>
       ) : null}
-      {/* Narrow: surname under the code. Wide: one baseline row. */}
-      <span className="flex w-full min-w-0 flex-col gap-0.5 @min-[7.5rem]:flex-row @min-[7.5rem]:items-baseline @min-[7.5rem]:gap-2">
-        <span
-          className={`gpp-mono shrink-0 text-xs leading-none sm:text-sm ${
-            picked ? 'text-text-muted' : 'text-text'
-          }`}
-        >
-          {driver.code}
-        </span>
-        {/* Three-letter codes are the broadcast language, but a landing-page
-            visitor may not know all twenty-two. Stack under the code when the
-            pill is too narrow for a side-by-side pair. */}
+      {/* Surnames lead; codes remain available for broadcast-familiar fans. */}
+      <span className="flex w-full min-w-0 flex-col gap-1">
         {surname ? (
-          <span className="min-w-0 truncate text-xs leading-none text-text-muted @min-[7.5rem]:flex-1">
+          <span className="min-w-0 truncate text-sm leading-tight font-medium text-text">
             {surname}
           </span>
         ) : null}
+        <span className="gpp-mono text-xs leading-none text-text-muted">
+          {driver.code}
+        </span>
         {/* `shrink-0` so the marker never eats the surname's width: the name is
             the thing being picked, and it is the one that truncates well. */}
         {'entryUnconfirmed' in driver && driver.entryUnconfirmed ? (
@@ -143,7 +130,7 @@ function DriverPoolDroppable({ children }: { children: React.ReactNode }) {
       // Columns follow the form's own width (container), not the viewport —
       // the dashboard center rail is ~640px wide while the viewport is `lg`,
       // and viewport breakpoints left a 4-col grid crushed into ~280px.
-      className={`grid grid-cols-2 gap-2 @min-[360px]:grid-cols-3 @min-[480px]:grid-cols-4 @min-[640px]:grid-cols-5 ${isOver ? 'rounded-lg bg-accent-muted/20' : ''}`}
+      className={`grid grid-cols-2 gap-2 @min-[480px]:grid-cols-3 @min-[640px]:grid-cols-4 @min-[875px]:grid-cols-5 ${isOver ? 'rounded-lg bg-accent-muted/20' : ''}`}
       data-testid="driver-selection"
     >
       {children}
@@ -208,12 +195,6 @@ export function DriverPoolSection({
                 type: 'spring',
                 stiffness: 500,
                 damping: 30,
-              }}
-              whileHover={{
-                scale: isPicked || picks.length >= 5 ? 1 : 1.05,
-              }}
-              whileTap={{
-                scale: isPicked || picks.length >= 5 ? 1 : 0.95,
               }}
             >
               <DraggableDriverCard

@@ -24,6 +24,7 @@ import type { ReactNode } from 'react';
 import {
   useEffect,
   useEffectEvent,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -58,6 +59,7 @@ import {
   parseEmptySlotId,
 } from './dndIds';
 import { DriverPoolSection } from './DriverPool';
+import { MobilePickSummary } from './MobilePickSummary';
 import { EmptySlotDroppable, SortablePickRow } from './PickRows';
 import { PicksListHeader } from './PicksListHeader';
 import { SubmitRow } from './SubmitRow';
@@ -203,6 +205,7 @@ export function PredictionForm({
   const firstPickCapturedRef = useRef(false);
   const topFiveCapturedRef = useRef(false);
   const yourPicksRef = useRef<HTMLDivElement>(null);
+  const reviewId = useId();
 
   const {
     picks,
@@ -832,6 +835,22 @@ export function PredictionForm({
             onDiscard={handleDiscardDraft}
           />
         ) : null}
+        {mobileActionFirst && (
+          <MobilePickSummary
+            drivers={pickedDrivers}
+            reviewId={reviewId}
+            onReview={() => {
+              yourPicksRef.current?.scrollIntoView({
+                behavior: window.matchMedia('(prefers-reduced-motion: reduce)')
+                  .matches
+                  ? 'auto'
+                  : 'smooth',
+                block: 'start',
+              });
+              yourPicksRef.current?.focus({ preventScroll: true });
+            }}
+          />
+        )}
         {/* Side-by-side only when *this* form is wide enough. Viewport `lg`
             alone is wrong inside the dashboard's narrow center column. */}
         <div className="flex flex-col gap-4 sm:gap-6 @min-[875px]:flex-row @min-[875px]:items-start @min-[875px]:gap-8">
@@ -843,8 +862,12 @@ export function PredictionForm({
               now has a row to land in. */}
           <div
             ref={yourPicksRef}
+            id={reviewId}
+            tabIndex={-1}
+            role="region"
+            aria-label="Review your Top 5"
             data-testid="your-picks"
-            className={`${mobileActionFirst ? 'order-2 scroll-mt-28 @min-[875px]:order-1' : ''} ${
+            className={`${mobileActionFirst ? 'order-2 scroll-mt-[calc(var(--nav-height)+9rem)] @min-[875px]:order-1' : ''} ${
               mobileActionFirst && picks.length === 0
                 ? '@max-[875px]:hidden'
                 : ''

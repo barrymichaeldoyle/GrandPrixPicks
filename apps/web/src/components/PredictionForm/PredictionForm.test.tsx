@@ -496,6 +496,57 @@ describe('PredictionForm try-before-signup', () => {
     expect(draftNoticeTarget.textContent).toBe('');
   });
 
+  it('reviews a partial mobile draft without opening sign-in or losing pick order', async () => {
+    clearPredictionDraft(draftKey);
+    const scrollIntoView = vi.fn();
+    const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
+    HTMLElement.prototype.scrollIntoView = scrollIntoView;
+    try {
+      await act(async () => {
+        root.render(
+          <PredictionForm
+            raceId={RACE_ID}
+            mobileActionFirst
+            initialDraftPicks={[]}
+          />,
+        );
+      });
+      const summary = container.querySelector(
+        '[data-testid="mobile-pick-summary"]',
+      )!;
+      const review = summary.querySelector<HTMLButtonElement>('button')!;
+      expect(review.disabled).toBe(true);
+      act(() => {
+        container
+          .querySelector<HTMLButtonElement>('[data-testid="driver-D2"]')
+          ?.click();
+      });
+      act(() =>
+        container
+          .querySelector<HTMLButtonElement>('[data-testid="driver-D0"]')
+          ?.click(),
+      );
+      expect(summary.textContent).toContain('2/5');
+      expect(
+        Array.from(summary.querySelectorAll('li'))
+          .slice(0, 2)
+          .map((row) => row.textContent),
+      ).toEqual([
+        expect.stringContaining('Driver 2'),
+        expect.stringContaining('Driver 0'),
+      ]);
+      act(() => review.click());
+      expect(scrollIntoView).toHaveBeenCalledOnce();
+      expect(document.activeElement).toBe(
+        container.querySelector('[data-testid="your-picks"]'),
+      );
+      expect(requestSignInSpy).not.toHaveBeenCalled();
+      expect(submitSpy).not.toHaveBeenCalled();
+    } finally {
+      HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
+    }
+  });
+
   it('scrolls to the completed mobile list every time a removed pick is refilled', async () => {
     const onComplete = vi.fn();
     const scrollIntoView = vi.fn();

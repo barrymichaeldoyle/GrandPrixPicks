@@ -685,7 +685,7 @@
       "text": "Rwanda's proposed F1 circuit: 6km, 17 corners and 197 metres of elevation change across a lap. Wurz and Tilke are designing it around two hills and a lake. The full layout is still to come. https://www.formula1.com/en/latest/article/hills-a-lake-and-a-roller-coaster-inside-rwandas-plan-for-the-african-grand-prix.76LEZDItQYH362QElcHoY1",
       "dueAt": "2026-10-14T05:35:00.000Z",
       "expiresAt": "2026-10-15T05:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acf12b80d20fd15277f930c"
     },
     {
@@ -703,8 +703,80 @@
       "text": "The FIA's 2027 rules tighten floor-support geometry: a 5mm limit on the rounded junction with bodywork, plus restrictions on where supports can meet it. The changes apply next season. https://www.fia.com/system/files/documents/fia_2027_f1_regulations_-_section_c_technical_-_iss_3_-_2026-10-01.pdf",
       "dueAt": "2026-10-14T06:00:00.000Z",
       "expiresAt": "2026-10-15T05:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6acf12b9b610c3011fa10a14"
+    },
+    {
+      "id": "ec6dc11863b75e6ec1b767eda0d4405666917c4c74325923be0cb5313a043c30",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "singapore-2026",
+          "key": "gasly-singapore-traction-tyre-overheating",
+          "revision": "e5d447b1bf048118e0087a70adba13d8c59b40b21953b5e24392fdc4f125f88f"
+        }
+      ],
+      "text": "Gasly says Alpine's tyres overheated within three laps in Singapore, leaving him struggling for traction. He finished 11th after starting seventh. https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=gasly-singapore-traction-tyre-overheating",
+      "dueAt": "2026-10-14T13:45:00.000Z",
+      "expiresAt": "2026-10-16T16:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acf8404e8f6b2321c1f237a"
+    },
+    {
+      "id": "8bce45b328df1e1f1ebfac7bebb0dc67e506823ece1ea8b5fa8764f43da91c86",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "cadillac-bottas-operational-progress-2026",
+          "revision": "aa1731024285ad9a942e451e24fa7000db591b7f4d6b07e8865501ce139284f2"
+        }
+      ],
+      "text": "Bottas says Cadillac is improving how it operates each weekend, even though the team is still chasing its first point. https://www.racefans.net/2026/10/14/spotlight-cadillac-already-has-better-facilities-than-mercedes-says-bottas/",
+      "dueAt": "2026-10-14T14:10:00.000Z",
+      "expiresAt": "2026-10-16T16:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6acf841858a7fbe013d6ca10"
+    },
+    {
+      "id": "bb51c1e5fb956b982578b9feb413c0b66f814fdcf23f25e90d0235fc55a978a4",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "red-bull-engine-calibration-gains-2026",
+          "revision": "0cbc590b5393e3f536903a58d2e8b2104223f11520f6ecdfc2b7940cbe703c5a"
+        }
+      ],
+      "text": "Red Bull's recent engine gains have come through calibration, without a new specification. Ben Hodgkinson says there is more to come this season. https://www.the-race.com/formula-1/key-gains-red-bull-has-made-with-its-race-winning-f1-engine/",
+      "dueAt": "2026-10-15T10:50:00.000Z",
+      "expiresAt": "2026-10-17T08:48:40.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6ad0ade5670326712d1dc3e8"
+    },
+    {
+      "id": "3a77edd1339fb227c009be90d49640fd0c1cf5ab27c2362cd2b172e0027b7c68",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "red-bull-austin-white-race-suits",
+          "revision": "61582dbe9dc9509632e73cb53853f7d0a9dfe61a047493a83af86b5f560e267a"
+        }
+      ],
+      "text": "Verstappen and Hadjar will wear white race suits in Austin, with blue accents and vintage-style partner badges. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=red-bull-austin-white-race-suits",
+      "dueAt": "2026-10-15T11:15:00.000Z",
+      "expiresAt": "2026-10-23T16:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6ad0adf30bac0656ce0439af"
     }
   ]
 }

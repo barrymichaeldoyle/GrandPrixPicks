@@ -1,0 +1,14 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/2026-10-15-evening/global-news.json",
+  "startAt": "2026-10-15T22:00:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["williams-50th-anniversary-plans-2027"],
+      "text": "Williams turns 50 in 2027. Plans include a London exhibition, the FW50 chassis name and a fan-chosen Silverstone livery. https://www.formula1.com/en/latest/article/williams-outline-plans-for-50th-anniversary-year-with-calendar-of-special-events.wxPd7X2kbw2bUHstwFeZB",
+      "expiresAt": "2026-10-17T18:00:00Z"
+    }
+  ]
+}

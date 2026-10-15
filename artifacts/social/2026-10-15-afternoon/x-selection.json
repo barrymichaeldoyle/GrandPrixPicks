@@ -1,0 +1,14 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/2026-10-15-afternoon/global-news.json",
+  "startAt": "2026-10-15T16:10:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["colapinto-supporters-stop-online-abuse"],
+      "text": "Franco Colapinto has asked supporters to stop attacking rival drivers and people he works with online, saying those who think they are defending him are having the opposite effect. https://www.racefans.net/2026/10/15/colapinto-tells-his-supporters-to-stop-abusing-rival-drivers-they-dont-help-me/",
+      "expiresAt": "2026-10-17T07:47:03Z"
+    }
+  ]
+}

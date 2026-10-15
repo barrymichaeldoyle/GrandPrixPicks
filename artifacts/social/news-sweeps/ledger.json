@@ -757,7 +757,7 @@
       "text": "Red Bull's recent engine gains have come through calibration, without a new specification. Ben Hodgkinson says there is more to come this season. https://www.the-race.com/formula-1/key-gains-red-bull-has-made-with-its-race-winning-f1-engine/",
       "dueAt": "2026-10-15T10:50:00.000Z",
       "expiresAt": "2026-10-17T08:48:40.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6ad0ade5670326712d1dc3e8"
     },
     {
@@ -775,8 +775,26 @@
       "text": "Verstappen and Hadjar will wear white race suits in Austin, with blue accents and vintage-style partner badges. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=red-bull-austin-white-race-suits",
       "dueAt": "2026-10-15T11:15:00.000Z",
       "expiresAt": "2026-10-23T16:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6ad0adf30bac0656ce0439af"
+    },
+    {
+      "id": "29e8b7d837ac660f6f390c2e967e617a272bc60f51f61d1b9cdbf5ae2e7763c0",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "colapinto-supporters-stop-online-abuse",
+          "revision": "bf278c412ec01cf7dbe552771d7a4b3322e80c521eb7c926d88a488da6201dbb"
+        }
+      ],
+      "text": "Franco Colapinto has asked supporters to stop attacking rival drivers and people he works with online, saying those who think they are defending him are having the opposite effect. https://www.racefans.net/2026/10/15/colapinto-tells-his-supporters-to-stop-abusing-rival-drivers-they-dont-help-me/",
+      "dueAt": "2026-10-15T14:10:00.000Z",
+      "expiresAt": "2026-10-17T07:47:03.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6ad0d8a374e49a7f60fd79e4"
     }
   ]
 }

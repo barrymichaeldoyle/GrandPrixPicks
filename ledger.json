@@ -741,6 +741,23 @@
       "expiresAt": "2026-10-16T16:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6acf841858a7fbe013d6ca10"
+    },
+    {
+      "id": "bb51c1e5fb956b982578b9feb413c0b66f814fdcf23f25e90d0235fc55a978a4",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "red-bull-engine-calibration-gains-2026",
+          "revision": "0cbc590b5393e3f536903a58d2e8b2104223f11520f6ecdfc2b7940cbe703c5a"
+        }
+      ],
+      "text": "Red Bull's recent engine gains have come through calibration, without a new specification. Ben Hodgkinson says there is more to come this season. https://www.the-race.com/formula-1/key-gains-red-bull-has-made-with-its-race-winning-f1-engine/",
+      "dueAt": "2026-10-15T10:50:00.000Z",
+      "expiresAt": "2026-10-17T08:48:40.000Z",
+      "status": "creating"
     }
   ]
 }

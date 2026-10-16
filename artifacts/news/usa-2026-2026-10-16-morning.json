@@ -1,0 +1,25 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "red-bull-mekies-contract-extension-2031",
+    "headline": "Red Bull extends Mekies as team principal to 2031",
+    "body": "Laurent Mekies has signed a five-year extension as Red Bull team principal and chief executive. He took the role from Christian Horner in July 2025. Red Bull is fourth in the constructors' standings, seven points behind McLaren.",
+    "category": "general",
+    "affectsSessions": [],
+    "sourceName": "Sky Sports",
+    "sourceUrl": "https://www.skysports.com/f1/news/13599324/laurent-mekies-red-bull-team-principal-signs-contract-extension-to-2031-and-vows-recent-wins-only-the-beginning",
+    "sourcePublishedAt": "2026-10-14T17:17:00Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "mercedes-wolff-austin-upgrade-specification",
+    "headline": "Wolff expects both Mercedes cars on the new package in Austin",
+    "body": "Toto Wolff says Mercedes will probably run the latest upgrade on both cars in Austin, pending a final team decision. Only Antonelli used it in Singapore. Wolff says the car needs a different set-up philosophy and has not yet delivered the performance Mercedes hoped for.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ANT", "RUS"],
+    "sourceName": "Sky Sports",
+    "sourceUrl": "https://www.skysports.com/f1/news/13599493/mercedes-boss-toto-wolff-reveals-latest-verdict-on-car-upgrades-after-unusual-specification-split-at-singapore-gp",
+    "sourcePublishedAt": "2026-10-16T06:00:00Z"
+  }
+]

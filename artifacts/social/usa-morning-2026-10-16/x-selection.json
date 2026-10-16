@@ -1,0 +1,14 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "published-news.json",
+  "startAt": "2026-10-16T08:45:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["mercedes-wolff-austin-upgrade-specification"],
+      "text": "Toto Wolff expects both Mercedes cars to run the latest upgrade in Austin, pending a final team decision. Only Antonelli used it in Singapore. Wolff says it has not yet delivered the performance Mercedes hoped for.\n\nhttps://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=mercedes-wolff-austin-upgrade-specification",
+      "expiresAt": "2026-10-22T12:00:00Z"
+    }
+  ]
+}

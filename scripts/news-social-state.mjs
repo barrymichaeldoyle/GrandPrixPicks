@@ -81,10 +81,14 @@ export function openNewsSocialState({ remote, branch, apply = false, seed }) {
         if (remoteHead(lockRef) !== lock) {
           throw new Error('Shared news lock ownership changed before release.');
         }
-        const released = commit('owner.json', {
-          owner: null,
-          releasedAt: new Date().toISOString(),
-        }, lock);
+        const released = commit(
+          'owner.json',
+          {
+            owner: null,
+            releasedAt: new Date().toISOString(),
+          },
+          lock,
+        );
         git(['push', 'origin', `${released}:${lockRef}`], undefined, true);
         if (remoteHead(lockRef) !== released) {
           throw new Error(
@@ -107,10 +111,14 @@ export function openNewsSocialState({ remote, branch, apply = false, seed }) {
         throw new Error(
           'Another operator holds the shared news lock. Inspect interrupted work before releasing it.',
         );
-      const candidate = commit('owner.json', {
-        owner: randomUUID(),
-        acquiredAt: new Date().toISOString(),
-      }, previous?.sha);
+      const candidate = commit(
+        'owner.json',
+        {
+          owner: randomUUID(),
+          acquiredAt: new Date().toISOString(),
+        },
+        previous?.sha,
+      );
       git(['push', 'origin', `${candidate}:${lockRef}`], undefined, true);
       if (remoteHead(lockRef) !== candidate)
         throw new Error('Could not acquire exclusive shared news lock.');

@@ -6,16 +6,12 @@
   "intervalMinutes": 25,
   "posts": [
     {
-      "keys": [
-        "gasly-singapore-traction-tyre-overheating"
-      ],
+      "keys": ["gasly-singapore-traction-tyre-overheating"],
       "text": "Gasly says Alpine's tyres overheated within three laps in Singapore, leaving him struggling for traction. He finished 11th after starting seventh. https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=gasly-singapore-traction-tyre-overheating",
       "expiresAt": "2026-10-16T16:00:00Z"
     },
     {
-      "keys": [
-        "cadillac-bottas-operational-progress-2026"
-      ],
+      "keys": ["cadillac-bottas-operational-progress-2026"],
       "text": "Bottas says Cadillac is improving how it operates each weekend, even though the team is still chasing its first point. https://www.racefans.net/2026/10/14/spotlight-cadillac-already-has-better-facilities-than-mercedes-says-bottas/",
       "expiresAt": "2026-10-16T16:00:00Z"
     }

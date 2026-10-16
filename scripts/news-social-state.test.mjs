@@ -39,14 +39,28 @@ test('fresh checkouts recover the journal and refuse competing writers', (t) => 
     posts: [{ id: 'attempt', status: 'scheduled', bufferPostId: 'post' }],
   });
   second.close();
-  const lock = execFileSync('git', ['show', `${config.branch}-lock:owner.json`], {
-    cwd: config.remote, encoding: 'utf8',
-  });
+  const lock = execFileSync(
+    'git',
+    ['show', `${config.branch}-lock:owner.json`],
+    {
+      cwd: config.remote,
+      encoding: 'utf8',
+    },
+  );
   assert.equal(JSON.parse(lock).owner, null);
-  const history = execFileSync('git', ['rev-list', '--count', `${config.branch}-lock`], {
-    cwd: config.remote, encoding: 'utf8',
-  });
-  assert.equal(Number(history.trim()), 4, 'two acquisitions and releases retain their history');
+  const history = execFileSync(
+    'git',
+    ['rev-list', '--count', `${config.branch}-lock`],
+    {
+      cwd: config.remote,
+      encoding: 'utf8',
+    },
+  );
+  assert.equal(
+    Number(history.trim()),
+    4,
+    'two acquisitions and releases retain their history',
+  );
   const third = openNewsSocialState(config);
   assert.equal(third.ledger.posts[0].bufferPostId, 'post');
   third.close();

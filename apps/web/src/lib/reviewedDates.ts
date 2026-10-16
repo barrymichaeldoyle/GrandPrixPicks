@@ -12,10 +12,10 @@
  */
 
 /** Bumped by hand whenever the seats in `lineUp2027.ts` are re-checked against reporting. */
-export const LINE_UP_2027_REVIEWED_AT = '2026-10-13';
+export const LINE_UP_2027_REVIEWED_AT = '2026-10-16';
 
 /** For prose. Kept next to the ISO date so the two cannot drift apart. */
-export const LINE_UP_2027_REVIEWED_LABEL = '13 October 2026';
+export const LINE_UP_2027_REVIEWED_LABEL = '16 October 2026';
 
 /** Bumped by hand whenever the rounds in `calendar2027.ts` are re-checked against F1. */
 export const CALENDAR_2027_REVIEWED_AT = '2026-10-05';

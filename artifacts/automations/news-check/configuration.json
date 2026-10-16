@@ -11,9 +11,7 @@
   "codeBranch": "claude/news-routine-setup",
   "stateBranch": "claude/news-social-state",
   "networkAccess": "Full",
-  "connectors": [
-    "Buffer"
-  ],
+  "connectors": ["Buffer"],
   "validationRoutineId": "trig_01WW6GiGa6kS1g21vVdzzuwz",
   "validationRoutineUrl": "https://claude.ai/code/routines/trig_01WW6GiGa6kS1g21vVdzzuwz",
   "activationRequirements": [

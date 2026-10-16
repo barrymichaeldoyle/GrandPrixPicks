@@ -21,15 +21,14 @@ import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 import { PicksCallToAction } from '@/components/PicksCallToAction/PicksCallToAction';
 
 /**
- * Who is driving what in 2027, while the answer is still being decided.
+ * Who is driving what in 2027, with a status on every seat.
  *
  * The sibling of `/f1-2027-calendar`, which became a round list when the FIA
- * ratified the dates on 16 September 2026. This page cannot, because a page
- * about next season's seats earns its place by being honest about what is not
- * settled yet rather than filling 22 rows with plausible names. Every seat
- * therefore carries a status and the reason for it, and the two seats nobody
- * can call are given the space at the top rather than buried in alphabetical
- * order.
+ * ratified the dates on 16 September 2026. This page earns its place by being
+ * honest about what is settled and what is not, rather than filling 22 rows
+ * with plausible names. Every seat therefore carries a status and the reason
+ * for it, and any seat still out of contract is given space at the top rather
+ * than buried in alphabetical order.
  *
  * All the facts live in `@/lib/lineUp2027`, which is where a re-check happens.
  * This file only decides how they are shown.
@@ -37,33 +36,33 @@ import { PicksCallToAction } from '@/components/PicksCallToAction/PicksCallToAct
 
 const PAGE_TITLE = 'F1 2027 Driver Line-Up | Grand Prix Picks';
 const PAGE_DESCRIPTION =
-  'Every 2027 F1 seat, team by team, including Rafael Câmara’s reported Haas deal. Confirmed drivers, expected line-ups and announcements still pending.';
+  'Every 2027 F1 seat, team by team. Haas signed Rafael Câmara on 14 October. Confirmed drivers, expected line-ups and announcements still pending.';
 
 const FAQS = [
   {
     question: 'Is the 2027 F1 driver line-up confirmed?',
     answer:
-      'Not fully. Rafael Câmara is expected to replace Esteban Ocon at Haas following a reported agreement, but a formal announcement is pending. Several other seats also remain unannounced.',
+      'Not fully. Haas signed Rafael Câmara on 14 October 2026 to replace Esteban Ocon. Mercedes, Racing Bulls and Bearman’s Haas option still await a formal announcement.',
   },
   {
     question: 'Which 2027 F1 seats are still unconfirmed?',
     answer:
-      'The Haas, Mercedes and Racing Bulls pairings still await formal announcements. RacingNews365 reports that Câmara will replace Ocon at Haas; the other five drivers are expected to stay.',
+      'Mercedes and Racing Bulls have made no formal announcement. Haas signed Câmara on 14 October. Bearman’s 2027 option is still to be confirmed.',
   },
   {
     question: 'Who will replace Esteban Ocon at Haas?',
     answer:
-      'Rafael Câmara, according to RacingNews365’s 11 October report. It says Haas and Ferrari agreed the move in Singapore, with a formal announcement expected in the week beginning 12 October.',
+      'Rafael Câmara. Haas announced a multi-year deal on 14 October 2026. He partners Oliver Bearman.',
   },
   {
     question: 'Is Rafael Câmara driving in F1 in 2027?',
     answer:
-      'He is expected to join Haas alongside Oliver Bearman. RacingNews365 reports that the deal is agreed, but Haas has yet to announce the signing.',
+      'Yes. Haas signed him on a multi-year deal on 14 October 2026, replacing Esteban Ocon alongside Oliver Bearman.',
   },
   {
     question: 'When will Haas announce its 2027 driver line-up?',
     answer:
-      'Haas has not given a date. RacingNews365’s 11 October report expects a formal announcement in the week beginning 12 October.',
+      'Haas announced Rafael Câmara on 14 October 2026, on a multi-year deal. Oliver Bearman’s 2027 option has not been confirmed.',
   },
   {
     question: 'Is Fernando Alonso racing in 2027?',
@@ -260,15 +259,38 @@ function F1LineUp2027Page() {
             id="haas-fight"
             className="font-title text-2xl font-semibold text-text sm:text-3xl"
           >
-            Who replaces Ocon at Haas
+            Câmara replaces Ocon at Haas
           </h2>
           <p className="gpp-reading-copy mt-3 max-w-3xl text-text-muted">
+            Haas announced on 14 October 2026 that Rafael Câmara has signed a
+            multi-year deal for 2027, replacing Esteban Ocon alongside Oliver
+            Bearman. Câmara is 21, leads Formula 2, and comes through the
+            Ferrari Driver Academy, the same pathway Bearman took to this team.{' '}
+            <a
+              className="text-link underline decoration-border underline-offset-4 hover:decoration-current"
+              href="https://www.haasf1team.com/news/rafael-camara-confirmed-tgr-haas-f1-team-2027"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Haas confirms Câmara for 2027
+            </a>
+            .{' '}
+            <a
+              className="text-link underline decoration-border underline-offset-4 hover:decoration-current"
+              href="https://www.formula1.com/en/latest/article/ferrari-junior-rafael-camara-promoted-to-f1-with-haas-for-2027.1RSxvnFaLu8Hd3JD2ppFsz"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Formula 1 on Câmara’s Haas deal
+            </a>
+            .
+          </p>
+          <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
             Esteban Ocon announced on 30 September 2026 that he will leave Haas
             at the end of the season, and Haas confirmed it. Ayao Komatsu had
             put the contest on the record on 4 September: five drivers, Ocon
             among them, and a choice he said would be settled on speed rather
-            than on what a driver brings with him. The shortlist below records
-            the four candidates who remained after Ocon announced his exit.{' '}
+            than on what a driver brings with him.{' '}
             <a
               className="text-link underline decoration-border underline-offset-4 hover:decoration-current"
               href="https://www.formula1.com/en/latest/article/ocon-confirms-he-will-leave-haas-at-end-of-2026-season.cJjg9W9Om5ZW6Mn9GZ75v"
@@ -280,23 +302,20 @@ function F1LineUp2027Page() {
             .
           </p>
           <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
-            RacingNews365 reported on 11 October that Haas and Ferrari agreed in
-            Singapore for Rafael Câmara to replace Ocon alongside Bearman. Its
-            report expects an announcement in the week beginning 12 October.
-            Haas has yet to announce the signing.{' '}
+            RacingNews365 reported on 11 October that Câmara and Jack Doohan
+            were the final two after testing. The Stint reported on 5 October
+            that Leonardo Fornaroli is set to join McLaren&rsquo;s WEC Hypercar
+            programme in 2027. The names below are the other drivers Haas
+            considered.{' '}
             <a
               className="text-link underline decoration-border underline-offset-4 hover:decoration-current"
               href="https://racingnews365.com/haas-finalise-new-f1-driver-line-up-with-esteban-ocon-replacement-chosen"
               target="_blank"
               rel="noreferrer"
             >
-              RacingNews365 on Câmara’s reported Haas deal
+              RacingNews365 on the Haas shortlist
             </a>
-            .
-          </p>
-          <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
-            The Stint reported on 5 October that Leonardo Fornaroli is set to
-            join McLaren&rsquo;s WEC Hypercar programme in 2027.{' '}
+            .{' '}
             <a
               className="text-link underline decoration-border underline-offset-4 hover:decoration-current"
               href="https://www.thestint.com/eonardo-fornaroli-set-for-mclaren-hypercar-move-and-why-it-makes-sense/"
@@ -343,9 +362,9 @@ function F1LineUp2027Page() {
               params={{ guideSlug: 'f1-2027-haas-second-seat' }}
               className="font-medium text-accent underline-offset-2 hover:underline"
             >
-              The Haas candidates
+              The 2027 Haas seat guide
             </Link>{' '}
-            have a guide of their own, with each driver&rsquo;s record.
+            has each driver&rsquo;s record from the original shortlist.
           </p>
         </section>
 

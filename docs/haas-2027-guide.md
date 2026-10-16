@@ -9,9 +9,9 @@ sitemap, related-guide links and generated Open Graph card.
 Read-mode extension of the existing guide layout: title, summary, dated
 decision status, credited Monza photo, sourced introduction, a section on why
 Bearman is not in the contest, five flat driver cards each with a credited
-square portrait, announcement status. Inherit Archivo, semantic colours and
-existing reading widths; stack the same content on phones. No new visual
-system.
+square portrait, and the 14 October 2026 announcement that Haas signed
+Rafael Câmara. Inherit Archivo, semantic colours and existing reading widths;
+stack the same content on phones. No new visual system.
 
 The Bearman section exists to separate what Haas announced from what is
 reported. Haas's July 2024 release says "multi-year contract beginning with the
@@ -33,16 +33,12 @@ Finish review: ship, with no material or minor findings. Review captures:
 `.impeccable/review/haas-mobile.png` (390px) and
 `.impeccable/review/haas-desktop.png` (1440px).
 
-## When Haas announces
+## After Haas announced
 
-1. Verify the official Haas announcement and link it in the opening section.
-2. Update the status, title, summary and search description to name the chosen
-   driver. Keep this slug, the original publication date and canonical URL.
-3. Set `updatedAt` to the date of the substantive revision.
-4. Retain the five cards as the dated shortlist considered before the decision.
-5. Replace the pending announcement paragraph with the outcome and source.
-
-This is an editorial update checklist, not an automated announcement monitor.
+Haas signed Rafael Câmara on 14 October 2026. The slug, original publication
+date and canonical URL stayed put. The five cards remain as the dated shortlist
+Komatsu named in September. If the pairing later changes, bump `updatedAt` and
+rewrite the status, title, summary and search description the same way.
 
 ## Social follow-up draft
 

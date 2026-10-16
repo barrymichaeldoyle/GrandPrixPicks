@@ -11,7 +11,10 @@
       "expiresAt": "2026-10-14T14:00:00Z"
     },
     {
-      "keys": ["antonelli-singapore-brake-temperature-data", "cadillac-singapore-brake-temperature-management"],
+      "keys": [
+        "antonelli-singapore-brake-temperature-data",
+        "cadillac-singapore-brake-temperature-management"
+      ],
       "text": "Singapore's heat tested the brakes too. Antonelli raced without brake-temperature data after a sensor issue. Bottas had to lift and coast from lap two, despite Cadillac's cooling upgrades. https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions?story=antonelli-singapore-brake-temperature-data",
       "expiresAt": "2026-10-14T14:00:00Z"
     }

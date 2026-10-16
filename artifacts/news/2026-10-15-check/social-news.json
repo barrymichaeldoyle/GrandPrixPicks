@@ -15,10 +15,7 @@
     "body": "Verstappen and Hadjar will wear special white race suits at the United States Grand Prix. The design has blue accents and vintage-style sewn-on partner badges.",
     "category": "general",
     "affectsSessions": [],
-    "driverCodes": [
-      "VER",
-      "HAD"
-    ],
+    "driverCodes": ["VER", "HAD"],
     "sourceName": "Motorsport.com",
     "sourceUrl": "https://www.motorsport.com/f1/news/red-bull-reveals-striking-white-f1-race-suits-for-us-gp-as-fans-call-for-matching-livery/10865331/",
     "sourcePublishedAt": "2026-10-15T09:38:09Z"

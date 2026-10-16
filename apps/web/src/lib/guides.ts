@@ -130,18 +130,18 @@ type GuideBody = {
 export type Guide = GuideMeta & GuideBody;
 
 const GUIDE_BODIES: Record<string, GuideBody> = {
-  // Keep this URL when Haas announces. Replace status and opening section,
-  // retain the shortlist as dated context, and bump guideMeta.updatedAt.
+  // Keep this URL if the pairing later changes. The shortlist stays as dated
+  // context of who Haas considered before 14 October 2026.
   'f1-2027-haas-second-seat': {
     status:
-      'As of 13 October 2026, RacingNews365 reports that Haas and Ferrari agreed the Câmara deal in Singapore. Haas has yet to announce the signing.',
+      'Haas signed Rafael Câmara on 14 October 2026 on a multi-year deal for 2027. He replaces Esteban Ocon alongside Oliver Bearman.',
     hero: {
       src: '/images/guides/haas-monza-2025.jpg',
       width: 1280,
       height: 853,
       alt: 'Oliver Bearman driving the Haas VF-25 during qualifying at Monza in 2025',
       caption:
-        'Bearman at Monza in 2025. Câmara is reported to be his 2027 team-mate.',
+        'Bearman at Monza in 2025. Haas signed Câmara to partner him in 2027.',
       credit: 'Eustace Bagge',
       sourceUrl:
         'https://commons.wikimedia.org/wiki/File:Oliver_Bearman_2025_Italian_Grand_Prix_qualifying.jpg',
@@ -153,13 +153,17 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         heading: 'Ocon is leaving',
         paragraphs: [
           'Esteban Ocon announced on 30 September 2026 that he will leave Haas when the season ends, and Haas confirmed it with a statement from Ayao Komatsu. The team said it would not share further driver news at that time.',
-          'Ocon said he leaves with his head held high and that this is “absolutely not the end of my Formula 1 career”. He has not said where he goes next.',
+          'Ocon said he leaves with his head held high and that this is “absolutely not the end of my Formula 1 career”. He has not said where he goes next. Haas named Rafael Câmara as his replacement on 14 October 2026.',
         ],
         sources: [
           {
             label:
               'Formula 1: Ocon confirms he will leave Haas (30 September 2026)',
             url: 'https://www.formula1.com/en/latest/article/ocon-confirms-he-will-leave-haas-at-end-of-2026-season.cJjg9W9Om5ZW6Mn9GZ75v',
+          },
+          {
+            label: 'Haas: Câmara confirmed for 2027 (14 October 2026)',
+            url: 'https://www.haasf1team.com/news/rafael-camara-confirmed-tgr-haas-f1-team-2027',
           },
         ],
       },
@@ -192,12 +196,21 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         ],
       },
       {
-        heading: 'Câmara deal reported',
+        heading: 'Haas signs Câmara',
         paragraphs: [
-          'RacingNews365 reported on 11 October 2026 that Haas and Ferrari reached an agreement in Singapore for Rafael Câmara to replace Esteban Ocon alongside Oliver Bearman. Its report says Câmara and Jack Doohan emerged as the final two candidates after testing, before the decision went to Câmara.',
-          'Câmara’s case rests on a private Haas test at Portimão in late August. Brazilian reports said he produced the strongest comparison of the candidates who drove the car, though Haas has not published the times. The Stint reported on 5 October that Leonardo Fornaroli is set to join McLaren’s WEC Hypercar programme in 2027.',
+          'Haas announced on 14 October 2026 that Rafael Câmara has signed a multi-year deal to replace Esteban Ocon in 2027, partnering Oliver Bearman. Formula 1 reported the same promotion the following day. Câmara is 21, leads the Formula 2 standings, and has been a Ferrari Driver Academy member since 2021, the same pathway Bearman took to this team.',
+          'RacingNews365 had reported on 11 October that Haas and Ferrari reached an agreement in Singapore, and that Câmara and Jack Doohan emerged as the final two candidates after testing. Câmara’s case rested on a private Haas test at Portimão in late August. The Stint reported on 5 October that Leonardo Fornaroli is set to join McLaren’s WEC Hypercar programme in 2027.',
         ],
         sources: [
+          {
+            label: 'Haas: Câmara confirmed for 2027 (14 October 2026)',
+            url: 'https://www.haasf1team.com/news/rafael-camara-confirmed-tgr-haas-f1-team-2027',
+          },
+          {
+            label:
+              'Formula 1: Ferrari junior Câmara promoted to F1 with Haas (15 October 2026)',
+            url: 'https://www.formula1.com/en/latest/article/ferrari-junior-rafael-camara-promoted-to-f1-with-haas-for-2027.1RSxvnFaLu8Hd3JD2ppFsz',
+          },
           {
             label: 'RacingNews365: Haas chooses Câmara (11 October 2026)',
             url: 'https://racingnews365.com/haas-finalise-new-f1-driver-line-up-with-esteban-ocon-replacement-chosen',
@@ -206,11 +219,6 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
             label:
               'The Stint: Fornaroli set for McLaren Hypercar (5 October 2026)',
             url: 'https://www.thestint.com/eonardo-fornaroli-set-for-mclaren-hypercar-move-and-why-it-makes-sense/',
-          },
-          {
-            label:
-              'Grandprix.com: Câmara moves to the front of the Haas queue (17 September 2026)',
-            url: 'https://www.grandprix.com/news/camara-moves-to-front-of-haas-queue-for-2027-seat.html',
           },
         ],
       },
@@ -255,7 +263,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
             'https://creativecommons.org/publicdomain/zero/1.0/deed.en',
         },
         paragraphs: [
-          'Ocon joined Haas in 2025 and finished fifth in China in his second race for the team. He won the 2021 Hungarian Grand Prix with Alpine. He leaves Haas at the end of 2026 after two seasons and has not announced his next team.',
+          'Ocon joined Haas in 2025 and finished fifth in China in his second race for the team. He won the 2021 Hungarian Grand Prix with Alpine. He leaves Haas at the end of 2026 after two seasons. Haas named Rafael Câmara as his replacement on 14 October 2026. Ocon has not announced his next team.',
         ],
         sources: [
           {
@@ -291,7 +299,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
             'https://creativecommons.org/publicdomain/zero/1.0/deed.en',
         },
         paragraphs: [
-          'Doohan joined Haas as a reserve driver in February 2026. He finished third in Formula 2 in 2023, made his F1 debut with Alpine at Abu Dhabi in 2024, and raced the opening six Grands Prix of 2025. RacingNews365 reports that he and Câmara were the final two candidates.',
+          'Doohan joined Haas as a reserve driver in February 2026. He finished third in Formula 2 in 2023, made his F1 debut with Alpine at Abu Dhabi in 2024, and raced the opening six Grands Prix of 2025. RacingNews365 reported that he and Câmara were the final two candidates.',
         ],
         sources: [
           {
@@ -345,20 +353,21 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
         },
         paragraphs: [
-          'Câmara won the 2025 FIA Formula 3 title as a rookie with Trident, with four wins and five pole positions. He is a Ferrari Driver Academy member, moved to Formula 2 with Invicta for 2026 and leads the championship. Haas has run him in its private testing.',
+          'Câmara won the 2025 FIA Formula 3 title as a rookie with Trident, with four wins and five pole positions. He is a Ferrari Driver Academy member, moved to Formula 2 with Invicta for 2026 and leads the championship. Haas ran him in a TPC test at Portimão in August and announced his multi-year deal for 2027 on 14 October 2026.',
         ],
         sources: [
           {
-            label: 'Formula 1: Câmara leads Formula 2 (30 September 2026)',
-            url: 'https://www.formula1.com/en/latest/article/ocon-confirms-he-will-leave-haas-at-end-of-2026-season.cJjg9W9Om5ZW6Mn9GZ75v',
+            label: 'Haas: Câmara confirmed for 2027 (14 October 2026)',
+            url: 'https://www.haasf1team.com/news/rafael-camara-confirmed-tgr-haas-f1-team-2027',
+          },
+          {
+            label:
+              'Formula 1: Ferrari junior Câmara promoted to F1 with Haas (15 October 2026)',
+            url: 'https://www.formula1.com/en/latest/article/ferrari-junior-rafael-camara-promoted-to-f1-with-haas-for-2027.1RSxvnFaLu8Hd3JD2ppFsz',
           },
           {
             label: 'Formula 3: Câmara’s 2025 title-winning season',
             url: 'https://www.fiaformula3.com/en/information/rafael-camara-2025-champion.6Xzppi1iWCn1PUraUFD0ws',
-          },
-          {
-            label: 'Grandprix.com: Haas’s candidate testing',
-            url: 'https://www.grandprix.com/news/komatsu-confirms-five-driver-fight-for-ocons-haas-seat.html',
           },
         ],
       },
@@ -396,18 +405,19 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         ],
       },
       {
-        heading: 'When will Haas announce the signing?',
+        heading: 'The shortlist Haas considered',
         paragraphs: [
-          'RacingNews365 expects a formal announcement in the week beginning 12 October. Haas has not given a date or announced the signing. The five driver profiles above record the original shortlist Komatsu named in September.',
+          'The five driver profiles above record the original shortlist Komatsu named in September. Haas announced Câmara on 14 October 2026, on a multi-year deal, and he will make his Formula 1 debut in 2027.',
         ],
         sources: [
           {
-            label: 'RacingNews365: Haas chooses Câmara (11 October 2026)',
-            url: 'https://racingnews365.com/haas-finalise-new-f1-driver-line-up-with-esteban-ocon-replacement-chosen',
+            label: 'Haas: Câmara confirmed for 2027 (14 October 2026)',
+            url: 'https://www.haasf1team.com/news/rafael-camara-confirmed-tgr-haas-f1-team-2027',
           },
           {
-            label: 'Formula 1: Haas confirms Ocon’s exit (30 September 2026)',
-            url: 'https://www.formula1.com/en/latest/article/ocon-confirms-he-will-leave-haas-at-end-of-2026-season.cJjg9W9Om5ZW6Mn9GZ75v',
+            label:
+              'Formula 1: Ferrari junior Câmara promoted to F1 with Haas (15 October 2026)',
+            url: 'https://www.formula1.com/en/latest/article/ferrari-junior-rafael-camara-promoted-to-f1-with-haas-for-2027.1RSxvnFaLu8Hd3JD2ppFsz',
           },
         ],
       },

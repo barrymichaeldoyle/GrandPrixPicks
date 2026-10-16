@@ -137,8 +137,8 @@ export const LINE_UP_2027: TeamLineUp[] = [
       },
       {
         driver: 'Rafael Câmara',
-        status: 'expected',
-        note: 'RacingNews365 reported on 11 October that Haas and Ferrari agreed his move to replace Ocon in 2027. A formal announcement is pending.',
+        status: 'signed',
+        note: 'Haas announced a multi-year deal on 14 October 2026, replacing Esteban Ocon for 2027.',
       },
     ],
   },
@@ -220,35 +220,30 @@ export const LINE_UP_2027: TeamLineUp[] = [
 ];
 
 /**
- * The drivers Haas considered to replace Ocon.
+ * The drivers Haas considered for the seat Câmara now holds.
  *
- * Ordered by where the contest stands rather than alphabetically, because the
- * page numbers them and a number that means nothing is worse than no number.
- * Komatsu named five on 4 September 2026, Ocon among them; Ocon left the list
- * when he announced his exit on 30 September. RacingNews365 reported on
- * 11 October that Camara was chosen. Retain the shortlist as dated context;
- * `claim` records each driver's background and the latest reported outcome.
+ * Câmara is signed, so he is not listed here. Komatsu named five on
+ * 4 September 2026, Ocon among them; Ocon left the list when he announced his
+ * exit on 30 September, and Câmara left it when Haas announced him on
+ * 14 October. Retain the others as dated context of who was in the contest.
+ * Ordered by where they stood when Haas decided, because the page numbers
+ * them and a number that means nothing is worse than no number.
  */
 export const HAAS_2027_CONTENDERS = [
   {
-    driver: 'Rafael Câmara',
-    claim:
-      'The Ferrari junior chosen to replace Ocon, according to RacingNews365’s 11 October report. Haas has yet to announce the signing.',
-  },
-  {
     driver: 'Jack Doohan',
     claim:
-      'The Haas reserve, with 2025 races for Alpine behind him. RacingNews365 reports that he and Câmara emerged as the final two candidates after testing.',
+      'The Haas reserve, with 2025 races for Alpine behind him. RacingNews365 reported that he and Câmara were the final two candidates after testing.',
   },
   {
     driver: 'Leonardo Fornaroli',
     claim:
-      "The 2025 Formula 2 champion and McLaren's reserve, and the driver Camara was measured against at Portimão. The Stint reported on 5 October that he is set to join McLaren's WEC Hypercar programme in 2027.",
+      "The 2025 Formula 2 champion and McLaren's reserve, and the driver Câmara was measured against at Portimão. The Stint reported on 5 October that he is set to join McLaren's WEC Hypercar programme in 2027.",
   },
   {
     driver: 'Ryo Hirakawa',
     claim:
-      'Seven Friday practice runs for Haas already, a world endurance title, and Toyota, a Haas partner, behind him. The paddock rates his chances as slim.',
+      'Seven Friday practice runs for Haas already, a world endurance title, and Toyota, a Haas partner, behind him. The paddock rated his chances as slim.',
   },
 ] as const;
 

@@ -15,7 +15,7 @@ export const Route = createFileRoute('/guides/')({
     const meta = pageMeta({
       title: 'F1 Guides | Race Weekends, Points and the 2027 Grid',
       description:
-        'Plain-English guides to Formula 1: how a race weekend runs, how championship points are awarded, and who could take the 2027 Haas seat.',
+        'Plain-English guides to Formula 1: how a race weekend runs, how championship points are awarded, and who Haas signed for 2027.',
       path: '/guides',
     });
     return {
@@ -55,7 +55,7 @@ function GuidesIndexPage() {
       <div className="mx-auto max-w-4xl px-4 py-6">
         <PageHeader
           title="Formula 1, explained"
-          subtitle="How a race weekend runs, how points are awarded, and who could take the 2027 Haas seat."
+          subtitle="How a race weekend runs, how points are awarded, and who Haas signed for 2027."
         />
 
         <section className="mt-2 border-t border-border pt-8">

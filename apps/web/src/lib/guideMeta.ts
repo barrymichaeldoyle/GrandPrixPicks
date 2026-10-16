@@ -56,13 +56,13 @@ const GUIDE_META: readonly GuideMeta[] = [
   {
     slug: 'f1-2027-haas-second-seat',
     publishedAt: '2026-09-09',
-    updatedAt: '2026-10-13',
-    title: 'Câmara set for the 2027 Haas seat',
-    metaTitle: '2027 Haas Seat: Câmara Deal Reported | Grand Prix Picks',
+    updatedAt: '2026-10-16',
+    title: 'Câmara confirmed for Haas in 2027',
+    metaTitle: '2027 Haas Seat: Câmara Confirmed | Grand Prix Picks',
     metaDescription:
-      'Rafael Câmara is set to replace Esteban Ocon at Haas in 2027, RacingNews365 reports. The team has yet to announce the signing.',
+      'Haas signed Rafael Câmara on 14 October 2026 on a multi-year deal for 2027, replacing Esteban Ocon. He partners Oliver Bearman.',
     summary:
-      'RacingNews365 reports that Haas has chosen Rafael Câmara to replace Esteban Ocon alongside Oliver Bearman in 2027. A formal announcement is pending.',
+      'Haas announced a multi-year deal for Rafael Câmara on 14 October 2026. He replaces Esteban Ocon alongside Oliver Bearman in 2027.',
   },
   {
     slug: 'f1-points-system-explained',

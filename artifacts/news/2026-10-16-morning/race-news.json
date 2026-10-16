@@ -1,0 +1,46 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "mercedes-austin-newer-package-plan",
+    "headline": "Mercedes expects both cars to use its newer package in Austin",
+    "body": "Mercedes expects Antonelli and Russell to run its newer specification in Austin, with a final decision still pending. Wolff says the package needs a different setup approach and has yet to deliver all the performance the team expected.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ANT", "RUS"],
+    "sourceName": "Sky Sports",
+    "sourceUrl": "https://www.skysports.com/f1/news/13599493/mercedes-boss-toto-wolff-reveals-latest-verdict-on-car-upgrades-after-unusual-specification-split-at-singapore-gp",
+    "sourcePublishedAt": "2026-10-16T06:00:00Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "austin-tyre-compounds",
+    "headline": "Pirelli selects C2, C3 and C4 for Austin",
+    "body": "Pirelli will bring C2 as the hard tyre, C3 as the medium and C4 as the soft for the United States Grand Prix. The hard is one step softer than last year's C1, while the medium and soft choices stay the same.",
+    "category": "general",
+    "affectsSessions": [],
+    "sourceName": "Pirelli",
+    "sourceUrl": "https://press.pirelli.com/the-compound-selection-for-austin-mexico-city-and-so-paulo/",
+    "sourcePublishedAt": "2026-10-09T09:57:29+02:00"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "fia-austin-wet-weather-software-update",
+    "headline": "FIA plans wet-weather software update for Austin",
+    "body": "The FIA will release a further wet-weather power-unit software update for the United States Grand Prix. Its review of the Sepang formation-lap problems found that some cars at low engine revs lost more power than intended in sectors with a 250kW reduction and could not recover it within those sectors.",
+    "category": "general",
+    "affectsSessions": [],
+    "sourceName": "FIA",
+    "sourceUrl": "https://www.fia.com/news/fia-concludes-investigation-bahrain-gp-malaysia-formation-lap-software-bug",
+    "sourcePublishedAt": "2026-10-08T09:01:00+02:00"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "mercedes-austin-free-fan-hub",
+    "headline": "Mercedes opens a free fan hub in downtown Austin",
+    "body": "Mercedes' fan hub will be at 400 Congress Avenue from 22 to 25 October, with free entry. Visitors can try a pit stop on a real F1 car, drive simulators and see a 2026 Mercedes show car and historic team memorabilia.",
+    "category": "general",
+    "affectsSessions": [],
+    "sourceName": "Mercedes",
+    "sourceUrl": "https://www.mercedesamgf1.com/news/mercedes-f1-to-take-over-downtown-austin-with-landmark-free-fan-hub"
+  }
+]

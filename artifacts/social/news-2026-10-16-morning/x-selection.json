@@ -1,0 +1,14 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/2026-10-16-morning/race-news.json",
+  "startAt": "2026-10-16T08:30:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["mercedes-austin-free-fan-hub"],
+      "text": "Mercedes' free Austin fan hub runs from 22–25 October at 400 Congress Avenue. It includes a pit-stop challenge on a real F1 car, simulators and a 2026 show car. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=mercedes-austin-free-fan-hub",
+      "expiresAt": "2026-10-22T06:00:00Z"
+    }
+  ]
+}

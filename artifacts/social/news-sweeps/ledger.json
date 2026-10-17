@@ -847,7 +847,7 @@
       "text": "Toto Wolff expects both Mercedes cars to run the latest upgrade in Austin, pending a final team decision. Only Antonelli used it in Singapore. Wolff says it has not yet delivered the performance Mercedes hoped for.\n\nhttps://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=mercedes-wolff-austin-upgrade-specification",
       "dueAt": "2026-10-16T06:45:00.000Z",
       "expiresAt": "2026-10-22T12:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6ad1c177ee2c696029c13780"
     },
     {
@@ -865,8 +865,44 @@
       "text": "Mercedes' free Austin fan hub runs from 22–25 October at 400 Congress Avenue. It includes a pit-stop challenge on a real F1 car, simulators and a 2026 show car. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=mercedes-austin-free-fan-hub",
       "dueAt": "2026-10-16T06:30:00.000Z",
       "expiresAt": "2026-10-22T06:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6ad1c19ba82f34dbe14bb5d8"
+    },
+    {
+      "id": "af40e1215bd34500e52f0a3862e33f8667bbbd03cd3a49ecdc4405b66739719b",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "beganovic-ferrari-reserve-driver-2027",
+          "revision": "db1c57f07567e20b0f819817c8d3db11a20d0f7eb70798f1b4eb81cd9e5bec3e"
+        }
+      ],
+      "text": "Dino Beganovic becomes Ferrari's development and reserve driver for 2027, graduating from its driver academy. His role includes being ready to stand in for either race driver. https://dinoracing.se/en/dino-beganovic-signs-as-development-and-reserve-driver-for-scuderia-ferrari-hp/",
+      "dueAt": "2026-10-17T06:00:00.000Z",
+      "expiresAt": "2026-10-19T18:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6ad301691694d771d51e1cea"
+    },
+    {
+      "id": "fdce546dfca168206ba097a67321702ca90ffb4603775164990e35971c8a71fa",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "lawson-austin-garage-sessions",
+          "revision": "fa714dfaf2f6317c6d04adcef140dc30eba611c75cf5f6d2c441b0a7c61a2876"
+        }
+      ],
+      "text": "Liam Lawson is taking to the stage in Austin. Liam Lawson & Friends headline VCARB Garage Sessions at Inn Cahoots on Thursday 22 October, ahead of the US Grand Prix. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=lawson-austin-garage-sessions",
+      "dueAt": "2026-10-17T06:25:00.000Z",
+      "expiresAt": "2026-10-22T17:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6ad30176c34368e4b0a99a54"
     }
   ]
 }

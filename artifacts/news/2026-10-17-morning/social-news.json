@@ -1,0 +1,25 @@
+[
+  {
+    "key": "beganovic-ferrari-reserve-driver-2027",
+    "headline": "Beganovic becomes Ferrari development and reserve driver for 2027",
+    "body": "Dino Beganovic will graduate from the Ferrari Driver Academy to become a development and reserve driver for the Formula 1 team in 2027. His role includes being ready to stand in for either race driver when needed.",
+    "team": "Ferrari",
+    "sourceName": "Dino Beganovic",
+    "sourceUrl": "https://dinoracing.se/en/dino-beganovic-signs-as-development-and-reserve-driver-for-scuderia-ferrari-hp/",
+    "sourcePublishedAt": 1792149641000
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "lawson-austin-garage-sessions",
+    "headline": "Lawson headlines a live music set in Austin",
+    "body": "Liam Lawson & Friends will headline VCARB Garage Sessions at Inn Cahoots in Austin on 22 October. The music programme runs from 7pm to 9:15pm as part of Esses Bazaar ATX ahead of the United States Grand Prix.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": [
+      "LAW"
+    ],
+    "sourceName": "Racing Bulls",
+    "sourceUrl": "https://www.visacashapprb.com/int-en/liam-lawson-and-friends-to-headline-garage-sessions-austin",
+    "sourcePublishedAt": "2026-10-16T11:58:00Z"
+  }
+]

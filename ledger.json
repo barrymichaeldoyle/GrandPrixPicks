@@ -885,6 +885,23 @@
       "expiresAt": "2026-10-19T18:00:00.000Z",
       "status": "scheduled",
       "bufferPostId": "6ad301691694d771d51e1cea"
+    },
+    {
+      "id": "fdce546dfca168206ba097a67321702ca90ffb4603775164990e35971c8a71fa",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "lawson-austin-garage-sessions",
+          "revision": "fa714dfaf2f6317c6d04adcef140dc30eba611c75cf5f6d2c441b0a7c61a2876"
+        }
+      ],
+      "text": "Liam Lawson is taking to the stage in Austin. Liam Lawson & Friends headline VCARB Garage Sessions at Inn Cahoots on Thursday 22 October, ahead of the US Grand Prix. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=lawson-austin-garage-sessions",
+      "dueAt": "2026-10-17T06:25:00.000Z",
+      "expiresAt": "2026-10-22T17:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

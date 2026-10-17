@@ -921,6 +921,23 @@
       "expiresAt": "2026-10-23T16:00:00.000Z",
       "status": "scheduled",
       "bufferPostId": "6ad39f830a208cb3232b7a92"
+    },
+    {
+      "id": "19929c174f9e630d464c825a156eafb62a61d3812f5ca7017f2c813c2917c372",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "verstappen-texas-helmet-austin",
+          "revision": "853a769114c4d97b21b33aa24dad9e56c3edd0d2e44e5db2f52a03926f17df1a"
+        }
+      ],
+      "text": "Verstappen's helmet for Austin puts a cowboy hat on the lion. He and Hadjar will also wear white, vintage-style race suits; an all-white Red Bull livery is not confirmed. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=verstappen-texas-helmet-austin",
+      "dueAt": "2026-10-17T17:15:00.000Z",
+      "expiresAt": "2026-10-23T16:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

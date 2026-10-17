@@ -27,7 +27,7 @@ import { captureAnalyticsEvent } from '../../lib/analytics';
 import { useUserDateFormat } from '../../lib/dates';
 import { getLockStatusViewModel } from '../../lib/lockTime';
 import { useIsSignedIn } from '../../lib/useIsSignedIn';
-import { useNow } from '../../lib/useNow';
+import { useCountdownNow } from '../../lib/useNow';
 import { useSignInSheet } from '../../lib/useSignInSheet';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { useToast } from '../../providers/ToastProvider';
@@ -96,7 +96,15 @@ function PredictForRace({
   race: RaceDoc;
   capabilities: SessionCapability[];
 }) {
-  const now = useNow();
+  const weekendSessions = getSessionsForWeekend(Boolean(race.hasSprint));
+  // Every second only inside the last day before a lock; see useCountdownNow.
+  const now = useCountdownNow(
+    weekendSessions.map(
+      (session) =>
+        capabilities.find((c) => c.sessionType === session)?.lockAt ??
+        getSessionLockAt(race, session),
+    ),
+  );
   const maybeOfferPush = useOfferPushAfterFirstSave();
   // Saves refuse to start offline rather than queue (see OfflineSaveError).
   const { isWebSocketConnected } = useConvexConnectionState();
@@ -150,8 +158,6 @@ function PredictForRace({
     showToast('Sign in and these picks go straight in', 'success');
     openSignIn();
   }
-
-  const weekendSessions = getSessionsForWeekend(Boolean(race.hasSprint));
 
   // Result data only subscribes once something has been published.
   const anyResult = capabilities.some((c) => c.hasResult);

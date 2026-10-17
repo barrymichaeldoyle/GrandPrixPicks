@@ -1,7 +1,7 @@
 import { getCountdownParts } from '@grandprixpicks/shared/dates';
 import { useWindowDimensions } from 'react-native';
 
-import { useNow } from '../../lib/useNow';
+import { useCountdownNow } from '../../lib/useNow';
 import { useTypography } from '../../theme/typography';
 import { Text, View } from '../../tw';
 
@@ -18,7 +18,7 @@ const MAX_TILE_WIDTH = 78;
 const MIN_TILE_WIDTH = 48;
 
 export function BigCountdown({ targetAt }: BigCountdownProps) {
-  const now = useNow();
+  const now = useCountdownNow([targetAt]);
   const { width } = useWindowDimensions();
   const parts = getCountdownParts(targetAt - now);
 

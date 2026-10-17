@@ -18,7 +18,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { api } from '../integrations/convex/api';
 import { useUserDateFormat } from '../lib/dates';
 import { getLockStatusViewModel } from '../lib/lockTime';
-import { useNow } from '../lib/useNow';
+import { useCountdownNow } from '../lib/useNow';
 import { useRaceWeekends } from '../lib/useRaceWeekends';
 import type { RootTabParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
@@ -42,7 +42,6 @@ const SESSION_ORDER: SessionType[] = [
 export function RaceDetailScreen({ route }: Props) {
   const { convexEnabled } = useMobileConfig();
   const { races, isLoading: racesLoading } = useRaceWeekends();
-  const now = useNow();
   const { formatRaceDate } = useUserDateFormat();
   const rootNav = useNavigation<NavigationProp<RootTabParamList>>();
   const [expandedPractice, setExpandedPractice] = useState<string[]>([]);
@@ -51,6 +50,10 @@ export function RaceDetailScreen({ route }: Props) {
     (item) => item.slug === route.params.raceSlug,
   );
   const race = raceIndex >= 0 ? races[raceIndex] : undefined;
+  // Every second only inside the last day before a session; see useCountdownNow.
+  const now = useCountdownNow(
+    (race?.sessions ?? []).map((s) => new Date(s.startsAt).getTime()),
+  );
 
   const raceDoc = useQuery(
     api.races.getRaceBySlug,

@@ -179,6 +179,15 @@ remains `PREPARE_FOR_SUBMISSION`. No App Review submission was made.
 The old large-display development screenshots remain unchanged. Local
 development environment settings were restored after capturing.
 
+Build 14 is now behind `main`. Commits on 2026-10-17 changed the app's
+native dependency set (Expo SDK 57 point releases, `@clerk/expo` 4.12,
+`react-native-gesture-handler` 3.3, `react-native-nitro-modules` 0.37,
+`@sentry/react-native` 8.31) and fixed the feed's scroll jank, so the next
+`eas build --profile production --platform ios` produces **build 15**, which
+replaces 14 for device QA and submission. Expo SDK 58 was deliberately not
+taken: `@clerk/expo` still declares `expo <58` and NativeWind 5 is a release
+candidate that needs a react-native-css release candidate.
+
 ## 4. Physical-device TestFlight QA
 
 The simulator cannot certify these:

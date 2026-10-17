@@ -65,23 +65,38 @@ export function TabChrome({ brand, title, action }: TabChromeProps) {
  * Tab-root shell: the chrome is a sibling of the scroll view so hiding it
  * reclaims the space. Overflow clips the bar as it slides into the status
  * area; the SafeAreaView around the tab still keeps content below the notch.
+ *
+ * The bar, banner and list are one sheet, drawn one bar taller than the shell
+ * and translated up by however much of the bar is hidden (`useHideOnScroll`).
+ * The list's frame never changes, so hiding the bar is a pure transform: no
+ * layout, no viewport re-measure, no offset clamp. The price is the bottom
+ * `TAB_CHROME_HEIGHT` of the list sitting under the clip while the bar shows,
+ * so lists in this shell pad their end by `CHROME_END_PADDING` on top of their
+ * own.
  */
 export function CollapsingChrome({
   children,
-  headerStyle,
+  sheetStyle,
   chrome,
 }: {
   children: ReactNode;
-  headerStyle: ComponentProps<typeof Animated.View>['style'];
+  sheetStyle: ComponentProps<typeof Animated.View>['style'];
   chrome: ReactNode;
 }) {
   return (
     <View className="flex-1 bg-page" style={{ overflow: 'hidden' }}>
-      <Animated.View style={headerStyle}>{chrome}</Animated.View>
-      {/* Under the tab's own header: mounted above the navigator it drew
-          over the status bar, since nothing gave it the safe-area inset. */}
-      <OfflineBanner />
-      {children}
+      <Animated.View
+        style={[{ flex: 1, marginBottom: -TAB_CHROME_HEIGHT }, sheetStyle]}
+      >
+        {chrome}
+        {/* Under the tab's own header: mounted above the navigator it drew
+            over the status bar, since nothing gave it the safe-area inset. */}
+        <OfflineBanner />
+        {children}
+      </Animated.View>
     </View>
   );
 }
+
+/** Extra end padding for a list inside `CollapsingChrome`. */
+export const CHROME_END_PADDING = TAB_CHROME_HEIGHT;

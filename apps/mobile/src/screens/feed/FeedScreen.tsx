@@ -1,5 +1,6 @@
 import {
   compareFeedOrder,
+  type FeedGroup,
   groupFeedEvents,
   weekendStarts,
 } from '@grandprixpicks/shared/feedGroups';
@@ -8,7 +9,12 @@ import { useConvex } from 'convex/react';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '../../integrations/convex/query';
-import { useEffect, useRef, useState } from 'react';
+// Mobile runs no React Compiler (babel-plugin-react-compiler is neither
+// installed nor enabled for Expo), so nothing memoises the list for us. The
+// feed is the one screen where that shows: an unmemoised `renderItem` and
+// freshly built blocks re-rendered every row on every page load and clock tick.
+// oxlint-disable-next-line no-restricted-imports
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { FeedEvent } from '../../components/feed/FeedEventCard';
 import { FeedEmptyState } from '../../components/feed/FeedEmptyState';
@@ -25,12 +31,17 @@ import { RaceRecapCard } from '../../components/home/RaceRecapCard';
 import { SuggestedFollowsSection } from '../../components/home/SuggestedFollowsSection';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
-import { CollapsingChrome, TabChrome } from '../../components/ui/TabChrome';
+import {
+  CHROME_END_PADDING,
+  CollapsingChrome,
+  TabChrome,
+} from '../../components/ui/TabChrome';
 import { useHideOnScroll } from '../../hooks/useHideOnScroll';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
 import { captureAnalyticsEvent } from '../../lib/analytics';
 import { getFeatured } from '../../lib/featuredWeekend';
+import { feedGroupKey, reuseFeedGroups } from '../../lib/feedGroupIdentity';
 import { homePaintIsPending } from '../../lib/homePaint';
 import { useIsSignedIn } from '../../lib/useIsSignedIn';
 import { useHomePaintGate } from '../../lib/useHomePaintGate';
@@ -154,10 +165,17 @@ export function FeedScreen() {
     archiveLoading ||
     (activePagesCount > 1 && activePages.some((p) => p === undefined));
 
-  const loadedPages = [
-    ...activePages.filter((p): p is NonNullable<FeedPage> => p != null),
-    ...archivePages,
-  ];
+  // Only re-derived when a page actually changes. Convex hands back the same
+  // page object until its data moves, so the 30-second clock tick, a footer
+  // toggle or the viewer's own profile updating no longer rebuild the list.
+  const loadedPages = useMemo(
+    () => [
+      ...activePages.filter((p): p is NonNullable<FeedPage> => p != null),
+      ...archivePages,
+    ],
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- activePages is a slice of these
+    [page0, page1, page2, page3, page4, activePagesCount, archivePages],
+  );
   const lastLoadedPage = loadedPages.at(-1);
   const hasMore = lastLoadedPage?.hasMore ?? false;
 
@@ -197,12 +215,63 @@ export function FeedScreen() {
     });
   }
 
-  function openEvent(event: FeedEvent) {
-    captureAnalyticsEvent('feed_event_opened', { type: event.type });
-    navigation.navigate('FeedEventDetail', {
-      feedEventId: String(event._id),
-    });
-  }
+  const openEvent = useCallback(
+    (event: FeedEvent) => {
+      captureAnalyticsEvent('feed_event_opened', { type: event.type });
+      navigation.navigate('FeedEventDetail', {
+        feedEventId: String(event._id),
+      });
+    },
+    [navigation],
+  );
+
+  // Feed order (weekend, then time) across pages, and each event once: a
+  // reactive page refreshing can briefly hold the boundary event its
+  // neighbour also has. Same merge as web's `FeedContent`.
+  //
+  // Blocks keep their object identity across recomputes (`reuseFeedGroups`),
+  // so a new page at the end leaves every row above it untouched. Without
+  // that, each "Loading more" re-rendered the whole list at once, and the
+  // rows went blank for the frames it took.
+  const previousGroupsRef = useRef<FeedGroup<FeedEvent>[]>([]);
+  const { groups, startsWeekend, allSessions } = useMemo(() => {
+    const allEvents = Array.from(
+      new Map(
+        loadedPages.flatMap((p) => p.events).map((event) => [event._id, event]),
+      ).values(),
+    ).sort(compareFeedOrder);
+    const sessions: Record<string, SessionHeader> = Object.assign(
+      {},
+      ...loadedPages.map((p) => p.sessions),
+    );
+    const next = reuseFeedGroups(
+      previousGroupsRef.current,
+      groupFeedEvents(allEvents),
+    );
+    previousGroupsRef.current = next;
+    return {
+      groups: next,
+      // Which cards open a weekend, so the chequer can go above them. Same
+      // rule as web, from the same function.
+      startsWeekend: weekendStarts(next),
+      allSessions: sessions,
+    };
+  }, [loadedPages]);
+
+  const viewerId = me?._id as ConvexId<'users'> | undefined;
+  const renderItem = useCallback(
+    ({ index, item }: { index: number; item: FeedGroup<FeedEvent> }) => (
+      <FeedRow
+        first={index === 0}
+        item={item}
+        onOpen={openEvent}
+        session={item.kind === 'session' ? allSessions[item.key] : undefined}
+        split={startsWeekend[index] ?? false}
+        viewerId={viewerId}
+      />
+    ),
+    [allSessions, openEvent, startsWeekend, viewerId],
+  );
 
   const discoveryPending =
     isSignedIn &&
@@ -252,39 +321,12 @@ export function FeedScreen() {
     );
   }
 
-  // Feed order (weekend, then time) across pages, and each event once: a
-  // reactive page refreshing can briefly hold the boundary event its
-  // neighbour also has. Same merge as web's `FeedContent`.
-  const allEvents = Array.from(
-    new Map(
-      loadedPages.flatMap((p) => p.events).map((event) => [event._id, event]),
-    ).values(),
-  ).sort(compareFeedOrder);
-  const allSessions: Record<string, SessionHeader> = Object.assign(
-    {},
-    ...loadedPages.map((p) => p.sessions),
-  );
-
-  const groups = groupFeedEvents(allEvents);
-  // Which cards open a weekend, so the chequer can go above them. Same rule as
-  // web, from the same function.
-  const startsWeekend = weekendStarts(groups);
-
   return (
-    <CollapsingChrome
-      chrome={<TabChrome brand />}
-      headerStyle={hide.headerStyle}
-    >
+    <CollapsingChrome chrome={<TabChrome brand />} sheetStyle={hide.sheetStyle}>
       <FlatList
-        contentContainerClassName="pb-6"
+        contentContainerStyle={{ paddingBottom: 24 + CHROME_END_PADDING }}
         data={groups}
-        keyExtractor={(group) =>
-          group.kind === 'standalone'
-            ? String(group.event._id)
-            : group.kind === 'news'
-              ? `news-${group.events[0]?._id}`
-              : group.key
-        }
+        keyExtractor={feedGroupKey}
         ListEmptyComponent={
           isSignedIn && page0 != null ? <FeedEmptyState /> : null
         }
@@ -296,37 +338,10 @@ export function FeedScreen() {
           ) : null
         }
         ListHeaderComponent={
-          <View>
-            <RaceRecapCard className="mx-4 mt-3 mb-3" />
-            {isSignedIn ? (
-              <PicksConnectedScreen embedded />
-            ) : (
-              <View className="px-4 pt-3">
-                <HomeHero />
-              </View>
-            )}
-            {/* Ranked by mutual followers and shared leagues, matching web's
-                dashboard rail card — always visible for a signed-in player,
-                not just over an empty feed, the way the old leaderboard-rank
-                version here was. */}
-            {isSignedIn ? (
-              <View className="px-4 pt-3">
-                <SuggestedFollowsSection />
-              </View>
-            ) : null}
-            {/* Under the weekend, not above it. Leading the tab with lap times
-                from a session in progress put them ahead of the picks the tab
-                exists to take. */}
-            <LiveClassificationCard />
-            {/* No "Activity" heading over the list. The tab is Home, the rows
-                below are plainly the activity, and the web feed dropped the
-                same label. */}
-            {groups.length > 0 || isSignedIn ? null : (
-              <View className="px-4 pt-2">
-                <SignedOutHomePanel />
-              </View>
-            )}
-          </View>
+          <FeedListHeader
+            isSignedIn={isSignedIn}
+            showSignedOutPanel={groups.length === 0 && !isSignedIn}
+          />
         }
         onEndReached={handleLoadMore}
         // A screen and a half ahead: at 0.4 a quick flick reached the end
@@ -341,48 +356,111 @@ export function FeedScreen() {
             tintColor={colors.accent}
           />
         }
-        renderItem={({ index, item }) => {
-          const card =
-            item.kind === 'standalone' ? (
-              <FeedEventCard
-                event={item.event}
-                onPress={() => openEvent(item.event)}
-              />
-            ) : item.kind === 'news' ? (
-              <NewsGroupCard events={item.events} />
-            ) : (
-              <SessionGroupCard
-                events={item.events}
-                session={
-                  allSessions[item.key] ?? {
-                    raceName: item.events[0]?.raceName ?? 'Race',
-                    sessionType: item.events[0]?.sessionType ?? 'race',
-                    raceSlug: item.events[0]?.raceSlug,
-                    top5: [],
-                  }
-                }
-                viewerId={me?._id as ConvexId<'users'> | undefined}
-              />
-            );
-          // Joined, as on web's phone layout: no gap between blocks, and each
-          // block after the first sits 1px up so its top hairline lands on the
-          // one above instead of doubling it. Only a weekend break opens the
-          // sheet, with the chequer 12px from each side.
-          const split = startsWeekend[index];
-          return (
-            <View>
-              {split ? <WeekendSplit className="mt-3 mb-3" /> : null}
-              <View
-                className={index === 0 && !split ? 'mt-3' : undefined}
-                style={index > 0 && !split ? { marginTop: -1 } : undefined}
-              >
-                {card}
-              </View>
-            </View>
-          );
-        }}
+        renderItem={renderItem}
         showsVerticalScrollIndicator={false}
       />
     </CollapsingChrome>
   );
 }
+
+/**
+ * Everything above the activity. Memoised so a feed page arriving or the
+ * clock ticking does not re-render the picks card and its editors; each part
+ * holds its own subscriptions and re-renders itself when its data changes.
+ */
+const FeedListHeader = memo(function FeedListHeader({
+  isSignedIn,
+  showSignedOutPanel,
+}: {
+  isSignedIn: boolean;
+  showSignedOutPanel: boolean;
+}) {
+  return (
+    <View>
+      <RaceRecapCard className="mx-4 mt-3 mb-3" />
+      {isSignedIn ? (
+        <PicksConnectedScreen embedded />
+      ) : (
+        <View className="px-4 pt-3">
+          <HomeHero />
+        </View>
+      )}
+      {/* Ranked by mutual followers and shared leagues, matching web's
+          dashboard rail card — always visible for a signed-in player, not
+          just over an empty feed, the way the old leaderboard-rank version
+          here was. */}
+      {isSignedIn ? (
+        <View className="px-4 pt-3">
+          <SuggestedFollowsSection />
+        </View>
+      ) : null}
+      {/* Under the weekend, not above it. Leading the tab with lap times from
+          a session in progress put them ahead of the picks the tab exists to
+          take. */}
+      <LiveClassificationCard />
+      {/* No "Activity" heading over the list. The tab is Home, the rows below
+          are plainly the activity, and the web feed dropped the same label. */}
+      {showSignedOutPanel ? (
+        <View className="px-4 pt-2">
+          <SignedOutHomePanel />
+        </View>
+      ) : null}
+    </View>
+  );
+});
+
+/**
+ * One block of the feed. Memoised on its block object: `reuseFeedGroups`
+ * keeps that object while the block's events are unchanged, so only the rows
+ * whose data moved re-render.
+ */
+const FeedRow = memo(function FeedRow({
+  first,
+  item,
+  onOpen,
+  session,
+  split,
+  viewerId,
+}: {
+  first: boolean;
+  item: FeedGroup<FeedEvent>;
+  onOpen: (event: FeedEvent) => void;
+  session: SessionHeader | undefined;
+  split: boolean;
+  viewerId: ConvexId<'users'> | undefined;
+}) {
+  const card =
+    item.kind === 'standalone' ? (
+      <FeedEventCard event={item.event} onPress={() => onOpen(item.event)} />
+    ) : item.kind === 'news' ? (
+      <NewsGroupCard events={item.events} />
+    ) : (
+      <SessionGroupCard
+        events={item.events}
+        session={
+          session ?? {
+            raceName: item.events[0]?.raceName ?? 'Race',
+            sessionType: item.events[0]?.sessionType ?? 'race',
+            raceSlug: item.events[0]?.raceSlug,
+            top5: [],
+          }
+        }
+        viewerId={viewerId}
+      />
+    );
+  // Joined, as on web's phone layout: no gap between blocks, and each block
+  // after the first sits 1px up so its top hairline lands on the one above
+  // instead of doubling it. Only a weekend break opens the sheet, with the
+  // chequer 12px from each side.
+  return (
+    <View>
+      {split ? <WeekendSplit className="mt-3 mb-3" /> : null}
+      <View
+        className={first && !split ? 'mt-3' : undefined}
+        style={!first && !split ? { marginTop: -1 } : undefined}
+      >
+        {card}
+      </View>
+    </View>
+  );
+});

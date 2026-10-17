@@ -17,6 +17,14 @@ const SNAP_MS = 160;
  * Pair with `CollapsingChrome` + the returned `scrollProps` on the screen's
  * list. The chrome is a sibling of the list, not inside it: collapsing it
  * must reclaim the space, not leave a gap and not scroll away with the hero.
+ *
+ * `sheetStyle` is a transform, never a layout property. The first version set
+ * a negative `marginTop` on the bar, which resized the list on every scroll
+ * frame while the bar moved: each resize re-laid out the list, re-measured its
+ * viewport and clamped its offset, so content moved twice as far as the
+ * finger and the rows stuttered. Sliding the whole sheet (bar + list, drawn
+ * one bar taller than the screen) costs nothing on the UI thread and the list
+ * never learns the bar moved.
  */
 export function useHideOnScroll() {
   const hiddenPx = useSharedValue(0);
@@ -47,12 +55,12 @@ export function useHideOnScroll() {
     }
   }
 
-  const headerStyle = useAnimatedStyle(() => ({
-    marginTop: -hiddenPx.value,
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: -hiddenPx.value }],
   }));
 
   return {
-    headerStyle,
+    sheetStyle,
     scrollProps: {
       onMomentumScrollEnd: () => apply(snapHideOffset(offset.current), true),
       onScroll,

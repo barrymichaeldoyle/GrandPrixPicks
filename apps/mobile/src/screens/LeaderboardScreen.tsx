@@ -13,7 +13,11 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { FlagImage } from '../components/ui/FlagImage';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
-import { CollapsingChrome, TabChrome } from '../components/ui/TabChrome';
+import {
+  CHROME_END_PADDING,
+  CollapsingChrome,
+  TabChrome,
+} from '../components/ui/TabChrome';
 import { SegmentedTabs } from '../components/ui/SegmentedTabs';
 import { SlantedStripe } from '../components/ui/SlantedStripe';
 import { useHideOnScroll } from '../hooks/useHideOnScroll';
@@ -419,10 +423,11 @@ export function LeaderboardScreen() {
   return (
     <CollapsingChrome
       chrome={<TabChrome title="Leaderboard" />}
-      headerStyle={hide.headerStyle}
+      sheetStyle={hide.sheetStyle}
     >
       <FlatList
-        contentContainerClassName="px-4 pb-8"
+        contentContainerClassName="px-4"
+        contentContainerStyle={{ paddingBottom: 32 + CHROME_END_PADDING }}
         data={rest}
         ItemSeparatorComponent={() => (
           <View className="ml-[52px] h-px bg-border" />

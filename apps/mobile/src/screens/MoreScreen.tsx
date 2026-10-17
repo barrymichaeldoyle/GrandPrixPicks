@@ -5,7 +5,11 @@ import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 
-import { CollapsingChrome, TabChrome } from '../components/ui/TabChrome';
+import {
+  CHROME_END_PADDING,
+  CollapsingChrome,
+  TabChrome,
+} from '../components/ui/TabChrome';
 import { useHideOnScroll } from '../hooks/useHideOnScroll';
 import { api } from '../integrations/convex/api';
 import { useQuery } from '../integrations/convex/query';
@@ -51,11 +55,12 @@ export function MoreScreen() {
   return (
     <CollapsingChrome
       chrome={<TabChrome title="More" />}
-      headerStyle={hide.headerStyle}
+      sheetStyle={hide.sheetStyle}
     >
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-6 p-4 pb-8"
+        contentContainerClassName="gap-6 p-4"
+        contentContainerStyle={{ paddingBottom: 32 + CHROME_END_PADDING }}
         {...hide.scrollProps}
       >
         <View className="gap-2.5">

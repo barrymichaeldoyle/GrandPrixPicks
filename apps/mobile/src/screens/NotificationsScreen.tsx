@@ -7,7 +7,11 @@ import * as Haptics from 'expo-haptics';
 import { SignedOutState } from '../components/SignedOutState';
 import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
-import { CollapsingChrome, TabChrome } from '../components/ui/TabChrome';
+import {
+  CHROME_END_PADDING,
+  CollapsingChrome,
+  TabChrome,
+} from '../components/ui/TabChrome';
 import { useHideOnScroll } from '../hooks/useHideOnScroll';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
@@ -178,8 +182,11 @@ export function NotificationsScreen({
 
   const list = (
     <FlatList
-      contentContainerClassName={
-        notifications.length === 0 ? 'flex-1' : 'px-4 pb-6'
+      contentContainerClassName={notifications.length === 0 ? 'flex-1' : 'px-4'}
+      contentContainerStyle={
+        notifications.length === 0
+          ? undefined
+          : { paddingBottom: 24 + (tabChrome ? CHROME_END_PADDING : 0) }
       }
       data={notifications}
       keyExtractor={(item) => String(item._id)}
@@ -241,7 +248,7 @@ export function NotificationsScreen({
     return (
       <CollapsingChrome
         chrome={<TabChrome action={markAll} title="Notifications" />}
-        headerStyle={hide.headerStyle}
+        sheetStyle={hide.sheetStyle}
       >
         {list}
       </CollapsingChrome>

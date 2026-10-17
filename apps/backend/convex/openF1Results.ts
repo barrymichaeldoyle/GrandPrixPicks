@@ -1536,8 +1536,13 @@ export const getAdminPollStatus = query({
     sessionType: sessionTypeValidator,
   },
   handler: async (ctx, args) => {
-    const viewer = requireViewer(await getViewer(ctx));
-    requireAdmin(viewer);
+    // Null, not a throw: a subscription briefly runs without auth while the
+    // client refreshes its token (a phone tab waking up), and a throw here
+    // takes the whole admin page down to the error fallback.
+    const viewer = await getViewer(ctx);
+    if (!viewer?.isAdmin) {
+      return null;
+    }
     const race = await ctx.db.get(args.raceId);
     if (!race) {
       return null;

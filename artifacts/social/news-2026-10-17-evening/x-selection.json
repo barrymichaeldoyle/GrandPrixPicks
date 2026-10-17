@@ -1,0 +1,19 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/2026-10-17-1800-sast.json",
+  "startAt": "2026-10-17T18:50:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["ferrari-austin-new-floor"],
+      "text": "Ferrari is expected to run a new floor in Austin, part of its fourth and final major upgrade of 2026. It aims for the same or more downforce with a less stiff set-up. Sidepod and bodywork changes may follow in Mexico. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=ferrari-austin-new-floor",
+      "expiresAt": "2026-10-23T16:00:00Z"
+    },
+    {
+      "keys": ["verstappen-texas-helmet-austin"],
+      "text": "Verstappen's helmet for Austin puts a cowboy hat on the lion. He and Hadjar will also wear white, vintage-style race suits; an all-white Red Bull livery is not confirmed. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=verstappen-texas-helmet-austin",
+      "expiresAt": "2026-10-23T16:00:00Z"
+    }
+  ]
+}

@@ -328,12 +328,24 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
         },
         paragraphs: [
-          'Hirakawa became a Haas reserve in April 2025 after testing the VF-24 in Abu Dhabi. He ran four Haas FP1 sessions in 2025: Bahrain, Spain, Mexico City and Abu Dhabi. He also races Toyota’s endurance programme, and Toyota is a Haas partner.',
+          'Hirakawa became a Haas reserve in April 2025 after testing the VF-24 in Abu Dhabi. He ran four Haas FP1 sessions in 2025: Bahrain, Spain, Mexico City and Abu Dhabi. In 2026 he drove FP1 in Austria and Hungary. He also races Toyota’s endurance programme, and Toyota is a Haas partner. Diario Motor reported on 16 October 2026 that he stays in that programme for 2027.',
         ],
         sources: [
           {
             label: 'Haas: Ryo Hirakawa’s testing and practice record',
             url: 'https://www.haasf1team.com/season/team/ryo-hirakawa',
+          },
+          {
+            label: 'Haas: Hirakawa’s first 2026 FP1, in Austria',
+            url: 'https://haasf1team.com/news/austrian-grand-prix-practice-recap-1',
+          },
+          {
+            label: 'Formula 1: Hirakawa’s second 2026 FP1, in Hungary',
+            url: 'https://www.formula1.com/en/latest/article/which-rookie-drivers-are-getting-fp1-outings-at-the-hungarian-grand-prix.1kS8Yo1hscVdKb4AS3J4eX',
+          },
+          {
+            label: 'Diario Motor: Hirakawa stays in WEC (16 October 2026)',
+            url: 'https://www.diariomotor.com/competicion/noticia/ryo-hirakawa-aferra-asiento-wec/',
           },
         ],
       },

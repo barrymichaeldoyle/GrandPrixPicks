@@ -243,7 +243,7 @@ export const HAAS_2027_CONTENDERS = [
   {
     driver: 'Ryo Hirakawa',
     claim:
-      'Seven Friday practice runs for Haas already, a world endurance title, and Toyota, a Haas partner, behind him. The paddock rated his chances as slim.',
+      'Friday practice runs for Haas in 2025 and 2026, a world endurance title, and Toyota, a Haas partner, behind him. Diario Motor reported on 16 October that he stays in Toyota’s WEC programme for 2027.',
   },
 ] as const;
 

@@ -56,7 +56,7 @@ const GUIDE_META: readonly GuideMeta[] = [
   {
     slug: 'f1-2027-haas-second-seat',
     publishedAt: '2026-09-09',
-    updatedAt: '2026-10-16',
+    updatedAt: '2026-10-18',
     title: 'Câmara confirmed for Haas in 2027',
     metaTitle: '2027 Haas Seat: Câmara Confirmed | Grand Prix Picks',
     metaDescription:

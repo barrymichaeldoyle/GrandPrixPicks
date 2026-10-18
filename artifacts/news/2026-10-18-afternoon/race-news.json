@@ -1,0 +1,26 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "ferrari-austin-new-floor",
+    "headline": "Ferrari expected to bring floor and bodywork changes to Austin",
+    "body": "The Race reports that Ferrari's final major upgrade of 2026 will combine a revised floor, sidepods and upper bodywork in Austin. The floor changes aim to add downforce and improve the car's balance, while the bodywork is intended to reduce drag without a wholesale change of sidepod concept. Further cooling changes are planned for Mexico's altitude.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["LEC", "HAM"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/what-ferrari-is-changing-biggest-f1-2026-upgrade/",
+    "sourcePublishedAt": "2026-10-18T09:31:47Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "mercedes-austin-upgrade-balance",
+    "headline": "Mercedes targets a wider setup window in Austin",
+    "body": "Mercedes' latest upgrade added downforce but shifted the aerodynamic balance too far towards the front, making the car harder to drive consistently. Simone Resta says the team needs to adjust its mechanical setup to recover that balance. For Austin, Mercedes plans to bring back the front wing tested in Singapore practice as it works to widen the package's operating window.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ANT", "RUS"],
+    "sourceName": "Autosport",
+    "sourceUrl": "https://www.autosport.com/f1/news/mercedes-explains-why-its-upgrade-made-its-f1-car-harder-to-drive/10866035/",
+    "sourcePublishedAt": "2026-10-18T11:00:03Z"
+  }
+]

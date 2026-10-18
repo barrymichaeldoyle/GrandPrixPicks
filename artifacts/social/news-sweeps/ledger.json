@@ -955,8 +955,26 @@
       "text": "Godzilla returns to Haas for Austin. The team will reveal its new livery on Monday 19 October, with matching race suits for Ocon and Bearman. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=haas-austin-godzilla-livery",
       "dueAt": "2026-10-18T09:25:00.000Z",
       "expiresAt": "2026-10-19T00:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6ad48d2b0a208cb3235a3d72"
+    },
+    {
+      "id": "4b56a08c190da57adc7ff5b9b98630cce598edbdf1e80b5220738678a6a9daa2",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "mercedes-austin-upgrade-balance",
+          "revision": "ab06eb6a3d6b817d3cd926533b8b76ca15ee39b4b8ba0f6605cb53974dad2ffe"
+        }
+      ],
+      "text": "Mercedes found more downforce with its upgrade, but also a front-heavy balance that made the car harder to drive. The Austin focus is setup work to widen its operating window. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=mercedes-austin-upgrade-balance",
+      "dueAt": "2026-10-18T15:00:00.000Z",
+      "expiresAt": "2026-10-23T17:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6ad4db19769b457934c85ac1"
     }
   ]
 }

@@ -1,4 +1,5 @@
 import type React from 'react';
+import type { StyleProp, ViewStyle } from 'react-native';
 import {
   ActivityIndicator as RNActivityIndicator,
   FlatList as RNFlatList,
@@ -65,6 +66,49 @@ export const TouchableOpacity = cssElement(RNTouchableOpacity);
 export const View = cssElement(RNView);
 export const AnimatedView = Animated.createAnimatedComponent(View);
 
+/**
+ * `contentContainerClassName` and `contentContainerStyle` together. The class
+ * becomes `contentContainerStyle`, and an explicit one used to replace it
+ * outright: Leaderboard, Notifications and More each passed a bottom padding
+ * and lost their `px-4` / `p-4 gap-6`, so rows ran into the screen edge. The
+ * explicit style now comes in under another name and is merged over the class.
+ */
+type ExtraContainerStyle = {
+  extraContentContainerStyle?: StyleProp<ViewStyle>;
+};
+
+function MergedScrollView({
+  contentContainerStyle,
+  extraContentContainerStyle,
+  ...props
+}: React.ComponentProps<typeof RNScrollView> & ExtraContainerStyle) {
+  return (
+    <RNScrollView
+      {...props}
+      contentContainerStyle={[
+        contentContainerStyle,
+        extraContentContainerStyle,
+      ]}
+    />
+  );
+}
+
+function MergedFlatList<ItemT>({
+  contentContainerStyle,
+  extraContentContainerStyle,
+  ...props
+}: React.ComponentProps<typeof RNFlatList<ItemT>> & ExtraContainerStyle) {
+  return (
+    <RNFlatList<ItemT>
+      {...props}
+      contentContainerStyle={[
+        contentContainerStyle,
+        extraContentContainerStyle,
+      ]}
+    />
+  );
+}
+
 export function ScrollView(
   props: React.ComponentProps<typeof RNScrollView> &
     ClassNameProps & {
@@ -78,10 +122,18 @@ export function ScrollView(
     elementProps: typeof props,
     configuration: Record<string, string>,
   ) => React.ReactElement;
-  return renderCssElement(RNScrollView, props, {
-    className: 'style',
-    contentContainerClassName: 'contentContainerStyle',
-  });
+  const { contentContainerStyle, ...rest } = props;
+  return renderCssElement(
+    MergedScrollView,
+    {
+      ...rest,
+      extraContentContainerStyle: contentContainerStyle,
+    } as typeof props,
+    {
+      className: 'style',
+      contentContainerClassName: 'contentContainerStyle',
+    },
+  );
 }
 export function FlatList<ItemT>(
   props: React.ComponentProps<typeof RNFlatList<ItemT>> &
@@ -97,11 +149,21 @@ export function FlatList<ItemT>(
     elementProps: typeof props,
     configuration: Record<string, string>,
   ) => React.ReactElement;
-  return renderCssElement(RNFlatList<ItemT>, props, {
-    className: 'style',
-    contentContainerClassName: 'contentContainerStyle',
-    columnWrapperClassName: 'columnWrapperStyle',
-  });
+  const { contentContainerStyle, ...rest } = props;
+  return renderCssElement(
+    MergedFlatList as React.ComponentType<
+      React.ComponentProps<typeof RNFlatList<ItemT>>
+    >,
+    {
+      ...rest,
+      extraContentContainerStyle: contentContainerStyle,
+    } as typeof props,
+    {
+      className: 'style',
+      contentContainerClassName: 'contentContainerStyle',
+      columnWrapperClassName: 'columnWrapperStyle',
+    },
+  );
 }
 export const SectionList = cssElement(RNSectionList, {
   className: 'style',

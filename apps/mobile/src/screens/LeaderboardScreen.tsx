@@ -30,7 +30,7 @@ import { useNow } from '../lib/useNow';
 import type { LeaderboardStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors } from '../theme/tokens';
-import { FlatList, Pressable, Text, View } from '../tw';
+import { ActivityIndicator, FlatList, Pressable, Text, View } from '../tw';
 import { leaderboardRowLabel } from '../lib/leaderboardRowLabel';
 
 type TimeScope = 'weekend' | 'season';
@@ -437,9 +437,7 @@ export function LeaderboardScreen() {
         contentContainerClassName="px-4"
         contentContainerStyle={{ paddingBottom: 32 + CHROME_END_PADDING }}
         data={rest}
-        ItemSeparatorComponent={() => (
-          <View className="ml-[52px] h-px bg-border" />
-        )}
+        ItemSeparatorComponent={RowSeparator}
         keyExtractor={(item) => String(item.userId)}
         ListEmptyComponent={
           podium.length === 0 && !isBoardLoading ? (
@@ -453,11 +451,15 @@ export function LeaderboardScreen() {
             />
           ) : null
         }
+        // Held while the season has more rows, not only during a request, so
+        // the list's height does not change under the reader's thumb.
         ListFooterComponent={
-          loadingMore ? (
-            <Text className="text-muted py-4 text-center text-xs">
-              Loading more…
-            </Text>
+          timeScope === 'season' && (pagedHasMore ?? activeSeason?.hasMore) ? (
+            <View className="h-14 items-center justify-center">
+              {loadingMore ? (
+                <ActivityIndicator color={colors.textMuted} />
+              ) : null}
+            </View>
           ) : null
         }
         ListHeaderComponent={
@@ -501,7 +503,8 @@ export function LeaderboardScreen() {
           </View>
         }
         onEndReached={() => void loadMoreSeason()}
-        onEndReachedThreshold={1}
+        // Two screens ahead: at one, a flick reached the end before the page.
+        onEndReachedThreshold={2}
         {...hide.scrollProps}
         refreshControl={
           <RefreshControl
@@ -754,4 +757,13 @@ function BoardRow({
       </View>
     </Pressable>
   );
+}
+
+/**
+ * Module scope, not an inline arrow: a component defined in render is a new
+ * type every render, so every separator in the list remounted each time the
+ * screen re-rendered (a page arriving, a filter changing).
+ */
+function RowSeparator() {
+  return <View className="ml-[52px] h-px bg-border" />;
 }

@@ -23,7 +23,14 @@ import { useRefreshSpinner } from '../lib/useRefreshSpinner';
 import { useMobileConfig } from '../providers/mobile-config';
 import { useToast } from '../providers/ToastProvider';
 import { colors } from '../theme/tokens';
-import { FlatList, Pressable, RefreshControl, Text, View } from '../tw';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Text,
+  View,
+} from '../tw';
 import { routePushUrl } from '../lib/pushRouting';
 import { userFacingMessage } from '../lib/userFacingError';
 
@@ -197,9 +204,7 @@ export function NotificationsScreen({
           title="No notifications yet"
         />
       }
-      ItemSeparatorComponent={() => (
-        <View className="ml-[52px] h-px bg-border" />
-      )}
+      ItemSeparatorComponent={RowSeparator}
       // Paging on scroll rather than a button: a phone list has no obvious
       // bottom edge to put one against.
       onEndReached={() => {
@@ -207,12 +212,17 @@ export function NotificationsScreen({
           loadMore(NOTIFICATION_PAGE_SIZE);
         }
       }}
-      onEndReachedThreshold={0.5}
+      // Two screens ahead, so the next page lands before the reader does.
+      onEndReachedThreshold={2}
+      // Held while there are older notifications, not only during a request,
+      // so the list's height does not change under the reader's thumb.
       ListFooterComponent={
-        status === 'LoadingMore' ? (
-          <Text className="text-muted py-4 text-center text-xs">
-            Loading older notifications
-          </Text>
+        status === 'CanLoadMore' || status === 'LoadingMore' ? (
+          <View className="h-14 items-center justify-center">
+            {status === 'LoadingMore' ? (
+              <ActivityIndicator color={colors.textMuted} />
+            ) : null}
+          </View>
         ) : null
       }
       {...(tabChrome ? hide.scrollProps : {})}
@@ -385,4 +395,9 @@ function getNotificationSubtitle(notification: Notification): string {
     return notification.body ?? '';
   }
   return [session, notification.raceName].filter(Boolean).join(' · ');
+}
+
+/** Module scope: an inline component type remounted every separator per render. */
+function RowSeparator() {
+  return <View className="ml-[52px] h-px bg-border" />;
 }

@@ -74,7 +74,7 @@ export function RacesScreen() {
       }}
       ref={listRef}
       style={{ backgroundColor: colors.page, flex: 1 }}
-      ItemSeparatorComponent={() => <View className="h-px bg-border" />}
+      ItemSeparatorComponent={RowSeparator}
       keyExtractor={(race) => race.slug}
       renderItem={({ item: race }) => {
         const isNext = race.slug === nextSlug;
@@ -119,4 +119,9 @@ export function RacesScreen() {
       }}
     />
   );
+}
+
+/** Module scope: an inline component type remounted every separator per render. */
+function RowSeparator() {
+  return <View className="h-px bg-border" />;
 }

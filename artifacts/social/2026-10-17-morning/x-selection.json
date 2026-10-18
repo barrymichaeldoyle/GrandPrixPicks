@@ -6,16 +6,12 @@
   "intervalMinutes": 25,
   "posts": [
     {
-      "keys": [
-        "beganovic-ferrari-reserve-driver-2027"
-      ],
+      "keys": ["beganovic-ferrari-reserve-driver-2027"],
       "text": "Dino Beganovic becomes Ferrari's development and reserve driver for 2027, graduating from its driver academy. His role includes being ready to stand in for either race driver. https://dinoracing.se/en/dino-beganovic-signs-as-development-and-reserve-driver-for-scuderia-ferrari-hp/",
       "expiresAt": "2026-10-19T18:00:00Z"
     },
     {
-      "keys": [
-        "lawson-austin-garage-sessions"
-      ],
+      "keys": ["lawson-austin-garage-sessions"],
       "text": "Liam Lawson is taking to the stage in Austin. Liam Lawson & Friends headline VCARB Garage Sessions at Inn Cahoots on Thursday 22 October, ahead of the US Grand Prix. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=lawson-austin-garage-sessions",
       "expiresAt": "2026-10-22T17:00:00Z"
     }

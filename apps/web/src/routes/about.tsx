@@ -93,8 +93,7 @@ function AboutPage() {
             </a>
             , a software engineer and Formula 1 fan. It started as a way to
             settle arguments with friends about who would finish where, and grew
-            into a full season-long game with leagues, head-to-head picks and a
-            mobile app.
+            into a full season-long game with leagues and head-to-head picks.
           </p>
           <p className="gpp-reading-copy mt-4 text-text-muted">
             It is operated by Barry Michael Doyle Software Solutions (Pty) Ltd.

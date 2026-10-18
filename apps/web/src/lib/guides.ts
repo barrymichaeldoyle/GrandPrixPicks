@@ -570,7 +570,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           'The race begins with a formation lap, after which the cars line up again and the start comes when five red lights go out. The field is never closer together than it is at the first corner, and places won or lost there often shape the rest of the afternoon.',
           'After that the race is a balance of pace against tyre wear. A dry race has to be run on more than one compound, so every driver stops at least once, and when they stop is the strategy.',
           'Safety cars are the main disruption. The field bunches up behind one and a pit stop costs far less time than usual, so a driver who has not stopped yet can come out ahead of cars that spent a full stop to pass them.',
-          'The Grand Prix does not always fall on Sunday. Azerbaijan races on Saturday 26 September this season, and the Las Vegas night race starts so late that its date depends on which time zone you are watching from. Session times on Grand Prix Picks are the real ones for each round, and picks for a session lock the moment that session starts.',
+          'The Grand Prix does not always fall on Sunday. Azerbaijan raced on Saturday 26 September this season, and the Las Vegas night race starts so late that its date depends on which time zone you are watching from. Session times on Grand Prix Picks are the real ones for each round, and picks for a session lock the moment that session starts.',
         ],
       },
       {

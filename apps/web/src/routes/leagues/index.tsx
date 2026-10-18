@@ -482,8 +482,8 @@ function LeaguesLongform() {
       <p className="gpp-reading-copy mt-4 text-text-muted">
         The global leaderboard ranks everybody who plays, which makes it a fair
         measure and a poor rivalry. Most people care far more about beating four
-        colleagues than about placing 300th out of a few thousand, and a league
-        is what turns the same picks into that smaller contest. You do not pick
+        colleagues than about their place on a global table, and a league is
+        what turns the same picks into that smaller contest. You do not pick
         twice or play differently: your Top 5 and Head-to-Head predictions are
         scored once per session, then counted towards every league you belong to
         at the same time.
@@ -508,12 +508,11 @@ function LeaguesLongform() {
         consistency rather than a single result.
       </p>
       <p className="gpp-reading-copy mt-4 text-text-muted">
-        You can join at any point in the year. A league counts the sessions
-        scored while you were a member, so joining in the second half does not
-        hand you points you never predicted for, and it does not lock you out of
-        the rest of the season either. Each league also carries its own activity
-        feed, so you can see how the people in it did on a given weekend without
-        reading past everyone else's results.
+        You can join at any point in the year. A league ranks its members on
+        their season totals, so the points you scored before joining come with
+        you. Each league also carries its own activity feed, so you can see how
+        the people in it did on a given weekend without reading past everyone
+        else's results.
       </p>
       <p className="gpp-reading-copy mt-4 text-text-muted">
         Playing the game in full is free. An optional{' '}

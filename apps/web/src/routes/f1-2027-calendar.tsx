@@ -53,13 +53,12 @@ const FAQS = [
   },
   {
     question: 'How many races are in the 2027 F1 season?',
-    answer:
-      'Twenty-four, the fourth season in a row at that number. The 2026 season on this site has 23.',
+    answer: 'Twenty-four, one more than the 23 rounds of 2026.',
   },
   {
     question: 'How many sprint races are there in 2027?',
     answer:
-      'Ten, up from six. Bahrain, Australia, Japan, Monaco and Abu Dhabi hold a sprint for the first time, and Canada, Great Britain, Italy, Brazil and Qatar keep theirs.',
+      'Ten, up from six. Bahrain, Australia, Japan, Monaco and Abu Dhabi hold a sprint for the first time, Italy, Brazil and Qatar bring theirs back, and Canada and Great Britain keep theirs.',
   },
   {
     question: 'Which races are new on the 2027 F1 calendar?',
@@ -378,11 +377,12 @@ function F1Calendar2027Page() {
           <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
             The larger change is the sprint. There were six in 2026 and there
             are {sprints.length} in 2027. Bahrain, Australia, Japan, Monaco and
-            Abu Dhabi run one for the first time, and Canada, Great Britain,
-            Italy, Brazil and Qatar keep theirs. Monaco is the surprise of the
-            ten, and the first and last rounds of a season have never both been
-            sprints before. Pre-season testing shrinks to a single four-day run
-            at Sakhir from 24 to 27 February.
+            Abu Dhabi run one for the first time, Italy, Brazil and Qatar bring
+            theirs back, and Canada and Great Britain keep theirs. China, Miami
+            and Singapore lose theirs. Monaco is the surprise of the ten, and
+            the first and last rounds of a season have never both been sprints
+            before. Pre-season testing shrinks to a single four-day run at
+            Sakhir from 24 to 27 February.
           </p>
           <p className="gpp-reading-meta mt-4 max-w-3xl text-text-muted">
             A sprint weekend is four sessions to predict rather than two.{' '}

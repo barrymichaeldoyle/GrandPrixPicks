@@ -52,7 +52,7 @@ import { bucketWeatherNow } from '../../lib/weatherNow';
 import type { HomeStackParamList } from '../../navigation/types';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { colors } from '../../theme/tokens';
-import { FlatList, RefreshControl, Text, View } from '../../tw';
+import { ActivityIndicator, FlatList, RefreshControl, View } from '../../tw';
 
 // Up to 5 reactive pages of feed (5 × 40 = 200 events), matching web.
 const MAX_EXTRA_PAGES = 4;
@@ -337,11 +337,16 @@ export function FeedScreen() {
         ListEmptyComponent={
           isSignedIn && page0 != null ? <FeedEmptyState /> : null
         }
+        // Reserved for as long as there is more to load, not only while a
+        // page is in flight: a footer that came and went with each request
+        // changed the list's height under the reader's thumb.
         ListFooterComponent={
-          isLoadingMore ? (
-            <Text className="text-muted py-3 text-center text-xs">
-              Loading more…
-            </Text>
+          hasMore ? (
+            <View className="h-14 items-center justify-center">
+              {isLoadingMore ? (
+                <ActivityIndicator color={colors.textMuted} />
+              ) : null}
+            </View>
           ) : null
         }
         ListHeaderComponent={
@@ -354,9 +359,11 @@ export function FeedScreen() {
           />
         }
         onEndReached={handleLoadMore}
-        // A screen and a half ahead: at 0.4 a quick flick reached the end
-        // before the next page arrived, and the list stalled at the bottom.
-        onEndReachedThreshold={1.5}
+        // Three screens ahead, which is about one page of 40 events: the next
+        // page is requested as the reader enters the last one loaded. At 1.5
+        // a few flicks still reached the end a second before the page did,
+        // and the list sat bouncing on its footer until it landed.
+        onEndReachedThreshold={3}
         {...hide.scrollProps}
         refreshControl={
           <RefreshControl

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '../ui/Ionicons';
 import { newsRunWeekend } from '@grandprixpicks/shared/feedGroups';
@@ -15,6 +16,9 @@ import { LineupChangeCard } from './lineup-change-card';
 import { siteUrl } from '../../lib/siteUrl';
 
 const GRID_COLLAPSED_ROWS = 10;
+
+/** How long revealed content takes to fade in. */
+const REVEAL_MS = 180;
 
 /**
  * How many stories of a run show before the rest fold away: the same six web's
@@ -107,6 +111,79 @@ function ScoringPolicyNote() {
   );
 }
 
+/**
+ * Content a tap has just revealed: it fades in rather than appearing at full
+ * strength in one frame. Mount it only for that tap. Entering animations also
+ * run on first mount, and the feed mounts rows as they scroll into view, so a
+ * story that renders open must not use it.
+ */
+function Reveal({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Animated.View entering={FadeIn.duration(REVEAL_MS)}>
+      <View className={className}>{children}</View>
+    </Animated.View>
+  );
+}
+
+/** A story part that shows once opened: revealed if the reader opened it. */
+function Opened({
+  children,
+  className,
+  foldable,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  foldable: boolean;
+}) {
+  return foldable ? (
+    <Reveal className={className}>{children}</Reveal>
+  ) : (
+    <View className={className}>{children}</View>
+  );
+}
+
+function gridRow(entry: NonNullable<FeedEvent['newsStartingGrid']>[number]) {
+  const pitLane = isPitLaneStart(entry.note);
+  return (
+    <View
+      className="flex-row items-center gap-2.5 border-b border-border py-1.5 last:border-b-0"
+      key={entry.code}
+    >
+      <Numeral tone={pitLane ? 'warning' : 'muted'} variant="small">
+        {pitLane ? 'PL' : `P${entry.position}`}
+      </Numeral>
+      <View className="relative h-6 min-w-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-surface-elevated pr-1.5 pl-2">
+        <View
+          className="absolute top-0 bottom-0 left-0 w-[3px]"
+          style={{ backgroundColor: getTeamColor(entry.team) }}
+        />
+        <Text className="text-foreground text-xs leading-none font-medium uppercase">
+          {entry.code}
+        </Text>
+      </View>
+      <Text
+        className="text-foreground min-w-0 flex-1 text-sm"
+        numberOfLines={1}
+      >
+        {entry.displayName}
+      </Text>
+      {entry.note ? (
+        <Text
+          className={`shrink-0 text-xs ${pitLane ? 'font-semibold text-warning' : 'text-muted'}`}
+        >
+          {entry.note}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
 function StartingGrid({
   entries,
 }: {
@@ -114,46 +191,13 @@ function StartingGrid({
 }) {
   const [expanded, setExpanded] = useState(false);
   const collapsible = entries.length > GRID_COLLAPSED_ROWS;
-  const shown =
-    collapsible && !expanded ? entries.slice(0, GRID_COLLAPSED_ROWS) : entries;
+  const top = collapsible ? entries.slice(0, GRID_COLLAPSED_ROWS) : entries;
+  const rest = collapsible ? entries.slice(GRID_COLLAPSED_ROWS) : [];
 
   return (
     <View className="mt-1">
-      {shown.map((entry) => {
-        const pitLane = isPitLaneStart(entry.note);
-        return (
-          <View
-            className="flex-row items-center gap-2.5 border-b border-border py-1.5 last:border-b-0"
-            key={entry.code}
-          >
-            <Numeral tone={pitLane ? 'warning' : 'muted'} variant="small">
-              {pitLane ? 'PL' : `P${entry.position}`}
-            </Numeral>
-            <View className="relative h-6 min-w-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-surface-elevated pr-1.5 pl-2">
-              <View
-                className="absolute top-0 bottom-0 left-0 w-[3px]"
-                style={{ backgroundColor: getTeamColor(entry.team) }}
-              />
-              <Text className="text-foreground text-xs leading-none font-medium uppercase">
-                {entry.code}
-              </Text>
-            </View>
-            <Text
-              className="text-foreground min-w-0 flex-1 text-sm"
-              numberOfLines={1}
-            >
-              {entry.displayName}
-            </Text>
-            {entry.note ? (
-              <Text
-                className={`shrink-0 text-xs ${pitLane ? 'font-semibold text-warning' : 'text-muted'}`}
-              >
-                {entry.note}
-              </Text>
-            ) : null}
-          </View>
-        );
-      })}
+      {top.map(gridRow)}
+      {expanded ? <Reveal>{rest.map(gridRow)}</Reveal> : null}
       {collapsible ? (
         <Pressable
           accessibilityRole="button"
@@ -202,7 +246,10 @@ export function RaceNewsCard({
   return (
     <View className="overflow-hidden">
       <SlantedStripe color={teamColour} reverse={reverse} />
-      <View className="min-w-0 flex-1 gap-2 py-2.5 pr-3 pl-4">
+      {/* No `flex-1`: it is `flexBasis: 0` in a column sized by its content,
+          and Yoga could lay the story out at zero height. It showed as every
+          headline in a run vanishing for a frame when one of them opened. */}
+      <View className="min-w-0 gap-2 py-2.5 pr-3 pl-4">
         {grouped ? null : (
           <Text className="text-xs font-medium text-accent">
             {story.raceName ? 'Weekend news' : 'News'}
@@ -228,13 +275,18 @@ export function RaceNewsCard({
           headline
         )}
         {open && story.body ? (
-          <Text className="text-muted text-sm leading-5">{story.body}</Text>
+          <Opened foldable={foldable}>
+            <Text className="text-muted text-sm leading-5">{story.body}</Text>
+          </Opened>
         ) : null}
         {story.startingGrid && story.startingGrid.length > 0 ? (
           <StartingGrid entries={story.startingGrid} />
         ) : null}
         {open ? (
-          <View className="flex-row items-center justify-between gap-3">
+          <Opened
+            className="flex-row items-center justify-between gap-3"
+            foldable={foldable}
+          >
             <View className="min-w-0 flex-1 flex-row flex-wrap items-center gap-x-3 gap-y-1.5">
               {story.sourceUrl && story.sourceName ? (
                 <Pressable
@@ -259,7 +311,7 @@ export function RaceNewsCard({
                 <ScoringPolicyNote />
               )}
             </View>
-          </View>
+          </Opened>
         ) : null}
       </View>
     </View>
@@ -387,7 +439,7 @@ export function NewsRun({
               size={16}
             />
           </Pressable>
-          {showEarlier ? cards(earlier, lead.length) : null}
+          {showEarlier ? <Reveal>{cards(earlier, lead.length)}</Reveal> : null}
         </View>
       ) : null}
       {hasGridPenalty ? (

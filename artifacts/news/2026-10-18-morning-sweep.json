@@ -1,0 +1,25 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "verstappen-portimao-gt-return",
+    "category": "general",
+    "headline": "Verstappen finishes ninth on his GT return at Portimão",
+    "body": "Verstappen took over the 2 Seas Motorsport Mercedes in 24th after a drivethrough penalty for team-mate Chris Lulham, and climbed to ninth. The car had qualified 15th at the Portimão GT World Challenge round.",
+    "affectsSessions": [],
+    "driverCodes": ["VER"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/gt/penalty-sets-up-epic-verstappen-charge-in-his-gt-return/",
+    "sourcePublishedAt": "2026-10-17T19:09:29Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "red-bull-oracle-ai-strategy-agent",
+    "category": "general",
+    "headline": "Red Bull uses an AI agent to recommend race strategy actions",
+    "body": "The tool was built with title partner Oracle and began as a search of F1 regulations and past rulings. Red Bull's Jack Harington says it now recommends actions during grands prix, including advice to hand a place back to Norris at Monza in 2025 to avoid a penalty.",
+    "affectsSessions": [],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/red-bull-explains-how-ai-is-influencing-its-f1-race-strategy/10865843/",
+    "sourcePublishedAt": "2026-10-17T11:39:02Z"
+  }
+]

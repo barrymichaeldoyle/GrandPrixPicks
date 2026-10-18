@@ -1,4 +1,5 @@
 import { api } from '@convex-generated/api';
+import { parseAmendmentSourceUrl } from '@grandprixpicks/shared/amendmentSource';
 import type { DriverStatus } from '@grandprixpicks/shared/driverStatus';
 import type { Id } from '@convex-generated/dataModel';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
@@ -192,6 +193,7 @@ function AdminRaceDetailPage() {
     'correction',
   );
   const [amendmentNote, setAmendmentNote] = useState('');
+  const [amendmentSourceUrl, setAmendmentSourceUrl] = useState('');
   // Auto-reconciliation re-checks this session against the official feed for
   // three days after publication. Opt out when the feed is wrong and the
   // hand-entered order should stand.
@@ -270,6 +272,7 @@ function AdminRaceDetailPage() {
     }
     setUpdateMode('correction');
     setAmendmentNote('');
+    setAmendmentSourceUrl('');
   }, [existingResult, selectedSession, driverCount]);
 
   useEffect(() => {
@@ -591,12 +594,21 @@ function AdminRaceDetailPage() {
   const isAmendment = Boolean(existingResult) && updateMode === 'amendment';
   const trimmedAmendmentNote = amendmentNote.trim();
   const amendmentNoteMissing = isAmendment && trimmedAmendmentNote.length === 0;
+  const trimmedAmendmentSourceUrl = amendmentSourceUrl.trim();
+  const amendmentSourceUrlInvalid =
+    isAmendment &&
+    trimmedAmendmentSourceUrl.length > 0 &&
+    !parseAmendmentSourceUrl(trimmedAmendmentSourceUrl);
 
   async function handlePublish() {
     if (classificationOrderError || sessionOrderBlocked) {
       return;
     }
-    if (!allFilledForHooks || amendmentNoteMissing) {
+    if (
+      !allFilledForHooks ||
+      amendmentNoteMissing ||
+      amendmentSourceUrlInvalid
+    ) {
       return;
     }
     const confirmMessage = isAmendment
@@ -616,6 +628,10 @@ function AdminRaceDetailPage() {
         dnfDriverIds,
         driverStatuses: driverStatusEntries,
         amendmentNote: isAmendment ? trimmedAmendmentNote : undefined,
+        amendmentSourceUrl:
+          isAmendment && trimmedAmendmentSourceUrl
+            ? trimmedAmendmentSourceUrl
+            : undefined,
         pauseRecheck,
       });
       captureAnalyticsEvent('admin_results_published', {
@@ -1024,6 +1040,9 @@ function AdminRaceDetailPage() {
               onUpdateModeChange={setUpdateMode}
               amendmentNote={amendmentNote}
               onAmendmentNoteChange={setAmendmentNote}
+              amendmentSourceUrl={amendmentSourceUrl}
+              onAmendmentSourceUrlChange={setAmendmentSourceUrl}
+              amendmentSourceUrlInvalid={amendmentSourceUrlInvalid}
               amendedAt={existingResult.amendedAt}
               previousAmendmentNote={existingResult.amendmentNote}
               pauseRecheck={pauseRecheck}
@@ -1041,6 +1060,7 @@ function AdminRaceDetailPage() {
                 !!classificationOrderError ||
                 sessionOrderBlocked ||
                 amendmentNoteMissing ||
+                amendmentSourceUrlInvalid ||
                 (!!existingResult && !hasChanges)
               }
               className="flex items-center gap-2 rounded-lg bg-yellow-500 px-6 py-3 font-semibold text-black transition-colors hover:bg-yellow-600 disabled:cursor-not-allowed disabled:bg-slate-600"

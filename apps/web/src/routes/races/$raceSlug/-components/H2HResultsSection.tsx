@@ -4,6 +4,7 @@ import {
   DRIVER_STATUS_DESCRIPTIONS,
   DRIVER_STATUS_LABELS,
 } from '@grandprixpicks/shared/driverStatus';
+import { parseAmendmentSourceUrl } from '@grandprixpicks/shared/amendmentSource';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@/integrations/convex/query';
 import { ChevronDown, ChevronUp, Gavel } from 'lucide-react';
@@ -67,6 +68,10 @@ export function H2HResultsSection({
       raceId,
       sessionType: selectedSession,
     }) ?? initialResultsBySession?.[selectedSession];
+  // Checked again here so a bad row can never put a non-FIA link beside our note.
+  const amendmentSourceUrl = parseAmendmentSourceUrl(
+    selectedTop5Result?.amendmentSourceUrl,
+  );
   const myTop5Predictions = useQuery(api.predictions.myWeekendPredictions, {
     raceId,
   });
@@ -290,12 +295,25 @@ export function H2HResultsSection({
                   <p className="text-text-muted">
                     {selectedTop5Result.amendmentNote}
                   </p>
-                  <Link
-                    to="/results-policy"
-                    className="mt-1 inline-block font-medium text-accent hover:underline"
-                  >
-                    Why results change
-                  </Link>
+                  <div className="mt-1 flex flex-wrap gap-x-4">
+                    {amendmentSourceUrl && (
+                      <a
+                        href={amendmentSourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="FIA decision (opens in a new tab)"
+                        className="font-medium text-accent hover:underline"
+                      >
+                        FIA decision
+                      </a>
+                    )}
+                    <Link
+                      to="/results-policy"
+                      className="font-medium text-accent hover:underline"
+                    >
+                      Why results change
+                    </Link>
+                  </div>
                 </div>
               </div>
             )}

@@ -5,6 +5,9 @@ export function UpdateModeSelector({
   onUpdateModeChange,
   amendmentNote,
   onAmendmentNoteChange,
+  amendmentSourceUrl,
+  onAmendmentSourceUrlChange,
+  amendmentSourceUrlInvalid,
   amendedAt,
   previousAmendmentNote,
   pauseRecheck,
@@ -14,6 +17,9 @@ export function UpdateModeSelector({
   onUpdateModeChange: (mode: UpdateMode) => void;
   amendmentNote: string;
   onAmendmentNoteChange: (note: string) => void;
+  amendmentSourceUrl: string;
+  onAmendmentSourceUrlChange: (url: string) => void;
+  amendmentSourceUrlInvalid: boolean;
   amendedAt?: number | null;
   previousAmendmentNote?: string | null;
   pauseRecheck: boolean;
@@ -76,6 +82,26 @@ export function UpdateModeSelector({
           <p className="mt-1 text-xs text-slate-500">
             Shown to players word-for-word. Say what changed and why.
           </p>
+          <label className="mt-3 block">
+            <span className="block text-sm font-medium text-white">
+              FIA decision link (optional)
+            </span>
+            <input
+              type="url"
+              value={amendmentSourceUrl}
+              onChange={(e) => onAmendmentSourceUrlChange(e.target.value)}
+              placeholder="https://www.fia.com/system/files/decision-document/..."
+              aria-invalid={amendmentSourceUrlInvalid}
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-yellow-500 focus:outline-none aria-invalid:border-red-500"
+            />
+            <span
+              className={`mt-1 block text-xs ${amendmentSourceUrlInvalid ? 'text-red-400' : 'text-slate-500'}`}
+            >
+              {amendmentSourceUrlInvalid
+                ? 'Must be an https link on fia.com.'
+                : 'Linked beside your note on the race page.'}
+            </span>
+          </label>
         </div>
       )}
       <label className="mt-3 flex cursor-pointer items-start gap-3 border-t border-slate-700 pt-3">

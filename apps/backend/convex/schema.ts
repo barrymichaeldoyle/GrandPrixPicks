@@ -343,6 +343,9 @@ export default defineSchema({
     // silent corrections (data-entry fixes) leave these untouched.
     amendedAt: v.optional(v.number()),
     amendmentNote: v.optional(v.string()), // user-facing, shown on race page + notification
+    // The FIA decision document behind the amendment, linked beside the note
+    // on the race page. Only on `results`: the feed and bell link to that page.
+    amendmentSourceUrl: v.optional(v.string()),
     // Set on amendment publish; cleared by checkScoringComplete once rescoring
     // finishes and the results_amended notifications have been scheduled.
     amendmentNotificationPending: v.optional(v.boolean()),

@@ -1,3 +1,4 @@
+import { parseAmendmentSourceUrl } from '@grandprixpicks/shared/amendmentSource';
 import type { DriverStatus } from '@grandprixpicks/shared/driverStatus';
 import { didParticipate } from '@grandprixpicks/shared/driverStatus';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
@@ -204,6 +205,18 @@ async function rollbackResultsCore(
   };
 }
 
+/** Blank means no link; anything else must be an https fia.com URL. */
+function requireAmendmentSourceUrl(value: string | undefined) {
+  if (value === undefined || value.trim() === '') {
+    return undefined;
+  }
+  const url = parseAmendmentSourceUrl(value);
+  if (!url) {
+    throw new Error('The FIA decision link must be an https fia.com URL');
+  }
+  return url;
+}
+
 /** Keep a driver's known status (DNS/DSQ) when an admin re-ticks them as DNF. */
 function existingStatusFor(
   existing: Doc<'results'> | null,
@@ -234,6 +247,9 @@ export async function publishResultsCore(
     // completes, everyone who predicted the session gets a results_amended
     // notification. Republishing without a note is a silent correction.
     amendmentNote?: string;
+    // The FIA decision behind the amendment. Only read with a note; a new
+    // amendment without one clears the previous decision's link.
+    amendmentSourceUrl?: string;
     /** Notify about a correction without resurfacing score cards in the feed. */
     suppressFeedAmendment?: boolean;
     // Admin publishes must follow the weekend session order (quali before
@@ -249,6 +265,9 @@ export async function publishResultsCore(
   const sessionType = args.sessionType ?? 'race';
   const now = Date.now();
   const amendmentNote = args.amendmentNote?.trim();
+  const amendmentSourceUrl = amendmentNote
+    ? requireAmendmentSourceUrl(args.amendmentSourceUrl)
+    : undefined;
 
   const race = await ctx.db.get(args.raceId);
 
@@ -339,6 +358,7 @@ export async function publishResultsCore(
         ? {
             amendedAt: now,
             amendmentNote,
+            amendmentSourceUrl,
             amendmentNotificationPending: true,
           }
         : {}),
@@ -963,6 +983,8 @@ export const adminPublishResults = mutation({
     // Marks a republish as an official amendment and notifies players.
     // Omit for silent corrections of data-entry mistakes.
     amendmentNote: v.optional(v.string()),
+    // The FIA decision document, linked beside the note on the race page.
+    amendmentSourceUrl: v.optional(v.string()),
     // Stop reconciling this session against the official feed. For the rare
     // case where the feed is wrong and the hand-entered order should stand.
     pauseRecheck: v.optional(v.boolean()),
@@ -991,6 +1013,7 @@ export const emergencyPublishResults = internalMutation({
     dnfDriverIds: v.optional(v.array(v.id('drivers'))),
     suppressNotifications: v.optional(v.boolean()),
     amendmentNote: v.optional(v.string()),
+    amendmentSourceUrl: v.optional(v.string()),
     suppressFeedAmendment: v.optional(v.boolean()),
     // Same escape hatch as the admin form's "Stop auto-reconciling", which the
     // CLI had no way to reach. An amendment that lands before the official
@@ -1039,6 +1062,7 @@ export const emergencyClearOperationalAmendment = internalMutation({
     await ctx.db.patch(result._id, {
       amendedAt: undefined,
       amendmentNote: undefined,
+      amendmentSourceUrl: undefined,
       amendmentNotificationPending: undefined,
     });
     return { cleared: true };
@@ -1231,15 +1255,20 @@ export const emergencyMoveResultToSession = internalMutation({
  * Refuses a session with no amendment on it: this corrects the record of a
  * decision, it cannot invent one. Use `adminPublishResults` for that.
  *
+ * Also sets the FIA decision link (`amendmentSourceUrl`), which is how an
+ * amendment published before the decision was posted gets one. Omit it to
+ * keep the current link; pass "" to remove it.
+ *
  * Run via:
  *   npx convex run --prod results:emergencyReviseAmendmentNote \
- *     '{"raceId":"...","sessionType":"race","amendmentNote":"..."}'
+ *     '{"raceId":"...","sessionType":"race","amendmentNote":"...","amendmentSourceUrl":"https://www.fia.com/..."}'
  */
 export const emergencyReviseAmendmentNote = internalMutation({
   args: {
     raceId: v.id('races'),
     sessionType: sessionTypeValidator,
     amendmentNote: v.string(),
+    amendmentSourceUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const amendmentNote = args.amendmentNote.trim();
@@ -1264,7 +1293,15 @@ export const emergencyReviseAmendmentNote = internalMutation({
     }
 
     const previousNote = result.amendmentNote;
-    await ctx.db.patch(result._id, { amendmentNote });
+    const sourceUrlPatch =
+      args.amendmentSourceUrl === undefined
+        ? {}
+        : {
+            amendmentSourceUrl: requireAmendmentSourceUrl(
+              args.amendmentSourceUrl,
+            ),
+          };
+    await ctx.db.patch(result._id, { amendmentNote, ...sourceUrlPatch });
 
     // Only `results_amended` rows carry the note. A `score_published` event for
     // the same session belongs to a player whose points did not move, and it
@@ -1305,6 +1342,10 @@ export const emergencyReviseAmendmentNote = internalMutation({
       ok: true,
       previousNote,
       amendmentNote,
+      amendmentSourceUrl:
+        'amendmentSourceUrl' in sourceUrlPatch
+          ? sourceUrlPatch.amendmentSourceUrl
+          : result.amendmentSourceUrl,
       feedEventsUpdated,
       notificationsUpdated,
     };

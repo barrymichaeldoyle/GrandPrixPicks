@@ -51,6 +51,12 @@ penalty handed out in Baku but served at Sepang is Sepang news. When a story is
 really about the finished race but also matters for the next one, file it under
 the finished race.
 
+A story about no race at all (a team's F2 entry, the calendar, a future
+regulation) has no `raceSlug`. `news publish` refuses it; publish it with
+`npx convex run --prod globalNews:publish` instead, which takes `key`,
+`headline`, `body`, `sourceName`, `sourceUrl`, optional `sourcePublishedAt`
+(epoch ms) and `team`. It reaches the feed but never a write-up.
+
 Still skip: gossip with no named source, stories sourced to another prediction
 site, and anything already covered by an existing key (republish that one).
 

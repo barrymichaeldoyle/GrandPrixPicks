@@ -357,6 +357,15 @@ const WOULD = {
 };
 
 const DATE_FIELDS = ['sourcePublishedAt', 'feedVisibleAt'];
+const NEWS_REQUIRED_FIELDS = [
+  'raceSlug',
+  'key',
+  'headline',
+  'body',
+  'affectsSessions',
+  'sourceName',
+  'sourceUrl',
+];
 
 function toEpoch(value, field, key) {
   if (value === undefined || typeof value === 'number') {
@@ -380,6 +389,19 @@ function newsPublish(file, flags) {
     fail(`cannot read ${file}: ${error.message}`);
   }
   const items = Array.isArray(parsed) ? parsed : [parsed];
+  // Checked before the first call: Convex reports a validator miss to Sentry,
+  // and an array would publish the items ahead of the bad one.
+  for (const item of items) {
+    const missing = NEWS_REQUIRED_FIELDS.filter((f) => item[f] === undefined);
+    if (missing.length) {
+      fail(
+        `${item.key ?? 'item'}: missing ${missing.join(', ')}` +
+          (missing.includes('raceSlug')
+            ? ' (a story about no race goes through globalNews:publish)'
+            : ''),
+      );
+    }
+  }
   const apply = Boolean(flags.apply);
   for (const raw of items) {
     const { dryRun: _ignored, ...item } = raw;

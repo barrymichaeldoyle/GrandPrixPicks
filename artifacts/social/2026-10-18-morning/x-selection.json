@@ -1,0 +1,14 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/2026-10-18-morning/race-news.json",
+  "startAt": "2026-10-18T11:25:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["haas-austin-godzilla-livery"],
+      "text": "Godzilla returns to Haas for Austin. The team will reveal its new livery on Monday 19 October, with matching race suits for Ocon and Bearman. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=haas-austin-godzilla-livery",
+      "expiresAt": "2026-10-19T00:00:00Z"
+    }
+  ]
+}

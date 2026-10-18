@@ -1,0 +1,24 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "haas-austin-godzilla-livery",
+    "headline": "Haas plans a Godzilla livery for Austin",
+    "body": "Haas will reveal a new Godzilla-themed livery online on Monday 19 October for the United States Grand Prix. The design will be joined by matching race suits for Esteban Ocon and Oliver Bearman, with a themed show car on display at Austin's Barton Creek Square from 23–25 October.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["OCO", "BEA"],
+    "sourceName": "Haas",
+    "sourceUrl": "https://www.haasf1team.com/news/godzilla-roar-once-more-united-states-grand-prix-tgr-haas-f1-team-and-toho-co-ltd"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "ricciardo-ford-enchante-austin-pop-up",
+    "headline": "Ricciardo's Enchanté and Ford Racing plan an Austin pop-up",
+    "body": "Daniel Ricciardo is heading to Austin on a road trip with musician Rob Baird after Ford's Raptor Rally in Arizona. Enchanté and Ford Racing will open a pop-up at Distribution Hall, 1500 East 4th Street, from 22–25 October.",
+    "category": "general",
+    "affectsSessions": [],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/daniel-ricciardo-hints-at-f1-paddock-return-amid-ford-raptor-road-trip-to-austin/10865852/",
+    "sourcePublishedAt": "2026-10-17T12:16:46Z"
+  }
+]

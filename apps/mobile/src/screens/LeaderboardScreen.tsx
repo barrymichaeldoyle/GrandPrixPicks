@@ -24,6 +24,7 @@ import { useHideOnScroll } from '../hooks/useHideOnScroll';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { captureAnalyticsEvent } from '../lib/analytics';
+import { useIsSignedIn } from '../lib/useIsSignedIn';
 import { useRefreshSpinner } from '../lib/useRefreshSpinner';
 import { useNow } from '../lib/useNow';
 import type { LeaderboardStackParamList } from '../navigation/types';
@@ -129,7 +130,12 @@ export function LeaderboardScreen() {
   const mode: GameMode = 'combined';
   const roundScroll = useRef<NativeScrollView>(null);
   const roundPositions = useRef<Record<string, number>>({});
-  const [scope, setScope] = useState<Scope>('global');
+  const isSignedIn = useIsSignedIn();
+  // Following is a list of the viewer's follows, so signed out there is
+  // nothing to narrow to. The control went away rather than show an empty
+  // board whose advice was to follow players from their profile.
+  const [chosenScope, setScope] = useState<Scope>('global');
+  const scope: Scope = isSignedIn ? chosenScope : 'global';
   const [chosenRaceId, setChosenRaceId] = useState<string | null>(null);
   const hide = useHideOnScroll();
   useEffect(() => {
@@ -409,14 +415,16 @@ export function LeaderboardScreen() {
           })}
         </NativeScrollView>
       ) : null}
-      <SegmentedTabs
-        onChange={(v) => {
-          changeFilter('scope', v);
-          setScope(v);
-        }}
-        options={SCOPE_OPTIONS}
-        value={scope}
-      />
+      {isSignedIn ? (
+        <SegmentedTabs
+          onChange={(v) => {
+            changeFilter('scope', v);
+            setScope(v);
+          }}
+          options={SCOPE_OPTIONS}
+          value={scope}
+        />
+      ) : null}
     </View>
   );
 

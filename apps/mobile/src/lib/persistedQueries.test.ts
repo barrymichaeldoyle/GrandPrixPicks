@@ -94,6 +94,22 @@ describe('choosePersistedOrLive', () => {
     ).toBe('new');
   });
 
+  it('treats a live null as an answer, not as a wait to fill', () => {
+    expect(
+      choosePersistedOrLive({ live: null, stored: 'old', authSettled: true }),
+    ).toBeNull();
+    expect(
+      choosePersistedOrLive({
+        live: null,
+        stored: undefined,
+        authSettled: true,
+      }),
+    ).toBeNull();
+    expect(
+      choosePersistedOrLive({ live: 'new', stored: null, authSettled: false }),
+    ).toBeNull();
+  });
+
   it('prefers the viewer’s stored value over a pre-auth answer', () => {
     expect(
       choosePersistedOrLive({

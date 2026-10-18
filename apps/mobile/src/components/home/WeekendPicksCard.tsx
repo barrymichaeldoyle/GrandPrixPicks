@@ -1,5 +1,5 @@
 import { Ionicons } from '../ui/Ionicons';
-import type { ComponentProps } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { formatLockCountdown } from '@grandprixpicks/shared/picks';
 import {
   SESSION_LABELS,
@@ -7,6 +7,7 @@ import {
   type SessionType,
 } from '@grandprixpicks/shared/sessions';
 import * as WebBrowser from 'expo-web-browser';
+import { getRaceWriteup } from '@grandprixpicks/shared/raceWriteups';
 
 import { api } from '../../integrations/convex/api';
 import { useQuery } from '../../integrations/convex/query';
@@ -16,7 +17,6 @@ import {
   pickForecastHour,
   windLabel,
 } from '../../lib/weatherNow';
-import { getRaceWriteup } from '../../lib/raceWriteups';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { colors } from '../../theme/tokens';
 import { useTypography } from '../../theme/typography';
@@ -56,6 +56,7 @@ export function WeekendPicksCard({
   top5,
   h2h,
   hasAnyTop5,
+  notice,
   onMakePicks,
   onEditTop5,
   onSelectH2H,
@@ -76,6 +77,8 @@ export function WeekendPicksCard({
   top5: ReadonlyArray<string>;
   h2h: Record<string, string>;
   hasAnyTop5: boolean;
+  /** Under the picks: the terms of a signed-out card, while it can still be saved. */
+  notice?: ReactNode;
   onMakePicks: () => void;
   onEditTop5: () => void;
   onSelectH2H: (index: number) => void;
@@ -170,6 +173,7 @@ export function WeekendPicksCard({
             top5={top5}
           />
         )}
+        {notice ? <View className="mt-4">{notice}</View> : null}
       </View>
 
       <ForecastRow now={now} raceSlug={race.slug} startAt={active?.lockAt} />

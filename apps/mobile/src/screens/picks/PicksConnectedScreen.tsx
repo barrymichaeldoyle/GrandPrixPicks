@@ -26,6 +26,7 @@ import { useQuery } from '../../integrations/convex/query';
 import { captureAnalyticsEvent } from '../../lib/analytics';
 import { useUserDateFormat } from '../../lib/dates';
 import { getLockStatusViewModel } from '../../lib/lockTime';
+import { useConnectedDraft } from '../../lib/useConnectedDraft';
 import { useIsSignedIn } from '../../lib/useIsSignedIn';
 import { useCountdownNow } from '../../lib/useNow';
 import { useSignInSheet } from '../../lib/useSignInSheet';
@@ -48,6 +49,7 @@ import {
 import { WeekendPointsStrip, ScoredSessionSection } from './ScoredSections';
 import { Top5Section, Top5Editor } from './Top5Section';
 import {
+  CASCADE_DRAFT_SESSION,
   getSessionLockAt,
   type RaceDoc,
   type DriverId,
@@ -145,6 +147,15 @@ function PredictForRace({
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
   const isSignedIn = useIsSignedIn();
   const openSignIn = useSignInSheet();
+  // A signed-out card lives on the device until sign-in. The weekend card
+  // shows it from there, the way a signed-in card shows from the server: the
+  // alternative was a card that forgot the five drivers the moment the editor
+  // closed. Guests always draft in cascade mode, so one session key holds it.
+  const guestDraft = useConnectedDraft(
+    race.slug,
+    CASCADE_DRAFT_SESSION,
+    !isSignedIn,
+  );
   const { showToast, celebratePicks } = useToast();
   const { formatDateTime } = useUserDateFormat();
 
@@ -419,7 +430,15 @@ function PredictForRace({
   );
 
   if (embedded) {
-    const sessionH2H = h2hPredictions?.[selectedSession] ?? {};
+    // Server picks first; the device draft is only ever non-empty signed out.
+    const sessionTop5 =
+      predictionsBySession[selectedSession] ?? guestDraft.top5;
+    const sessionH2H =
+      h2hPredictions?.[selectedSession] ?? guestDraft.h2hByMatchup;
+    const guestHasDraft =
+      !isSignedIn &&
+      (guestDraft.top5.length > 0 ||
+        Object.keys(guestDraft.h2hByMatchup).length > 0);
     const h2hComplete =
       matchups.length > 0 &&
       matchups.every((matchup) => sessionH2H[matchup._id]);
@@ -448,12 +467,29 @@ function PredictForRace({
             void Haptics.selectionAsync();
             setSelectedSession(session);
           }}
+          notice={
+            guestHasDraft && !selectedSessionIsLocked ? (
+              <SignedOutPicksNotice
+                lockLabel={
+                  selectedLockAt
+                    ? formatDateTime(new Date(selectedLockAt).toISOString())
+                    : undefined
+                }
+                onSignIn={openSignIn}
+              />
+            ) : null
+          }
           race={race}
           selectedSession={selectedSession}
           sessions={capabilities.map((session) => {
             const lock = sessionLockState.find(
               (entry) => entry.session === session.sessionType,
             );
+            // Same rule as `sessionLockState`: no account is not a closed
+            // session. Without this a guest's open weekend read "This
+            // session locked before you picked for it", which is why the
+            // card used to be hidden from them altogether.
+            const openToGuest = session.denialReason === 'sign_in';
             return {
               sessionType: session.sessionType,
               lockAt: session.lockAt,
@@ -461,11 +497,11 @@ function PredictForRace({
               hasResult: session.hasResult,
               // The server's answer was right when the query ran; the
               // device clock catches the lock that landed since.
-              canCreate: session.canCreate && !lock?.isLocked,
-              canEdit: session.canEdit && !lock?.isLocked,
+              canCreate: (session.canCreate || openToGuest) && !lock?.isLocked,
+              canEdit: (session.canEdit || openToGuest) && !lock?.isLocked,
             };
           })}
-          top5={predictionsBySession[selectedSession] ?? []}
+          top5={sessionTop5}
         />
         {embeddedPicker === 'top5' ? (
           <PickEditorModal

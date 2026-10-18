@@ -109,13 +109,21 @@ export function clearPersistedQueries(viewer: string) {
  * if signed out for a moment; the stored copy is the viewer's own and is the
  * truer of the two, so it wins until auth lands. Those early answers are never
  * written for the same reason.
+ *
+ * Only `undefined` means "no answer yet". `null` is an answer, and a common
+ * one for a guest: their own predictions, their profile, their unread count.
+ * This used to fall through `??` from a live null to the stored value, and
+ * with nothing stored that is `undefined`, so a signed-out Home held its paint
+ * for the full timeout and never showed the weekend card at all, because the
+ * card waits for those queries to answer.
  */
 export function choosePersistedOrLive<T>(input: {
   live: T | undefined;
   stored: T | undefined;
   authSettled: boolean;
 }): T | undefined {
-  return input.authSettled
-    ? (input.live ?? input.stored)
-    : (input.stored ?? input.live);
+  if (input.authSettled) {
+    return input.live !== undefined ? input.live : input.stored;
+  }
+  return input.stored !== undefined ? input.stored : input.live;
 }

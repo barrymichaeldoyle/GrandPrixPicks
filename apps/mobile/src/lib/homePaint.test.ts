@@ -8,7 +8,6 @@ const ready = {
   authLoaded: true,
   signedIn: false,
   feed: { events: [] },
-  racesLoading: false,
   recap: null,
   weekend: null,
   me: null,
@@ -66,9 +65,8 @@ describe('homePaintIsPending', () => {
     expect(homePaintIsPending({ ...ready, authLoaded: false })).toBe(true);
   });
 
-  it('holds while the feed, races, recap, weekend or me are unanswered', () => {
+  it('holds while the feed, recap, weekend or me are unanswered', () => {
     expect(homePaintIsPending({ ...ready, feed: undefined })).toBe(true);
-    expect(homePaintIsPending({ ...ready, racesLoading: true })).toBe(true);
     expect(homePaintIsPending({ ...ready, recap: undefined })).toBe(true);
     expect(homePaintIsPending({ ...ready, weekend: undefined })).toBe(true);
     expect(homePaintIsPending({ ...ready, me: undefined })).toBe(true);

@@ -24,18 +24,53 @@ const GRID_COLLAPSED_ROWS = 10;
  */
 const LEAD_ITEMS = 6;
 
-function isPinned(event: FeedEvent): boolean {
-  return (event.newsStartingGrid?.length ?? 0) > 0;
+/**
+ * One news story, however it arrived: a `race_news` feed event for a signed-in
+ * player, or a `raceNews.list` item for a guest, who has no feed. The card
+ * below draws either.
+ */
+export type NewsStory = {
+  id: string;
+  key?: string;
+  headline: string;
+  body?: string;
+  /** When the story was published, for the relative time beside the headline. */
+  publishedAt: number;
+  sourceName?: string;
+  sourceUrl?: string;
+  team: string | null;
+  startingGrid?: NonNullable<FeedEvent['newsStartingGrid']>;
+  /** Set for weekend news; absent for season-wide stories. */
+  raceName?: string;
+};
+
+function storyFromFeedEvent(event: FeedEvent): NewsStory {
+  return {
+    id: String(event._id),
+    key: event.newsKey,
+    headline: event.newsHeadline ?? '',
+    body: event.newsBody,
+    publishedAt: event.createdAt,
+    sourceName: event.newsSourceName,
+    sourceUrl: event.newsSourceUrl,
+    team: event.newsTeam ?? event.newsDrivers?.[0]?.team ?? null,
+    startingGrid: event.newsStartingGrid,
+    raceName: event.raceName,
+  };
 }
 
-function newsMentionsGridPenalty(event: FeedEvent): boolean {
-  if ((event.newsKey ?? '').includes('grid-penalty')) {
+function isPinned(story: NewsStory): boolean {
+  return (story.startingGrid?.length ?? 0) > 0;
+}
+
+function newsMentionsGridPenalty(story: NewsStory): boolean {
+  if ((story.key ?? '').includes('grid-penalty')) {
     return true;
   }
-  if (/grid penalty/i.test(event.newsHeadline ?? '')) {
+  if (/grid penalty/i.test(story.headline)) {
     return true;
   }
-  return (event.newsStartingGrid ?? []).some((entry) =>
+  return (story.startingGrid ?? []).some((entry) =>
     /penalty/i.test(entry.note ?? ''),
   );
 }
@@ -136,13 +171,13 @@ function StartingGrid({
   );
 }
 
-function RaceNewsCard({
-  event,
+export function RaceNewsCard({
+  story,
   grouped = false,
   reverse = false,
   foldable = false,
 }: {
-  event: FeedEvent;
+  story: NewsStory;
   grouped?: boolean;
   reverse?: boolean;
   /**
@@ -153,14 +188,13 @@ function RaceNewsCard({
    */
   foldable?: boolean;
 }) {
-  const team = event.newsTeam ?? event.newsDrivers?.[0]?.team ?? null;
-  const teamColour = team ? getTeamColor(team) : colors.accent;
+  const teamColour = story.team ? getTeamColor(story.team) : colors.accent;
   const [open, setOpen] = useState(!foldable);
   const headline = (
     <Text className="text-foreground text-sm font-semibold">
-      {event.newsHeadline}
+      {story.headline}
       <Text className="text-muted text-xs font-normal">
-        {`  · ${formatRelativeTime(event.createdAt)}`}
+        {`  · ${formatRelativeTime(story.publishedAt)}`}
       </Text>
     </Text>
   );
@@ -171,7 +205,7 @@ function RaceNewsCard({
       <View className="min-w-0 flex-1 gap-2 py-2.5 pr-3 pl-4">
         {grouped ? null : (
           <Text className="text-xs font-medium text-accent">
-            {event.raceName ? 'Weekend news' : 'News'}
+            {story.raceName ? 'Weekend news' : 'News'}
           </Text>
         )}
         {foldable ? (
@@ -193,26 +227,26 @@ function RaceNewsCard({
         ) : (
           headline
         )}
-        {open && event.newsBody ? (
-          <Text className="text-muted text-sm leading-5">{event.newsBody}</Text>
+        {open && story.body ? (
+          <Text className="text-muted text-sm leading-5">{story.body}</Text>
         ) : null}
-        {event.newsStartingGrid && event.newsStartingGrid.length > 0 ? (
-          <StartingGrid entries={event.newsStartingGrid} />
+        {story.startingGrid && story.startingGrid.length > 0 ? (
+          <StartingGrid entries={story.startingGrid} />
         ) : null}
         {open ? (
           <View className="flex-row items-center justify-between gap-3">
             <View className="min-w-0 flex-1 flex-row flex-wrap items-center gap-x-3 gap-y-1.5">
-              {event.newsSourceUrl && event.newsSourceName ? (
+              {story.sourceUrl && story.sourceName ? (
                 <Pressable
                   accessibilityRole="link"
                   className="flex-row items-center gap-1"
                   hitSlop={6}
                   onPress={() => {
-                    void WebBrowser.openBrowserAsync(event.newsSourceUrl!);
+                    void WebBrowser.openBrowserAsync(story.sourceUrl!);
                   }}
                 >
                   <Text className="text-muted text-xs underline">
-                    {event.newsSourceName}
+                    {story.sourceName}
                   </Text>
                   <Ionicons
                     color={colors.textMuted}
@@ -221,7 +255,7 @@ function RaceNewsCard({
                   />
                 </Pressable>
               ) : null}
-              {grouped || !newsMentionsGridPenalty(event) ? null : (
+              {grouped || !newsMentionsGridPenalty(story) ? null : (
                 <ScoringPolicyNote />
               )}
             </View>
@@ -242,35 +276,82 @@ function RaceNewsCard({
  * padding stays.
  */
 export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
-  const [showEarlier, setShowEarlier] = useState(false);
   if (events.length === 0) {
     return null;
   }
+  const weekend = newsRunWeekend(events);
+  return (
+    <NewsRun
+      entries={events.map((event) => ({
+        id: String(event._id),
+        story:
+          event.type === 'lineup_change' ? null : storyFromFeedEvent(event),
+        render: (foldable, reverse) =>
+          event.type === 'lineup_change' ? (
+            <LineupChangeCard event={event} grouped />
+          ) : (
+            <RaceNewsCard
+              foldable={foldable}
+              grouped
+              reverse={reverse}
+              story={storyFromFeedEvent(event)}
+            />
+          ),
+      }))}
+      raceName={weekend?.raceName}
+      raceSlug={weekend?.raceSlug}
+    />
+  );
+}
+
+/**
+ * A run of stories as one block: header, the first six, the rest behind a
+ * fold, and the scoring note once if any of them is a grid penalty. The feed
+ * hands it events; the guest home hands it `raceNews.list` items.
+ */
+export type NewsRunEntry = {
+  id: string;
+  /** Null for a lineup change, which has no story shape of its own. */
+  story: NewsStory | null;
+  render: (foldable: boolean, reverse: boolean) => React.ReactNode;
+};
+
+export function NewsRun({
+  entries,
+  raceName,
+  raceSlug,
+}: {
+  entries: NewsRunEntry[];
+  raceName?: string;
+  raceSlug?: string;
+}) {
+  const [showEarlier, setShowEarlier] = useState(false);
+  if (entries.length === 0) {
+    return null;
+  }
+  function pinned(entry: NewsRunEntry) {
+    return entry.story !== null && isPinned(entry.story);
+  }
   // A grid stays open and out of the fold: it is a table, not a story with a
   // headline to stand in for it.
-  const lead = events.filter(
-    (event, index) => index < LEAD_ITEMS || isPinned(event),
+  const lead = entries.filter(
+    (entry, index) => index < LEAD_ITEMS || pinned(entry),
   );
-  const earlier = events.filter((event) => !lead.includes(event));
+  const earlier = entries.filter((entry) => !lead.includes(entry));
 
-  function cards(items: FeedEvent[], offset: number) {
-    return items.map((event, index) =>
-      event.type === 'lineup_change' ? (
-        <LineupChangeCard event={event} grouped key={event._id} />
-      ) : (
-        <RaceNewsCard
-          event={event}
-          foldable={events.length > 1 && !isPinned(event)}
-          grouped
-          key={event._id}
-          reverse={(index + offset) % 2 === 0}
-        />
-      ),
-    );
+  function cards(items: NewsRunEntry[], offset: number) {
+    return items.map((entry, index) => (
+      <View key={entry.id}>
+        {entry.render(
+          entries.length > 1 && !pinned(entry),
+          (index + offset) % 2 === 0,
+        )}
+      </View>
+    ));
   }
-  const weekend = newsRunWeekend(events);
-  const raceName = weekend?.raceName;
-  const raceSlug = weekend?.raceSlug;
+  const hasGridPenalty = entries.some(
+    (entry) => entry.story !== null && newsMentionsGridPenalty(entry.story),
+  );
 
   return (
     <View
@@ -309,7 +390,7 @@ export function NewsGroupCard({ events }: { events: FeedEvent[] }) {
           {showEarlier ? cards(earlier, lead.length) : null}
         </View>
       ) : null}
-      {events.some(newsMentionsGridPenalty) ? (
+      {hasGridPenalty ? (
         <View className="border-t border-border px-3 py-2">
           <ScoringPolicyNote />
         </View>

@@ -33,6 +33,7 @@
     "./practice": "./src/practice.ts",
     "./raceCountries": "./src/raceCountries.ts",
     "./raceRecap": "./src/raceRecap.ts",
+    "./raceWriteups": "./src/raceWriteups.ts",
     "./raceTimezones": "./src/raceTimezones.ts",
     "./scoring": "./src/scoring.ts",
     "./sessions": "./src/sessions.ts",

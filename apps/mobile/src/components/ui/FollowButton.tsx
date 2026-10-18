@@ -6,6 +6,8 @@ import { api } from '../../integrations/convex/api';
 import { useQuery } from '../../integrations/convex/query';
 import { useFollowMutations } from '../../hooks/useFollowMutations';
 import { captureAnalyticsEvent } from '../../lib/analytics';
+import { useIsSignedIn } from '../../lib/useIsSignedIn';
+import { useSignInSheet } from '../../lib/useSignInSheet';
 import { useToast } from '../../providers/ToastProvider';
 import { colors } from '../../theme/tokens';
 import { Pressable, Text } from '../../tw';
@@ -44,6 +46,8 @@ export function FollowButton({
   );
   const isFollowing = isFollowingProp ?? queriedIsFollowing;
   const { follow, unfollow } = useFollowMutations();
+  const isSignedIn = useIsSignedIn();
+  const openSignIn = useSignInSheet();
 
   if (isFollowing === undefined) {
     return null;
@@ -52,6 +56,13 @@ export function FollowButton({
   async function handlePress() {
     const willFollow = !isFollowing;
     void Haptics.selectionAsync();
+    // `follows.follow` requires a viewer, so a guest's tap used to answer
+    // with "Could not follow that player" and un-press itself. The account
+    // is the missing piece, so that is what the tap goes and gets.
+    if (!isSignedIn) {
+      openSignIn();
+      return;
+    }
     try {
       if (willFollow) {
         await follow({ followeeId });

@@ -21,7 +21,7 @@ export function SignedOutPicksNotice({
   onSignIn: () => void;
 }) {
   return (
-    <View className="mb-3 gap-2 rounded-lg border border-accent/40 bg-accent-muted px-3.5 py-3">
+    <View className="gap-2 rounded-lg border border-accent/40 bg-accent-muted px-3.5 py-3">
       <View className="flex-row items-center gap-2">
         <Ionicons color={colors.accent} name="information-circle" size={16} />
         <Text className="text-foreground text-[13px] font-bold">

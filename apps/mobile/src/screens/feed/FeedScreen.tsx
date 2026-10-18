@@ -25,7 +25,7 @@ import { LiveClassificationCard } from '../../components/feed/live-classificatio
 import type { SessionHeader } from '../../components/feed/SessionGroupCard';
 import { SessionGroupCard } from '../../components/feed/SessionGroupCard';
 import { PicksConnectedScreen } from '../picks/PicksConnectedScreen';
-import { HomeHero } from '../../components/home/HomeHero';
+import { GuestWeekendNews } from '../../components/home/GuestWeekendNews';
 import { SignedOutHomePanel } from '../../components/home/SignedOutHomePanel';
 import { RaceRecapCard } from '../../components/home/RaceRecapCard';
 import { SuggestedFollowsSection } from '../../components/home/SuggestedFollowsSection';
@@ -40,13 +40,13 @@ import { useHideOnScroll } from '../../hooks/useHideOnScroll';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
 import { captureAnalyticsEvent } from '../../lib/analytics';
-import { getFeatured } from '../../lib/featuredWeekend';
 import { feedGroupKey, reuseFeedGroups } from '../../lib/feedGroupIdentity';
 import { homePaintIsPending } from '../../lib/homePaint';
+import { useConnectedDraft } from '../../lib/useConnectedDraft';
+import { CASCADE_DRAFT_SESSION } from '../picks/picksShared';
 import { useIsSignedIn } from '../../lib/useIsSignedIn';
 import { useHomePaintGate } from '../../lib/useHomePaintGate';
 import { useNow } from '../../lib/useNow';
-import { useRaceWeekends } from '../../lib/useRaceWeekends';
 import { useRefreshSpinner } from '../../lib/useRefreshSpinner';
 import { bucketWeatherNow } from '../../lib/weatherNow';
 import type { HomeStackParamList } from '../../navigation/types';
@@ -74,7 +74,6 @@ export function FeedScreen() {
   const { isLoaded: authLoaded } = useAuth();
   const isSignedIn = useIsSignedIn();
   const now = useNow(30_000);
-  const { isLoading: racesLoading, races } = useRaceWeekends();
 
   const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
     Array(MAX_EXTRA_PAGES).fill(null),
@@ -132,13 +131,22 @@ export function FeedScreen() {
     convexEnabled ? { limit: 6 } : 'skip',
   );
 
+  // Once a guest has drafted a card, the weekend card carries the account
+  // prompt itself (the terms of the draft and a sign-in button), so the
+  // general panel below would say the same thing twice on one screen.
+  const guestDraft = useConnectedDraft(
+    weekend?.race.slug ?? '',
+    CASCADE_DRAFT_SESSION,
+    !isSignedIn && Boolean(weekend),
+  );
+  const guestHasDraft =
+    guestDraft.top5.length > 0 ||
+    Object.keys(guestDraft.h2hByMatchup).length > 0;
+
   const weatherNow = bucketWeatherNow(now);
-  const featured = getFeatured(races, now);
-  const weatherSlug = isSignedIn
-    ? weekend?.race.slug
-    : featured?.nextSession
-      ? featured.race.slug
-      : undefined;
+  // Warms the forecast the weekend card's own row reads, so it paints with
+  // the rest of the card rather than a beat later.
+  const weatherSlug = weekend?.race.slug;
   const shouldLoadWeather = Boolean(convexEnabled && weatherSlug);
   const weather = useQuery(
     api.weather.getByRaceSlug,
@@ -288,7 +296,6 @@ export function FeedScreen() {
       discoveryPending,
       feed: page0,
       me,
-      racesLoading,
       recap,
       weekend,
       weatherPending,
@@ -339,8 +346,11 @@ export function FeedScreen() {
         }
         ListHeaderComponent={
           <FeedListHeader
+            guestNewsRace={isSignedIn || !weekend ? null : weekend.race}
             isSignedIn={isSignedIn}
-            showSignedOutPanel={groups.length === 0 && !isSignedIn}
+            showSignedOutPanel={
+              groups.length === 0 && !isSignedIn && !guestHasDraft
+            }
           />
         }
         onEndReached={handleLoadMore}
@@ -369,22 +379,22 @@ export function FeedScreen() {
  * holds its own subscriptions and re-renders itself when its data changes.
  */
 const FeedListHeader = memo(function FeedListHeader({
+  guestNewsRace,
   isSignedIn,
   showSignedOutPanel,
 }: {
+  /** The weekend whose news a guest reads here; null signed in (the feed has it). */
+  guestNewsRace: { slug: string; name: string } | null;
   isSignedIn: boolean;
   showSignedOutPanel: boolean;
 }) {
   return (
     <View>
       <RaceRecapCard className="mx-4 mt-3 mb-3" />
-      {isSignedIn ? (
-        <PicksConnectedScreen embedded />
-      ) : (
-        <View className="px-4 pt-3">
-          <HomeHero />
-        </View>
-      )}
+      {/* Signed in or not. A guest drafts on the device and the card shows
+          the draft; it replaced a countdown-only hero that gave a visitor
+          nothing to do until they had signed in. */}
+      <PicksConnectedScreen embedded />
       {/* Ranked by mutual followers and shared leagues, matching web's
           dashboard rail card — always visible for a signed-in player, not
           just over an empty feed, the way the old leaderboard-rank version
@@ -398,6 +408,14 @@ const FeedListHeader = memo(function FeedListHeader({
           a session in progress put them ahead of the picks the tab exists to
           take. */}
       <LiveClassificationCard />
+      {guestNewsRace ? (
+        <View className="pt-3">
+          <GuestWeekendNews
+            raceName={guestNewsRace.name}
+            raceSlug={guestNewsRace.slug}
+          />
+        </View>
+      ) : null}
       {/* No "Activity" heading over the list. The tab is Home, the rows below
           are plainly the activity, and the web feed dropped the same label. */}
       {showSignedOutPanel ? (

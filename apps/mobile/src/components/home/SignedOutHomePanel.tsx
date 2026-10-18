@@ -13,13 +13,15 @@ import { Pressable, Text, View } from '../../tw';
  * list of strangers is not what somebody opening an F1 app for the first time
  * came for. This says what an account is for instead.
  *
- * Deliberately below the hero: the countdown and the picks button are the
- * reason to be here, and the picks screen takes a draft without an account.
+ * Deliberately below the weekend card, which takes a draft without an
+ * account: the picks are the reason to be here, and this says what signing
+ * in adds. The boards are not on the list because a guest can already read
+ * them on the Leaderboard tab.
  */
 const BEHIND = [
-  'Your Top 5 scored against the real classification',
-  'Team-mate picks on every session',
-  'Season and weekend leaderboards',
+  'Your Top 5 and team-mate picks scored on every session',
+  'Your place on the weekend and season boards',
+  'A reminder before picks lock, and results when they land',
 ] as const;
 
 export function SignedOutHomePanel() {

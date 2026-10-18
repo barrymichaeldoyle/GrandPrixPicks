@@ -530,7 +530,28 @@ export function SignInScreen() {
             moving the brand mark, the title and everything under them on each
             toggle. Anchored here, and with the form below anchored at both
             ends, only the fields on either side of the username row move. */}
-        <View className="items-center justify-center gap-3 px-6 py-10">
+        {/* A way out that can be seen. The sheet is dismissable by swipe,
+            but a guest who reached it from a Follow button or a Save did not
+            ask to sign in, and a full-height sheet with no control reads as a
+            wall. Same control as the pick editors. */}
+        <View className="flex-row justify-end px-4 pt-2">
+          <Pressable
+            accessibilityLabel="Close"
+            accessibilityRole="button"
+            className="min-h-11 justify-center px-3"
+            hitSlop={8}
+            onPress={() => {
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+                return;
+              }
+              navigation.navigate('Tabs');
+            }}
+          >
+            <Text className="text-accent">Close</Text>
+          </Pressable>
+        </View>
+        <View className="items-center justify-center gap-3 px-6 pt-4 pb-10">
           <View className="mb-1">
             <BrandMark />
           </View>

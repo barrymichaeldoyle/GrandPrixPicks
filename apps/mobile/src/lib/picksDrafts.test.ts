@@ -22,6 +22,7 @@ import {
   loadConnectedDraft,
   patchConnectedDraft,
   saveConnectedDraft,
+  subscribeToConnectedDrafts,
 } from './picksDrafts';
 
 beforeEach(() => {
@@ -155,5 +156,47 @@ describe('listPendingDrafts', () => {
     const pending = await listPendingDrafts();
     expect(pending).toHaveLength(1);
     expect(pending[0]?.h2hByMatchup).toEqual({ m1: 'VER' });
+  });
+});
+
+describe('draft scope', () => {
+  it('keeps the cascade scope across patches and lists it with the draft', async () => {
+    await patchConnectedDraft('usa-2026', 'race', {
+      top5: ['d1'],
+      awaitingAccount: true,
+      scope: 'cascade',
+    });
+    await patchConnectedDraft('usa-2026', 'race', {
+      h2hByMatchup: { m1: 'd1' },
+    });
+
+    const [pending] = await listPendingDrafts();
+    expect(pending?.scope).toBe('cascade');
+    expect(pending?.top5).toEqual(['d1']);
+    expect(pending?.h2hByMatchup).toEqual({ m1: 'd1' });
+  });
+});
+
+describe('subscribeToConnectedDrafts', () => {
+  it('runs the listener after every write and clear, until unsubscribed', async () => {
+    const listener = vi.fn();
+    const unsubscribe = subscribeToConnectedDrafts(listener);
+
+    await patchConnectedDraft('usa-2026', 'race', { top5: ['d1'] });
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    await saveConnectedDraft('usa-2026', 'quali', {
+      top5: ['d1'],
+      h2hByMatchup: {},
+      updatedAt: 'now',
+    });
+    expect(listener).toHaveBeenCalledTimes(2);
+
+    await clearConnectedDraft('usa-2026', 'race');
+    expect(listener).toHaveBeenCalledTimes(3);
+
+    unsubscribe();
+    await patchConnectedDraft('usa-2026', 'race', { top5: ['d2'] });
+    expect(listener).toHaveBeenCalledTimes(3);
   });
 });

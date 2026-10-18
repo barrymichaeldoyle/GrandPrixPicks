@@ -123,7 +123,7 @@ The app should default to the next open session. If none is open, default to the
 - Restore the Clerk session and initialize Convex with authenticated token fetching.
 - Upsert/sync the user with device locale and IANA timezone after sign-in.
 - Preserve the intended deep link through authentication.
-- Signed-out users see a concise value proposition and sign-in/create-account actions. Browse-only public leaderboards are optional; making picks requires auth.
+- Signed-out users get the app, not a wall: the tabs render without an account. Home shows the weekend card (`PicksConnectedScreen` embedded, same as signed in), the next race's news (`GuestWeekendNews`, from `raceNews.list`) and an account panel (`SignedOutHomePanel`). A guest can build a full Top 5 and team-mate card; it is stored on the device (`lib/picksDrafts.ts`, `awaitingAccount`, `scope: 'cascade'`), shown on the card from storage (`useConnectedDraft`) with `SignedOutPicksNotice` stating the terms, and submitted by `PendingPickSubmitter` once Convex is authenticated. Saving, following and the Notifications and Settings screens open the sign-in sheet (`useSignInSheet`), which has a visible Close. The leaderboard hides its Following scope signed out.
 - Never flash authenticated picks to a signed-out state during session restoration.
 
 ### 2. Picks / current weekend

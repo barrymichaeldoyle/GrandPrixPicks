@@ -20,6 +20,16 @@ type ConnectedDraft = {
    * walked away from.
    */
   awaitingAccount?: boolean;
+  /**
+   * Whether the card was built in cascade mode (one card for every open
+   * session) or as an edit to one session. The storage key names a session
+   * either way, because a cascade draft is filed under `CASCADE_DRAFT_SESSION`,
+   * so the key alone cannot say which; the drain after sign-in has to know,
+   * or a weekend card is submitted to the race alone and qualifying is left
+   * without picks. Absent on drafts written before this field existed, which
+   * were all guest cards and therefore cascades.
+   */
+  scope?: 'cascade' | 'session';
 };
 
 export async function loadConnectedDraft(
@@ -37,6 +47,7 @@ export async function saveConnectedDraft(
   draft: ConnectedDraft,
 ) {
   await setStoredJson(getConnectedDraftStorageKey(raceSlug, session), draft);
+  notifyDraftListeners();
 }
 
 export async function clearConnectedDraft(
@@ -44,6 +55,7 @@ export async function clearConnectedDraft(
   session: SessionType,
 ) {
   await removeStoredValue(getConnectedDraftStorageKey(raceSlug, session));
+  notifyDraftListeners();
 }
 
 /**
@@ -57,7 +69,7 @@ export async function patchConnectedDraft(
   raceSlug: string,
   session: SessionType,
   patch: Partial<
-    Pick<ConnectedDraft, 'h2hByMatchup' | 'top5' | 'awaitingAccount'>
+    Pick<ConnectedDraft, 'h2hByMatchup' | 'top5' | 'awaitingAccount' | 'scope'>
   >,
 ) {
   const existing = await loadConnectedDraft(raceSlug, session);
@@ -66,6 +78,7 @@ export async function patchConnectedDraft(
     top5: patch.top5 ?? existing?.top5 ?? [],
     updatedAt: new Date().toISOString(),
     awaitingAccount: patch.awaitingAccount ?? existing?.awaitingAccount,
+    scope: patch.scope ?? existing?.scope,
   };
   const isEmpty =
     next.top5.length === 0 && Object.keys(next.h2hByMatchup).length === 0;
@@ -74,6 +87,7 @@ export async function patchConnectedDraft(
     return;
   }
   await setStoredJson(getConnectedDraftStorageKey(raceSlug, session), next);
+  notifyDraftListeners();
 }
 
 /** Shape of a stored draft plus the race and session it belongs to. */
@@ -114,4 +128,30 @@ export async function listPendingDrafts(): Promise<PendingDraft[]> {
   }
 
   return drafts;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Change notifications
+// ─────────────────────────────────────────────────────────────────────────
+
+type DraftListener = () => void;
+const listeners = new Set<DraftListener>();
+
+/**
+ * Runs `listener` after any draft write or clear, so a surface showing a draft
+ * (the weekend card, signed out) re-reads it when an editor saves one and
+ * when `PendingPickSubmitter` drains it after sign-in. MMKV has no change
+ * events of its own, and every write goes through this module.
+ */
+export function subscribeToConnectedDrafts(listener: DraftListener) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function notifyDraftListeners() {
+  for (const listener of listeners) {
+    listener();
+  }
 }

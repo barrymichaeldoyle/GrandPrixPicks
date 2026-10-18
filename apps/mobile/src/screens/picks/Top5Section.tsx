@@ -192,8 +192,9 @@ export function Top5Editor({
     void patchConnectedDraft(race.slug, draftSession, {
       top5: picks,
       awaitingAccount: !isSignedIn,
+      scope: cascadeMode ? 'cascade' : 'session',
     });
-  }, [draftSession, isDirty, isSignedIn, picks, race.slug]);
+  }, [cascadeMode, draftSession, isDirty, isSignedIn, picks, race.slug]);
 
   // No auto-save here, unlike H2H: picking the 5th driver is where
   // reordering STARTS, not where the interaction ends, and a timer-based
@@ -219,6 +220,7 @@ export function Top5Editor({
         await patchConnectedDraft(race.slug, draftSession, {
           top5: picks,
           awaitingAccount: true,
+          scope: cascadeMode ? 'cascade' : 'session',
         });
         await onSubmit(picks, cascadeMode ? undefined : selectedSession);
         onCancel();

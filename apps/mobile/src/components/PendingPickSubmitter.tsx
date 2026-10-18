@@ -19,6 +19,12 @@ import { useToast } from '../providers/ToastProvider';
  * rather than in the form: signing in swaps enough of the tree that a form's
  * own effect cannot be relied on to still be mounted when auth lands.
  *
+ * A guest's card is a cascade: "one card covers every open session" is what
+ * the editor told them, so it is submitted without a session and the server
+ * writes it to every session still open. Sending it under the session the
+ * draft happens to be filed under put the picks on the race alone and left
+ * qualifying empty.
+ *
  * A draft for a session that has since locked will be rejected by the server,
  * which is the correct outcome. It is cleared either way so it cannot sit
  * there being retried forever, and the reader is told rather than left to
@@ -35,7 +41,14 @@ export function PendingPickSubmitter() {
   const drainedRef = useRef(false);
 
   useEffect(() => {
-    if (!isAuthenticated || drainedRef.current) {
+    if (!isAuthenticated) {
+      // Re-arm on sign-out. Once per sign-in, not once per launch: a player
+      // who signs out, drafts a card as a guest and signs back in has a draft
+      // waiting again, and a flag that never reset left it on the device.
+      drainedRef.current = false;
+      return;
+    }
+    if (drainedRef.current) {
       return;
     }
     drainedRef.current = true;
@@ -59,10 +72,12 @@ export function PendingPickSubmitter() {
             await clearConnectedDraft(draft.raceSlug, draft.session);
             continue;
           }
+          const sessionType =
+            draft.scope === 'session' ? draft.session : undefined;
           if (draft.top5.length > 0) {
             await submitTopFive({
               raceId: race._id,
-              sessionType: draft.session,
+              sessionType,
               picks: draft.top5 as ConvexId<'drivers'>[],
             });
           }
@@ -70,7 +85,7 @@ export function PendingPickSubmitter() {
           if (h2h.length > 0) {
             await submitH2H({
               raceId: race._id,
-              sessionType: draft.session,
+              sessionType,
               picks: h2h.map(([matchupId, driverId]) => ({
                 matchupId: matchupId as ConvexId<'h2hMatchups'>,
                 predictedWinnerId: driverId as ConvexId<'drivers'>,

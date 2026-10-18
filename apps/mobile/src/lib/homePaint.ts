@@ -25,7 +25,6 @@ export function homePaintIsPending(input: {
   /** Clerk says signed in. */
   signedIn: boolean;
   feed: unknown;
-  racesLoading: boolean;
   recap: unknown;
   weekend: unknown;
   me: unknown;
@@ -39,9 +38,6 @@ export function homePaintIsPending(input: {
     return true;
   }
   if (input.feed === undefined) {
-    return true;
-  }
-  if (input.racesLoading) {
     return true;
   }
   if (input.recap === undefined) {

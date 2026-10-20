@@ -247,14 +247,21 @@ export function PredictionForm({
     };
   }
 
+  // The landing keeps its own event names (they have dashboards); the
+  // write-up and hub pickers fired nothing before the save, so for 60 days
+  // nobody could tell whether a reader who left had reached the form, tapped
+  // a driver, or stalled at the sign-in wall. `source` separates the two.
   function trackPickProgress(nextCount: number) {
-    if (
-      analyticsSource === 'landing' &&
-      nextCount >= 1 &&
-      !firstPickCapturedRef.current
-    ) {
+    if (nextCount >= 1 && !firstPickCapturedRef.current) {
       firstPickCapturedRef.current = true;
-      captureAnalyticsEvent('landing_first_pick_added', analyticsProperties());
+      if (analyticsSource === 'landing') {
+        captureAnalyticsEvent(
+          'landing_first_pick_added',
+          analyticsProperties(),
+        );
+      } else if (analyticsSource) {
+        captureAnalyticsEvent('picker_first_pick_added', analyticsProperties());
+      }
     }
     if (nextCount !== 5) {
       return;
@@ -265,6 +272,11 @@ export function PredictionForm({
       if (analyticsSource === 'landing') {
         captureAnalyticsEvent(
           'landing_top_five_completed',
+          analyticsProperties(),
+        );
+      } else if (analyticsSource) {
+        captureAnalyticsEvent(
+          'picker_top_five_completed',
           analyticsProperties(),
         );
       }
@@ -685,18 +697,16 @@ export function PredictionForm({
   );
 
   useEffect(() => {
-    if (
-      analyticsSource !== 'landing' ||
-      !showSaveWall ||
-      saveWallCapturedRef.current
-    ) {
+    if (!analyticsSource || !showSaveWall || saveWallCapturedRef.current) {
       return;
     }
     saveWallCapturedRef.current = true;
     captureAnalyticsEvent(
-      onComplete
-        ? 'landing_top_five_handoff_viewed'
-        : 'landing_save_wall_viewed',
+      analyticsSource !== 'landing'
+        ? 'picker_save_wall_viewed'
+        : onComplete
+          ? 'landing_top_five_handoff_viewed'
+          : 'landing_save_wall_viewed',
       {
         source: analyticsSource,
         race_id: raceId,

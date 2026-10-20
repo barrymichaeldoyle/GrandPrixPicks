@@ -8,6 +8,7 @@ import {
   type RaceWriteupPhase,
 } from '@/lib/raceWriteupPhase';
 
+import { preloadRaceWriteupPicksForm } from './DeferredRaceWriteupPicks';
 import { RACE_WRITEUP_CIRCUIT_ANCHOR } from './RaceWriteupSection';
 import { useInAppView } from '@/hooks/useInAppView';
 
@@ -111,6 +112,11 @@ export function RaceWriteupActions({
         <a
           href={`#${primaryActionTargetId}`}
           onClick={() => trackPrimaryAction('picks_anchor')}
+          // The tap jumps to the picker at the foot of the page; the intent
+          // shows a beat earlier, which is enough to have its chunk fetched.
+          onPointerEnter={preloadRaceWriteupPicksForm}
+          onFocus={preloadRaceWriteupPicksForm}
+          onTouchStart={preloadRaceWriteupPicksForm}
           className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           {raceWriteupPrimaryAction(phase, venueName, compact, hasPicks)}

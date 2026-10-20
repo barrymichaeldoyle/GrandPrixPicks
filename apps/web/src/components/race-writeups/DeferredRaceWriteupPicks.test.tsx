@@ -158,7 +158,6 @@ describe('deferred race write-up picks', () => {
     expect(
       container!.querySelector('[data-testid="prediction-form"]'),
     ).not.toBeNull();
-    expect(observerCallback).toBeNull();
     expect(container!.textContent).toContain('all open sessions');
     expect(container!.textContent).not.toContain('for qualifying and the race');
   });

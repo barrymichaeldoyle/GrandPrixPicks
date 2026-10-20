@@ -1,0 +1,25 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "antonelli-title-clinch-austin",
+    "category": "general",
+    "headline": "Antonelli can clinch the title in Austin",
+    "body": "Antonelli leads Russell by 102 points with six races left and can become champion at 20 in Austin. He would need to win with Russell ninth or lower and Hamilton fifth or lower. Anything less than victory takes the fight to Mexico City.",
+    "affectsSessions": [],
+    "driverCodes": ["ANT"],
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/news/1107507/1/how-kimi-antonelli-can-become-f1-world-champion-united-states-gp",
+    "sourcePublishedAt": "2026-10-20T09:15:44+01:00"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "motogp-demo-laps-austin",
+    "category": "general",
+    "headline": "MotoGP bikes to run demo laps at the US GP",
+    "body": "Nicolo Bulega, Dani Pedrosa, Andrea Dovizioso and Lorenzo Savadori will ride around Austin on Saturday morning, ahead of F1 practice three. MotoGP's Australian GP clashes with the weekend, so 2026 race riders are not taking part.",
+    "affectsSessions": [],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/motogp/motogp-bikes-to-run-at-f1-us-gp/",
+    "sourcePublishedAt": "2026-10-20T13:27:59Z"
+  }
+]

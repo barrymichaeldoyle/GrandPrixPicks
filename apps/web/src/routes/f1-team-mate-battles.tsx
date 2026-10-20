@@ -115,7 +115,9 @@ export const Route = createFileRoute('/f1-team-mate-battles')({
       : `H2H is head-to-head: F1 drivers against their team-mates. Qualifying, sprint and race records for every ${SEASON} Formula 1 pairing.`;
 
     const meta = pageMeta({
-      title: `${SEASON} F1 Team-mate Head-to-Head (H2H) | Grand Prix Picks`,
+      // "H2H in F1" first: `h2h f1 meaning` ranked 4.4 in October 2026 and
+      // took 1 click from 56 impressions while the title read as a table.
+      title: `H2H in F1: ${SEASON} Team-mate Records | Grand Prix Picks`,
       description,
       path: PATH,
     });

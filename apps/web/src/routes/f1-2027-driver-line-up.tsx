@@ -34,7 +34,9 @@ import { PicksCallToAction } from '@/components/PicksCallToAction/PicksCallToAct
  * This file only decides how they are shown.
  */
 
-const PAGE_TITLE = 'F1 2027 Driver Line-Up | Grand Prix Picks';
+// "Confirmed seats" because the page took 0 clicks from 266 impressions at
+// position 10.8 in October 2026: the bare title did not say what it answers.
+const PAGE_TITLE = 'F1 2027 Driver Line-Up: Confirmed Seats | Grand Prix Picks';
 const PAGE_DESCRIPTION =
   'Every 2027 F1 seat, team by team. Haas signed Rafael Câmara on 14 October. Confirmed drivers, expected line-ups and announcements still pending.';
 

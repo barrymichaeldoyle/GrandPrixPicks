@@ -20,9 +20,9 @@ export const Route = createFileRoute('/how-to-play')({
   component: HowToPlayPage,
   head: () => {
     const meta = pageMeta({
-      title: 'How to Play | F1 Prediction Game Rules | Grand Prix Picks',
+      title: 'How to Play Grand Prix Picks: F1 Prediction Game Rules',
       description:
-        'Learn how to play Grand Prix Picks. See the Top 5 and team-mate Head-to-Head scoring rules, session deadlines, and leaderboard formats.',
+        'Pick your top 5 for each F1 session and a winner from every team-mate pair. 5 points exact, 3 one place out, 1 in the top 5. Picks lock at session start.',
       path: '/how-to-play',
     });
     return {

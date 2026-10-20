@@ -101,7 +101,7 @@ export function RaceWriteupNextLinks({
             className={LINK_CLASS}
             onClick={() => track('weekend_hub')}
           >
-            make picks for this weekend
+            make your F1 predictions for this weekend
           </Link>
         </>
       ) : null}

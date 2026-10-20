@@ -35,7 +35,7 @@ export const publicNavLinks: SiteNavLink[] = [
  */
 export const footerPrimaryLink: SiteNavLink = {
   to: '/f1-predictions-this-weekend',
-  label: 'Predictions this weekend',
+  label: 'F1 predictions this weekend',
   exact: true,
 };
 

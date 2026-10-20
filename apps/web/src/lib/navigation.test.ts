@@ -28,7 +28,7 @@ describe('site navigation', () => {
   it('keeps useful public pages reachable without exposing personal app destinations', () => {
     expect(footerPrimaryLink).toEqual({
       to: '/f1-predictions-this-weekend',
-      label: 'Predictions this weekend',
+      label: 'F1 predictions this weekend',
       exact: true,
     });
     // The weekend write-up is the footer's featured link when one exists;

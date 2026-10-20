@@ -116,7 +116,7 @@ const GUIDE_META: readonly GuideMeta[] = [
     title: 'What happens across an F1 race weekend',
     metaTitle: 'F1 Race Weekend Format Explained | Grand Prix Picks',
     metaDescription:
-      'A session-by-session explanation of a Formula 1 race weekend: what practice is for, how the three-part qualifying session works, and what happens on race day.',
+      'Three practice sessions, three-part qualifying, then the Grand Prix. Sprint weekends keep one practice and add sprint qualifying and a sprint.',
     summary:
       'What happens in each session of a Grand Prix weekend, from Friday practice to the classification after the flag.',
     faqs: [

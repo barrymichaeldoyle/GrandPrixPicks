@@ -100,9 +100,12 @@ export const Route = createFileRoute('/results-policy')({
   component: ResultsPolicyPage,
   head: () => {
     const meta = pageMeta({
-      title: 'How F1 Penalties Affect Results | Grand Prix Picks',
+      // The page's search impressions are questions about why the standings
+      // moved hours after the race (position 6.7, 2 clicks from 149 in
+      // October 2026), so the title and the first sentence answer that.
+      title: 'Why F1 Results Change After the Race | Grand Prix Picks',
       description:
-        'Grid penalties change the starting grid, not the qualifying result. Post-race penalties do change the official F1 classification. Here is how we score both.',
+        'Results can change hours after the flag: post-race penalties and disqualifications rewrite the official classification. Grid penalties only move the start.',
       path: '/results-policy',
     });
     return {

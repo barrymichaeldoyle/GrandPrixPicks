@@ -212,7 +212,7 @@ export const Route = createFileRoute('/f1-predictions-this-weekend')({
               },
               breadcrumbSchema(PATH, [
                 { name: 'Races', path: '/races' },
-                { name: 'Predictions this weekend', path: PATH },
+                { name: 'F1 predictions this weekend', path: PATH },
               ]),
             ],
           }),

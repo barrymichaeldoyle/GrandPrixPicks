@@ -374,6 +374,23 @@ describe('raceNews.publish sourcePublishedAt', () => {
     expect(data.latestAllowedIso).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
+  it('lets a general story leave out affectsSessions (GRAND-PRIX-PICKS-35)', async () => {
+    const { affectsSessions: _omitted, ...general } = item;
+    const preview = await t.mutation(internal.raceNews.publish, {
+      ...general,
+      key: 'mclaren-reserve',
+      category: 'general',
+      dryRun: true,
+    });
+    expect(preview.validationProblem).toBeUndefined();
+    // A pick-related story with no sessions still gets the problem that says so.
+    const pick = await t.mutation(internal.raceNews.publish, {
+      ...general,
+      dryRun: true,
+    });
+    expect(pick.validationProblem).toBeDefined();
+  });
+
   it('reports a future stamp on dry run instead of throwing', async () => {
     const stamp = Date.now() + 3 * 24 * 60 * 60 * 1000;
     const preview = await t.mutation(internal.raceNews.publish, {

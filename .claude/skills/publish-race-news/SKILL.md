@@ -22,8 +22,8 @@ Two categories, and the choice is honest rather than generous:
 - **`pick_related`** (the default): the story changes a session. Name every
   session it changes in `affectsSessions`; publishing rejects an empty list.
 - **`general`**: interesting, sourced, but it changes no session. Pass
-  `"category": "general"` and `"affectsSessions": []`; publishing rejects a
-  general item that names sessions.
+  `"category": "general"` and `"affectsSessions": []` (or leave the list
+  out); publishing rejects a general item that names sessions.
 
 Never invent an impact to promote a story to `pick_related`. A part being
 evaluated in FP1 is general until the team says it stays on the car.

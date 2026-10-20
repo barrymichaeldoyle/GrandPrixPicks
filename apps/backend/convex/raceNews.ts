@@ -565,7 +565,13 @@ export const publish = internalMutation({
     key: v.string(),
     headline: v.string(),
     body: v.string(),
-    affectsSessions: sessionTypesValidator,
+    /**
+     * The sessions a pick-related story changes. Optional so a general story
+     * can leave it out (Sentry GRAND-PRIX-PICKS-35: a dry run without it failed
+     * argument validation); a pick-related story with none is still refused,
+     * with the message that says so.
+     */
+    affectsSessions: v.optional(sessionTypesValidator),
     category: v.optional(
       v.union(v.literal('pick_related'), v.literal('general')),
     ),
@@ -617,6 +623,7 @@ export const publish = internalMutation({
   },
   handler: async (ctx, args) => {
     const dryRun = args.dryRun ?? false;
+    const affectsSessions = args.affectsSessions ?? [];
 
     const race = await raceBySlug(ctx, args.raceSlug);
     if (!race) {
@@ -647,7 +654,7 @@ export const publish = internalMutation({
       validationProblem = validatePublishInput({
         raceName: race.name,
         hasSprint: Boolean(race.hasSprint),
-        affectsSessions: args.affectsSessions,
+        affectsSessions,
         category: args.category,
         sourceUrl: args.sourceUrl,
         sourcePublishedAt: sourcePublishedAtMs,
@@ -713,7 +720,7 @@ export const publish = internalMutation({
         race: { slug: race.slug, name: race.name, round: race.round },
         key: args.key,
         headline: args.headline,
-        affectsSessions: args.affectsSessions,
+        affectsSessions,
         driverCodes,
         gridPositions: grid?.resolved.length,
         // Must be empty before the real run: each entry is a row linking to a
@@ -730,7 +737,7 @@ export const publish = internalMutation({
       key: args.key,
       headline: args.headline,
       body: args.body,
-      affectsSessions: args.affectsSessions,
+      affectsSessions,
       category: args.category ?? 'pick_related',
       feedSelected,
       writeUpSelected,
@@ -792,7 +799,7 @@ export const publish = internalMutation({
       await syncFeedEvent(
         ctx,
         race,
-        args,
+        { ...args, affectsSessions },
         resolved?.drivers,
         grid?.resolved,
         now,
@@ -804,7 +811,7 @@ export const publish = internalMutation({
       race: { slug: race.slug, name: race.name, round: race.round },
       key: args.key,
       headline: args.headline,
-      affectsSessions: args.affectsSessions,
+      affectsSessions,
       driverCodes,
       gridPositions: grid?.resolved.length,
       feedVisibleAt: heldBack ? feedVisibleAt : undefined,

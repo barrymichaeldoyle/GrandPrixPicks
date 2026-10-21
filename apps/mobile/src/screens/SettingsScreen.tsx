@@ -588,7 +588,7 @@ export function SettingsScreen() {
 
       <SettingsSection title="Privacy">
         <NotificationToggleRow
-          help="Share anonymous feature usage so we can improve the app. No email address or typed text is collected."
+          help="Sends which screens and features you use, linked to your account, so we can improve the app. Nothing you type is sent."
           label="Product analytics"
           onValueChange={(allowed) => {
             setAnalyticsAllowed(allowed);

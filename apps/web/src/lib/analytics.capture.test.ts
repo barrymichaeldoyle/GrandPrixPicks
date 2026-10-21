@@ -22,6 +22,8 @@ const sdk = vi.hoisted(() => {
       state.optedIn = false;
     }),
     set_config: vi.fn(),
+    startSessionRecording: vi.fn(),
+    stopSessionRecording: vi.fn(),
     capture: vi.fn(
       (name: string, _properties: unknown, options?: { timestamp: Date }) => {
         // Match the SDK's behaviour: calls before opt-in disappear.

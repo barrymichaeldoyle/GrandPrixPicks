@@ -53,7 +53,8 @@ sends nothing. Until 2026-10-21 that wait was up to four seconds for Google's
 consent manager, so bounce counts before then are floors. Visitors inside the
 EEA, the UK and Switzerland are captured cookieless: in-memory persistence, no
 replay, a fresh anonymous id per page load, so their sessions and retention do
-not stitch across visits.
+not stitch across visits, unless they turn on "Analytics cookies" in the
+footer (`AnalyticsCookiesButton`, choice in localStorage `gpp.analytics.cookies`).
 
 To see what actually fired recently:
 

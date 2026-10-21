@@ -10,6 +10,7 @@ import {
 } from '@/lib/navigation';
 import { footerWeekendPreview } from '@/lib/raceWriteups';
 import { siteConfig } from '@/lib/site';
+import { AnalyticsCookiesButton } from './AnalyticsCookiesButton';
 import { BrandMark } from './BrandMark.tsx';
 import { RaceFlag } from './RaceFlag';
 import { XLogoIcon } from './ShareOnXButton';
@@ -320,6 +321,7 @@ export function Footer({
                 {link.label}
               </Link>
             ))}
+            <AnalyticsCookiesButton className={footerLinkClass} />
           </nav>
           <MadeByCredit
             linkClassName={footerLinkClass}

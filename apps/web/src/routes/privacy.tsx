@@ -79,8 +79,10 @@ function PrivacyPage() {
               also record a masked replay of page layout and interactions to
               help diagnose usability problems; all visible text and form inputs
               are masked before capture. Visitors in those regions are measured
-              without cookies or stored identifiers, and no replay is recorded.
-              The mobile app offers an analytics choice in Settings.
+              without cookies or stored identifiers, and no replay is recorded,
+              unless they allow analytics cookies from the link in the footer,
+              where the choice can be withdrawn again. The mobile app offers an
+              analytics choice in Settings.
             </p>
           </section>
 
@@ -116,7 +118,8 @@ function PrivacyPage() {
               are used to keep you signed in (Clerk) and, outside the European
               Economic Area, the United Kingdom and Switzerland, to recognise a
               returning browser for analytics (PostHog). Visitors in those
-              regions are measured without cookies or stored identifiers.
+              regions are measured without cookies or stored identifiers unless
+              they allow analytics cookies from the link in the footer.
             </p>
           </section>
 

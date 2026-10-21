@@ -26,7 +26,7 @@
     "test:e2e:headed": "pnpm --filter @grandprixpicks/web test:e2e:headed",
     "test:e2e:ui": "pnpm --filter @grandprixpicks/web test:e2e:ui",
     "typecheck": "pnpm --filter @grandprixpicks/shared typecheck && pnpm --filter @grandprixpicks/web typecheck && pnpm --filter @grandprixpicks/backend typecheck && pnpm --filter @grandprixpicks/reddit-news typecheck",
-    "lint": "pnpm --filter @grandprixpicks/web lint && pnpm --filter @grandprixpicks/backend lint && pnpm --filter @grandprixpicks/mobile lint && pnpm --filter @grandprixpicks/reddit-news lint",
+    "lint": "pnpm --filter @grandprixpicks/web lint && pnpm --filter @grandprixpicks/backend lint && pnpm --filter @grandprixpicks/mobile lint && pnpm --filter @grandprixpicks/reddit-news lint && pnpm knip",
     "lint:fix": "pnpm --filter @grandprixpicks/web lint:fix && pnpm --filter @grandprixpicks/backend lint:fix && pnpm --filter @grandprixpicks/mobile lint:fix && pnpm --filter @grandprixpicks/reddit-news lint:fix",
     "knip": "knip",
     "check:lighthouse": "lhci autorun --config=lighthouserc.cjs",

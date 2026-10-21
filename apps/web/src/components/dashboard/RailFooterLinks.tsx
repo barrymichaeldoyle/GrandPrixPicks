@@ -1,6 +1,7 @@
 import { Link, useLocation } from '@tanstack/react-router';
 import { useState } from 'react';
 
+import { AnalyticsCookiesButton } from '@/components/AnalyticsCookiesButton';
 import { showsGlobalFooter } from '@/lib/globalFooter';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { railFooterLinks } from '@/lib/navigation';
@@ -58,6 +59,7 @@ export function RailFooterLinks() {
             {link.label}
           </Link>
         ))}
+        <AnalyticsCookiesButton className={linkClass} />
         <span className="inline-flex min-h-6 items-center leading-none whitespace-nowrap">
           © {year} {siteConfig.title}
         </span>

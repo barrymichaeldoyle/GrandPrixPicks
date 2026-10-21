@@ -325,6 +325,37 @@ export function optInToAnalytics(options: { cookieless?: boolean } = {}) {
   });
 }
 
+/**
+ * Switches a visitor who is already opted in between cookie and cookieless
+ * capture: the footer control for visitors inside the GDPR regions. Turning
+ * cookies off also resets the identity, so the cookie's id does not live on
+ * in memory.
+ */
+export function setAnalyticsCookieMode(cookies: boolean) {
+  if (!isEnabled()) {
+    return;
+  }
+  void getPostHog().then((posthog) => {
+    if (!posthog || consent !== 'granted') {
+      return;
+    }
+    if (cookies) {
+      posthog.set_config({
+        persistence: 'localStorage+cookie',
+        disable_session_recording: false,
+      });
+      posthog.startSessionRecording();
+    } else {
+      posthog.stopSessionRecording();
+      posthog.set_config({
+        persistence: 'memory',
+        disable_session_recording: true,
+      });
+      posthog.reset();
+    }
+  });
+}
+
 export function optOutOfAnalytics() {
   if (!isEnabled()) {
     return;

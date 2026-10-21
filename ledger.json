@@ -1029,6 +1029,23 @@
       "expiresAt": "2026-10-23T12:00:00.000Z",
       "status": "scheduled",
       "bufferPostId": "6ad8e3a34f000a3fb97e61c4"
+    },
+    {
+      "id": "756ad9a6e1a4050b5acf9c4b4ace3aad2e36763c5950a002e07a9b233df6e87d",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "austin-weather-forecast-dry-friday-saturday",
+          "revision": "ff7ef8acea2817cc339530938806184f928b6e0dfa4b749e3d1eafdb1200f51d"
+        }
+      ],
+      "text": "Austin forecast: no rain on Friday or Saturday, with track temperatures above 55C. Sunday has a 20% chance of rain and afternoon gusts of 35-40 km/h.\n\nhttps://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=austin-weather-forecast-dry-friday-saturday",
+      "dueAt": "2026-10-21T17:55:00.000Z",
+      "expiresAt": "2026-10-23T12:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

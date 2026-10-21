@@ -46,6 +46,13 @@ The write-up and hub pickers report `picker_viewed`, `picker_first_pick_added`,
 `landing_*` names. `prediction_signin_prompted` and `prediction_saved` carry
 the same `source`.
 
+Short visits are under-counted. Analytics loads after `load` plus an idle
+window, then waits up to 4 s for Google's consent manager (served inside the
+AdSense script to EEA visitors only) before opting in, so a first-time visitor
+who leaves within about five seconds sends nothing at all. Since 2026-10-21 a
+browser that opted in on an earlier visit skips the wait. Read bounce counts
+and session totals as floors, and Search Console clicks as the ceiling.
+
 To see what actually fired recently:
 
 ```sql

@@ -313,6 +313,17 @@ export function optInToAnalytics() {
   });
 }
 
+/**
+ * Whether this browser opted in on an earlier visit. PostHog persists the
+ * choice, which is why its own `$pageleave` already fired for returning
+ * visitors while our pageview sat behind the consent wait.
+ */
+export function hasPersistedAnalyticsOptIn(): Promise<boolean> {
+  return getPostHog().then(
+    (posthog) => posthog?.has_opted_in_capturing() ?? false,
+  );
+}
+
 export function optOutOfAnalytics() {
   if (!isEnabled()) {
     return;

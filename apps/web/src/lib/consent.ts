@@ -1,5 +1,6 @@
 import {
   capturePageView,
+  hasPersistedAnalyticsOptIn,
   optInToAnalytics,
   optOutOfAnalytics,
 } from './analytics';
@@ -51,6 +52,8 @@ const TCF_POLL_MS = 200;
 
 let started = false;
 let initialPageViewRecovered = false;
+/** The CMP (or its absence) has answered; a persisted choice no longer leads. */
+let decided = false;
 
 /**
  * Wire PostHog opt-in to the CMP's consent state. Safe to call once per page
@@ -61,6 +64,17 @@ export function initConsentGatedAnalytics() {
     return;
   }
   started = true;
+  // A browser that opted in before does not wait again. Analytics loads after
+  // `load` plus an idle window and then waited up to TCF_WAIT_MS for the CMP,
+  // so a returning visitor's first five seconds or so sent nothing: in the 28
+  // days to 2026-10-21, 36 of 511 sessions were a `$pageleave` with no
+  // `$pageview`. The CMP still has the last word below: a later denial opts
+  // out as before.
+  void hasPersistedAnalyticsOptIn().then((optedIn) => {
+    if (optedIn && !decided) {
+      enableAnalytics();
+    }
+  });
   waitForTcf(0);
 }
 
@@ -98,12 +112,14 @@ function subscribeToTcf(tcfApi: TcfApi) {
     if (data.purpose?.consents?.[STORAGE_PURPOSE] === true) {
       enableAnalytics();
     } else {
+      decided = true;
       optOutOfAnalytics();
     }
   });
 }
 
 function enableAnalytics() {
+  decided = true;
   optInToAnalytics();
   // Recover the first pageview that was dropped while consent was pending. The
   // router captures every navigation after this, so only the initial one needs

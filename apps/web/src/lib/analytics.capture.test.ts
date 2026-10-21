@@ -21,6 +21,7 @@ const sdk = vi.hoisted(() => {
     opt_out_capturing: vi.fn(() => {
       state.optedIn = false;
     }),
+    has_opted_in_capturing: vi.fn(() => state.optedIn),
     capture: vi.fn(
       (name: string, _properties: unknown, options?: { timestamp: Date }) => {
         // Match the SDK's behaviour: calls before opt-in disappear.

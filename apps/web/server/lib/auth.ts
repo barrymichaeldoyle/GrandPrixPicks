@@ -136,9 +136,7 @@ export async function isClerkSessionPresent(
  * cookie counts, because a browser that has visited another Clerk instance
  * keeps that instance's cookie indefinitely.
  */
-export async function getClerkSessionToken(
-  request: Request,
-): Promise<string | null> {
+async function getClerkSessionToken(request: Request): Promise<string | null> {
   const cookies = parseCookieHeader(request.headers.get('cookie'));
   const suffix = await getClerkCookieSuffix();
 

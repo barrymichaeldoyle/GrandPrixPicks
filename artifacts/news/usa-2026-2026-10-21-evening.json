@@ -1,0 +1,48 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "mercedes-wolff-austin-upgrade-specification",
+    "category": "general",
+    "headline": "Mercedes confirm both cars will run the new package in Austin",
+    "body": "Mercedes will run its latest update package on both cars at the United States Grand Prix, Toto Wolff said in the team's event preview. Only Antonelli ran it in Singapore, while Russell used the earlier specification.",
+    "affectsSessions": [],
+    "driverCodes": ["ANT", "RUS"],
+    "sourceName": "Sky Sports",
+    "sourceUrl": "https://www.skysports.com/f1/news/13601825/mercedes-confirm-kimi-antonelli-george-russell-to-both-run-latest-mercedes-car-upgrades-at-united-states-gp",
+    "sourcePublishedAt": "2026-10-21T10:09:00Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "austin-weather-forecast-dry-friday-saturday",
+    "category": "general",
+    "headline": "Austin forecast: dry Friday and Saturday, 20% chance of rain on Sunday",
+    "body": "No rain is forecast for Friday or Saturday, with track temperatures expected above 55C. Sunday carries a 20% chance of rain as a storm system develops across the Central Plains, with afternoon gusts of 35-40 km/h.",
+    "affectsSessions": [],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/what-is-the-weather-forecast-for-the-2026-united-states-grand-prix.ol8Mla3euA6b0oGK4Vneg",
+    "sourcePublishedAt": "2026-10-21T11:03:07Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "cadillac-austin-special-livery",
+    "category": "general",
+    "headline": "Cadillac reveals a special livery for its first Circuit of the Americas race",
+    "body": "Cadillac will run a one-off design in Austin, alongside Haas, the other American team, which has its Godzilla-themed livery.",
+    "affectsSessions": [],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/10/20/cadillac-and-haas-reveal-special-liveries-for-home-race-in-austin/",
+    "sourcePublishedAt": "2026-10-20T12:53:19+01:00"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "leclerc-ferrari-raw-performance-deficit",
+    "category": "general",
+    "headline": "Leclerc says Ferrari's gap is raw performance",
+    "body": "Charles Leclerc says Ferrari's deficit is the car's raw performance rather than its set-up, and that rivals' engine modes make Ferrari look stronger on Fridays than in qualifying. Ferrari is expected to bring its largest upgrade of the season to Austin.",
+    "affectsSessions": [],
+    "driverCodes": ["LEC"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/charles-leclerc-makes-worrying-ferrari-admission-ahead-of-major-f1-upgrade/10866596/",
+    "sourcePublishedAt": "2026-10-21T08:00:04Z"
+  }
+]

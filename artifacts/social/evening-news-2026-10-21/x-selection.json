@@ -1,0 +1,20 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "published-news.json",
+  "startAt": "2026-10-21T19:30:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["mercedes-wolff-austin-upgrade-specification"],
+      "materialUpdate": true,
+      "text": "Mercedes will run its latest update package on both cars in Austin. Only Antonelli used it in Singapore, while Russell ran the earlier specification.\n\nhttps://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=mercedes-wolff-austin-upgrade-specification",
+      "expiresAt": "2026-10-23T12:00:00Z"
+    },
+    {
+      "keys": ["austin-weather-forecast-dry-friday-saturday"],
+      "text": "Austin forecast: no rain on Friday or Saturday, with track temperatures above 55C. Sunday has a 20% chance of rain and afternoon gusts of 35-40 km/h.\n\nhttps://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=austin-weather-forecast-dry-friday-saturday",
+      "expiresAt": "2026-10-23T12:00:00Z"
+    }
+  ]
+}

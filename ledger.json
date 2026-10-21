@@ -1045,7 +1045,8 @@
       "text": "Austin forecast: no rain on Friday or Saturday, with track temperatures above 55C. Sunday has a 20% chance of rain and afternoon gusts of 35-40 km/h.\n\nhttps://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=austin-weather-forecast-dry-friday-saturday",
       "dueAt": "2026-10-21T17:55:00.000Z",
       "expiresAt": "2026-10-23T12:00:00.000Z",
-      "status": "creating"
+      "status": "creating",
+      "bufferPostId": "6ad8e3b1ee069bfcd237a882"
     }
   ]
 }

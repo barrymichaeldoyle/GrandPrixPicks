@@ -57,6 +57,12 @@ regulation) has no `raceSlug`. `news publish` refuses it; publish it with
 `headline`, `body`, `sourceName`, `sourceUrl`, optional `sourcePublishedAt`
 (epoch ms) and `team`. It reaches the feed but never a write-up.
 
+Choose the mutation before preparing the payload. Do not send a global story
+to `raceNews:publish` as a dry run: its required `raceSlug` and
+`affectsSessions` validators reject it before the dry-run handler runs, and
+the error is reported to Sentry. `globalNews:publish` has no `dryRun` argument;
+review its payload locally before the authorized publication call.
+
 Still skip: gossip with no named source, stories sourced to another prediction
 site, and anything already covered by an existing key (republish that one).
 

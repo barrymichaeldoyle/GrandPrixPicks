@@ -2,10 +2,11 @@ import { api } from '@convex-generated/api';
 import { createFileRoute, notFound } from '@tanstack/react-router';
 
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
+import { RACE_WRITEUP_PICKS_ANCHOR } from '@/components/race-writeups/DeferredRaceWriteupPicks';
 import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupArticle } from '@/components/race-writeups/RaceWriteupArticle';
-import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
+import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
 import { RaceWriteupNextRound } from '@/components/race-writeups/RaceWriteupNextRound';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
@@ -85,7 +86,7 @@ export const Route = createFileRoute(
   loader: async ({ context }) => {
     await setRaceDataCacheHeaders();
     const weatherNow = Date.now();
-    const [race, championship, weather, news, season, practice] =
+    const [race, championship, weather, news, season, practice, nextRace] =
       await Promise.all([
         context.queryClient.ensureQueryData(
           routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
@@ -110,11 +111,23 @@ export const Route = createFileRoute(
             raceSlug: RACE_SLUG,
           }),
         ),
+        context.queryClient.ensureQueryData(
+          routeQuery(api.races.getNextRace, {}),
+        ),
       ]);
     if (!race) {
       throw notFound();
     }
-    return { race, championship, weather, weatherNow, news, season, practice };
+    return {
+      race,
+      championship,
+      weather,
+      weatherNow,
+      news,
+      season,
+      practice,
+      nextRace,
+    };
   },
   head: ({ loaderData, match }) =>
     raceWriteupPageHead({
@@ -140,10 +153,36 @@ export const Route = createFileRoute(
 });
 
 function MexicoCityGrandPrixPredictionsPage() {
-  const { race, championship, weather, weatherNow, news, season, practice } =
-    Route.useLoaderData();
+  const {
+    race,
+    championship,
+    weather,
+    weatherNow,
+    news,
+    season,
+    practice,
+    nextRace,
+  } = Route.useLoaderData();
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
+  // The picker takes over from the closing panel by itself once this round is
+  // the next on the calendar (`RaceWriteupFinish`), so the page needs no edit
+  // on the day picks open. Austin's opened five days late for want of one.
+  const canPick = isLive && (!nextRace || nextRace.slug === RACE_SLUG);
+  const picks = (
+    <RaceWriteupFinish
+      isLive={isLive}
+      phase={phase}
+      raceId={race._id}
+      round={race.round}
+      season={race.season}
+      raceSlug={RACE_SLUG}
+      venueName="Mexico City"
+      nextRace={nextRace}
+      hasSprint={race.hasSprint}
+      loadImmediately
+    />
+  );
 
   return (
     <RaceWriteupPage
@@ -159,6 +198,10 @@ function MexicoCityGrandPrixPredictionsPage() {
           )}
           phase={phase}
           raceSlug={RACE_SLUG}
+          primaryActionTargetId={
+            canPick ? RACE_WRITEUP_PICKS_ANCHOR : undefined
+          }
+          nextRace={phase === 'finished' ? nextRace : undefined}
           venueName="Mexico City"
           signalsHeading={SIGNALS_HEADING}
           schedule={{
@@ -200,19 +243,21 @@ function MexicoCityGrandPrixPredictionsPage() {
         <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
       ) : null}
       <RaceWriteupArticle
-        actions={{ phase, raceSlug: RACE_SLUG, venueName: 'Mexico City' }}
+        actions={{
+          phase,
+          raceSlug: RACE_SLUG,
+          venueName: 'Mexico City',
+          primaryActionTargetId: canPick
+            ? RACE_WRITEUP_PICKS_ANCHOR
+            : undefined,
+        }}
       >
         <PerezHomeRace />
         <Circuit />
         <TyreChoice />
         <LastYear />
       </RaceWriteupArticle>
-      <RaceWriteupClosingPanel
-        phase={phase}
-        raceId={race._id}
-        raceSlug={RACE_SLUG}
-        venueName="Mexico City"
-      />
+      {picks}
       {/* Practice follows the article and the call to pick. It renders
           nothing until there is a session. */}
       {isLive ? (
@@ -236,9 +281,13 @@ function MexicoCityGrandPrixPredictionsPage() {
 
       <RaceFaqSection faqs={FAQS} />
 
-      <RaceWriteupNextRound
-        nextRace={followingRound(season.races, race.round)}
-      />
+      {/* While live, `RaceWriteupFinish` holds the picker, so the next round
+          is linked here; once finished it prints the next round itself. */}
+      {isLive ? (
+        <RaceWriteupNextRound
+          nextRace={followingRound(season.races, race.round)}
+        />
+      ) : null}
     </RaceWriteupPage>
   );
 }

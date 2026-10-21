@@ -147,9 +147,12 @@ A live write-up runs in four parts, in this order:
    `race_writeup_rail`). Keep full-width figures (a section's `extra`) out of
    the wrapper: the column sits in the margin they would run into, which is
    why the finished Monza, Madrid, Baku and Sepang pages do not use it yet.
-4. **The picks, then the rest:** `RaceWriteupFinish` (or
-   `RaceWriteupClosingPanel` on a page not yet next), then practice,
-   championship standings and `RaceFaqSection`.
+4. **The picks, then the rest:** `RaceWriteupFinish`, then practice,
+   championship standings and `RaceFaqSection`. Every write-up from Austin
+   on renders `RaceWriteupFinish` from the day it is published: it shows the
+   picker only once the round is next on the calendar (`getNextRace`) and a
+   "picks open when" panel before that, so no route edit is due on the day
+   picks open. Austin's picker was five days late for want of that edit.
 
 The picks come straight after the article because a reader who has read it is
 the one most likely to play. The picker asks for one thing at a time: the Top

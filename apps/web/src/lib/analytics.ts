@@ -274,7 +274,13 @@ export function resetAnalyticsUser() {
   });
 }
 
-export function optInToAnalytics() {
+/**
+ * `cookieless` is for visitors inside the EEA, the UK and Switzerland, where
+ * there is no consent prompt: PostHog keeps its state in memory for the page
+ * and records no replay, so nothing is stored on the device and nothing
+ * identifies the browser across visits. Everyone else is opted in as before.
+ */
+export function optInToAnalytics(options: { cookieless?: boolean } = {}) {
   if (!isEnabled()) {
     return;
   }
@@ -286,6 +292,12 @@ export function optInToAnalytics() {
   void getPostHog().then((posthog) => {
     if (!posthog || consent !== 'granted') {
       return;
+    }
+    if (options.cookieless) {
+      posthog.set_config({
+        persistence: 'memory',
+        disable_session_recording: true,
+      });
     }
     posthog.opt_in_capturing();
     // Anonymous visitors need person locale too; identify retains it later.
@@ -311,17 +323,6 @@ export function optInToAnalytics() {
       identify(posthog, currentIdentity.userId, currentIdentity.options);
     }
   });
-}
-
-/**
- * Whether this browser opted in on an earlier visit. PostHog persists the
- * choice, which is why its own `$pageleave` already fired for returning
- * visitors while our pageview sat behind the consent wait.
- */
-export function hasPersistedAnalyticsOptIn(): Promise<boolean> {
-  return getPostHog().then(
-    (posthog) => posthog?.has_opted_in_capturing() ?? false,
-  );
 }
 
 export function optOutOfAnalytics() {

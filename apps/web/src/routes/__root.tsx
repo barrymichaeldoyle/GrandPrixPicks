@@ -65,7 +65,6 @@ import { convex } from '@/integrations/convex/client';
 import { AppConvexQueryCache } from '@/integrations/convex/queryCache';
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
 import { clerkFrontendApiOrigin } from '@/lib/clerkOrigin';
-import { ensureAdSenseLoaded } from '@/lib/adsense';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
 import { useInAppView } from '@/hooks/useInAppView';
 import { isBareRoute } from '@/lib/bareRoutes';
@@ -317,46 +316,6 @@ function RootDocument({ children }: PropsWithChildren) {
         .register('/sw.js', { updateViaCache: 'none' })
         .catch(console.error);
     }
-  }, []);
-
-  useEffect(() => {
-    // Every route, landing page included. This used to skip `/` to keep the
-    // conversion page free of third-party work, but "ad code not found" is its
-    // own AdSense rejection reason and the home page is the first thing a
-    // reviewer opens — a risk worth more than the bytes after a previous
-    // rejection. The cost also fell sharply: the StartupBar widget this page
-    // used to carry was 232 KB plus the 163 KB of Google Tag Manager it pulled
-    // in, and both are gone.
-    //
-    // This is the loader only. Placement belongs to `AdSlot`, which loads the
-    // same script on its own when a slot approaches the viewport, so this call
-    // exists purely to keep the code findable on every route while the account
-    // is under review. Both go through `ensureAdSenseLoaded`, so whichever
-    // fires first wins.
-    //
-    // Delete this effect once ads are approved and placed: the slots then
-    // become the only trigger, and a page with nothing to show stops paying
-    // ~680 KB across four Google hosts for a script it cannot use.
-    //
-    // A bare `<ins class="adsbygoogle">` and an iframe show up on prod with
-    // `<body>` as their parent, which the app never rendered. That is the
-    // script's own bookkeeping, not a placement: Auto ads is off in the AdSense
-    // console and stays off, so Google never chooses a position here. Every ad
-    // on this site comes from an `AdSlot` somebody put there on purpose.
-    //
-    // Checked because the alternative mattered: Auto ads would inject its own
-    // slots wherever it liked, including inside the picks flow, which is the
-    // thing deliberate placement exists to prevent.
-    //
-    // It still waits for the document and an idle main thread, so it cannot
-    // touch first paint either way.
-    return deferUntilAfterLoad(() => {
-      // Failure is fine and expected (ad blockers): the loader clears its own
-      // state so a slot can retry, and nothing here depends on the result.
-      void ensureAdSenseLoaded().catch(() => {});
-    });
-    // Once per document, not per navigation: the loader is global and the
-    // route no longer decides whether it runs.
   }, []);
 
   return (

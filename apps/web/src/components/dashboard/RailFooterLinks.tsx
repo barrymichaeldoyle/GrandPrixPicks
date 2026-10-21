@@ -5,7 +5,6 @@ import { showsGlobalFooter } from '@/lib/globalFooter';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { railFooterLinks } from '@/lib/navigation';
 import { siteConfig } from '@/lib/site';
-import { PrivacyChoicesButton } from '@/components/PrivacyChoicesButton';
 
 /**
  * Deliberately sized to WCAG 2.2 AA (24x24 CSS px) rather than the 44px touch
@@ -59,7 +58,6 @@ export function RailFooterLinks() {
             {link.label}
           </Link>
         ))}
-        <PrivacyChoicesButton className={linkClass} />
         <span className="inline-flex min-h-6 items-center leading-none whitespace-nowrap">
           © {year} {siteConfig.title}
         </span>

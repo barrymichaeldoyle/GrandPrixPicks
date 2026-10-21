@@ -47,11 +47,13 @@ The write-up and hub pickers report `picker_viewed`, `picker_first_pick_added`,
 the same `source`.
 
 Short visits are under-counted. Analytics loads after `load` plus an idle
-window, then waits up to 4 s for Google's consent manager (served inside the
-AdSense script to EEA visitors only) before opting in, so a first-time visitor
-who leaves within about five seconds sends nothing at all. Since 2026-10-21 a
-browser that opted in on an earlier visit skips the wait. Read bounce counts
-and session totals as floors, and Search Console clicks as the ceiling.
+window, then asks `/api/consent-region` which side of the GDPR line the
+visitor is on, so a visitor who leaves within about a second or two of load
+sends nothing. Until 2026-10-21 that wait was up to four seconds for Google's
+consent manager, so bounce counts before then are floors. Visitors inside the
+EEA, the UK and Switzerland are captured cookieless: in-memory persistence, no
+replay, a fresh anonymous id per page load, so their sessions and retention do
+not stitch across visits.
 
 To see what actually fired recently:
 

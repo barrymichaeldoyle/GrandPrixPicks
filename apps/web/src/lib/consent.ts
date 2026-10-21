@@ -1,148 +1,72 @@
-import {
-  capturePageView,
-  hasPersistedAnalyticsOptIn,
-  optInToAnalytics,
-  optOutOfAnalytics,
-} from './analytics';
+import { capturePageView, optInToAnalytics } from './analytics';
 
 /**
- * Consent bridge between Google's certified CMP (required for AdSense in the
- * EEA/UK/CH) and our first-party PostHog analytics opt-in.
+ * Decides how first-party PostHog analytics is switched on for this visitor.
  *
- * Google's CMP is the single consent surface. For visitors in scope of GDPR it
- * shows the IAB TCF consent message and exposes `window.__tcfapi`; we read that
- * signal and mirror it onto PostHog. Visitors outside that scope never see the
- * CMP, so we opt them into anonymous analytics by default (see product decision
- * in the AdSense consolidation). PostHog itself starts opted out
- * (`opt_out_capturing_by_default`), so the safe default is "no capture" until
- * one of these branches explicitly opts in.
+ * PostHog starts opted out (`opt_out_capturing_by_default`). The server says
+ * whether the visitor is inside the EEA, the UK or Switzerland from
+ * Cloudflare's country header (`/api/consent-region`): outside, analytics is
+ * opted in with its usual cookie; inside, it runs cookieless, with no replay
+ * and nothing stored on the device, which is the product decision for those
+ * regions now that there is no consent prompt. Until October 2026 the prompt
+ * was Google's consent manager, served inside the AdSense script; AdSense is
+ * gone, and with it the up-to-four-second wait every visitor paid before
+ * their first event.
+ *
+ * The region is one small uncached request, so the first pageview goes out
+ * within a few hundred milliseconds of the analytics bundle, not seconds.
  */
 
-// Minimal shape of the IAB TCF v2.2 payload we consume.
-interface TcData {
-  eventStatus?: 'tcloaded' | 'cmpuishown' | 'useractioncomplete';
-  gdprApplies?: boolean;
-  purpose?: { consents?: Record<number, boolean | undefined> };
-}
-
-type TcfApi = (
-  command: 'addEventListener' | 'removeEventListener' | 'getTCData',
-  version: number,
-  callback: (data: TcData, success: boolean) => void,
-) => void;
-
-interface GoogleFundingChoices {
-  showRevocationMessage?: () => void;
-}
-
-declare global {
-  interface Window {
-    __tcfapi?: TcfApi;
-    googlefc?: GoogleFundingChoices;
-  }
-}
-
-// TCF Purpose 1: "Store and/or access information on a device." We treat consent
-// for it as the gate for setting first-party analytics cookies.
-const STORAGE_PURPOSE = 1;
-// How long to wait for the CMP to inject the TCF API before assuming the visitor
-// is out of scope (non-EEA) and defaulting analytics on.
-const TCF_WAIT_MS = 4000;
-const TCF_POLL_MS = 200;
+const REGION_PATH = '/api/consent-region';
 
 let started = false;
-let initialPageViewRecovered = false;
-/** The CMP (or its absence) has answered; a persisted choice no longer leads. */
-let decided = false;
+
+type ConsentRegion = { gdpr: boolean };
 
 /**
- * Wire PostHog opt-in to the CMP's consent state. Safe to call once per page
- * load; no-ops on the server and on repeat calls.
+ * Safe to call once per page load; no-ops on the server and on repeat calls.
  */
 export function initConsentGatedAnalytics() {
   if (started || typeof window === 'undefined') {
     return;
   }
   started = true;
-  // A browser that opted in before does not wait again. Analytics loads after
-  // `load` plus an idle window and then waited up to TCF_WAIT_MS for the CMP,
-  // so a returning visitor's first five seconds or so sent nothing: in the 28
-  // days to 2026-10-21, 36 of 511 sessions were a `$pageleave` with no
-  // `$pageview`. The CMP still has the last word below: a later denial opts
-  // out as before.
-  void hasPersistedAnalyticsOptIn().then((optedIn) => {
-    if (optedIn && !decided) {
-      enableAnalytics();
-    }
-  });
-  waitForTcf(0);
-}
-
-function waitForTcf(elapsed: number) {
-  if (typeof window.__tcfapi === 'function') {
-    subscribeToTcf(window.__tcfapi);
-    return;
-  }
-  if (elapsed >= TCF_WAIT_MS) {
-    // No CMP after waiting — treat as out of GDPR scope and opt in by default.
-    enableAnalytics();
-    return;
-  }
-  window.setTimeout(() => waitForTcf(elapsed + TCF_POLL_MS), TCF_POLL_MS);
-}
-
-function subscribeToTcf(tcfApi: TcfApi) {
-  tcfApi('addEventListener', 2, (data, success) => {
-    if (!success || !data) {
+  void resolveRegion().then((region) => {
+    if (region === null) {
+      // No answer is treated as in scope: cookieless is the safe default.
+      enableAnalytics({ cookieless: true });
       return;
     }
+    enableAnalytics({ cookieless: region.gdpr });
+  });
+}
+
+async function resolveRegion(): Promise<ConsentRegion | null> {
+  try {
+    const response = await fetch(REGION_PATH, {
+      credentials: 'omit',
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      return null;
+    }
+    const body: unknown = await response.json();
     if (
-      data.eventStatus !== 'tcloaded' &&
-      data.eventStatus !== 'useractioncomplete'
+      typeof body === 'object' &&
+      body !== null &&
+      typeof (body as { gdpr?: unknown }).gdpr === 'boolean'
     ) {
-      // 'cmpuishown' — the message is up and the user hasn't chosen yet. Stay
-      // opted out until they act.
-      return;
+      return { gdpr: (body as { gdpr: boolean }).gdpr };
     }
-    if (data.gdprApplies === false) {
-      // Outside the EEA/UK/CH — opt in to anonymous analytics by default.
-      enableAnalytics();
-      return;
-    }
-    if (data.purpose?.consents?.[STORAGE_PURPOSE] === true) {
-      enableAnalytics();
-    } else {
-      decided = true;
-      optOutOfAnalytics();
-    }
-  });
-}
-
-function enableAnalytics() {
-  decided = true;
-  optInToAnalytics();
-  // Recover the first pageview that was dropped while consent was pending. The
-  // router captures every navigation after this, so only the initial one needs
-  // recovering, and only once.
-  if (!initialPageViewRecovered) {
-    initialPageViewRecovered = true;
-    capturePageView();
+    return null;
+  } catch {
+    return null;
   }
 }
 
-/**
- * Whether Google's CMP is present and able to re-show its consent message. True
- * only for visitors the CMP served (i.e. in GDPR scope), so a "Privacy choices"
- * control can hide itself for everyone else instead of being a dead button.
- */
-export function canManageConsent(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    typeof window.googlefc?.showRevocationMessage === 'function'
-  );
-}
-
-/** Re-open Google's CMP so the visitor can change their consent choices. */
-export function openConsentManager(): void {
-  window.googlefc?.showRevocationMessage?.();
+function enableAnalytics(options: { cookieless: boolean }) {
+  optInToAnalytics(options);
+  // The router captures every navigation after this; the initial one happened
+  // before analytics loaded, so it is sent here.
+  capturePageView();
 }

@@ -2,120 +2,83 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const analytics = vi.hoisted(() => ({
   capturePageView: vi.fn(),
-  hasPersistedAnalyticsOptIn: vi.fn(() => Promise.resolve(false)),
   optInToAnalytics: vi.fn(),
-  optOutOfAnalytics: vi.fn(),
 }));
 
 vi.mock('./analytics', () => analytics);
 
-describe('consent-gated analytics', () => {
+function regionResponse(body: unknown, ok = true) {
+  return vi.fn(() =>
+    Promise.resolve({
+      ok,
+      json: () => Promise.resolve(body),
+    } as Response),
+  );
+}
+
+describe('region-gated analytics', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
-    vi.useFakeTimers();
-    window.__tcfapi = undefined;
-    window.googlefc = undefined;
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
-  it('opts in and recovers exactly one pageview when no CMP appears', async () => {
+  it('opts a visitor outside the GDPR regions in with cookies, once', async () => {
+    const fetchMock = regionResponse({ gdpr: false });
+    vi.stubGlobal('fetch', fetchMock);
     const { initConsentGatedAnalytics } = await import('./consent');
 
     initConsentGatedAnalytics();
-    await vi.advanceTimersByTimeAsync(4_200);
-
-    expect(analytics.optInToAnalytics).toHaveBeenCalledOnce();
-    expect(analytics.capturePageView).toHaveBeenCalledOnce();
-  });
-
-  it('opts a returning browser in at once and still only one pageview', async () => {
-    analytics.hasPersistedAnalyticsOptIn.mockResolvedValueOnce(true);
-    const { initConsentGatedAnalytics } = await import('./consent');
-
     initConsentGatedAnalytics();
-    await vi.advanceTimersByTimeAsync(0);
-
-    expect(analytics.optInToAnalytics).toHaveBeenCalledOnce();
-    expect(analytics.capturePageView).toHaveBeenCalledOnce();
-
-    await vi.advanceTimersByTimeAsync(4_200);
-    expect(analytics.capturePageView).toHaveBeenCalledOnce();
-  });
-
-  it('lets a denial from the CMP win over a persisted opt-in', async () => {
-    let resolveOptIn: ((value: boolean) => void) | undefined;
-    analytics.hasPersistedAnalyticsOptIn.mockReturnValueOnce(
-      new Promise<boolean>((resolve) => {
-        resolveOptIn = resolve;
-      }),
+    await vi.waitFor(() =>
+      expect(analytics.optInToAnalytics).toHaveBeenCalled(),
     );
-    window.__tcfapi = vi.fn((command, _version, callback) => {
-      if (command === 'addEventListener') {
-        callback(
-          {
-            eventStatus: 'tcloaded',
-            gdprApplies: true,
-            purpose: { consents: { 1: false } },
-          },
-          true,
-        );
-      }
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/consent-region',
+      expect.objectContaining({ credentials: 'omit' }),
+    );
+    expect(analytics.optInToAnalytics).toHaveBeenCalledExactlyOnceWith({
+      cookieless: false,
     });
-
-    const { initConsentGatedAnalytics } = await import('./consent');
-    initConsentGatedAnalytics();
-    resolveOptIn?.(true);
-    await vi.advanceTimersByTimeAsync(0);
-
-    expect(analytics.optOutOfAnalytics).toHaveBeenCalledOnce();
-    expect(analytics.optInToAnalytics).not.toHaveBeenCalled();
-    expect(analytics.capturePageView).not.toHaveBeenCalled();
+    expect(analytics.capturePageView).toHaveBeenCalledOnce();
   });
 
-  it('stays opted out until storage consent is granted', async () => {
-    let listener:
-      | ((
-          data: {
-            eventStatus: 'tcloaded' | 'useractioncomplete';
-            gdprApplies: boolean;
-            purpose: { consents: Record<number, boolean> };
-          },
-          success: boolean,
-        ) => void)
-      | undefined;
-    window.__tcfapi = vi.fn((command, _version, callback) => {
-      if (command === 'addEventListener') {
-        listener = callback as typeof listener;
-      }
-    });
-
+  it('runs cookieless inside the GDPR regions', async () => {
+    vi.stubGlobal('fetch', regionResponse({ gdpr: true }));
     const { initConsentGatedAnalytics } = await import('./consent');
+
     initConsentGatedAnalytics();
-
-    listener?.(
-      {
-        eventStatus: 'tcloaded',
-        gdprApplies: true,
-        purpose: { consents: { 1: false } },
-      },
-      true,
+    await vi.waitFor(() =>
+      expect(analytics.optInToAnalytics).toHaveBeenCalled(),
     );
-    expect(analytics.optOutOfAnalytics).toHaveBeenCalledOnce();
-    expect(analytics.capturePageView).not.toHaveBeenCalled();
 
-    listener?.(
-      {
-        eventStatus: 'useractioncomplete',
-        gdprApplies: true,
-        purpose: { consents: { 1: true } },
-      },
-      true,
+    expect(analytics.optInToAnalytics).toHaveBeenCalledExactlyOnceWith({
+      cookieless: true,
+    });
+    expect(analytics.capturePageView).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ['a failed request', regionResponse({ gdpr: false }, false)],
+    ['a malformed body', regionResponse({ region: 'ZA' })],
+    ['a network error', vi.fn(() => Promise.reject(new Error('offline')))],
+  ])('falls back to cookieless on %s', async (_label, fetchMock) => {
+    vi.stubGlobal('fetch', fetchMock);
+    const { initConsentGatedAnalytics } = await import('./consent');
+
+    initConsentGatedAnalytics();
+    await vi.waitFor(() =>
+      expect(analytics.optInToAnalytics).toHaveBeenCalled(),
     );
-    expect(analytics.optInToAnalytics).toHaveBeenCalledOnce();
+
+    expect(analytics.optInToAnalytics).toHaveBeenCalledExactlyOnceWith({
+      cookieless: true,
+    });
     expect(analytics.capturePageView).toHaveBeenCalledOnce();
   });
 });

@@ -74,12 +74,13 @@ function PrivacyPage() {
               may use error-reporting or analytics services (e.g. Sentry and
               PostHog) to improve the app; such services may receive limited
               account, usage, and technical data (e.g. IP address, device info)
-              in accordance with their own policies. With your analytics
-              consent, the website may also record a masked replay of page
-              layout and interactions to help diagnose usability problems. All
-              visible text and form inputs are masked before capture. You can
-              withdraw analytics consent at any time through Privacy choices;
-              the mobile app provides the same choice in Settings.
+              in accordance with their own policies. Outside the European
+              Economic Area, the United Kingdom and Switzerland, the website may
+              also record a masked replay of page layout and interactions to
+              help diagnose usability problems; all visible text and form inputs
+              are masked before capture. Visitors in those regions are measured
+              without cookies or stored identifiers, and no replay is recorded.
+              The mobile app offers an analytics choice in Settings.
             </p>
           </section>
 
@@ -109,31 +110,13 @@ function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-xl font-semibold text-text">
-              6. Advertising and cookies
-            </h2>
+            <h2 className="mb-2 text-xl font-semibold text-text">6. Cookies</h2>
             <p>
-              We use Google AdSense to display advertising in the app. Google
-              and its advertising partners may use cookies and similar
-              technologies to serve and measure ads, including ads based on your
-              prior visits to this and other websites. For visitors in the
-              European Economic Area, the United Kingdom, and Switzerland, we
-              present a Google-certified consent message before personalized ads
-              or non-essential cookies are used, and you can review or change
-              your choices at any time using the &quot;Privacy choices&quot;
-              link in the footer. Where consent is refused or not available, we
-              serve only non-personalized ads. You can learn more about how
-              Google uses information from sites that use its services, and
-              manage your ad preferences, at{' '}
-              <a
-                href="https://policies.google.com/technologies/partner-sites"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-text"
-              >
-                Google&apos;s partner sites policy
-              </a>
-              .
+              We do not show advertising. Cookies and similar browser storage
+              are used to keep you signed in (Clerk) and, outside the European
+              Economic Area, the United Kingdom and Switzerland, to recognise a
+              returning browser for analytics (PostHog). Visitors in those
+              regions are measured without cookies or stored identifiers.
             </p>
           </section>
 

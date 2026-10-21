@@ -12,7 +12,6 @@ import { RailFooterLinks } from '@/components/dashboard/RailFooterLinks';
 import { SeasonStandingCard } from '@/components/dashboard/SeasonStandingCard';
 import { SuggestedFollowsCard } from '@/components/dashboard/SuggestedFollowsCard';
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
-import { AdSlot } from '@/components/AdSlot';
 import { FeedContent } from '@/components/feed/FeedContent';
 import { LiveClassificationCard } from '@/components/feed/LiveClassificationCard';
 import { useFeedOffersFollows } from '@/components/feed/followSuggestions';
@@ -21,7 +20,6 @@ import {
   curtainGateName,
   useAuthCurtainGate,
 } from '@/integrations/clerk/auth-curtain';
-import { AD_SLOTS } from '@/lib/adsense';
 import { promotedRaceRecap } from '@grandprixpicks/shared/raceRecap';
 import { useIsBefore } from '@/lib/testing/now';
 import { bucketWeatherNow } from '@/lib/weatherNow';
@@ -400,13 +398,6 @@ export function DashboardPage({
           </>
         ) : null}
       </div>
-
-      {/* Below the feed, which is the one place on this page an ad can go
-          without interrupting anything: the picks card and the rails are what
-          a player came for, and the feed is where they are already browsing
-          rather than doing. Far enough down that it loads only for readers who
-          scroll to it, and that its arrival cannot score against CLS. */}
-      <AdSlot slot={AD_SLOTS.dashboardFeed} />
     </AppPageLayout>
   );
 }

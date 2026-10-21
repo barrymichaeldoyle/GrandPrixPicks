@@ -10,7 +10,6 @@ import {
 } from '@/lib/navigation';
 import { footerWeekendPreview } from '@/lib/raceWriteups';
 import { siteConfig } from '@/lib/site';
-import { PrivacyChoicesButton } from './PrivacyChoicesButton';
 import { BrandMark } from './BrandMark.tsx';
 import { RaceFlag } from './RaceFlag';
 import { XLogoIcon } from './ShareOnXButton';
@@ -321,7 +320,6 @@ export function Footer({
                 {link.label}
               </Link>
             ))}
-            <PrivacyChoicesButton className={footerLinkClass} />
           </nav>
           <MadeByCredit
             linkClassName={footerLinkClass}

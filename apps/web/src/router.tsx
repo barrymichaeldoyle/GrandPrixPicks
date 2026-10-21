@@ -72,14 +72,6 @@ export function getRouter() {
       tracesSampleRate: Number(
         import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE ?? '0.2',
       ),
-      // Google's ad and consent scripts throw from their own code (an `int64`
-      // parse inside AdSense's RUM beacon, GRAND-PRIX-PICKS-2M). Nothing we
-      // ship is in the stack, so nothing here can fix it.
-      denyUrls: [
-        /pagead2\.googlesyndication\.com/,
-        /adtrafficquality\.google/,
-        /fundingchoicesmessages\.google\.com/,
-      ],
       beforeSend(event) {
         if (isCefSharpBridgeRejection(event)) {
           return null;
@@ -149,9 +141,9 @@ export function getRouter() {
           }
 
           initAnalytics();
-          // Consent gates capture: PostHog starts opted out, and the consent
-          // bridge opts in (and fires the initial pageview) once Google's CMP
-          // resolves for EEA users or by default for everyone else.
+          // PostHog starts opted out. The bridge asks the server which side of
+          // the GDPR line the visitor is on, then opts in with cookies or
+          // without them, and fires the initial pageview.
           initConsentGatedAnalytics();
           router.subscribe('onResolved', () => {
             capturePageView();

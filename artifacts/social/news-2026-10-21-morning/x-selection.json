@@ -1,0 +1,14 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/global-2026-10-21-morning.json",
+  "startAt": "2026-10-21T09:15:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["fia-ben-sulayem-qatar-abu-dhabi-will-go-ahead"],
+      "text": "FIA president Mohammed Ben Sulayem says the final two races of 2026, in Qatar and Abu Dhabi, are going ahead as planned. He cannot predict what happens, and Imola remains ready as a replacement finale if needed. https://www.the-race.com/formula-1/fia-adamant-f1-qatar-abu-dhabi-gp-will-go-ahead/",
+      "expiresAt": "2026-10-22T04:00:00Z"
+    }
+  ]
+}

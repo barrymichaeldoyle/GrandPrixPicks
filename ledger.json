@@ -1011,6 +1011,23 @@
       "expiresAt": "2026-10-22T04:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6ad85753a9967de04979a4ab"
+    },
+    {
+      "id": "9f05200eef5866658fb84333f146017afdef04cf24ad7256ed3dde3f29fbc4da",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "mercedes-wolff-austin-upgrade-specification",
+          "revision": "b0cef620b30496862967c504225f08692ede8c2d5c1b4ca39f8be5e96e5cde25"
+        }
+      ],
+      "text": "Mercedes will run its latest update package on both cars in Austin. Only Antonelli used it in Singapore, while Russell ran the earlier specification.\n\nhttps://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=mercedes-wolff-austin-upgrade-specification",
+      "dueAt": "2026-10-21T17:30:00.000Z",
+      "expiresAt": "2026-10-23T12:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

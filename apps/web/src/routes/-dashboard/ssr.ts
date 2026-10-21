@@ -5,7 +5,7 @@ import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 
 import { bucketWeatherNow } from '@/lib/weatherNow';
-import { getClerkSessionToken } from '../../../server/lib/auth';
+import { getFreshClerkSessionToken } from '../../../server/lib/auth';
 
 export type DashboardSsrData = FunctionReturnType<
   typeof api.home.getDashboardPageData
@@ -42,7 +42,7 @@ export type DashboardSsrData = FunctionReturnType<
 export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
   async (): Promise<DashboardSsrData | null> => {
     try {
-      const token = await getClerkSessionToken(getRequest());
+      const token = await getFreshClerkSessionToken(getRequest());
       if (!token) {
         return null;
       }
@@ -64,9 +64,8 @@ export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
       }
       return { ...dashboard, weather, weatherNow };
     } catch {
-      // Includes the ordinary case of a token that expired since the tab was
-      // last used, which is common enough on a resumed mobile tab that it is
-      // not worth reporting. The page still works.
+      // A Convex error, or a session that ended between the mint and the read.
+      // Not reported: the page still works, from the client.
       return null;
     }
   },

@@ -1,4 +1,4 @@
-import { createClerkClient } from '@clerk/backend';
+import { createClerkClient, verifyToken } from '@clerk/backend';
 
 type AuthSessionClaims = {
   iss?: unknown;
@@ -144,6 +144,94 @@ export async function getClerkSessionToken(
 
   const suffixed = suffix ? cookies.get(`__session_${suffix}`) : undefined;
   return suffixed ?? cookies.get('__session') ?? null;
+}
+
+/**
+ * How long after a session token expires its signature still vouches for the
+ * session id inside it. Clerk's default inactivity limit is 7 days, and a
+ * session ended before then fails the mint below anyway.
+ */
+const STALE_SESSION_GRACE_MS = 7 * 24 * 60 * 60 * 1000;
+/** A token this close to expiry would expire on the way to Convex. */
+const EXPIRY_MARGIN_MS = 10_000;
+
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  const parts = token.split('.');
+  if (parts.length !== 3) {
+    return null;
+  }
+  try {
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, '='));
+    const payload: unknown = JSON.parse(json);
+    return typeof payload === 'object' && payload !== null
+      ? (payload as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function sessionTokenExpiresAt(token: string): number | null {
+  const exp = decodeJwtPayload(token)?.exp;
+  return typeof exp === 'number' ? exp * 1000 : null;
+}
+
+/**
+ * A session token Convex will accept right now: the cookie's own when it is
+ * still live, otherwise a fresh one minted for the same session.
+ *
+ * The `__session` cookie is a ~60-second JWT that Clerk's client SDK refreshes
+ * only while a tab is open, so on a phone tab resumed later it is nearly
+ * always expired. Until October 2026 that meant the signed-in dashboard
+ * server-rendered as a skeleton behind the "Loading your dashboard" curtain,
+ * and the player waited for the auth runtime, a token and the Convex
+ * subscriptions: a median LCP of 4.5 s on mobile against 1.2 s for a visitor
+ * with no account.
+ *
+ * The expired token still proves which session it belonged to: its signature
+ * is verified (`verifyToken`, with the expiry tolerated), and only then is
+ * the session id trusted for one Backend API call that mints a new token.
+ * A session that has since ended or been revoked fails that call. Every
+ * failure returns null, which is the skeleton the page rendered before.
+ */
+export async function getFreshClerkSessionToken(
+  request: Request,
+): Promise<string | null> {
+  const token = await getClerkSessionToken(request);
+  if (!token) {
+    return null;
+  }
+  const expiresAt = sessionTokenExpiresAt(token);
+  if (expiresAt === null) {
+    return null;
+  }
+  if (expiresAt - Date.now() > EXPIRY_MARGIN_MS) {
+    return token;
+  }
+  return mintSessionToken(token);
+}
+
+async function mintSessionToken(expiredToken: string): Promise<string | null> {
+  const secretKey = process.env.CLERK_SECRET_KEY;
+  if (!secretKey) {
+    return null;
+  }
+  try {
+    const verified = await verifyToken(expiredToken, {
+      secretKey,
+      ...(process.env.CLERK_JWT_KEY && { jwtKey: process.env.CLERK_JWT_KEY }),
+      clockSkewInMs: STALE_SESSION_GRACE_MS,
+    });
+    const sid = (verified.data as { sid?: unknown } | undefined)?.sid;
+    if (typeof sid !== 'string' || !sid) {
+      return null;
+    }
+    const minted = await getClerkServerClient().sessions.getToken(sid);
+    return minted.jwt || null;
+  } catch {
+    return null;
+  }
 }
 
 export function buildConvexTokenIdentifier(params: {

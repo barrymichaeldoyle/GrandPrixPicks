@@ -1,0 +1,14 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "published-news.json",
+  "startAt": "2026-10-22T18:45:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["fia-2027-f1-non-f1-staff-separation"],
+      "text": "The FIA has approved five new 2027 operational regulations to keep non-F1 staff away from F1 projects. Non-F1 staff will be barred from the F1 factory, and staff who leave a team must wait at least a year to return. https://www.motorsport.com/f1/news/fia-enforces-new-rule-to-close-f1-cost-cap-loophole/10866642/",
+      "expiresAt": "2026-10-24T12:00:00Z"
+    }
+  ]
+}

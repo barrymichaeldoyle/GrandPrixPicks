@@ -106,8 +106,12 @@ npx convex run --prod raceNews:list '{"raceSlug":"italy-2026"}'
 # (takes raceId instead of raceSlug too)
 npx convex run --prod raceNews:listForOperators '{"raceSlug":"italy-2026"}'
 
-# 2. rehearse
-npx convex run --prod raceNews:publish '{
+# 2. rehearse: write the item to a JSON file and let the CLI send it. The CLI
+#    checks the required fields first, so a story with no race is refused with
+#    a message instead of a validator error that lands in Sentry.
+scripts/gpp.mjs news publish item.json --prod
+# the item (same shape for a raw `npx convex run --prod raceNews:publish`):
+'{
   "raceSlug": "italy-2026",
   "key": "antonelli-grid-penalty",
   "headline": "Antonelli takes a grid penalty at Monza",
@@ -119,7 +123,7 @@ npx convex run --prod raceNews:publish '{
   "dryRun": true
 }'
 
-# 3. publish (same call without dryRun)
+# 3. publish (same call with --apply)
 
 # 4. corrections and retraction
 npx convex run --prod raceNews:retract '{"raceSlug":"italy-2026","key":"antonelli-grid-penalty"}'

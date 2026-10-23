@@ -1,6 +1,6 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { getSessionsForWeekend } from '@grandprixpicks/shared/sessions';
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
@@ -726,13 +726,48 @@ export const postPublishedResults = internalAction({
 });
 
 /** For tests and operators: the rows for one race. */
+async function resolveRaceRef(
+  ctx: QueryCtx,
+  ref: { raceId?: string; raceSlug?: string },
+): Promise<Id<'races'>> {
+  if (ref.raceSlug !== undefined) {
+    const slug = ref.raceSlug;
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', slug))
+      .unique();
+    if (!race) {
+      throw new ConvexError(`No race with slug "${ref.raceSlug}".`);
+    }
+    return race._id;
+  }
+  if (ref.raceId !== undefined) {
+    const raceId = ctx.db.normalizeId('races', ref.raceId);
+    if (!raceId) {
+      throw new ConvexError(
+        `"${ref.raceId}" is not a races id. Pass raceSlug (for example "italy-2026") instead.`,
+      );
+    }
+    return raceId;
+  }
+  throw new ConvexError(
+    'Name the race: pass raceSlug (for example "italy-2026") or raceId.',
+  );
+}
+
 export const listForRace = internalQuery({
-  args: { raceId: v.id('races') },
+  /**
+   * Strings, not `v.id`: an operator checking a weekend's posts names the race
+   * by slug, and a bad id should come back as a ConvexError with a message,
+   * not as a validator rejection that reaches Sentry (GRAND-PRIX-PICKS-37).
+   */
+  args: { raceId: v.optional(v.string()), raceSlug: v.optional(v.string()) },
   handler: async (ctx, args): Promise<Doc<'socialPosts'>[]> => {
+    const raceId = await resolveRaceRef(ctx, args);
     const rows = [];
     for await (const row of ctx.db
       .query('socialPosts')
-      .withIndex('by_race_session_kind', (q) => q.eq('raceId', args.raceId))) {
+      .withIndex('by_race_session_kind', (q) => q.eq('raceId', raceId))) {
       rows.push(row);
     }
     return rows;

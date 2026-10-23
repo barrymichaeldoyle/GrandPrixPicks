@@ -561,11 +561,18 @@ async function driversForCodes(
 
 export const publish = internalMutation({
   args: {
-    raceSlug: v.string(),
+    /**
+     * Required, but optional to the validator: a story with no race belongs
+     * to `globalNews:publish`, and an operator who sends one here should get
+     * a message saying so. The validator's own rejection is a plain error,
+     * which reaches Sentry as a production failure (GRAND-PRIX-PICKS-36).
+     */
+    raceSlug: v.optional(v.string()),
     key: v.string(),
     headline: v.string(),
     body: v.string(),
-    affectsSessions: sessionTypesValidator,
+    /** Required; optional to the validator for the reason `raceSlug` is. */
+    affectsSessions: v.optional(sessionTypesValidator),
     category: v.optional(
       v.union(v.literal('pick_related'), v.literal('general')),
     ),
@@ -618,10 +625,29 @@ export const publish = internalMutation({
   handler: async (ctx, args) => {
     const dryRun = args.dryRun ?? false;
 
-    const race = await raceBySlug(ctx, args.raceSlug);
+    const missing = [
+      args.raceSlug === undefined && 'raceSlug',
+      args.affectsSessions === undefined && 'affectsSessions',
+    ].filter((field): field is string => typeof field === 'string');
+    if (
+      missing.length > 0 ||
+      args.raceSlug === undefined ||
+      args.affectsSessions === undefined
+    ) {
+      throw new ConvexError(
+        `${args.key}: missing ${missing.join(', ')}. A story about no race ` +
+          'goes through globalNews:publish; a race story names its race ' +
+          '(raceSlug) and the sessions it changes (affectsSessions, [] for ' +
+          'general news).',
+      );
+    }
+    const raceSlug = args.raceSlug;
+    const affectsSessions = args.affectsSessions;
+
+    const race = await raceBySlug(ctx, raceSlug);
     if (!race) {
       throw new ConvexError(
-        `No race with slug "${args.raceSlug}". Check the slug against the calendar.`,
+        `No race with slug "${raceSlug}". Check the slug against the calendar.`,
       );
     }
 
@@ -647,7 +673,7 @@ export const publish = internalMutation({
       validationProblem = validatePublishInput({
         raceName: race.name,
         hasSprint: Boolean(race.hasSprint),
-        affectsSessions: args.affectsSessions,
+        affectsSessions: affectsSessions,
         category: args.category,
         sourceUrl: args.sourceUrl,
         sourcePublishedAt: sourcePublishedAtMs,
@@ -713,7 +739,7 @@ export const publish = internalMutation({
         race: { slug: race.slug, name: race.name, round: race.round },
         key: args.key,
         headline: args.headline,
-        affectsSessions: args.affectsSessions,
+        affectsSessions: affectsSessions,
         driverCodes,
         gridPositions: grid?.resolved.length,
         // Must be empty before the real run: each entry is a row linking to a
@@ -730,7 +756,7 @@ export const publish = internalMutation({
       key: args.key,
       headline: args.headline,
       body: args.body,
-      affectsSessions: args.affectsSessions,
+      affectsSessions: affectsSessions,
       category: args.category ?? 'pick_related',
       feedSelected,
       writeUpSelected,
@@ -792,7 +818,7 @@ export const publish = internalMutation({
       await syncFeedEvent(
         ctx,
         race,
-        args,
+        { ...args, affectsSessions },
         resolved?.drivers,
         grid?.resolved,
         now,
@@ -804,7 +830,7 @@ export const publish = internalMutation({
       race: { slug: race.slug, name: race.name, round: race.round },
       key: args.key,
       headline: args.headline,
-      affectsSessions: args.affectsSessions,
+      affectsSessions: affectsSessions,
       driverCodes,
       gridPositions: grid?.resolved.length,
       feedVisibleAt: heldBack ? feedVisibleAt : undefined,

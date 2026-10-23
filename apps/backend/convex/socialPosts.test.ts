@@ -1,4 +1,5 @@
 import { convexTest } from 'convex-test';
+import { ConvexError } from 'convex/values';
 import { describe, expect, it } from 'vitest';
 
 import { internal } from './_generated/api';
@@ -167,6 +168,22 @@ describe('socialPosts journal', () => {
       attempts: 2,
     });
     expect(rows[0].bufferPostId).toBeUndefined();
+  });
+
+  it('names a bad race reference instead of failing validation', async () => {
+    // Sentry GRAND-PRIX-PICKS-37: `raceId: "x"` used to fail in the validator.
+    const t = convexTest(schema, modules);
+    const bad = await t
+      .query(internal.socialPosts.listForRace, { raceId: 'x' })
+      .catch((caught: unknown) => caught);
+    expect(bad).toBeInstanceOf(ConvexError);
+    expect((bad as ConvexError<string>).data).toMatch(/not a races id/);
+
+    const unknown = await t
+      .query(internal.socialPosts.listForRace, { raceSlug: 'nowhere-2026' })
+      .catch((caught: unknown) => caught);
+    expect(unknown).toBeInstanceOf(ConvexError);
+    expect((unknown as ConvexError<string>).data).toMatch(/nowhere-2026/);
   });
 
   it('lists recently published results with their post row', async () => {

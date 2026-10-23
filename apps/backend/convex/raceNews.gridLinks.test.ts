@@ -161,6 +161,20 @@ describe('linking a grid row to the story behind it', () => {
     );
   });
 
+  it('refuses a story with no race as an operator mistake, not a fault', async () => {
+    // Sentry GRAND-PRIX-PICKS-36: a global story sent here as a dry run used
+    // to fail in the argument validator, which reports as a production error.
+    const { raceSlug: _slug, affectsSessions: _sessions, ...global } = penalty;
+    const error = await t
+      .mutation(internal.raceNews.publish, { ...global, dryRun: true })
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(ConvexError);
+    expect((error as ConvexError<string>).data).toMatch(
+      /missing raceSlug, affectsSessions.*globalNews:publish/,
+    );
+  });
+
   it('reports missing links on a dry run instead of throwing', async () => {
     const preview = await t.mutation(internal.raceNews.publish, {
       ...gridItem('no-such-story'),

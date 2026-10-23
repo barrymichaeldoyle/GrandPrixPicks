@@ -8,6 +8,7 @@ import { createElement as e } from 'react';
 import satori from 'satori';
 
 import { loadFonts } from '../src/lib/og/fonts';
+import { colors as ogColors } from '../src/lib/og/styles';
 
 /**
  * Renders the @GrandPrixPicks and r/GPPicks profile art into `public/social/`.
@@ -41,166 +42,6 @@ import { loadFonts } from '../src/lib/og/fonts';
  * so small mono type stays crisp after Reddit resamples the upload.
  */
 const X_AVATAR_COLUMN = 340;
-
-/**
- * The real product motif from the landing page: an empty Top 5 pick sheet.
- *
- * It stays intentionally schematic. Driver names or race data would make the
- * profile art stale; speed streaks, chequered flags and a mystery car would
- * make it look like every other motorsport banner. Five quiet position slots
- * say what the product does without pretending the banner is live telemetry.
- */
-function topFiveSheet(): ReactNode {
-  const ROWS = 5;
-  return e(
-    'div',
-    {
-      style: {
-        display: 'flex',
-        flexDirection: 'column' as const,
-        position: 'absolute' as const,
-        right: 68,
-        top: 88,
-        width: 388,
-        paddingLeft: 30,
-        borderLeft: `2px solid ${colors.accent}`,
-      },
-    },
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          alignItems: 'center',
-          height: 30,
-          marginBottom: 10,
-          fontFamily: 'IBM Plex Mono',
-          fontSize: 15,
-          fontWeight: 500,
-          letterSpacing: 3.2,
-          color: colors.textMuted,
-        },
-      },
-      'TOP 5',
-    ),
-    ...Array.from({ length: ROWS }, (_, index) => {
-      return e(
-        'div',
-        {
-          key: String(index),
-          style: {
-            display: 'flex',
-            alignItems: 'center',
-            height: 54,
-            borderBottom: `1px solid ${colors.border}`,
-          },
-        },
-        e(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 42,
-              height: 28,
-              marginRight: 18,
-              border: `1px solid ${
-                index === 0 ? colors.accent : colors.borderStrong
-              }`,
-              borderRadius: 2,
-              backgroundColor: index === 0 ? colors.accent : 'transparent',
-              fontSize: 14,
-              fontWeight: 600,
-              fontFamily: 'IBM Plex Mono',
-              color: index === 0 ? colors.textOnAccent : colors.textMuted,
-            },
-          },
-          `P${index + 1}`,
-        ),
-        e(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              flex: 1,
-              height: 1,
-              borderBottom: `1px solid ${colors.borderStrong}`,
-            },
-          },
-          '',
-        ),
-      );
-    }),
-  );
-}
-
-/** The landing hero's exact editorial hierarchy, adapted to X's safe area. */
-function xHeroBlock(): ReactNode {
-  return e(
-    'div',
-    {
-      style: {
-        display: 'flex',
-        flexDirection: 'column' as const,
-        position: 'absolute' as const,
-        left: X_AVATAR_COLUMN,
-        top: 82,
-        width: 650,
-      },
-    },
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          fontFamily: 'IBM Plex Mono',
-          fontSize: 15,
-          fontWeight: 500,
-          letterSpacing: 3.4,
-          color: colors.textMuted,
-        },
-      },
-      'Free F1 prediction game',
-    ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          flexDirection: 'column' as const,
-          marginTop: 20,
-          fontSize: 58,
-          fontWeight: 300,
-          letterSpacing: -1.2,
-          lineHeight: 1.08,
-          color: colors.text,
-        },
-      },
-      e('div', {}, "Everyone's a strategist"),
-      e(
-        'div',
-        { style: { display: 'flex' } },
-        e('div', {}, 'on Sunday.\u00a0'),
-        e('div', { style: { color: colors.accent } }, 'Prove it.'),
-      ),
-    ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          width: 600,
-          marginTop: 24,
-          fontSize: 19,
-          lineHeight: 1.5,
-          color: colors.textMuted,
-        },
-      },
-      'Climb the global leaderboard. Compete with friends in private leagues.',
-    ),
-  );
-}
 
 /** The shared two-line lockup; only the final phrase gets the brand accent. */
 function brandHeadline(fontSize: number, align: 'left' | 'center'): ReactNode {
@@ -288,25 +129,338 @@ function frame(
   );
 }
 
-/** X header: the landing hero, compacted into the avatar-safe band. */
-function xBanner(width: number, height: number): ReactNode {
-  return frame(
-    width,
-    height,
-    topFiveSheet(),
-    xHeroBlock(),
+/**
+ * X header, set on the accent like the site's brand card.
+ *
+ * The banner that was live was a generated illustration (car, speed streaks,
+ * chequered flag, grunge) that read as AI art. Before that, a dark ground with
+ * a retired headline and five empty slots, which read as an unfinished form.
+ *
+ * This one shows what the account posts instead of describing it: the pitch
+ * in ink on the left, and on the right two cards in the feed's own editorial
+ * language, a news card and a card for the two games. Both are drawn at banner
+ * scale rather than scaled from the 1200x630 OG renders, which would leave
+ * 10px type.
+ *
+ * No wordmark: X prints the account name directly under the avatar. No
+ * domain: the bio carries it one line down.
+ */
+const X_INK = colors.textOnAccent;
+const X_EDGE_SAFE = 96;
+
+function miniTag(text: string): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        alignSelf: 'flex-start',
+        backgroundColor: colors.accent,
+        borderRadius: 2,
+        padding: '4px 11px',
+        transform: 'skewX(-12deg)',
+      },
+    },
     e(
       'div',
       {
         style: {
           display: 'flex',
-          position: 'absolute' as const,
-          right: 68,
-          bottom: 52,
+          fontSize: 14,
+          fontWeight: 600,
+          color: colors.textOnAccent,
+          transform: 'skewX(12deg)',
         },
       },
-      domainLine(18),
+      text,
     ),
+  );
+}
+
+function miniMeta(text: string): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        fontFamily: 'IBM Plex Mono',
+        fontSize: 14,
+        color: colors.textMuted,
+      },
+    },
+    text,
+  );
+}
+
+function miniCard(
+  left: number,
+  top: number,
+  width: number,
+  ...children: ReactNode[]
+): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column' as const,
+        position: 'absolute' as const,
+        left,
+        top,
+        width,
+        padding: '20px 22px 22px',
+        backgroundColor: colors.page,
+        border: `1px solid ${colors.borderStrong}`,
+        borderRadius: 4,
+        color: colors.text,
+      },
+    },
+    ...children,
+  );
+}
+
+/**
+ * Timeless by request: no dated headline, no round number, no driver codes
+ * that go stale when a seat changes. The news card names the kinds of story
+ * the account posts; the picks card shows how a Top 5 scores, in the
+ * how-to-play page's own words. Both are true every weekend of every season.
+ */
+function newsCard(left: number, top: number, width: number): ReactNode {
+  return miniCard(
+    left,
+    top,
+    width,
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        },
+      },
+      miniMeta('Every race weekend'),
+      miniTag('News'),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          marginTop: 16,
+          fontSize: 25,
+          fontWeight: 600,
+          letterSpacing: -0.5,
+          lineHeight: 1.15,
+        },
+      },
+      'Driver moves, penalties and the form guide',
+    ),
+  );
+}
+
+const SCORING_ROWS = [
+  { label: 'Exact position', pts: '+5', tone: 'exact' },
+  { label: 'One place out', pts: '+3', tone: 'near' },
+  { label: 'In the Top 5', pts: '+1', tone: 'top5' },
+] as const;
+
+const TONE = {
+  exact: ogColors.resultExact,
+  near: ogColors.resultNear,
+  top5: ogColors.resultTop5,
+} as const;
+
+function duelChip(label: string): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 36,
+        borderRadius: 2,
+        backgroundColor: colors.surface,
+        border: `1px solid ${colors.border}`,
+        fontSize: 19,
+        fontWeight: 600,
+        letterSpacing: 1,
+      },
+    },
+    label,
+  );
+}
+
+/**
+ * Both games, one card: the Top 5 scoring rules and the team-mate duel. The
+ * duel is the "driver A vs driver B" shape Barry asked for, with the letters
+ * standing in for names so the banner never dates.
+ */
+function gamesCard(left: number, top: number, width: number): ReactNode {
+  const header = (label: string, value: string): ReactNode =>
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        },
+      },
+      miniMeta(label),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 18,
+            fontWeight: 600,
+          },
+        },
+        value,
+      ),
+    );
+  return miniCard(
+    left,
+    top,
+    width,
+    header('Top 5 · every session', 'max 25'),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column' as const,
+          marginTop: 10,
+        },
+      },
+      ...SCORING_ROWS.map((row) =>
+        e(
+          'div',
+          {
+            key: row.label,
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              height: 34,
+              borderTop: `1px solid ${colors.border}`,
+            },
+          },
+          e('div', {
+            style: {
+              width: 3,
+              height: 20,
+              marginRight: 14,
+              backgroundColor: TONE[row.tone],
+            },
+          }),
+          e(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                flex: 1,
+                fontSize: 18,
+                fontWeight: 500,
+              },
+            },
+            row.label,
+          ),
+          e(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                fontFamily: 'IBM Plex Mono',
+                fontSize: 18,
+                fontWeight: 600,
+                color: TONE[row.tone],
+              },
+            },
+            row.pts,
+          ),
+        ),
+      ),
+    ),
+    e('div', {
+      style: {
+        height: 1,
+        marginTop: 2,
+        marginBottom: 14,
+        backgroundColor: colors.borderStrong,
+      },
+    }),
+    header('Team-mate duel', '+1 each'),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          marginTop: 10,
+        },
+      },
+      duelChip('Driver A'),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 14,
+            color: colors.textMuted,
+          },
+        },
+        'vs',
+      ),
+      duelChip('Driver B'),
+    ),
+  );
+}
+
+function xBanner(width: number, height: number): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        position: 'relative' as const,
+        width,
+        height,
+        backgroundColor: colors.accent,
+        fontFamily: 'Archivo',
+        color: X_INK,
+        overflow: 'hidden' as const,
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column' as const,
+          position: 'absolute' as const,
+          left: X_AVATAR_COLUMN,
+          top: 152,
+          fontSize: 60,
+          fontWeight: 600,
+          letterSpacing: -2.4,
+          lineHeight: 1.02,
+        },
+      },
+      // Not the landing headline: the account is news first (see the bio),
+      // and the game is the second thing it does.
+      e('div', {}, 'F1 news, race previews'),
+      e('div', {}, 'and a free Top 5 game.'),
+    ),
+    // The two cards overlap like posts in a feed. The news card sits behind
+    // and above; the games card in front, pulled toward the safe right edge.
+    newsCard(1004, 46, 340),
+    gamesCard(width - X_EDGE_SAFE - 318, 182, 318),
   );
 }
 

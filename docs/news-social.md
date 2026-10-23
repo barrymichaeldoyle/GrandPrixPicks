@@ -1,14 +1,50 @@
 # X posts after a news sweep
 
-Select one to three X posts after a substantial news sweep. Each post covers a
-strong story or a small group of related stories. A sweep with no useful new
-development can select none. Sporting news and event stories are both eligible.
+Select at most one X post per sweep, and the CLI allows two a day on the
+channel. Most sweeps select none. The bar is a story a fan would stop
+scrolling for: a grid penalty, a driver swap, an engine change, a stewards'
+ruling, a result that moves the title. A livery, a fan zone, a show car or a
+contract extension is feed and write-up material and is not posted.
+
+Why so few: in the fortnight to 23 October 2026 the account sent 33 news
+posts with a link each, and they averaged 38 impressions. X shows a link feed
+to nobody. The posts that cleared 80 were live session results and short
+reactions with no link. The account is a person following the weekend, not a
+wire service: one post that says something beats twelve that summarise
+Motorsport.com.
+
+**Post shape.** The text carries no URL. The story's own card (the same image
+its `?story=` link unfurls to) is attached as a native image, and the link
+goes in a reply under the post, where it costs no reach. The CLI does both
+from the selection: it refuses a URL in `text`, attaches
+`/og/news?race=<slug>&story=<key>` for a race story, and threads `link` as the
+second item. A global story has no card and goes out as text.
+
+**Copy.** Lead with the angle, not the outlet. Under 200 characters is the
+norm. "Antonelli can win the title on Sunday. He needs the win with Russell
+no higher than fifth." reads; "Mercedes have confirmed that both cars will
+run the latest update package in Austin, Toto Wolff said on Tuesday" does
+not. Product voice applies: no hashtags, no calls to action, no "BREAKING".
 
 Use Buffer's GrandPrixPicks X channel. The operator CLI previews by default,
 checks the existing X queue, and schedules selected posts 25 minutes apart.
 `intervalMinutes` may be set between 20 and 30. Other scheduled campaigns and
 recently sent posts count toward that spacing. An urgent development can use
-the next available slot; set its requested start time accordingly.
+the next available slot; set its requested start time accordingly. A post
+that would be the third of a channel day (Africa/Johannesburg, or the
+channel's own timezone) is skipped and reported, not scheduled.
+
+## Session results on race weekends
+
+The one post type that reliably gets seen. After a session's result is
+published, `gpp results social <slug> <session> --prod --apply` schedules one
+post: the classification card (`/og/results`) as the image, the podium as the
+text ("United States GP qualifying: Verstappen on pole, Leclerc second,
+Norris third."), the race page in a reply. The ledger keys it as
+`results:<session>` under the race, so it can only ever go out once per race
+and session. An amendment cancels a still-queued post (its card is stale) and
+is reported for a sent one; it is never reposted on its own. Results posts
+count toward the daily cap.
 
 ## At every sweep
 
@@ -20,12 +56,13 @@ the next available slot; set its requested start time accordingly.
    pnpm gpp news social check --prod --apply
    ```
 
-3. Select the strongest developments and write independent, factual X copy.
-   Include a useful link to the source, the race write-up or the exact feed
-   card. A write-up link carries `?story=<key>` for one of the post's stories
-   (see Link previews below); the CLI refuses a bare one. Avoid forced calls
-   to action, hashtags and repeated versions of the same update. Review any result spoilers in the social selection separately
-   from push eligibility.
+3. Select the strongest development, if any, and write independent, factual
+   X copy with no URL in it. Put the link in `link`: the race write-up with
+   `?story=<key>` for one of the post's stories (see Link previews below; the
+   CLI refuses a bare write-up link), or the story's own `sourceUrl`. Avoid
+   forced calls to action, hashtags and repeated versions of the same update.
+   Review any result spoilers in the social selection separately from push
+   eligibility.
 4. Save the selection alongside the campaign in `artifacts/social/`. Point
    `newsFile` at the JSON batch that was published; paths are relative to the
    selection file. That batch is the expected source snapshot.
@@ -52,7 +89,8 @@ the next available slot; set its requested start time accordingly.
   "posts": [
     {
       "keys": ["<published-story-key>"],
-      "text": "<Reviewed X copy> https://grandprixpicks.com/f1-2026-<race>-grand-prix-predictions?story=<published-story-key>",
+      "text": "<Reviewed X copy, no URL>",
+      "link": "https://grandprixpicks.com/f1-2026-<race>-grand-prix-predictions?story=<published-story-key>",
       "expiresAt": "2026-10-10T09:00:00Z"
     }
   ]
@@ -60,7 +98,8 @@ the next available slot; set its requested start time accordingly.
 ```
 
 `keys` references stories in `newsFile`. Each key may appear only once in a
-selection. A group shares one post and must have supporting copy for every
+selection, and a selection holds one or two posts. `link` is optional; the
+card image is attached automatically for a race story. A group shares one post and must have supporting copy for every
 included story. Global stories omit `raceSlug` in their news payload. A news
 batch used for social must have unique keys.
 
@@ -77,11 +116,13 @@ X caches a link preview by URL, so every post linking the bare write-up shows
 the same card. `?story=<key>` gives each post its own URL and its own card:
 the write-up head (`raceWriteupPageHead` in `apps/web/src/lib/raceWriteupSeo.ts`)
 swaps `og:image` to `/og/news?race=<slug>&story=<key>&v=<revision>`, rendered by
-`raceNewsTemplate`, with the story's headline, its drivers and its source. The
+`raceNewsTemplate`: the race and flag, the story's headline, and its source and
+date. No wordmark, round or driver chips: the post already names the account,
+and X draws its ALT badge over the card's bottom-left corner. The
 canonical stays the bare write-up, so this is not a new page. A key that is not
 on the write-up (retracted, unselected, misspelt) falls back to the write-up's
-own card, `/og/writeup?race=<slug>` (`raceWriteupTemplate`: race name, round
-and the weekend's session times).
+own card, `/og/writeup?race=<slug>` (`raceWriteupTemplate`: race name and the
+weekend's session times, right-aligned so X's ALT badge covers none of them).
 
 The `v` revision is the story's last headline change, so a corrected headline
 is a new image URL. X may still hold the old card for a post that already

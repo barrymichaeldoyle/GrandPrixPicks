@@ -2276,14 +2276,18 @@ function editorialFrame({
   raceName,
   raceMeta,
   flagSrc,
+  byline,
   body,
   footer,
 }: {
   raceName: string;
   raceMeta: string;
   flagSrc?: string;
+  /** Top-right mono text, e.g. the story's source and date. */
+  byline?: string;
   body: ReactNode;
-  footer: ReactNode;
+  /** Optional. Without one the body is centred in the whole card. */
+  footer?: ReactNode;
 }): ReactNode {
   const { width, height } = getOgDimensions('og');
   return e(
@@ -2301,6 +2305,9 @@ function editorialFrame({
         overflow: 'hidden' as const,
       },
     },
+    // No wordmark. The card unfurls under a post from the account, so the
+    // name is already on screen twice (Barry, 2026-10-23). The race is the
+    // one thing the post does not say.
     e(
       'div',
       {
@@ -2327,16 +2334,19 @@ function editorialFrame({
           raceMeta,
         ),
       ),
-      e(
-        'div',
-        { style: { display: 'flex', alignItems: 'center', gap: 12 } },
-        brandMark(28),
-        e(
-          'div',
-          { style: { fontSize: 20, fontWeight: 600 } },
-          'Grand Prix Picks',
-        ),
-      ),
+      byline
+        ? e(
+            'div',
+            {
+              style: {
+                fontSize: 20,
+                fontFamily: 'IBM Plex Mono',
+                color: colors.textMuted,
+              },
+            },
+            byline,
+          )
+        : null,
     ),
     e(
       'div',
@@ -2350,10 +2360,18 @@ function editorialFrame({
       },
       body,
     ),
-    e('div', {
-      style: { height: 1, backgroundColor: colors.border, marginBottom: 24 },
-    }),
-    footer,
+    ...(footer
+      ? [
+          e('div', {
+            style: {
+              height: 1,
+              backgroundColor: colors.border,
+              marginBottom: 24,
+            },
+          }),
+          footer,
+        ]
+      : []),
   );
 }
 
@@ -2387,14 +2405,13 @@ export function raceWriteupTemplate(data: RaceWriteupOgData): ReactNode {
     raceMeta:
       data.venue && !data.raceName.includes(data.venue) ? data.venue : '',
     flagSrc: data.flagSrc,
+    byline: data.timeZone ? `Local time · ${data.timeZone}` : undefined,
     body: e(
       'div',
       { style: { display: 'flex', flexDirection: 'column' as const } },
-      accentTag(
-        data.hasSprint
-          ? `Round ${data.round} · Sprint weekend`
-          : `Round ${data.round}`,
-      ),
+      // The round number is gone from the tag: nobody picks by it. Sprint
+      // weekends keep theirs because it changes what there is to pick.
+      accentTag(data.hasSprint ? 'Sprint weekend' : 'Race weekend'),
       e(
         'div',
         {
@@ -2416,54 +2433,30 @@ export function raceWriteupTemplate(data: RaceWriteupOgData): ReactNode {
         ),
       ),
     ),
+    // Right-aligned: X draws its ALT badge over the bottom-left of a link
+    // card, which used to cover the first session's time. The zone note that
+    // sat bottom-right moved up to the byline to make room.
     footer: e(
       'div',
       {
         style: {
           display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
+          gap: 44,
         },
       },
-      e(
-        'div',
-        { style: { display: 'flex', gap: 44 } },
-        ...data.sessions.map((session) =>
-          e(
-            'div',
-            {
-              key: session.label,
-              style: { display: 'flex', flexDirection: 'column' as const },
+      ...data.sessions.map((session) =>
+        e(
+          'div',
+          {
+            key: session.label,
+            style: {
+              display: 'flex',
+              flexDirection: 'column' as const,
+              alignItems: 'flex-end',
             },
-            e(
-              'div',
-              {
-                style: {
-                  fontFamily: 'IBM Plex Mono',
-                  fontSize: 17,
-                  color: colors.textMuted,
-                },
-              },
-              session.label,
-            ),
-            e(
-              'div',
-              {
-                style: {
-                  display: 'flex',
-                  marginTop: 6,
-                  fontFamily: 'IBM Plex Mono',
-                  fontSize: 28,
-                  fontWeight: 600,
-                },
-              },
-              `${session.day} ${session.time}`,
-            ),
-          ),
-        ),
-      ),
-      data.timeZone
-        ? e(
+          },
+          e(
             'div',
             {
               style: {
@@ -2472,22 +2465,34 @@ export function raceWriteupTemplate(data: RaceWriteupOgData): ReactNode {
                 color: colors.textMuted,
               },
             },
-            `Local time · ${data.timeZone}`,
-          )
-        : null,
+            session.label,
+          ),
+          e(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                marginTop: 6,
+                fontFamily: 'IBM Plex Mono',
+                fontSize: 28,
+                fontWeight: 600,
+              },
+            },
+            `${session.day} ${session.time}`,
+          ),
+        ),
+      ),
     ),
   });
 }
 
 export interface RaceNewsOgData {
   raceName: string;
-  round: number;
   flagSrc?: string;
   headline: string;
   sourceName: string;
   /** e.g. "10 Oct 2026". */
   dateLabel: string;
-  drivers: readonly { code: string; teamColor: string }[];
 }
 
 /**
@@ -2497,18 +2502,18 @@ export interface RaceNewsOgData {
 function newsHeadlineSize(headline: string): number {
   const length = headline.length;
   if (length <= 48) {
-    return 84;
+    return 96;
   }
   if (length <= 72) {
-    return 72;
+    return 82;
   }
   if (length <= 100) {
-    return 60;
+    return 68;
   }
   if (length <= 135) {
-    return 52;
+    return 58;
   }
-  return 44;
+  return 48;
 }
 
 /**
@@ -2516,14 +2521,18 @@ function newsHeadlineSize(headline: string): number {
  * `?story=<key>`. X caches a preview by URL, so each story's link unfurls as
  * its own headline while the canonical page stays the write-up.
  *
- * The headline is the story's own, verbatim. Drivers the story names appear
- * as chips with their team bar, as they do beside the story on the page.
+ * The headline is the story's own, verbatim, and it is the whole card: race
+ * and flag top-left, source and date top-right, nothing below. It used to
+ * carry the round number, a wordmark and the story's driver chips along the
+ * bottom. On X the post already names the account, the round means nothing
+ * to a reader, and the chips sat exactly where X draws its ALT badge.
  */
 export function raceNewsTemplate(data: RaceNewsOgData): ReactNode {
   return editorialFrame({
     raceName: data.raceName,
-    raceMeta: `Round ${data.round}`,
+    raceMeta: '',
     flagSrc: data.flagSrc,
+    byline: `${data.sourceName} · ${data.dateLabel}`,
     body: e(
       'div',
       { style: { display: 'flex', flexDirection: 'column' as const } },
@@ -2533,7 +2542,7 @@ export function raceNewsTemplate(data: RaceNewsOgData): ReactNode {
         {
           style: {
             display: 'flex',
-            marginTop: 26,
+            marginTop: 28,
             fontSize: newsHeadlineSize(data.headline),
             fontWeight: 600,
             letterSpacing: -1.5,
@@ -2541,43 +2550,6 @@ export function raceNewsTemplate(data: RaceNewsOgData): ReactNode {
           },
         },
         data.headline,
-      ),
-    ),
-    footer: e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          height: 48,
-        },
-      },
-      e(
-        'div',
-        { style: { display: 'flex', gap: 10 } },
-        ...data.drivers.slice(0, 5).map((driver) =>
-          e(
-            'div',
-            { key: driver.code, style: { display: 'flex' } },
-            driverChip(driver.code, driver.teamColor, {
-              width: 96,
-              height: 48,
-              fontSize: 22,
-            }),
-          ),
-        ),
-      ),
-      e(
-        'div',
-        {
-          style: {
-            fontFamily: 'IBM Plex Mono',
-            fontSize: 19,
-            color: colors.textMuted,
-          },
-        },
-        `${data.sourceName} · ${data.dateLabel}`,
       ),
     ),
   });

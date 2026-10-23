@@ -4,7 +4,6 @@ import { getRaceTimeZoneFromSlug } from '@grandprixpicks/shared/raceTimezones';
 
 import { renderOgImage } from '../../../src/lib/og/renderer';
 import { raceNewsTemplate } from '../../../src/lib/og/templates';
-import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../../../src/lib/teamColors';
 import { loadFlagDataUri } from '../../lib/ogFlag';
 import { captureServerException, startServerSpan } from '../../lib/sentry';
 
@@ -62,17 +61,10 @@ export default async function handler(event: RouteEvent) {
       renderOgImage(
         raceNewsTemplate({
           raceName: race.name,
-          round: race.round,
           flagSrc,
           headline: story.headline,
           sourceName: story.sourceName,
           dateLabel,
-          drivers: story.drivers.map((driver) => ({
-            code: driver.code,
-            teamColor:
-              (driver.team ? TEAM_COLORS[driver.team] : undefined) ??
-              FALLBACK_TEAM_COLOR,
-          })),
         }),
       ),
     );

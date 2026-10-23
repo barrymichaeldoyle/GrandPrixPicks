@@ -1,0 +1,14 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/usa-2026-2026-10-23-morning.json",
+  "startAt": "2026-10-23T08:30:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["verstappen-cota-bumps-unacceptable"],
+      "text": "Verstappen calls the bumps at the Circuit of the Americas \"unacceptable\" and says the track needs reinforcing from underneath, not more grinding. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=verstappen-cota-bumps-unacceptable",
+      "expiresAt": "2026-10-23T18:00:00Z"
+    }
+  ]
+}

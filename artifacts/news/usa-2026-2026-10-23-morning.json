@@ -1,0 +1,26 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "mercedes-aduo-engine-delayed",
+    "category": "general",
+    "headline": "Mercedes' upgraded engine will not debut in Austin",
+    "body": "Mercedes' ADUO power unit upgrade was pencilled in for Austin but is not ready, and The Race understands it will miss Mexico too, with Brazil the earliest likely debut. Russell will take another grid penalty whenever the new engine is fitted.",
+    "affectsSessions": [],
+    "driverCodes": ["RUS"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/mercedes-rolls-back-aduo-engine-debut/",
+    "sourcePublishedAt": "2026-10-22T22:54:23Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "verstappen-cota-bumps-unacceptable",
+    "category": "general",
+    "headline": "Verstappen calls the Austin bumps \"unacceptable\"",
+    "body": "Verstappen says the Circuit of the Americas is \"getting a bit out of control\" and argues the track needs reinforcing from underneath, not more grinding. Sections including Turns 9 to 11 were resurfaced and repairs made between Turns 12 and 19 ahead of this race.",
+    "affectsSessions": [],
+    "driverCodes": ["VER"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/max-verstappen-slams-unacceptable-bumps-at-austin-f1-track-its-out-of-control/10867171/",
+    "sourcePublishedAt": "2026-10-22T22:00:20Z"
+  }
+]

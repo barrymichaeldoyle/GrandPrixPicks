@@ -134,6 +134,7 @@ function render(
       <DashboardPicksSummary
         raceId={RACE_ID}
         raceSlug="dutch-grand-prix"
+        raceName="Dutch Grand Prix"
         session={openSession()}
         picks={{
           top5: DRIVER_IDS,
@@ -183,6 +184,40 @@ describe('DashboardPicksSummary', () => {
     // countdown in the tab row above say it. Asserting its absence is what
     // keeps a narrating sentence from creeping back in.
     expect(el.textContent).not.toContain('Saved.');
+  });
+
+  it('offers a share of the saved Top 5 until the result is in', async () => {
+    const writeText = vi.fn((_message: string) => Promise.resolve());
+    Object.assign(navigator, { clipboard: { writeText } });
+    const el = render();
+
+    const button = el.querySelector<HTMLButtonElement>(
+      '[data-testid="share-picks"]',
+    );
+    expect(button).not.toBeNull();
+    await act(async () => {
+      button!.click();
+    });
+
+    expect(writeText).toHaveBeenCalledTimes(1);
+    const [message] = writeText.mock.calls[0]!;
+    expect(message).toContain('My Qualifying top 5 for the Dutch Grand Prix');
+    expect(message).toContain('P1 D0');
+    expect(message).toContain(
+      '/races/dutch-grand-prix?share_v=2&share=picks&session=quali&picks=D0%2CD1%2CD2%2CD3%2CD4&utm_source=share',
+    );
+    expect(button!.textContent).toContain('Link copied');
+  });
+
+  it('drops the share once the session has a result', () => {
+    const el = render({
+      session: openSession({
+        isLocked: true,
+        hasResult: true,
+        canEdit: false,
+      }),
+    });
+    expect(el.querySelector('[data-testid="share-picks"]')).toBeNull();
   });
 
   it('opens the Top 5 editor from a pick badge, like Edit does', () => {

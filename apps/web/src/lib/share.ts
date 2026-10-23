@@ -1,21 +1,39 @@
-import { countryCodeToFlagEmoji } from '@grandprixpicks/shared/share';
+import { formatPositionList } from '@grandprixpicks/shared/share';
+
+import type { ShareCard } from '@/lib/og/shareCard';
+import { encodeShareCardSearch } from '@/lib/og/shareCard';
+import { siteConfig } from '@/lib/site';
 
 // Shared with mobile's native share sheet so copy can't drift between apps.
 export {
+  buildPicksMessageText,
   buildScoreShareText,
   countryCodeToFlagEmoji,
 } from '@grandprixpicks/shared/share';
 
-/** `P1 🇬🇧 NOR\nP2 ...` — one driver per line with its flag, in pick order. */
-function formatPositionList(
-  drivers: readonly { code: string; nationality?: string | null }[],
-) {
-  return drivers
-    .map((driver, index) => {
-      const flag = countryCodeToFlagEmoji(driver.nationality);
-      return `P${index + 1} ${flag ? `${flag} ` : ''}${driver.code}`;
-    })
-    .join('\n');
+/**
+ * The race page URL a share lands on. It carries the card payload so the page
+ * can serve a per-user OG image (`/og/share`) when the link unfurls, and the
+ * source so a visit from a group chat is told apart from one from X.
+ */
+export function buildPicksSharePageUrl({
+  raceSlug,
+  card,
+  source,
+  campaign,
+}: {
+  raceSlug: string;
+  card: ShareCard;
+  source: 'x' | 'share';
+  campaign: string;
+}) {
+  const params = new URLSearchParams({
+    ...encodeShareCardSearch(card),
+    utm_source: source,
+    utm_medium: source === 'x' ? 'social' : 'share_sheet',
+    utm_campaign: campaign,
+  });
+  return `${siteConfig.url}/races/${raceSlug}?${params.toString()}`;
 }
 
 export function buildRaceResultShareText({

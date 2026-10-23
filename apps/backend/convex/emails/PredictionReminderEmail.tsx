@@ -34,6 +34,17 @@ export type PredictionReminderProps = {
   sessions: Array<SessionScheduleItem>;
   round: number;
   countryCode: string | null;
+  /**
+   * For a reader who skipped the last round: the weekend's top story goes
+   * above the deadline, with the write-up when there is one.
+   */
+  lead?: {
+    headline: string;
+    sourceName: string | null;
+    writeupUrl: string | null;
+  };
+  /** "Last time out: …", the line that says they are already in this game. */
+  lastPlayed?: string;
 };
 
 export function PredictionReminderEmail({
@@ -61,6 +72,8 @@ export function PredictionReminderEmail({
   ],
   round = 1,
   countryCode = 'au',
+  lead,
+  lastPlayed,
 }: PredictionReminderProps) {
   return (
     <Html>
@@ -72,7 +85,9 @@ export function PredictionReminderEmail({
         `}</style>
       </Head>
       <Preview>
-        {raceName} predictions lock in {timeUntilLock}.
+        {lead
+          ? lead.headline
+          : `${raceName} predictions lock in ${timeUntilLock}.`}
       </Preview>
       <Body style={body}>
         <Container style={container}>
@@ -103,6 +118,20 @@ export function PredictionReminderEmail({
           <Hr style={hr} />
 
           <Section style={section}>
+            {lead ? (
+              <Section style={leadSection}>
+                <Text style={leadHeadline}>{lead.headline}</Text>
+                {lead.sourceName ? (
+                  <Text style={leadSource}>{lead.sourceName}</Text>
+                ) : null}
+                {lead.writeupUrl ? (
+                  <Link href={lead.writeupUrl} style={leadLink}>
+                    {`Read the ${raceName} write-up`}
+                  </Link>
+                ) : null}
+              </Section>
+            ) : null}
+            {lastPlayed ? <Text style={text}>{lastPlayed}</Text> : null}
             <Text style={text}>
               Predictions for the{' '}
               <strong style={{ color: email.text, whiteSpace: 'nowrap' }}>
@@ -237,6 +266,31 @@ const text = {
   fontSize: '16px',
   lineHeight: '24px',
   margin: '0 0 24px',
+};
+
+/* Lapsed lead: the weekend's story above the deadline */
+const leadSection = {
+  margin: '0 0 24px',
+  padding: '0 0 20px',
+  borderBottom: `1px solid ${email.border}`,
+};
+const leadHeadline = {
+  color: email.text,
+  fontSize: '18px',
+  fontWeight: 600,
+  lineHeight: '26px',
+  margin: '0 0 6px',
+};
+const leadSource = {
+  color: email.textMuted,
+  fontSize: '13px',
+  lineHeight: '18px',
+  margin: '0 0 10px',
+};
+const leadLink = {
+  color: email.text,
+  fontSize: '15px',
+  textDecoration: 'underline',
 };
 
 /* Race card */

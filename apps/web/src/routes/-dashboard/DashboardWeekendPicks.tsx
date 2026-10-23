@@ -695,6 +695,7 @@ export function DashboardWeekendPicksReady({
             key={activeSession.sessionType}
             raceId={weekend.race._id}
             raceSlug={weekend.race.slug}
+            raceName={weekend.race.name}
             session={activeSession}
             picks={{
               top5:

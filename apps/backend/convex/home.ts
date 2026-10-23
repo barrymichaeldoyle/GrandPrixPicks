@@ -32,6 +32,7 @@ import {
   loadCombinedSeasonRows,
 } from './leaderboards';
 import { assignCompetitionRanks } from './lib/leaderboard';
+import { roundsScored } from './lib/weekendRank';
 import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
 
 const SESSION_ORDER: Array<SessionType> = [
@@ -719,8 +720,19 @@ export async function loadRaceRecap(ctx: QueryCtx) {
   // history, so "before" is reconstructed the same way the landing page's
   // timing tower does it — see `rankBeforeLastScoredRace`.
   const season = await getDefaultLeaderboardSeason(ctx);
-  const seasonRows = await loadCombinedSeasonRows(ctx, { season });
-  const seasonRow = seasonRows.find((row) => row.userId === viewer._id) ?? null;
+  const [seasonRows, rounds] = await Promise.all([
+    loadCombinedSeasonRows(ctx, { season }),
+    roundsScored(ctx, viewer._id),
+  ]);
+  // A season position is only a comparison once there is a season behind it.
+  // Someone who joined at round 14 is last on that table by arithmetic, not
+  // by form, and on prod seven of the ten players who signed up since July
+  // played exactly one weekend. Until they have a few rounds, the weekend
+  // numbers above are the ones that mean something.
+  const seasonRow =
+    rounds >= SEASON_RANK_MIN_ROUNDS
+      ? (seasonRows.find((row) => row.userId === viewer._id) ?? null)
+      : null;
   const previousSeasonRank = seasonRow
     ? rankBeforeLastScoredRace(
         seasonRows,
@@ -747,6 +759,9 @@ export async function loadRaceRecap(ctx: QueryCtx) {
     },
   };
 }
+
+/** Scored weekends before the recap shows a season position. */
+export const SEASON_RANK_MIN_ROUNDS = 3;
 
 export const getRaceRecap = query({
   args: {},

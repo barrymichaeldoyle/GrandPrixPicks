@@ -21,6 +21,8 @@ export type ResultsEmailShellProps = {
   previewText: string;
   headline: string;
   intro: string;
+  /** Short facts under the intro: weekend rank, best pick. One sentence each. */
+  details?: Array<string>;
   raceName: string;
   raceUrl: string;
   settingsUrl: string;
@@ -39,6 +41,7 @@ export function ResultsEmailShell({
   previewText,
   headline,
   intro,
+  details = [],
   raceName,
   raceUrl,
   settingsUrl,
@@ -98,6 +101,11 @@ export function ResultsEmailShell({
           <Section style={section}>
             <Text style={headlineStyle}>{headline}</Text>
             <Text style={introText}>{intro}</Text>
+            {details.map((line) => (
+              <Text key={line} style={introText}>
+                {line}
+              </Text>
+            ))}
 
             <Section style={raceCard}>
               <Row style={raceHeaderRow}>

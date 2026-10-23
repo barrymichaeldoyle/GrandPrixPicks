@@ -11,8 +11,10 @@ import { H2HPicksBar } from '@/components/H2HPicksBar';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { PicksFormActionRow } from '@/components/PicksSaveStatus';
 import { PredictionForm } from '@/components/PredictionForm/PredictionForm';
+import { SharePicksButton } from '@/components/SharePicksButton';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
 import { SESSION_LABELS } from '@/lib/sessions';
+import { buildPicksMessageText, buildPicksSharePageUrl } from '@/lib/share';
 
 import type { DashboardSessionState } from './dashboardState';
 
@@ -58,6 +60,7 @@ export type SessionPicks = {
 export function DashboardPicksSummary({
   raceId,
   raceSlug,
+  raceName,
   session,
   picks,
   drivers,
@@ -65,6 +68,7 @@ export function DashboardPicksSummary({
 }: {
   raceId: Id<'races'>;
   raceSlug: string;
+  raceName: string;
   session: DashboardSessionState;
   picks: SessionPicks;
   drivers: Doc<'drivers'>[];
@@ -95,6 +99,42 @@ export function DashboardPicksSummary({
   const hasCard = top5.length > 0;
 
   const detail = summaryDetail({ session, editable, hasCard });
+
+  // The share lives on the saved card because that is where a player is when
+  // the picks are fresh and the group chat is one tap away. It stays until the
+  // result is in: a locked Top 5 is still a challenge for the sessions that
+  // have not run.
+  const sharedDrivers = top5.flatMap((driverId) => {
+    const driver = drivers.find((candidate) => candidate._id === driverId);
+    return driver
+      ? [{ code: driver.code, nationality: driver.nationality }]
+      : [];
+  });
+  const share =
+    hasCard && !session.hasResult && sharedDrivers.length === 5 ? (
+      <SharePicksButton
+        text={buildPicksMessageText({
+          raceName,
+          sessionLabel,
+          picks: sharedDrivers,
+        })}
+        url={buildPicksSharePageUrl({
+          raceSlug,
+          card: {
+            variant: 'picks',
+            session: session.sessionType,
+            picks: sharedDrivers.map((driver) => driver.code),
+          },
+          source: 'share',
+          campaign: 'share_picks',
+        })}
+        analyticsProps={{
+          race_slug: raceSlug,
+          session_type: session.sessionType,
+          surface: 'dashboard',
+        }}
+      />
+    ) : null;
   function renderInsight(matchup: H2HMatchup) {
     return (
       <H2HDuelFormGuide
@@ -151,16 +191,21 @@ export function DashboardPicksSummary({
           <div>
             <div className={PICKS_LABEL_ROW}>
               <p className="text-xs font-medium text-text-muted">Your Top 5</p>
-              {editable ? (
-                <Button
-                  variant="text"
-                  size="inline"
-                  leftIcon={Pencil}
-                  onClick={() => setTop5OverlayOpen(true)}
-                  data-testid="summary-edit-top5"
-                >
-                  Edit
-                </Button>
+              {share || editable ? (
+                <div className="flex items-center gap-3">
+                  {share}
+                  {editable ? (
+                    <Button
+                      variant="text"
+                      size="inline"
+                      leftIcon={Pencil}
+                      onClick={() => setTop5OverlayOpen(true)}
+                      data-testid="summary-edit-top5"
+                    >
+                      Edit
+                    </Button>
+                  ) : null}
+                </div>
               ) : null}
             </div>
             {/* The cells open the same editor "Edit" does. The duel chips

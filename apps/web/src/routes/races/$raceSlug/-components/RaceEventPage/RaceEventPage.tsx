@@ -22,6 +22,7 @@ import {
   PracticeResultsModal,
 } from '@/components/PracticeResultsModal';
 import { ShareOnXButton } from '@/components/ShareOnXButton';
+import { SharePicksButton } from '@/components/SharePicksButton';
 import { StartPicksCta } from '@/components/StartPicksCta';
 import { RaceWriteupCallout } from '@/components/race-writeups/RaceWriteupCallout';
 import { RaceScoreCard } from '@/components/RaceScoreCard/RaceScoreCard';
@@ -29,11 +30,15 @@ import type { SessionConsensusData } from '@/components/SessionConsensus';
 import { SessionConsensusSections } from '@/components/SessionConsensus';
 import type { WeekendCardData } from '@/components/RaceScoreCard/types';
 import type { ShareCard } from '@/lib/og/shareCard';
-import { encodeShareCardSearch } from '@/lib/og/shareCard';
 import type { SessionType } from '@/lib/sessions';
 import { SESSION_LABELS } from '@/lib/sessions';
 import { buildRaceReport } from '@/lib/raceReport';
-import { buildPicksShareText, buildScoreShareText } from '@/lib/share';
+import {
+  buildPicksMessageText,
+  buildPicksSharePageUrl,
+  buildPicksShareText,
+  buildScoreShareText,
+} from '@/lib/share';
 import { siteConfig } from '@/lib/site';
 import type { TabSwitchOption } from '@/components/TabSwitch';
 
@@ -258,15 +263,18 @@ export function RaceEventPage({
   const shareBy = me?.displayName || me?.username || undefined;
 
   // Share URLs carry the card payload so the race page can serve a per-user
-  // OG image (rendered by /og/share) when the link is unfurled on X.
-  function buildSharePageUrl(card: ShareCard, campaign: string) {
-    const params = new URLSearchParams({
-      ...encodeShareCardSearch(card),
-      utm_source: 'x',
-      utm_medium: 'social',
-      utm_campaign: campaign,
+  // OG image (rendered by /og/share) when the link is unfurled.
+  function buildSharePageUrl(
+    card: ShareCard,
+    campaign: string,
+    source: 'x' | 'share' = 'x',
+  ) {
+    return buildPicksSharePageUrl({
+      raceSlug: race.slug,
+      card,
+      source,
+      campaign,
     });
-    return `${siteConfig.url}/races/${race.slug}?${params.toString()}`;
   }
 
   // Mirrors the layout's own `entryComplete`: both halves of the selected
@@ -300,17 +308,45 @@ export function RaceEventPage({
       )
     : '';
 
+  // Two shares, two audiences. The sheet is where this site's players talk
+  // (a group chat); X is a timeline. The group-chat one goes first because it
+  // is the one that brings a friend back to the page.
   const top5ShareButton = canSharePicks ? (
-    <ShareOnXButton
-      text={sharePicksText}
-      url={sharePicksUrl}
-      analyticsEvent="picks_shared_x"
-      analyticsProps={{
-        race_slug: race.slug,
-        session_type: selectedSession,
-      }}
-      label="Share my Top 5"
-    />
+    <div className="flex flex-wrap items-center gap-2">
+      <SharePicksButton
+        appearance="outline"
+        text={buildPicksMessageText({
+          raceName: race.name,
+          sessionLabel: SESSION_LABELS[selectedSession],
+          picks: selectedSessionPicks,
+        })}
+        url={buildSharePageUrl(
+          {
+            variant: 'picks',
+            session: selectedSession,
+            picks: selectedSessionPicks.map((pick) => pick.code),
+            by: shareBy,
+          },
+          'share_picks',
+          'share',
+        )}
+        analyticsProps={{
+          race_slug: race.slug,
+          session_type: selectedSession,
+          surface: 'race_page',
+        }}
+      />
+      <ShareOnXButton
+        text={sharePicksText}
+        url={sharePicksUrl}
+        analyticsEvent="picks_shared_x"
+        analyticsProps={{
+          race_slug: race.slug,
+          session_type: selectedSession,
+        }}
+        label="Share my Top 5"
+      />
+    </div>
   ) : null;
 
   const shareScoreText = buildScoreShareText({

@@ -81,6 +81,7 @@ export const analyticsEventNames = [
   'notifications_mark_all_read',
   'pending_pick_draft_recovered',
   'pending_pick_draft_recovery_failed',
+  'picks_shared',
   'picks_shared_x',
   'picker_first_pick_added',
   'picker_save_wall_viewed',

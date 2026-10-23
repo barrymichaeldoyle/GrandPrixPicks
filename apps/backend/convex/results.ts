@@ -25,6 +25,7 @@ import { coversRound, loadStintsForSeason, teamForRound } from './lib/lineups';
 import { nextRecheckAt } from './lib/recheckSchedule';
 import { scoreTopFive } from './lib/scoring';
 import { toUserIdentity } from './lib/userIdentity';
+import { rankWithinRace } from './lib/weekendRank';
 
 type ScoreBreakdownItem = NonNullable<Doc<'scores'>['breakdown']>[number];
 
@@ -826,36 +827,7 @@ export const getRaceRank = query({
       return null;
     }
 
-    // Get all scores for this race
-    const pointsByUser = new Map<string, number>();
-    for await (const score of ctx.db
-      .query('scores')
-      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
-      const current = pointsByUser.get(score.userId) ?? 0;
-      pointsByUser.set(score.userId, current + score.points);
-    }
-
-    if (pointsByUser.size === 0) {
-      return null;
-    }
-
-    const viewerPoints = pointsByUser.get(viewer._id);
-    if (viewerPoints === undefined) {
-      return null;
-    }
-
-    // Count users with more points
-    let higherCount = 0;
-    for (const points of pointsByUser.values()) {
-      if (points > viewerPoints) {
-        higherCount++;
-      }
-    }
-
-    return {
-      position: higherCount + 1,
-      totalPlayers: pointsByUser.size,
-    };
+    return await rankWithinRace(ctx, args.raceId, viewer._id);
   },
 });
 

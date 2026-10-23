@@ -4,6 +4,8 @@ import {
   buildH2HPicksShareText,
   buildH2HScoreShareText,
   buildOfficialH2HResultReplyText,
+  buildPicksMessageText,
+  buildPicksSharePageUrl,
   buildPicksShareText,
   buildRaceResultShareText,
   buildScoreShareText,
@@ -183,5 +185,37 @@ describe('buildXShareIntentUrl', () => {
     expect(intent.searchParams.get('text')).toBe(
       'Join my league.\n\nhttps://grandprixpicks.com/leagues/test',
     );
+  });
+});
+
+describe('buildPicksMessageText', () => {
+  it('writes a group-chat message with no handle and the ask last', () => {
+    expect(
+      buildPicksMessageText({
+        raceName: 'Dutch Grand Prix',
+        sessionLabel: 'Qualifying',
+        picks: [
+          { code: 'VER', nationality: 'NL' },
+          { code: 'NOR', nationality: 'GB' },
+        ],
+      }),
+    ).toBe(
+      'My Qualifying top 5 for the Dutch Grand Prix 🎯\n\nP1 🇳🇱 VER\nP2 🇬🇧 NOR\n\nThink you can beat me? Make yours here:',
+    );
+  });
+});
+
+describe('buildPicksSharePageUrl', () => {
+  it('tells a share-sheet visit apart from an X one', () => {
+    const url = buildPicksSharePageUrl({
+      raceSlug: 'dutch-grand-prix',
+      card: { variant: 'picks', session: 'quali', picks: ['VER', 'NOR'] },
+      source: 'share',
+      campaign: 'share_picks',
+    });
+    expect(url).toContain('/races/dutch-grand-prix?');
+    expect(url).toContain('share=picks');
+    expect(url).toContain('picks=VER%2CNOR');
+    expect(url).toContain('utm_source=share&utm_medium=share_sheet');
   });
 });

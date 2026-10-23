@@ -40,3 +40,12 @@ export function buildWeekendLeaderboardEmailUrl(params: {
   url.searchParams.set('raceId', params.raceId);
   return withCampaign(url, params.campaign);
 }
+
+/** A race write-up, for the mail that leads with the weekend's news. */
+export function buildWriteupEmailUrl(params: {
+  appUrl: string;
+  path: string;
+  campaign: string;
+}) {
+  return withCampaign(new URL(params.path, params.appUrl), params.campaign);
+}

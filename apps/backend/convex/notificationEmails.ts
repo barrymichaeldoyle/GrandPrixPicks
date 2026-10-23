@@ -1,17 +1,23 @@
 import { v } from 'convex/values';
 import { vOnEmailEventArgs } from '@convex-dev/resend';
 import { getCountryCodeForRaceSlug } from '@grandprixpicks/shared/raceCountries';
+import { getRaceWriteup } from '@grandprixpicks/shared/raceWriteups';
 import { SESSION_LABELS_FULL } from '@grandprixpicks/shared/sessions';
 import { internal } from './_generated/api';
-import type { Doc } from './_generated/dataModel';
-import type { MutationCtx } from './_generated/server';
+import type { Doc, Id } from './_generated/dataModel';
+import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internalMutation, query } from './_generated/server';
-import type { DeliverPayload } from './emails/deliverNotificationEmail';
+import type {
+  DeliverPayload,
+  LapsedLead,
+} from './emails/deliverNotificationEmail';
 import {
   buildRaceEmailUrl,
   buildWeekendLeaderboardEmailUrl,
+  buildWriteupEmailUrl,
 } from './emails/urls';
 import { getViewer, requireAdmin } from './lib/auth';
+import { loadNextUpcomingRace } from './lib/calendarRaces';
 import {
   hasStartedWeekend,
   healthyReminderPush,
@@ -22,6 +28,8 @@ import {
   shouldEmailReminder,
   wantsEmailResults,
 } from './lib/notificationChannels';
+import { rankWithinRace, weekendLeader } from './lib/weekendRank';
+import { loadNewsHeadlines } from './raceNews';
 const kind = v.union(
   v.literal('reminder'),
   v.literal('summary'),
@@ -193,22 +201,74 @@ async function prepare(ctx: MutationCtx, job: Doc<'notificationEmails'>) {
           )
           .take(4),
       ]);
+      const upcoming = await loadNextUpcomingRace(ctx, now);
+      const nextRace =
+        upcoming && upcoming._id !== race._id
+          ? {
+              name: upcoming.name,
+              raceUrl: buildRaceEmailUrl({
+                appUrl,
+                raceSlug: upcoming.slug,
+                campaign: 'weekend_summary',
+              }),
+              lockAt:
+                sessionLocks(upcoming)[0]?.lockAt ?? upcoming.predictionLockAt,
+            }
+          : null;
+      const raceUrl = buildWeekendLeaderboardEmailUrl({
+        appUrl,
+        raceId: race._id,
+        campaign: 'weekend_summary',
+      });
       if (!top5.length && !h2h.length) {
-        return await cancel();
+        // Someone who has never been scored is the signup nudge's reader, not
+        // this mail's. Someone who has, and sat this weekend out, gets the
+        // recap: the alternative was that a lapsed player never saw a result
+        // again, only deadlines.
+        if (
+          !(await ctx.db
+            .query('scores')
+            .withIndex('by_user', (q) => q.eq('userId', user._id))
+            .first())
+        ) {
+          return await cancel();
+        }
+        const [podium, leader] = await Promise.all([
+          podiumFor(ctx, race._id),
+          weekendLeader(ctx, race._id),
+        ]);
+        const leaderUser = leader ? await ctx.db.get(leader.userId) : null;
+        payload = {
+          kind: 'recap',
+          raceName: race.name,
+          raceUrl,
+          round: race.round,
+          countryCode,
+          podium,
+          weekendWinner:
+            leader && leaderUser?.username
+              ? { name: leaderUser.username, points: leader.points }
+              : null,
+          nextRace,
+        };
+      } else {
+        const [weekendRank, bestPick] = await Promise.all([
+          rankWithinRace(ctx, race._id, user._id),
+          bestPickOf(ctx, top5),
+        ]);
+        payload = {
+          kind: 'summary',
+          raceName: race.name,
+          raceUrl,
+          round: race.round,
+          countryCode,
+          top5Points: top5.reduce((sum, row) => sum + row.points, 0),
+          h2hPoints: h2h.reduce((sum, row) => sum + row.points, 0),
+          weekendRank,
+          bestPick,
+          nextRace,
+        };
       }
-      payload = {
-        kind: 'summary',
-        raceName: race.name,
-        raceUrl: buildWeekendLeaderboardEmailUrl({
-          appUrl,
-          raceId: race._id,
-          campaign: 'weekend_summary',
-        }),
-        round: race.round,
-        countryCode,
-        top5Points: top5.reduce((sum, row) => sum + row.points, 0),
-        h2hPoints: h2h.reduce((sum, row) => sum + row.points, 0),
-      };
     } else {
       const locks = sessionLocks(race);
       // The deadline this job was queued for, not simply the weekend's first:
@@ -281,6 +341,12 @@ async function prepare(ctx: MutationCtx, job: Doc<'notificationEmails'>) {
                 lock.sessionType === 'sprint' ||
                 lock.sessionType === 'sprint_quali',
             })),
+          // Only the weekend's opening mail: a follow-up about qualifying goes
+          // to people who already started this weekend, who are not lapsed.
+          lapsed:
+            job.sessionType === undefined
+              ? await lapsedLeadFor(ctx, user._id, race, appUrl)
+              : undefined,
         };
       }
     }
@@ -314,6 +380,143 @@ async function prepare(ctx: MutationCtx, job: Doc<'notificationEmails'>) {
     await ctx.db.patch(job._id, { status: 'accepted' });
     return null;
   }
+}
+
+/** The race podium by driver name, for the recap. Empty until it is in. */
+async function podiumFor(ctx: QueryCtx, raceId: Id<'races'>) {
+  const result = await ctx.db
+    .query('results')
+    .withIndex('by_race_session', (q) =>
+      q.eq('raceId', raceId).eq('sessionType', 'race'),
+    )
+    .unique();
+  const drivers = await Promise.all(
+    (result?.classification ?? []).slice(0, 3).map((id) => ctx.db.get(id)),
+  );
+  return drivers.flatMap((driver) => (driver ? [driver.displayName] : []));
+}
+
+/**
+ * The pick that earned the most in this weekend's Top 5, named for the email.
+ * Ties go to the earlier session, which is the order the weekend was played.
+ */
+async function bestPickOf(ctx: QueryCtx, scores: Array<Doc<'scores'>>) {
+  let best:
+    | {
+        driverId: Id<'drivers'>;
+        predictedPosition: number;
+        actualPosition: number | null;
+        points: number;
+        sessionLabel: string;
+      }
+    | undefined;
+  for (const score of scores) {
+    for (const item of score.breakdown ?? []) {
+      if (item.points > 0 && (!best || item.points > best.points)) {
+        best = {
+          driverId: item.driverId,
+          predictedPosition: item.predictedPosition,
+          actualPosition: item.actualPosition ?? null,
+          points: item.points,
+          sessionLabel: SESSION_LABELS_FULL[score.sessionType],
+        };
+      }
+    }
+  }
+  if (!best) {
+    return null;
+  }
+  const driver = await ctx.db.get(best.driverId);
+  if (!driver) {
+    return null;
+  }
+  return {
+    driverName: driver.displayName,
+    predictedPosition: best.predictedPosition,
+    actualPosition: best.actualPosition,
+    points: best.points,
+    sessionLabel: best.sessionLabel,
+  };
+}
+
+/**
+ * Builds the lapsed lead for someone who has played before and skipped the
+ * previous round. Anyone else, including a brand-new account (that is the
+ * signup nudge's job) and someone who played last time, gets `undefined` and
+ * the ordinary deadline-first reminder.
+ */
+async function lapsedLeadFor(
+  ctx: QueryCtx,
+  userId: Id<'users'>,
+  race: Doc<'races'>,
+  appUrl: string,
+): Promise<LapsedLead | undefined> {
+  const previous = await ctx.db
+    .query('races')
+    .withIndex('by_season_round', (q) =>
+      q.eq('season', race.season).eq('round', race.round - 1),
+    )
+    .unique();
+  if (!previous || previous.status === 'cancelled') {
+    return undefined;
+  }
+  const playedPrevious = await ctx.db
+    .query('predictions')
+    .withIndex('by_user_race_session', (q) =>
+      q.eq('userId', userId).eq('raceId', previous._id),
+    )
+    .first();
+  if (playedPrevious) {
+    return undefined;
+  }
+  // Their most recent weekend, wherever it was: the proof this is their game.
+  let lastPrediction: Doc<'predictions'> | null = null;
+  for await (const prediction of ctx.db
+    .query('predictions')
+    .withIndex('by_user', (q) => q.eq('userId', userId))) {
+    if (
+      !lastPrediction ||
+      prediction.submittedAt > lastPrediction.submittedAt
+    ) {
+      lastPrediction = prediction;
+    }
+  }
+  if (!lastPrediction) {
+    return undefined;
+  }
+  const lastRace = await ctx.db.get(lastPrediction.raceId);
+  let lastPlayed = null;
+  if (lastRace) {
+    const [scores, rank] = await Promise.all([
+      ctx.db
+        .query('scores')
+        .withIndex('by_user_race_session', (q) =>
+          q.eq('userId', userId).eq('raceId', lastRace._id),
+        )
+        .take(4),
+      rankWithinRace(ctx, lastRace._id, userId),
+    ]);
+    lastPlayed = {
+      raceName: lastRace.name,
+      points: scores.reduce((sum, row) => sum + row.points, 0),
+      position: rank?.position ?? null,
+      totalPlayers: rank?.totalPlayers ?? null,
+    };
+  }
+  const [headline] = (await loadNewsHeadlines(ctx, race, 1)).items;
+  const writeup = getRaceWriteup(race.slug);
+  return {
+    headline: headline?.headline ?? null,
+    sourceName: headline?.sourceName ?? null,
+    writeupUrl: writeup
+      ? buildWriteupEmailUrl({
+          appUrl,
+          path: writeup.to,
+          campaign: 'prediction_reminder',
+        })
+      : null,
+    lastPlayed,
+  };
 }
 
 /**

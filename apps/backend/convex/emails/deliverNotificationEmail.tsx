@@ -29,7 +29,53 @@ const sessionRow = v.object({
   isSprint: v.boolean(),
 });
 
+/**
+ * What a reminder leads with for someone who sat out the last round.
+ *
+ * Four weeks of "your picks lock in 3 days" reached every lapsed newcomer on
+ * prod and brought none of them back, so for them the deadline goes second and
+ * the weekend's news goes first. `lastPlayed` is the hook that this is a game
+ * they are already in, not a sign-up pitch.
+ */
+const lapsedLead = v.object({
+  headline: v.union(v.string(), v.null()),
+  sourceName: v.union(v.string(), v.null()),
+  writeupUrl: v.union(v.string(), v.null()),
+  lastPlayed: v.union(
+    v.object({
+      raceName: v.string(),
+      points: v.number(),
+      position: v.union(v.number(), v.null()),
+      totalPlayers: v.union(v.number(), v.null()),
+    }),
+    v.null(),
+  ),
+});
+
+const nextRace = v.union(
+  v.object({ name: v.string(), raceUrl: v.string(), lockAt: v.number() }),
+  v.null(),
+);
+
 const payload = v.union(
+  /**
+   * The results mail for a player who has scored this season but sat this
+   * weekend out. Without it a lapsed player never saw a result again, only
+   * deadlines: the podium and the weekend winner are what they missed.
+   */
+  v.object({
+    kind: v.literal('recap'),
+    raceName: v.string(),
+    raceUrl: v.string(),
+    round: v.number(),
+    countryCode: v.union(v.string(), v.null()),
+    podium: v.array(v.string()),
+    weekendWinner: v.union(
+      v.object({ name: v.string(), points: v.number() }),
+      v.null(),
+    ),
+    nextRace,
+  }),
   v.object({
     kind: v.literal('reminder'),
     raceName: v.string(),
@@ -38,6 +84,7 @@ const payload = v.union(
     countryCode: v.union(v.string(), v.null()),
     lockAt: v.number(),
     sessions: v.array(sessionRow),
+    lapsed: v.optional(lapsedLead),
   }),
   v.object({
     kind: v.literal('signup'),
@@ -52,6 +99,27 @@ const payload = v.union(
     countryCode: v.union(v.string(), v.null()),
     top5Points: v.number(),
     h2hPoints: v.number(),
+    // Optional because jobs already scheduled before a deploy carry the old
+    // shape, and a first-timer's one results email must not fail validation.
+    weekendRank: v.optional(
+      v.union(
+        v.object({ position: v.number(), totalPlayers: v.number() }),
+        v.null(),
+      ),
+    ),
+    bestPick: v.optional(
+      v.union(
+        v.object({
+          driverName: v.string(),
+          predictedPosition: v.number(),
+          actualPosition: v.union(v.number(), v.null()),
+          points: v.number(),
+          sessionLabel: v.string(),
+        }),
+        v.null(),
+      ),
+    ),
+    nextRace: v.optional(nextRace),
   }),
 );
 
@@ -122,7 +190,59 @@ export function formatTimeUntil(ms: number): string {
   return minutes === 1 ? '1 minute' : `${minutes} minutes`;
 }
 
+/** "Next: Mexican Grand Prix. Picks lock Sat, 31 Oct, 21:00 UTC." */
+export function nextRaceLine(
+  next: { name: string; lockAt: number } | null | undefined,
+  timezone: string | undefined,
+): string | undefined {
+  if (!next) {
+    return undefined;
+  }
+  const [lock] = formatSessionSchedule(
+    [{ label: 'Lock', startAt: next.lockAt, isSprint: false }],
+    timezone,
+  );
+  return `Next: ${next.name}. Picks lock ${lock.date}, ${lock.time}.`;
+}
+
+/** "Verstappen won the Italian Grand Prix from Norris and Leclerc." */
+export function podiumLine(raceName: string, podium: Array<string>): string {
+  const [first, second, third] = podium;
+  if (!first) {
+    return `The ${raceName} has been scored.`;
+  }
+  if (!second) {
+    return `${first} won the ${raceName}.`;
+  }
+  const rest = third ? `${second} and ${third}` : second;
+  return `${first} won the ${raceName} from ${rest}.`;
+}
+
+export function ordinal(n: number): string {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) {
+    return `${n}th`;
+  }
+  const suffix = { 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] ?? 'th';
+  return `${n}${suffix}`;
+}
+
+/** "Last time out: Italian Grand Prix, 31 points, 5th of 14." */
+export function lastPlayedLine(last: {
+  raceName: string;
+  points: number;
+  position: number | null;
+  totalPlayers: number | null;
+}): string {
+  const rank =
+    last.position !== null && last.totalPlayers !== null
+      ? `, ${ordinal(last.position)} of ${last.totalPlayers}`
+      : '';
+  return `Last time out: ${last.raceName}, ${last.points} points${rank}.`;
+}
+
 export type DeliverPayload = Infer<typeof payload>;
+export type LapsedLead = Infer<typeof lapsedLead>;
 
 export const deliver = internalAction({
   args: {
@@ -153,11 +273,23 @@ export const deliver = internalAction({
           args.payload.sessions,
           args.timezone,
         );
-        subject = `${args.payload.raceName}: your picks lock in ${timeUntilLock}`;
+        const lapsed = args.payload.lapsed;
+        const lastPlayed = lapsed?.lastPlayed
+          ? lastPlayedLine(lapsed.lastPlayed)
+          : null;
+        // A lapsed reader has already ignored the deadline subject for weeks,
+        // so theirs carries the story instead when there is one.
+        subject =
+          lapsed?.headline && lapsed.headline.length <= 80
+            ? `${args.payload.raceName}: ${lapsed.headline}`
+            : `${args.payload.raceName}: your picks lock in ${timeUntilLock}`;
         lines = [
+          ...(lapsed?.headline ? [lapsed.headline, ''] : []),
+          ...(lastPlayed ? [lastPlayed, ''] : []),
           `Predictions for the ${args.payload.raceName} lock in ${timeUntilLock}.`,
           '',
           ...sessions.map((s) => `${s.label}: ${s.date}, ${s.time}`),
+          ...(lapsed?.writeupUrl ? ['', lapsed.writeupUrl] : []),
         ];
         body = (
           <PredictionReminderEmail
@@ -168,6 +300,49 @@ export const deliver = internalAction({
             sessions={sessions}
             round={args.payload.round}
             countryCode={args.payload.countryCode}
+            lead={
+              lapsed?.headline
+                ? {
+                    headline: lapsed.headline,
+                    sourceName: lapsed.sourceName,
+                    writeupUrl: lapsed.writeupUrl,
+                  }
+                : undefined
+            }
+            lastPlayed={lastPlayed ?? undefined}
+          />
+        );
+      } else if (args.payload.kind === 'recap') {
+        const { raceName, podium, weekendWinner } = args.payload;
+        const next = args.payload.nextRace;
+        const headline = podiumLine(raceName, podium);
+        const winner = weekendWinner
+          ? `${weekendWinner.name} topped the weekend board with ${weekendWinner.points} points.`
+          : 'Nobody has been scored yet.';
+        const helperText = nextRaceLine(next, args.timezone);
+        subject = podium[0]
+          ? `${raceName}: ${podium[0]} wins`
+          : `${raceName}: results are in`;
+        lines = [
+          headline,
+          winner,
+          ...(helperText ? ['', helperText, next!.raceUrl] : []),
+        ];
+        body = (
+          <ResultsEmailShell
+            {...shared}
+            previewText={headline}
+            headline={headline}
+            intro={winner}
+            raceName={raceName}
+            raceUrl={args.payload.raceUrl}
+            round={args.payload.round}
+            countryCode={args.payload.countryCode}
+            primaryCtaLabel="See Weekend Standings"
+            secondaryCtaLabel={next ? `Make ${next.name} picks` : undefined}
+            secondaryCtaUrl={next?.raceUrl}
+            helperText={helperText}
+            footerText="You're receiving this because you have result notifications enabled."
           />
         );
       } else if (args.payload.kind === 'signup') {
@@ -187,22 +362,44 @@ export const deliver = internalAction({
           />
         );
       } else {
-        const { top5Points, h2hPoints, raceName } = args.payload;
+        const { top5Points, h2hPoints, raceName, weekendRank, bestPick } =
+          args.payload;
         const total = top5Points + h2hPoints;
         const intro = `Top 5: ${top5Points} points. Head-to-head: ${h2hPoints} points.`;
-        subject = `${raceName}: you scored ${total} points`;
-        lines = [`You scored ${total} points at the ${raceName}.`, intro];
+        const details = [
+          weekendRank
+            ? `${ordinal(weekendRank.position)} of ${weekendRank.totalPlayers} players this weekend.`
+            : null,
+          bestPick
+            ? `Best pick: ${bestPick.driverName} P${bestPick.predictedPosition} in ${bestPick.sessionLabel.toLowerCase()}, ${bestPick.points} ${bestPick.points === 1 ? 'point' : 'points'}.`
+            : null,
+        ].filter((line): line is string => line !== null);
+        const next = args.payload.nextRace;
+        const helperText = nextRaceLine(next, args.timezone);
+        subject = weekendRank
+          ? `${raceName}: ${total} points, ${ordinal(weekendRank.position)} of ${weekendRank.totalPlayers}`
+          : `${raceName}: you scored ${total} points`;
+        lines = [
+          `You scored ${total} points at the ${raceName}.`,
+          intro,
+          ...details,
+          ...(helperText ? ['', helperText, next!.raceUrl] : []),
+        ];
         body = (
           <ResultsEmailShell
             {...shared}
             previewText={`You scored ${total} points at the ${raceName}.`}
             headline={`You scored ${total} points`}
             intro={intro}
+            details={details}
             raceName={raceName}
             raceUrl={args.payload.raceUrl}
             round={args.payload.round}
             countryCode={args.payload.countryCode}
             primaryCtaLabel="See Weekend Standings"
+            secondaryCtaLabel={next ? `Make ${next.name} picks` : undefined}
+            secondaryCtaUrl={next?.raceUrl}
+            helperText={helperText}
             footerText="You're receiving this because you have result notifications enabled."
           />
         );

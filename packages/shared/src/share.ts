@@ -44,3 +44,35 @@ export function buildScoreShareText({
     ? `I scored ${points} points at the ${raceName} 🏆\n\nThink you can beat me next round on ${accountHandle}?`
     : `${points} points so far at the ${raceName} 📈\n\nFollow the results on ${accountHandle}.`;
 }
+
+/** `P1 🇬🇧 NOR\nP2 ...`: one driver per line with its flag, in pick order. */
+export function formatPositionList(
+  drivers: readonly { code: string; nationality?: string | null }[],
+) {
+  return drivers
+    .map((driver, index) => {
+      const flag = countryCodeToFlagEmoji(driver.nationality);
+      return `P${index + 1} ${flag ? `${flag} ` : ''}${driver.code}`;
+    })
+    .join('\n');
+}
+
+/**
+ * A Top 5 as a message for a group chat or the native share sheet, where the
+ * link that follows it does the work an X handle does on X. No handle: in a
+ * WhatsApp group it is noise, and the people the site's players actually talk
+ * to are there, not on X. The challenge line is the ask.
+ */
+export function buildPicksMessageText({
+  raceName,
+  sessionLabel,
+  picks,
+}: {
+  raceName: string;
+  sessionLabel: string;
+  picks: readonly { code: string; nationality?: string | null }[];
+}) {
+  return `My ${sessionLabel} top 5 for the ${raceName} 🎯\n\n${formatPositionList(
+    picks,
+  )}\n\nThink you can beat me? Make yours here:`;
+}

@@ -226,6 +226,23 @@ describe('home.getRaceRecap', () => {
       const viewer = await addUser(ctx, 'viewer');
       const friend = await addUser(ctx, 'friend');
       const stranger = await addUser(ctx, 'stranger');
+      // A season position needs a season behind it: two earlier scored rounds
+      // take the viewer past `SEASON_RANK_MIN_ROUNDS`.
+      for (const round of [14, 15]) {
+        const earlier = await addRace(ctx, {
+          round,
+          name: `Round ${round}`,
+          slug: `round-${round}-2026`,
+          raceStartAt: Date.now() - (17 - round) * 7 * 24 * HOUR,
+          status: 'finished',
+        });
+        await publishRaceResult(ctx, earlier);
+        await addRaceScore(ctx, {
+          userId: viewer,
+          raceId: earlier,
+          top5Points: 50,
+        });
+      }
       await ctx.db.insert('follows', {
         followerId: viewer,
         followeeId: friend,
@@ -281,6 +298,36 @@ describe('home.getRaceRecap', () => {
     ]);
     expect(recap?.friends[0].isViewer).toBe(true);
     expect(recap?.friendCount).toBe(1);
+  });
+
+  it('holds back the season position until a newcomer has three scored rounds', async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async (ctx) => {
+      const race = await addRace(ctx, {
+        round: 16,
+        name: 'Bahrain Grand Prix',
+        slug: 'bahrain-2026',
+        raceStartAt: Date.now() - 3 * HOUR,
+        status: 'finished',
+      });
+      await publishRaceResult(ctx, race);
+      const viewer = await addUser(ctx, 'viewer');
+      const veteran = await addUser(ctx, 'veteran');
+      await addRaceScore(ctx, { userId: viewer, raceId: race, top5Points: 20 });
+      await addRaceScore(ctx, { userId: veteran, raceId: race, top5Points: 5 });
+      await addSeasonPoints(ctx, { userId: viewer, top5Points: 20 });
+      await addSeasonPoints(ctx, { userId: veteran, top5Points: 300 });
+    });
+
+    const recap = await t
+      .withIdentity({ subject: 'viewer' })
+      .query(api.home.getRaceRecap, {});
+
+    // Won the weekend, last in the season by arithmetic. Only the first is
+    // a comparison worth showing a first-timer.
+    expect(recap?.viewer).toMatchObject({ rank: 1, fieldSize: 2 });
+    expect(recap?.viewer?.seasonRank).toBeNull();
+    expect(recap?.viewer?.seasonRankDelta).toBeNull();
   });
 
   it('keeps the viewer in the followed table when they finish outside it', async () => {

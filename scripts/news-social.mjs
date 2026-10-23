@@ -175,7 +175,14 @@ async function inventory(buffer, organizationId, channelId, now) {
 export async function newsSocial(
   file,
   flags,
-  { root, convexRun, buffer = bufferCommand, now = Date.now() },
+  {
+    root,
+    convexRun,
+    buffer = bufferCommand,
+    now = Date.now(),
+    /** Channel to report on for `check` when the ledger names none. */
+    defaultChannel,
+  },
 ) {
   if (flags.apply && !flags.prod) {
     throw new Error(
@@ -234,6 +241,7 @@ export async function newsSocial(
       now,
       ledgerFile,
       sharedState,
+      defaultChannel,
     });
   } finally {
     try {
@@ -249,7 +257,7 @@ export async function newsSocial(
 async function run(
   file,
   flags,
-  { convexRun, buffer, now, ledgerFile, sharedState },
+  { convexRun, buffer, now, ledgerFile, sharedState, defaultChannel },
 ) {
   if (!file) {
     throw new Error('news social <selection.json>|check [--prod] [--apply]');
@@ -456,8 +464,25 @@ async function run(
           'The selected Buffer channel must be a connected, unpaused X channel in this organization.',
         );
       }
-      timezones.set(channelId, channel.timezone || DEFAULT_TIMEZONE);
-      queues.set(id, await inventory(buffer, organizationId, channelId, now));
+      const timeZone = channel.timezone || DEFAULT_TIMEZONE;
+      timezones.set(channelId, timeZone);
+      const items = await inventory(buffer, organizationId, channelId, now);
+      queues.set(id, items);
+      // So a sweep can see whether the channel has posted today before it
+      // decides a merely interesting story is worth the day's post.
+      const day = dayKey(now, timeZone);
+      reports.push({
+        action: 'queue',
+        channelId,
+        day,
+        posted: items.filter(
+          (item) =>
+            (ACTIVE.has(item.status) || item.status === 'sent') &&
+            Number.isFinite(Date.parse(item.sentAt ?? item.dueAt)) &&
+            dayKey(Date.parse(item.sentAt ?? item.dueAt), timeZone) === day,
+        ).length,
+        cap: DAILY_CAP,
+      });
     }
     return queues.get(id);
   }
@@ -465,6 +490,10 @@ async function run(
   const relevant = ledger.posts.filter(
     (entry) => entry.deployment === deployment,
   );
+  if (!plan && defaultChannel) {
+    // `check` with nothing queued still reports the channel's day.
+    await queue(defaultChannel.organizationId, defaultChannel.channelId);
+  }
   const cancellations = [];
   for (const entry of relevant) {
     if (entry.status === 'cancelled' || entry.status === 'sent') {

@@ -183,7 +183,11 @@ test('apply verifies creates and retry skips the same story revisions across sel
   f.plan.posts[0].text = 'Different wording for the same news.';
   f.write();
   const result = await f.run(true);
-  assert.ok(result.reports.every((post) => post.action === 'skipped'));
+  assert.ok(
+    result.reports
+      .filter((post) => post.action !== 'queue')
+      .every((post) => post.action === 'skipped'),
+  );
   assert.equal(f.remote.length, 2);
 });
 
@@ -241,10 +245,10 @@ test('check previews then cancels only superseded news posts owned by this workf
   });
   f.live[0].body = 'A new development supersedes the scheduled copy.';
   const preview = await f.run(false, 'check');
-  assert.equal(preview.reports[0].action, 'would_cancel');
+  assert.equal(preview.reports.at(-1).action, 'would_cancel');
   assert.equal(f.remote.length, 2);
   const result = await f.run(true, 'check');
-  assert.equal(result.reports[0].action, 'cancelled');
+  assert.equal(result.reports.at(-1).action, 'cancelled');
   assert.deepEqual(
     f.remote.map((item) => item.id),
     ['other'],
@@ -261,7 +265,7 @@ test('sent stories require explicit material-update selection; changed revision 
   f.plan.posts[0].text = 'A confirmed new development.';
   f.write();
   const preview = await f.run();
-  assert.equal(preview.reports[0].action, 'skipped');
+  assert.equal(preview.reports.at(-1).action, 'skipped');
   f.plan.posts[0].materialUpdate = true;
   f.write();
   await f.run(true);
@@ -354,7 +358,7 @@ test('inspects later queue pages before choosing slots', async (t) => {
     ],
   ]);
   const preview = await f.run();
-  assert.equal(preview.reports[0].dueAt, '2026-10-09T18:45:00.000Z');
+  assert.equal(preview.reports.at(-1).dueAt, '2026-10-09T18:45:00.000Z');
   assert.deepEqual(
     f.calls
       .filter((call) => call.command === 'posts list')
@@ -373,7 +377,7 @@ test('a selected material development replaces its superseded queued version', a
   const result = await f.run(true);
   assert.deepEqual(
     result.reports.map((post) => post.action),
-    ['cancelled', 'scheduled'],
+    ['queue', 'cancelled', 'scheduled'],
   );
   assert.equal(f.remote.length, 1);
   assert.equal(f.remote[0].text, f.plan.posts[0].text);
@@ -432,7 +436,7 @@ test('a global story posts as text with no image, and a post with no link has no
       convexRun: async () => ({ items: [live] }),
     },
   );
-  assert.equal(result.reports[0].action, 'scheduled');
+  assert.equal(result.reports.at(-1).action, 'scheduled');
   const create = f.calls.find(
     (call) => call.command === 'posts create' && !call.options.dryRun,
   );
@@ -482,4 +486,24 @@ test('the third post of a channel day is skipped by the daily cap, whoever poste
   const later = await f.run(true, f.file, NOW + 12 * 60 * MINUTE);
   assert.equal(later.reports.at(-1).action, 'scheduled');
   assert.equal(f.remote.length, 3);
+});
+
+test('every run reports how many posts the channel already has that day', async (t) => {
+  const f = fixture(t, 1);
+  f.remote.push({
+    id: 'app-results',
+    status: 'sent',
+    dueAt: '2026-10-09T12:05:00.000Z',
+    sentAt: '2026-10-09T12:05:00.000Z',
+    text: 'A results post',
+  });
+  const preview = await f.run();
+  const queue = preview.reports.find((report) => report.action === 'queue');
+  assert.deepEqual(queue, {
+    action: 'queue',
+    channelId: 'x',
+    day: '2026-10-09',
+    posted: 1,
+    cap: 2,
+  });
 });

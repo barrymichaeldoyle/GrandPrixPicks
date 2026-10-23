@@ -1264,6 +1264,12 @@ function printSocial(result, flags) {
     return console.log(JSON.stringify(result, null, 2));
   }
   for (const report of result.reports) {
+    if (report.action === 'queue') {
+      console.log(
+        `queue  ${report.posted}/${report.cap} posts on ${report.day} for channel ${report.channelId}`,
+      );
+      continue;
+    }
     console.log(
       `${report.action}  ${report.keys?.join(', ') ?? report.bufferPostId}  ${report.dueAt ?? report.reason ?? ''}`,
     );
@@ -1312,6 +1318,11 @@ switch (command) {
         const result = await newsSocial(rest[0], flags, {
           root: repoRoot,
           convexRun,
+          // Buffer's GrandPrixPicks X channel (docs/news-social.md).
+          defaultChannel: {
+            organizationId: '64f9a17b902afdecc48c8d02',
+            channelId: '6a6f4b8a99afb44349e9c0f4',
+          },
         });
         printSocial(result, flags);
       } catch (error) {

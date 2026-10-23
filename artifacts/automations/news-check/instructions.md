@@ -70,11 +70,14 @@ shared state or exclusive access is unavailable, continue research and verified
 feed publication, but skip all X changes and report why.
 
 When shared state is ready, preview and apply the pending-post check on every
-sweep. Select at most ONE X post per sweep, and none on most sweeps: only a
-story a fan would stop scrolling for (a grid penalty, a driver swap, an engine
-change, a stewards' ruling, a title permutation). Liveries, fan zones, show
-cars, contract extensions and upgrade talk stay on the feed and write-up and
-are not posted. The post text carries no URL and leads with the angle in
+sweep. Select at most ONE X post per sweep. A strong story posts on the sweep
+that finds it: a grid penalty, a driver swap, an engine change, a stewards'
+ruling, a title permutation. On the 18:00 sweep, read the `queue` line the
+CLI prints (posts on the channel today, including the app's own results
+posts): if it is zero, select the day's most interesting story so the
+account posts at least once a day (a preview angle, a confirmed upgrade, a
+form-guide fact, a sourced paddock story). Only liveries, fan zones and show
+cars never qualify. The post text carries no URL and leads with the angle in
 under 200 characters; the link goes in the selection's `link` field and the
 story's card is attached automatically. Use Buffer's GrandPrixPicks X channel,
 organization 64f9a17b902afdecc48c8d02, channel 6a6f4b8a99afb44349e9c0f4. The

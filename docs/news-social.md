@@ -1,10 +1,15 @@
 # X posts after a news sweep
 
 Select at most one X post per sweep, and the CLI allows two a day on the
-channel. Most sweeps select none. The bar is a story a fan would stop
-scrolling for: a grid penalty, a driver swap, an engine change, a stewards'
-ruling, a result that moves the title. A livery, a fan zone, a show car or a
-contract extension is feed and write-up material and is not posted.
+channel. A strong story posts on the sweep that finds it: a grid penalty, a
+driver swap, an engine change, a stewards' ruling, a result that moves the
+title. Short of that, the account still says something once a day. The
+evening sweep checks the `queue` line the CLI prints (posts on the channel
+today, including the app's own results posts) and, if it is zero, selects
+the day's most interesting story: a preview angle, an upgrade a team has
+confirmed, a form-guide fact, a sourced paddock story. Only a livery, a fan
+zone or a show car is never worth the day's post. The morning sweep posts
+only a strong story.
 
 Why so few: in the fortnight to 23 October 2026 the account sent 33 news
 posts with a link each, and they averaged 38 impressions. X shows a link feed

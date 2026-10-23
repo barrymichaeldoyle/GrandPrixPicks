@@ -172,11 +172,13 @@ chance to catch a mistake, not the publish itself.
 **4. Select X coverage.** A news sweep includes an editorial X selection after
 the news is published. Read [X posts after a news sweep](../../../docs/news-social.md)
 for the bar, the post shape, the selection format and the correction
-behavior. At most one post per sweep, and most sweeps select none: only a
-story a fan would stop scrolling for (a penalty, a swap, an engine change, a
-ruling, a title permutation). Liveries, fan zones, show cars and contract
-extensions stay on the feed and write-up. Post text carries no URL; the link
-goes in the selection's `link` and the story's card is attached automatically.
+behavior. At most one post per sweep. A strong story posts on the sweep that
+finds it (a penalty, a swap, an engine change, a ruling, a title
+permutation). If the channel has posted nothing today by the evening sweep
+(the CLI's `queue` line says so), post the day's most interesting story
+instead of nothing; only liveries, fan zones and show cars never qualify.
+Post text carries no URL; the link goes in the selection's `link` and the
+story's card is attached automatically.
 
 Session results post themselves (`apps/backend/convex/socialPosts.ts`); a
 sweep never posts a classification by hand.

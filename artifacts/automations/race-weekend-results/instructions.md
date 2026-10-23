@@ -1,8 +1,10 @@
 # Grand Prix Picks — race weekend results
 
-Runs every three hours from Friday to Monday (UTC cron: `28 */3 * * 5,6,0,1`),
-so a Sunday-night result still goes out in the small hours of Monday. Use
-the GitHub repository `barrymichaeldoyle/GrandPrixPicks`.
+Runs hourly on Saturday and Sunday (UTC cron: `28 * * * 6,0`), so a result
+goes out within the hour of being published, while people are still talking
+about the session. A sister routine runs the same steps every three hours on
+Friday and Monday as a catch-up. Use the GitHub repository
+`barrymichaeldoyle/GrandPrixPicks`.
 
 At the start of EVERY run, fetch `main` from origin and check out its fetched
 commit before installing dependencies or running the workflow. Never push to
@@ -27,7 +29,8 @@ Steps, every run:
 
 1. `pnpm gpp race --prod`. If no race weekend is current (no session of the
    shown race has locked yet, or its race finished more than a day ago), stop
-   and report "no race weekend". This is the normal outcome on most weekends.
+   and report "no race weekend". This is the normal outcome on most runs, and
+   it should take under a minute.
 2. For each session the output shows a published result for, in weekend
    order (sprint quali, sprint, qualifying, race):
    `pnpm gpp results social <slug> <session> --prod`, read the preview, then

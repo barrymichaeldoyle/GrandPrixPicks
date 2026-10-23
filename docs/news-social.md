@@ -1,7 +1,11 @@
 # X posts after a news sweep
 
 Select at most one X post per sweep, and the CLI allows two a day on the
-channel. A strong story posts on the sweep that finds it: a grid penalty, a
+channel for routine coverage. Confirmed grid penalties that change the race
+starting order may exceed that daily limit; record the reason and source in
+the selected post's `dailyCapException`. Possible future penalties and repeated
+coverage do not qualify. Keep one post per sweep and normal spacing.
+A strong story posts on the sweep that finds it: a grid penalty, a
 driver swap, an engine change, a stewards' ruling, a result that moves the
 title. Short of that, the account still says something once a day. The
 evening sweep checks the `queue` line the CLI prints (posts on the channel
@@ -47,7 +51,9 @@ checks the existing X queue, and schedules selected posts 25 minutes apart.
 recently sent posts count toward that spacing. An urgent development can use
 the next available slot; set its requested start time accordingly. A post
 that would be the third of a channel day (Africa/Johannesburg, or the
-channel's own timezone) is skipped and reported, not scheduled.
+channel's own timezone) is skipped and reported unless the selected post has
+a reviewed `dailyCapException` reason. The CLI requires pick-related race news
+for an exception and records its reason in the preview and durable ledger.
 
 ## Session results on race weekends
 
@@ -143,6 +149,10 @@ sets `startAt` to `07:30:00Z` (09:30 CET) unless the story is urgent.
   ]
 }
 ```
+
+`dailyCapException` is an optional non-empty reason of at most 240 characters,
+reserved for confirmed grid penalties. It identifies the penalty and source;
+the story must be pick-related and affect the race.
 
 `keys` references stories in `newsFile`. Each key may appear only once in a
 selection, and a selection holds one or two posts. `link` is optional; the

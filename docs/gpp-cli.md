@@ -34,8 +34,9 @@ scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
   spaces posts 20–30 minutes apart (25 by default). Post text carries no URL:
   the story's card is attached as the image and `link` goes in a reply, or
   `quote` (an X post URL) makes it a quote post of the source instead. Two
-  posts a channel day, counting the app's own results posts; a third is
-  skipped. `--apply` schedules them
+  routine posts a channel day, counting the app's own results posts; a third is
+  skipped unless confirmed grid penalties carry a reviewed `dailyCapException`
+  reason. `--apply` schedules them
   and cancels superseded or expired queued news owned by this workflow.
   `news social check` checks the existing news queue without selecting posts.
   A durable ledger reconciles interrupted creates and prevents repeated

@@ -32,7 +32,9 @@ Complete news sweeps with the X selection and pending-post checks in
 `docs/news-social.md` and `.claude/skills/publish-race-news/SKILL.md`. Select
 at most one post per sweep: a strong story whenever it breaks, otherwise the
 day's most interesting story on the evening sweep so the account posts at
-least once a day. The CLI caps the channel at two posts a day. Session results post themselves from the backend
+least once a day. The CLI limits routine coverage to two posts a day; confirmed
+grid penalties may exceed that limit with a documented `dailyCapException`
+as described in the publishing skill. Session results post themselves from the backend
 (`socialPosts.ts`), never from a sweep.
 
 ## Expo Mobile App

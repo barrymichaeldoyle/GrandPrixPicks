@@ -488,6 +488,60 @@ test('the third post of a channel day is skipped by the daily cap, whoever poste
   assert.equal(f.remote.length, 3);
 });
 
+test('confirmed race news can exceed the daily cap with an audited exception, without bypassing deduplication', async (t) => {
+  const f = fixture(t, 1);
+  f.news[0].category = 'pick_related';
+  f.news[0].affectsSessions = ['race'];
+  Object.assign(f.live[0], f.news[0]);
+  f.write();
+  f.remote.push(
+    ...[1, 2].map((i) => ({
+      id: `sent-${i}`,
+      status: 'sent',
+      text: `Earlier post ${i}`,
+      dueAt: `2026-10-09T1${i}:00:00Z`,
+      sentAt: `2026-10-09T1${i}:00:00Z`,
+    })),
+  );
+  assert.equal((await f.run()).reports.at(-1).action, 'skipped');
+  const reason = 'Formula 1 confirms a five-place race grid penalty.';
+  f.plan.posts[0].dailyCapException = reason;
+  f.write();
+  const preview = await f.run();
+  assert.equal(preview.reports.at(-1).action, 'would_schedule');
+  assert.equal(preview.reports.at(-1).dailyCapException, reason);
+  assert.equal(f.remote.length, 2);
+  assert.equal((await f.run(true)).reports.at(-1).action, 'scheduled');
+  assert.equal(f.ledger().posts[0].dailyCapException, reason);
+  assert.equal((await f.run(true)).reports.at(-1).action, 'skipped');
+  assert.equal(f.remote.length, 3);
+});
+
+test('daily cap exceptions reject blank reasons and general news', async (t) => {
+  const f = fixture(t, 1);
+  f.plan.posts[0].dailyCapException = ' ';
+  f.write();
+  await assert.rejects(f.run(true), /dailyCapException reason/);
+  f.plan.posts[0].dailyCapException = 'A routine preview';
+  f.write();
+  await assert.rejects(f.run(true), /requires pick-related race news/);
+  assert.equal(f.remote.length, 0);
+});
+
+test('a cancelled post can be selected again without claiming a material update', async (t) => {
+  const f = fixture(t, 1);
+  await f.run(true);
+  // A changed live story cancels the pending post.
+  f.live[0].body = 'Corrected body.';
+  await f.run(true, 'check');
+  assert.equal(f.ledger().posts[0].status, 'cancelled');
+  assert.equal(f.remote.length, 0);
+  f.news[0].body = f.live[0].body;
+  f.write();
+  assert.equal((await f.run(true)).reports.at(-1).action, 'scheduled');
+  assert.equal(f.remote.length, 1);
+});
+
 test('every run reports how many posts the channel already has that day', async (t) => {
   const f = fixture(t, 1);
   f.remote.push({

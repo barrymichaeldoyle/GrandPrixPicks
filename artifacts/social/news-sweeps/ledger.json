@@ -1124,6 +1124,27 @@
       "status": "cancelled",
       "bufferPostId": "6adbcb049acae620d81a3662",
       "cancellationReason": "Daily cap: verified two posts already sent on 2026-10-23; CLI inventory incorrectly reported zero."
+    },
+    {
+      "id": "baf215c0c37cdd45d8d857dd31277da96c6009c978ce82f74bdc0135641c8db5",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "austin-lindblad-colapinto-bortoleto-grid-penalties",
+          "revision": "f0d2793e7c420f65aefc3854d230c10b5808793ed799dfebc1c3ddcf79d09b2a"
+        }
+      ],
+      "text": "Three grid penalties for Austin: Lindblad drops five places, Colapinto ten, and Bortoleto starts at the back after power unit changes. Qualifying classification is unchanged.",
+      "dailyCapException": "Formula 1 confirms race grid penalties: Lindblad five places, Colapinto ten, Bortoleto twenty and a back-of-grid start.",
+      "link": "https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=austin-lindblad-colapinto-bortoleto-grid-penalties",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=austin-lindblad-colapinto-bortoleto-grid-penalties&v=f0d2793e7c42",
+      "dueAt": "2026-10-23T21:10:55.991Z",
+      "expiresAt": "2026-10-24T20:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6adbcc45e4be8a4d8626cfd2"
     }
   ]
 }

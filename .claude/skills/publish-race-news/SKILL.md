@@ -177,6 +177,16 @@ finds it (a penalty, a swap, an engine change, a ruling, a title
 permutation). If the channel has posted nothing today by the evening sweep
 (the CLI's `queue` line says so), post the day's most interesting story
 instead of nothing; only liveries, fan zones and show cars never qualify.
+
+The two-post daily limit applies to routine coverage. Confirmed grid penalties
+that change the race starting order deserve an X post even when two posts have
+already gone out. Set `dailyCapException` on the selected post to a short reason
+identifying the confirmed penalty and its source. This standing exception needs
+no further approval during an authorized news sweep. Speculation about a possible
+penalty, routine updates and repeats do not qualify. Keep one post per sweep,
+the normal spacing, source checks and duplicate guards. A post cancelled before
+publication may be selected again without inventing a material story update.
+
 Post text carries no URL; the link goes in the selection's `link` and the
 story's card is attached automatically. When the team, the FIA or Formula 1
 posted the story on X themselves (`gpp page <url>` lists embedded posts as

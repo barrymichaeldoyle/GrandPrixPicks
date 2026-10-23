@@ -22,8 +22,8 @@ const X_POST =
   /^https:\/\/(?:x|twitter)\.com\/[A-Za-z0-9_]+\/status\/(\d+)(?:[?#].*)?$/;
 const ACTIVE = new Set(['scheduled', 'sending', 'needs_approval']);
 /**
- * At most this many posts a day on the channel, scheduled or sent, whoever
- * made them.
+ * Routine posts per channel day, scheduled or sent, whoever made them.
+ * Confirmed grid penalties may carry a reviewed dailyCapException reason.
  * Thirty-three news posts in a fortnight averaged 38 impressions each
  * (2026-10-23): X shows a link feed to nobody. Fewer posts, each the strongest
  * story of its half-day, is the whole point of the selection.
@@ -316,10 +316,14 @@ async function run(
         (post.link !== undefined && typeof post.link !== 'string') ||
         (post.quote !== undefined && typeof post.quote !== 'string') ||
         (post.materialUpdate !== undefined &&
-          typeof post.materialUpdate !== 'boolean')
+          typeof post.materialUpdate !== 'boolean') ||
+        (post.dailyCapException !== undefined &&
+          (typeof post.dailyCapException !== 'string' ||
+            !post.dailyCapException.trim() ||
+            post.dailyCapException.length > 240))
       ) {
         throw new Error(
-          'Each post needs story keys, text within 280 weighted characters, an optional link or quote, and an optional boolean materialUpdate.',
+          'Each post needs story keys, text within 280 weighted characters, an optional link or quote, an optional boolean materialUpdate, and an optional dailyCapException reason (1–240 characters).',
         );
       }
       // The link goes in a reply, never in the post. X shows a post with a
@@ -354,6 +358,16 @@ async function run(
           revision: revision(item),
         };
       });
+      if (
+        post.dailyCapException &&
+        !items.every(
+          (item) =>
+            (item.category ?? 'pick_related') === 'pick_related' &&
+            item.affectsSessions?.includes('race'),
+        )
+      ) {
+        throw new Error('A dailyCapException requires pick-related race news.');
+      }
       const link = post.link?.trim() || null;
       // A quote post shows the quoted post's own media on its own licence, so
       // it carries neither our card nor a reply link: one thing per post.
@@ -618,7 +632,10 @@ async function run(
         });
         continue;
       }
-      if (history.length && !post.materialUpdate) {
+      if (
+        history.some((entry) => entry.status !== 'cancelled') &&
+        !post.materialUpdate
+      ) {
         reports.push({
           action: 'skipped',
           keys: post.keys,
@@ -664,7 +681,7 @@ async function run(
           ? dayKey(Date.parse(entry.sentAt ?? entry.dueAt), timeZone) === day
           : false,
       );
-      if (today.length >= DAILY_CAP) {
+      if (today.length >= DAILY_CAP && !post.dailyCapException) {
         reports.push({
           action: 'skipped',
           keys: post.keys,
@@ -720,6 +737,7 @@ async function run(
         stories: post.stories,
         keys: post.keys,
         quote: post.quote ?? null,
+        dailyCapException: post.dailyCapException?.trim(),
         expiresAt: new Date(post.expiresAt).toISOString(),
       });
       occupied.push(candidate);
@@ -750,6 +768,9 @@ async function run(
       channelId: plan.channelId,
       stories: post.stories,
       text: post.payload.text,
+      ...(post.dailyCapException
+        ? { dailyCapException: post.dailyCapException }
+        : {}),
       ...(post.payload.metadata?.twitter?.thread
         ? { link: post.payload.metadata.twitter.thread[1].text }
         : {}),
@@ -801,6 +822,7 @@ async function run(
       quote: record.quote,
       imageUrl: record.imageUrl,
       bufferPostId: record.bufferPostId,
+      dailyCapException: record.dailyCapException,
     });
   }
   return { deployment, apply, reports };

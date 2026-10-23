@@ -1317,6 +1317,9 @@ function printSocial(result, flags) {
     if (report.imageUrl) {
       console.log(`  image: ${report.imageUrl}`);
     }
+    if (report.dailyCapException) {
+      console.log(`  daily cap exception: ${report.dailyCapException}`);
+    }
   }
   console.log(
     flags.apply

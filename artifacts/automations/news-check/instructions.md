@@ -91,8 +91,13 @@ Reference the exact published payload snapshot in the selection. Preview copy
 and times before applying; verify each result. Persist ledger updates
 immediately through the configured shared state mechanism.
 
-Session results post themselves from the backend; never post a
-classification by hand or through the connector.
+Session results, the drivers' standings after a race and the players'
+consensus at a session lock post themselves from the backend; never post
+those by hand or through the connector. `pnpm gpp race --prod` lists them on
+an `x posts:` line; report any marked `!!`. On the 08:00 run, set the
+selection's `startAt` to `07:30:00Z` (09:30 CET) unless the story is urgent,
+so the post lands when Europe is awake. On Monday's 08:00 run, also run
+`pnpm gpp social stats` and include the table in the report.
 
 Retain payloads, selections and a dated sweep report on a new claude/ artifact
 branch for this run. The CLI itself persists the authoritative shared ledger;

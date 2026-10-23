@@ -1,28 +1,37 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
+import { getSessionsForWeekend } from '@grandprixpicks/shared/sessions';
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
+import type { ActionCtx, QueryCtx } from './_generated/server';
 import {
   internalAction,
   internalMutation,
   internalQuery,
 } from './_generated/server';
+import { sessionConsensus } from './consensus';
+import { loadChampionship } from './f1Standings';
+import { getSessionLockAt } from './feed';
 
 /**
- * Session results posted to X as @GrandPrixPicks, with no human in the loop.
+ * Posts the app makes as @GrandPrixPicks on X with no human in the loop.
  *
- * A results post is deterministic: the classification is in `results`, the
- * card is a public URL (`/og/results`), and Buffer takes a plain API call. So
- * it runs here on a cron rather than in a cloud agent session (Barry,
- * 2026-10-23). The news posts stay editorial and go through the operator CLI.
+ * Three kinds, all deterministic, so they run here on a cron rather than in a
+ * cloud agent session (Barry, 2026-10-23). The news posts stay editorial and
+ * go through the operator CLI.
  *
- * One post per race and session, ever. The `socialPosts` row is the guard:
- * it is written before the Buffer call, so an action that dies mid-way
- * leaves a `creating` row that is reported and never retried blind. A result
- * amended while its post is still queued cancels the queued post (the card
- * it carries is stale) and posts the corrected one; a result amended after
- * the post went out is left alone, the way a sent news post is.
+ * - `results`: a session's classification, minutes after it is published.
+ * - `standings`: the drivers' championship after a race result.
+ * - `consensus`: what players picked, once a session has locked and enough
+ *   of them entered for the crowd to mean something.
+ *
+ * One post per race, session and kind, ever. The `socialPosts` row is the
+ * guard: it is written before the Buffer call, so an action that dies
+ * mid-way leaves a `creating` row that is reported and never retried blind.
+ * Content that changes while its post is still queued (an amended result)
+ * cancels the queued post and posts the corrected one; once sent it is left
+ * alone, the way a sent news post is.
  *
  * Env-gated like Discord: without `BUFFER_API_KEY` and
  * `BUFFER_X_CHANNEL_ID` the scan is a no-op, which is what dev wants.
@@ -30,7 +39,7 @@ import {
 
 const SITE = 'https://grandprixpicks.com';
 const BUFFER_API = 'https://api.buffer.com';
-/** How far back a published result is still worth posting. */
+/** How far back a published result or a lock is still worth posting. */
 const LOOKBACK_MS = 36 * 60 * 60 * 1000;
 /**
  * Queue the post a little after detection rather than sharing now. The
@@ -38,7 +47,16 @@ const LOOKBACK_MS = 36 * 60 * 60 * 1000;
  * common corrections, and a queued post can be cancelled; a sent one cannot.
  */
 const POST_DELAY_MS = 10 * 60 * 1000;
+/** The standings post follows the race post, not competes with it. */
+const STANDINGS_DELAY_MS = 25 * 60 * 1000;
 const MAX_ATTEMPTS = 3;
+/**
+ * Below this many entrants a consensus post is a handful of people, not a
+ * crowd, and reads as such. The poster stays silent until the number is
+ * honest and starts by itself when it is (10-14 pickers a session in
+ * October 2026).
+ */
+export const CONSENSUS_MIN_ENTRANTS = 25;
 
 const SESSION_WORD: Record<SessionType, string> = {
   quali: 'qualifying',
@@ -46,6 +64,8 @@ const SESSION_WORD: Record<SessionType, string> = {
   sprint: 'sprint',
   race: 'race',
 };
+
+type Kind = Doc<'socialPosts'>['kind'];
 
 export type ResultEntry = {
   position: number;
@@ -56,6 +76,20 @@ export type ResultEntry = {
 
 function surname(name: string): string {
   return name.trim().split(/\s+/).pop() ?? name;
+}
+
+function shortRace(raceName: string): string {
+  return raceName.replace(/ Grand Prix$/, ' GP');
+}
+
+/** A short stable fingerprint of a post's content (djb2, hex). */
+export function revisionOf(parts: readonly (string | number | null)[]): string {
+  const text = parts.join('|');
+  let hash = 5381;
+  for (let index = 0; index < text.length; index++) {
+    hash = ((hash << 5) + hash + text.charCodeAt(index)) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
 }
 
 /** The podium in plain words. Throws when fewer than three drivers classified. */
@@ -69,23 +103,66 @@ export function resultsPostText(
     throw new Error('A results post needs three classified finishers.');
   }
   const [first, second, third] = top.map((entry) => surname(entry.name));
-  const name = raceName.replace(/ Grand Prix$/, ' GP');
+  const name = shortRace(raceName);
   if (session === 'quali' || session === 'sprint_quali') {
     return `${name} ${SESSION_WORD[session]}: ${first} on pole, ${second} second, ${third} third.`;
   }
   return `${name} ${SESSION_WORD[session]}: ${first} wins from ${second} and ${third}.`;
 }
 
-/** A short stable fingerprint of a classification (djb2, hex). */
 export function classificationRevision(entries: ResultEntry[]): string {
-  const text = entries
-    .map((entry) => `${entry.position}:${entry.code}:${entry.status ?? ''}`)
-    .join('|');
-  let hash = 5381;
-  for (let index = 0; index < text.length; index++) {
-    hash = ((hash << 5) + hash + text.charCodeAt(index)) >>> 0;
+  return revisionOf(
+    entries.map(
+      (entry) => `${entry.position}:${entry.code}:${entry.status ?? ''}`,
+    ),
+  );
+}
+
+export type StandingsEntry = {
+  position: number;
+  code: string;
+  name: string;
+  points: number;
+};
+
+/** "Antonelli leads Russell by 102 with five rounds left." */
+export function standingsPostText(
+  raceName: string,
+  entries: StandingsEntry[],
+  roundsLeft: number,
+): string {
+  const [leader, second] = entries;
+  if (!leader || !second) {
+    throw new Error('A standings post needs two drivers.');
   }
-  return hash.toString(16).padStart(8, '0');
+  const gap = leader.points - second.points;
+  const lead =
+    gap === 0
+      ? `${surname(leader.name)} and ${surname(second.name)} are level on ${leader.points}`
+      : `${surname(leader.name)} leads ${surname(second.name)} by ${gap}`;
+  const left =
+    roundsLeft === 0
+      ? 'That is the season.'
+      : `${roundsLeft} ${roundsLeft === 1 ? 'round' : 'rounds'} left.`;
+  return `Drivers' championship after the ${shortRace(raceName)}: ${lead}. ${left}`;
+}
+
+export type ConsensusEntry = { code: string; name: string; pickRate: number };
+
+/** "Austin qualifying: 41 players locked in. Verstappen is the pick for pole (62%), then Leclerc and Norris." */
+export function consensusPostText(
+  raceName: string,
+  session: SessionType,
+  entrants: number,
+  entries: ConsensusEntry[],
+): string {
+  const [first, second, third] = entries;
+  if (!first || !second || !third) {
+    throw new Error('A consensus post needs three drivers.');
+  }
+  const slot =
+    session === 'quali' || session === 'sprint_quali' ? 'pole' : 'the win';
+  return `${shortRace(raceName)} ${SESSION_WORD[session]}: ${entrants} players locked in. ${surname(first.name)} is the pick for ${slot} (${Math.round(first.pickRate)}%), then ${surname(second.name)} and ${surname(third.name)}.`;
 }
 
 export function resultsCardUrl(
@@ -94,6 +171,30 @@ export function resultsCardUrl(
   revision: string,
 ): string {
   return `${SITE}/og/results?race=${encodeURIComponent(raceSlug)}&session=${session}&v=${revision}`;
+}
+
+async function postRow(
+  ctx: QueryCtx,
+  raceId: Id<'races'>,
+  sessionType: SessionType,
+  kind: Kind,
+) {
+  const post = await ctx.db
+    .query('socialPosts')
+    .withIndex('by_race_session_kind', (q) =>
+      q.eq('raceId', raceId).eq('sessionType', sessionType).eq('kind', kind),
+    )
+    .unique();
+  return post
+    ? {
+        _id: post._id,
+        status: post.status,
+        revision: post.revision,
+        bufferPostId: post.bufferPostId ?? null,
+        dueAt: post.dueAt,
+        attempts: post.attempts,
+      }
+    : null;
 }
 
 /** Results published recently, each with its post row if there is one. */
@@ -124,15 +225,6 @@ export const recentResults = internalQuery({
           status: statusByDriver.get(driverId) ?? null,
         });
       }
-      const post = await ctx.db
-        .query('socialPosts')
-        .withIndex('by_race_session_kind', (q) =>
-          q
-            .eq('raceId', result.raceId)
-            .eq('sessionType', result.sessionType)
-            .eq('kind', 'results'),
-        )
-        .unique();
       out.push({
         raceId: result.raceId,
         raceSlug: race.slug,
@@ -140,17 +232,94 @@ export const recentResults = internalQuery({
         sessionType: result.sessionType,
         publishedAt: result.publishedAt,
         entries,
-        post: post
-          ? {
-              _id: post._id,
-              status: post.status,
-              revision: post.revision,
-              bufferPostId: post.bufferPostId ?? null,
-              dueAt: post.dueAt,
-              attempts: post.attempts,
-            }
-          : null,
+        post: await postRow(ctx, result.raceId, result.sessionType, 'results'),
       });
+    }
+    return out;
+  },
+});
+
+/**
+ * The drivers' championship after the most recent race result in the
+ * window, with how many rounds the season has left after it.
+ */
+export const standingsCandidate = internalQuery({
+  args: { since: v.number() },
+  handler: async (ctx, args) => {
+    let latest: Doc<'results'> | null = null;
+    for await (const result of ctx.db
+      .query('results')
+      .withIndex('by_publishedAt', (q) => q.gte('publishedAt', args.since))) {
+      if (
+        result.sessionType === 'race' &&
+        (!latest || result.publishedAt > latest.publishedAt)
+      ) {
+        latest = result;
+      }
+    }
+    if (!latest) {
+      return null;
+    }
+    const race = await ctx.db.get(latest.raceId);
+    if (!race) {
+      return null;
+    }
+    const championship = await loadChampionship(ctx, race.season);
+    const entries: StandingsEntry[] = championship.drivers
+      .slice(0, 10)
+      .map((driver) => ({
+        position: driver.position,
+        code: driver.code,
+        name: driver.displayName,
+        points: driver.points,
+      }));
+    let roundsLeft = 0;
+    for await (const other of ctx.db.query('races')) {
+      if (other.season === race.season && other.round > race.round) {
+        roundsLeft += 1;
+      }
+    }
+    return {
+      raceId: race._id,
+      raceSlug: race.slug,
+      raceName: race.name,
+      season: race.season,
+      roundsLeft,
+      entries,
+      post: await postRow(ctx, race._id, 'race', 'standings'),
+    };
+  },
+});
+
+/** Sessions that locked in the window, with what players picked. */
+export const consensusCandidates = internalQuery({
+  args: { since: v.number(), now: v.number() },
+  handler: async (ctx, args) => {
+    const out = [];
+    for await (const race of ctx.db.query('races')) {
+      for (const sessionType of getSessionsForWeekend(
+        Boolean(race.hasSprint),
+      )) {
+        const lockAt = getSessionLockAt(race, sessionType);
+        if (lockAt == null || lockAt < args.since || lockAt > args.now) {
+          continue;
+        }
+        const consensus = await sessionConsensus(ctx, race, sessionType);
+        out.push({
+          raceId: race._id,
+          raceSlug: race.slug,
+          raceName: race.name,
+          sessionType,
+          lockAt,
+          entrants: consensus?.entrants ?? 0,
+          entries: (consensus?.drivers ?? []).slice(0, 5).map((driver) => ({
+            code: driver.code,
+            name: driver.displayName,
+            pickRate: driver.pickRate,
+          })),
+          post: await postRow(ctx, race._id, sessionType, 'consensus'),
+        });
+      }
     }
     return out;
   },
@@ -165,6 +334,11 @@ export const begin = internalMutation({
       v.literal('sprint_quali'),
       v.literal('sprint'),
       v.literal('race'),
+    ),
+    kind: v.union(
+      v.literal('results'),
+      v.literal('standings'),
+      v.literal('consensus'),
     ),
     revision: v.string(),
     text: v.string(),
@@ -194,7 +368,7 @@ export const begin = internalMutation({
     return await ctx.db.insert('socialPosts', {
       raceId: args.raceId,
       sessionType: args.sessionType,
-      kind: 'results',
+      kind: args.kind,
       revision: args.revision,
       status: 'creating',
       text: args.text,
@@ -263,6 +437,7 @@ async function createBufferPost(
     imageUrl: string;
     imageAlt: string;
     link: string;
+    kind: Kind;
   },
 ): Promise<string> {
   const assets = [
@@ -285,7 +460,7 @@ async function createBufferPost(
         dueAt: new Date(post.dueAt).toISOString(),
         text: post.text,
         aiAssisted: false,
-        source: 'grandprixpicks-results',
+        source: `grandprixpicks-${post.kind}`,
         assets,
         // The race page rides in a reply, where a link costs no reach.
         metadata: {
@@ -325,7 +500,116 @@ async function deleteBufferPost(apiKey: string, id: string): Promise<void> {
   }
 }
 
-/** Cron entry: post every recently published classification once. */
+type PostRow = {
+  _id: Id<'socialPosts'>;
+  status: Doc<'socialPosts'>['status'];
+  revision: string;
+  bufferPostId: string | null;
+  dueAt: number;
+  attempts: number;
+} | null;
+
+/**
+ * The one journal-and-post routine behind all three kinds. Returns without
+ * posting when the row says the post exists, is in flight, or gave up.
+ */
+async function schedule(
+  ctx: ActionCtx,
+  auth: { apiKey: string; channelId: string },
+  now: number,
+  candidate: {
+    raceId: Id<'races'>;
+    raceSlug: string;
+    sessionType: SessionType;
+    kind: Kind;
+    revision: string;
+    text: string;
+    imageUrl: string;
+    imageAlt: string;
+    delayMs: number;
+    post: PostRow;
+  },
+) {
+  const label = `${candidate.raceSlug} ${candidate.sessionType} ${candidate.kind}`;
+  const post = candidate.post;
+  let retryOf: Id<'socialPosts'> | undefined;
+  if (post) {
+    if (post.status === 'creating') {
+      console.error(
+        `[socialPosts] ${label}: a create was interrupted; inspect Buffer and the row before clearing it`,
+      );
+      return;
+    }
+    if (post.status === 'scheduled' && post.dueAt <= now) {
+      await ctx.runMutation(internal.socialPosts.setStatus, {
+        id: post._id,
+        status: 'sent',
+      });
+      return;
+    }
+    if (post.status === 'scheduled' && post.revision !== candidate.revision) {
+      // Changed while queued: the card it carries is stale.
+      try {
+        if (post.bufferPostId) {
+          await deleteBufferPost(auth.apiKey, post.bufferPostId);
+        }
+      } catch (error) {
+        console.error(`[socialPosts] ${label}: cancel failed`, error);
+        return;
+      }
+      await ctx.runMutation(internal.socialPosts.setStatus, {
+        id: post._id,
+        status: 'cancelled',
+      });
+      retryOf = post._id;
+    } else if (post.status === 'scheduled' || post.status === 'sent') {
+      return;
+    } else if (
+      post.status === 'cancelled' &&
+      post.revision === candidate.revision
+    ) {
+      return;
+    } else if (post.status === 'failed' && post.attempts >= MAX_ATTEMPTS) {
+      return;
+    } else {
+      retryOf = post._id;
+    }
+  }
+  const dueAt = now + candidate.delayMs;
+  const rowId = await ctx.runMutation(internal.socialPosts.begin, {
+    raceId: candidate.raceId,
+    sessionType: candidate.sessionType,
+    kind: candidate.kind,
+    revision: candidate.revision,
+    text: candidate.text,
+    dueAt,
+    existingId: retryOf,
+  });
+  try {
+    const bufferPostId = await createBufferPost(auth.apiKey, auth.channelId, {
+      text: candidate.text,
+      dueAt,
+      imageUrl: candidate.imageUrl,
+      imageAlt: candidate.imageAlt,
+      link: `${SITE}/races/${encodeURIComponent(candidate.raceSlug)}`,
+      kind: candidate.kind,
+    });
+    await ctx.runMutation(internal.socialPosts.setStatus, {
+      id: rowId,
+      status: 'scheduled',
+      bufferPostId,
+    });
+  } catch (error) {
+    console.error(`[socialPosts] ${label}: create failed`, error);
+    await ctx.runMutation(internal.socialPosts.setStatus, {
+      id: rowId,
+      status: 'failed',
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+/** Cron entry: results, standings and consensus, each posted once. */
 export const postPublishedResults = internalAction({
   args: {},
   returns: v.null(),
@@ -335,53 +619,14 @@ export const postPublishedResults = internalAction({
     if (!apiKey || !channelId) {
       return null;
     }
+    const auth = { apiKey, channelId };
     const now = Date.now();
-    const candidates = await ctx.runQuery(internal.socialPosts.recentResults, {
-      since: now - LOOKBACK_MS,
+    const since = now - LOOKBACK_MS;
+
+    const results = await ctx.runQuery(internal.socialPosts.recentResults, {
+      since,
     });
-    for (const candidate of candidates) {
-      const revision = classificationRevision(candidate.entries);
-      const post = candidate.post;
-      let retryOf: Id<'socialPosts'> | undefined;
-      if (post) {
-        if (post.status === 'creating') {
-          console.error(
-            `[socialPosts] ${candidate.raceSlug} ${candidate.sessionType}: a create was interrupted; inspect Buffer and the row before clearing it`,
-          );
-          continue;
-        }
-        if (post.status === 'scheduled' && post.dueAt <= now) {
-          await ctx.runMutation(internal.socialPosts.setStatus, {
-            id: post._id,
-            status: 'sent',
-          });
-          continue;
-        }
-        if (post.status === 'scheduled' && post.revision !== revision) {
-          // Amended while queued: the card it carries is stale.
-          try {
-            if (post.bufferPostId) {
-              await deleteBufferPost(apiKey, post.bufferPostId);
-            }
-          } catch (error) {
-            console.error('[socialPosts] cancel failed', error);
-            continue;
-          }
-          await ctx.runMutation(internal.socialPosts.setStatus, {
-            id: post._id,
-            status: 'cancelled',
-          });
-          retryOf = post._id;
-        } else if (post.status === 'scheduled' || post.status === 'sent') {
-          continue;
-        } else if (post.status === 'cancelled' && post.revision === revision) {
-          continue;
-        } else if (post.status === 'failed' && post.attempts >= MAX_ATTEMPTS) {
-          continue;
-        } else {
-          retryOf = post._id;
-        }
-      }
+    for (const candidate of results) {
       let text: string;
       try {
         text = resultsPostText(
@@ -392,40 +637,89 @@ export const postPublishedResults = internalAction({
       } catch {
         continue;
       }
-      const dueAt = now + POST_DELAY_MS;
-      const rowId = await ctx.runMutation(internal.socialPosts.begin, {
+      const revision = classificationRevision(candidate.entries);
+      await schedule(ctx, auth, now, {
         raceId: candidate.raceId,
+        raceSlug: candidate.raceSlug,
         sessionType: candidate.sessionType,
+        kind: 'results',
         revision,
         text,
-        dueAt,
-        existingId: retryOf,
+        imageUrl: resultsCardUrl(
+          candidate.raceSlug,
+          candidate.sessionType,
+          revision,
+        ),
+        imageAlt: `${candidate.raceName} ${SESSION_WORD[candidate.sessionType]} classification`,
+        delayMs: POST_DELAY_MS,
+        post: candidate.post,
       });
+    }
+
+    const standings = await ctx.runQuery(
+      internal.socialPosts.standingsCandidate,
+      { since },
+    );
+    if (standings) {
       try {
-        const bufferPostId = await createBufferPost(apiKey, channelId, {
+        const text = standingsPostText(
+          standings.raceName,
+          standings.entries,
+          standings.roundsLeft,
+        );
+        const revision = revisionOf(
+          standings.entries.map((entry) => `${entry.code}:${entry.points}`),
+        );
+        await schedule(ctx, auth, now, {
+          raceId: standings.raceId,
+          raceSlug: standings.raceSlug,
+          sessionType: 'race',
+          kind: 'standings',
+          revision,
           text,
-          dueAt,
-          imageUrl: resultsCardUrl(
-            candidate.raceSlug,
-            candidate.sessionType,
-            revision,
-          ),
-          imageAlt: `${candidate.raceName} ${SESSION_WORD[candidate.sessionType]} classification`,
-          link: `${SITE}/races/${encodeURIComponent(candidate.raceSlug)}`,
-        });
-        await ctx.runMutation(internal.socialPosts.setStatus, {
-          id: rowId,
-          status: 'scheduled',
-          bufferPostId,
+          imageUrl: `${SITE}/og/standings?after=${encodeURIComponent(standings.raceSlug)}&v=${revision}`,
+          imageAlt: `Drivers' championship after the ${standings.raceName}`,
+          delayMs: STANDINGS_DELAY_MS,
+          post: standings.post,
         });
       } catch (error) {
-        console.error('[socialPosts] create failed', error);
-        await ctx.runMutation(internal.socialPosts.setStatus, {
-          id: rowId,
-          status: 'failed',
-          error: error instanceof Error ? error.message : String(error),
-        });
+        console.error('[socialPosts] standings skipped', error);
       }
+    }
+
+    const consensus = await ctx.runQuery(
+      internal.socialPosts.consensusCandidates,
+      { since, now },
+    );
+    for (const candidate of consensus) {
+      if (candidate.entrants < CONSENSUS_MIN_ENTRANTS) {
+        continue;
+      }
+      let text: string;
+      try {
+        text = consensusPostText(
+          candidate.raceName,
+          candidate.sessionType,
+          candidate.entrants,
+          candidate.entries,
+        );
+      } catch {
+        continue;
+      }
+      // Picks are locked, so the content cannot change: one revision ever.
+      const revision = revisionOf([candidate.lockAt]);
+      await schedule(ctx, auth, now, {
+        raceId: candidate.raceId,
+        raceSlug: candidate.raceSlug,
+        sessionType: candidate.sessionType,
+        kind: 'consensus',
+        revision,
+        text,
+        imageUrl: `${SITE}/og/consensus?race=${encodeURIComponent(candidate.raceSlug)}&session=${candidate.sessionType}&v=${revision}`,
+        imageAlt: `What players picked for ${candidate.raceName} ${SESSION_WORD[candidate.sessionType]}`,
+        delayMs: POST_DELAY_MS,
+        post: candidate.post,
+      });
     }
     return null;
   },

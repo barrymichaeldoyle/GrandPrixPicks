@@ -140,7 +140,21 @@ export const raceState = internalQuery({
       }
     }
 
+    const social = [];
+    for await (const post of ctx.db
+      .query('socialPosts')
+      .withIndex('by_race_session_kind', (q) => q.eq('raceId', race._id))) {
+      social.push({
+        session: post.sessionType,
+        kind: post.kind,
+        status: post.status,
+        dueAt: post.dueAt,
+        error: post.error ?? null,
+      });
+    }
+
     return {
+      social,
       slug: race.slug,
       name: race.name,
       round: race.round,

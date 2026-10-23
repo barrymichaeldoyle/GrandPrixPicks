@@ -64,15 +64,20 @@ export default defineSchema({
     .index('by_status', ['status']),
   /**
    * Posts the app makes as @GrandPrixPicks on X, one row per (race, session,
-   * kind). The row is the double-post guard: `socialPosts.ts` scans
-   * published results and posts each classification once. `revision` is the
-   * classification the post carries, so a queued post whose result was
-   * amended can be cancelled before it goes out.
+   * kind): a session's classification, the drivers' standings after a race,
+   * the players' consensus at a session lock. The row is the double-post
+   * guard: `socialPosts.ts` scans and posts each once. `revision` is the
+   * content the post carries, so a queued post whose source changed can be
+   * cancelled before it goes out.
    */
   socialPosts: defineTable({
     raceId: v.id('races'),
     sessionType: sessionType,
-    kind: v.literal('results'),
+    kind: v.union(
+      v.literal('results'),
+      v.literal('standings'),
+      v.literal('consensus'),
+    ),
     revision: v.string(),
     status: v.union(
       v.literal('creating'),

@@ -125,7 +125,7 @@ export const getWeekendConsensusForRaceSlug = query({
   },
 });
 
-async function sessionConsensus(
+export async function sessionConsensus(
   ctx: QueryCtx,
   race: Doc<'races'>,
   sessionType: SessionType,

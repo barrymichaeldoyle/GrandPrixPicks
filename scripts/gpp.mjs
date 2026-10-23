@@ -30,6 +30,7 @@ const HELP = `gpp <command> [args] [--prod] [--json]
   news publish <file.json>        dry run; --apply to publish (object or array, run in order)
   news retract <slug> <key>       shows the item; --apply to retract
   news move <from> <to> <key>...  dry run; --apply to move
+  social stats [--days N]         X posts sent in the window, by kind: impressions, likes, reposts
   page <url|/path>                SSR text of a page (/path = localhost:3000, --prod = live)
                                   --grep <regex>  only matching lines   --full  no truncation
                                   also lists X posts embedded in the page (for quote posts)
@@ -273,6 +274,20 @@ function raceCommand(slug, flags) {
   console.log(
     `news: ${n.active} active, ${n.retracted} retracted, ${n.held} held for feed`,
   );
+  // The app's own X posts for this weekend (apps/backend/convex/socialPosts.ts).
+  // A failed or stuck row is the one thing here that wants a human.
+  if (state.social?.length) {
+    const needsAttention = (p) =>
+      p.status === 'failed' || p.status === 'creating';
+    console.log(
+      `x posts: ${state.social
+        .map(
+          (p) =>
+            `${p.session} ${p.kind} ${p.status}${needsAttention(p) ? ` !! ${p.error ?? 'inspect'}` : ''}`,
+        )
+        .join(' · ')}`,
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1350,6 +1365,25 @@ switch (command) {
       }
     } else {
       fail('news list|show|scan|publish|retract|move|social');
+    }
+    break;
+  case 'social':
+    if (sub === 'stats') {
+      try {
+        const { formatStats, socialStats } = await import('./social-stats.mjs');
+        const stats = await socialStats({
+          organizationId: '64f9a17b902afdecc48c8d02',
+          channelId: '6a6f4b8a99afb44349e9c0f4',
+          days: flags.days ? Number(flags.days) : 30,
+        });
+        console.log(
+          flags.json ? JSON.stringify(stats, null, 2) : formatStats(stats),
+        );
+      } catch (error) {
+        fail(error.message);
+      }
+    } else {
+      fail('social stats [--days N]');
     }
     break;
   case 'page':

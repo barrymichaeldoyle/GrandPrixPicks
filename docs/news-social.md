@@ -61,10 +61,37 @@ page is a reply. The `socialPosts` row is the double-post guard. A result
 amended while the post is still queued cancels it and posts the corrected
 classification; a result amended after the post went out is left alone.
 
+The same poster makes two more cards, on the same journal and rules:
+
+- **Drivers' championship after a race** (`/og/standings?after=<slug>`),
+  25 minutes after the race result is published: "Antonelli leads Russell by 102. 5 rounds left."
+- **What players picked** (`/og/consensus?race=&session=`), ten minutes after
+  a session locks, once at least 25 players entered it. Below that the poster
+  stays silent and switches itself on when the numbers arrive. This is the
+  one card nobody else can make.
+
 It needs `BUFFER_API_KEY` and `BUFFER_X_CHANNEL_ID` on the production
 deployment and is a no-op without them, so dev never posts. These posts count
 toward the two-a-day cap below, which the CLI reads from the Buffer queue.
 No routine is involved: the news routine still does the editorial selection.
+`gpp race` lists the weekend's app posts on an `x posts:` line and flags a
+failed or stuck one with `!!`.
+
+## Reading the numbers back
+
+`gpp social stats [--days N]` prints the channel's sent posts for the window
+by kind (quote, results, standings, consensus, news card, link, text) with
+median and total impressions, likes, reposts, replies and clicks, plus the
+three best posts. The Monday morning sweep includes the table in its report.
+That is the only feedback loop the pipeline has; read it before changing a
+rule.
+
+## Timing
+
+The 18:00 sweep schedules for the next free slot, which lands in the European
+evening. The 08:00 sweep is 06:00 UTC, so a post scheduled straight away
+lands at 07:25 in the UK and overnight in the Americas: a morning selection
+sets `startAt` to `07:30:00Z` (09:30 CET) unless the story is urgent.
 
 ## At every sweep
 

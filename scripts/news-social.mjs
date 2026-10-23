@@ -77,7 +77,7 @@ function identity(story) {
   return `${story.raceSlug ?? 'global'}/${story.key}`;
 }
 
-function bufferCommand(
+export function bufferCommand(
   command,
   payload,
   { dryRun = false, fields, after } = {},

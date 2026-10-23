@@ -5,8 +5,10 @@ import { internal } from './_generated/api';
 import schema from './schema';
 import {
   classificationRevision,
+  consensusPostText,
   resultsCardUrl,
   resultsPostText,
+  standingsPostText,
 } from './socialPosts';
 
 const modules = import.meta.glob('./**/*.ts');
@@ -57,6 +59,47 @@ describe('results post copy', () => {
   });
 });
 
+describe('standings and consensus copy', () => {
+  it('states the lead and the rounds left', () => {
+    const table = [
+      { position: 1, code: 'ANT', name: 'Kimi Antonelli', points: 356 },
+      { position: 2, code: 'RUS', name: 'George Russell', points: 254 },
+      { position: 3, code: 'VER', name: 'Max Verstappen', points: 240 },
+    ];
+    expect(standingsPostText('United States Grand Prix', table, 5)).toBe(
+      "Drivers' championship after the United States GP: Antonelli leads Russell by 102. 5 rounds left.",
+    );
+    expect(
+      standingsPostText(
+        'Abu Dhabi Grand Prix',
+        [table[0], { ...table[1], points: 356 }],
+        0,
+      ),
+    ).toBe(
+      "Drivers' championship after the Abu Dhabi GP: Antonelli and Russell are level on 356. That is the season.",
+    );
+    expect(() => standingsPostText('X Grand Prix', [table[0]], 1)).toThrow(
+      /two drivers/,
+    );
+  });
+
+  it('names the crowd and its first three picks', () => {
+    const picks = [
+      { code: 'VER', name: 'Max Verstappen', pickRate: 61.7 },
+      { code: 'LEC', name: 'Charles Leclerc', pickRate: 40 },
+      { code: 'NOR', name: 'Lando Norris', pickRate: 33.3 },
+    ];
+    expect(
+      consensusPostText('United States Grand Prix', 'quali', 41, picks),
+    ).toBe(
+      'United States GP qualifying: 41 players locked in. Verstappen is the pick for pole (62%), then Leclerc and Norris.',
+    );
+    expect(
+      consensusPostText('United States Grand Prix', 'race', 41, picks),
+    ).toMatch(/the pick for the win/);
+  });
+});
+
 describe('socialPosts journal', () => {
   it('records intent before the Buffer call and only retries failed or cancelled rows', async () => {
     const t = convexTest(schema, modules);
@@ -76,6 +119,7 @@ describe('socialPosts journal', () => {
     const id = await t.mutation(internal.socialPosts.begin, {
       raceId,
       sessionType: 'quali',
+      kind: 'results',
       revision: 'abc',
       text: 'Singapore GP qualifying: ...',
       dueAt: Date.now() + 1,
@@ -94,6 +138,7 @@ describe('socialPosts journal', () => {
       t.mutation(internal.socialPosts.begin, {
         raceId,
         sessionType: 'quali',
+        kind: 'results',
         revision: 'def',
         text: 'again',
         dueAt: Date.now() + 1,
@@ -108,6 +153,7 @@ describe('socialPosts journal', () => {
     const retried = await t.mutation(internal.socialPosts.begin, {
       raceId,
       sessionType: 'quali',
+      kind: 'results',
       revision: 'def',
       text: 'again',
       dueAt: Date.now() + 1,

@@ -21,6 +21,7 @@ scripts/gpp.mjs news social <selection.json>|check [--prod] [--apply]
 scripts/gpp.mjs news publish <file> [--prod] [--apply]
 scripts/gpp.mjs news retract <slug> <key> [--prod] [--apply]
 scripts/gpp.mjs news move <from> <to> <key>... [--prod] [--apply]
+scripts/gpp.mjs social stats [--days N]
 scripts/gpp.mjs page <url|/path> [--prod] [--grep re] [--full]
 scripts/gpp.mjs schema [table...] [--full]
 scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
@@ -39,6 +40,9 @@ scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
   `news social check` checks the existing news queue without selecting posts.
   A durable ledger reconciles interrupted creates and prevents repeated
   revisions. See `docs/news-social.md` for selection files and corrections.
+- **`social stats`** reads the X channel's sent posts for the window from
+  Buffer and prints impressions, likes, reposts, replies and clicks by post
+  kind, plus the three best posts. See `docs/news-social.md`.
 - **`race`** with no slug shows the weekend players are on: the locked race
   inside its 72-hour grace window, otherwise the next upcoming one (the same
   rule as `races.getQuickPickRace`). Per session: lock time, Top 5 and H2H

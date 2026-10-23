@@ -175,6 +175,347 @@ function bareLayout(size: OgImageSize, ...children: ReactNode[]): ReactNode {
   );
 }
 
+export interface StandingsCardEntry {
+  position: number;
+  code: string;
+  name: string;
+  color: string;
+  points: number;
+}
+
+/**
+ * Drivers' championship after a race, posted by the app as @GrandPrixPicks.
+ * Top ten in two columns, points right-aligned, the gap to the leader under
+ * them in the muted mono the app uses for secondary figures. Same bare frame
+ * as the results card and for the same reasons.
+ */
+export function driversStandingsTemplate({
+  raceName,
+  roundsLeft,
+  entries,
+}: {
+  raceName: string;
+  roundsLeft: number;
+  entries: StandingsCardEntry[];
+}): ReactNode {
+  const top = entries.slice(0, 10);
+  const half = Math.ceil(top.length / 2);
+  const columns = [top.slice(0, half), top.slice(half)];
+  const leader = top[0]?.points ?? 0;
+  function row(entry: StandingsCardEntry): ReactNode {
+    return e(
+      'div',
+      {
+        key: entry.code,
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          height: 50,
+          paddingLeft: 8,
+          paddingRight: 12,
+          borderRadius: 2,
+          backgroundColor: entry.position <= 3 ? colors.surface : 'transparent',
+        },
+      },
+      e(
+        'div',
+        {
+          style: {
+            width: 38,
+            fontSize: 22,
+            fontWeight: 600,
+            fontFamily: 'IBM Plex Mono',
+            color: PODIUM_COLORS[entry.position - 1] ?? colors.textMuted,
+          },
+        },
+        String(entry.position),
+      ),
+      e('div', {
+        style: {
+          width: 3,
+          height: 24,
+          marginRight: 15,
+          backgroundColor: entry.color,
+        },
+      }),
+      e(
+        'div',
+        {
+          style: {
+            width: 84,
+            fontSize: 22,
+            fontWeight: 600,
+            fontFamily: 'Archivo',
+          },
+        },
+        entry.code,
+      ),
+      e(
+        'div',
+        { style: { flex: 1, fontSize: 19, color: colors.textMuted } },
+        entry.name,
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            flexDirection: 'column' as const,
+            alignItems: 'flex-end',
+            width: 90,
+          },
+        },
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 22,
+              fontWeight: 600,
+              fontFamily: 'IBM Plex Mono',
+              color: entry.position === 1 ? colors.accent : colors.text,
+            },
+          },
+          String(entry.points),
+        ),
+        entry.position > 1
+          ? e(
+              'div',
+              {
+                style: {
+                  fontSize: 13,
+                  fontFamily: 'IBM Plex Mono',
+                  color: colors.textMuted,
+                },
+              },
+              `-${leader - entry.points}`,
+            )
+          : null,
+      ),
+    );
+  }
+
+  return bareLayout(
+    '16:9',
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          marginBottom: 26,
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', flexDirection: 'column' as const } },
+        accentTag("Drivers' championship"),
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 44,
+              fontWeight: 600,
+              fontFamily: 'Archivo',
+              letterSpacing: -1,
+              marginTop: 14,
+            },
+          },
+          `After the ${raceName}`,
+        ),
+      ),
+      e(
+        'div',
+        {
+          style: {
+            fontSize: 20,
+            fontFamily: 'IBM Plex Mono',
+            color: colors.textMuted,
+          },
+        },
+        roundsLeft === 0
+          ? 'Final'
+          : `${roundsLeft} ${roundsLeft === 1 ? 'round' : 'rounds'} left`,
+      ),
+    ),
+    e(
+      'div',
+      { style: { display: 'flex', gap: 40 } },
+      ...columns.map((column, index) =>
+        e(
+          'div',
+          {
+            key: `col-${index}`,
+            style: {
+              display: 'flex',
+              flexDirection: 'column' as const,
+              flex: 1,
+              gap: 2,
+            },
+          },
+          ...column.map(row),
+        ),
+      ),
+    ),
+  );
+}
+
+export interface ConsensusCardEntry {
+  code: string;
+  name: string;
+  color: string;
+  /** Share of entrants with the driver anywhere in their five, 0-100. */
+  pickRate: number;
+}
+
+/**
+ * What players picked for a session, posted once the picks have locked. The
+ * one card nobody else can make. Five rows, each with a bar for the share
+ * of entrants who picked the driver: the bar is the content, so it is the
+ * one place on these cards the accent fills a shape wider than 3px.
+ */
+export function consensusTemplate({
+  raceName,
+  sessionLabel,
+  entrants,
+  flagSrc,
+  entries,
+}: {
+  raceName: string;
+  sessionLabel: string;
+  entrants: number;
+  flagSrc?: string;
+  entries: ConsensusCardEntry[];
+}): ReactNode {
+  const rows = entries.slice(0, 5);
+  function row(entry: ConsensusCardEntry, index: number): ReactNode {
+    return e(
+      'div',
+      {
+        key: entry.code,
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          height: 68,
+          gap: 18,
+        },
+      },
+      e(
+        'div',
+        {
+          style: {
+            width: 44,
+            fontSize: 22,
+            fontWeight: 600,
+            fontFamily: 'IBM Plex Mono',
+            color: colors.textMuted,
+          },
+        },
+        `P${index + 1}`,
+      ),
+      e('div', {
+        style: { width: 3, height: 28, backgroundColor: entry.color },
+      }),
+      e(
+        'div',
+        { style: { width: 90, fontSize: 26, fontWeight: 600 } },
+        entry.code,
+      ),
+      e(
+        'div',
+        { style: { width: 230, fontSize: 20, color: colors.textMuted } },
+        entry.name,
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            flex: 1,
+            height: 14,
+            backgroundColor: colors.surface,
+            borderRadius: 2,
+          },
+        },
+        e('div', {
+          style: {
+            width: `${Math.max(2, Math.min(100, entry.pickRate))}%`,
+            height: 14,
+            backgroundColor: index === 0 ? colors.accent : colors.borderStrong,
+            borderRadius: 2,
+          },
+        }),
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            justifyContent: 'flex-end',
+            width: 80,
+            fontSize: 24,
+            fontWeight: 600,
+            fontFamily: 'IBM Plex Mono',
+            color: index === 0 ? colors.accent : colors.text,
+          },
+        },
+        `${Math.round(entry.pickRate)}%`,
+      ),
+    );
+  }
+
+  return bareLayout(
+    '16:9',
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          marginBottom: 30,
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', flexDirection: 'column' as const } },
+        accentTag(`${sessionLabel} picks`),
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 44,
+              fontWeight: 600,
+              fontFamily: 'Archivo',
+              letterSpacing: -1,
+              marginTop: 14,
+            },
+          },
+          raceName,
+        ),
+        e(
+          'div',
+          {
+            style: {
+              marginTop: 8,
+              fontSize: 20,
+              fontFamily: 'IBM Plex Mono',
+              color: colors.textMuted,
+            },
+          },
+          `${entrants} players · share who picked each driver`,
+        ),
+      ),
+      editorialFlag(flagSrc, 72),
+    ),
+    e(
+      'div',
+      { style: { display: 'flex', flexDirection: 'column' as const } },
+      ...rows.map(row),
+    ),
+  );
+}
+
 /**
  * A driver chip: team colour as a 3px left bar on a neutral surface.
  *

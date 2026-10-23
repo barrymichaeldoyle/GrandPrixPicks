@@ -183,8 +183,11 @@ posted the story on X themselves (`gpp page <url>` lists embedded posts as
 `x posts:`), put that URL in `quote` instead: the post quotes theirs, with
 their photo. Never attach someone else's photo as our image.
 
-Session results post themselves (`apps/backend/convex/socialPosts.ts`); a
-sweep never posts a classification by hand.
+Session results, the standings after a race and the players' consensus at a
+lock post themselves (`apps/backend/convex/socialPosts.ts`); a sweep never
+posts those by hand. A morning selection sets `startAt` to `07:30:00Z` so
+the post lands when Europe is awake, unless the story is urgent. On Monday
+mornings, run `scripts/gpp.mjs social stats` and put the table in the report.
 
 Run `scripts/gpp.mjs news social check --prod` to inspect pending news posts on
 every sweep, even one with no X selection. Apply stale cancellations and the

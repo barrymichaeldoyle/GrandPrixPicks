@@ -1143,7 +1143,7 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=austin-lindblad-colapinto-bortoleto-grid-penalties&v=f0d2793e7c42",
       "dueAt": "2026-10-23T21:10:55.991Z",
       "expiresAt": "2026-10-24T20:00:00.000Z",
-      "status": "creating",
+      "status": "scheduled",
       "bufferPostId": "6adbcc45e4be8a4d8626cfd2"
     }
   ]

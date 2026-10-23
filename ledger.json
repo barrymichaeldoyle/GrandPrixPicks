@@ -1101,7 +1101,7 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=verstappen-power-unit-penalty-looming&v=3235f4089530",
       "dueAt": "2026-10-23T18:30:00.000Z",
       "expiresAt": "2026-10-24T20:00:00.000Z",
-      "status": "creating",
+      "status": "scheduled",
       "bufferPostId": "6adb872465d99fb9319d3fdb"
     }
   ]

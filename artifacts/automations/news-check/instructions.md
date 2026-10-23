@@ -79,7 +79,11 @@ account posts at least once a day (a preview angle, a confirmed upgrade, a
 form-guide fact, a sourced paddock story). Only liveries, fan zones and show
 cars never qualify. The post text carries no URL and leads with the angle in
 under 200 characters; the link goes in the selection's `link` field and the
-story's card is attached automatically. Use Buffer's GrandPrixPicks X channel,
+story's card is attached automatically. When the team, the FIA or Formula 1
+posted the story on X themselves (`pnpm gpp page <url>` lists embedded posts
+as `x posts:`), put that URL in the selection's `quote` field instead: the
+post then quotes theirs, with their photo. Never attach a press photo or any
+image that is not ours. Use Buffer's GrandPrixPicks X channel,
 organization 64f9a17b902afdecc48c8d02, channel 6a6f4b8a99afb44349e9c0f4. The
 CLI allows two posts a channel day and skips a third; do not work around it.
 Respect the existing queue, expiry, corrections and duplicate checks.

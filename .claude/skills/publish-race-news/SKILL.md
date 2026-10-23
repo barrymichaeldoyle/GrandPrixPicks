@@ -178,7 +178,10 @@ permutation). If the channel has posted nothing today by the evening sweep
 (the CLI's `queue` line says so), post the day's most interesting story
 instead of nothing; only liveries, fan zones and show cars never qualify.
 Post text carries no URL; the link goes in the selection's `link` and the
-story's card is attached automatically.
+story's card is attached automatically. When the team, the FIA or Formula 1
+posted the story on X themselves (`gpp page <url>` lists embedded posts as
+`x posts:`), put that URL in `quote` instead: the post quotes theirs, with
+their photo. Never attach someone else's photo as our image.
 
 Session results post themselves (`apps/backend/convex/socialPosts.ts`); a
 sweep never posts a classification by hand.

@@ -32,6 +32,7 @@ const HELP = `gpp <command> [args] [--prod] [--json]
   news move <from> <to> <key>...  dry run; --apply to move
   page <url|/path>                SSR text of a page (/path = localhost:3000, --prod = live)
                                   --grep <regex>  only matching lines   --full  no truncation
+                                  also lists X posts embedded in the page (for quote posts)
   schema [table...]               Convex tables and indexes, or one table's fields (--full keeps comments)
   usage [--days N]                tool-output cost of recent Claude Code sessions here
                                   --skill <name>  sessions that ran it   --session <id,...>  by id prefix
@@ -976,6 +977,22 @@ async function pageCommand(target, flags) {
       console.log(`${k}: ${value}`);
     }
   }
+  // Embedded X posts: a team's or the FIA's own post on the story, which an
+  // X selection can quote instead of attaching our card (docs/news-social.md).
+  const xPosts = [
+    ...new Set(
+      [
+        ...html.matchAll(
+          /https?:\/\/(?:x|twitter)\.com\/([A-Za-z0-9_]+)\/status\/(\d+)/g,
+        ),
+      ]
+        .filter((m) => !/^(i|intent|share|home|search)$/i.test(m[1]))
+        .map((m) => `https://x.com/${m[1]}/status/${m[2]}`),
+    ),
+  ];
+  if (xPosts.length) {
+    console.log(`x posts: ${xPosts.join(' ')}`);
+  }
 
   const main =
     html.match(/<main[\s\S]*<\/main>/i)?.[0] ??
@@ -1278,6 +1295,9 @@ function printSocial(result, flags) {
     }
     if (report.link) {
       console.log(`  reply: ${report.link}`);
+    }
+    if (report.quote) {
+      console.log(`  quotes: ${report.quote}`);
     }
     if (report.imageUrl) {
       console.log(`  image: ${report.imageUrl}`);

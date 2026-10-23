@@ -25,6 +25,16 @@ from the selection: it refuses a URL in `text`, attaches
 `/og/news?race=<slug>&story=<key>` for a race story, and threads `link` as the
 second item. A global story has no card and goes out as text.
 
+**Quote the source when it posted the story itself.** A team, the FIA or
+Formula 1 announcing something on X is the best image we can have on the
+post: their photo, on their licence, and our line above it in their replies.
+Put the post's URL in `quote` and the CLI sends a quote post instead of the
+card and reply link (a post quotes or links, never both). `gpp page <url>`
+lists the X posts embedded in an article as `x posts:`, which is where a
+team's post usually sits. Never attach a press photo as our own image: the
+agencies file takedowns on X and a locked account is the one outcome that
+undoes everything else.
+
 **Copy.** Lead with the angle, not the outlet. Under 200 characters is the
 norm. "Antonelli can win the title on Sunday. He needs the win with Russell
 no higher than fifth." reads; "Mercedes have confirmed that both cars will
@@ -109,7 +119,8 @@ No routine is involved: the news routine still does the editorial selection.
 
 `keys` references stories in `newsFile`. Each key may appear only once in a
 selection, and a selection holds one or two posts. `link` is optional; the
-card image is attached automatically for a race story. A group shares one post and must have supporting copy for every
+card image is attached automatically for a race story. `quote` (an X post
+URL) replaces both: the post becomes a quote of that post. A group shares one post and must have supporting copy for every
 included story. Global stories omit `raceSlug` in their news payload. A news
 batch used for social must have unique keys.
 

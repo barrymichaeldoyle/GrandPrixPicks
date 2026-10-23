@@ -31,7 +31,8 @@ scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
 - **`news social`** previews one or two editorially selected X posts from a
   published news batch, checks the live story revisions and Buffer queue, and
   spaces posts 20–30 minutes apart (25 by default). Post text carries no URL:
-  the story's card is attached as the image and `link` goes in a reply. Two
+  the story's card is attached as the image and `link` goes in a reply, or
+  `quote` (an X post URL) makes it a quote post of the source instead. Two
   posts a channel day, counting the app's own results posts; a third is
   skipped. `--apply` schedules them
   and cancels superseded or expired queued news owned by this workflow.

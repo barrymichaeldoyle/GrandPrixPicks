@@ -507,3 +507,41 @@ test('every run reports how many posts the channel already has that day', async 
     cap: 2,
   });
 });
+
+test('a quote post carries the source post id and neither card nor reply link', async (t) => {
+  const f = fixture(t, 1);
+  delete f.plan.posts[0].link;
+  f.plan.posts[0].quote =
+    'https://x.com/MercedesAMGF1/status/1234567890123456789?s=20';
+  f.write();
+  await f.run(true);
+  const [post] = f.remote;
+  assert.equal(post.assets, undefined);
+  assert.deepEqual(post.metadata, {
+    twitter: {
+      retweet: {
+        id: '1234567890123456789',
+        comment: 'Story 0: Reviewed news body 0.',
+      },
+    },
+  });
+  assert.equal(
+    f.ledger().posts[0].quote,
+    'https://x.com/MercedesAMGF1/status/1234567890123456789?s=20',
+  );
+  assert.equal(f.ledger().posts[0].imageUrl, undefined);
+});
+
+test('a quote must be an X post URL and cannot be combined with a link', async (t) => {
+  const f = fixture(t, 1);
+  f.plan.posts[0].quote = 'https://www.formula1.com/not-a-post';
+  f.write();
+  await assert.rejects(f.run(true), /quote must be an X post URL/);
+  f.plan.posts[0].quote = 'https://twitter.com/fia/status/42';
+  f.write();
+  await assert.rejects(
+    f.run(true),
+    /quotes a source or carries a link, not both/,
+  );
+  assert.equal(f.calls.length, 0);
+});

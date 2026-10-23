@@ -17,6 +17,9 @@ const SITE = 'https://grandprixpicks.com';
 const WRITEUP_LINK =
   /^https:\/\/grandprixpicks\.com\/f1-\d{4}-[a-z-]+-grand-prix-predictions(\?[^\s#]*)?$/;
 const ANY_URL = /https?:\/\//i;
+/** An X post to quote, e.g. a team's own announcement. Captures the id. */
+const X_POST =
+  /^https:\/\/(?:x|twitter)\.com\/[A-Za-z0-9_]+\/status\/(\d+)(?:[?#].*)?$/;
 const ACTIVE = new Set(['scheduled', 'sending', 'needs_approval']);
 /**
  * At most this many posts a day on the channel, scheduled or sent, whoever
@@ -311,11 +314,12 @@ async function run(
         selectedTexts.has(post.text.trim()) ||
         textLength(post.text) > 280 ||
         (post.link !== undefined && typeof post.link !== 'string') ||
+        (post.quote !== undefined && typeof post.quote !== 'string') ||
         (post.materialUpdate !== undefined &&
           typeof post.materialUpdate !== 'boolean')
       ) {
         throw new Error(
-          'Each post needs story keys, text within 280 weighted characters, an optional link and an optional boolean materialUpdate.',
+          'Each post needs story keys, text within 280 weighted characters, an optional link or quote, and an optional boolean materialUpdate.',
         );
       }
       // The link goes in a reply, never in the post. X shows a post with a
@@ -351,6 +355,23 @@ async function run(
         };
       });
       const link = post.link?.trim() || null;
+      // A quote post shows the quoted post's own media on its own licence, so
+      // it carries neither our card nor a reply link: one thing per post.
+      const quote = post.quote?.trim() || null;
+      let quoteId = null;
+      if (quote) {
+        quoteId = quote.match(X_POST)?.[1] ?? null;
+        if (!quoteId) {
+          throw new Error(
+            `quote must be an X post URL (https://x.com/<account>/status/<id>): ${post.keys.join(', ')}`,
+          );
+        }
+        if (link) {
+          throw new Error(
+            `A post quotes a source or carries a link, not both: ${post.keys.join(', ')}`,
+          );
+        }
+      }
       if (link) {
         const writeup = link.match(WRITEUP_LINK);
         if (writeup) {
@@ -371,14 +392,14 @@ async function run(
       }
       // The story's own card, as the post's image. Global stories have no
       // write-up and so no card; they go out as text.
-      const lead = stories.find((story) => story.raceSlug);
+      const lead = quote ? null : stories.find((story) => story.raceSlug);
       const image = lead
         ? {
             url: `${SITE}/og/news?race=${encodeURIComponent(lead.raceSlug)}&story=${encodeURIComponent(lead.key)}&v=${lead.revision.slice(0, 12)}`,
             alt: byKey.get(lead.key).headline,
           }
         : null;
-      return { ...post, link, image, stories, expiresAt };
+      return { ...post, link, quote, quoteId, image, stories, expiresAt };
     });
   }
 
@@ -682,12 +703,23 @@ async function run(
               },
             }
           : {}),
+        // A quote post: our text as the commentary over the source's post.
+        ...(post.quoteId
+          ? {
+              metadata: {
+                twitter: {
+                  retweet: { id: post.quoteId, comment: post.text },
+                },
+              },
+            }
+          : {}),
       };
       await buffer(['posts', 'create'], payload, { dryRun: true });
       prepared.push({
         payload,
         stories: post.stories,
         keys: post.keys,
+        quote: post.quote ?? null,
         expiresAt: new Date(post.expiresAt).toISOString(),
       });
       occupied.push(candidate);
@@ -718,9 +750,10 @@ async function run(
       channelId: plan.channelId,
       stories: post.stories,
       text: post.payload.text,
-      ...(post.payload.metadata
+      ...(post.payload.metadata?.twitter?.thread
         ? { link: post.payload.metadata.twitter.thread[1].text }
         : {}),
+      ...(post.quote ? { quote: post.quote } : {}),
       ...(post.payload.assets
         ? { imageUrl: post.payload.assets[0].image.url }
         : {}),
@@ -765,6 +798,7 @@ async function run(
       dueAt: record.dueAt,
       text: record.text,
       link: record.link,
+      quote: record.quote,
       imageUrl: record.imageUrl,
       bufferPostId: record.bufferPostId,
     });

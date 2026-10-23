@@ -1,0 +1,25 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "austin-upgrades-fia-submissions",
+    "headline": "Ferrari, McLaren and Red Bull bring upgrades to Austin",
+    "body": "Ferrari's package has four parts: a revised floor body, floor board, sidepod inlet and diffuser. McLaren has new front and rear corners and a modified diffuser, and Red Bull a new front wing and front corner. Mercedes brings nothing new but runs the latest-specification W17 on both cars.",
+    "category": "general",
+    "affectsSessions": [],
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/news/1108074/1/f1-teams-united-states-gp-upgrades-revealed-after-lewis-hamiltons-ferrari",
+    "sourcePublishedAt": "2026-10-23T16:38:06+01:00"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "verstappen-power-unit-penalty-looming",
+    "headline": "Verstappen is on the limit for six of seven power unit elements",
+    "body": "Verstappen is on his last allowed engine, turbocharger, MGU-K, energy store, control electronics and exhaust, with six races left. He says a grid penalty will \"potentially\" come at some point but has no date, and he is not due to take new components in Austin.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["VER"],
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/news/1108075/1/max-verstappen-admits-f1-grid-drop-potential-ahead-us-gp",
+    "sourcePublishedAt": "2026-10-23T16:42:04+01:00"
+  }
+]

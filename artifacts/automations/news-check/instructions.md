@@ -3,10 +3,9 @@
 Run at 08:00 and 18:00 Africa/Johannesburg. UTC cron: `0 6,16 * * *`.
 Use the GitHub repository `barrymichaeldoyle/GrandPrixPicks`.
 
-At the start of EVERY run, fetch `claude/news-routine-setup` from origin and
-check out its fetched commit before installing dependencies or running the
-workflow. This operator branch carries the shared-state implementation; do not
-run the older default-branch scheduler. Never edit or push this code branch.
+At the start of EVERY run, fetch `main` from origin and check out its fetched
+commit before installing dependencies or running the workflow. `main` carries
+the shared-state scheduler and the current posting rules. Never push to it.
 
 At task start, verify Node.js, pnpm 12.4.1, the repository dependencies and
 @bufferapp/cli 2.0.1 are available. If dependencies are not prepared by the
@@ -71,13 +70,26 @@ shared state or exclusive access is unavailable, continue research and verified
 feed publication, but skip all X changes and report why.
 
 When shared state is ready, preview and apply the pending-post check on every
-sweep. Select one to three strong posts for substantial news, or none when
-unwarranted. Use Buffer's GrandPrixPicks X channel, organization
-64f9a17b902afdecc48c8d02, channel 6a6f4b8a99afb44349e9c0f4, with 25-minute
-spacing. Respect the existing queue, expiry, corrections and duplicate checks.
-Reference the exact published payload snapshot in the selection. Preview copy
-and times before applying; verify each result. Persist ledger updates immediately
-through the configured shared state mechanism.
+sweep. Select at most ONE X post per sweep, and none on most sweeps: only a
+story a fan would stop scrolling for (a grid penalty, a driver swap, an engine
+change, a stewards' ruling, a title permutation). Liveries, fan zones, show
+cars, contract extensions and upgrade talk stay on the feed and write-up and
+are not posted. The post text carries no URL and leads with the angle in
+under 200 characters; the link goes in the selection's `link` field and the
+story's card is attached automatically. Use Buffer's GrandPrixPicks X channel,
+organization 64f9a17b902afdecc48c8d02, channel 6a6f4b8a99afb44349e9c0f4. The
+CLI allows two workflow posts a channel day and skips a third; do not work
+around it. Respect the existing queue, expiry, corrections and duplicate
+checks. Reference the exact published payload snapshot in the selection.
+Preview copy and times before applying; verify each result. Persist ledger
+updates immediately through the configured shared state mechanism.
+
+On a race weekend (from the first session's lock to the Monday after), also
+post published session results: for each session `pnpm gpp race --prod`
+shows a published result for, run
+`pnpm gpp results social <slug> <session> --prod` and then `--apply`. It
+posts once per race and session and is safe to rerun. The race-weekend
+routine handles most of these; this sweep catches any it missed.
 
 Retain payloads, selections and a dated sweep report on a new claude/ artifact
 branch for this run. The CLI itself persists the authoritative shared ledger;

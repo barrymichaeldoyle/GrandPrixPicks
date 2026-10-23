@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { newsSocial } from './news-social.mjs';
+import { newsSocial, resultsPostText, resultsSocial } from './news-social.mjs';
 
 const NOW = Date.parse('2026-10-09T18:00:00Z');
 const MINUTE = 60_000;
@@ -33,7 +33,8 @@ function fixture(t, count = 2) {
     startAt: '2026-10-09T18:10:00Z',
     posts: news.map((item) => ({
       keys: [item.key],
-      text: `${item.headline}: ${item.body} ${item.sourceUrl}`,
+      text: `${item.headline}: ${item.body}`,
+      link: item.sourceUrl,
       expiresAt: '2026-10-09T22:00:00Z',
     })),
   };
@@ -115,6 +116,7 @@ function fixture(t, count = 2) {
     remote,
     calls,
     write,
+    buffer,
     ledger: () =>
       JSON.parse(
         readFileSync(
@@ -201,12 +203,18 @@ test("requires write-up links to name one of the post's stories", async (t) => {
   const writeup =
     'https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions';
   for (const link of [writeup, `${writeup}?story=story-9`]) {
-    f.plan.posts[0].text = `Story 0. ${link}`;
+    f.plan.posts[0].link = link;
     f.write();
     await assert.rejects(f.run(true), /need \?story=<one of this post's keys>/);
   }
+  f.plan.posts[0].link = 'https://example.com/elsewhere';
+  f.write();
+  await assert.rejects(
+    f.run(true),
+    /write-up \?story= link or a selected story's sourceUrl/,
+  );
   assert.equal(f.calls.length, 0);
-  f.plan.posts[0].text = `Story 0. ${writeup}?story=story-0`;
+  f.plan.posts[0].link = `${writeup}?story=story-0`;
   f.write();
   await f.run(false);
 });
@@ -247,8 +255,7 @@ test('sent stories require explicit material-update selection; changed revision 
   f.remote[0].status = 'sent';
   f.remote[0].sentAt = '2026-10-09T18:10:00.000Z';
   f.news[0].body = f.live[0].body = 'A confirmed new development.';
-  f.plan.posts[0].text =
-    'A confirmed new development. https://www.formula1.com/story-0';
+  f.plan.posts[0].text = 'A confirmed new development.';
   f.write();
   const preview = await f.run();
   assert.equal(preview.reports[0].action, 'skipped');
@@ -301,7 +308,7 @@ test('rejects development apply, oversized batches and too-close spacing', async
   f.plan.intervalMinutes = 25;
   f.plan.posts.push(...f.plan.posts);
   f.write();
-  await assert.rejects(f.run(true), /one to three posts/);
+  await assert.rejects(f.run(true), /one or two posts/);
   assert.equal(f.remote.length, 0);
 });
 
@@ -356,8 +363,7 @@ test('a selected material development replaces its superseded queued version', a
   const f = fixture(t, 1);
   await f.run(true);
   f.news[0].body = f.live[0].body = 'A confirmed new development.';
-  f.plan.posts[0].text =
-    'A confirmed new development. https://www.formula1.com/story-0';
+  f.plan.posts[0].text = 'A confirmed new development.';
   f.plan.posts[0].materialUpdate = true;
   f.write();
   const result = await f.run(true);
@@ -367,4 +373,176 @@ test('a selected material development replaces its superseded queued version', a
   );
   assert.equal(f.remote.length, 1);
   assert.equal(f.remote[0].text, f.plan.posts[0].text);
+});
+
+test('a URL in the post text is rejected; the link rides in a reply with the card as the image', async (t) => {
+  const f = fixture(t, 1);
+  f.plan.posts[0].text = 'Story 0. https://www.formula1.com/story-0';
+  f.write();
+  await assert.rejects(f.run(true), /must not carry a URL/);
+  assert.equal(f.calls.length, 0);
+  f.plan.posts[0].text = 'Story 0.';
+  f.write();
+  await f.run(true);
+  const [post] = f.remote;
+  assert.equal(post.text, 'Story 0.');
+  assert.deepEqual(post.assets, [
+    {
+      image: {
+        url: `https://grandprixpicks.com/og/news?race=singapore-2026&story=story-0&v=${f.ledger().posts[0].stories[0].revision.slice(0, 12)}`,
+        metadata: { altText: 'Story 0' },
+      },
+    },
+  ]);
+  assert.deepEqual(post.metadata.twitter.thread, [
+    { text: 'Story 0.', assets: post.assets },
+    { text: 'https://www.formula1.com/story-0' },
+  ]);
+  assert.equal(f.ledger().posts[0].link, 'https://www.formula1.com/story-0');
+  assert.equal(f.ledger().posts[0].imageUrl, post.assets[0].image.url);
+});
+
+test('a global story posts as text with no image, and a post with no link has no thread', async (t) => {
+  const f = fixture(t, 1);
+  delete f.news[0].raceSlug;
+  delete f.plan.posts[0].link;
+  f.write();
+  const live = f.live[0];
+  const result = await newsSocial(
+    f.file,
+    { prod: true, apply: true },
+    {
+      root: f.root,
+      now: NOW,
+      buffer: (command, payload, options) =>
+        f.calls.push({ command: command.join(' '), payload, options }) &&
+        (command.join(' ') === 'channels get'
+          ? { id: 'x', service: 'twitter', organizationId: 'org' }
+          : command.join(' ') === 'posts list'
+            ? { items: [], pageInfo: { hasNextPage: false } }
+            : options?.dryRun
+              ? {}
+              : command.join(' ') === 'posts create'
+                ? { post: { id: 'g1', status: 'scheduled', ...payload } }
+                : { id: 'g1', status: 'scheduled', ...f.calls.at(-2).payload }),
+      convexRun: async () => ({ items: [live] }),
+    },
+  );
+  assert.equal(result.reports[0].action, 'scheduled');
+  const create = f.calls.find(
+    (call) => call.command === 'posts create' && !call.options.dryRun,
+  );
+  assert.equal(create.payload.assets, undefined);
+  assert.equal(create.payload.metadata, undefined);
+});
+
+test('the third post of a channel day is skipped by the daily cap', async (t) => {
+  const f = fixture(t, 2);
+  await f.run(true);
+  assert.equal(f.remote.length, 2);
+  for (const post of f.remote) {
+    post.status = 'sent';
+    post.sentAt = post.dueAt;
+  }
+  const third = {
+    ...f.news[0],
+    key: 'story-9',
+    headline: 'Story 9',
+    sourceUrl: 'https://www.formula1.com/story-9',
+  };
+  f.news.push(third);
+  f.live.push({ ...third, active: true, feedSelected: true });
+  f.plan.posts = [
+    {
+      keys: ['story-9'],
+      text: 'A third story on the same day.',
+      expiresAt: '2026-10-10T22:00:00Z',
+    },
+  ];
+  f.write();
+  const result = await f.run(true, f.file, NOW + 3 * 60 * MINUTE);
+  assert.equal(result.reports.at(-1).action, 'skipped');
+  assert.match(result.reports.at(-1).reason, /Daily cap/);
+  assert.equal(f.remote.length, 2);
+  // The next channel day is open again.
+  f.plan.startAt = '2026-10-10T06:00:00Z';
+  f.write();
+  const later = await f.run(true, f.file, NOW + 12 * 60 * MINUTE);
+  assert.equal(later.reports.at(-1).action, 'scheduled');
+  assert.equal(f.remote.length, 3);
+});
+
+test('results social posts a session once with its card, podium copy and race-page reply', async (t) => {
+  const f = fixture(t, 1);
+  const entries = [
+    { position: 1, code: 'VER', name: 'Max Verstappen', status: null },
+    { position: 2, code: 'LEC', name: 'Charles Leclerc', status: null },
+    { position: 3, code: 'NOR', name: 'Lando Norris', status: null },
+    { position: 4, code: 'HAM', name: 'Lewis Hamilton', status: 'dnf' },
+  ];
+  const live = {
+    race: { slug: 'singapore-2026', name: 'Singapore Grand Prix', round: 17 },
+    session: 'quali',
+    result: { publishedAt: NOW - MINUTE, amendedAt: null, entries },
+  };
+  const run = (apply, now = NOW) =>
+    resultsSocial(
+      'singapore-2026',
+      'quali',
+      { prod: true, apply },
+      {
+        root: f.root,
+        now,
+        buffer: (...args) => f.buffer(...args),
+        convexRun: async (fn) => (fn === 'ops:sessionResult' ? live : null),
+        channel: { organizationId: 'org', channelId: 'x' },
+      },
+    );
+  const preview = await run(false);
+  assert.equal(preview.reports[0].action, 'would_schedule');
+  assert.equal(
+    preview.reports[0].text,
+    'Singapore GP qualifying: Verstappen on pole, Leclerc second, Norris third.',
+  );
+  assert.equal(f.remote.length, 0);
+  await run(true);
+  assert.equal(f.remote.length, 1);
+  assert.match(
+    f.remote[0].assets[0].image.url,
+    /^https:\/\/grandprixpicks\.com\/og\/results\?race=singapore-2026&session=quali&v=/,
+  );
+  assert.equal(
+    f.remote[0].metadata.twitter.thread[1].text,
+    'https://grandprixpicks.com/races/singapore-2026',
+  );
+  assert.equal(f.remote[0].dueAt, '2026-10-09T18:05:00.000Z');
+  // Never twice, even an hour later.
+  const again = await run(true, NOW + 60 * MINUTE);
+  assert.equal(again.reports[0].action, 'skipped');
+  assert.equal(f.remote.length, 1);
+  // An amendment while the post is still queued cancels it: the card it
+  // carries is stale. It is not reposted on its own.
+  live.result.amendedAt = NOW + 30 * MINUTE;
+  live.result.entries = [entries[1], entries[0], entries[2], entries[3]];
+  const amended = await run(true, NOW + 90 * MINUTE);
+  assert.deepEqual(
+    amended.reports.map((report) => report.action),
+    ['cancelled', 'skipped', 'note'],
+  );
+  assert.equal(f.remote.length, 0);
+  // Once sent, an amendment is only reported.
+  f.remote.push({
+    id: 'sent-1',
+    status: 'sent',
+    sentAt: '2026-10-09T18:05:00.000Z',
+    dueAt: '2026-10-09T18:05:00.000Z',
+    text: 'already out',
+  });
+  const after = await run(true, NOW + 120 * MINUTE);
+  assert.ok(after.reports.every((report) => report.action !== 'scheduled'));
+  assert.equal(after.reports.at(-1).action, 'note');
+  assert.equal(
+    resultsPostText(live.race, 'race', entries),
+    'Singapore GP race: Verstappen wins from Leclerc and Norris.',
+  );
 });

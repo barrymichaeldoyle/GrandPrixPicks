@@ -1,5 +1,5 @@
 {
-  "name": "Grand Prix Picks \u2014 twice-daily news check",
+  "name": "Grand Prix Picks — twice-daily news check",
   "routineId": "trig_01TLdwgdGNYpQdvAKGMC2ovC",
   "url": "https://claude.ai/code/routines/trig_01TLdwgdGNYpQdvAKGMC2ovC",
   "enabled": true,
@@ -8,7 +8,7 @@
   "repository": "barrymichaeldoyle/GrandPrixPicks",
   "environmentId": "env_015LArCM9Y4r7fAPHh4aYZNo",
   "environmentName": "Grand Prix Picks news automation",
-  "codeBranch": "claude/news-routine-setup",
+  "codeBranch": "main",
   "stateBranch": "claude/news-social-state",
   "networkAccess": "Full",
   "connectors": ["Buffer"],
@@ -24,5 +24,6 @@
   "nextRunAtUtc": "2026-10-14T16:02:46Z",
   "validationSessionUrl": "https://claude.ai/code/session_01Gma4M9DfBCwV4h2qhB82PY",
   "validatedCodeCommit": "b3bcf213",
-  "validationResult": "PASS"
+  "validationResult": "PASS",
+  "postingRules": "docs/news-social.md (2026-10-23): one post per sweep at most, two a day, no URL in text, card image + link in reply"
 }

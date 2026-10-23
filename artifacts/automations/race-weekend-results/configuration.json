@@ -1,0 +1,15 @@
+{
+  "name": "Grand Prix Picks — race weekend results",
+  "cronUtc": "28 */3 * * 5,6,0,1",
+  "reportTimezone": "Africa/Johannesburg",
+  "repository": "barrymichaeldoyle/GrandPrixPicks",
+  "environmentId": "env_015LArCM9Y4r7fAPHh4aYZNo",
+  "environmentName": "Grand Prix Picks news automation",
+  "codeBranch": "main",
+  "stateBranch": "claude/news-social-state",
+  "connectors": ["Buffer"],
+  "note": "Posts published session results to X via `gpp results social`; shares the news ledger and lock. The routines API moved the minute to :28 on creation.",
+  "routineId": "trig_01CTe8C2F6rVcoDRJ92jKs2T",
+  "url": "https://claude.ai/code/routines/trig_01CTe8C2F6rVcoDRJ92jKs2T",
+  "createdUtc": "2026-10-23T13:28:18Z"
+}

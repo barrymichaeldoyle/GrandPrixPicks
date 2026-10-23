@@ -30,8 +30,10 @@ constraint is implementation history, not the product rule.
 
 Complete news sweeps with the X selection and pending-post checks in
 `docs/news-social.md` and `.claude/skills/publish-race-news/SKILL.md`. Select
-one to three useful posts for a substantial sweep and schedule them through
-Buffer, normally 25 minutes apart, within the task's distribution scope.
+at most one post per sweep, none on most sweeps, and schedule it through
+Buffer within the task's distribution scope; the CLI caps the channel at two
+workflow posts a day. On race weekends, post published session results with
+`gpp results social`.
 
 ## Expo Mobile App
 

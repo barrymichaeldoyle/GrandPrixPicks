@@ -12,10 +12,40 @@ import path from 'node:path';
 import { openNewsSocialState } from './news-social-state.mjs';
 
 const MINUTE = 60_000;
-/** A race write-up link in post copy, capturing its query string. */
+const SITE = 'https://grandprixpicks.com';
+/** A race write-up link, capturing its query string. */
 const WRITEUP_LINK =
-  /https:\/\/grandprixpicks\.com\/f1-\d{4}-[a-z-]+-grand-prix-predictions(\?[^\s#]*)?/g;
+  /^https:\/\/grandprixpicks\.com\/f1-\d{4}-[a-z-]+-grand-prix-predictions(\?[^\s#]*)?$/;
+const ANY_URL = /https?:\/\//i;
 const ACTIVE = new Set(['scheduled', 'sending', 'needs_approval']);
+/**
+ * At most this many workflow posts a day on the channel, scheduled or sent.
+ * Thirty-three news posts in a fortnight averaged 38 impressions each
+ * (2026-10-23): X shows a link feed to nobody. Fewer posts, each the strongest
+ * story of its half-day, is the whole point of the selection.
+ */
+const DAILY_CAP = 2;
+const DEFAULT_TIMEZONE = 'Africa/Johannesburg';
+const SESSIONS = {
+  quali: 'qualifying',
+  sprint_quali: 'sprint qualifying',
+  sprint: 'sprint',
+  race: 'race',
+};
+
+/** Calendar day of a timestamp in the channel's timezone, e.g. "2026-10-23". */
+function dayKey(ms, timeZone) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(ms));
+}
+
+function isResultsStory(story) {
+  return story.key.startsWith('results:');
+}
 
 function digest(value) {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -150,11 +180,104 @@ async function inventory(buffer, organizationId, channelId, now) {
   );
 }
 
+function resultsRevision(result) {
+  return digest(
+    result.entries.map((entry) => [entry.position, entry.code, entry.status]),
+  );
+}
+
+function surname(name) {
+  return name.trim().split(/\s+/).pop();
+}
+
+/** Post copy for a published classification: the podium, in plain words. */
+export function resultsPostText(race, session, entries) {
+  const top = entries.filter((entry) => !entry.status).slice(0, 3);
+  if (top.length < 3) {
+    throw new Error('A results post needs three classified finishers.');
+  }
+  const [first, second, third] = top.map((entry) => surname(entry.name));
+  const name = race.name.replace(/ Grand Prix$/, ' GP');
+  if (session === 'quali' || session === 'sprint_quali') {
+    return `${name} ${SESSIONS[session]}: ${first} on pole, ${second} second, ${third} third.`;
+  }
+  return `${name} ${SESSIONS[session]}: ${first} wins from ${second} and ${third}.`;
+}
+
+/**
+ * The results post for one session: the classification card as the image,
+ * the podium as the text, the race page in a reply. One per race and
+ * session, ever: an amendment is reported, never reposted on its own.
+ */
+export async function resultsSocial(
+  raceSlug,
+  session,
+  flags,
+  { root, convexRun, buffer = bufferCommand, now = Date.now(), channel },
+) {
+  if (!raceSlug || !Object.hasOwn(SESSIONS, session)) {
+    throw new Error(
+      'results social <race-slug> quali|sprint_quali|sprint|race [--prod] [--apply]',
+    );
+  }
+  const response = await convexRun(
+    'ops:sessionResult',
+    { raceSlug, session },
+    flags,
+  );
+  if (!response) {
+    throw new Error(`No race "${raceSlug}".`);
+  }
+  if (!response.result) {
+    throw new Error(
+      `No ${SESSIONS[session]} result published for ${raceSlug} yet.`,
+    );
+  }
+  const text = resultsPostText(response.race, session, response.result.entries);
+  const rev = resultsRevision(response.result);
+  const label = `${response.race.name} ${SESSIONS[session]}`;
+  const prebuilt = {
+    plan: {
+      organizationId: channel.organizationId,
+      channelId: channel.channelId,
+    },
+    startAt: now + 5 * MINUTE,
+    selections: [
+      {
+        keys: [`results:${session}`],
+        text,
+        link: `${SITE}/races/${encodeURIComponent(raceSlug)}`,
+        image: {
+          url: `${SITE}/og/results?race=${encodeURIComponent(raceSlug)}&session=${session}&v=${rev.slice(0, 12)}`,
+          alt: `${label} classification`,
+        },
+        stories: [{ raceSlug, key: `results:${session}`, revision: rev }],
+        expiresAt: now + 12 * 60 * MINUTE,
+      },
+    ],
+  };
+  const result = await newsSocial(null, flags, {
+    root,
+    convexRun,
+    buffer,
+    now,
+    prebuilt,
+  });
+  if (response.result.amendedAt) {
+    result.reports.push({
+      action: 'note',
+      keys: [`results:${session}`],
+      reason: `This classification was amended at ${new Date(response.result.amendedAt).toISOString()}; the first publication is what was posted.`,
+    });
+  }
+  return result;
+}
+
 /** Operator-owned X selection. Reads live news; writes only Buffer and a local journal. */
 export async function newsSocial(
   file,
   flags,
-  { root, convexRun, buffer = bufferCommand, now = Date.now() },
+  { root, convexRun, buffer = bufferCommand, now = Date.now(), prebuilt },
 ) {
   if (flags.apply && !flags.prod) {
     throw new Error(
@@ -213,6 +336,7 @@ export async function newsSocial(
       now,
       ledgerFile,
       sharedState,
+      prebuilt,
     });
   } finally {
     try {
@@ -228,9 +352,9 @@ export async function newsSocial(
 async function run(
   file,
   flags,
-  { convexRun, buffer, now, ledgerFile, sharedState },
+  { convexRun, buffer, now, ledgerFile, sharedState, prebuilt },
 ) {
-  if (!file) {
+  if (!file && !prebuilt) {
     throw new Error('news social <selection.json>|check [--prod] [--apply]');
   }
   const ledger = existsSync(ledgerFile)
@@ -241,22 +365,25 @@ async function run(
   }
   const apply = Boolean(flags.apply);
   const deployment = flags.prod ? 'prod' : 'dev';
-  const planFile = file === 'check' ? null : path.resolve(file);
-  const plan = planFile ? loadJson(planFile) : null;
+  const planFile = file && file !== 'check' ? path.resolve(file) : null;
+  let plan = planFile ? loadJson(planFile) : null;
   let selections = [];
   let start = now + 5 * MINUTE;
   let gap = 25 * MINUTE;
-  if (plan) {
+  if (prebuilt) {
+    ({ plan, selections } = prebuilt);
+    start = Math.max(start, prebuilt.startAt ?? 0);
+  } else if (plan) {
     if (
       !plan.organizationId ||
       !plan.channelId ||
       typeof plan.newsFile !== 'string' ||
       !Array.isArray(plan.posts) ||
       plan.posts.length < 1 ||
-      plan.posts.length > 3
+      plan.posts.length > 2
     ) {
       throw new Error(
-        'A selection needs organizationId, channelId, newsFile and one to three posts.',
+        'A selection needs organizationId, channelId, newsFile and one or two posts.',
       );
     }
     start = timestamp(plan.startAt, 'startAt');
@@ -281,15 +408,25 @@ async function run(
         !post.text.trim() ||
         selectedTexts.has(post.text.trim()) ||
         textLength(post.text) > 280 ||
+        (post.link !== undefined && typeof post.link !== 'string') ||
         (post.materialUpdate !== undefined &&
           typeof post.materialUpdate !== 'boolean')
       ) {
         throw new Error(
-          'Each post needs story keys, text within 280 weighted characters, and an optional boolean materialUpdate.',
+          'Each post needs story keys, text within 280 weighted characters, an optional link and an optional boolean materialUpdate.',
+        );
+      }
+      // The link goes in a reply, never in the post. X shows a post with a
+      // link to a fraction of the people it shows a plain one to, and the
+      // story's card rides along as a native image instead (docs/news-social.md).
+      if (ANY_URL.test(post.text)) {
+        throw new Error(
+          `Post text must not carry a URL; put it in "link": ${post.keys.join(', ')}`,
         );
       }
       selectedTexts.add(post.text.trim());
       const expiresAt = timestamp(post.expiresAt, 'expiresAt');
+      const items = [];
       const stories = post.keys.map((key) => {
         const item = byKey.get(key);
         if (
@@ -304,24 +441,42 @@ async function run(
           );
         }
         selected.add(key);
+        items.push(item);
         return {
           raceSlug: item.raceSlug ?? null,
           key,
           revision: revision(item),
         };
       });
-      // X caches a link preview by URL. A bare write-up link unfurls as the
-      // write-up's card on every post; `?story=<key>` shows that story's
-      // headline instead (docs/news-social.md).
-      for (const [, query] of post.text.matchAll(WRITEUP_LINK)) {
-        const story = new URLSearchParams(query).get('story');
-        if (!story || !post.keys.includes(story)) {
+      const link = post.link?.trim() || null;
+      if (link) {
+        const writeup = link.match(WRITEUP_LINK);
+        if (writeup) {
+          // X caches a link preview by URL. A bare write-up link unfurls as the
+          // write-up's card on every post; `?story=<key>` shows that story's
+          // headline instead (docs/news-social.md).
+          const story = new URLSearchParams(writeup[1]).get('story');
+          if (!story || !post.keys.includes(story)) {
+            throw new Error(
+              `Write-up links need ?story=<one of this post's keys>: ${post.keys.join(', ')}`,
+            );
+          }
+        } else if (!items.some((item) => item.sourceUrl === link)) {
           throw new Error(
-            `Write-up links need ?story=<one of this post's keys>: ${post.keys.join(', ')}`,
+            `link must be a write-up ?story= link or a selected story's sourceUrl: ${post.keys.join(', ')}`,
           );
         }
       }
-      return { ...post, stories, expiresAt };
+      // The story's own card, as the post's image. Global stories have no
+      // write-up and so no card; they go out as text.
+      const lead = stories.find((story) => story.raceSlug);
+      const image = lead
+        ? {
+            url: `${SITE}/og/news?race=${encodeURIComponent(lead.raceSlug)}&story=${encodeURIComponent(lead.key)}&v=${lead.revision.slice(0, 12)}`,
+            alt: byKey.get(lead.key).headline,
+          }
+        : null;
+      return { ...post, link, image, stories, expiresAt };
     });
   }
 
@@ -330,7 +485,29 @@ async function run(
   async function current(story) {
     const scope = identity(story);
     if (!cache.has(scope)) {
-      if (story.raceSlug) {
+      if (isResultsStory(story)) {
+        const response = await convexRun(
+          'ops:sessionResult',
+          { raceSlug: story.raceSlug, session: story.key.slice(8) },
+          flags,
+        );
+        if (!response || !Object.hasOwn(response, 'result')) {
+          throw new Error(`Invalid live result response for ${scope}.`);
+        }
+        // A published classification is "active" news that never leaves the
+        // feed; an amendment is a new revision, like a corrected headline.
+        cache.set(
+          scope,
+          response.result
+            ? {
+                active: true,
+                feedSelected: true,
+                feedVisibleAt: 0,
+                resultsRevision: resultsRevision(response.result),
+              }
+            : null,
+        );
+      } else if (story.raceSlug) {
         const response = await convexRun(
           'ops:newsList',
           { raceSlug: story.raceSlug, key: story.key },
@@ -367,7 +544,8 @@ async function run(
         !item?.active ||
         item.feedSelected === false ||
         item.feedVisibleAt > now ||
-        revision(item) !== story.revision
+        (isResultsStory(story) ? item.resultsRevision : revision(item)) !==
+          story.revision
       ) {
         return false;
       }
@@ -384,6 +562,7 @@ async function run(
 
   const reports = [];
   const queues = new Map();
+  const timezones = new Map();
   async function queue(organizationId, channelId) {
     const id = `${organizationId}/${channelId}`;
     if (!queues.has(id)) {
@@ -406,6 +585,7 @@ async function run(
           'The selected Buffer channel must be a connected, unpaused X channel in this organization.',
         );
       }
+      timezones.set(channelId, channel.timezone || DEFAULT_TIMEZONE);
       queues.set(id, await inventory(buffer, organizationId, channelId, now));
     }
     return queues.get(id);
@@ -547,6 +727,36 @@ async function run(
           `No available slot before expiry for ${post.keys.join(', ')}.`,
         );
       }
+      const timeZone = timezones.get(plan.channelId) ?? DEFAULT_TIMEZONE;
+      const day = dayKey(candidate, timeZone);
+      const today = [
+        ...relevant.filter(
+          (entry) =>
+            entry.channelId === plan.channelId &&
+            entry.status !== 'cancelled' &&
+            !removed.has(entry.bufferPostId) &&
+            !cancellations.includes(entry),
+        ),
+        ...prepared.map((entry) => entry.payload),
+      ].filter((entry) => dayKey(Date.parse(entry.dueAt), timeZone) === day);
+      if (today.length >= DAILY_CAP) {
+        reports.push({
+          action: 'skipped',
+          keys: post.keys,
+          reason: `Daily cap: ${DAILY_CAP} workflow posts already on ${day} (${timeZone}).`,
+        });
+        continue;
+      }
+      const assets = post.image
+        ? [
+            {
+              image: {
+                url: post.image.url,
+                metadata: { altText: post.image.alt },
+              },
+            },
+          ]
+        : [];
       const payload = {
         channelId: plan.channelId,
         schedulingType: 'automatic',
@@ -554,6 +764,20 @@ async function run(
         dueAt: new Date(candidate).toISOString(),
         text: post.text,
         aiAssisted: true,
+        ...(assets.length ? { assets } : {}),
+        // The link rides in a reply under the post, where it costs no reach.
+        ...(post.link
+          ? {
+              metadata: {
+                twitter: {
+                  thread: [
+                    { text: post.text, ...(assets.length ? { assets } : {}) },
+                    { text: post.link },
+                  ],
+                },
+              },
+            }
+          : {}),
       };
       await buffer(['posts', 'create'], payload, { dryRun: true });
       prepared.push({
@@ -590,6 +814,12 @@ async function run(
       channelId: plan.channelId,
       stories: post.stories,
       text: post.payload.text,
+      ...(post.payload.metadata
+        ? { link: post.payload.metadata.twitter.thread[1].text }
+        : {}),
+      ...(post.payload.assets
+        ? { imageUrl: post.payload.assets[0].image.url }
+        : {}),
       dueAt: post.payload.dueAt,
       expiresAt: post.expiresAt,
       status: 'creating',
@@ -630,6 +860,8 @@ async function run(
       keys: post.keys,
       dueAt: record.dueAt,
       text: record.text,
+      link: record.link,
+      imageUrl: record.imageUrl,
       bufferPostId: record.bufferPostId,
     });
   }

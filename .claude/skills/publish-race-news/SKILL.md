@@ -171,9 +171,17 @@ chance to catch a mistake, not the publish itself.
 
 **4. Select X coverage.** A news sweep includes an editorial X selection after
 the news is published. Read [X posts after a news sweep](../../../docs/news-social.md)
-for the selection format, commands and correction behavior. Use one to three
-posts for a substantial sweep, with 25-minute spacing; select none when nothing
-merits a post. General event news is eligible alongside sporting developments.
+for the bar, the post shape, the selection format and the correction
+behavior. At most one post per sweep, and most sweeps select none: only a
+story a fan would stop scrolling for (a penalty, a swap, an engine change, a
+ruling, a title permutation). Liveries, fan zones, show cars and contract
+extensions stay on the feed and write-up. Post text carries no URL; the link
+goes in the selection's `link` and the story's card is attached automatically.
+
+**On a race weekend, post the results.** After a session's result is
+published (`gpp race --prod` shows it), run
+`scripts/gpp.mjs results social <slug> <session> --prod` and then `--apply`.
+It posts once per race and session; rerunning is safe.
 
 Run `scripts/gpp.mjs news social check --prod` to inspect pending news posts on
 every sweep, even one with no X selection. Apply stale cancellations and the

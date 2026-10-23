@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../../news/2026-10-23-evening-usa.json",
+  "startAt": "2026-10-23T23:10:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["austin-lindblad-colapinto-bortoleto-grid-penalties"],
+      "text": "Three grid penalties for Austin: Lindblad drops five places, Colapinto ten, and Bortoleto starts at the back after power unit changes. Qualifying classification is unchanged.",
+      "link": "https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=austin-lindblad-colapinto-bortoleto-grid-penalties",
+      "expiresAt": "2026-10-24T20:00:00Z"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "austin-lindblad-colapinto-bortoleto-grid-penalties",
+    "headline": "Lindblad drops five places, Colapinto ten and Bortoleto starts at the back",
+    "body": "Power unit changes give Lindblad a five-place grid penalty and Colapinto a ten-place drop for the United States Grand Prix. Bortoleto's energy store and control electronics changes bring a cumulative 20-place penalty, requiring a back-of-grid start. The penalties change Sunday's starting grid; qualifying classification is unchanged.",
+    "category": "pick_related",
+    "affectsSessions": ["race"],
+    "driverCodes": ["LIN", "COL", "BOR"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/lindblad-colapinto-and-bortoleto-to-take-grid-penalties-for-united-states-grand-prix.4qjn84W4zOmwNXeELFWn0k",
+    "sourcePublishedAt": "2026-10-23T19:08:28.992Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "leclerc-austin-fp1-pace",
+    "headline": "Leclerc leads Austin FP1 by 0.084s from Verstappen",
+    "body": "Leclerc set a 1:36.052 in Ferrari's upgraded car, ahead of Verstappen and Norris, with Russell and Antonelli fourth and fifth. Verstappen had a faster lap deleted for track limits at Turn 19. Williams spent much of the session on data collection runs before Sainz and Albon attempted timed laps.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["LEC"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/fp1-leclerc-fastest-in-first-practice-for-the-united-states-gp-ahead-of-verstappen-and-norris.125WlaFK7K1mXXyLgb93ui",
+    "sourcePublishedAt": "2026-10-23T18:51:51.519Z"
+  }
+]

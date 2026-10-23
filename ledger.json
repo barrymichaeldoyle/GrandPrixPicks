@@ -1083,6 +1083,25 @@
       "expiresAt": "2026-10-23T18:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6adaf9f0535235087b85a671"
+    },
+    {
+      "id": "c14c2d26589c8ebe00701922ec5f926d3536166fde2a108f34f3f7a728e4f168",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "verstappen-power-unit-penalty-looming",
+          "revision": "3235f40895309a425f786791175b745c8eec66074299f8d1562518f1018a31e6"
+        }
+      ],
+      "text": "Verstappen is on his last engine, turbo, MGU-K, energy store, electronics and exhaust with six races left. He says a grid penalty is potentially coming, with no date and no new parts planned for Austin.",
+      "link": "https://grandprixpicks.com/f1-2026-usa-grand-prix-predictions?story=verstappen-power-unit-penalty-looming",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=verstappen-power-unit-penalty-looming&v=3235f4089530",
+      "dueAt": "2026-10-23T18:30:00.000Z",
+      "expiresAt": "2026-10-24T20:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

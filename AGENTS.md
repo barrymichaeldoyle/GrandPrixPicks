@@ -32,8 +32,8 @@ Complete news sweeps with the X selection and pending-post checks in
 `docs/news-social.md` and `.claude/skills/publish-race-news/SKILL.md`. Select
 at most one post per sweep, none on most sweeps, and schedule it through
 Buffer within the task's distribution scope; the CLI caps the channel at two
-workflow posts a day. On race weekends, post published session results with
-`gpp results social`.
+posts a day. Session results post themselves from the backend
+(`socialPosts.ts`), never from a sweep.
 
 ## Expo Mobile App
 

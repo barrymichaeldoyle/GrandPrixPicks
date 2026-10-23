@@ -71,8 +71,6 @@ export default async function handler(event: RouteEvent) {
       renderOgImage(
         sessionResultsTemplate({
           raceName: race.name,
-          round: race.round,
-          season: race.season,
           sessionLabel: SESSION_LABELS[session],
           flagSrc,
           entries,

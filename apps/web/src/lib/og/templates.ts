@@ -138,6 +138,44 @@ function layout(size: OgImageSize, ...children: ReactNode[]): ReactNode {
 }
 
 /**
+ * The same frame with no footer, for a card posted as a native image by the
+ * account itself: the wordmark would sit under X's ALT badge and repeat the
+ * account name above it, and the domain is in the bio. (Barry, 2026-10-23.)
+ */
+function bareLayout(size: OgImageSize, ...children: ReactNode[]): ReactNode {
+  const { width, height } = getOgDimensions(size);
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column' as const,
+        width,
+        height,
+        backgroundColor: colors.bg,
+        fontFamily: 'Archivo',
+        color: colors.text,
+        position: 'relative' as const,
+        overflow: 'hidden' as const,
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column' as const,
+          flex: 1,
+          padding: '56px 72px 56px',
+          justifyContent: 'center',
+        },
+      },
+      ...children,
+    ),
+  );
+}
+
+/**
  * A driver chip: team colour as a 3px left bar on a neutral surface.
  *
  * These used to be solid team-colour rectangles with the code in a translucent
@@ -1839,15 +1877,11 @@ function sessionResultRow(entry: SessionResultEntry): ReactNode {
  */
 export function sessionResultsTemplate({
   raceName,
-  round,
-  season,
   sessionLabel,
   flagSrc,
   entries,
 }: {
   raceName: string;
-  round: number;
-  season: number;
   sessionLabel: string;
   flagSrc?: string;
   entries: SessionResultEntry[];
@@ -1855,74 +1889,50 @@ export function sessionResultsTemplate({
   const half = Math.ceil(entries.length / 2);
   const columns = [entries.slice(0, half), entries.slice(half)];
 
-  return layout(
+  // Posted as a native image by the account, so: no wordmark, no round
+  // number, the session as the one accent element, the flag as the only
+  // thing on the right. The classification is the card.
+  return bareLayout(
     '16:9',
     e(
       'div',
       {
         style: {
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-end',
           justifyContent: 'space-between',
-          marginBottom: 22,
+          marginBottom: 26,
         },
       },
       e(
         'div',
         { style: { display: 'flex', flexDirection: 'column' as const } },
+        accentTag(sessionLabel),
         e(
           'div',
           {
             style: {
-              fontSize: 20,
-              fontWeight: 600,
-              fontFamily: 'IBM Plex Mono',
-              color: colors.textMuted,
-            },
-          },
-          `${season} · Round ${round}`,
-        ),
-        e(
-          'div',
-          {
-            style: {
-              fontSize: 40,
+              fontSize: 44,
               fontWeight: 600,
               fontFamily: 'Archivo',
-              marginTop: 4,
+              letterSpacing: -1,
+              marginTop: 14,
             },
           },
           raceName,
         ),
       ),
-      e(
-        'div',
-        { style: { display: 'flex', alignItems: 'center', gap: 18 } },
-        e(
-          'div',
-          {
+      flagSrc
+        ? e('img', {
+            src: flagSrc,
+            width: 72,
+            height: 48,
             style: {
-              display: 'flex',
-              fontSize: 24,
-              fontWeight: 600,
-              fontFamily: 'Archivo',
-              color: colors.text,
-              border: `1px solid ${colors.borderStrong}`,
               borderRadius: 2,
-              padding: '7px 18px',
+              border: `1px solid ${colors.borderStrong}`,
             },
-          },
-          sessionLabel,
-        ),
-        flagSrc
-          ? e('img', {
-              src: flagSrc,
-              width: 72,
-              height: 48,
-              style: { borderRadius: 2 },
-            })
-          : null,
-      ),
+          })
+        : null,
     ),
     e(
       'div',

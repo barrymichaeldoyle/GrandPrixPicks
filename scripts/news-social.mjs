@@ -19,19 +19,14 @@ const WRITEUP_LINK =
 const ANY_URL = /https?:\/\//i;
 const ACTIVE = new Set(['scheduled', 'sending', 'needs_approval']);
 /**
- * At most this many workflow posts a day on the channel, scheduled or sent.
+ * At most this many posts a day on the channel, scheduled or sent, whoever
+ * made them.
  * Thirty-three news posts in a fortnight averaged 38 impressions each
  * (2026-10-23): X shows a link feed to nobody. Fewer posts, each the strongest
  * story of its half-day, is the whole point of the selection.
  */
 const DAILY_CAP = 2;
 const DEFAULT_TIMEZONE = 'Africa/Johannesburg';
-const SESSIONS = {
-  quali: 'qualifying',
-  sprint_quali: 'sprint qualifying',
-  sprint: 'sprint',
-  race: 'race',
-};
 
 /** Calendar day of a timestamp in the channel's timezone, e.g. "2026-10-23". */
 function dayKey(ms, timeZone) {
@@ -41,10 +36,6 @@ function dayKey(ms, timeZone) {
     month: '2-digit',
     day: '2-digit',
   }).format(new Date(ms));
-}
-
-function isResultsStory(story) {
-  return story.key.startsWith('results:');
 }
 
 function digest(value) {
@@ -180,104 +171,11 @@ async function inventory(buffer, organizationId, channelId, now) {
   );
 }
 
-function resultsRevision(result) {
-  return digest(
-    result.entries.map((entry) => [entry.position, entry.code, entry.status]),
-  );
-}
-
-function surname(name) {
-  return name.trim().split(/\s+/).pop();
-}
-
-/** Post copy for a published classification: the podium, in plain words. */
-export function resultsPostText(race, session, entries) {
-  const top = entries.filter((entry) => !entry.status).slice(0, 3);
-  if (top.length < 3) {
-    throw new Error('A results post needs three classified finishers.');
-  }
-  const [first, second, third] = top.map((entry) => surname(entry.name));
-  const name = race.name.replace(/ Grand Prix$/, ' GP');
-  if (session === 'quali' || session === 'sprint_quali') {
-    return `${name} ${SESSIONS[session]}: ${first} on pole, ${second} second, ${third} third.`;
-  }
-  return `${name} ${SESSIONS[session]}: ${first} wins from ${second} and ${third}.`;
-}
-
-/**
- * The results post for one session: the classification card as the image,
- * the podium as the text, the race page in a reply. One per race and
- * session, ever: an amendment is reported, never reposted on its own.
- */
-export async function resultsSocial(
-  raceSlug,
-  session,
-  flags,
-  { root, convexRun, buffer = bufferCommand, now = Date.now(), channel },
-) {
-  if (!raceSlug || !Object.hasOwn(SESSIONS, session)) {
-    throw new Error(
-      'results social <race-slug> quali|sprint_quali|sprint|race [--prod] [--apply]',
-    );
-  }
-  const response = await convexRun(
-    'ops:sessionResult',
-    { raceSlug, session },
-    flags,
-  );
-  if (!response) {
-    throw new Error(`No race "${raceSlug}".`);
-  }
-  if (!response.result) {
-    throw new Error(
-      `No ${SESSIONS[session]} result published for ${raceSlug} yet.`,
-    );
-  }
-  const text = resultsPostText(response.race, session, response.result.entries);
-  const rev = resultsRevision(response.result);
-  const label = `${response.race.name} ${SESSIONS[session]}`;
-  const prebuilt = {
-    plan: {
-      organizationId: channel.organizationId,
-      channelId: channel.channelId,
-    },
-    startAt: now + 5 * MINUTE,
-    selections: [
-      {
-        keys: [`results:${session}`],
-        text,
-        link: `${SITE}/races/${encodeURIComponent(raceSlug)}`,
-        image: {
-          url: `${SITE}/og/results?race=${encodeURIComponent(raceSlug)}&session=${session}&v=${rev.slice(0, 12)}`,
-          alt: `${label} classification`,
-        },
-        stories: [{ raceSlug, key: `results:${session}`, revision: rev }],
-        expiresAt: now + 12 * 60 * MINUTE,
-      },
-    ],
-  };
-  const result = await newsSocial(null, flags, {
-    root,
-    convexRun,
-    buffer,
-    now,
-    prebuilt,
-  });
-  if (response.result.amendedAt) {
-    result.reports.push({
-      action: 'note',
-      keys: [`results:${session}`],
-      reason: `This classification was amended at ${new Date(response.result.amendedAt).toISOString()}; the first publication is what was posted.`,
-    });
-  }
-  return result;
-}
-
 /** Operator-owned X selection. Reads live news; writes only Buffer and a local journal. */
 export async function newsSocial(
   file,
   flags,
-  { root, convexRun, buffer = bufferCommand, now = Date.now(), prebuilt },
+  { root, convexRun, buffer = bufferCommand, now = Date.now() },
 ) {
   if (flags.apply && !flags.prod) {
     throw new Error(
@@ -336,7 +234,6 @@ export async function newsSocial(
       now,
       ledgerFile,
       sharedState,
-      prebuilt,
     });
   } finally {
     try {
@@ -352,9 +249,9 @@ export async function newsSocial(
 async function run(
   file,
   flags,
-  { convexRun, buffer, now, ledgerFile, sharedState, prebuilt },
+  { convexRun, buffer, now, ledgerFile, sharedState },
 ) {
-  if (!file && !prebuilt) {
+  if (!file) {
     throw new Error('news social <selection.json>|check [--prod] [--apply]');
   }
   const ledger = existsSync(ledgerFile)
@@ -365,15 +262,12 @@ async function run(
   }
   const apply = Boolean(flags.apply);
   const deployment = flags.prod ? 'prod' : 'dev';
-  const planFile = file && file !== 'check' ? path.resolve(file) : null;
-  let plan = planFile ? loadJson(planFile) : null;
+  const planFile = file === 'check' ? null : path.resolve(file);
+  const plan = planFile ? loadJson(planFile) : null;
   let selections = [];
   let start = now + 5 * MINUTE;
   let gap = 25 * MINUTE;
-  if (prebuilt) {
-    ({ plan, selections } = prebuilt);
-    start = Math.max(start, prebuilt.startAt ?? 0);
-  } else if (plan) {
+  if (plan) {
     if (
       !plan.organizationId ||
       !plan.channelId ||
@@ -485,29 +379,7 @@ async function run(
   async function current(story) {
     const scope = identity(story);
     if (!cache.has(scope)) {
-      if (isResultsStory(story)) {
-        const response = await convexRun(
-          'ops:sessionResult',
-          { raceSlug: story.raceSlug, session: story.key.slice(8) },
-          flags,
-        );
-        if (!response || !Object.hasOwn(response, 'result')) {
-          throw new Error(`Invalid live result response for ${scope}.`);
-        }
-        // A published classification is "active" news that never leaves the
-        // feed; an amendment is a new revision, like a corrected headline.
-        cache.set(
-          scope,
-          response.result
-            ? {
-                active: true,
-                feedSelected: true,
-                feedVisibleAt: 0,
-                resultsRevision: resultsRevision(response.result),
-              }
-            : null,
-        );
-      } else if (story.raceSlug) {
+      if (story.raceSlug) {
         const response = await convexRun(
           'ops:newsList',
           { raceSlug: story.raceSlug, key: story.key },
@@ -544,8 +416,7 @@ async function run(
         !item?.active ||
         item.feedSelected === false ||
         item.feedVisibleAt > now ||
-        (isResultsStory(story) ? item.resultsRevision : revision(item)) !==
-          story.revision
+        revision(item) !== story.revision
       ) {
         return false;
       }
@@ -729,21 +600,25 @@ async function run(
       }
       const timeZone = timezones.get(plan.channelId) ?? DEFAULT_TIMEZONE;
       const day = dayKey(candidate, timeZone);
+      // Everything on the channel that day counts, including the results
+      // posts the app makes on its own (apps/backend/convex/socialPosts.ts).
       const today = [
-        ...relevant.filter(
-          (entry) =>
-            entry.channelId === plan.channelId &&
-            entry.status !== 'cancelled' &&
-            !removed.has(entry.bufferPostId) &&
-            !cancellations.includes(entry),
+        ...remote.filter(
+          (item) =>
+            !removed.has(item.id) &&
+            (ACTIVE.has(item.status) || item.status === 'sent'),
         ),
         ...prepared.map((entry) => entry.payload),
-      ].filter((entry) => dayKey(Date.parse(entry.dueAt), timeZone) === day);
+      ].filter((entry) =>
+        Number.isFinite(Date.parse(entry.sentAt ?? entry.dueAt))
+          ? dayKey(Date.parse(entry.sentAt ?? entry.dueAt), timeZone) === day
+          : false,
+      );
       if (today.length >= DAILY_CAP) {
         reports.push({
           action: 'skipped',
           keys: post.keys,
-          reason: `Daily cap: ${DAILY_CAP} workflow posts already on ${day} (${timeZone}).`,
+          reason: `Daily cap: ${DAILY_CAP} posts already on ${day} (${timeZone}).`,
         });
         continue;
       }

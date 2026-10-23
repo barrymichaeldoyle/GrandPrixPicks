@@ -78,18 +78,14 @@ are not posted. The post text carries no URL and leads with the angle in
 under 200 characters; the link goes in the selection's `link` field and the
 story's card is attached automatically. Use Buffer's GrandPrixPicks X channel,
 organization 64f9a17b902afdecc48c8d02, channel 6a6f4b8a99afb44349e9c0f4. The
-CLI allows two workflow posts a channel day and skips a third; do not work
-around it. Respect the existing queue, expiry, corrections and duplicate
-checks. Reference the exact published payload snapshot in the selection.
-Preview copy and times before applying; verify each result. Persist ledger
-updates immediately through the configured shared state mechanism.
+CLI allows two posts a channel day and skips a third; do not work around it.
+Respect the existing queue, expiry, corrections and duplicate checks.
+Reference the exact published payload snapshot in the selection. Preview copy
+and times before applying; verify each result. Persist ledger updates
+immediately through the configured shared state mechanism.
 
-On a race weekend (from the first session's lock to the Monday after), also
-post published session results: for each session `pnpm gpp race --prod`
-shows a published result for, run
-`pnpm gpp results social <slug> <session> --prod` and then `--apply`. It
-posts once per race and session and is safe to rerun. The race-weekend
-routine handles most of these; this sweep catches any it missed.
+Session results post themselves from the backend; never post a
+classification by hand or through the connector.
 
 Retain payloads, selections and a dated sweep report on a new claude/ artifact
 branch for this run. The CLI itself persists the authoritative shared ledger;

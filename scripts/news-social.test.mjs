@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { newsSocial, resultsPostText, resultsSocial } from './news-social.mjs';
+import { newsSocial } from './news-social.mjs';
 
 const NOW = Date.parse('2026-10-09T18:00:00Z');
 const MINUTE = 60_000;
@@ -116,7 +116,6 @@ function fixture(t, count = 2) {
     remote,
     calls,
     write,
-    buffer,
     ledger: () =>
       JSON.parse(
         readFileSync(
@@ -155,10 +154,14 @@ test('dry run spaces posts around other campaigns without writing a ledger or sc
     text: 'Other campaign',
   });
   const result = await f.run();
-  assert.deepEqual(
-    result.reports.map((post) => post.dueAt),
-    ['2026-10-09T18:45:00.000Z', '2026-10-09T19:10:00.000Z'],
+  // The other campaign's post counts toward the channel's two a day, so the
+  // first selection takes the slot after it and the second is skipped.
+  const scheduled = result.reports.find(
+    (report) => report.action === 'would_schedule',
   );
+  const skipped = result.reports.find((report) => report.action === 'skipped');
+  assert.equal(scheduled.dueAt, '2026-10-09T18:45:00.000Z');
+  assert.match(skipped.reason, /Daily cap/);
   assert.equal(f.remote.length, 1);
   assert.throws(() => f.ledger(), { code: 'ENOENT' });
   assert.ok(
@@ -335,22 +338,23 @@ test('inspects later queue pages before choosing slots', async (t) => {
     [
       {
         id: 'other-1',
-        status: 'scheduled',
-        dueAt: '2026-10-09T18:20:00Z',
-        text: 'First campaign',
+        status: 'sent',
+        dueAt: '2026-10-08T18:50:00Z',
+        sentAt: '2026-10-08T18:50:00Z',
+        text: 'Yesterday',
       },
     ],
     [
       {
         id: 'other-2',
         status: 'scheduled',
-        dueAt: '2026-10-09T18:50:00Z',
+        dueAt: '2026-10-09T18:20:00Z',
         text: 'Second campaign',
       },
     ],
   ]);
   const preview = await f.run();
-  assert.equal(preview.reports[0].dueAt, '2026-10-09T19:15:00.000Z');
+  assert.equal(preview.reports[0].dueAt, '2026-10-09T18:45:00.000Z');
   assert.deepEqual(
     f.calls
       .filter((call) => call.command === 'posts list')
@@ -436,8 +440,16 @@ test('a global story posts as text with no image, and a post with no link has no
   assert.equal(create.payload.metadata, undefined);
 });
 
-test('the third post of a channel day is skipped by the daily cap', async (t) => {
-  const f = fixture(t, 2);
+test('the third post of a channel day is skipped by the daily cap, whoever posted', async (t) => {
+  const f = fixture(t, 1);
+  // A results post the app made on its own, already sent that day.
+  f.remote.push({
+    id: 'app-results',
+    status: 'sent',
+    dueAt: '2026-10-09T12:05:00.000Z',
+    sentAt: '2026-10-09T12:05:00.000Z',
+    text: 'Singapore GP qualifying: Verstappen on pole, Leclerc second, Norris third.',
+  });
   await f.run(true);
   assert.equal(f.remote.length, 2);
   for (const post of f.remote) {
@@ -470,79 +482,4 @@ test('the third post of a channel day is skipped by the daily cap', async (t) =>
   const later = await f.run(true, f.file, NOW + 12 * 60 * MINUTE);
   assert.equal(later.reports.at(-1).action, 'scheduled');
   assert.equal(f.remote.length, 3);
-});
-
-test('results social posts a session once with its card, podium copy and race-page reply', async (t) => {
-  const f = fixture(t, 1);
-  const entries = [
-    { position: 1, code: 'VER', name: 'Max Verstappen', status: null },
-    { position: 2, code: 'LEC', name: 'Charles Leclerc', status: null },
-    { position: 3, code: 'NOR', name: 'Lando Norris', status: null },
-    { position: 4, code: 'HAM', name: 'Lewis Hamilton', status: 'dnf' },
-  ];
-  const live = {
-    race: { slug: 'singapore-2026', name: 'Singapore Grand Prix', round: 17 },
-    session: 'quali',
-    result: { publishedAt: NOW - MINUTE, amendedAt: null, entries },
-  };
-  const run = (apply, now = NOW) =>
-    resultsSocial(
-      'singapore-2026',
-      'quali',
-      { prod: true, apply },
-      {
-        root: f.root,
-        now,
-        buffer: (...args) => f.buffer(...args),
-        convexRun: async (fn) => (fn === 'ops:sessionResult' ? live : null),
-        channel: { organizationId: 'org', channelId: 'x' },
-      },
-    );
-  const preview = await run(false);
-  assert.equal(preview.reports[0].action, 'would_schedule');
-  assert.equal(
-    preview.reports[0].text,
-    'Singapore GP qualifying: Verstappen on pole, Leclerc second, Norris third.',
-  );
-  assert.equal(f.remote.length, 0);
-  await run(true);
-  assert.equal(f.remote.length, 1);
-  assert.match(
-    f.remote[0].assets[0].image.url,
-    /^https:\/\/grandprixpicks\.com\/og\/results\?race=singapore-2026&session=quali&v=/,
-  );
-  assert.equal(
-    f.remote[0].metadata.twitter.thread[1].text,
-    'https://grandprixpicks.com/races/singapore-2026',
-  );
-  assert.equal(f.remote[0].dueAt, '2026-10-09T18:05:00.000Z');
-  // Never twice, even an hour later.
-  const again = await run(true, NOW + 60 * MINUTE);
-  assert.equal(again.reports[0].action, 'skipped');
-  assert.equal(f.remote.length, 1);
-  // An amendment while the post is still queued cancels it: the card it
-  // carries is stale. It is not reposted on its own.
-  live.result.amendedAt = NOW + 30 * MINUTE;
-  live.result.entries = [entries[1], entries[0], entries[2], entries[3]];
-  const amended = await run(true, NOW + 90 * MINUTE);
-  assert.deepEqual(
-    amended.reports.map((report) => report.action),
-    ['cancelled', 'skipped', 'note'],
-  );
-  assert.equal(f.remote.length, 0);
-  // Once sent, an amendment is only reported.
-  f.remote.push({
-    id: 'sent-1',
-    status: 'sent',
-    sentAt: '2026-10-09T18:05:00.000Z',
-    dueAt: '2026-10-09T18:05:00.000Z',
-    text: 'already out',
-  });
-  const after = await run(true, NOW + 120 * MINUTE);
-  assert.ok(after.reports.every((report) => report.action !== 'scheduled'));
-  assert.equal(after.reports.at(-1).action, 'note');
-  assert.equal(
-    resultsPostText(live.race, 'race', entries),
-    'Singapore GP race: Verstappen wins from Leclerc and Norris.',
-  );
 });

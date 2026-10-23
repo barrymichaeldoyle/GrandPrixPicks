@@ -18,7 +18,6 @@ scripts/gpp.mjs news list <slug> [--prod]       # one line per item
 scripts/gpp.mjs news show <slug> <key> [--prod] # one item in full
 scripts/gpp.mjs news scan <slug> [--prod] [--days N] [--all]
 scripts/gpp.mjs news social <selection.json>|check [--prod] [--apply]
-scripts/gpp.mjs results social <slug> <session> [--prod] [--apply]
 scripts/gpp.mjs news publish <file> [--prod] [--apply]
 scripts/gpp.mjs news retract <slug> <key> [--prod] [--apply]
 scripts/gpp.mjs news move <from> <to> <key>... [--prod] [--apply]
@@ -33,14 +32,12 @@ scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
   published news batch, checks the live story revisions and Buffer queue, and
   spaces posts 20–30 minutes apart (25 by default). Post text carries no URL:
   the story's card is attached as the image and `link` goes in a reply. Two
-  workflow posts a channel day; a third is skipped. `--apply` schedules them
+  posts a channel day, counting the app's own results posts; a third is
+  skipped. `--apply` schedules them
   and cancels superseded or expired queued news owned by this workflow.
   `news social check` checks the existing news queue without selecting posts.
   A durable ledger reconciles interrupted creates and prevents repeated
   revisions. See `docs/news-social.md` for selection files and corrections.
-- **`results social`** schedules the X post for one published session result:
-  classification card as the image, podium as the text, race page in a reply.
-  Once per race and session, enforced by the same ledger.
 - **`race`** with no slug shows the weekend players are on: the locked race
   inside its 72-hour grace window, otherwise the next upcoming one (the same
   rule as `races.getQuickPickRace`). Per session: lock time, Top 5 and H2H

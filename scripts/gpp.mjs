@@ -27,8 +27,6 @@ const HELP = `gpp <command> [args] [--prod] [--json]
                                   --days N  window   --all  include noise and covered
   news social <selection.json>|check  preview selected X posts or check queued news
                                   --apply schedules posts and cancels stale queued news
-  results social <slug> <session> preview the X results post for a published session
-                                  --apply schedules it (once per race and session)
   news publish <file.json>        dry run; --apply to publish (object or array, run in order)
   news retract <slug> <key>       shows the item; --apply to retract
   news move <from> <to> <key>...  dry run; --apply to move
@@ -1261,12 +1259,6 @@ function usageCommand(flags) {
 // ---------------------------------------------------------------------------
 // X posting (news-social.mjs)
 
-/** Buffer's GrandPrixPicks X channel (docs/news-social.md). */
-const X_CHANNEL = {
-  organizationId: '64f9a17b902afdecc48c8d02',
-  channelId: '6a6f4b8a99afb44349e9c0f4',
-};
-
 function printSocial(result, flags) {
   if (flags.json) {
     return console.log(JSON.stringify(result, null, 2));
@@ -1327,23 +1319,6 @@ switch (command) {
       }
     } else {
       fail('news list|show|scan|publish|retract|move|social');
-    }
-    break;
-  case 'results':
-    if (sub === 'social') {
-      try {
-        const { resultsSocial } = await import('./news-social.mjs');
-        const result = await resultsSocial(rest[0], rest[1], flags, {
-          root: repoRoot,
-          convexRun,
-          channel: X_CHANNEL,
-        });
-        printSocial(result, flags);
-      } catch (error) {
-        fail(error.message);
-      }
-    } else {
-      fail('results social <slug> <session>');
     }
     break;
   case 'page':

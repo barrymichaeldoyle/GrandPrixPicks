@@ -178,10 +178,8 @@ ruling, a title permutation). Liveries, fan zones, show cars and contract
 extensions stay on the feed and write-up. Post text carries no URL; the link
 goes in the selection's `link` and the story's card is attached automatically.
 
-**On a race weekend, post the results.** After a session's result is
-published (`gpp race --prod` shows it), run
-`scripts/gpp.mjs results social <slug> <session> --prod` and then `--apply`.
-It posts once per race and session; rerunning is safe.
+Session results post themselves (`apps/backend/convex/socialPosts.ts`); a
+sweep never posts a classification by hand.
 
 Run `scripts/gpp.mjs news social check --prod` to inspect pending news posts on
 every sweep, even one with no X selection. Apply stale cancellations and the

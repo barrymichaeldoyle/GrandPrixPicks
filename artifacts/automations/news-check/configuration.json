@@ -25,5 +25,5 @@
   "validationSessionUrl": "https://claude.ai/code/session_01Gma4M9DfBCwV4h2qhB82PY",
   "validatedCodeCommit": "b3bcf213",
   "validationResult": "PASS",
-  "postingRules": "docs/news-social.md (2026-10-23): one post per sweep at most, two a day, no URL in text, card image + link in reply"
+  "postingRules": "docs/news-social.md (2026-10-23): one post per sweep at most, two a day on the channel, no URL in text, card image + link in reply; results post from Convex"
 }

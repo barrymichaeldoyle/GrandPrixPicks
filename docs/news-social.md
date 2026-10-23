@@ -36,15 +36,20 @@ channel's own timezone) is skipped and reported, not scheduled.
 
 ## Session results on race weekends
 
-The one post type that reliably gets seen. After a session's result is
-published, `gpp results social <slug> <session> --prod --apply` schedules one
-post: the classification card (`/og/results`) as the image, the podium as the
-text ("United States GP qualifying: Verstappen on pole, Leclerc second,
-Norris third."), the race page in a reply. The ledger keys it as
-`results:<session>` under the race, so it can only ever go out once per race
-and session. An amendment cancels a still-queued post (its card is stale) and
-is reported for a sent one; it is never reposted on its own. Results posts
-count toward the daily cap.
+The one post type that reliably gets seen, and the one that needs no
+judgement, so the app posts it itself: `apps/backend/convex/socialPosts.ts`
+scans published results every five minutes and schedules one post per race
+and session through Buffer, ten minutes out. The classification card
+(`/og/results`) is the image, the podium is the text ("United States GP
+qualifying: Verstappen on pole, Leclerc second, Norris third."), the race
+page is a reply. The `socialPosts` row is the double-post guard. A result
+amended while the post is still queued cancels it and posts the corrected
+classification; a result amended after the post went out is left alone.
+
+It needs `BUFFER_API_KEY` and `BUFFER_X_CHANNEL_ID` on the production
+deployment and is a no-op without them, so dev never posts. These posts count
+toward the two-a-day cap below, which the CLI reads from the Buffer queue.
+No routine is involved: the news routine still does the editorial selection.
 
 ## At every sweep
 

@@ -127,4 +127,14 @@ crons.interval(
   {},
 );
 
+// Session results go out as @GrandPrixPicks on X within minutes of being
+// published. The scan is idempotent (one post per race and session), so the
+// interval only sets how late a post can be.
+crons.interval(
+  'post published results to X',
+  { minutes: 5 },
+  internal.socialPosts.postPublishedResults,
+  {},
+);
+
 export default crons;

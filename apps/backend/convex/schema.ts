@@ -62,6 +62,33 @@ export default defineSchema({
   })
     .index('by_videoId', ['videoId'])
     .index('by_status', ['status']),
+  /**
+   * Posts the app makes as @GrandPrixPicks on X, one row per (race, session,
+   * kind). The row is the double-post guard: `socialPosts.ts` scans
+   * published results and posts each classification once. `revision` is the
+   * classification the post carries, so a queued post whose result was
+   * amended can be cancelled before it goes out.
+   */
+  socialPosts: defineTable({
+    raceId: v.id('races'),
+    sessionType: sessionType,
+    kind: v.literal('results'),
+    revision: v.string(),
+    status: v.union(
+      v.literal('creating'),
+      v.literal('scheduled'),
+      v.literal('sent'),
+      v.literal('cancelled'),
+      v.literal('failed'),
+    ),
+    text: v.string(),
+    dueAt: v.number(),
+    bufferPostId: v.optional(v.string()),
+    attempts: v.number(),
+    error: v.optional(v.string()),
+    updatedAt: v.number(),
+  }).index('by_race_session_kind', ['raceId', 'sessionType', 'kind']),
+
   raceVideos: defineTable({
     raceId: v.id('races'),
     kind: raceVideoKind,
@@ -361,7 +388,8 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index('by_race_session', ['raceId', 'sessionType'])
-    .index('by_nextRecheckAt', ['nextRecheckAt']),
+    .index('by_nextRecheckAt', ['nextRecheckAt'])
+    .index('by_publishedAt', ['publishedAt']),
 
   // Informational FP1 classification. Kept separate from scored `results` so
   // practice never enters prediction, scoring, or notification workflows.

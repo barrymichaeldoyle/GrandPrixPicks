@@ -28,9 +28,12 @@ export function PicksListHeader({
   pickCount,
   pickStatus,
   inlineSaveStatus,
+  showTapHint = true,
 }: {
   hidePicksHeading: boolean;
   pickCount: number;
+  /** Off when the driver pool above already says how to fill the list. */
+  showTapHint?: boolean;
   pickStatus: ReactNode;
   inlineSaveStatus: ReactNode;
 }) {
@@ -39,15 +42,16 @@ export function PicksListHeader({
       // Side by side, the status moves up beside "Select drivers" (see
       // the pool's heading) and the column's top padding stands in for
       // it, so the list starts level with the driver grid.
+      //
+      // One row, centred rather than baseline-aligned: the save receipt
+      // carries an icon, and on a baseline it sat higher than the status.
       <div className="mb-2 space-y-1 sm:mb-3 @min-[875px]:hidden">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <div className="flex min-h-6 flex-wrap items-center gap-x-3 gap-y-1">
           {pickStatus}
           {inlineSaveStatus}
-        </div>
-        <div className="flex min-h-5 items-center">
-          {pickCount < 5 ? <TapToFillHint /> : null}
           {pickCount >= 2 ? <ReorderHint /> : null}
         </div>
+        {showTapHint && pickCount < 5 ? <TapToFillHint /> : null}
       </div>
     );
   }
@@ -57,7 +61,7 @@ export function PicksListHeader({
       {/* The status belongs to this list: it counts these slots and
           the change it asks for happens here. */}
       {pickStatus}
-      {pickCount < 5 ? <TapToFillHint /> : null}
+      {showTapHint && pickCount < 5 ? <TapToFillHint /> : null}
       {pickCount >= 2 ? <ReorderHint /> : null}
     </div>
   );

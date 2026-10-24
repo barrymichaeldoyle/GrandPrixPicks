@@ -11,6 +11,6 @@ export function picksOverlayHeading(step: 'top5' | 'h2h') {
     ? { title: 'Team-mate picks', subtitle: 'Step 2 of 2' }
     : {
         title: 'Your Top 5',
-        subtitle: 'Step 1 of 2 · applies to every open session',
+        subtitle: 'Step 1 of 2',
       };
 }

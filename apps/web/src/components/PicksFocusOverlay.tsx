@@ -206,9 +206,14 @@ export function PicksFocusOverlay({
             </div>
             {/* No bottom padding on mobile: a sticky bottom bar (H2H submit) can't
             enter the scroll container's padding, so padding would leave a gap
-            under it. Content without its own bar should bring pb-4 sm:pb-0. */}
+            under it. Content without its own bar should bring pb-4 sm:pb-0.
+
+            There is no site header above this scroller, so sticky content
+            pins to its top edge instead of `--nav-height` below it. The offset
+            is the negative top padding: a sticky box stops at the padding
+            edge, and content would show through the strip above it. */}
             <div
-              className={`min-h-0 flex-1 overflow-y-auto px-3 pt-4 pb-0 sm:px-6 sm:py-5 ${
+              className={`min-h-0 flex-1 overflow-y-auto px-3 pt-4 pb-0 [--picks-sticky-top:-1rem] sm:px-6 sm:py-5 sm:[--picks-sticky-top:-1.25rem] ${
                 fillBody ? 'flex flex-col sm:block' : ''
               }`}
             >

@@ -846,6 +846,36 @@ export function PredictionForm({
     ) : null;
   }
 
+  const mobileSummary = mobileActionFirst ? (
+    <MobilePickSummary
+      drivers={pickedDrivers}
+      reviewId={reviewId}
+      onReview={(position) => {
+        const target = position
+          ? yourPicksRef.current?.querySelector<HTMLElement>(
+              `[data-testid="picked-driver-${position}"]`,
+            )
+          : yourPicksRef.current;
+        target?.scrollIntoView({
+          behavior: window.matchMedia('(prefers-reduced-motion: reduce)')
+            .matches
+            ? 'auto'
+            : 'smooth',
+          block: 'start',
+        });
+        if (position) {
+          target
+            ?.querySelector<HTMLElement>(
+              '[aria-roledescription="sortable"], [data-testid^="remove-pick-"]',
+            )
+            ?.focus({ preventScroll: true });
+        } else {
+          yourPicksRef.current?.focus({ preventScroll: true });
+        }
+      }}
+    />
+  ) : null;
+
   return (
     <DndContext
       id={`top-five-${raceId}`}
@@ -871,35 +901,6 @@ export function PredictionForm({
             onDiscard={handleDiscardDraft}
           />
         ) : null}
-        {mobileActionFirst && (
-          <MobilePickSummary
-            drivers={pickedDrivers}
-            reviewId={reviewId}
-            onReview={(position) => {
-              const target = position
-                ? yourPicksRef.current?.querySelector<HTMLElement>(
-                    `[data-testid="picked-driver-${position}"]`,
-                  )
-                : yourPicksRef.current;
-              target?.scrollIntoView({
-                behavior: window.matchMedia('(prefers-reduced-motion: reduce)')
-                  .matches
-                  ? 'auto'
-                  : 'smooth',
-                block: 'start',
-              });
-              if (position) {
-                target
-                  ?.querySelector<HTMLElement>(
-                    '[aria-roledescription="sortable"], [data-testid^="remove-pick-"]',
-                  )
-                  ?.focus({ preventScroll: true });
-              } else {
-                yourPicksRef.current?.focus({ preventScroll: true });
-              }
-            }}
-          />
-        )}
         {/* Side-by-side only when *this* form is wide enough. Viewport `lg`
             alone is wrong inside the dashboard's narrow center column. */}
         <div className="flex flex-col gap-4 sm:gap-6 @min-[875px]:flex-row @min-[875px]:items-start @min-[875px]:gap-8">
@@ -916,7 +917,7 @@ export function PredictionForm({
             role="region"
             aria-label="Review your Top 5"
             data-testid="your-picks"
-            className={`${mobileActionFirst ? 'order-2 scroll-mt-[calc(var(--nav-height)+9rem)] @min-[875px]:order-1' : ''} ${
+            className={`${mobileActionFirst ? 'order-2 scroll-mt-[calc(var(--picks-sticky-top,var(--nav-height))+0.75rem)] @min-[875px]:order-1' : ''} ${
               mobileActionFirst && picks.length === 0
                 ? '@max-[875px]:hidden'
                 : ''
@@ -927,6 +928,7 @@ export function PredictionForm({
               pickCount={picks.length}
               pickStatus={pickStatus}
               inlineSaveStatus={renderInlineSaveStatus(true)}
+              showTapHint={!mobileActionFirst}
             />
             <div
               className="flex overflow-hidden rounded-xl border border-border bg-surface"
@@ -938,7 +940,7 @@ export function PredictionForm({
                 {[1, 2, 3, 4, 5].map((n) => (
                   <div
                     key={n}
-                    className={`gpp-mono h-24 w-8 shrink-0 items-center justify-center border-b border-border text-sm font-semibold text-accent last:border-b-0 sm:h-16 sm:w-12 pointer-coarse:h-24 ${mobileActionFirst && n > picks.length ? 'hidden @min-[875px]:flex' : 'flex'}`}
+                    className={`gpp-mono h-16 w-9 shrink-0 items-center justify-center border-b border-border text-sm font-semibold text-accent last:border-b-0 sm:w-12 ${mobileActionFirst && n > picks.length ? 'hidden @min-[875px]:flex' : 'flex'}`}
                     aria-hidden
                   >
                     P{n}
@@ -1041,6 +1043,7 @@ export function PredictionForm({
             drivers={driversSortedByTeam}
             picks={picks}
             mobileActionFirst={mobileActionFirst}
+            summary={mobileSummary}
             pickStatus={
               hidePicksHeading ? (
                 <>

@@ -71,7 +71,7 @@ function DraggableDriverCard({
        */
       className={`gpp-team-bar flex min-h-14 w-full items-center justify-start gap-2 rounded-sm border py-2.5 pr-2 pl-3 text-left transition-colors duration-150 ease-out ${
         picked
-          ? 'cursor-not-allowed border-accent/40 bg-accent-muted/15'
+          ? 'cursor-not-allowed border-accent bg-surface-elevated'
           : 'border-border bg-surface-elevated hover:border-border-strong hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface-elevated'
       }`}
       style={
@@ -84,7 +84,7 @@ function DraggableDriverCard({
       {/* Corner badge, not in the text flow — stacked surnames used to collide
           with an inline trailing P#. */}
       {picked ? (
-        <span className="gpp-mono absolute top-1 right-1.5 text-xs leading-none font-semibold text-accent">
+        <span className="gpp-mono absolute top-1.5 right-1.5 rounded-xs bg-accent px-1 py-0.5 text-xs leading-none font-semibold text-text-on-accent">
           P{pickedPosition}
         </span>
       ) : null}
@@ -143,6 +143,7 @@ export function DriverPoolSection({
   drivers,
   picks,
   mobileActionFirst,
+  summary,
   pickStatus,
   onAddDriver,
 }: {
@@ -150,13 +151,21 @@ export function DriverPoolSection({
   drivers: Driver[];
   picks: Id<'drivers'>[];
   mobileActionFirst: boolean;
+  /** Sticky pick summary; inside this column so it unpins where the pool ends. */
+  summary?: ReactNode;
   /** Shown beside the label when the side-by-side layout moves it up here. */
   pickStatus: ReactNode;
   onAddDriver: (driverId: Id<'drivers'>) => void;
 }) {
+  // Stacked, a full set leaves nothing to tap here: seventeen greyed cards
+  // and five repeats of the list. The pool steps aside until a pick is
+  // removed, and the list's status says how to get it back. Side by side it
+  // stays, because there it costs no scrolling.
+  const full = picks.length >= 5;
   return (
     <div
-      className={`${mobileActionFirst ? 'order-1 @min-[875px]:order-2' : ''} @min-[875px]:min-w-0 @min-[875px]:flex-1`}
+      className={`${mobileActionFirst ? 'order-1 @min-[875px]:order-2' : ''} ${full ? '@max-[875px]:hidden' : ''} @min-[875px]:min-w-0 @min-[875px]:flex-1`}
+      data-testid="driver-pool"
     >
       {/* The label only earns its line in the side-by-side layout, where
           it names the right-hand column against "Your picks". Stacked it
@@ -173,6 +182,7 @@ export function DriverPoolSection({
           </div>
         ) : null}
       </div>
+      {summary}
       {mobileActionFirst ? (
         /* Sentences are inline-block so the line breaks between them
            rather than mid-sentence, and stays on one line when it fits. */

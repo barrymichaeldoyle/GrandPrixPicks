@@ -1,6 +1,23 @@
-import type { RosterDriver } from '@/lib/roster';
+import type { CSSProperties } from 'react';
 
-/** Stays with the driver pool; the full list below owns editing and saving. */
+import type { RosterDriver } from '@/lib/roster';
+import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../DriverBadge';
+
+/**
+ * Stays with the driver pool; the full list below owns editing and saving.
+ *
+ * It is rendered inside the pool's column, so the sticky ends where the pool
+ * does. Pinned for the whole form it sat over the full pick list as a second
+ * copy of it, and the auto-scroll after the fifth pick left a strip of pool
+ * cards showing between the two.
+ *
+ * `--picks-sticky-top` is set by a scroll container that has no site header
+ * above it (the picks overlay); on the page it falls back to the header.
+ *
+ * It only pins while there is something left to pick. The fifth pick scrolls
+ * to the list, and where the content below is too short to bring the list to
+ * the top (the overlay), a pinned summary sliced the pool cards above it.
+ */
 export function MobilePickSummary({
   drivers,
   reviewId,
@@ -12,7 +29,7 @@ export function MobilePickSummary({
 }) {
   return (
     <div
-      className="sticky top-(--nav-height) z-30 border-y border-border bg-page py-2 @min-[875px]:hidden"
+      className={`${drivers.length < 5 ? 'sticky top-[var(--picks-sticky-top,var(--nav-height))] z-30' : ''} mb-3 border-b border-border bg-page py-2 @min-[875px]:hidden`}
       data-testid="mobile-pick-summary"
     >
       <div className="flex items-center justify-between gap-3">
@@ -48,7 +65,18 @@ export function MobilePickSummary({
                     ? `Edit P${index + 1} ${driver.code}, ${driver.displayName}`
                     : `P${index + 1}, empty`
                 }
-                className={`min-h-14 w-full rounded-sm border px-2 py-1.5 text-left ${driver ? 'border-border bg-surface hover:border-border-strong hover:bg-surface-hover' : 'border-dashed border-border'}`}
+                // Same 3px team bar as the pool card the pick came from, so
+                // the order reads by team at a glance.
+                className={`min-h-14 w-full rounded-sm border py-1.5 pr-2 text-left ${driver ? 'gpp-team-bar border-border-strong bg-surface-elevated pl-2.5 hover:bg-surface-hover' : 'border-dashed border-border pl-2'}`}
+                style={
+                  driver
+                    ? ({
+                        '--team-colour':
+                          (driver.team && TEAM_COLORS[driver.team]) ||
+                          FALLBACK_TEAM_COLOR,
+                      } as CSSProperties)
+                    : undefined
+                }
               >
                 <span className="sr-only">{driver?.displayName}</span>
                 <span className="gpp-mono block text-xs text-text-muted">

@@ -1163,7 +1163,7 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=leclerc-ferrari-upgrade-expectations&v=9d6c897fe3c4",
       "dueAt": "2026-10-24T16:30:00.000Z",
       "expiresAt": "2026-10-24T21:00:00.000Z",
-      "status": "creating",
+      "status": "scheduled",
       "bufferPostId": "6adcd7e3e4be8a4d8668e1fb"
     }
   ]

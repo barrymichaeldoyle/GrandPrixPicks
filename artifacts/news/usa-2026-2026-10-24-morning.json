@@ -1,0 +1,50 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "leclerc-austin-fp2-pace",
+    "category": "general",
+    "affectsSessions": [],
+    "headline": "Leclerc tops Austin FP2 by 0.042s from Antonelli",
+    "body": "Leclerc set a 1:35.291 on softs, with Antonelli 0.042s back and Verstappen third, just under two tenths off. Hamilton was fourth, more than six tenths behind his team-mate.",
+    "driverCodes": ["LEC"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/what-happened-f1-2026-us-gp-fp2-leclerc-ferrari-fastest/",
+    "sourcePublishedAt": "2026-10-23T22:08:39Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "hadjar-red-bull-austin-fp2-setup",
+    "category": "general",
+    "affectsSessions": [],
+    "headline": "Hadjar calls his Red Bull \"undriveable\" after FP2 set-up changes",
+    "body": "Hadjar finished FP2 ninth, 0.931s behind Verstappen, with the front tyres overheating through the high-speed corners on the softs. Red Bull technical director Pierre Wache says the set-up direction taken between sessions will be undone for Saturday.",
+    "driverCodes": ["HAD"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/hadjar-rues-undriveable-red-bull-after-set-up-changes-lead-to-austin-struggles.3JtCn8kuzY4KVD6cjNFnAl",
+    "sourcePublishedAt": "2026-10-24T01:09:41Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "newey-honda-2026-progress-disappointment",
+    "category": "general",
+    "affectsSessions": [],
+    "headline": "Newey says Honda is disappointed with its 2026 progress",
+    "body": "Aston Martin team principal Adrian Newey says Honda has been a little disappointed with how much progress it made this year, and points to projects in early development for 2027.",
+    "driverCodes": ["ALO", "STR"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/adrian-newey-honda-f1-2026-progress-disappointment-2027-signs/",
+    "sourcePublishedAt": "2026-10-23T21:18:22Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "bearman-ferrari-ultimate-goal-camara-haas",
+    "category": "general",
+    "affectsSessions": [],
+    "headline": "Bearman calls a Ferrari seat his \"ultimate goal\"",
+    "body": "Oliver Bearman says he feels he has earned the chance to look for a top-four team. Haas has announced Formula 2 leader Rafael Camara as Esteban Ocon's replacement for 2027, and Bearman is yet to be confirmed for next season.",
+    "driverCodes": ["BEA"],
+    "sourceName": "Autosport",
+    "sourceUrl": "https://www.autosport.com/f1/news/why-its-now-bearman-versus-camara-for-the-next-ferrari-vacancy/10867288/",
+    "sourcePublishedAt": "2026-10-23T07:48:41Z"
+  }
+]

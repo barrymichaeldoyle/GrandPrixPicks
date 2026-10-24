@@ -81,7 +81,7 @@ export function ScoringSection() {
       aria-labelledby="landing-scoring-heading"
       className="border-t border-border px-4 py-12 sm:py-16"
     >
-      <div className="mx-auto w-full max-w-5xl">
+      <div className="mx-auto w-full max-w-6xl">
         <h2
           id="landing-scoring-heading"
           className="text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"

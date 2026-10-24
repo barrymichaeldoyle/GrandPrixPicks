@@ -63,8 +63,12 @@ export function LandingWeekendNews({
       aria-labelledby="landing-news-heading"
       className="border-t border-border px-4 py-12 sm:py-16"
     >
-      <div className="mx-auto grid w-full max-w-5xl gap-8 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-12">
-        <div>
+      {/* Same width as the hero and picker above, so the page keeps one left
+          edge. Two columns only when there are headlines to fill the second. */}
+      <div
+        className={`mx-auto grid w-full max-w-6xl grid-cols-1 gap-8 md:gap-12 ${items.length > 0 ? 'md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]' : ''}`}
+      >
+        <div className={items.length > 0 ? '' : 'max-w-2xl'}>
           <h2
             id="landing-news-heading"
             className="flex items-center gap-3 text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"

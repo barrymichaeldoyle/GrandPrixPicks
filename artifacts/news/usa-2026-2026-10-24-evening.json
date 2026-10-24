@@ -1,0 +1,26 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "leclerc-ferrari-upgrade-expectations",
+    "category": "general",
+    "headline": "Leclerc plays down the Ferrari upgrade after a Friday double",
+    "body": "Leclerc topped both Austin practice sessions with Ferrari's new floor, diffuser and bodywork, and says the gain is not what everyone thinks. He rates Antonelli and Verstappen as the biggest threats and believes others have more to unlock.",
+    "affectsSessions": [],
+    "driverCodes": ["LEC"],
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/news/1108213/1/charles-leclerc-casts-judgement-much-hyped-ferrari-us-gp-upgrade",
+    "sourcePublishedAt": "2026-10-24T09:00:00+01:00"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "red-bull-austin-low-speed-bumps-focus",
+    "category": "general",
+    "headline": "Red Bull's Austin work is low-speed performance and the bumps",
+    "body": "Verstappen was within two tenths of Leclerc in both practice sessions. Technical director Pierre Wache says low-speed performance is the focus, along with a car that is not very compliant over the track's bumps.",
+    "affectsSessions": [],
+    "driverCodes": ["VER"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/red-bull-identifies-two-key-focus-areas-after-max-verstappens-promising-start-in-austin/10867670/",
+    "sourcePublishedAt": "2026-10-24T08:10:05Z"
+  }
+]

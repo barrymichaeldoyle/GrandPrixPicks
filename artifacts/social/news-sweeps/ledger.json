@@ -973,8 +973,198 @@
       "text": "Mercedes found more downforce with its upgrade, but also a front-heavy balance that made the car harder to drive. The Austin focus is setup work to widen its operating window. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=mercedes-austin-upgrade-balance",
       "dueAt": "2026-10-18T15:00:00.000Z",
       "expiresAt": "2026-10-23T17:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6ad4db19769b457934c85ac1"
+    },
+    {
+      "id": "cd8addc6665ec828237384198acafe58f88af59b9e48a88f5fa79f749403858d",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "antonelli-title-clinch-austin",
+          "revision": "a2fa62286c4541cf288dfea5231e6c08aacc50f28e6c31f3fd051a9299c321b0"
+        }
+      ],
+      "text": "Kimi Antonelli can win the 2026 title in Austin. He leads Russell by 102 points and would need to win with Russell ninth or lower and Hamilton fifth or lower. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=antonelli-title-clinch-austin",
+      "dueAt": "2026-10-20T16:13:53.603Z",
+      "expiresAt": "2026-10-24T19:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6ad7922472b40f09eb4e9c8e"
+    },
+    {
+      "id": "e1a80eb6a70e44e72533e06a7e99a1d72e743087d583790f2075b4b728af6fa5",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "fia-ben-sulayem-qatar-abu-dhabi-will-go-ahead",
+          "revision": "b356704d4070586ee902e87fa1e581a9d7ac960a5ecefb5a77ebf28ba0d535ed"
+        }
+      ],
+      "text": "FIA president Mohammed Ben Sulayem says the final two races of 2026, in Qatar and Abu Dhabi, are going ahead as planned. He cannot predict what happens, and Imola remains ready as a replacement finale if needed. https://www.the-race.com/formula-1/fia-adamant-f1-qatar-abu-dhabi-gp-will-go-ahead/",
+      "dueAt": "2026-10-21T07:15:00.000Z",
+      "expiresAt": "2026-10-22T04:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6ad85753a9967de04979a4ab"
+    },
+    {
+      "id": "9f05200eef5866658fb84333f146017afdef04cf24ad7256ed3dde3f29fbc4da",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "mercedes-wolff-austin-upgrade-specification",
+          "revision": "b0cef620b30496862967c504225f08692ede8c2d5c1b4ca39f8be5e96e5cde25"
+        }
+      ],
+      "text": "Mercedes will run its latest update package on both cars in Austin. Only Antonelli used it in Singapore, while Russell ran the earlier specification.\n\nhttps://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=mercedes-wolff-austin-upgrade-specification",
+      "dueAt": "2026-10-21T17:30:00.000Z",
+      "expiresAt": "2026-10-23T12:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6ad8e3a34f000a3fb97e61c4"
+    },
+    {
+      "id": "756ad9a6e1a4050b5acf9c4b4ace3aad2e36763c5950a002e07a9b233df6e87d",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "austin-weather-forecast-dry-friday-saturday",
+          "revision": "ff7ef8acea2817cc339530938806184f928b6e0dfa4b749e3d1eafdb1200f51d"
+        }
+      ],
+      "text": "Austin forecast: no rain on Friday or Saturday, with track temperatures above 55C. Sunday has a 20% chance of rain and afternoon gusts of 35-40 km/h.\n\nhttps://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=austin-weather-forecast-dry-friday-saturday",
+      "dueAt": "2026-10-21T17:55:00.000Z",
+      "expiresAt": "2026-10-23T12:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6ad8e3b1ee069bfcd237a882"
+    },
+    {
+      "id": "265e1f09462e776f131d50a1f0e77dcdece875d4986875a26d426748866c0580",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "fia-2027-f1-non-f1-staff-separation",
+          "revision": "0ff2f1defb2c9c7afa7582017ae933dcce849e4a4a0806b99178d3a76f27c3a3"
+        }
+      ],
+      "text": "The FIA has approved five new 2027 operational regulations to keep non-F1 staff away from F1 projects. Non-F1 staff will be barred from the F1 factory, and staff who leave a team must wait at least a year to return. https://www.motorsport.com/f1/news/fia-enforces-new-rule-to-close-f1-cost-cap-loophole/10866642/",
+      "dueAt": "2026-10-22T16:45:00.000Z",
+      "expiresAt": "2026-10-24T12:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6ada3547eb1348c17aca4ab9"
+    },
+    {
+      "id": "a468ea00a4cda790bebd721a4cd2f66d306d84c657ab9266707f0aa294ed0835",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "verstappen-cota-bumps-unacceptable",
+          "revision": "62a3abba2dddf9b9494c7c40a74eaec82ade2e9b5f93489ad743189a3d87c63e"
+        }
+      ],
+      "text": "Verstappen calls the bumps at the Circuit of the Americas \"unacceptable\" and says the track needs reinforcing from underneath, not more grinding. https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=verstappen-cota-bumps-unacceptable",
+      "dueAt": "2026-10-23T06:30:00.000Z",
+      "expiresAt": "2026-10-23T18:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6adaf9f0535235087b85a671"
+    },
+    {
+      "id": "c14c2d26589c8ebe00701922ec5f926d3536166fde2a108f34f3f7a728e4f168",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "verstappen-power-unit-penalty-looming",
+          "revision": "3235f40895309a425f786791175b745c8eec66074299f8d1562518f1018a31e6"
+        }
+      ],
+      "text": "Verstappen is on his last engine, turbo, MGU-K, energy store, electronics and exhaust with six races left. He says a grid penalty is potentially coming, with no date and no new parts planned for Austin.",
+      "link": "https://grandprixpicks.com/f1-2026-usa-grand-prix-predictions?story=verstappen-power-unit-penalty-looming",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=verstappen-power-unit-penalty-looming&v=3235f4089530",
+      "dueAt": "2026-10-23T18:30:00.000Z",
+      "expiresAt": "2026-10-24T20:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6adb872465d99fb9319d3fdb"
+    },
+    {
+      "id": "baf215c0c37cdd45d8d857dd31277da96c6009c978ce82f74bdc0135641c8db5",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "austin-lindblad-colapinto-bortoleto-grid-penalties",
+          "revision": "f0d2793e7c420f65aefc3854d230c10b5808793ed799dfebc1c3ddcf79d09b2a"
+        }
+      ],
+      "text": "Three grid penalties for Austin: Lindblad drops five places, Colapinto ten, and Bortoleto starts at the back after power unit changes. Qualifying classification is unchanged.",
+      "link": "https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=austin-lindblad-colapinto-bortoleto-grid-penalties",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=austin-lindblad-colapinto-bortoleto-grid-penalties&v=f0d2793e7c42",
+      "dueAt": "2026-10-23T21:10:00.000Z",
+      "expiresAt": "2026-10-24T20:00:00.000Z",
+      "status": "cancelled",
+      "bufferPostId": "6adbcb049acae620d81a3662",
+      "cancellationReason": "Daily cap: verified two posts already sent on 2026-10-23; CLI inventory incorrectly reported zero."
+    },
+    {
+      "id": "baf215c0c37cdd45d8d857dd31277da96c6009c978ce82f74bdc0135641c8db5",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "austin-lindblad-colapinto-bortoleto-grid-penalties",
+          "revision": "f0d2793e7c420f65aefc3854d230c10b5808793ed799dfebc1c3ddcf79d09b2a"
+        }
+      ],
+      "text": "Three grid penalties for Austin: Lindblad drops five places, Colapinto ten, and Bortoleto starts at the back after power unit changes. Qualifying classification is unchanged.",
+      "dailyCapException": "Formula 1 confirms race grid penalties: Lindblad five places, Colapinto ten, Bortoleto twenty and a back-of-grid start.",
+      "link": "https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=austin-lindblad-colapinto-bortoleto-grid-penalties",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=austin-lindblad-colapinto-bortoleto-grid-penalties&v=f0d2793e7c42",
+      "dueAt": "2026-10-23T21:10:55.991Z",
+      "expiresAt": "2026-10-24T20:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6adbcc45e4be8a4d8626cfd2"
+    },
+    {
+      "id": "c1681a92f31380bc01e20b54cf37c3023637eef3e536c74bcec55e93a300d635",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "leclerc-ferrari-upgrade-expectations",
+          "revision": "9d6c897fe3c4f1494a81a31e2335626fa5347354d3e4fd650c2f3417e7c2b6ff"
+        }
+      ],
+      "text": "Leclerc topped both Austin practice sessions and says Ferrari's upgrade is not worth what everyone thinks. He names Antonelli and Verstappen as the ones to beat in qualifying.",
+      "link": "https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=leclerc-ferrari-upgrade-expectations",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=leclerc-ferrari-upgrade-expectations&v=9d6c897fe3c4",
+      "dueAt": "2026-10-24T16:30:00.000Z",
+      "expiresAt": "2026-10-24T21:00:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6adcd7e3e4be8a4d8668e1fb"
     }
   ]
 }

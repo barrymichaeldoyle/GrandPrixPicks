@@ -1145,6 +1145,25 @@
       "expiresAt": "2026-10-24T20:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6adbcc45e4be8a4d8626cfd2"
+    },
+    {
+      "id": "c1681a92f31380bc01e20b54cf37c3023637eef3e536c74bcec55e93a300d635",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "leclerc-ferrari-upgrade-expectations",
+          "revision": "9d6c897fe3c4f1494a81a31e2335626fa5347354d3e4fd650c2f3417e7c2b6ff"
+        }
+      ],
+      "text": "Leclerc topped both Austin practice sessions and says Ferrari's upgrade is not worth what everyone thinks. He names Antonelli and Verstappen as the ones to beat in qualifying.",
+      "link": "https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=leclerc-ferrari-upgrade-expectations",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=leclerc-ferrari-upgrade-expectations&v=9d6c897fe3c4",
+      "dueAt": "2026-10-24T16:30:00.000Z",
+      "expiresAt": "2026-10-24T21:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

@@ -9,14 +9,12 @@ import {
   Pressable as RNPressable,
   RefreshControl as RNRefreshControl,
   ScrollView as RNScrollView,
-  SectionList as RNSectionList,
   Switch as RNSwitch,
   Text as RNText,
   TextInput as RNTextInput,
-  TouchableOpacity as RNTouchableOpacity,
   View as RNView,
 } from 'react-native';
-import { useCssElement, useNativeVariable } from 'react-native-css';
+import { useCssElement } from 'react-native-css';
 import Animated from 'react-native-reanimated';
 
 type ClassNameProps = { className?: string };
@@ -62,7 +60,6 @@ const CssTextInput = cssElement(RNTextInput) as React.ComponentType<
 export function TextInput(props: React.ComponentProps<typeof CssTextInput>) {
   return <CssTextInput maxFontSizeMultiplier={MAX_TEXT_SCALE} {...props} />;
 }
-export const TouchableOpacity = cssElement(RNTouchableOpacity);
 export const View = cssElement(RNView);
 export const AnimatedView = Animated.createAnimatedComponent(View);
 
@@ -165,12 +162,3 @@ export function FlatList<ItemT>(
     },
   );
 }
-export const SectionList = cssElement(RNSectionList, {
-  className: 'style',
-  contentContainerClassName: 'contentContainerStyle',
-});
-
-export const useCSSVariable =
-  process.env.EXPO_OS === 'web'
-    ? (variable: string) => `var(${variable})`
-    : useNativeVariable;

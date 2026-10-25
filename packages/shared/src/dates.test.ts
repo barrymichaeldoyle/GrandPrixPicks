@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getCountdownParts } from './dates';
+import { formatRelativeTime, getCountdownParts } from './dates';
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
@@ -41,5 +41,23 @@ describe('getCountdownParts', () => {
       minutes: 0,
       seconds: 1,
     });
+  });
+});
+
+describe('formatRelativeTime', () => {
+  const now = Date.parse('2026-10-25T12:00:00Z');
+
+  it('counts up to a month, then gives the date', () => {
+    expect(formatRelativeTime(now - 20_000, now)).toBe('just now');
+    expect(formatRelativeTime(now - 5 * 60_000, now)).toBe('5m ago');
+    expect(formatRelativeTime(now - 3 * 3_600_000, now)).toBe('3h ago');
+    expect(formatRelativeTime(now - 12 * 86_400_000, now)).toBe('12d ago');
+    expect(formatRelativeTime(now - 40 * 86_400_000, now)).not.toMatch(/ago$/);
+  });
+
+  it('adds the year to a date from a previous year', () => {
+    expect(formatRelativeTime(Date.parse('2025-06-01T12:00:00Z'), now)).toMatch(
+      /2025/,
+    );
   });
 });

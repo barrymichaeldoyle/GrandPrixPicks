@@ -9,7 +9,9 @@ import {
 } from '@grandprixpicks/shared/sessions';
 import { useConvexConnectionState, useMutation } from 'convex/react';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useRef, useState } from 'react';
+// Manual memo on purpose: mobile has no React Compiler (see weekendSessions).
+// oxlint-disable-next-line no-restricted-imports
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { RaceRecapCard } from '../../components/home/RaceRecapCard';
 import { WeekendPicksCard } from '../../components/home/WeekendPicksCard';
@@ -27,7 +29,10 @@ import { captureAnalyticsEvent } from '../../lib/analytics';
 import { useUserDateFormat } from '../../lib/dates';
 import { getLockStatusViewModel } from '../../lib/lockTime';
 import { useConnectedDraft } from '../../lib/useConnectedDraft';
-import { useIsSignedIn } from '../../lib/useIsSignedIn';
+import {
+  useIsConfirmedSignedOut,
+  useIsSignedIn,
+} from '../../lib/useIsSignedIn';
 import { useCountdownNow } from '../../lib/useNow';
 import { useSignInSheet } from '../../lib/useSignInSheet';
 import { useMobileConfig } from '../../providers/mobile-config';
@@ -98,7 +103,12 @@ function PredictForRace({
   race: RaceDoc;
   capabilities: SessionCapability[];
 }) {
-  const weekendSessions = getSessionsForWeekend(Boolean(race.hasSprint));
+  // Memoised: it is an effect dependency below, and a new array each render
+  // ran that effect on every render.
+  const weekendSessions = useMemo(
+    () => getSessionsForWeekend(Boolean(race.hasSprint)),
+    [race.hasSprint],
+  );
   // Every second only inside the last day before a lock; see useCountdownNow.
   const now = useCountdownNow(
     weekendSessions.map(
@@ -151,10 +161,11 @@ function PredictForRace({
   // shows it from there, the way a signed-in card shows from the server: the
   // alternative was a card that forgot the five drivers the moment the editor
   // closed. Guests always draft in cascade mode, so one session key holds it.
+  const isConfirmedSignedOut = useIsConfirmedSignedOut();
   const guestDraft = useConnectedDraft(
     race.slug,
     CASCADE_DRAFT_SESSION,
-    !isSignedIn,
+    isConfirmedSignedOut,
   );
   const { showToast, celebratePicks } = useToast();
   const { formatDateTime } = useUserDateFormat();
@@ -532,7 +543,11 @@ function PredictForRace({
             <H2HEditor
               topFivePositions={topFivePositions}
               cascadeMode={!hasAnyH2H}
-              existingPicks={sessionH2H}
+              // Saved picks only, as the full-screen editor and the Top 5
+              // editor get. The editor restores the device draft itself;
+              // handing it the draft here as "saved" made Discard reset to
+              // the draft it had just deleted.
+              existingPicks={h2hPredictions?.[selectedSession] ?? {}}
               matchups={matchups}
               onCancel={closeEmbeddedPicker}
               onSubmit={saveH2H}

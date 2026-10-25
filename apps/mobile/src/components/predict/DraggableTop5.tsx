@@ -58,6 +58,16 @@ const ACTIVATION_DISTANCE = 8;
 
 type PickedItem = { driverId: string; driver: Driver; index: number };
 
+/** Stands in for a picked driver this round's roster does not include. */
+function unknownDriver(id: string): Driver {
+  return {
+    _id: id,
+    code: '—',
+    displayName: 'Driver unavailable',
+    racing: false,
+  } as unknown as Driver;
+}
+
 function driverSurname(driver: Driver): string {
   return driver.familyName || driver.displayName.split(' ').slice(1).join(' ');
 }
@@ -167,12 +177,12 @@ function PickedRow({
     .enabled(!disabled && count > 1)
     .maxPointers(1)
     .minDistance(ACTIVATION_DISTANCE)
-    .onBegin(() => {
+    // `onStart`, not `onBegin`: begin fires on touch-down, so every plain tap
+    // on a row toggled the screen's scroll lock and re-rendered it twice.
+    .onStart(() => {
       if (notifyDragging) {
         runOnJS(notifyDragging)(true);
       }
-    })
-    .onStart(() => {
       // Reanimated shared values are mutable by design.
       // oxlint-disable-next-line react/immutability
       dragIndex.value = index;
@@ -430,12 +440,17 @@ export function DraggableTop5({
   const pickSet = new Set(picks);
   const poolFull = picks.length >= MAX_PICKS;
 
-  const pickedItems: PickedItem[] = picks
-    .map((id, index) => {
-      const driver = driverMap.get(id);
-      return driver ? { driverId: id, driver, index } : null;
-    })
-    .filter((item): item is PickedItem => item !== null);
+  // One row per pick, always. A pick whose driver is missing from this round's
+  // list (a restored draft naming an FP1-only reserve, say) used to be
+  // dropped from the rows but not from `picks`: four rows showed, the pool
+  // read as full, and Remove or Move on a row acted on a different pick,
+  // because the rows and their handlers counted in different index spaces.
+  // It renders as a placeholder the player can remove instead.
+  const pickedItems: PickedItem[] = picks.map((id, index) => ({
+    driverId: id,
+    driver: driverMap.get(id) ?? unknownDriver(id),
+    index,
+  }));
 
   const emptyCount = MAX_PICKS - pickedItems.length;
   const dragIndex = useSharedValue(-1);

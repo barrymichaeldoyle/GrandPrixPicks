@@ -22,16 +22,22 @@ import type { FeedEvent } from './types';
 
 export type { FeedEvent } from './types';
 
+/**
+ * The result palette every other score surface uses (violet exact, green one
+ * away, yellow in the Top 5; web `PickSlot`, mobile `pickScoreBand`). This
+ * card had its own success/warning/orange set, with an off-token hex, so the
+ * same 5 read in two colours on one feed.
+ */
 function pickColor(points: number): string {
   if (points === 5) {
-    return colors.success;
+    return colors.resultExact;
   }
   if (points === 3) {
-    return colors.warning;
+    return colors.resultNear;
   }
   if (points === 1) {
-    return '#fb923c';
-  } // orange
+    return colors.resultTop5;
+  }
   return colors.textMuted;
 }
 

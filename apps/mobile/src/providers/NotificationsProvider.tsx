@@ -11,6 +11,8 @@ import {
   obtainExpoPushTokenIfGranted,
   getStoredExpoPushToken,
   clearStoredExpoPushToken,
+  recordTokenSave,
+  wasTokenSavedRecently,
 } from '../lib/pushRegistration';
 import { routePushUrl } from '../lib/pushRouting';
 import { useMobileConfig } from './mobile-config';
@@ -96,7 +98,10 @@ function ClerkAwareNotifications() {
           }
           return;
         }
-        await saveToken({ token });
+        if (!(await wasTokenSavedRecently(token, user!.id))) {
+          await saveToken({ token });
+          await recordTokenSave(token, user!.id);
+        }
         if (previous && previous !== token && !cancelled) {
           await deleteToken({ token: previous });
         }
@@ -133,6 +138,20 @@ function ClerkAwareNotifications() {
   // cold-started the app. pushRouting buffers until the navigator is ready.
   // A cold-start tap can surface through both paths, so dedupe by id.
   const handledResponseIdRef = useRef<string | null>(null);
+  // A tap that cold-starts the app is handled before Clerk knows who is
+  // signed in, and `markOpened` needs a viewer. Held here until it does, or
+  // the most common way a notification is opened was never counted.
+  const pendingOpenRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isSignedIn || !pendingOpenRef.current) {
+      return;
+    }
+    const deliveryId = pendingOpenRef.current;
+    pendingOpenRef.current = null;
+    void markOpened({
+      deliveryId: deliveryId as Parameters<typeof markOpened>[0]['deliveryId'],
+    }).catch(() => {});
+  }, [isSignedIn, markOpened]);
   useEffect(() => {
     function handle(response: Notifications.NotificationResponse | null) {
       if (!response) {
@@ -146,12 +165,16 @@ function ClerkAwareNotifications() {
       const url = urlFromResponse(response);
       captureAnalyticsEvent('notification_opened', { url });
       const deliveryId = response.notification.request.content.data?.deliveryId;
-      if (isSignedIn && typeof deliveryId === 'string') {
-        void markOpened({
-          deliveryId: deliveryId as Parameters<
-            typeof markOpened
-          >[0]['deliveryId'],
-        }).catch(() => {});
+      if (typeof deliveryId === 'string') {
+        if (isSignedIn) {
+          void markOpened({
+            deliveryId: deliveryId as Parameters<
+              typeof markOpened
+            >[0]['deliveryId'],
+          }).catch(() => {});
+        } else if (isSignedIn === undefined) {
+          pendingOpenRef.current = deliveryId;
+        }
       }
       routePushUrl(url);
       void Notifications.clearLastNotificationResponseAsync().catch(() => {});

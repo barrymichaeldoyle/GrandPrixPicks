@@ -1,5 +1,6 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
+import { useStickyValue } from '@/hooks/useStickyValue';
 import { useQuery } from '@/integrations/convex/query';
 import { Gauge } from 'lucide-react';
 import { useState } from 'react';
@@ -13,39 +14,50 @@ import { InlineLoader } from '@/components/InlineLoader';
 const MAX_LEAGUE_FEED_EXTRA_PAGES = 4;
 
 export function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
-  const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
-    Array(MAX_LEAGUE_FEED_EXTRA_PAGES).fill(null),
-  );
+  // How many pages past the first are open, per league. Each one starts
+  // where the page above it ends *now*, as on the dashboard feed: frozen
+  // cursors let an event slide into the gap between two pages and vanish.
+  const [extraPages, setExtraPages] = useState({ leagueId, count: 0 });
+  const extraPageCount =
+    extraPages.leagueId === leagueId ? extraPages.count : 0;
 
   const me = useQuery(api.users.me, {});
   const page0 = useQuery(api.feed.getLeagueFeed, { leagueId });
-  const page1 = useQuery(
-    api.feed.getLeagueFeed,
-    extraCursors[0] !== null
-      ? { leagueId, paginationCursor: extraCursors[0] }
-      : 'skip',
+  const page1 = useStickyValue(
+    useQuery(
+      api.feed.getLeagueFeed,
+      extraPageCount >= 1 && page0?.nextCursor
+        ? { leagueId, paginationCursor: page0.nextCursor }
+        : 'skip',
+    ),
   );
-  const page2 = useQuery(
-    api.feed.getLeagueFeed,
-    extraCursors[1] !== null
-      ? { leagueId, paginationCursor: extraCursors[1] }
-      : 'skip',
+  const page2 = useStickyValue(
+    useQuery(
+      api.feed.getLeagueFeed,
+      extraPageCount >= 2 && page1?.nextCursor
+        ? { leagueId, paginationCursor: page1.nextCursor }
+        : 'skip',
+    ),
   );
-  const page3 = useQuery(
-    api.feed.getLeagueFeed,
-    extraCursors[2] !== null
-      ? { leagueId, paginationCursor: extraCursors[2] }
-      : 'skip',
+  const page3 = useStickyValue(
+    useQuery(
+      api.feed.getLeagueFeed,
+      extraPageCount >= 3 && page2?.nextCursor
+        ? { leagueId, paginationCursor: page2.nextCursor }
+        : 'skip',
+    ),
   );
-  const page4 = useQuery(
-    api.feed.getLeagueFeed,
-    extraCursors[3] !== null
-      ? { leagueId, paginationCursor: extraCursors[3] }
-      : 'skip',
+  const page4 = useStickyValue(
+    useQuery(
+      api.feed.getLeagueFeed,
+      extraPageCount >= 4 && page3?.nextCursor
+        ? { leagueId, paginationCursor: page3.nextCursor }
+        : 'skip',
+    ),
   );
 
   const allPageData = [page0, page1, page2, page3, page4];
-  const activePagesCount = 1 + extraCursors.filter((c) => c !== null).length;
+  const activePagesCount = 1 + extraPageCount;
   const activePages = allPageData.slice(0, activePagesCount);
   const isLoadingMore =
     activePagesCount > 1 && activePages.some((p) => p === undefined);
@@ -63,13 +75,9 @@ export function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
     if (!lastLoadedPage?.nextCursor) {
       return;
     }
-    setExtraCursors((prev) => {
-      const next = [...prev];
-      const idx = next.findIndex((c) => c === null);
-      if (idx !== -1) {
-        next[idx] = lastLoadedPage.nextCursor;
-      }
-      return next;
+    setExtraPages({
+      leagueId,
+      count: Math.min(MAX_LEAGUE_FEED_EXTRA_PAGES, extraPageCount + 1),
     });
   }
 
@@ -77,7 +85,13 @@ export function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
     return <InlineLoader label="Loading league activity" />;
   }
 
-  const allEvents = loadedPages.flatMap((p) => p.events);
+  // Each event once: a page held at its old cursor while it re-subscribes can
+  // briefly share its first event with the end of the page above.
+  const allEvents = Array.from(
+    new Map(
+      loadedPages.flatMap((p) => p.events).map((event) => [event._id, event]),
+    ).values(),
+  );
   const allSessions = Object.assign({}, ...loadedPages.map((p) => p.sessions));
 
   if (allEvents.length === 0) {

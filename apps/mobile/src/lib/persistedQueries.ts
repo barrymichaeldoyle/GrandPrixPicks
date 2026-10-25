@@ -22,13 +22,20 @@ export const MAX_ENTRIES = 80;
 /** A value this large is a list nobody needs offline; skip it. */
 export const MAX_VALUE_CHARS = 200_000;
 
+/**
+ * `build` is the app build the value was written by. Without it an update that
+ * changed a query's return shape read the old shape back as the new type, and
+ * offline, with no live answer to replace it, rendered from that. It sits after
+ * the viewer so sign-out's per-viewer clear still removes every build's copy.
+ */
 export function persistedQueryKey(
   viewer: string,
   functionName: string,
   args: unknown,
+  build = '',
 ): string | null {
   try {
-    return `${PREFIX}${viewer}:${functionName}:${JSON.stringify(args ?? {})}`;
+    return `${PREFIX}${viewer}:${build}:${functionName}:${JSON.stringify(args ?? {})}`;
   } catch {
     return null;
   }

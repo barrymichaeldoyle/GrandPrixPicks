@@ -1,38 +1,33 @@
 import { useAuth, useClerk } from '@clerk/expo';
-import { useMutation } from 'convex/react';
+import { useRef } from 'react';
 
-import { api } from '../integrations/convex/api';
-import { clearPersistedQueries } from '../lib/persistedQueries';
-import {
-  clearStoredExpoPushToken,
-  getStoredExpoPushToken,
-} from '../lib/pushRegistration';
+import { useDeviceAccountCleanup } from './useDeviceAccountCleanup';
 
 /**
  * Signs out after unregistering this device's Expo push token, so a
  * signed-out device stops receiving the previous account's notifications.
  * The mutation requires auth, so it must run before Clerk tears the
- * session down — and sign-out proceeds even if it fails.
+ * session down, and sign-out proceeds even if it fails or times out.
  */
 export function useSignOutWithCleanup() {
   const { signOut } = useClerk();
   const { userId } = useAuth();
-  const deleteToken = useMutation(api.push.deleteExpoPushToken);
+  const { unregisterPush, clearLocalData } = useDeviceAccountCleanup();
+  // One sign-out at a time: Settings' confirm has no pending state, and a
+  // second tap used to start a second cleanup alongside the first.
+  const inFlight = useRef<Promise<void> | null>(null);
 
-  return async function signOutWithCleanup() {
-    try {
-      const token = await getStoredExpoPushToken();
-      if (token) {
-        await deleteToken({ token });
-        await clearStoredExpoPushToken();
+  return function signOutWithCleanup() {
+    inFlight.current ??= (async () => {
+      try {
+        await unregisterPush();
+        // The next person to hold this phone should not open on these picks.
+        await clearLocalData(userId);
+        await signOut();
+      } finally {
+        inFlight.current = null;
       }
-    } catch (err) {
-      console.warn('[auth] push token cleanup failed on sign-out', err);
-    }
-    // The next person to hold this phone should not open on these picks.
-    if (userId) {
-      clearPersistedQueries(userId);
-    }
-    await signOut();
+    })();
+    return inFlight.current;
   };
 }

@@ -51,9 +51,12 @@ export function DriverCard({
       transparent
       visible={driver !== null}
     >
+      {/* Tap anywhere closes, but the scrim is not one big button: labelled
+          "Close driver card", it was the only thing VoiceOver read, and the
+          card itself went unheard. The card is the modal view; the escape
+          gesture closes it. */}
       <Pressable
-        accessibilityLabel="Close driver card"
-        accessibilityRole="button"
+        accessible={false}
         className="flex-1 items-center justify-center px-8"
         onPress={onDismiss}
         /* The scrim is an inline colour, not `bg-black/70`: the slash-opacity
@@ -62,7 +65,11 @@ export function DriverCard({
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
       >
         {driver ? (
-          <View className="relative flex-row overflow-hidden rounded-md border border-border bg-surface">
+          <View
+            accessibilityViewIsModal
+            className="relative flex-row overflow-hidden rounded-md border border-border bg-surface"
+            onAccessibilityEscape={onDismiss}
+          >
             <View
               className="absolute top-0 bottom-0 left-0 w-[3px]"
               style={{ backgroundColor: getTeamColor(driver.team) }}

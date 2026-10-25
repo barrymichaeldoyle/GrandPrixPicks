@@ -19,6 +19,7 @@
     "./circuits": "./src/circuits.ts",
     "./contact": "./src/contact.ts",
     "./dates": "./src/dates.ts",
+    "./weatherNow": "./src/weatherNow.ts",
     "./displayName": "./src/displayName.ts",
     "./driverStatus": "./src/driverStatus.ts",
     "./duelFormGuide": "./src/duelFormGuide.ts",

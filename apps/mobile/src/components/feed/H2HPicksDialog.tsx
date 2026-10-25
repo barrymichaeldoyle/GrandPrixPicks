@@ -74,14 +74,20 @@ export function H2HPicksDialog({
 
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible>
+      {/* The scrim closes on tap but is not itself accessible: Pressables are
+          by default, and as one button it swallowed the whole dialog, so
+          VoiceOver could reach neither Close nor a single duel. The panel is
+          the modal view instead, and the escape gesture closes it. */}
       <Pressable
-        accessibilityRole="button"
+        accessible={false}
         className="flex-1 items-center justify-center bg-black/50 px-4"
         onPress={onClose}
       >
         <Pressable
-          accessibilityRole="none"
+          accessible={false}
+          accessibilityViewIsModal
           className="w-full max-w-sm overflow-hidden rounded-sm border border-border bg-surface"
+          onAccessibilityEscape={onClose}
           onPress={(event) => event.stopPropagation()}
         >
           <View className="flex-row items-start justify-between px-4 pt-4 pb-2">

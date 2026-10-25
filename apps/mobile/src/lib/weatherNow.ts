@@ -1,20 +1,7 @@
-/**
- * Floor a timestamp so `weather.getByRaceSlug`'s `now` arg repeats.
- *
- * The Convex query cache keys on (function, args). `useNow` ticks every
- * second in the picks card and every 30s in the hero; a raw tick is a new
- * subscription, so the forecast drops to `undefined` and the row unmounts
- * until the round trip comes back. Web already buckets this (`weatherNow.ts`)
- * for the same reason.
- *
- * Eligibility is a nine-day horizon, so an hourly bucket costs no accuracy
- * the UI was using.
- */
-export const WEATHER_NOW_BUCKET_MS = 60 * 60 * 1_000;
-
-export function bucketWeatherNow(now: number): number {
-  return Math.floor(now / WEATHER_NOW_BUCKET_MS) * WEATHER_NOW_BUCKET_MS;
-}
+export {
+  bucketWeatherNow,
+  WEATHER_NOW_BUCKET_MS,
+} from '@grandprixpicks/shared/weatherNow';
 
 type ForecastHour = {
   at: number;

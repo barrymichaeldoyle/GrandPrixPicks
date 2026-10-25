@@ -4,6 +4,7 @@ import { useConvexAuth } from 'convex/react';
 import type { FunctionReference, FunctionReturnType } from 'convex/server';
 import { getFunctionName } from 'convex/server';
 import { useQuery as useCachedQuery } from 'convex-helpers/react/cache/hooks';
+import * as Application from 'expo-application';
 import { useEffect, useRef } from 'react';
 
 import {
@@ -12,6 +13,9 @@ import {
   readPersistedQuery,
   writePersistedQuery,
 } from '../../lib/persistedQueries';
+
+/** Stored reads are kept per build; see `persistedQueryKey`. */
+const APP_BUILD = Application.nativeBuildVersion ?? 'dev';
 
 /**
  * Convex read hooks that survive a screen change, and a lost connection.
@@ -57,7 +61,7 @@ export function useQuery<Query extends FunctionReference<'query'>>(
   const key =
     viewer === null || args === 'skip'
       ? null
-      : persistedQueryKey(viewer, getFunctionName(query), args);
+      : persistedQueryKey(viewer, getFunctionName(query), args, APP_BUILD);
 
   // Read once per key, not per render: the parse is not free on a feed page.
   const storedRef = useRef<{ key: string | null; value: unknown }>({

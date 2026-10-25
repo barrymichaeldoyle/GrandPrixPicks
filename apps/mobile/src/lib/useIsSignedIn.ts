@@ -17,3 +17,17 @@ export function useIsSignedIn(): boolean {
   const { isSignedIn } = useAuth();
   return !clerkEnabled || Boolean(isSignedIn);
 }
+
+/**
+ * True only once Clerk has confirmed there is no viewer.
+ *
+ * `useIsSignedIn` reads Clerk's not-yet-loaded `undefined` as signed out,
+ * which is right for gating a sign-in button and wrong for deciding the
+ * device's drafts are a guest's: for that first moment of a launch, a
+ * returning player's unsaved edits were shown as a guest card.
+ */
+export function useIsConfirmedSignedOut(): boolean {
+  const { clerkEnabled } = useMobileConfig();
+  const { isLoaded, isSignedIn } = useAuth();
+  return clerkEnabled && isLoaded && !isSignedIn;
+}

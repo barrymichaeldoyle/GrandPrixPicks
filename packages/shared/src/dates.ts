@@ -43,3 +43,43 @@ export function getCountdownParts(msRemaining: number): CountdownParts | null {
     seconds: Math.floor((msRemaining % MS_PER_MINUTE) / MS_PER_SECOND),
   };
 }
+
+/**
+ * "just now", "5m ago", "3h ago", "12d ago", then a date.
+ *
+ * Relative for as long as relative means something. "142d ago" is a worse
+ * answer than a date: past a month nobody is counting days, and the season is
+ * long enough that feed and notification rows really do get that old. Older
+ * than this year, the date carries the year.
+ *
+ * One copy for both apps. There were four, and the notification bell's had
+ * already drifted from the feed's (30 days against 7, a year against none).
+ */
+export function formatRelativeTime(
+  timestamp: number,
+  now: number = Date.now(),
+): string {
+  const minutes = Math.floor((now - timestamp) / 60_000);
+  if (minutes < 1) {
+    return 'just now';
+  }
+  if (minutes < 60) {
+    return `${minutes}m ago`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
+  const days = Math.floor(hours / 24);
+  if (days < 30) {
+    return `${days}d ago`;
+  }
+  const created = new Date(timestamp);
+  return created.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    ...(created.getFullYear() === new Date(now).getFullYear()
+      ? {}
+      : { year: 'numeric' }),
+  });
+}

@@ -77,7 +77,42 @@ function primaryButtonTextClass(enabled: boolean): string {
 }
 
 type Mode = 'signIn' | 'signUp';
-type Screen = 'auth' | 'verify' | 'resetCode' | 'newPassword';
+type Screen = 'auth' | 'verify' | 'resetCode' | 'newPassword' | 'username';
+
+type PendingSignUp = NonNullable<ReturnType<typeof useSignUp>['signUp']>;
+
+/**
+ * What to tell a player whose sign-in or sign-up came back unfinished.
+ *
+ * Clerk answers some attempts with a status instead of a session: a second
+ * factor, a new-device check, a field the account still needs. The handlers
+ * used to act on `complete` and ignore everything else, so the spinner stopped
+ * and the form just sat there; the Google path printed Clerk's raw status.
+ * Each status gets a sentence and, where the app cannot finish it, a place
+ * that can.
+ */
+function unfinishedAuthMessage(status: string | null | undefined): string {
+  switch (status) {
+    case 'needs_second_factor':
+    case 'needs_client_trust':
+      return 'This account needs an extra verification step the app cannot do yet. Sign in once at grandprixpicks.com, then try again here.';
+    case 'needs_new_password':
+      return 'This account needs a new password. Use "Forgot password?" to set one.';
+    case 'missing_requirements':
+      return 'Your account needs a few more details. Finish signing up at grandprixpicks.com, then sign in here.';
+    default:
+      return 'Sign-in did not complete. Try again.';
+  }
+}
+
+/** A social sign-up that only lacks the username, which this screen can ask for. */
+function needsUsernameOnly(signUp: PendingSignUp | null | undefined) {
+  return (
+    signUp?.status === 'missing_requirements' &&
+    signUp.missingFields.length > 0 &&
+    signUp.missingFields.every((field) => field === 'username')
+  );
+}
 
 function clerkMessage(err: unknown, fallback: string): string {
   const e = err as {
@@ -127,6 +162,12 @@ export function SignInScreen() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // A first-time Apple or Google sign-up that Clerk created but cannot finish
+  // until it has a username, which this instance requires. Without this step
+  // the sheet closed, nothing happened, and every retry did the same.
+  const [pendingSignUp, setPendingSignUp] = useState<PendingSignUp | null>(
+    null,
+  );
 
   /**
    * Whether Clerk's sign-in/sign-up resources are usable yet.
@@ -225,13 +266,20 @@ export function SignInScreen() {
     captureAnalyticsEvent('auth_started', { method: 'apple' });
     setLoading(true);
     try {
-      const { createdSessionId, setActive } =
-        await startAppleAuthenticationFlow();
+      const {
+        createdSessionId,
+        setActive,
+        signUp: appleSignUp,
+      } = await startAppleAuthenticationFlow();
       if (createdSessionId) {
         await (setActive ?? clerk.setActive)({ session: createdSessionId });
         captureAnalyticsEvent('auth_completed', { method: 'apple' });
+      } else if (needsUsernameOnly(appleSignUp)) {
+        askForUsername(appleSignUp!);
+      } else if (appleSignUp?.status === 'missing_requirements') {
+        setError(unfinishedAuthMessage(appleSignUp.status));
       }
-      // No session and no throw is a cancelled sheet: say nothing.
+      // Otherwise no session and no throw is a cancelled sheet: say nothing.
     } catch (err) {
       if (isAlreadySignedInError(err)) {
         await clearStuckSession();
@@ -266,6 +314,36 @@ export function SignInScreen() {
     }
   }
 
+  function askForUsername(signUpToFinish: PendingSignUp) {
+    setPendingSignUp(signUpToFinish);
+    setUsername('');
+    setError(null);
+    setScreen('username');
+  }
+
+  async function handleChooseUsername() {
+    if (!pendingSignUp) {
+      setScreen('auth');
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await pendingSignUp.update({ username: username.trim() });
+      if (result.status === 'complete' && result.createdSessionId) {
+        await clerk.setActive({ session: result.createdSessionId });
+        captureAnalyticsEvent('auth_completed', { method: 'social_sign_up' });
+        setPendingSignUp(null);
+      } else {
+        setError(unfinishedAuthMessage(result.status));
+      }
+    } catch (err) {
+      setError(clerkMessage(err, 'That username could not be saved'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleSSO(strategy: 'oauth_google' | 'oauth_apple') {
     if (!authReady) {
       setError(NOT_READY_MESSAGE);
@@ -279,6 +357,7 @@ export function SignInScreen() {
       const {
         createdSessionId,
         signIn: ssoSignIn,
+        signUp: ssoSignUp,
         authSessionResult,
       } = await startSSOFlow({
         strategy,
@@ -296,9 +375,18 @@ export function SignInScreen() {
       // needs more steps (2FA, more info), or Clerk's own internal `isLoaded`
       // guard bailing before it made a request. Only the dismissal is
       // silent-worthy; the rest have to say something.
+      if (needsUsernameOnly(ssoSignUp)) {
+        askForUsername(ssoSignUp!);
+        return;
+      }
+      if (ssoSignUp?.status === 'missing_requirements') {
+        setError(unfinishedAuthMessage(ssoSignUp.status));
+        return;
+      }
       const status = ssoSignIn?.status ?? null;
       if (status && status !== 'complete') {
-        setError(`Sign-in needs more steps (status: ${status}).`);
+        captureAnalyticsEvent('auth_failed', { method });
+        setError(unfinishedAuthMessage(status));
       } else if (authSessionResult?.type !== 'cancel') {
         captureAnalyticsEvent('auth_failed', { method });
         setError('Sign-in did not complete. Try again.');
@@ -345,6 +433,9 @@ export function SignInScreen() {
       if (result.status === 'complete') {
         await clerk.setActive({ session: result.createdSessionId });
         captureAnalyticsEvent('auth_completed', { method: 'email_sign_in' });
+      } else {
+        captureAnalyticsEvent('auth_failed', { method: 'email_sign_in' });
+        setError(unfinishedAuthMessage(result.status));
       }
     } catch (err) {
       captureAnalyticsEvent('auth_failed', { method: 'email_sign_in' });
@@ -485,6 +576,9 @@ export function SignInScreen() {
       if (result.status === 'complete') {
         await clerk.setActive({ session: result.createdSessionId });
         captureAnalyticsEvent('auth_completed', { method: 'email_sign_up' });
+      } else {
+        captureAnalyticsEvent('auth_failed', { method: 'email_sign_up' });
+        setError(unfinishedAuthMessage(result.status));
       }
     } catch (err) {
       if (isAlreadySignedInError(err)) {
@@ -651,6 +745,50 @@ export function SignInScreen() {
                 </Text>
               ) : null}
             </>
+          ) : screen === 'username' ? (
+            <>
+              <Text className="text-foreground text-center text-xl font-bold">
+                Choose a username
+              </Text>
+              <TextInput
+                accessibilityLabel="Username"
+                autoCapitalize="none"
+                autoComplete="username-new"
+                autoCorrect={false}
+                className="text-foreground h-[50px] rounded-md border border-border bg-surface px-3.5 text-[15px]"
+                onChangeText={(value) => {
+                  setUsername(value);
+                  setError(null);
+                }}
+                onSubmitEditing={() => void handleChooseUsername()}
+                placeholder="Username"
+                placeholderTextColor={colors.textMuted}
+                returnKeyType="go"
+                textContentType="username"
+                value={username}
+              />
+              <Pressable
+                accessibilityRole="button"
+                className={primaryButtonClass(
+                  username.trim().length >= 4 && !loading,
+                )}
+                disabled={username.trim().length < 4 || loading}
+                onPress={() => void handleChooseUsername()}
+              >
+                <Text
+                  className={primaryButtonTextClass(
+                    username.trim().length >= 4 && !loading,
+                  )}
+                >
+                  {loading ? 'Saving…' : 'Continue'}
+                </Text>
+              </Pressable>
+              {error ? (
+                <Text className="text-center text-[13px] text-error">
+                  {error}
+                </Text>
+              ) : null}
+            </>
           ) : screen === 'newPassword' ? (
             <>
               <Text className="text-foreground text-center text-xl font-bold">
@@ -713,9 +851,13 @@ export function SignInScreen() {
             /* ── Sign in / Sign up ── */
             <>
               {/* Mode toggle */}
-              <View className="mb-1 flex-row border-b border-border">
+              <View
+                accessibilityRole="tablist"
+                className="mb-1 flex-row border-b border-border"
+              >
                 <Pressable
-                  accessibilityRole="button"
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: mode === 'signIn' }}
                   className={`flex-1 items-center border-b-2 py-2.5 ${
                     mode === 'signIn' ? 'border-accent' : 'border-transparent'
                   }`}
@@ -732,7 +874,8 @@ export function SignInScreen() {
                   </Text>
                 </Pressable>
                 <Pressable
-                  accessibilityRole="button"
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: mode === 'signUp' }}
                   className={`flex-1 items-center border-b-2 py-2.5 ${
                     mode === 'signUp' ? 'border-accent' : 'border-transparent'
                   }`}

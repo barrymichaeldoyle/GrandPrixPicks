@@ -81,30 +81,12 @@ export function useUserDateFormat() {
         timeStyle: 'short',
         timeZone: settings.timezone,
       }),
-    /** Just the time (e.g. "14:30" / "2:30 PM"). */
-    formatTime: (isoDate: string) =>
-      safeFormat(new Date(isoDate), settings.locale, {
-        timeStyle: 'short',
-        timeZone: settings.timezone,
-      }),
     /** Short date for calendar rows (e.g. "Sun, May 25"). */
     formatShortDate: (isoDate: string) =>
       safeFormat(new Date(isoDate), settings.locale, {
         weekday: 'short',
         month: 'short',
         day: 'numeric',
-        timeZone: settings.timezone,
-      }),
-    /** Just the day-of-month, for big date badges. */
-    formatDay: (isoDate: string) =>
-      safeFormat(new Date(isoDate), settings.locale, {
-        day: '2-digit',
-        timeZone: settings.timezone,
-      }),
-    /** Just the abbreviated month, for big date badges. */
-    formatMonth: (isoDate: string) =>
-      safeFormat(new Date(isoDate), settings.locale, {
-        month: 'short',
         timeZone: settings.timezone,
       }),
     /** Long date with year (e.g. "May 25, 2026"). */

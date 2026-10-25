@@ -33,6 +33,7 @@ import {
 } from '../tw';
 import { routePushUrl } from '../lib/pushRouting';
 import { userFacingMessage } from '../lib/userFacingError';
+import { formatRelativeTime } from '@grandprixpicks/shared/dates';
 
 type Notification = {
   _id: ConvexId<'inAppNotifications'>;
@@ -43,6 +44,7 @@ type Notification = {
     | 'announcement';
   readAt?: number;
   createdAt: number;
+  raceId?: string;
   raceName?: string;
   raceSlug?: string;
   sessionType?: string;
@@ -53,27 +55,22 @@ type Notification = {
   linkPath?: string;
 };
 
-function formatRelativeTime(timestamp: number): string {
-  const diff = Date.now() - timestamp;
-  const minutes = Math.floor(diff / 60_000);
-  const hours = Math.floor(diff / 3_600_000);
-  const days = Math.floor(diff / 86_400_000);
-  if (minutes < 1) {
-    return 'just now';
+/**
+ * Where a row opens: the same place its push does. A results push opens the
+ * round's weekend leaderboard (`push.ts`), so the row does too; it used to
+ * fall back to the race page, a different screen for the same notice.
+ */
+function notificationPath(item: Notification): string | undefined {
+  if (item.linkPath) {
+    return item.linkPath;
   }
-  if (minutes < 60) {
-    return `${minutes}m ago`;
+  if (
+    (item.type === 'results_published' || item.type === 'results_amended') &&
+    item.raceId
+  ) {
+    return `/leaderboard?time=weekend&raceId=${item.raceId}`;
   }
-  if (hours < 24) {
-    return `${hours}h ago`;
-  }
-  if (days < 7) {
-    return `${days}d ago`;
-  }
-  return new Date(timestamp).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  });
+  return item.raceSlug ? `/races/${item.raceSlug}` : undefined;
 }
 
 export function NotificationsScreen({
@@ -243,10 +240,7 @@ export function NotificationsScreen({
               void markRead({ notificationId: item._id });
             }
             // Same destinations as the push for this notification.
-            routePushUrl(
-              item.linkPath ??
-                (item.raceSlug ? `/races/${item.raceSlug}` : undefined),
-            );
+            routePushUrl(notificationPath(item));
           }}
         />
       )}

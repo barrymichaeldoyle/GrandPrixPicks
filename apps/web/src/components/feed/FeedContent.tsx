@@ -2,6 +2,7 @@ import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import type { FunctionReturnType } from 'convex/server';
 import { Link } from '@tanstack/react-router';
+import { useStickyValue } from '@/hooks/useStickyValue';
 import { useQuery } from '@/integrations/convex/query';
 import { Gauge, Trophy } from 'lucide-react';
 import { Fragment, type ReactNode, useState } from 'react';
@@ -190,29 +191,49 @@ export function FeedContent({
    */
   gridRaceSlug?: string | null;
 } = {}) {
-  const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
-    Array(MAX_EXTRA_PAGES).fill(null),
-  );
+  // How many pages past the first are open. Each one starts where the page
+  // above it ends *now*: the cursors used to be copied once when a page was
+  // opened, so a new event at the top pushed page one's last event past page
+  // two's frozen start, and it showed on neither until a reload.
+  const [extraPageCount, setExtraPageCount] = useState(0);
 
   // `!== undefined` rather than `??`: null is this query's real answer for a
   // signed-out viewer, and only "has not answered yet" should fall back.
   const livePage0 = useQuery(api.feed.getPersonalizedFeed, {});
   const page0 = livePage0 !== undefined ? livePage0 : initialPage;
-  const page1 = useQuery(
-    api.feed.getPersonalizedFeed,
-    extraCursors[0] !== null ? { paginationCursor: extraCursors[0] } : 'skip',
+  // Sticky, so a page re-subscribing under its moved cursor keeps showing
+  // its last result instead of blanking for a beat.
+  const page1 = useStickyValue(
+    useQuery(
+      api.feed.getPersonalizedFeed,
+      extraPageCount >= 1 && page0?.nextCursor
+        ? { paginationCursor: page0.nextCursor }
+        : 'skip',
+    ),
   );
-  const page2 = useQuery(
-    api.feed.getPersonalizedFeed,
-    extraCursors[1] !== null ? { paginationCursor: extraCursors[1] } : 'skip',
+  const page2 = useStickyValue(
+    useQuery(
+      api.feed.getPersonalizedFeed,
+      extraPageCount >= 2 && page1?.nextCursor
+        ? { paginationCursor: page1.nextCursor }
+        : 'skip',
+    ),
   );
-  const page3 = useQuery(
-    api.feed.getPersonalizedFeed,
-    extraCursors[2] !== null ? { paginationCursor: extraCursors[2] } : 'skip',
+  const page3 = useStickyValue(
+    useQuery(
+      api.feed.getPersonalizedFeed,
+      extraPageCount >= 3 && page2?.nextCursor
+        ? { paginationCursor: page2.nextCursor }
+        : 'skip',
+    ),
   );
-  const page4 = useQuery(
-    api.feed.getPersonalizedFeed,
-    extraCursors[3] !== null ? { paginationCursor: extraCursors[3] } : 'skip',
+  const page4 = useStickyValue(
+    useQuery(
+      api.feed.getPersonalizedFeed,
+      extraPageCount >= 4 && page3?.nextCursor
+        ? { paginationCursor: page3.nextCursor }
+        : 'skip',
+    ),
   );
   const me = useQuery(api.users.me, {});
   const followedIds = useQuery(api.follows.getViewerFollowedIds, {});
@@ -227,7 +248,7 @@ export function FeedContent({
   );
 
   const allPageData = [page0, page1, page2, page3, page4];
-  const activePagesCount = 1 + extraCursors.filter((c) => c !== null).length;
+  const activePagesCount = 1 + extraPageCount;
   const activePages = allPageData.slice(0, activePagesCount);
   const isLoadingMore =
     activePagesCount > 1 && activePages.some((p) => p === undefined);
@@ -246,14 +267,7 @@ export function FeedContent({
     if (!lastLoadedPage?.nextCursor) {
       return;
     }
-    setExtraCursors((prev) => {
-      const next = [...prev];
-      const idx = next.findIndex((c) => c === null);
-      if (idx !== -1) {
-        next[idx] = lastLoadedPage.nextCursor;
-      }
-      return next;
-    });
+    setExtraPageCount((count) => Math.min(MAX_EXTRA_PAGES, count + 1));
   }
 
   /**

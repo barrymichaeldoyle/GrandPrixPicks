@@ -90,6 +90,23 @@ export async function patchConnectedDraft(
   notifyDraftListeners();
 }
 
+/**
+ * Remove every pick draft on the device.
+ *
+ * Draft keys name a race and session but not a person, so at sign-out the
+ * drafts on the phone are the outgoing player's. Left behind, the signed-out
+ * Home showed them as a guest's card, and touching that card marked it as
+ * waiting for an account, so the next person to sign in had them submitted
+ * as theirs.
+ */
+export async function clearAllConnectedDrafts() {
+  const keys = await listStoredKeys('gpp:draft:connected:');
+  await Promise.all(keys.map((key) => removeStoredValue(key)));
+  if (keys.length > 0) {
+    notifyDraftListeners();
+  }
+}
+
 /** Shape of a stored draft plus the race and session it belongs to. */
 export type PendingDraft = ConnectedDraft & {
   raceSlug: string;

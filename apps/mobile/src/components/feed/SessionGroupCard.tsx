@@ -299,62 +299,64 @@ function SessionSeparator({
     : hasResult
       ? `${label} result`
       : label;
-  const header = (
-    <View className="overflow-hidden">
-      <View className="flex-row items-stretch border-b border-border bg-surface-elevated">
-        {session.raceSlug ? (
-          <FlagStrip raceSlug={session.raceSlug} />
-        ) : (
-          <View className="w-10 shrink-0 items-center justify-center">
-            <Ionicons color={colors.accent} name="flag-outline" size={16} />
-          </View>
-        )}
-        <View className="flex-1 flex-row items-center justify-between gap-2 px-2 py-1">
-          <View className="min-w-0 flex-1">
-            <Text
-              className="text-foreground text-sm leading-tight font-semibold"
-              numberOfLines={1}
-              style={
-                titleFontFamily ? { fontFamily: titleFontFamily } : undefined
-              }
-            >
-              {session.raceName}
-            </Text>
-            <View className="flex-row items-center gap-1">
-              {live ? (
-                <LiveDot />
-              ) : hasResult ? (
-                <Ionicons color={colors.accent} name="trophy" size={12} />
-              ) : null}
-              <Text className="text-muted text-xs">{sessionLine}</Text>
-            </View>
-          </View>
-          <View className="shrink-0 items-end">
-            {session.createdAt ? (
-              <Text className="text-muted text-xs">
-                {formatRelativeTime(session.createdAt)}
-              </Text>
-            ) : null}
+  // The title row is the link; the results under it are not part of it. As
+  // one labelled Pressable the whole header read as "<race>, <session>" and
+  // the five result chips and team-mate winners inside it were unreachable
+  // to VoiceOver.
+  const titleRow = (
+    <View className="flex-row items-stretch border-b border-border bg-surface-elevated">
+      {session.raceSlug ? (
+        <FlagStrip raceSlug={session.raceSlug} />
+      ) : (
+        <View className="w-10 shrink-0 items-center justify-center">
+          <Ionicons color={colors.accent} name="flag-outline" size={16} />
+        </View>
+      )}
+      <View className="flex-1 flex-row items-center justify-between gap-2 px-2 py-1">
+        <View className="min-w-0 flex-1">
+          <Text
+            className="text-foreground text-sm leading-tight font-semibold"
+            numberOfLines={1}
+            style={
+              titleFontFamily ? { fontFamily: titleFontFamily } : undefined
+            }
+          >
+            {session.raceName}
+          </Text>
+          <View className="flex-row items-center gap-1">
             {live ? (
-              <Text className="text-xs font-medium text-accent">Live</Text>
-            ) : pending ? (
-              <Text className="text-xs font-medium text-accent">
-                Awaiting results
-              </Text>
+              <LiveDot />
+            ) : hasResult ? (
+              <Ionicons color={colors.accent} name="trophy" size={12} />
             ) : null}
+            <Text className="text-muted text-xs">{sessionLine}</Text>
           </View>
         </View>
-      </View>
-      {hasResult ? (
-        <View className="gap-2.5 bg-surface-elevated px-2.5 pt-2 pb-2.5">
-          <ResultRow top5={session.top5} />
-          {session.h2h && session.h2h.length > 0 ? (
-            <H2HWinnersRow h2h={session.h2h} />
+        <View className="shrink-0 items-end">
+          {session.createdAt ? (
+            <Text className="text-muted text-xs">
+              {formatRelativeTime(session.createdAt)}
+            </Text>
+          ) : null}
+          {live ? (
+            <Text className="text-xs font-medium text-accent">Live</Text>
+          ) : pending ? (
+            <Text className="text-xs font-medium text-accent">
+              Awaiting results
+            </Text>
           ) : null}
         </View>
-      ) : null}
+      </View>
     </View>
   );
+  const resultRows = hasResult ? (
+    <View className="gap-2.5 bg-surface-elevated px-2.5 pt-2 pb-2.5">
+      <ResultRow top5={session.top5} />
+      {session.h2h && session.h2h.length > 0 ? (
+        <H2HWinnersRow h2h={session.h2h} />
+      ) : null}
+    </View>
+  ) : null;
 
   return (
     <View className="overflow-hidden border-y border-border bg-surface">
@@ -366,11 +368,12 @@ function SessionSeparator({
             navigation.navigate('RaceDetail', { raceSlug: session.raceSlug! })
           }
         >
-          {header}
+          {titleRow}
         </Pressable>
       ) : (
-        header
+        titleRow
       )}
+      {resultRows}
     </View>
   );
 }

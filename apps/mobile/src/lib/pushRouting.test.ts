@@ -11,10 +11,16 @@ vi.mock('../navigation/navigationRef', () => ({
   },
 }));
 
+const openBrowser = vi.fn();
+vi.mock('expo-web-browser', () => ({
+  openBrowserAsync: (...args: unknown[]) => openBrowser(...args),
+}));
+
 import { flushPendingPushRoute, routePushUrl } from './pushRouting';
 
 beforeEach(() => {
   navigate.mockClear();
+  openBrowser.mockClear();
   ready = true;
 });
 
@@ -63,9 +69,19 @@ describe('routePushUrl', () => {
     });
   });
 
-  it('ignores a path it does not know rather than guessing', () => {
-    routePushUrl('/some/unknown/place');
+  it('opens a site page it has no screen for in the in-app browser', () => {
+    // An announcement linking to the results policy used to be a dead tap.
+    routePushUrl('/results-policy#sessions-heading');
     expect(navigate).not.toHaveBeenCalled();
+    expect(openBrowser).toHaveBeenCalledWith(
+      'https://grandprixpicks.com/results-policy?app=1#sessions-heading',
+    );
+  });
+
+  it('never opens another site', () => {
+    routePushUrl('https://example.com/phish');
+    expect(navigate).not.toHaveBeenCalled();
+    expect(openBrowser).not.toHaveBeenCalled();
   });
 
   it('ignores an empty url', () => {

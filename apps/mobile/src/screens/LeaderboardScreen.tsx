@@ -223,6 +223,10 @@ export function LeaderboardScreen() {
   const [pagedOffset, setPagedOffset] = useState(PAGE_SIZE);
   const [pagedHasMore, setPagedHasMore] = useState<boolean | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const viewKeyRef = useRef(viewKey);
+  useEffect(() => {
+    viewKeyRef.current = viewKey;
+  }, [viewKey]);
 
   useEffect(() => {
     // A new board identity resets the imperative pagination accumulator.
@@ -250,14 +254,23 @@ export function LeaderboardScreen() {
       return;
     }
     setLoadingMore(true);
+    const requestedFor = viewKey;
     try {
       const more = (await convex.query(seasonQueryForView, {
         limit: PAGE_SIZE,
         offset: pagedOffset,
       })) as SeasonResult;
+      // The board may have changed while this was in flight (Global to
+      // Following, say): its rows belong to the board that asked.
+      if (viewKeyRef.current !== requestedFor) {
+        return;
+      }
       setExtraEntries((prev) => [...prev, ...more.entries]);
       setPagedOffset((prev) => prev + PAGE_SIZE);
       setPagedHasMore(more.hasMore ?? false);
+    } catch {
+      // Offline at the end of the list. The next scroll there retries; this
+      // used to be an unhandled rejection every time `onEndReached` fired.
     } finally {
       setLoadingMore(false);
     }
@@ -313,8 +326,11 @@ export function LeaderboardScreen() {
     )
     .sort((a, b) => a.round - b.round);
 
+  // Page one is live and the pages after it are snapshots, so a player who
+  // moved across a page boundary can be in both. List them once, where the
+  // live page puts them.
   const seasonEntries = activeSeason
-    ? [...activeSeason.entries, ...extraEntries]
+    ? uniqueByUser([...activeSeason.entries, ...extraEntries])
     : [];
   const entries: Entry[] =
     timeScope === 'weekend'
@@ -766,4 +782,16 @@ function BoardRow({
  */
 function RowSeparator() {
   return <View className="ml-[52px] h-px bg-border" />;
+}
+
+function uniqueByUser(entries: Entry[]): Entry[] {
+  const seen = new Set<string>();
+  return entries.filter((entry) => {
+    const id = String(entry.userId);
+    if (seen.has(id)) {
+      return false;
+    }
+    seen.add(id);
+    return true;
+  });
 }

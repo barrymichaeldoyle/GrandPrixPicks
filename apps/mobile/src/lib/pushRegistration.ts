@@ -69,6 +69,43 @@ export async function obtainExpoPushTokenIfGranted(): Promise<string | null> {
 
 export async function clearStoredExpoPushToken(): Promise<void> {
   await removeStoredValue(TOKEN_KEY);
+  await forgetTokenSave();
+}
+
+/**
+ * When this device last saved its token for an account. Foregrounding used to
+ * re-save the same token every time; once a day keeps the row current.
+ */
+const TOKEN_SAVE_KEY = 'push.lastTokenSave';
+const TOKEN_RESAVE_MS = 24 * 60 * 60 * 1000;
+
+export async function wasTokenSavedRecently(
+  token: string,
+  userId: string,
+): Promise<boolean> {
+  const last = await getStoredJson<{
+    token: string;
+    userId: string;
+    at: number;
+  }>(TOKEN_SAVE_KEY);
+  return (
+    last?.token === token &&
+    last.userId === userId &&
+    Date.now() - last.at < TOKEN_RESAVE_MS
+  );
+}
+
+export async function recordTokenSave(token: string, userId: string) {
+  await setStoredJson(TOKEN_SAVE_KEY, { token, userId, at: Date.now() });
+}
+
+/**
+ * Forget the save, so the next signed-in launch saves the token again. Called
+ * on every sign-out: its server-side delete may still be queued offline, and a
+ * remembered save would then skip the re-save that turns push back on.
+ */
+export async function forgetTokenSave() {
+  await removeStoredValue(TOKEN_SAVE_KEY);
 }
 
 export async function prepareNotificationChannels(): Promise<void> {

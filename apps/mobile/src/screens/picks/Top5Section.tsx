@@ -146,6 +146,8 @@ export function Top5Editor({
   const [picks, setPicks] = useState<string[]>([...existingPicks]);
   const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // State alone lets an auto-save and a tap in the same frame both start.
+  const submittingRef = useRef(false);
   const [isDirty, setIsDirty] = useState(false);
   const hydratedRef = useRef<string | null>(null);
 
@@ -211,9 +213,10 @@ export function Top5Editor({
   }
 
   async function handleSave() {
-    if (picks.length !== MAX_TOP5 || isSubmitting) {
+    if (picks.length !== MAX_TOP5 || submittingRef.current) {
       return;
     }
+    submittingRef.current = true;
     setIsSubmitting(true);
     try {
       if (!isSignedIn) {
@@ -246,6 +249,7 @@ export function Top5Editor({
         'error',
       );
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   }

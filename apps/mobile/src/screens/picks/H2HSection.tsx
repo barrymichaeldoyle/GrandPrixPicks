@@ -214,6 +214,9 @@ export function H2HEditor({
   );
   const [saveFailed, setSaveFailed] = useState(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // `isSubmitting` is state, so two taps inside one frame both read it as
+  // false and sent two writes, the later of which might be the other driver.
+  const submittingRef = useRef(false);
   const hydratedRef = useRef<string | null>(null);
   const visibleMatchup = visibleMatchupId
     ? matchups.find((m) => m._id === visibleMatchupId)
@@ -316,9 +319,10 @@ export function H2HEditor({
     const picksComplete = matchups.every(
       (matchup) => picks[matchup._id] !== undefined,
     );
-    if (!picksComplete || sessionIsLocked || isSubmitting) {
+    if (!picksComplete || sessionIsLocked || submittingRef.current) {
       return;
     }
+    submittingRef.current = true;
     setIsSubmitting(true);
     try {
       if (!isSignedIn) {
@@ -362,6 +366,7 @@ export function H2HEditor({
         'error',
       );
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   }

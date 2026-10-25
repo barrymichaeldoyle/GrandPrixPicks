@@ -44,7 +44,10 @@ import { feedGroupKey, reuseFeedGroups } from '../../lib/feedGroupIdentity';
 import { homePaintIsPending } from '../../lib/homePaint';
 import { useConnectedDraft } from '../../lib/useConnectedDraft';
 import { CASCADE_DRAFT_SESSION } from '../picks/picksShared';
-import { useIsSignedIn } from '../../lib/useIsSignedIn';
+import {
+  useIsConfirmedSignedOut,
+  useIsSignedIn,
+} from '../../lib/useIsSignedIn';
 import { useHomePaintGate } from '../../lib/useHomePaintGate';
 import { useNow } from '../../lib/useNow';
 import { useRefreshSpinner } from '../../lib/useRefreshSpinner';
@@ -71,13 +74,17 @@ export function FeedScreen() {
   const { clerkEnabled, convexEnabled } = useMobileConfig();
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const { refreshing, onRefresh } = useRefreshSpinner();
-  const { isLoaded: authLoaded } = useAuth();
+  const { isLoaded: authLoaded, userId } = useAuth();
   const isSignedIn = useIsSignedIn();
   const now = useNow(30_000);
 
-  const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
-    Array(MAX_EXTRA_PAGES).fill(null),
-  );
+  // How many live pages past the first are open, tagged with the viewer like
+  // `archive` below, so another account after sign-out/in starts at one page.
+  const [extraPages, setExtraPages] = useState<{
+    viewerId: string | null | undefined;
+    count: number;
+  }>({ viewerId: userId, count: 0 });
+  const extraPageCount = extraPages.viewerId === userId ? extraPages.count : 0;
   // Pages past the live ones. The first five pages are subscriptions so
   // reactions and late scores update in place; older history is fetched once
   // and appended. Without this the feed ended at 200 events, which a player
@@ -95,30 +102,47 @@ export function FeedScreen() {
     api.feed.getPersonalizedFeed,
     convexEnabled ? {} : 'skip',
   ) as FeedPage;
-  const page1 = useQuery(
-    api.feed.getPersonalizedFeed,
-    convexEnabled && extraCursors[0] !== null
-      ? { paginationCursor: extraCursors[0] }
-      : 'skip',
-  ) as FeedPage;
-  const page2 = useQuery(
-    api.feed.getPersonalizedFeed,
-    convexEnabled && extraCursors[1] !== null
-      ? { paginationCursor: extraCursors[1] }
-      : 'skip',
-  ) as FeedPage;
-  const page3 = useQuery(
-    api.feed.getPersonalizedFeed,
-    convexEnabled && extraCursors[2] !== null
-      ? { paginationCursor: extraCursors[2] }
-      : 'skip',
-  ) as FeedPage;
-  const page4 = useQuery(
-    api.feed.getPersonalizedFeed,
-    convexEnabled && extraCursors[3] !== null
-      ? { paginationCursor: extraCursors[3] }
-      : 'skip',
-  ) as FeedPage;
+  // Each live page starts where the page above it ends *now*. The cursors
+  // used to be copied once when a page was opened, so a new event at the top
+  // pushed page one's last event off its end and past page two's frozen
+  // start, and it showed on neither until the screen remounted. A page that
+  // is re-subscribing under its new cursor keeps showing its last result.
+  const page1 = useHeldPage(
+    useQuery(
+      api.feed.getPersonalizedFeed,
+      convexEnabled && extraPageCount >= 1 && page0?.nextCursor
+        ? { paginationCursor: page0.nextCursor }
+        : 'skip',
+    ) as FeedPage,
+    extraPageCount >= 1,
+  );
+  const page2 = useHeldPage(
+    useQuery(
+      api.feed.getPersonalizedFeed,
+      convexEnabled && extraPageCount >= 2 && page1?.nextCursor
+        ? { paginationCursor: page1.nextCursor }
+        : 'skip',
+    ) as FeedPage,
+    extraPageCount >= 2,
+  );
+  const page3 = useHeldPage(
+    useQuery(
+      api.feed.getPersonalizedFeed,
+      convexEnabled && extraPageCount >= 3 && page2?.nextCursor
+        ? { paginationCursor: page2.nextCursor }
+        : 'skip',
+    ) as FeedPage,
+    extraPageCount >= 3,
+  );
+  const page4 = useHeldPage(
+    useQuery(
+      api.feed.getPersonalizedFeed,
+      convexEnabled && extraPageCount >= 4 && page3?.nextCursor
+        ? { paginationCursor: page3.nextCursor }
+        : 'skip',
+    ) as FeedPage,
+    extraPageCount >= 4,
+  );
 
   const me = useQuery(api.users.me, convexEnabled ? {} : 'skip');
   const recap = useQuery(api.home.getRaceRecap, convexEnabled ? {} : 'skip');
@@ -134,10 +158,11 @@ export function FeedScreen() {
   // Once a guest has drafted a card, the weekend card carries the account
   // prompt itself (the terms of the draft and a sign-in button), so the
   // general panel below would say the same thing twice on one screen.
+  const isConfirmedSignedOut = useIsConfirmedSignedOut();
   const guestDraft = useConnectedDraft(
     weekend?.race.slug ?? '',
     CASCADE_DRAFT_SESSION,
-    !isSignedIn && Boolean(weekend),
+    isConfirmedSignedOut && Boolean(weekend),
   );
   const guestHasDraft =
     guestDraft.top5.length > 0 ||
@@ -166,7 +191,7 @@ export function FeedScreen() {
   }, [page0]);
 
   const allPageData = [page0, page1, page2, page3, page4];
-  const activePagesCount = 1 + extraCursors.filter((c) => c !== null).length;
+  const activePagesCount = 1 + extraPageCount;
   const activePages = allPageData.slice(0, activePagesCount);
   const archivePages = archive.viewerId === me?._id ? archive.pages : [];
   const isLoadingMore =
@@ -213,13 +238,9 @@ export function FeedScreen() {
         .finally(() => setArchiveLoading(false));
       return;
     }
-    setExtraCursors((prev) => {
-      const next = [...prev];
-      const idx = next.findIndex((c) => c === null);
-      if (idx !== -1) {
-        next[idx] = lastLoadedPage.nextCursor;
-      }
-      return next;
+    setExtraPages({
+      viewerId: userId,
+      count: Math.min(MAX_EXTRA_PAGES, extraPageCount + 1),
     });
   }
 
@@ -489,3 +510,28 @@ const FeedRow = memo(function FeedRow({
     </View>
   );
 });
+
+/**
+ * A live page that keeps its last result while it re-subscribes.
+ *
+ * Chained cursors move whenever the page above changes, and a new
+ * subscription answers `undefined` until it lands; without this every new
+ * event at the top blanked the pages below it for a beat. Dropped once the
+ * page is closed, so a reset does not resurrect it.
+ */
+function useHeldPage(page: FeedPage, open: boolean): FeedPage {
+  const held = useRef<FeedPage>(undefined);
+  // A synchronous render cache, like web's `useStickyValue`: an effect would
+  // flash the empty state it exists to avoid.
+  if (!open) {
+    // oxlint-disable-next-line react/refs
+    held.current = undefined;
+    return undefined;
+  }
+  if (page !== undefined) {
+    // oxlint-disable-next-line react/refs
+    held.current = page;
+  }
+  // oxlint-disable-next-line react/refs
+  return page ?? held.current;
+}

@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../../news/usa-2026-2026-10-25-morning/news.json",
+  "startAt": "2026-10-25T07:30:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["austin-starting-grid"],
+      "text": "Antonelli starts from pole in Austin. He is champion today if he wins, Hamilton finishes fifth or lower and Russell ninth or lower.",
+      "link": "https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=austin-starting-grid",
+      "expiresAt": "2026-10-25T19:00:00Z"
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "austin-lindblad-colapinto-bortoleto-grid-penalties",
+    "headline": "Lindblad drops five places, Colapinto ten and Bortoleto starts at the back",
+    "body": "Power unit changes give Lindblad a five-place grid penalty and Colapinto a ten-place drop for the United States Grand Prix. Bortoleto's further changes on Saturday added 60 places to an initial 20, an 80-place penalty that puts him at the back of the grid. The penalties change Sunday's starting grid; qualifying classification is unchanged.",
+    "category": "pick_related",
+    "affectsSessions": [
+      "race"
+    ],
+    "driverCodes": [
+      "LIN",
+      "COL",
+      "BOR"
+    ],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/lindblad-colapinto-and-bortoleto-to-take-grid-penalties-for-united-states-grand-prix.4qjn84W4zOmwNXeELFWn0k",
+    "sourcePublishedAt": "2026-10-23T19:08:28.992Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "austin-starting-grid",
+    "headline": "Antonelli starts the United States Grand Prix from pole",
+    "body": "Antonelli lines up alongside Verstappen, with Hadjar third and the Ferraris of Leclerc and Hamilton fourth and fifth. Russell starts sixth. Lindblad starts 14th, Colapinto 21st and Bortoleto last. Antonelli can clinch the title by winning with Hamilton fifth or lower and Russell ninth or lower.",
+    "category": "pick_related",
+    "affectsSessions": [
+      "race"
+    ],
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/news/1108386/1/f1-us-grand-prix-full-starting-grid-after-huge-60-place-penalty",
+    "sourcePublishedAt": "2026-10-24T23:33:34+01:00",
+    "startingGrid": [
+      {
+        "position": 1,
+        "code": "ANT"
+      },
+      {
+        "position": 2,
+        "code": "VER"
+      },
+      {
+        "position": 3,
+        "code": "HAD"
+      },
+      {
+        "position": 4,
+        "code": "LEC"
+      },
+      {
+        "position": 5,
+        "code": "HAM"
+      },
+      {
+        "position": 6,
+        "code": "RUS"
+      },
+      {
+        "position": 7,
+        "code": "PIA"
+      },
+      {
+        "position": 8,
+        "code": "NOR"
+      },
+      {
+        "position": 9,
+        "code": "LAW"
+      },
+      {
+        "position": 10,
+        "code": "GAS"
+      },
+      {
+        "position": 11,
+        "code": "HUL"
+      },
+      {
+        "position": 12,
+        "code": "ALO"
+      },
+      {
+        "position": 13,
+        "code": "BEA"
+      },
+      {
+        "position": 14,
+        "code": "LIN",
+        "note": "5-place penalty",
+        "newsKey": "austin-lindblad-colapinto-bortoleto-grid-penalties"
+      },
+      {
+        "position": 15,
+        "code": "OCO"
+      },
+      {
+        "position": 16,
+        "code": "STR"
+      },
+      {
+        "position": 17,
+        "code": "SAI"
+      },
+      {
+        "position": 18,
+        "code": "ALB"
+      },
+      {
+        "position": 19,
+        "code": "PER"
+      },
+      {
+        "position": 20,
+        "code": "BOT"
+      },
+      {
+        "position": 21,
+        "code": "COL",
+        "note": "10-place penalty",
+        "newsKey": "austin-lindblad-colapinto-bortoleto-grid-penalties"
+      },
+      {
+        "position": 22,
+        "code": "BOR",
+        "note": "80-place penalty",
+        "newsKey": "austin-lindblad-colapinto-bortoleto-grid-penalties"
+      }
+    ]
+  }
+]

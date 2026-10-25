@@ -67,7 +67,7 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
           <Text className="text-xs font-medium text-warning">
             Results amended
             {event.previousPoints !== undefined && event.points !== undefined
-              ? ` · ${event.previousPoints} → ${event.points} pts`
+              ? ` · Top 5 ${event.previousPoints} → ${event.points} pts`
               : ''}
           </Text>
           {event.amendmentNote ? (

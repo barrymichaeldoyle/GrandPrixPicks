@@ -508,7 +508,7 @@ function SessionLeaderboardRow({
           <View className="flex-row flex-wrap items-baseline gap-x-2 gap-y-0.5">
             <Text className="text-xs font-medium text-warning">
               {event.previousPoints !== undefined && event.points !== undefined
-                ? `Results amended · ${event.previousPoints} → ${event.points} pts`
+                ? `Results amended · Top 5 ${event.previousPoints} → ${event.points} pts`
                 : 'Results amended'}
             </Text>
             {event.amendmentNote ? (

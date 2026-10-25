@@ -314,6 +314,59 @@ export async function refreshResultNotificationPoints(
   return patched;
 }
 
+/**
+ * The "results are in" notice for one player and session, created once and
+ * kept current after that. Points are read here rather than passed in, because
+ * the Top 5 and the duels are scored in separate mutations and either can land
+ * first.
+ */
+export async function upsertResultsNotification(
+  ctx: MutationCtx,
+  args: {
+    userId: Id<'users'>;
+    raceId: Id<'races'>;
+    sessionType: Doc<'scores'>['sessionType'];
+    raceName: string;
+    raceSlug: string;
+  },
+) {
+  const points = await sessionPointsFor(
+    ctx,
+    args.userId,
+    args.raceId,
+    args.sessionType,
+  );
+  // Upsert: one results notification per user/race/session
+  const existing = await ctx.db
+    .query('inAppNotifications')
+    .withIndex('by_user_type_raceId_and_sessionType', (q) =>
+      q
+        .eq('userId', args.userId)
+        .eq('type', 'results_published')
+        .eq('raceId', args.raceId)
+        .eq('sessionType', args.sessionType),
+    )
+    .first();
+
+  if (existing) {
+    // Quietly keep the points current. Don't reset readAt: silent
+    // corrections shouldn't re-surface this — official amendments announce
+    // themselves through a dedicated results_amended notification instead.
+    await ctx.db.patch(existing._id, { points });
+  } else {
+    await ctx.db.insert('inAppNotifications', {
+      userId: args.userId,
+      type: 'results_published',
+      raceId: args.raceId,
+      sessionType: args.sessionType,
+      raceName: args.raceName,
+      raceSlug: args.raceSlug,
+      points,
+      createdAt: Date.now(),
+    });
+  }
+}
+
 /** Called from feed.writeFeedEventsForSession after scores are published. */
 export const createResultsNotification = internalMutation({
   args: {
@@ -324,43 +377,7 @@ export const createResultsNotification = internalMutation({
     raceSlug: v.string(),
   },
   handler: async (ctx, args) => {
-    // Read here rather than passed in: the caller iterates Top 5 scores, and
-    // the duel score lands in its own mutation.
-    const points = await sessionPointsFor(
-      ctx,
-      args.userId,
-      args.raceId,
-      args.sessionType,
-    );
-    // Upsert: one results notification per user/race/session
-    const existing = await ctx.db
-      .query('inAppNotifications')
-      .withIndex('by_user_type_raceId_and_sessionType', (q) =>
-        q
-          .eq('userId', args.userId)
-          .eq('type', 'results_published')
-          .eq('raceId', args.raceId)
-          .eq('sessionType', args.sessionType),
-      )
-      .first();
-
-    if (existing) {
-      // Quietly keep the points current. Don't reset readAt: silent
-      // corrections shouldn't re-surface this — official amendments announce
-      // themselves through a dedicated results_amended notification instead.
-      await ctx.db.patch(existing._id, { points });
-    } else {
-      await ctx.db.insert('inAppNotifications', {
-        userId: args.userId,
-        type: 'results_published',
-        raceId: args.raceId,
-        sessionType: args.sessionType,
-        raceName: args.raceName,
-        raceSlug: args.raceSlug,
-        points,
-        createdAt: Date.now(),
-      });
-    }
+    await upsertResultsNotification(ctx, args);
   },
 });
 
@@ -385,28 +402,25 @@ export const notifyResultsAmended = internalMutation({
 
     const now = Date.now();
 
-    for await (const prediction of ctx.db
-      .query('predictions')
-      .withIndex('by_race_session', (q) =>
+    // Everyone told the original result, whichever game they played: walking
+    // Top 5 predictions skipped a player who only made team-mate picks. Read
+    // in full before writing, because the amended rows land in the same index
+    // range this walks.
+    const notifiedUserIds: Id<'users'>[] = [];
+    for await (const notice of ctx.db
+      .query('inAppNotifications')
+      .withIndex('by_raceId_and_sessionType', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
       )) {
-      const originalNotice = await ctx.db
-        .query('inAppNotifications')
-        .withIndex('by_user_type_raceId_and_sessionType', (q) =>
-          q
-            .eq('userId', prediction.userId)
-            .eq('type', 'results_published')
-            .eq('raceId', args.raceId)
-            .eq('sessionType', args.sessionType),
-        )
-        .first();
-      if (!originalNotice) {
-        continue;
+      if (notice.type === 'results_published') {
+        notifiedUserIds.push(notice.userId);
       }
+    }
 
+    for (const userId of notifiedUserIds) {
       const points = await sessionPointsFor(
         ctx,
-        prediction.userId,
+        userId,
         args.raceId,
         args.sessionType,
       );
@@ -415,7 +429,7 @@ export const notifyResultsAmended = internalMutation({
         .query('inAppNotifications')
         .withIndex('by_user_type_raceId_and_sessionType', (q) =>
           q
-            .eq('userId', prediction.userId)
+            .eq('userId', userId)
             .eq('type', 'results_amended')
             .eq('raceId', args.raceId)
             .eq('sessionType', args.sessionType),
@@ -431,7 +445,7 @@ export const notifyResultsAmended = internalMutation({
         });
       } else {
         await ctx.db.insert('inAppNotifications', {
-          userId: prediction.userId,
+          userId: userId,
           type: 'results_amended',
           raceId: args.raceId,
           sessionType: args.sessionType,

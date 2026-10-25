@@ -13,7 +13,10 @@ import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { query } from './_generated/server';
-import { refreshResultNotificationPoints } from './inAppNotifications';
+import {
+  refreshResultNotificationPoints,
+  upsertResultsNotification,
+} from './inAppNotifications';
 import { internalMutation, mutation } from './lib/standingsMutations';
 import {
   getOrCreateViewer,
@@ -406,6 +409,7 @@ export async function publishResultsCore(
     classification: args.classification,
     season,
     resultId,
+    suppressNotifications,
   });
 
   // Tell the search engines the race page and both championship tables just
@@ -1493,6 +1497,7 @@ export const scoreH2HForSession = internalMutation({
     classification: v.array(v.id('drivers')),
     season: v.number(),
     resultId: v.id('results'),
+    suppressNotifications: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -1604,6 +1609,7 @@ export const scoreH2HForSession = internalMutation({
           raceId: args.raceId,
           sessionType: args.sessionType,
           season: args.season,
+          suppressNotifications: args.suppressNotifications,
         });
       }
     }
@@ -1618,6 +1624,7 @@ export const scoreH2HForSession = internalMutation({
         raceId: args.raceId,
         sessionType: args.sessionType,
         season: args.season,
+        suppressNotifications: args.suppressNotifications,
       });
     }
   },
@@ -1629,9 +1636,11 @@ export const scoreH2HBatch = internalMutation({
     raceId: v.id('races'),
     sessionType: sessionTypeValidator,
     season: v.number(),
+    suppressNotifications: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
+    const race = await ctx.db.get(args.raceId);
 
     // Load H2H results for this session
     const h2hResultMap = new Map<string, Id<'drivers'>>();
@@ -1696,14 +1705,36 @@ export const scoreH2HBatch = internalMutation({
         });
       }
 
-      // Duels are scored in their own mutation, so the Top 5's results
-      // notification may already exist with only half the session in it.
-      await refreshResultNotificationPoints(
-        ctx,
-        userId,
-        args.raceId,
-        args.sessionType,
-      );
+      // A player with no Top 5 for this session gets no notice from the Top 5
+      // path (it walks Top 5 scores), so the duel score raises it here. On a
+      // republish this stays quiet like every other notice.
+      const madeTopFive = await ctx.db
+        .query('predictions')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', userId)
+            .eq('raceId', args.raceId)
+            .eq('sessionType', args.sessionType),
+        )
+        .first();
+      if (!madeTopFive && !args.suppressNotifications && race) {
+        await upsertResultsNotification(ctx, {
+          userId,
+          raceId: args.raceId,
+          sessionType: args.sessionType,
+          raceName: race.name,
+          raceSlug: race.slug,
+        });
+      } else {
+        // Duels are scored in their own mutation, so the Top 5's results
+        // notification may already exist with only half the session in it.
+        await refreshResultNotificationPoints(
+          ctx,
+          userId,
+          args.raceId,
+          args.sessionType,
+        );
+      }
     }
 
     // Schedule H2H standings update for users in this batch

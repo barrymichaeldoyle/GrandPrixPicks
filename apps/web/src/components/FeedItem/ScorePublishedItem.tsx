@@ -177,7 +177,7 @@ export function ScorePublishedItem({
             {event.previousPoints !== undefined &&
               event.points !== undefined && (
                 <span className="gpp-mono text-xs font-semibold text-text">
-                  {event.previousPoints} → {event.points} pts
+                  Top 5 {event.previousPoints} → {event.points} pts
                 </span>
               )}
             {event.amendmentNote && (

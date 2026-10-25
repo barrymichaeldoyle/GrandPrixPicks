@@ -153,4 +153,68 @@ describe('result notification points', () => {
     const [notification] = await resultNotifications(t, userId);
     expect(notification.points).toBe(13);
   });
+
+  it('tells a player who only made team-mate picks, and stays quiet on a republish', async () => {
+    const t = setup();
+    const { raceId, userId } = await seed(t, {});
+    await t.run(async (ctx) => {
+      const now = Date.now();
+      const [d1, d2] = await Promise.all(
+        ['NOR', 'PIA'].map((code) =>
+          ctx.db.insert('drivers', {
+            code,
+            displayName: code,
+            createdAt: now,
+            updatedAt: now,
+          }),
+        ),
+      );
+      const matchupId = await ctx.db.insert('h2hMatchups', {
+        season: 2026,
+        team: 'McLaren',
+        driver1Id: d1,
+        driver2Id: d2,
+        createdAt: now,
+        updatedAt: now,
+      });
+      await ctx.db.insert('h2hResults', {
+        raceId,
+        sessionType: 'quali',
+        matchupId,
+        winnerId: d1,
+        publishedAt: now,
+      });
+      await ctx.db.insert('h2hPredictions', {
+        userId,
+        raceId,
+        sessionType: 'quali',
+        matchupId,
+        predictedWinnerId: d1,
+        submittedAt: now,
+        updatedAt: now,
+      });
+    });
+
+    await t.mutation(internal.results.scoreH2HBatch, {
+      userIds: [userId],
+      raceId,
+      sessionType: 'quali',
+      season: 2026,
+      suppressNotifications: true,
+    });
+    expect(await resultNotifications(t, userId)).toHaveLength(0);
+
+    await t.mutation(internal.results.scoreH2HBatch, {
+      userIds: [userId],
+      raceId,
+      sessionType: 'quali',
+      season: 2026,
+    });
+    const notifications = await resultNotifications(t, userId);
+    expect(notifications).toHaveLength(1);
+    expect(notifications[0]).toMatchObject({
+      type: 'results_published',
+      points: 1,
+    });
+  });
 });

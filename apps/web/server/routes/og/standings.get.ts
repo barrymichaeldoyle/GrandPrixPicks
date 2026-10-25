@@ -1,16 +1,13 @@
 import { api } from '@convex-generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 
 import { renderOgImage } from '../../../src/lib/og/renderer';
 import { driversStandingsTemplate } from '../../../src/lib/og/templates';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../../../src/lib/teamColors';
 import { captureServerException, startServerSpan } from '../../lib/sentry';
+import { getServerConvexClient } from '../../lib/convex';
+import { ogBadRequest } from '../../lib/ogResponses';
 
 type RouteEvent = { req: Request };
-
-function badRequest(message: string) {
-  return new Response(message, { status: 400 });
-}
 
 /**
  * The drivers' championship card the app posts after a race:
@@ -22,16 +19,12 @@ export default async function handler(event: RouteEvent) {
     const url = new URL(event.req.url);
     const slug = url.searchParams.get('after');
     if (!slug) {
-      return badRequest('Expected ?after=<race slug>');
+      return ogBadRequest('Expected ?after=<race slug>');
     }
-    const convexUrl = process.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('Missing VITE_CONVEX_URL');
-    }
-    const convex = new ConvexHttpClient(convexUrl);
+    const convex = getServerConvexClient();
     const race = await convex.query(api.races.getRaceBySlug, { slug });
     if (!race) {
-      return badRequest(`No race with slug "${slug}"`);
+      return ogBadRequest(`No race with slug "${slug}"`);
     }
     const [standings, races] = await Promise.all([
       convex.query(api.f1Standings.getF1Championship, { season: race.season }),

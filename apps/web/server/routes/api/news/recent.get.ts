@@ -1,7 +1,7 @@
 import { api } from '@convex-generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 
 import { captureServerException, startServerSpan } from '../../../lib/sentry';
+import { getServerConvexClient } from '../../../lib/convex';
 
 /**
  * The last two weeks of news cards, for the r/GPPicks app
@@ -17,11 +17,7 @@ import { captureServerException, startServerSpan } from '../../../lib/sentry';
  */
 export default async function handler() {
   try {
-    const convexUrl = process.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('Missing VITE_CONVEX_URL');
-    }
-    const convex = new ConvexHttpClient(convexUrl);
+    const convex = getServerConvexClient();
     const items = await startServerSpan({ name: 'news.recent' }, () =>
       convex.query(api.feed.recentNews, { days: 14 }),
     );

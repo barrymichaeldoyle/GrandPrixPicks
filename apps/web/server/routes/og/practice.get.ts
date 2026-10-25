@@ -1,11 +1,12 @@
 import { api } from '@convex-generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 
 import { renderOgImage } from '../../../src/lib/og/renderer';
 import { practiceResultsTemplate } from '../../../src/lib/og/templates';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../../../src/lib/teamColors';
 import { loadFlagDataUri } from '../../lib/ogFlag';
 import { captureServerException, startServerSpan } from '../../lib/sentry';
+import { getServerConvexClient } from '../../lib/convex';
+import { ogBadRequest } from '../../lib/ogResponses';
 
 type RouteEvent = {
   req: Request;
@@ -27,20 +28,16 @@ export default async function handler(event: RouteEvent) {
       (candidate) => candidate === url.searchParams.get('session'),
     );
     if (!raceSlug || !session) {
-      return badRequest('Expected ?race=<slug>&session=fp1|fp2|fp3');
+      return ogBadRequest('Expected ?race=<slug>&session=fp1|fp2|fp3');
     }
 
-    const convexUrl = process.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('Missing VITE_CONVEX_URL');
-    }
-    const convex = new ConvexHttpClient(convexUrl);
+    const convex = getServerConvexClient();
 
     const race = await convex.query(api.races.getRaceBySlug, {
       slug: raceSlug,
     });
     if (!race) {
-      return badRequest(`No race with slug "${raceSlug}"`);
+      return ogBadRequest(`No race with slug "${raceSlug}"`);
     }
 
     const results = await convex.query(
@@ -49,7 +46,7 @@ export default async function handler(event: RouteEvent) {
     );
     const result = results.find((item) => item.sessionType === session);
     if (!result) {
-      return badRequest(
+      return ogBadRequest(
         `${session.toUpperCase()} results for "${raceSlug}" are not published yet`,
       );
     }
@@ -100,11 +97,4 @@ export default async function handler(event: RouteEvent) {
     });
     return new Response('Failed to render practice card', { status: 500 });
   }
-}
-
-function badRequest(message: string) {
-  return new Response(message, {
-    status: 400,
-    headers: { 'content-type': 'text/plain' },
-  });
 }

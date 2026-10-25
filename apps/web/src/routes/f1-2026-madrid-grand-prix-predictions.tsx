@@ -23,6 +23,7 @@ import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
 import { lastReviewedAt } from '@/lib/lastReviewed';
+import { bucketWeatherNow } from '@/lib/weatherNow';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
   getRaceWriteupPhase,
@@ -224,7 +225,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
       context.queryClient.ensureQueryData(
         routeQuery(api.weather.getForWriteup, {
           raceSlug: RACE_SLUG,
-          now: weatherNow,
+          now: bucketWeatherNow(weatherNow),
         }),
       ),
       context.queryClient.ensureQueryData(
@@ -319,6 +320,10 @@ function MadridGrandPrixPredictionsPage() {
   } = Route.useLoaderData();
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
+  // Only point the hero at the picker once this round is the next on the
+  // calendar, as the standard write-ups do: a pick button on a round whose
+  // picks have not opened leads nowhere.
+  const canPick = isLive && (!nextRace || nextRace.slug === RACE_SLUG);
   // Madrid is a regular weekend, so the sessions that can carry a consensus
   // are qualifying and the race, in the order they run. Each one appears the
   // moment it locks rather than waiting for the race to be scored: a reader
@@ -367,7 +372,9 @@ function MadridGrandPrixPredictionsPage() {
           phase={phase}
           raceSlug={RACE_SLUG}
           venueName="Madrid"
-          primaryActionTargetId={isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
+          primaryActionTargetId={
+            canPick ? RACE_WRITEUP_PICKS_ANCHOR : undefined
+          }
           schedule={{
             race,
             timeZone: 'Europe/Madrid',

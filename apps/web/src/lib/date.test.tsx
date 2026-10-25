@@ -226,7 +226,7 @@ describe('date formatting helpers', () => {
     expect(dateTimeSpy).toHaveBeenCalledWith();
   });
 
-  it('formats dates in an explicit time zone with a local fallback', () => {
+  it('formats dates in an explicit time zone with a UTC fallback', () => {
     const timestamp = 1_700_000_000_000;
 
     expect(
@@ -240,6 +240,7 @@ describe('date formatting helpers', () => {
       }).format(timestamp),
     );
 
+    // UTC, not the host zone, so the server and the browser agree.
     expect(
       formatInTimeZone(timestamp, 'Not/AZone', {
         weekday: 'short',
@@ -247,6 +248,7 @@ describe('date formatting helpers', () => {
     ).toBe(
       new Intl.DateTimeFormat(undefined, {
         weekday: 'short',
+        timeZone: 'UTC',
       }).format(timestamp),
     );
   });

@@ -224,15 +224,30 @@ export function DashboardPage({
   // same query; only one of them shows it.
   const feedOffersFollows = useFeedOffersFollows(initialDashboard?.feedPreview);
 
+  // The SSR picks were read for the weekend the server rendered. Once the
+  // weekend moves on they belong to another race, and seeding the new card
+  // with them showed last race's Top 5 as this race's picks.
+  const ssrSeedMatchesWeekend =
+    initialDashboard?.weekend?.race._id === currentWeekend?.race._id;
   const picksCard = (
     <DashboardWeekendPicks
+      // A new race is a new card: its step, drafts and open picker are all
+      // per race, and without a key they carried over from the last one.
+      // Namespaced: the grid card beside it is keyed by the bare race id.
+      key={`picks-${currentWeekend?.race._id}`}
       leading={!pickerFollowsFeed}
       weekend={currentWeekend}
       weather={weather}
       initialDrivers={initialDrivers}
       initialMatchups={initialMatchups}
-      initialPredictions={initialDashboard?.predictions ?? null}
-      initialH2H={initialDashboard?.h2h ?? null}
+      initialPredictions={
+        ssrSeedMatchesWeekend
+          ? (initialDashboard?.predictions ?? null)
+          : undefined
+      }
+      initialH2H={
+        ssrSeedMatchesWeekend ? (initialDashboard?.h2h ?? null) : undefined
+      }
     />
   );
 

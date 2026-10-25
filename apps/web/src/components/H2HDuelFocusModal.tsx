@@ -65,6 +65,10 @@ export function H2HDuelFocusModal({
   const [errorMessage, setErrorMessage] = useState('');
   const [saved, setSaved] = useState(false);
   const closeTimerRef = useRef<number | null>(null);
+  // Bumped each time the modal resets for another battle or closes. A save
+  // still in flight from before compares against it, so its "Saved" and its
+  // auto-close land on nothing rather than on the battle opened since.
+  const sessionRef = useRef(0);
 
   useEffect(
     () => () => {
@@ -105,6 +109,13 @@ export function H2HDuelFocusModal({
     setOptimisticDriverId(null);
     setErrorMessage('');
     setSaved(false);
+    // Free the new battle: the old request's `finally` no longer clears this.
+    setPending(null);
+    sessionRef.current += 1;
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
   }, [matchup?._id, open]);
 
   function celebrate() {
@@ -132,6 +143,7 @@ export function H2HDuelFocusModal({
       return;
     }
     const isChange = selectedDriverId !== driverId;
+    const session = sessionRef.current;
     setPending(driverId);
     setOptimisticDriverId(driverId);
     setErrorMessage('');
@@ -151,6 +163,9 @@ export function H2HDuelFocusModal({
         changed_pick: isChange,
         source: analyticsSource,
       });
+      if (session !== sessionRef.current) {
+        return;
+      }
       successHaptic();
       setSaved(true);
       // Re-confirming the call you already had is not an achievement, and
@@ -163,6 +178,9 @@ export function H2HDuelFocusModal({
         prefersReducedMotion() ? 0 : DUEL_CONFIRM_HOLD_MS,
       );
     } catch (error) {
+      if (session !== sessionRef.current) {
+        return;
+      }
       // The card has to go back to what is actually saved: leaving the tapped
       // driver looking chosen next to an error message tells two stories.
       setOptimisticDriverId(null);
@@ -176,7 +194,9 @@ export function H2HDuelFocusModal({
           : 'Your Head-to-Head pick wasn’t saved. Try again.',
       );
     } finally {
-      setPending(null);
+      if (session === sessionRef.current) {
+        setPending(null);
+      }
     }
   }
 

@@ -52,6 +52,10 @@ const SETTINGS_NAV = [
   { href: '#notifications', label: 'Notifications' },
 ] as const;
 
+const PUSH_SUBSCRIBE_ERROR =
+  'Push notifications could not be turned on for this device. Try again.';
+const SETTING_SAVE_ERROR = 'That setting was not saved. Try again.';
+
 function SettingsPage() {
   const { isSignedIn, isLoaded } = useViewerSession();
   const navigate = useNavigate();
@@ -81,6 +85,9 @@ function SettingsPage() {
   const updateRegional = useMutation(api.users.updateRegionalSettings);
 
   const pushNotifications = usePushNotifications();
+  const [notificationError, setNotificationError] = useState<string | null>(
+    null,
+  );
   const [optimisticNotificationSettings, setOptimisticNotificationSettings] =
     useState<Partial<NotificationSettings> | null>(null);
   const [optimisticTimezone, setOptimisticTimezone] = useState<
@@ -125,16 +132,30 @@ function SettingsPage() {
 
   function updateNotificationSetting(patch: Partial<NotificationSettings>) {
     setOptimisticNotificationSettings((prev) => ({ ...prev, ...patch }));
+    setNotificationError(null);
     void (async () => {
-      try {
-        const enablingPush =
-          patch.pushPredictionReminders === true || patch.pushResults === true;
-        if (enablingPush && !pushNotifications.isSubscribed) {
-          await pushNotifications.subscribe();
+      const enablingPush =
+        patch.pushPredictionReminders === true || patch.pushResults === true;
+      if (enablingPush && !pushNotifications.isSubscribed) {
+        let subscribed = false;
+        try {
+          subscribed = await pushNotifications.subscribe();
+        } catch {
+          setNotificationError(PUSH_SUBSCRIBE_ERROR);
         }
+        if (!subscribed) {
+          // Refused, unsupported or failed: nothing would arrive on this
+          // device, so the setting stays off rather than saying it is on.
+          setOptimisticNotificationSettings(null);
+          return;
+        }
+      }
+      try {
         await updateNotifications(patch);
       } catch {
+        // The toggle used to snap back with no word of why.
         setOptimisticNotificationSettings(null);
+        setNotificationError(SETTING_SAVE_ERROR);
       }
     })();
   }
@@ -251,7 +272,13 @@ function SettingsPage() {
               pushPermission={pushNotifications.permission}
               isPushSubscribed={pushNotifications.isSubscribed}
               isPushLoading={pushNotifications.isLoading}
-              onSubscribePush={() => void pushNotifications.subscribe()}
+              errorMessage={notificationError}
+              onSubscribePush={() => {
+                setNotificationError(null);
+                pushNotifications.subscribe().catch(() => {
+                  setNotificationError(PUSH_SUBSCRIBE_ERROR);
+                });
+              }}
               onUnsubscribePush={() => void pushNotifications.unsubscribe()}
               onUpdateSetting={updateNotificationSetting}
             />

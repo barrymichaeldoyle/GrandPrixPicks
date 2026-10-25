@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { createElement } from 'react';
+import { formatPracticeLap } from '@grandprixpicks/shared/practice';
 
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../teamColors';
 import type { OgImageSize } from './styles';
@@ -1442,19 +1443,12 @@ export type PracticeCardEntry = {
   isReserve: boolean;
 };
 
-/** 78.412 → "1:18.412" */
-function formatLapTime(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const rest = seconds - minutes * 60;
-  return `${minutes}:${rest.toFixed(3).padStart(6, '0')}`;
-}
-
 const PODIUM_COLORS = [colors.gold, colors.silver, colors.bronze];
 
 function practiceRow(entry: PracticeCardEntry): ReactNode {
   const time =
     entry.position === 1 && entry.bestLapSeconds !== null
-      ? formatLapTime(entry.bestLapSeconds)
+      ? formatPracticeLap(entry.bestLapSeconds)
       : entry.gapToLeaderSeconds !== null
         ? `+${entry.gapToLeaderSeconds.toFixed(3)}`
         : 'No time';

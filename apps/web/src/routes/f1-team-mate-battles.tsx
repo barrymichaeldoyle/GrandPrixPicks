@@ -10,6 +10,7 @@ import { DriverBadge } from '@/components/DriverBadge';
 import { PageHeader } from '@/components/PageHeader';
 import { formatDateLong, type UserDateSettings } from '@/lib/date';
 import { displayTeamName, pairingRoundSpanLabel } from '@/lib/display';
+import { hashId } from '@/lib/hashId';
 import { pairingAnchorAliases, pairingAnchorIds } from '@/lib/pairingAnchors';
 import { routeQuery } from '@/lib/routeQuery';
 import {
@@ -312,9 +313,7 @@ function TeammateBattlesPage() {
   const teams = battles.teams;
   useEffect(() => {
     function resolveHash() {
-      const raw = decodeURIComponent(
-        globalThis.location.hash.slice(1),
-      ).toLowerCase();
+      const raw = hashId(globalThis.location.hash).toLowerCase();
       // An exact match is the browser's job and it has already done it.
       if (raw === '' || document.getElementById(raw) != null) {
         return;

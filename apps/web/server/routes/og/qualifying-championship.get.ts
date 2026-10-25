@@ -1,5 +1,4 @@
 import { api } from '@convex-generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 
 import { renderOgImage } from '../../../src/lib/og/renderer';
 import {
@@ -8,6 +7,7 @@ import {
 } from '../../../src/lib/og/templates';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../../../src/lib/teamColors';
 import { captureServerException, startServerSpan } from '../../lib/sentry';
+import { getServerConvexClient } from '../../lib/convex';
 
 /**
  * The link-preview card for `/f1-qualifying-standings`: the current top ten of
@@ -21,11 +21,7 @@ import { captureServerException, startServerSpan } from '../../lib/sentry';
  */
 export default async function handler() {
   try {
-    const convexUrl = process.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('Missing VITE_CONVEX_URL');
-    }
-    const convex = new ConvexHttpClient(convexUrl);
+    const convex = getServerConvexClient();
 
     const standings = await convex.query(
       api.qualifyingChampionship.getQualifyingChampionship,

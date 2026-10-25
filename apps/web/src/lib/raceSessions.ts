@@ -3,17 +3,24 @@ import type { Doc } from '@convex-generated/dataModel';
 import type { SessionType } from './sessions';
 import { getSessionsForWeekend } from './sessions';
 
+/**
+ * When a session's picks lock. A session with no lock time of its own falls
+ * back to the race lock: the backend treats a missing lock as never locked
+ * (`predictions.ts` only refuses when one is set and has passed), and reading
+ * it as `0` here showed an unseeded session as locked since 1970 while the
+ * server was still accepting picks for it.
+ */
 export function getRaceSessionLockAt(
   race: Doc<'races'>,
   session: SessionType,
 ): number {
   switch (session) {
     case 'quali':
-      return race.qualiLockAt ?? 0;
+      return race.qualiLockAt ?? race.predictionLockAt;
     case 'sprint_quali':
-      return race.sprintQualiLockAt ?? 0;
+      return race.sprintQualiLockAt ?? race.predictionLockAt;
     case 'sprint':
-      return race.sprintLockAt ?? 0;
+      return race.sprintLockAt ?? race.predictionLockAt;
     case 'race':
       return race.predictionLockAt;
   }

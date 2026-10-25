@@ -253,11 +253,19 @@ Review the pattern after three race weekends using:
 1. Add the route to `raceWriteups.ts` with its path, labels and editorial
    `reviewedAt` date.
 2. Add it to the SEO invariant fixtures and signed-out smoke coverage.
-3. Use `getRaceWriteupPhase()` with the loader's server timestamp.
-4. Render `RaceWriteupPage`, `RaceWriteupHero` and `raceWriteupPageHead`. The
-   hero goes in `RaceWriteupPage`'s `hero` prop, which draws it as a
-   full-bleed band above the page frame; it is not a child. Put labelled
-   sections in `RaceWriteupSection` or the photo shells.
+3. Start from `StandardRaceWriteup` with `loadRaceWriteup` as the loader (the
+   Las Vegas route is the smallest example). The route supplies its facts
+   (flag, venue, time zone, hero sentence), its `raceWriteupPageHead`, FAQs,
+   sources and the article sections as children; the layout, the phase, the
+   pick gate and the eyebrow dates (read from the race) come from the shared
+   component. Only write the page by hand when it needs sections the standard
+   order does not have, as the Singapore, Baku, Monza, Bahrain and Madrid
+   pages do. Those call `getRaceWriteupPhase()` with the loader's server
+   timestamp and render `RaceWriteupPage`, `RaceWriteupHero` and
+   `raceWriteupPageHead` themselves. The hero goes in `RaceWriteupPage`'s
+   `hero` prop, which draws it as a full-bleed band above the page frame; it
+   is not a child.
+4. Put labelled sections in `RaceWriteupSection` or the photo shells.
 5. Put weather and other expiring decision sections behind
    `isRaceWriteupLive()`. Keep published news accessible after picks lock and
    in the finished archive, and follow the page order above.

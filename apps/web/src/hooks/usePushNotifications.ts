@@ -24,7 +24,8 @@ interface UsePushNotificationsResult {
   permission: PushPermission;
   isSubscribed: boolean;
   isLoading: boolean;
-  subscribe: () => Promise<void>;
+  /** `true` once this device is subscribed; `false` when refused or unsupported. */
+  subscribe: () => Promise<boolean>;
   unsubscribe: () => Promise<void>;
 }
 
@@ -55,8 +56,12 @@ export function usePushNotifications(): UsePushNotificationsResult {
 
     let cancelled = false;
 
-    navigator.serviceWorker.ready
-      .then((reg) => reg.pushManager.getSubscription())
+    // `getRegistration`, not `ready`: `ready` never settles when no worker is
+    // registered (dev, or the registration failed), which held the Enable
+    // button on a spinner forever.
+    navigator.serviceWorker
+      .getRegistration()
+      .then((reg) => reg?.pushManager.getSubscription() ?? null)
       .then((sub) => {
         if (!cancelled) {
           setIsSubscribed(sub !== null);
@@ -74,9 +79,15 @@ export function usePushNotifications(): UsePushNotificationsResult {
     };
   }, [isSupported]);
 
-  async function subscribe() {
+  /**
+   * Ask for permission and register this device. Resolves `true` only when a
+   * subscription now exists: a refusal used to return like a success, so the
+   * settings page went on to save push reminders as on for a device that would
+   * never receive one. Throws when the browser or the save fails.
+   */
+  async function subscribe(): Promise<boolean> {
     if (!isSupported || !VAPID_PUBLIC_KEY) {
-      return;
+      return false;
     }
 
     setIsLoading(true);
@@ -85,7 +96,7 @@ export function usePushNotifications(): UsePushNotificationsResult {
       setPermission(result as PushPermission);
 
       if (result !== 'granted') {
-        return;
+        return false;
       }
 
       const reg = await navigator.serviceWorker.ready;
@@ -104,6 +115,7 @@ export function usePushNotifications(): UsePushNotificationsResult {
       });
 
       setIsSubscribed(true);
+      return true;
     } finally {
       setIsLoading(false);
     }

@@ -1,8 +1,8 @@
 import { api } from '@convex-generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 
 import { f1StoreCatalogFor } from '../../../lib/f1Store';
 import { captureServerException } from '../../../lib/sentry';
+import { getServerConvexClient } from '../../../lib/convex';
 
 type RouteEvent = {
   req: Request;
@@ -42,14 +42,11 @@ export default async function handler(event: RouteEvent) {
   let items: unknown[] = [];
   if (page && PAGE_PATTERN.test(page) && catalogId) {
     try {
-      const convexUrl = process.env.VITE_CONVEX_URL;
-      if (!convexUrl) {
-        throw new Error('Missing VITE_CONVEX_URL');
-      }
-      items = await new ConvexHttpClient(convexUrl).query(
-        api.storeProducts.forPage,
-        { page, catalogId, limit: ITEM_LIMIT },
-      );
+      items = await getServerConvexClient().query(api.storeProducts.forPage, {
+        page,
+        catalogId,
+        limit: ITEM_LIMIT,
+      });
     } catch (error) {
       captureServerException(error, { name: 'f1_store.items' });
     }

@@ -1,9 +1,9 @@
 import { api } from '@convex-generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 
 import { getRaceWriteup } from '../../src/lib/raceWriteups';
 import { captureServerException } from './sentry';
 import { socialRedirect } from './socialRedirect';
+import { getServerConvexClient } from './convex';
 
 /**
  * Redirects a campaign link to this weekend: its write-up when it has one,
@@ -22,11 +22,7 @@ import { socialRedirect } from './socialRedirect';
 export async function currentWeekendRedirect(campaign: string) {
   const target = new URL(campaign, 'https://grandprixpicks.invalid');
   try {
-    const convexUrl = process.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('Missing VITE_CONVEX_URL');
-    }
-    const race = await new ConvexHttpClient(convexUrl).query(
+    const race = await getServerConvexClient().query(
       api.races.getQuickPickRace,
       {},
     );

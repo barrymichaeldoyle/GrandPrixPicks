@@ -48,24 +48,35 @@ export const Route = createFileRoute('/p/$username')({
       throw notFound();
     }
 
+    // Every section below has a client subscription that fills it in, so a
+    // transient Convex failure on one should cost that section, not the page:
+    // an SSR throw on Cloudflare is a 500 for the whole profile.
     await Promise.all([
-      context.queryClient.ensureQueryData(
-        convexQuery(api.users.getUserStats, { userId: profile._id }),
-      ),
-      context.queryClient.ensureQueryData(
-        convexQuery(api.predictions.getUserPredictionHistory, {
-          userId: profile._id,
-        }),
-      ),
-      context.queryClient.ensureQueryData(
-        convexQuery(api.feed.getUserFeed, { userId: profile._id }),
-      ),
-      context.queryClient.ensureQueryData(
-        convexQuery(api.follows.getFollowCounts, { userId: profile._id }),
-      ),
-      context.queryClient.ensureQueryData(
-        convexQuery(api.races.getNextRace, {}),
-      ),
+      context.queryClient
+        .ensureQueryData(
+          convexQuery(api.users.getUserStats, { userId: profile._id }),
+        )
+        .catch(() => null),
+      context.queryClient
+        .ensureQueryData(
+          convexQuery(api.predictions.getUserPredictionHistory, {
+            userId: profile._id,
+          }),
+        )
+        .catch(() => null),
+      context.queryClient
+        .ensureQueryData(
+          convexQuery(api.feed.getUserFeed, { userId: profile._id }),
+        )
+        .catch(() => null),
+      context.queryClient
+        .ensureQueryData(
+          convexQuery(api.follows.getFollowCounts, { userId: profile._id }),
+        )
+        .catch(() => null),
+      context.queryClient
+        .ensureQueryData(convexQuery(api.races.getNextRace, {}))
+        .catch(() => null),
     ]);
 
     return { initialProfile: profile };
@@ -105,7 +116,9 @@ function ProfilePage() {
   const { data: profile } = useQuery(
     convexQuery(api.users.getProfileByUsername, { username }),
   );
-  const currentProfile = profile ?? initialProfile;
+  // `undefined` is "not loaded yet"; a live `null` means the user was renamed
+  // or deleted, and must not fall back to the loader's copy of them.
+  const currentProfile = profile === undefined ? initialProfile : profile;
 
   const { data: stats } = useQuery(
     convexQuery(

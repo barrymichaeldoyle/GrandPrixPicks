@@ -20,6 +20,7 @@ import {
   type WriteUpNewsPhotoProps,
 } from '@/components/WriteUpNewsPhoto';
 import { formatUtcDate, utcDateAttribute } from '@/lib/date';
+import { hashId } from '@/lib/hashId';
 import { TEAM_COLORS } from '@/lib/teamColors';
 
 type NewsDriver = {
@@ -140,7 +141,7 @@ export function WeekendNewsSection({
     let stopFollowing: (() => void) | undefined;
     function goToHash() {
       stopFollowing?.();
-      const id = decodeURIComponent(window.location.hash.slice(1));
+      const id = hashId(window.location.hash);
       const target = id.startsWith('news-')
         ? document.getElementById(id)
         : null;
@@ -485,21 +486,16 @@ function NewsCards({
                 : item.key === spanningKey
                   ? 'sm:row-span-2'
                   : ''
-            } ${leans[index]} ${
-              teamColour
-                ? // Cut to the house lean, direction from `gpp-lean-run`
-                  // above. Deliberately not done to the same items in the
-                  // dashboard feed: stacked in one bordered block the bars
-                  // are short and butted end to end, and the alternation
-                  // reads as noise there rather than rhythm.
-                  'gpp-team-bar gpp-team-bar-lean'
-                : ''
-            }`}
-            style={
-              teamColour
-                ? ({ '--team-colour': teamColour } as CSSProperties)
-                : undefined
-            }
+            } ${
+              leans[index]
+              // Every card carries the bar: a story with no driver falls back
+              // to the accent. Cut to the house lean, direction from
+              // `gpp-lean-run` above. Deliberately not done to the same items
+              // in the dashboard feed: stacked in one bordered block the bars
+              // are short and butted end to end, and the alternation reads as
+              // noise there rather than rhythm.
+            } gpp-team-bar gpp-team-bar-lean`}
+            style={{ '--team-colour': teamColour } as CSSProperties}
           >
             {/* One column wide the headline is the toggle. It is rendered
                 twice, a button under `sm` and plain text from it, because

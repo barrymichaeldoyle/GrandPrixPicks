@@ -16,7 +16,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
@@ -31,12 +31,14 @@ import { SignInPrompt } from '@/components/SignInPrompt';
 
 export const Route = createFileRoute('/leagues/$slug/settings')({
   component: LeagueSettingsPage,
+  // Only the head reads this (the page has its own live query), so a failed
+  // read costs the league's name in the title, not the page.
   loader: async ({ params }) => {
     const league = await withRetry(() =>
       convex.query(api.leagues.getLeagueBySlug, {
         slug: params.slug,
       }),
-    );
+    ).catch(() => null);
     return { league };
   },
   head: ({ loaderData, params }) => {
@@ -60,10 +62,30 @@ type League = NonNullable<
   ReturnType<typeof useQuery<typeof api.leagues.getLeagueBySlug>>
 >;
 
+/**
+ * Set by the edit form while a slug change is saving, to the league as it was.
+ *
+ * Convex delivers the query update before the mutation's promise resolves, so
+ * the lookup by the old slug turns `null` a beat before the form can navigate
+ * to the new one, and the page flashed "League Not Found" mid-save.
+ */
+const RenameContext = createContext<(league: League | null) => void>(() => {});
+
 function LeagueSettingsPage() {
   const { slug } = Route.useParams();
   const { isSignedIn, isLoaded } = useViewerSession();
-  const league = useQuery(api.leagues.getLeagueBySlug, { slug });
+  const liveLeague = useQuery(api.leagues.getLeagueBySlug, { slug });
+  const [renaming, setRenaming] = useState<League | null>(null);
+  // Once the new slug resolves the rename is over.
+  useEffect(() => {
+    if (liveLeague) {
+      // oxlint-disable-next-line react/set-state-in-effect
+      setRenaming(null);
+    }
+  }, [liveLeague]);
+  // Covers both the old slug's `null` and the new slug still loading after
+  // the navigation, which would otherwise swap the form for a page loader.
+  const league = liveLeague == null && renaming ? renaming : liveLeague;
 
   // Signed-out first: it is resolved at SSR, so it renders immediately rather
   // than behind the loader, and the league lookup below is only ever going to
@@ -119,7 +141,11 @@ function LeagueSettingsPage() {
     );
   }
 
-  return <LeagueSettingsContent league={league} isAdmin={isAdmin} />;
+  return (
+    <RenameContext value={setRenaming}>
+      <LeagueSettingsContent league={league} isAdmin={isAdmin} />
+    </RenameContext>
+  );
 }
 
 function LeagueSettingsContent({
@@ -431,6 +457,7 @@ function EditLeagueForm({
   onClose: () => void;
 }) {
   const navigate = useNavigate();
+  const setRenaming = useContext(RenameContext);
   const [name, setName] = useState(league.name);
   const [slug, setSlug] = useState(league.slug);
   const [description, setDescription] = useState(league.description ?? '');
@@ -448,6 +475,9 @@ function EditLeagueForm({
     setError(null);
     setIsSubmitting(true);
 
+    if (slugChanged) {
+      setRenaming(league);
+    }
     try {
       await updateLeague({
         leagueId: league._id,
@@ -456,14 +486,17 @@ function EditLeagueForm({
         description,
       });
       if (slugChanged) {
+        // Still settings: the admin was editing here, and the old URL is now
+        // a league that does not exist.
         void navigate({
-          to: '/leagues/$slug',
+          to: '/leagues/$slug/settings',
           params: { slug },
           replace: true,
         });
       }
       onClose();
     } catch (err) {
+      setRenaming(null);
       setError(
         err instanceof Error
           ? toUserFacingMessage(

@@ -30,10 +30,12 @@ export function ConfirmDialog({
   const confirmRef = useRef<HTMLButtonElement>(null);
   // While it is working, the dialog stops answering Escape: closing mid-write
   // would leave the user unsure whether the thing they confirmed happened.
+  // Only Escape, though. `suspended` also dropped the focus trap, and the
+  // confirm button disables itself while loading, so focus fell to the body
+  // and the next Tab reached the page behind a modal dialog.
   const dialogRef = useModalDialog<HTMLDivElement>({
     open,
-    onClose,
-    suspended: loading,
+    onClose: loading ? undefined : onClose,
     initialFocusRef: confirmRef,
   });
 

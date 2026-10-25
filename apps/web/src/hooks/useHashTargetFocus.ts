@@ -1,6 +1,8 @@
 import { useRouterState } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
+import { hashId } from '@/lib/hashId';
+
 /**
  * Makes a hash target programmatically focusable and moves focus to it without
  * scrolling. Native fragment navigation often leaves keyboard users at the top
@@ -11,7 +13,7 @@ export function focusHashTarget(
   root: Pick<Document, 'getElementById'>,
   hash: string,
 ) {
-  const id = decodeURIComponent(hash.replace(/^#/, ''));
+  const id = hashId(hash);
   if (!id) {
     return null;
   }

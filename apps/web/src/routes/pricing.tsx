@@ -9,17 +9,9 @@ import { Button } from '@/components/Button/Button';
 import { SignInActionButton } from '@/integrations/clerk/SignInActionButton';
 import { FaqItem, FaqSection } from '@/components/Faq';
 import { pageMeta } from '@/lib/site';
-import { Pill } from '@/components/Pill';
 
-const EARLY_BIRD_CODE = 'EARLYBIRD2026';
-const EARLY_BIRD_EXPIRES_AT_UTC = '2026-04-01T23:59:00Z';
 /** Single source of truth for the price shown on the page and in Offer markup. */
 const SEASON_PASS_PRICE_USD = '19.99';
-const EARLY_BIRD_PRICE_USD = '9.99';
-
-function isEarlyBirdActive(now = new Date()): boolean {
-  return now.getTime() <= new Date(EARLY_BIRD_EXPIRES_AT_UTC).getTime();
-}
 
 export const Route = createFileRoute('/pricing')({
   validateSearch: (
@@ -56,7 +48,6 @@ function PricingPage() {
       season: 2026,
       source: 'pricing',
       signed_in: isSignedIn,
-      early_bird_active: isEarlyBirdActive(),
     });
 
     try {
@@ -78,13 +69,9 @@ function PricingPage() {
       }
 
       const checkoutUrl = new URL(payload.checkoutUrl, window.location.origin);
-      if (isEarlyBirdActive()) {
-        checkoutUrl.searchParams.set('coupon', EARLY_BIRD_CODE);
-      }
       captureAnalyticsEvent('checkout_redirected', {
         season: 2026,
         source: 'pricing',
-        early_bird_active: isEarlyBirdActive(),
       });
       window.location.assign(checkoutUrl.toString());
     } catch (error) {
@@ -92,7 +79,6 @@ function PricingPage() {
         season: 2026,
         source: 'pricing',
         signed_in: isSignedIn,
-        early_bird_active: isEarlyBirdActive(),
       });
       const message =
         error instanceof Error ? error.message : 'Could not start checkout';
@@ -136,27 +122,7 @@ function PricingPage() {
           </section>
         ) : null}
 
-        {isEarlyBirdActive() ? (
-          <section className="reveal-up rounded-xl border border-accent/35 bg-accent-muted/50 p-5 sm:p-6">
-            <p className="text-xs font-semibold tracking-label text-accent">
-              LIMITED-TIME PROMO
-            </p>
-            <h2 className="mt-1 text-2xl font-semibold text-text">
-              Use code {EARLY_BIRD_CODE} at checkout
-            </h2>
-            <p className="mt-2 text-sm text-text-muted">
-              Active through April 1, 2026 at 11:59 PM UTC. We&apos;ll prefill
-              the code for you when you launch checkout from this page.
-            </p>
-          </section>
-        ) : null}
-
         <section className="reveal-up rounded-2xl border border-border bg-surface/95 p-6 sm:p-8">
-          {isEarlyBirdActive() ? (
-            <Pill tone="success" size="lg" className="mb-4">
-              Early bird 50% off
-            </Pill>
-          ) : null}
           <h2 className="mb-1 text-xl font-semibold text-text">
             Season Pass 2026
           </h2>
@@ -164,24 +130,12 @@ function PricingPage() {
             One purchase for the full 2026 F1 season
           </p>
 
-          {isEarlyBirdActive() ? (
-            <div className="mb-6 flex items-baseline gap-3">
-              <span className="text-2xl font-semibold tracking-tight text-text-muted line-through">
-                ${SEASON_PASS_PRICE_USD}
-              </span>
-              <span className="text-4xl font-semibold tracking-tight text-success">
-                ${EARLY_BIRD_PRICE_USD}
-              </span>
-              <span className="text-text-muted">USD</span>
-            </div>
-          ) : (
-            <div className="mb-6 flex items-baseline gap-2">
-              <span className="text-4xl font-semibold tracking-tight text-text">
-                ${SEASON_PASS_PRICE_USD}
-              </span>
-              <span className="text-text-muted">USD</span>
-            </div>
-          )}
+          <div className="mb-6 flex items-baseline gap-2">
+            <span className="text-4xl font-semibold tracking-tight text-text">
+              ${SEASON_PASS_PRICE_USD}
+            </span>
+            <span className="text-text-muted">USD</span>
+          </div>
 
           <ul className="mb-6 space-y-2 text-sm text-text">
             <li className="reveal-up reveal-delay-1 flex items-start gap-2">
@@ -220,9 +174,7 @@ function PricingPage() {
               loading={isStartingCheckout}
               aria-disabled={isStartingCheckout}
             >
-              {isEarlyBirdActive()
-                ? `Claim ${EARLY_BIRD_CODE}`
-                : 'Get 2026 Season Pass'}
+              Get 2026 Season Pass
             </Button>
           ) : (
             <SignInActionButton size="sm" rightIcon={ArrowRight}>

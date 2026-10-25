@@ -1,11 +1,11 @@
 import { api } from '@convex-generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 import { getRaceTimeZoneFromSlug } from '@grandprixpicks/shared/raceTimezones';
 
 import { renderOgImage } from '../../../src/lib/og/renderer';
 import { raceNewsTemplate } from '../../../src/lib/og/templates';
 import { loadFlagDataUri } from '../../lib/ogFlag';
 import { captureServerException, startServerSpan } from '../../lib/sentry';
+import { getServerConvexClient } from '../../lib/convex';
 
 type RouteEvent = {
   req: Request;
@@ -36,11 +36,7 @@ export default async function handler(event: RouteEvent) {
   }
   const writeupCard = `/og/writeup?race=${encodeURIComponent(slug)}`;
   try {
-    const convexUrl = process.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('Missing VITE_CONVEX_URL');
-    }
-    const convex = new ConvexHttpClient(convexUrl);
+    const convex = getServerConvexClient();
     const { race, items } = await convex.query(api.raceNews.list, {
       raceSlug: slug,
     });

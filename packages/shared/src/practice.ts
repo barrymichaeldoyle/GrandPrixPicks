@@ -33,8 +33,12 @@ export function formatPracticeLap(seconds?: number): string {
   if (seconds === undefined) {
     return NO_VALUE;
   }
-  const minutes = Math.floor(seconds / 60);
-  return `${minutes}:${(seconds % 60).toFixed(3).padStart(6, '0')}`;
+  // Round to the millisecond before splitting off the minutes. Splitting first
+  // let 119.9996 round its seconds up to "60.000" and print "1:60.000".
+  const millis = Math.round(seconds * 1000);
+  const minutes = Math.floor(millis / 60_000);
+  const rest = ((millis % 60_000) / 1000).toFixed(3);
+  return `${minutes}:${rest.padStart(6, '0')}`;
 }
 
 /**

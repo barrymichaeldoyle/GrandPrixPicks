@@ -15,6 +15,7 @@ import { SESSION_LABELS } from '../../../src/lib/sessions';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../../../src/lib/teamColors';
 import { loadFlagDataUri } from '../../lib/ogFlag';
 import { captureServerException, startServerSpan } from '../../lib/sentry';
+import { getServerConvexClient } from '../../lib/convex';
 
 type RouteEvent = {
   req: Request;
@@ -42,11 +43,7 @@ export default async function handler(event: RouteEvent) {
       return DEFAULT_IMAGE_REDIRECT.clone();
     }
 
-    const convexUrl = process.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('Missing VITE_CONVEX_URL');
-    }
-    const convex = new ConvexHttpClient(convexUrl);
+    const convex = getServerConvexClient();
 
     const race = await convex.query(api.races.getRaceBySlug, {
       slug: raceSlug,

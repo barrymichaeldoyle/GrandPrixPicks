@@ -28,6 +28,7 @@ import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
 import { lastReviewedAt } from '@/lib/lastReviewed';
+import { bucketWeatherNow } from '@/lib/weatherNow';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { routeQuery } from '@/lib/routeQuery';
 import {
@@ -184,7 +185,7 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
         context.queryClient.ensureQueryData(
           routeQuery(api.weather.getForWriteup, {
             raceSlug: RACE_SLUG,
-            now: weatherNow,
+            now: bucketWeatherNow(weatherNow),
           }),
         ),
         context.queryClient.ensureQueryData(
@@ -284,6 +285,10 @@ function ItalianGrandPrixPredictionsPage() {
   );
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
+  // Only point the hero at the picker once this round is the next on the
+  // calendar, as the standard write-ups do: a pick button on a round whose
+  // picks have not opened leads nowhere.
+  const canPick = isLive && (!nextRace || nextRace.slug === RACE_SLUG);
   // Monza is a regular weekend, so the archive is qualifying and the race, in
   // the order they ran. Both queries answer empty until something is
   // published, which is what keeps this list empty on a preview page rather
@@ -322,7 +327,9 @@ function ItalianGrandPrixPredictionsPage() {
           raceSlug={RACE_SLUG}
           venueName="Monza"
           signalsHeading={SIGNALS_HEADING}
-          primaryActionTargetId={isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
+          primaryActionTargetId={
+            canPick ? RACE_WRITEUP_PICKS_ANCHOR : undefined
+          }
           schedule={{
             race,
             timeZone: 'Europe/Rome',

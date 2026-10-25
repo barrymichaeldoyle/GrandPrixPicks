@@ -1,7 +1,14 @@
 import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useEffectEvent, useLayoutEffect, useState } from 'react';
+import {
+  useEffect,
+  useEffectEvent,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 
 import { useModalDialog } from '@/hooks/useModalDialog';
@@ -81,6 +88,23 @@ export function PicksFocusOverlay({
     }
   });
 
+  // The overlay stays mounted and clickable for its exit animation, and those
+  // frames still run the handlers from when it was open: a double-tap on Close
+  // called `onClose` twice. Once the parent has said closed, they do nothing.
+  const openRef = useRef(open);
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
+  function requestClose() {
+    if (openRef.current) {
+      onClose();
+    }
+  }
+
+  // Per instance: during a handoff two overlays are mounted at once, and a
+  // shared id pointed the new dialog's name at the one leaving.
+  const titleId = useId();
+
   // Scroll lock, focus trap, Escape and focus restore. `suspended` releases the
   // trap and Escape (not the lock) so a stacked confirm dialog owns them.
   const panelRef = useModalDialog<HTMLDivElement>({
@@ -150,7 +174,7 @@ export function PicksFocusOverlay({
           transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }}
           onClick={(e) => {
             if (e.target === e.currentTarget && !suspended) {
-              onClose();
+              requestClose();
             }
           }}
         >
@@ -158,7 +182,7 @@ export function PicksFocusOverlay({
             ref={panelRef}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="picks-focus-title"
+            aria-labelledby={titleId}
             tabIndex={-1}
             className="flex h-full w-full flex-col bg-page outline-none sm:h-auto sm:max-h-[92vh] sm:max-w-5xl sm:overflow-hidden sm:rounded-2xl sm:border sm:border-border"
             // One gesture that works at both sizes: a small rise on the way in
@@ -182,7 +206,7 @@ export function PicksFocusOverlay({
               <div className="flex min-w-0 items-center gap-2.5">
                 <div className="min-w-0">
                   <h2
-                    id="picks-focus-title"
+                    id={titleId}
                     className="truncate text-lg font-semibold text-text"
                   >
                     {title}
@@ -196,7 +220,7 @@ export function PicksFocusOverlay({
               </div>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={requestClose}
                 aria-label="Close"
                 data-testid="picks-focus-close"
                 className="shrink-0 rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"

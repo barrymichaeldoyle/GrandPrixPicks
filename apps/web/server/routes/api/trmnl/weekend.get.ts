@@ -1,5 +1,4 @@
 import { api } from '@convex-generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 
 import { captureServerException, startServerSpan } from '../../../lib/sentry';
 import {
@@ -13,6 +12,7 @@ import {
   loadTrmnlOffSeason,
   loadTrmnlWeekend,
 } from '../../../../src/lib/trmnl/weekendData';
+import { getServerConvexClient } from '../../../lib/convex';
 
 type RouteEvent = {
   req: Request;
@@ -79,11 +79,7 @@ export default async function handler(event: RouteEvent) {
         },
       });
     }
-    const convexUrl = process.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('Missing VITE_CONVEX_URL');
-    }
-    const convex = new ConvexHttpClient(convexUrl);
+    const convex = getServerConvexClient();
     const now = Date.now();
 
     const payload = await startServerSpan(

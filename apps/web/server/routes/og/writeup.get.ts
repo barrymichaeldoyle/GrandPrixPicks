@@ -1,5 +1,4 @@
 import { api } from '@convex-generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 
@@ -9,6 +8,7 @@ import { renderOgImage } from '../../../src/lib/og/renderer';
 import { raceWriteupTemplate } from '../../../src/lib/og/templates';
 import { loadFlagDataUri } from '../../lib/ogFlag';
 import { captureServerException, startServerSpan } from '../../lib/sentry';
+import { getServerConvexClient } from '../../lib/convex';
 
 type RouteEvent = {
   req: Request;
@@ -34,14 +34,10 @@ export default async function handler(event: RouteEvent) {
   try {
     const url = new URL(event.req.url);
     const slug = url.searchParams.get('race');
-    const convexUrl = process.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('Missing VITE_CONVEX_URL');
-    }
+    const convex = getServerConvexClient();
     if (!slug) {
       return DEFAULT_IMAGE_REDIRECT.clone();
     }
-    const convex = new ConvexHttpClient(convexUrl);
     const race = await convex.query(api.races.getRaceBySlug, { slug });
     if (!race) {
       return DEFAULT_IMAGE_REDIRECT.clone();

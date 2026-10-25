@@ -137,9 +137,14 @@ export function formatInTimeZone(
       timeZone,
     }).format(toDateInput(timestamp));
   } catch {
-    return new Intl.DateTimeFormat(undefined, options).format(
-      toDateInput(timestamp),
-    );
+    // An unknown zone name. Format in UTC rather than in the host's zone:
+    // the host is UTC on Workers and the device zone in a browser, so the old
+    // fallback rendered a different time on each side of hydration. The
+    // viewer's locale is kept; only the zone could not be honoured.
+    return new Intl.DateTimeFormat(settings?.locale, {
+      ...options,
+      timeZone: 'UTC',
+    }).format(toDateInput(timestamp));
   }
 }
 
@@ -216,25 +221,31 @@ export function useCountdown(timestamp: number): string {
  * Seconds on an editorial page are the only motion in the block, and they pull
  * the eye off the classification the countdown is sitting under.
  */
-export function useMinuteCountdown(timestamp: number): string {
-  const [label, setLabel] = useState(() => formatMinutesUntil(timestamp));
+export function useMinuteCountdown(
+  timestamp: number,
+  /** What it reads once the moment has passed. */
+  endedLabel = 'Started',
+): string {
+  const [label, setLabel] = useState(() =>
+    formatMinutesUntil(timestamp, endedLabel),
+  );
 
   useEffect(() => {
     function tick() {
-      setLabel(formatMinutesUntil(timestamp));
+      setLabel(formatMinutesUntil(timestamp, endedLabel));
     }
     tick();
     const id = setInterval(tick, 30_000);
     return () => clearInterval(id);
-  }, [timestamp]);
+  }, [timestamp, endedLabel]);
 
   return label;
 }
 
-function formatMinutesUntil(timestamp: number): string {
+function formatMinutesUntil(timestamp: number, endedLabel: string): string {
   const remaining = timestamp - Date.now();
   if (remaining <= 0) {
-    return 'Started';
+    return endedLabel;
   }
   const totalMinutes = Math.floor(remaining / 60_000);
   const days = Math.floor(totalMinutes / 1440);

@@ -274,19 +274,31 @@ export function NotificationItem({
     <span className="sr-only">Unread notification. </span>
   ) : null;
 
-  if (notification.type === 'results_published') {
-    const hasPoints = notification.points !== undefined;
-    const resultTitle = sessionLabel
-      ? `${sessionLabel} results are in`
-      : 'Results are in';
+  if (
+    notification.type === 'results_published' ||
+    notification.type === 'results_amended'
+  ) {
+    // One row for both: an amendment is the same result told again, so it
+    // differs only in tone, icon, wording and the steward's note.
+    const amended = notification.type === 'results_amended';
+    const title = amended
+      ? sessionLabel
+        ? `${sessionLabel} results were amended`
+        : 'Results were amended'
+      : sessionLabel
+        ? `${sessionLabel} results are in`
+        : 'Results are in';
+    const { raceSlug } = notification;
 
     return (
       <NotificationRow unreadControl={unreadControl}>
+        {/* Rows written before the slug was stored go to the dashboard, as
+            the locked-picks row below does, rather than to `/races/`. */}
         <Link
-          to="/races/$raceSlug"
-          params={{ raceSlug: notification.raceSlug ?? '' }}
+          to={raceSlug ? '/races/$raceSlug' : '/'}
+          params={raceSlug ? { raceSlug } : undefined}
           search={
-            notification.sessionType
+            raceSlug && notification.sessionType
               ? { session: notification.sessionType }
               : undefined
           }
@@ -298,63 +310,17 @@ export function NotificationItem({
             leading={
               <NotificationIcon
                 countryCode={countryCode}
-                tone="success"
-                icon={Trophy}
+                tone={amended ? 'warning' : 'success'}
+                icon={amended ? Gavel : Trophy}
               />
             }
-            title={resultTitle}
+            title={title}
             trailing={
-              hasPoints ? (
-                <span className="shrink-0 rounded-full bg-success/15 px-2 py-0.5 text-xs font-semibold text-success">
-                  +{notification.points} pts
-                </span>
-              ) : null
-            }
-            meta={
-              <NotificationMeta
-                createdAt={notification.createdAt}
-                raceName={notification.raceName}
-              />
-            }
-          />
-        </Link>
-      </NotificationRow>
-    );
-  }
-
-  if (notification.type === 'results_amended') {
-    const hasPoints = notification.points !== undefined;
-    const amendedTitle = sessionLabel
-      ? `${sessionLabel} results were amended`
-      : 'Results were amended';
-
-    return (
-      <NotificationRow unreadControl={unreadControl}>
-        <Link
-          to="/races/$raceSlug"
-          params={{ raceSlug: notification.raceSlug ?? '' }}
-          search={
-            notification.sessionType
-              ? { session: notification.sessionType }
-              : undefined
-          }
-          onClick={handleClick}
-          className={itemClass}
-        >
-          <NotificationRowBody
-            unreadLabel={unreadLabel}
-            leading={
-              <NotificationIcon
-                countryCode={countryCode}
-                tone="warning"
-                icon={Gavel}
-              />
-            }
-            title={amendedTitle}
-            trailing={
-              hasPoints ? (
-                <span className="shrink-0 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-semibold text-warning">
-                  now +{notification.points} pts
+              notification.points !== undefined ? (
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${amended ? 'bg-warning/15 text-warning' : 'bg-success/15 text-success'}`}
+                >
+                  {amended ? 'now ' : ''}+{notification.points} pts
                 </span>
               ) : null
             }
@@ -367,11 +333,11 @@ export function NotificationItem({
                 {/* The steward's reason is the point of an amendment, so it
                     keeps its own line rather than being folded into the meta
                     run and truncated. */}
-                {notification.amendmentNote && (
+                {amended && notification.amendmentNote ? (
                   <p className="mt-1 text-xs leading-snug text-text-muted">
                     {notification.amendmentNote}
                   </p>
-                )}
+                ) : null}
               </>
             }
           />

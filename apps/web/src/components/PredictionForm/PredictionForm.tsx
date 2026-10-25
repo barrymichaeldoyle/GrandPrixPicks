@@ -364,9 +364,14 @@ export function PredictionForm({
 
   const driverSlotTooltip = useDriverSlotTooltip(mobileActionFirst);
 
+  // An event, not a dependency: a parent passing an inline callback re-ran this
+  // on every render in dev, where the React Compiler does not stabilise it.
+  const reportDirty = useEffectEvent((dirty: boolean) => {
+    onDirtyChange?.(dirty);
+  });
   useEffect(() => {
-    onDirtyChange?.(hasChanges);
-  }, [hasChanges, onDirtyChange]);
+    reportDirty(hasChanges);
+  }, [hasChanges]);
 
   const blocker = useBlocker({
     shouldBlockFn: () => hasChanges,

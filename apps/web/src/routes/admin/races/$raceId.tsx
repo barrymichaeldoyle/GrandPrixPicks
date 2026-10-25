@@ -37,6 +37,7 @@ import {
   buildRaceResultShareText,
 } from '@/lib/share';
 import { siteConfig } from '@/lib/site';
+import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import type { SessionType } from '@/lib/sessions';
 import {
@@ -181,6 +182,15 @@ function AdminRaceDetailPage() {
     stewardsMessages?: string[];
   } | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  // The last publish, cancel or restore that failed. These used to log to the
+  // console only, so a rejected publish looked exactly like nothing happening.
+  const [actionError, setActionError] = useState<string | null>(null);
+  // Read by async handlers after their await, to tell whether the admin is
+  // still on the session the request was made for.
+  const selectedSessionRef = useRef(selectedSession);
+  useEffect(() => {
+    selectedSessionRef.current = selectedSession;
+  }, [selectedSession]);
   const [h2hCopyStatus, setH2hCopyStatus] = useState<
     'idle' | 'copied' | 'error'
   >('idle');
@@ -273,6 +283,11 @@ function AdminRaceDetailPage() {
     setUpdateMode('correction');
     setAmendmentNote('');
     setAmendmentSourceUrl('');
+    // Per session like the rest. Its checkbox only renders on a published
+    // session, so a tick carried over to an unpublished one was invisible and
+    // still paused that session's reconciliation on publish.
+    setPauseRecheck(false);
+    setActionError(null);
   }, [existingResult, selectedSession, driverCount]);
 
   useEffect(() => {
@@ -568,10 +583,12 @@ function AdminRaceDetailPage() {
       return;
     }
     setIsCancelling(true);
+    setActionError(null);
     try {
       await cancelRace({ raceId: typedRaceId });
     } catch (error) {
       console.error('Failed to cancel race:', error);
+      setActionError(errorText(error, 'The race was not called off.'));
     } finally {
       setIsCancelling(false);
     }
@@ -582,10 +599,12 @@ function AdminRaceDetailPage() {
       return;
     }
     setIsCancelling(true);
+    setActionError(null);
     try {
       await restoreRace({ raceId: typedRaceId });
     } catch (error) {
       console.error('Failed to restore race:', error);
+      setActionError(errorText(error, 'The race was not restored.'));
     } finally {
       setIsCancelling(false);
     }
@@ -620,6 +639,7 @@ function AdminRaceDetailPage() {
       return;
     }
     setIsPublishing(true);
+    setActionError(null);
     try {
       await publishResults({
         raceId: typedRaceId,
@@ -654,6 +674,7 @@ function AdminRaceDetailPage() {
         is_amendment: isAmendment,
       });
       console.error('Failed to publish:', error);
+      setActionError(errorText(error, 'The results were not published.'));
     } finally {
       setIsPublishing(false);
     }
@@ -678,10 +699,24 @@ function AdminRaceDetailPage() {
         sessionType,
       });
       setLivePreview({ sessionType, ...preview });
-      if (preview.ok && preview.order) {
+      // The admin may have switched session while this was in flight. The
+      // preview card already hides itself then; the grid has to stay out of
+      // it too, or one session's order is sitting ready to publish as another.
+      if (
+        preview.ok &&
+        preview.order &&
+        selectedSessionRef.current === sessionType
+      ) {
+        const order = preview.order;
         setSelectedDrivers((current) => {
-          const next = [...current];
-          preview.order?.forEach((entry, index) => {
+          // Clear every lane the preview is about to claim a driver from, as
+          // `setPosition` does, so a hand-entered driver below the preview's
+          // rows cannot end up in two lanes.
+          const previewed = new Set(order.map((entry) => entry.driverId));
+          const next = current.map((id) =>
+            id && previewed.has(id) ? null : id,
+          );
+          order.forEach((entry, index) => {
             next[index] = entry.driverId;
           });
           return next;
@@ -703,6 +738,16 @@ function AdminRaceDetailPage() {
 
   async function handleFetchResultsNow() {
     const sessionType = selectedSession;
+    // This can publish, and publishing scores and notifies every player, so
+    // it asks first like the Publish button does.
+    if (
+      race &&
+      !window.confirm(
+        `Fetch ${SESSION_LABELS[sessionType]} results for "${race.name}" from OpenF1? If the classification is there it is published straight away and every player is scored and notified.`,
+      )
+    ) {
+      return;
+    }
     setIsFetchingNow(true);
     setFetchNowOutcome(null);
     try {
@@ -762,6 +807,15 @@ function AdminRaceDetailPage() {
           onCancel={() => void handleCancelRace()}
           onRestore={() => void handleRestoreRace()}
         />
+
+        {actionError ? (
+          <p
+            role="alert"
+            className="mb-6 rounded-lg border border-error/40 bg-error-muted px-4 py-3 text-sm text-error"
+          >
+            {actionError}
+          </p>
+        ) : null}
 
         <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-6">
           <div className="mb-4 flex items-center gap-2">
@@ -1157,4 +1211,10 @@ function AdminRaceDetailPage() {
       </div>
     </div>
   );
+}
+
+/** "The results were not published. <the backend's reason>" */
+function errorText(error: unknown, fallback: string) {
+  const reason = toUserFacingMessage(error, fallback);
+  return reason === fallback ? fallback : `${fallback} ${reason}`;
 }

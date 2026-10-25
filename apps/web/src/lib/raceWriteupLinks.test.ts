@@ -18,6 +18,8 @@ const LINK_BEARING_SECTIONS = [
   'RaceWriteupClosingPanel',
   'DeferredRaceWriteupPicks',
   'RaceWriteupFinish',
+  // Renders `RaceWriteupFinish` unconditionally, for the routes built on it.
+  'StandardRaceWriteup',
 ];
 
 // Vitest runs with `apps/web` as the working directory.

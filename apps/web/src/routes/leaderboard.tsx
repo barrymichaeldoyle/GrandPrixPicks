@@ -248,12 +248,18 @@ function LeaderboardPage() {
 
   const seasonCombinedData = clientSeasonCombined ?? initialSeason;
 
-  // Sync season combined entries on fresh client data
+  // Page one is live; the pages loaded after it are snapshots. Fresh page-one
+  // data replaces the top of the list even after "Load more" (it used to be
+  // ignored then, so the top 50 froze), and a player who moved up into it is
+  // dropped from the older pages so nobody is listed twice.
   useEffect(() => {
-    if (clientSeasonCombined && seasonOffset === PAGE_SIZE) {
-      // Fresh page-one data replaces the imperative pagination accumulator.
-      // oxlint-disable-next-line react/set-state-in-effect
-      setSeasonEntries(clientSeasonCombined.entries as LeaderboardEntry[]);
+    if (!clientSeasonCombined) {
+      return;
+    }
+    const fresh = clientSeasonCombined.entries as LeaderboardEntry[];
+    // oxlint-disable-next-line react/set-state-in-effect
+    setSeasonEntries((prev) => mergeFreshFirstPage(fresh, prev));
+    if (seasonOffset === PAGE_SIZE) {
       setSeasonHasMore(clientSeasonCombined.hasMore);
     }
   }, [clientSeasonCombined, seasonOffset]);
@@ -270,10 +276,7 @@ function LeaderboardPage() {
           offset: seasonOffset,
         }),
       );
-      setSeasonEntries((prev) => [
-        ...prev,
-        ...(more.entries as LeaderboardEntry[]),
-      ]);
+      setSeasonEntries((prev) => appendUnseen(prev, more.entries));
       setSeasonOffset((prev) => prev + PAGE_SIZE);
       setSeasonHasMore(more.hasMore);
     } finally {
@@ -285,9 +288,7 @@ function LeaderboardPage() {
   const activeWeekendData =
     scope === 'global'
       ? (stickyWeekendGlobal ??
-        (selectedRaceId === selectedRace?._id && sessionScope === 'all'
-          ? initialWeekend
-          : null))
+        (sessionScope === 'all' ? initialWeekend : null))
       : stickyWeekendFollowing;
   const activeSeasonData =
     scope === 'global' ? seasonCombinedData : stickySeasonCombinedFollowing;
@@ -651,4 +652,33 @@ function LeaderboardExplainer() {
       </p>
     </section>
   );
+}
+
+/** Live page one on top, then the rest of what was loaded minus its players. */
+function mergeFreshFirstPage(
+  fresh: LeaderboardEntry[],
+  loaded: LeaderboardEntry[],
+): LeaderboardEntry[] {
+  const onFirstPage = new Set(fresh.map((entry) => entry.userId));
+  return [
+    ...fresh,
+    ...loaded
+      .slice(PAGE_SIZE)
+      .filter((entry) => !onFirstPage.has(entry.userId)),
+  ];
+}
+
+/**
+ * Offset pages read a ranking that may have moved since the last page, so a
+ * player can appear on both. Keep the first sighting.
+ */
+function appendUnseen(
+  loaded: LeaderboardEntry[],
+  next: readonly unknown[],
+): LeaderboardEntry[] {
+  const seen = new Set(loaded.map((entry) => entry.userId));
+  return [
+    ...loaded,
+    ...(next as LeaderboardEntry[]).filter((entry) => !seen.has(entry.userId)),
+  ];
 }

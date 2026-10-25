@@ -35,6 +35,20 @@ function Dialog({
   );
 }
 
+/** A dialog whose middle is a script-focused region, like the pick list. */
+function DialogWithRegion() {
+  const panelRef = useModalDialog<HTMLDivElement>({});
+  return (
+    <div ref={panelRef} tabIndex={-1}>
+      <button type="button">close</button>
+      <div tabIndex={-1} data-testid="region">
+        <button type="button">first pick</button>
+      </div>
+      <button type="button">done</button>
+    </div>
+  );
+}
+
 function press(key: string, options: KeyboardEventInit = {}) {
   act(() => {
     document.dispatchEvent(
@@ -168,5 +182,20 @@ describe('modal dialog behaviour', () => {
 
     expect(onClose).not.toHaveBeenCalled();
     expect(document.activeElement).toBe(last);
+  });
+
+  it('moves on from a focused region inside the panel in document order', () => {
+    render(<DialogWithRegion />);
+    const region = container!.querySelector<HTMLElement>(
+      '[data-testid="region"]',
+    )!;
+
+    act(() => region.focus());
+    press('Tab');
+    expect(document.activeElement?.textContent).toBe('first pick');
+
+    act(() => region.focus());
+    press('Tab', { shiftKey: true });
+    expect(document.activeElement?.textContent).toBe('close');
   });
 });

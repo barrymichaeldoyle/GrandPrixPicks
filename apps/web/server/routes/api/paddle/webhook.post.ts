@@ -38,13 +38,12 @@ export default async function handler(event: RouteEvent) {
       tags: { failure_type: 'missing_config' },
     });
     console.error('[paddle-webhook] missing_webhook_secret');
-    return new Response(
-      JSON.stringify({ error: 'Missing PADDLE_WEBHOOK_SECRET' }),
-      {
-        status: 500,
-        headers: JSON_HEADERS,
-      },
-    );
+    // The missing variable is named in Sentry and the log, not to the caller:
+    // anyone can POST here.
+    return new Response(JSON.stringify({ error: 'Webhook unavailable' }), {
+      status: 500,
+      headers: JSON_HEADERS,
+    });
   }
 
   let webhookEvent: ReturnType<typeof parsePaddleWebhook>;
@@ -100,6 +99,31 @@ export default async function handler(event: RouteEvent) {
       handled: result.handled,
       reason: 'reason' in result ? result.reason : null,
     });
+
+    // Paid, but no player to grant the pass to. The backend records this as
+    // non-terminal precisely so a retry can grant it once the user row exists
+    // (a sign-up whose Clerk webhook has not landed yet), but Paddle never
+    // retries a 2xx. A 503 asks it to, and Sentry hears about it either way.
+    if (
+      result.handled &&
+      result.result &&
+      !result.result.granted &&
+      'reason' in result.result &&
+      result.result.reason === 'user_not_found'
+    ) {
+      captureServerException(new Error('Paddle payment for unknown user'), {
+        name: 'api.paddle.webhook',
+        tags: {
+          failure_type: 'user_not_found',
+          event_type: webhookEvent.event_type,
+          event_id: webhookEvent.event_id,
+        },
+      });
+      return new Response(JSON.stringify({ error: 'User not found yet' }), {
+        status: 503,
+        headers: JSON_HEADERS,
+      });
+    }
 
     if (result.handled && result.result?.granted && result.analytics) {
       await captureServerAnalyticsEvent({

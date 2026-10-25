@@ -1,7 +1,6 @@
 import { api } from '@convex-generated/api';
 import type { DriverStatus } from '@grandprixpicks/shared/driverStatus';
 import { DRIVER_STATUS_LABELS } from '@grandprixpicks/shared/driverStatus';
-import { ConvexHttpClient } from 'convex/browser';
 
 import { renderOgImage } from '../../../src/lib/og/renderer';
 import { sessionResultsTemplate } from '../../../src/lib/og/templates';
@@ -9,6 +8,8 @@ import { SESSION_LABELS } from '../../../src/lib/sessions';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../../../src/lib/teamColors';
 import { loadFlagDataUri } from '../../lib/ogFlag';
 import { captureServerException, startServerSpan } from '../../lib/sentry';
+import { getServerConvexClient } from '../../lib/convex';
+import { ogBadRequest } from '../../lib/ogResponses';
 
 type RouteEvent = {
   req: Request;
@@ -29,22 +30,18 @@ export default async function handler(event: RouteEvent) {
       (candidate) => candidate === (url.searchParams.get('session') ?? 'race'),
     );
     if (!raceSlug || !session) {
-      return badRequest(
+      return ogBadRequest(
         'Expected ?race=<slug>&session=quali|sprint_quali|sprint|race',
       );
     }
 
-    const convexUrl = process.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('Missing VITE_CONVEX_URL');
-    }
-    const convex = new ConvexHttpClient(convexUrl);
+    const convex = getServerConvexClient();
 
     const race = await convex.query(api.races.getRaceBySlug, {
       slug: raceSlug,
     });
     if (!race) {
-      return badRequest(`No race with slug "${raceSlug}"`);
+      return ogBadRequest(`No race with slug "${raceSlug}"`);
     }
 
     const result = await convex.query(api.results.getResultForRace, {
@@ -52,7 +49,9 @@ export default async function handler(event: RouteEvent) {
       sessionType: session,
     });
     if (!result) {
-      return badRequest(`No ${session} result published for "${raceSlug}" yet`);
+      return ogBadRequest(
+        `No ${session} result published for "${raceSlug}" yet`,
+      );
     }
 
     const entries = result.enrichedClassification.map((entry) => ({
@@ -95,11 +94,4 @@ export default async function handler(event: RouteEvent) {
     });
     return new Response('Failed to render results card', { status: 500 });
   }
-}
-
-function badRequest(message: string) {
-  return new Response(message, {
-    status: 400,
-    headers: { 'content-type': 'text/plain' },
-  });
 }

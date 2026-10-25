@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 const DISMISS_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -44,24 +44,29 @@ export function useUpcomingPredictionBannerDismissal(
   raceSlug?: string | null,
   nudgeKind: UpcomingPredictionBannerNudgeKind = 'top5',
 ) {
-  const [dismissed, setDismissed] = useState(false);
-
-  useEffect(() => {
-    if (!raceSlug) {
-      // A new storage key defines a new dismissal state.
-      // oxlint-disable-next-line react/set-state-in-effect
-      setDismissed(false);
-      return;
-    }
-    setDismissed(isDismissed(raceSlug, nudgeKind));
-  }, [nudgeKind, raceSlug]);
+  // Read from storage on the render that needs it, not in an effect after it:
+  // with the banner's queries already cached, a dismissed banner painted for a
+  // frame before the effect hid it. Safe without a hydration guard because the
+  // banner only mounts client-side (`DeferredAuthenticatedFeatures`).
+  const key = raceSlug ? getStorageKey(raceSlug, nudgeKind) : null;
+  const [state, setState] = useState(() => ({
+    key,
+    dismissed: raceSlug ? isDismissed(raceSlug, nudgeKind) : false,
+  }));
+  // A new storage key defines a new dismissal state.
+  if (state.key !== key) {
+    setState({
+      key,
+      dismissed: raceSlug ? isDismissed(raceSlug, nudgeKind) : false,
+    });
+  }
 
   function dismiss() {
     if (raceSlug) {
       recordDismissal(raceSlug, nudgeKind);
     }
-    setDismissed(true);
+    setState({ key, dismissed: true });
   }
 
-  return { dismissed, dismiss };
+  return { dismissed: state.key === key && state.dismissed, dismiss };
 }

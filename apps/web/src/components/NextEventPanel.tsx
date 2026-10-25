@@ -2,9 +2,8 @@ import { api } from '@convex-generated/api';
 import { useQuery } from '@/integrations/convex/query';
 
 import { Flag } from '@/components/Flag';
-import { useEffect, useState } from 'react';
-
-import { formatDate, formatTime } from '@/lib/date';
+import { useMinuteCountdown } from '@/lib/date';
+import { useUserDateFormat } from '@/lib/useUserDateFormat';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import {
@@ -30,44 +29,6 @@ import { SESSION_LABELS, type SessionType } from '@/lib/sessions';
  * the screen, and a countdown is neither an action nor a state.
  */
 
-/**
- * Minute precision, on a 30s tick.
- *
- * Deliberately not `useCountdown`, which drops to seconds inside a day. This
- * panel sits on a page where nothing else moves, so a seconds column would be
- * the only motion on screen and would pull the eye off the one action. Same
- * reasoning as the landing page's SessionClock.
- */
-function useMinuteCountdown(timestamp: number): string {
-  const [label, setLabel] = useState(() => formatMinutesUntil(timestamp));
-  useEffect(() => {
-    function tick() {
-      setLabel(formatMinutesUntil(timestamp));
-    }
-    tick();
-    const id = setInterval(tick, 30_000);
-    return () => clearInterval(id);
-  }, [timestamp]);
-  return label;
-}
-
-function pad(value: number): string {
-  return value.toString().padStart(2, '0');
-}
-
-function formatMinutesUntil(timestamp: number): string {
-  const remaining = timestamp - Date.now();
-  if (remaining <= 0) {
-    return 'Locked';
-  }
-  const totalMinutes = Math.floor(remaining / 60_000);
-  const days = Math.floor(totalMinutes / 1440);
-  const hours = Math.floor((totalMinutes % 1440) / 60);
-  const minutes = totalMinutes % 60;
-  return days > 0
-    ? `${pad(days)}d ${pad(hours)}h ${pad(minutes)}m`
-    : `${pad(hours)}h ${pad(minutes)}m`;
-}
 export function NextEventPanel() {
   const race = useQuery(api.races.getNextRace);
   if (!race) {
@@ -78,7 +39,10 @@ export function NextEventPanel() {
 
 function NextEvent({ race }: { race: NonNullable<RaceDoc> }) {
   const lockAt = getNextSessionLockAt(race);
-  const countdown = useMinuteCountdown(lockAt);
+  // Minute precision on a 30s tick, not `useCountdown`'s seconds: this panel
+  // sits on a page where nothing else moves, so a seconds column would be the
+  // only motion on screen and pull the eye off the one action.
+  const countdown = useMinuteCountdown(lockAt, 'Locked');
   const sessions = getWeekendSessionStarts(race);
   const nextSession = sessions.find((entry) => entry.startAt >= lockAt);
   const countryCode = getCountryCodeForRace(race);
@@ -138,14 +102,13 @@ function NextEvent({ race }: { race: NonNullable<RaceDoc> }) {
 }
 
 function SessionRow({ type, startAt }: { type: SessionType; startAt: number }) {
+  // The viewer's saved timezone and locale when signed in, the device's
+  // otherwise, with the server's own values through hydration.
+  const { formatDate, formatTime } = useUserDateFormat();
   return (
     <li className="flex items-baseline justify-between gap-3 py-2">
       <span className="text-sm text-text-muted">{SESSION_LABELS[type]}</span>
-      {/* Local time, and only correct once mounted: the server runs in UTC. */}
-      <span
-        suppressHydrationWarning
-        className="gpp-mono text-xs text-text-muted"
-      >
+      <span className="gpp-mono text-xs text-text-muted">
         {formatDate(startAt)} {formatTime(startAt)}
       </span>
     </li>

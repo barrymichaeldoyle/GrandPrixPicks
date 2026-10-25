@@ -254,6 +254,10 @@ export const Route = createFileRoute('/races/$raceSlug/')({
         shareCard,
       };
     }),
+  // A different race is a different page. The editing session and unsaved
+  // flags live in the component, and the router reuses it across
+  // `/races/a` → `/races/b`, so an open editor carried over to the next race.
+  remountDeps: ({ params }) => params.raceSlug,
   head: ({ loaderData, params }) => {
     const race = loaderData?.race;
     const shareCard = loaderData?.shareCard ?? null;

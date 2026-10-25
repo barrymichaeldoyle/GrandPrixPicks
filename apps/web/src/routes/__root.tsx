@@ -55,6 +55,7 @@ import {
 } from '@/integrations/clerk/session-cookie';
 import { useSsrViewerDataMissing } from '@/integrations/clerk/ssr-viewer-data';
 import { useLoadingPhrase } from '@/lib/loadingPhrases';
+import { ServerNowProvider } from '@/lib/testing/now';
 import {
   ClerkRuntimeControlProvider,
   useClerkRuntimeControl,
@@ -108,6 +109,8 @@ interface MyRouterContext {
 type RootLoaderData = {
   initialAuth: InitialAuth;
   weekendRace: { slug: string } | null;
+  /** When this document was rendered; seeds every clock for hydration. */
+  serverNow: number;
 };
 
 async function loadWeekendRace(
@@ -297,7 +300,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       loadInitialAuth(),
       loadWeekendRace(context.queryClient),
     ]);
-    return { initialAuth, weekendRace };
+    return { initialAuth, weekendRace, serverNow: Date.now() };
   },
 
   notFoundComponent: NotFoundPage,
@@ -305,7 +308,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 });
 
 function RootDocument({ children }: PropsWithChildren) {
-  const { initialAuth } = Route.useLoaderData();
+  const { initialAuth, serverNow } = Route.useLoaderData();
   const pathname = useLocation({ select: (location) => location.pathname });
   const inApp = useInAppView();
   const bare = isBareRoute(pathname) || inApp;
@@ -361,70 +364,72 @@ function RootDocument({ children }: PropsWithChildren) {
             a full-viewport gradient is the single biggest thing standing
             between the app and "calm". */}
         <AppMotionProvider>
-          <InitialAuthProvider value={initialAuth}>
-            <AppRuntimeBoundary
-              initialSignedIn={initialAuth.isSignedIn}
-              pathname={pathname}
-            >
-              {/* Unread count in the tab title, tab icon and OS badge. Renders
+          <ServerNowProvider serverNow={serverNow}>
+            <InitialAuthProvider value={initialAuth}>
+              <AppRuntimeBoundary
+                initialSignedIn={initialAuth.isSignedIn}
+                pathname={pathname}
+              >
+                {/* Unread count in the tab title, tab icon and OS badge. Renders
                   no visible DOM, so it sits outside the shell rather than in
                   the header next to the bell it mirrors. */}
-              {/* Not on a bare route. It writes the last `<link rel="icon">` in
+                {/* Not on a bare route. It writes the last `<link rel="icon">` in
                   the document by design, and prefixes the title with an unread
                   count — both of which are Grand Prix Picks chrome, and the
                   creator poll is someone else's page wearing their own icon. */}
-              {bare ? null : (
-                <AuthenticatedDeferredFeature>
-                  <UnreadTabIndicator />
-                </AuthenticatedDeferredFeature>
-              )}
-              <AppShell>
-                <a
-                  href="#main-content"
-                  className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-sm focus:border focus:border-border focus:bg-surface focus:px-4 focus:py-2 focus:text-text"
-                >
-                  Skip to main content
-                </a>
-                {bare ? null : <Header />}
-                {/* Shell chrome like the rest: the app's in-app browser read a
-                    false "No internet connection" over the privacy policy. */}
-                {bare ? null : <OfflineBanner />}
                 {bare ? null : (
-                  <DeferredFeaturesBoundary>
-                    <DeferredShellFeatures />
-                  </DeferredFeaturesBoundary>
+                  <AuthenticatedDeferredFeature>
+                    <UnreadTabIndicator />
+                  </AuthenticatedDeferredFeature>
                 )}
-                <div className="flex min-h-0 flex-1 flex-col">
+                <AppShell>
+                  <a
+                    href="#main-content"
+                    className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-sm focus:border focus:border-border focus:bg-surface focus:px-4 focus:py-2 focus:text-text"
+                  >
+                    Skip to main content
+                  </a>
+                  {bare ? null : <Header />}
+                  {/* Shell chrome like the rest: the app's in-app browser read a
+                    false "No internet connection" over the privacy policy. */}
+                  {bare ? null : <OfflineBanner />}
                   {bare ? null : (
-                    <AuthenticatedDeferredFeature>
-                      <DeferredPredictionBanner />
-                    </AuthenticatedDeferredFeature>
+                    <DeferredFeaturesBoundary>
+                      <DeferredShellFeatures />
+                    </DeferredFeaturesBoundary>
                   )}
-                  <main id="main-content" className="min-h-0 flex-1">
-                    <ErrorBoundary>{children}</ErrorBoundary>
-                  </main>
-                  {bare ? null : <ShellFooter />}
-                  {/* Signed-in only, and only below 844px — see MobileTabBar.
+                  <div className="flex min-h-0 flex-1 flex-col">
+                    {bare ? null : (
+                      <AuthenticatedDeferredFeature>
+                        <DeferredPredictionBanner />
+                      </AuthenticatedDeferredFeature>
+                    )}
+                    <main id="main-content" className="min-h-0 flex-1">
+                      <ErrorBoundary>{children}</ErrorBoundary>
+                    </main>
+                    {bare ? null : <ShellFooter />}
+                    {/* Signed-in only, and only below 844px — see MobileTabBar.
                       Inside AppShell so the sign-in curtain makes it inert
                       along with everything else behind the loader. */}
-                  {bare ? null : <MobileTabBar />}
-                  <TanStackDevtools
-                    config={{
-                      position: 'bottom-right',
-                      openHotkey: ['CtrlOrMeta', 'A'],
-                    }}
-                    plugins={[
-                      {
-                        name: 'Tanstack Router',
-                        render: <TanStackRouterDevtoolsPanel />,
-                      },
-                      TanStackQueryDevtools,
-                    ]}
-                  />
-                </div>
-              </AppShell>
-            </AppRuntimeBoundary>
-          </InitialAuthProvider>
+                    {bare ? null : <MobileTabBar />}
+                    <TanStackDevtools
+                      config={{
+                        position: 'bottom-right',
+                        openHotkey: ['CtrlOrMeta', 'A'],
+                      }}
+                      plugins={[
+                        {
+                          name: 'Tanstack Router',
+                          render: <TanStackRouterDevtoolsPanel />,
+                        },
+                        TanStackQueryDevtools,
+                      ]}
+                    />
+                  </div>
+                </AppShell>
+              </AppRuntimeBoundary>
+            </InitialAuthProvider>
+          </ServerNowProvider>
         </AppMotionProvider>
         <Scripts />
       </body>

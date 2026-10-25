@@ -5,7 +5,10 @@ import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 
 import { bucketWeatherNow } from '@/lib/weatherNow';
-import { getFreshClerkSessionToken } from '../../../server/lib/auth';
+import {
+  getFreshClerkSessionToken,
+  isClerkSessionPresent,
+} from '../../../server/lib/auth';
 
 export type DashboardSsrData = FunctionReturnType<
   typeof api.home.getDashboardPageData
@@ -42,7 +45,15 @@ export type DashboardSsrData = FunctionReturnType<
 export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
   async (): Promise<DashboardSsrData | null> => {
     try {
-      const token = await getFreshClerkSessionToken(getRequest());
+      const request = getRequest();
+      // The same test the cache headers use. A request that `__client_uat`
+      // calls signed out is given public, edge-cached HTML, so reading the
+      // viewer's dashboard off a lingering `__session` here would put one
+      // player's picks and leagues in the page every visitor is then served.
+      if (!(await isClerkSessionPresent(request))) {
+        return null;
+      }
+      const token = await getFreshClerkSessionToken(request);
       if (!token) {
         return null;
       }

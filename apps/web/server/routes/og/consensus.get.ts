@@ -1,5 +1,4 @@
 import { api } from '@convex-generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 
 import { renderOgImage } from '../../../src/lib/og/renderer';
 import { consensusTemplate } from '../../../src/lib/og/templates';
@@ -7,14 +6,12 @@ import { SESSION_LABELS } from '../../../src/lib/sessions';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../../../src/lib/teamColors';
 import { loadFlagDataUri } from '../../lib/ogFlag';
 import { captureServerException, startServerSpan } from '../../lib/sentry';
+import { getServerConvexClient } from '../../lib/convex';
+import { ogBadRequest } from '../../lib/ogResponses';
 
 type RouteEvent = { req: Request };
 
 const SESSION_TYPES = ['quali', 'sprint_quali', 'sprint', 'race'] as const;
-
-function badRequest(message: string) {
-  return new Response(message, { status: 400 });
-}
 
 /**
  * What players picked for a locked session: `?race=<slug>&session=<type>`.
@@ -29,27 +26,23 @@ export default async function handler(event: RouteEvent) {
       (candidate) => candidate === (url.searchParams.get('session') ?? 'race'),
     );
     if (!raceSlug || !session) {
-      return badRequest(
+      return ogBadRequest(
         'Expected ?race=<slug>&session=quali|sprint_quali|sprint|race',
       );
     }
-    const convexUrl = process.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('Missing VITE_CONVEX_URL');
-    }
-    const convex = new ConvexHttpClient(convexUrl);
+    const convex = getServerConvexClient();
     const race = await convex.query(api.races.getRaceBySlug, {
       slug: raceSlug,
     });
     if (!race) {
-      return badRequest(`No race with slug "${raceSlug}"`);
+      return ogBadRequest(`No race with slug "${raceSlug}"`);
     }
     const consensus = await convex.query(api.consensus.getSessionConsensus, {
       raceId: race._id,
       sessionType: session,
     });
     if (!consensus) {
-      return badRequest(`No ${session} consensus for "${raceSlug}" yet`);
+      return ogBadRequest(`No ${session} consensus for "${raceSlug}" yet`);
     }
     const flagSrc = await loadFlagDataUri(url.origin, race);
     const png = await startServerSpan({ name: 'og.renderConsensusCard' }, () =>

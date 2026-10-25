@@ -26,6 +26,7 @@ import {
   SEPANG_VETTEL_WRITEUP_IMAGE,
 } from '@/lib/bahrain2026WriteUpImages';
 import { lastReviewedAt } from '@/lib/lastReviewed';
+import { bucketWeatherNow } from '@/lib/weatherNow';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { routeQuery } from '@/lib/routeQuery';
 import {
@@ -132,7 +133,7 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
           ? context.queryClient.ensureQueryData(
               routeQuery(api.weather.getForWriteup, {
                 raceSlug: RACE_SLUG,
-                now: weatherNow,
+                now: bucketWeatherNow(weatherNow),
               }),
             )
           : null,
@@ -224,6 +225,10 @@ function BahrainGrandPrixPredictionsPage() {
   } = Route.useLoaderData();
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
+  // Only point the hero at the picker once this round is the next on the
+  // calendar, as the standard write-ups do: a pick button on a round whose
+  // picks have not opened leads nowhere.
+  const canPick = isLive && (!nextRace || nextRace.slug === RACE_SLUG);
   const archiveSessions = (['quali', 'race'] as const).map((session) => ({
     session,
     classification: top5[session] ?? [],
@@ -271,7 +276,9 @@ function BahrainGrandPrixPredictionsPage() {
           nextRace={phase === 'finished' ? nextRace : undefined}
           venueName="Sepang"
           signalsHeading={SIGNALS_HEADING}
-          primaryActionTargetId={isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined}
+          primaryActionTargetId={
+            canPick ? RACE_WRITEUP_PICKS_ANCHOR : undefined
+          }
           schedule={{
             race,
             timeZone: 'Asia/Kuala_Lumpur',

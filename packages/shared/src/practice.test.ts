@@ -20,6 +20,11 @@ describe('PRACTICE_SESSION_LABELS', () => {
 });
 
 describe('formatPracticeLap', () => {
+  it('carries a rounded-up second into the minutes', () => {
+    expect(formatPracticeLap(119.9996)).toBe('2:00.000');
+    expect(formatPracticeLap(59.9999)).toBe('1:00.000');
+  });
+
   it('formats a lap as minutes, seconds and three decimals', () => {
     expect(formatPracticeLap(89.412)).toBe('1:29.412');
   });

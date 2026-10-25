@@ -62,6 +62,7 @@ export function NotificationsSection({
   onSubscribePush,
   onUnsubscribePush,
   onUpdateSetting,
+  errorMessage = null,
 }: {
   settings: NotificationSettings;
   isPushSupported: boolean;
@@ -71,6 +72,8 @@ export function NotificationsSection({
   onSubscribePush: () => void;
   onUnsubscribePush: () => void;
   onUpdateSetting: (patch: Partial<NotificationSettings>) => void;
+  /** Why the last change did not take, until the next one. */
+  errorMessage?: string | null;
 }) {
   return (
     <SettingsSection
@@ -79,6 +82,11 @@ export function NotificationsSection({
       icon={<Bell className="h-5 w-5 text-accent" />}
     >
       <div className="space-y-6">
+        {errorMessage ? (
+          <p role="alert" className="text-sm text-error">
+            {errorMessage}
+          </p>
+        ) : null}
         <NotificationGroup title="In-App">
           <p className="text-xs text-text-muted">
             Always shown in the notification bell.

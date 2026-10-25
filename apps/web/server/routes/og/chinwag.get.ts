@@ -1,9 +1,9 @@
 import { api } from '@convex-generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 
 import { chinwagCardTemplate } from '../../../src/lib/og/chinwagCard';
 import { renderOgImage } from '../../../src/lib/og/renderer';
 import { captureServerException, startServerSpan } from '../../lib/sentry';
+import { getServerConvexClient } from '../../lib/convex';
 
 /**
  * The creator poll's link preview.
@@ -20,12 +20,7 @@ import { captureServerException, startServerSpan } from '../../lib/sentry';
 export default async function handler() {
   return await startServerSpan({ name: 'og.chinwag' }, async () => {
     try {
-      const convexUrl = process.env.VITE_CONVEX_URL;
-      if (!convexUrl) {
-        throw new Error('Missing VITE_CONVEX_URL');
-      }
-
-      const convex = new ConvexHttpClient(convexUrl);
+      const convex = getServerConvexClient();
       const poll = await convex.query(api.creatorPolls.getPoll, {
         slug: 'chinwag',
       });

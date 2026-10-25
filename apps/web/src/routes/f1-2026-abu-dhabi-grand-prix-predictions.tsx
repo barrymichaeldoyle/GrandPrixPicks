@@ -1,32 +1,16 @@
-import { api } from '@convex-generated/api';
-import { createFileRoute, notFound } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
-import { RACE_WRITEUP_PICKS_ANCHOR } from '@/components/race-writeups/DeferredRaceWriteupPicks';
-import { RaceFaqSection } from '@/components/race-writeups/RaceFaqSection';
-import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
-import { RaceWriteupArticle } from '@/components/race-writeups/RaceWriteupArticle';
-import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
-import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
-import { RaceWriteupNextRound } from '@/components/race-writeups/RaceWriteupNextRound';
-import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
+import { StandardRaceWriteup } from '@/components/race-writeups/StandardRaceWriteup';
 import {
   RACE_WRITEUP_CIRCUIT_ANCHOR,
   RaceWriteupFigure as Figure,
   RaceWriteupSection,
 } from '@/components/race-writeups/RaceWriteupSection';
-import { WeekendNewsSection } from '@/components/WeekendNewsSection';
-import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { lastReviewedAt } from '@/lib/lastReviewed';
-import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
-import {
-  getRaceWriteupPhase,
-  isRaceWriteupLive,
-  raceWriteupHeroSummary,
-} from '@/lib/raceWriteupPhase';
+import { loadRaceWriteup } from '@/lib/raceWriteupLoader';
 import { raceWriteupPageHead } from '@/lib/raceWriteupSeo';
-import { followingRound, getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
-import { routeQuery } from '@/lib/routeQuery';
+import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
 
 const RACE_SLUG = 'abu-dhabi-2026';
 
@@ -74,52 +58,7 @@ export const Route = createFileRoute(
   '/f1-2026-abu-dhabi-grand-prix-predictions',
 )({
   component: AbuDhabiGrandPrixPredictionsPage,
-  loader: async ({ context }) => {
-    await setRaceDataCacheHeaders();
-    const weatherNow = Date.now();
-    const [race, championship, weather, news, season, practice, nextRace] =
-      await Promise.all([
-        context.queryClient.ensureQueryData(
-          routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.f1Standings.getF1Championship, {}),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.weather.getForWriteup, {
-            raceSlug: RACE_SLUG,
-            now: weatherNow,
-          }),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.raceNews.list, { raceSlug: RACE_SLUG }),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.races.listCurrentSeason, {}),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.practiceResults.getPracticeResultsForRaceSlug, {
-            raceSlug: RACE_SLUG,
-          }),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.races.getNextRace, {}),
-        ),
-      ]);
-    if (!race) {
-      throw notFound();
-    }
-    return {
-      race,
-      championship,
-      weather,
-      weatherNow,
-      news,
-      season,
-      practice,
-      nextRace,
-    };
-  },
+  loader: ({ context }) => loadRaceWriteup(context.queryClient, RACE_SLUG),
   head: ({ loaderData, match }) =>
     raceWriteupPageHead({
       path: PATH,
@@ -144,68 +83,21 @@ export const Route = createFileRoute(
 });
 
 function AbuDhabiGrandPrixPredictionsPage() {
-  const {
-    race,
-    championship,
-    weather,
-    weatherNow,
-    news,
-    season,
-    practice,
-    nextRace,
-  } = Route.useLoaderData();
-  const phase = getRaceWriteupPhase(race, weatherNow);
-  const isLive = isRaceWriteupLive(phase);
-  // The picker takes over from the closing panel by itself once this round is
-  // the next on the calendar (`RaceWriteupFinish`), so the page needs no edit
-  // on the day picks open. Austin's opened five days late for want of one.
-  const canPick = isLive && (!nextRace || nextRace.slug === RACE_SLUG);
-  const picks = (
-    <RaceWriteupFinish
-      isLive={isLive}
-      phase={phase}
-      raceId={race._id}
-      round={race.round}
-      season={race.season}
-      raceSlug={RACE_SLUG}
-      venueName="Abu Dhabi"
-      nextRace={nextRace}
-      hasSprint={race.hasSprint}
-      loadImmediately
-    />
-  );
-
   return (
-    <RaceWriteupPage
-      hero={
-        <RaceWriteupHero
-          flagCode="AE"
-          eyebrow={`4–6 Dec · Abu Dhabi · Round ${race.round}`}
-          title="Abu Dhabi Grand Prix 2026 predictions"
-          summary={raceWriteupHeroSummary(
-            phase,
-            'The Abu Dhabi Grand Prix',
-            'The last race of the season, run from daylight into night at Yas Marina on the softest tyres Pirelli makes, where one stop is usually enough.',
-          )}
-          phase={phase}
-          raceSlug={RACE_SLUG}
-          primaryActionTargetId={
-            canPick ? RACE_WRITEUP_PICKS_ANCHOR : undefined
-          }
-          nextRace={phase === 'finished' ? nextRace : undefined}
-          venueName="Abu Dhabi"
-          signalsHeading={SIGNALS_HEADING}
-          schedule={{
-            race,
-            timeZone: 'Asia/Dubai',
-            timeZoneLabel: 'Gulf time',
-            weather,
-            now: weatherNow,
-          }}
-        />
+    <StandardRaceWriteup
+      data={Route.useLoaderData()}
+      raceSlug={RACE_SLUG}
+      raceName="Abu Dhabi Grand Prix"
+      flagCode="AE"
+      venueName="Abu Dhabi"
+      signalsHeading={SIGNALS_HEADING}
+      timeZone="Asia/Dubai"
+      timeZoneLabel="Gulf time"
+      summary={
+        'The last race of the season, run from daylight into night at Yas Marina on the softest tyres Pirelli makes, where one stop is usually enough.'
       }
-      storeLinkInFooter={!(isLive && news.items.length > 0)}
       reviewedAt={PROSE_REVIEWED_AT}
+      faqs={FAQS}
       sources={
         <>
           Schedule and circuit:{' '}
@@ -220,56 +112,10 @@ function AbuDhabiGrandPrixPredictionsPage() {
         </>
       }
     >
-      {/* The weekend's news opens the page: see the Singapore route and
-          `docs/race-writeup-lifecycle.md`. Renders nothing until there is an
-          item. */}
-      {isLive ? (
-        <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
-      ) : null}
-      <RaceWriteupArticle
-        actions={{
-          phase,
-          raceSlug: RACE_SLUG,
-          venueName: 'Abu Dhabi',
-          primaryActionTargetId: canPick
-            ? RACE_WRITEUP_PICKS_ANCHOR
-            : undefined,
-        }}
-      >
-        <Circuit />
-        <Tyres />
-        <LastYear />
-      </RaceWriteupArticle>
-      {picks}
-      {/* Practice follows the article and the call to pick. It renders
-          nothing until there is a session. */}
-      {isLive ? (
-        <WeekendPracticeSection
-          results={practice}
-          raceSlug={RACE_SLUG}
-          schedule={race}
-        />
-      ) : null}
-
-      {isLive ? (
-        <RaceWriteupChampionshipContext
-          championship={championship}
-          races={season.races}
-          thisRound={race.round}
-          venueName="Abu Dhabi"
-        />
-      ) : null}
-
-      <RaceFaqSection faqs={FAQS} />
-
-      {/* While live, `RaceWriteupFinish` holds the picker, so the next round
-          is linked here; once finished it prints the next round itself. */}
-      {isLive ? (
-        <RaceWriteupNextRound
-          nextRace={followingRound(season.races, race.round)}
-        />
-      ) : null}
-    </RaceWriteupPage>
+      <Circuit />
+      <Tyres />
+      <LastYear />
+    </StandardRaceWriteup>
   );
 }
 

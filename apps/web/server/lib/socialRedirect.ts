@@ -14,6 +14,9 @@
 export const REDDIT_COMMUNITY_CAMPAIGN =
   '/?utm_source=reddit&utm_medium=social&utm_campaign=community';
 
+export const X_PROFILE_CAMPAIGN =
+  '/?utm_source=x&utm_medium=social&utm_campaign=profile';
+
 export const INSTAGRAM_PROFILE_CAMPAIGN =
   '/?utm_source=instagram&utm_medium=social&utm_campaign=profile';
 

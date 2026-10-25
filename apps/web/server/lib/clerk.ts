@@ -21,6 +21,18 @@ type DeleteUserResult =
       convexResult: unknown;
     };
 
+/**
+ * The request was not a valid signed Clerk delivery: an unsigned probe, a
+ * replay, or a rotated secret. The caller answers 401 and does not report it,
+ * because it says nothing about the server being broken.
+ */
+export class ClerkWebhookVerificationError extends Error {
+  constructor(cause: unknown) {
+    super('Clerk webhook signature verification failed', { cause });
+    this.name = 'ClerkWebhookVerificationError';
+  }
+}
+
 export async function handleClerkWebhook(
   request: Request,
 ): Promise<DeleteUserResult> {
@@ -29,9 +41,14 @@ export async function handleClerkWebhook(
     throw new Error('Missing CLERK_WEBHOOK_SIGNING_SECRET');
   }
 
-  const event = (await verifyWebhook(request, {
-    signingSecret,
-  })) as ClerkWebhookEvent;
+  let event: ClerkWebhookEvent;
+  try {
+    event = (await verifyWebhook(request, {
+      signingSecret,
+    })) as ClerkWebhookEvent;
+  } catch (error) {
+    throw new ClerkWebhookVerificationError(error);
+  }
 
   if (event.type !== 'user.deleted') {
     return { handled: false, reason: 'event_ignored' };

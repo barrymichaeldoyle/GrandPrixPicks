@@ -1,4 +1,12 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import type { ReactNode } from 'react';
+import {
+  createContext,
+  createElement,
+  useContext,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 
 const DEV_NOW_STORAGE_KEY = 'gpp:dev-now';
 const DEV_NOW_EVENT = 'gpp:dev-now-change';
@@ -69,6 +77,39 @@ export function clearDevNow() {
   window.dispatchEvent(new CustomEvent(DEV_NOW_EVENT));
 }
 
+/**
+ * When the server rendered this document, for the hydration render only.
+ *
+ * A clock seeded from the browser's `Date.now()` disagrees with HTML rendered
+ * earlier, and these pages are edge-cached and can be served stale for up to a
+ * day. Across a session lock that picks a different tab or lock state from the
+ * markup, and React discards the server tree. Seeding every `useNow` from one
+ * root value fixes that without each caller threading a timestamp through.
+ *
+ * After hydration the provider stops supplying it, so a component mounted
+ * later starts from the real clock rather than from the render time.
+ */
+const ServerNowContext = createContext<number | undefined>(undefined);
+
+export function ServerNowProvider({
+  serverNow,
+  children,
+}: {
+  serverNow: number | undefined;
+  children: ReactNode;
+}) {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect
+    setHydrated(true);
+  }, []);
+  return createElement(
+    ServerNowContext.Provider,
+    { value: hydrated ? undefined : serverNow },
+    children,
+  );
+}
+
 export function useNow(intervalMs = 1_000, initialNow?: number): number {
   const overrideNow = useDevNowOverride();
   // Seed with the server-provided timestamp when available so the first client
@@ -77,7 +118,10 @@ export function useNow(intervalMs = 1_000, initialNow?: number): number {
   // React reports a hydration mismatch (e.g. the home-page countdown digits).
   // We re-read the real clock immediately after mount, so any staleness from
   // the SSR snapshot self-corrects without tripping hydration.
-  const [realNow, setRealNow] = useState(() => initialNow ?? Date.now());
+  const serverNow = useContext(ServerNowContext);
+  const [realNow, setRealNow] = useState(
+    () => initialNow ?? serverNow ?? Date.now(),
+  );
 
   useEffect(() => {
     if (overrideNow != null) {
@@ -127,7 +171,10 @@ export function useIsBefore(
   initialNow?: number,
 ): boolean {
   const overrideNow = useDevNowOverride();
-  const [realNow, setRealNow] = useState(() => initialNow ?? Date.now());
+  const serverNow = useContext(ServerNowContext);
+  const [realNow, setRealNow] = useState(
+    () => initialNow ?? serverNow ?? Date.now(),
+  );
 
   useEffect(() => {
     if (overrideNow != null || timestamp == null) {

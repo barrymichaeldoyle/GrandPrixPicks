@@ -21,6 +21,7 @@ import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { lastReviewedAt } from '@/lib/lastReviewed';
+import { bucketWeatherNow } from '@/lib/weatherNow';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
   getRaceWriteupPhase,
@@ -140,7 +141,7 @@ export const Route = createFileRoute(
       context.queryClient.ensureQueryData(
         routeQuery(api.weather.getForWriteup, {
           raceSlug: RACE_SLUG,
-          now: weatherNow,
+          now: bucketWeatherNow(weatherNow),
         }),
       ),
       context.queryClient.ensureQueryData(

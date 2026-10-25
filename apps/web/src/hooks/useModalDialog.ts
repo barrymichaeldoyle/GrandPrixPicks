@@ -145,9 +145,36 @@ export function useModalDialog<Panel extends HTMLElement>({
         return;
       }
 
-      const currentIndex = focusable.indexOf(
-        document.activeElement as HTMLElement,
-      );
+      const active = document.activeElement as HTMLElement | null;
+      const currentIndex = focusable.indexOf(active as HTMLElement);
+
+      // Focus on something inside the panel that is not itself in the list (a
+      // `tabIndex={-1}` region focused by script, a `<summary>`) moves by
+      // document order. Treating it as outside sent Tab to the first control,
+      // so "Review picks" focusing the pick list, then Tab, landed on the
+      // overlay's Close button instead of the first pick.
+      if (
+        currentIndex === -1 &&
+        active &&
+        active !== panelRef.current &&
+        panelRef.current.contains(active)
+      ) {
+        const next = focusable.findIndex(
+          (element) =>
+            (active.compareDocumentPosition(element) &
+              Node.DOCUMENT_POSITION_FOLLOWING) !==
+            0,
+        );
+        const target = event.shiftKey
+          ? (focusable[(next === -1 ? focusable.length : next) - 1] ??
+            focusable.at(-1))
+          : next === -1
+            ? focusable[0]
+            : focusable[next];
+        event.preventDefault();
+        target?.focus();
+        return;
+      }
 
       // Focus sitting outside the panel (the panel itself, typically) counts as
       // being before the first element, so Tab enters rather than escapes.

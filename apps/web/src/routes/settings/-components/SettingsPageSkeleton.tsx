@@ -68,8 +68,9 @@ export function SettingsPageSkeleton() {
                     In-App
                   </p>
                   <div className="divide-y divide-border bg-page px-3">
-                    {IN_APP_SKELETON_WIDTHS.map((width) => (
-                      <div key={width} className="flex items-center gap-3 py-3">
+                    {/* Keyed by row, not width: two rows share `w-32`. */}
+                    {IN_APP_SKELETON_WIDTHS.map((width, row) => (
+                      <div key={row} className="flex items-center gap-3 py-3">
                         <div
                           className={`h-3 ${width} animate-pulse rounded bg-surface-muted`}
                         />

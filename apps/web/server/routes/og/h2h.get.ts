@@ -1,5 +1,4 @@
 import { api } from '@convex-generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 
 import { renderOgImage } from '../../../src/lib/og/renderer';
 import { h2hResultsTemplate } from '../../../src/lib/og/templates';
@@ -7,6 +6,8 @@ import { SESSION_LABELS } from '../../../src/lib/sessions';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../../../src/lib/teamColors';
 import { loadFlagDataUri } from '../../lib/ogFlag';
 import { captureServerException, startServerSpan } from '../../lib/sentry';
+import { getServerConvexClient } from '../../lib/convex';
+import { ogBadRequest } from '../../lib/ogResponses';
 
 type RouteEvent = {
   req: Request;
@@ -28,22 +29,18 @@ export default async function handler(event: RouteEvent) {
       (candidate) => candidate === sessionParam,
     );
     if (!raceSlug || !session) {
-      return badRequest(
+      return ogBadRequest(
         'Expected ?race=<slug>&session=quali|sprint_quali|sprint|race',
       );
     }
 
-    const convexUrl = process.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('Missing VITE_CONVEX_URL');
-    }
-    const convex = new ConvexHttpClient(convexUrl);
+    const convex = getServerConvexClient();
 
     const race = await convex.query(api.races.getRaceBySlug, {
       slug: raceSlug,
     });
     if (!race) {
-      return badRequest(`No race with slug "${raceSlug}"`);
+      return ogBadRequest(`No race with slug "${raceSlug}"`);
     }
 
     const results = await convex.query(api.h2h.getH2HResultsForRace, {
@@ -51,7 +48,7 @@ export default async function handler(event: RouteEvent) {
       sessionType: session,
     });
     if (!results || results.length === 0) {
-      return badRequest(
+      return ogBadRequest(
         `No ${session} head-to-head results published for "${raceSlug}"`,
       );
     }
@@ -101,11 +98,4 @@ export default async function handler(event: RouteEvent) {
     });
     return new Response('Failed to render head-to-head card', { status: 500 });
   }
-}
-
-function badRequest(message: string) {
-  return new Response(message, {
-    status: 400,
-    headers: { 'content-type': 'text/plain' },
-  });
 }

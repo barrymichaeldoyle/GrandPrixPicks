@@ -1,5 +1,4 @@
 import { api } from '@convex-generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 
 import { captureServerException, startServerSpan } from '../lib/sentry';
 import { listGuideMeta } from '../../src/lib/guideMeta';
@@ -9,6 +8,7 @@ import {
 } from '../../src/lib/reviewedDates';
 import { listRaceWriteups, getRaceWriteup } from '../../src/lib/raceWriteups';
 import { siteConfig } from '../../src/lib/site';
+import { getServerConvexClient } from '../lib/convex';
 
 type RouteEvent = {
   req: Request;
@@ -200,16 +200,12 @@ function delay(ms: number) {
 }
 
 async function loadRaceEntries() {
-  const convexUrl = process.env.VITE_CONVEX_URL;
-  if (!convexUrl) {
-    throw new Error('Missing VITE_CONVEX_URL');
-  }
+  const convex = getServerConvexClient();
 
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= SITEMAP_FETCH_RETRY_COUNT; attempt += 1) {
     try {
-      const convex = new ConvexHttpClient(convexUrl);
       const races = await convex.query(api.races.listRaces, {});
       const liveRaces = races.filter((race) => race.status !== 'cancelled');
       return liveRaces
@@ -265,9 +261,9 @@ export default async function handler(_event: RouteEvent) {
     console.error('[sitemap] generation_failed_falling_back_to_static', {
       message: error instanceof Error ? error.message : 'unknown_error',
     });
-    // Circuit pages are absent from this fallback: which ones are indexable
-    // depends on the race data that just failed to load, and omitting a page
-    // costs a crawl cycle where advertising a `noindex` one costs trust.
+    // Only the static pages: everything race-derived depends on the data
+    // that just failed to load, and omitting a page costs a crawl cycle where
+    // advertising one that should not be listed costs trust.
     return new Response(renderSitemap(staticEntries), {
       headers: {
         'cache-control': 'public, max-age=300',

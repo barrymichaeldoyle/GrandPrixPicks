@@ -94,11 +94,20 @@ function handleError(error: ErrorHandlerArgs[0], event: ErrorHandlerArgs[1]) {
   const isMachinePath = path.startsWith('/api/') || path.startsWith('/ingest');
 
   if (!wantsHtml || isMachinePath) {
+    // A 4xx message is one a route chose to send. A 5xx message is whatever
+    // threw (a Convex error, a missing env var name) and stays in the logs.
+    // Never cached, like the HTML page below: an error must not outlive it.
     return new Response(
-      JSON.stringify({ status: statusCode, message: error.message }),
+      JSON.stringify({
+        status: statusCode,
+        message: statusCode >= 500 ? 'Internal server error' : error.message,
+      }),
       {
         status: statusCode,
-        headers: { 'content-type': 'application/json;charset=UTF-8' },
+        headers: {
+          'content-type': 'application/json;charset=UTF-8',
+          'cache-control': 'no-store',
+        },
       },
     );
   }

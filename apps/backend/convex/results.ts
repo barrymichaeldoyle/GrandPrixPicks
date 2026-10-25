@@ -266,6 +266,12 @@ export async function publishResultsCore(
   if (args.classification.length < 5) {
     throw new Error('Classification must include at least top 5');
   }
+  // A driver classified twice scores both positions for every player who
+  // picked them. Every path in (admin form, OpenF1, emergency fixes) lands
+  // here, so this is where it is refused.
+  if (new Set(args.classification).size !== args.classification.length) {
+    throw new Error('Classification lists the same driver more than once');
+  }
 
   const sessionType = args.sessionType ?? 'race';
   const now = Date.now();

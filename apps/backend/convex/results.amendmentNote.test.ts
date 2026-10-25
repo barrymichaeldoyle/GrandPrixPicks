@@ -388,6 +388,28 @@ describe('publishing an amendment with an FIA decision link', () => {
     });
   });
 
+  it('refuses a classification that lists a driver twice', async () => {
+    const t = convexTest(schema, modules);
+    const { raceId, resultId, driverIds } = await seedPublishedRace(t);
+    // The admin form's live-timing preview could leave a hand-entered driver
+    // in a lower lane as well as at the top. Scored, they collect points for
+    // both positions.
+    const duplicated = [...driverIds];
+    duplicated[duplicated.length - 1] = duplicated[0];
+
+    await expect(
+      t.mutation(internal.results.emergencyPublishResults, {
+        raceId,
+        sessionType: 'race',
+        classification: duplicated,
+      }),
+    ).rejects.toThrow('same driver more than once');
+
+    await t.run(async (ctx) => {
+      expect((await ctx.db.get(resultId))?.classification).toEqual(driverIds);
+    });
+  });
+
   it('refuses a link that is not on fia.com before changing anything', async () => {
     const t = convexTest(schema, modules);
     const { raceId, resultId, driverIds } = await seedPublishedRace(t);

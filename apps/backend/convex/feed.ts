@@ -332,7 +332,6 @@ export const writeFeedEventsForSession = internalMutation({
           sessionType: args.sessionType,
           raceName: race.name,
           raceSlug: race.slug,
-          points: score.points,
         },
       );
     }

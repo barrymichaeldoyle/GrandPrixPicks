@@ -13,6 +13,7 @@ import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { query } from './_generated/server';
+import { refreshResultNotificationPoints } from './inAppNotifications';
 import { internalMutation, mutation } from './lib/standingsMutations';
 import {
   getOrCreateViewer,
@@ -1694,6 +1695,15 @@ export const scoreH2HBatch = internalMutation({
           updatedAt: now,
         });
       }
+
+      // Duels are scored in their own mutation, so the Top 5's results
+      // notification may already exist with only half the session in it.
+      await refreshResultNotificationPoints(
+        ctx,
+        userId,
+        args.raceId,
+        args.sessionType,
+      );
     }
 
     // Schedule H2H standings update for users in this batch

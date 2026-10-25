@@ -59,7 +59,7 @@ export function H2HWinnersStrip({
               key={matchup._id}
               className="inline-flex h-10 items-center rounded-sm border border-dashed border-border-strong px-2.5"
             >
-              <span className="gpp-mono text-xs text-text-muted/70" aria-hidden>
+              <span className="gpp-mono text-xs text-text-muted" aria-hidden>
                 {matchup.driver1.code} v {matchup.driver2.code}
               </span>
               <span className="sr-only">
@@ -94,7 +94,7 @@ export function H2HWinnersStrip({
                 tooltipFocusable={false}
               />
             </span>
-            <span className="gpp-mono text-xs text-text-muted/70" aria-hidden>
+            <span className="gpp-mono text-xs text-text-muted" aria-hidden>
               {beaten.code}
             </span>
             <span className="sr-only">

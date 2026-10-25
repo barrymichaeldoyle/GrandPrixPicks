@@ -1,7 +1,7 @@
 import type { Doc, Id } from '@convex-generated/dataModel';
 import { ArrowRight, Pencil } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
-import { lazy, Suspense, useState } from 'react';
+import { Suspense, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
 import { H2HDuelFocusModal } from '@/components/H2HDuelFocusModal';
@@ -17,6 +17,7 @@ import { SESSION_LABELS } from '@/lib/sessions';
 import { buildPicksMessageText, buildPicksSharePageUrl } from '@/lib/share';
 
 import type { DashboardSessionState } from './dashboardState';
+import { LazyH2HPredictionForm } from '@/components/LazyH2HPredictionForm';
 
 /**
  * The label row above a picks bar keeps its height whether or not the session
@@ -28,12 +29,6 @@ import type { DashboardSessionState } from './dashboardState';
  */
 const PICKS_LABEL_ROW =
   'flex min-h-5 items-center justify-between gap-3 pointer-coarse:min-h-11';
-
-const H2HPredictionForm = lazy(() =>
-  import('@/components/H2HPredictionForm').then((module) => ({
-    default: module.H2HPredictionForm,
-  })),
-);
 
 export type SessionPicks = {
   top5: Id<'drivers'>[] | null;
@@ -321,7 +316,7 @@ export function DashboardPicksSummary({
       >
         {matchups ? (
           <Suspense fallback={<div className="h-40" aria-busy />}>
-            <H2HPredictionForm
+            <LazyH2HPredictionForm
               // A half-called card opens as an empty one on purpose. Resuming
               // mid-sequence drops the player on battle four of eleven with no
               // account of the three behind it, and the calls it skips are

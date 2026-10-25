@@ -1,6 +1,6 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
 import { H2HDuelFocusModal } from '@/components/H2HDuelFocusModal';
@@ -19,12 +19,7 @@ import {
   SESSION_LABELS_FULL,
   type SessionType,
 } from '@/lib/sessions';
-
-const H2HPredictionForm = lazy(() =>
-  import('@/components/H2HPredictionForm').then((module) => ({
-    default: module.H2HPredictionForm,
-  })),
-);
+import { LazyH2HPredictionForm } from '@/components/LazyH2HPredictionForm';
 
 /** Same reserved-height row the dashboard card uses above its picks bars. */
 const PICKS_LABEL_ROW =
@@ -275,7 +270,7 @@ export function RaceWriteupPicksForm({
           >
             {matchups && matchups.length > 0 ? (
               <Suspense fallback={<div className="h-40" aria-busy />}>
-                <H2HPredictionForm
+                <LazyH2HPredictionForm
                   key={sessionType ?? 'all'}
                   // A half-called card opens as an empty one on purpose, as
                   // on the dashboard: eleven quick questions from the top is

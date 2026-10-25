@@ -200,7 +200,7 @@ export function LeagueMembersList({
                   className={
                     member.rank != null
                       ? 'font-semibold text-text'
-                      : 'text-text-muted/40'
+                      : 'text-text-muted'
                   }
                 >
                   {member.rank != null ? `#${member.rank}` : '—'}
@@ -212,7 +212,7 @@ export function LeagueMembersList({
                   className={
                     member.points != null
                       ? 'font-semibold text-accent'
-                      : 'text-text-muted/40'
+                      : 'text-text-muted'
                   }
                 >
                   {member.points != null ? member.points : '—'}
@@ -245,7 +245,7 @@ export function LeagueMembersList({
           <div className="hidden shrink-0 text-right sm:block">
             <span
               className={`gpp-mono text-sm font-semibold ${
-                member.points != null ? 'text-accent' : 'text-text-muted/40'
+                member.points != null ? 'text-accent' : 'text-text-muted'
               }`}
             >
               {member.points != null ? `${member.points} pts` : '—'}

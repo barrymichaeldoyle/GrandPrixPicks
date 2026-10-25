@@ -153,10 +153,8 @@ export function SessionResultsTable({
                           +{myPick.points}
                         </span>
                       </div>
-                    ) : showPickColumn ? (
-                      <span className="text-text-muted/50">&mdash;</span>
                     ) : (
-                      <span className="text-text-muted/50">&mdash;</span>
+                      <span className="text-text-muted">&mdash;</span>
                     )}
                   </td>
                 )}

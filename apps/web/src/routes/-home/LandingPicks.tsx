@@ -6,7 +6,7 @@ import {
 } from '@grandprixpicks/shared/picks';
 import { useQuery } from '@/integrations/convex/query';
 import { ChevronLeft, Pencil } from 'lucide-react';
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { LandingTopFivePicker } from './LandingTopFivePicker';
 import { Button } from '@/components/Button/Button';
@@ -29,6 +29,10 @@ import {
   setPendingSubmit,
 } from '@/lib/predictionDrafts';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import {
+  LazyH2HPredictionForm,
+  loadH2HPredictionForm,
+} from '@/components/LazyH2HPredictionForm';
 
 type PicksStep = 'top5' | 'h2h';
 export type LandingPicksInitialStep =
@@ -38,7 +42,8 @@ export type LandingPicksInitialStep =
 
 /*
  * The Top 5 picker is imported eagerly (see the import above) and the team-mate
- * form is not, which looks inconsistent but is the difference between the two:
+ * form (`LazyH2HPredictionForm`) is not, which looks inconsistent but is the
+ * difference between the two:
  * that picker is server-rendered into the landing HTML and is the first thing
  * on screen, this form is a step nobody reaches without a click.
  *
@@ -50,21 +55,6 @@ export type LandingPicksInitialStep =
  * and bounced back. Nothing was saved for it either, since the chunk is needed
  * immediately on the same page.
  */
-let h2hFormModule: Promise<
-  typeof import('@/components/H2HPredictionForm')
-> | null = null;
-
-/** Idempotent: the module cache dedupes, this just names the promise. */
-function loadH2HForm() {
-  h2hFormModule ??= import('@/components/H2HPredictionForm');
-  return h2hFormModule;
-}
-
-const H2HPredictionForm = lazy(() =>
-  loadH2HForm().then((module) => ({
-    default: module.H2HPredictionForm,
-  })),
-);
 
 export const LANDING_PICKS_ANCHOR = PICKS_ANCHOR;
 
@@ -260,7 +250,7 @@ export function LandingPicks({
     // card — three states to say one thing. Holding the visible step until the
     // card can actually render makes it one.
     let cancelled = false;
-    void loadH2HForm().then(() => {
+    void loadH2HPredictionForm().then(() => {
       if (!cancelled) {
         setActiveStep('h2h');
       }
@@ -274,7 +264,7 @@ export function LandingPicks({
   // battles" is a click we can see coming from the moment the picker is on
   // screen. Fetching it on idle keeps that handoff instant too.
   useEffect(() => {
-    return deferUntilAfterLoad(() => void loadH2HForm());
+    return deferUntilAfterLoad(() => void loadH2HPredictionForm());
   }, []);
 
   useEffect(() => {
@@ -549,7 +539,7 @@ export function LandingPicks({
                   <H2HPickerSkeleton />
                 ) : (
                   <Suspense fallback={<H2HPickerSkeleton />}>
-                    <H2HPredictionForm
+                    <LazyH2HPredictionForm
                       key={pickerGeneration}
                       raceId={raceId}
                       matchups={matchups}

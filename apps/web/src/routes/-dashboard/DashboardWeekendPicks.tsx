@@ -15,7 +15,7 @@ import {
   Trophy,
 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
 import { H2HDuelFormGuide } from '@/components/H2HDuelFormGuide';
@@ -55,6 +55,10 @@ import {
   weekendPicksReady,
   type DashboardSessionState,
 } from './dashboardState';
+import {
+  LazyH2HPredictionForm,
+  loadH2HPredictionForm,
+} from '@/components/LazyH2HPredictionForm';
 
 type CurrentWeekend = NonNullable<
   FunctionReturnType<typeof api.races.getCurrentWeekend>
@@ -85,21 +89,6 @@ const SESSION_TABPANEL_ID = 'dashboard-session-panel';
 function sessionTabId(sessionType: SessionType) {
   return `dashboard-session-tab-${sessionType}`;
 }
-
-let h2hFormModule: Promise<
-  typeof import('@/components/H2HPredictionForm')
-> | null = null;
-
-function loadH2HForm() {
-  h2hFormModule ??= import('@/components/H2HPredictionForm');
-  return h2hFormModule;
-}
-
-const H2HPredictionForm = lazy(() =>
-  loadH2HForm().then((module) => ({
-    default: module.H2HPredictionForm,
-  })),
-);
 
 export function DashboardWeekendPicks({
   weekend,
@@ -314,7 +303,7 @@ export function DashboardWeekendPicksReady({
   }, [step, pickerOpen, onModalClose]);
 
   useEffect(() => {
-    return deferUntilAfterLoad(() => void loadH2HForm());
+    return deferUntilAfterLoad(() => void loadH2HPredictionForm());
   }, []);
 
   const liveMatchups = useQuery(
@@ -516,7 +505,7 @@ export function DashboardWeekendPicksReady({
             <H2HPickerSkeleton />
           ) : (
             <Suspense fallback={<H2HPickerSkeleton />}>
-              <H2HPredictionForm
+              <LazyH2HPredictionForm
                 key={`h2h-${pickerGeneration}`}
                 raceId={weekend.race._id}
                 matchups={matchups}

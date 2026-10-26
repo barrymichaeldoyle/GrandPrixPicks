@@ -290,7 +290,40 @@ Changes made the same day:
 Decision: wait. Re-read the write-up indexing status and the H2H page CTR at
 the next checkpoint.
 
+## 2026-10-26: checkpoint after Austin
+
+Search Console, 7 days to 24 October: 48 clicks, 1.74K impressions, 2.8% CTR,
+average position 18.1.
+
+| Page                                            | Clicks | Impr | CTR  | Position |
+| ----------------------------------------------- | ------ | ---- | ---- | -------- |
+| `/f1-2026-united-states-grand-prix-predictions` | 35     | 607  | 5.8% | 8.4      |
+| `/`                                             | 4      | 198  | 2%   | 12.5     |
+| `/f1-predictions-this-weekend`                  | 3      | 53   | 5.7% | 7.4      |
+| `/f1-2026-mexico-city-grand-prix-predictions`   | 3      | 34   | 8.8% | 7.0      |
+| `/guides/f1-points-system-explained`            | 1      | 348  | 0.3% | 39.3     |
+| `/f1-2027-driver-line-up`                       | 1      | 20   | 5%   | 22.3     |
+| `/f1-qualifying-standings`                      | 1      | 16   | 6.2% | 8.1      |
+| `/f1-standings`                                 | 0      | 141  | 0%   | 32.7     |
+| `/f1-team-mate-battles`                         | 0      | 123  | 0%   | 6.9      |
+| `/f1-2027-calendar`                             | 0      | 51   | 0%   | 30.9     |
+
+- Mexico City is indexed and in the top ten (7.0) six days before its race,
+  with the click rate the Baku and Bahrain write-ups had in race week.
+- `/f1-team-mate-battles`: the "(H2H)" title did not move it. Position 6.9,
+  123 impressions, no clicks.
+- Indexing: Qatar, Abu Dhabi and São Paulo are "URL is on Google". Las Vegas
+  was "URL is unknown to Google" with "No referring sitemaps detected", though
+  the live sitemap lists it. Indexing requested by hand on 2026-10-26.
+- `/f1-2027-driver-line-up` (PostHog sync, from 21 September): about position
+  11 for the fortnight from 4 October, 33.6 the week of 18 October on 7
+  impressions. Almost all of it is "haas 2027 lineup" queries. No query about
+  penalty points, super licences or race bans reached the site, so the
+  penalty-points page stays unbuilt.
+- No query mentioning Rwanda, Kigali, Bugesera or an African Grand Prix since
+  13 October.
+
 ### Next checkpoint
 
-**2026-10-27**, two days after Austin. Check that Mexico City is indexed and
-ranking before its 1 November race, and the `/f1-team-mate-battles` CTR.
+After Las Vegas (22 November): is Las Vegas indexed and ranking in its race
+week, and has anything moved `/f1-team-mate-battles` off zero clicks.

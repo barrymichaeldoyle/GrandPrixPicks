@@ -195,22 +195,35 @@ function sessionTokenExpiresAt(token: string): number | null {
  */
 export async function getFreshClerkSessionToken(
   request: Request,
+  /** Told why no token came back, as `stage` or `stage: error message`. */
+  onFailure?: (reason: string) => void,
 ): Promise<string | null> {
   const token = await getClerkSessionToken(request);
   if (!token) {
+    onFailure?.('no_cookie');
     return null;
   }
   const expiresAt = sessionTokenExpiresAt(token);
   if (expiresAt === null) {
+    onFailure?.('unreadable_cookie');
     return null;
   }
   if (expiresAt - Date.now() > EXPIRY_MARGIN_MS) {
     return token;
   }
-  return mintSessionToken(token);
+  return mintSessionToken(token, onFailure);
 }
 
-async function mintSessionToken(expiredToken: string): Promise<string | null> {
+async function mintSessionToken(
+  expiredToken: string,
+  onFailure?: (reason: string) => void,
+): Promise<string | null> {
+  function logMintFailure(stage: string, error?: unknown) {
+    const reason = describeMintFailure(stage, error);
+    console.warn('[auth] session token mint failed', reason);
+    onFailure?.(reason);
+  }
+
   const secretKey = process.env.CLERK_SECRET_KEY;
   if (!secretKey) {
     logMintFailure('no_secret_key');
@@ -255,19 +268,17 @@ async function mintSessionToken(expiredToken: string): Promise<string | null> {
  * Every failure above returns null and the page falls back to the client, so
  * nothing else would say why the dashboard still rendered as a skeleton.
  * Server-side Sentry does not run on Pages (`instrument.server.mjs` is loaded
- * only by the Node start script), so this goes to the Workers log, read with
- * `wrangler pages deployment tail`. The stage and the error, never the token.
+ * only by the Node start script). The stage and the error, never the token.
  */
-function logMintFailure(stage: string, error?: unknown) {
-  console.warn('[auth] session token mint failed', {
-    stage,
-    error:
-      error instanceof Error
-        ? `${error.name}: ${error.message}`
-        : error === undefined
-          ? null
-          : String((error as { message?: unknown }).message ?? error),
-  });
+function describeMintFailure(stage: string, error?: unknown): string {
+  if (error === undefined) {
+    return stage;
+  }
+  const message =
+    error instanceof Error
+      ? `${error.name}: ${error.message}`
+      : String((error as { message?: unknown }).message ?? error);
+  return `${stage}: ${message}`.slice(0, 200);
 }
 
 export function buildConvexTokenIdentifier(params: {

@@ -2,7 +2,7 @@ import { api } from '@convex-generated/api';
 import type { FunctionReturnType } from 'convex/server';
 import { ConvexHttpClient } from 'convex/browser';
 import { createServerFn } from '@tanstack/react-start';
-import { getRequest } from '@tanstack/react-start/server';
+import { getRequest, setResponseHeader } from '@tanstack/react-start/server';
 
 import { bucketWeatherNow } from '@/lib/weatherNow';
 import {
@@ -42,6 +42,21 @@ export type DashboardSsrData = FunctionReturnType<
  * existed, so it falls back to fetching on the client. There is no case where
  * this is worse than not having it.
  */
+/**
+ * Why a signed-in render came back without the viewer's data, on the response
+ * itself as `x-gpp-ssr-auth`. Pages will not tail this project's logs, and a
+ * header can be read from the browser that hit the miss. The document is
+ * `private, no-store` here, so no other visitor ever sees it. Never a token.
+ */
+function reportSsrMiss(reason: string) {
+  console.warn('[dashboard-ssr] no viewer data', reason);
+  try {
+    setResponseHeader('x-gpp-ssr-auth', reason.replace(/[^\x20-\x7e]/g, '?'));
+  } catch {
+    // Outside a request (tests): the log above is enough.
+  }
+}
+
 export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
   async (): Promise<DashboardSsrData | null> => {
     try {
@@ -53,13 +68,14 @@ export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
       if (!(await isClerkSessionPresent(request))) {
         return null;
       }
-      const token = await getFreshClerkSessionToken(request);
+      const token = await getFreshClerkSessionToken(request, reportSsrMiss);
       if (!token) {
         return null;
       }
 
       const convexUrl = import.meta.env.VITE_CONVEX_URL;
       if (!convexUrl) {
+        reportSsrMiss('no_convex_url');
         return null;
       }
 
@@ -71,6 +87,7 @@ export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
         client.query(api.weather.getUpcoming, { now: weatherNow }),
       ]);
       if (!dashboard) {
+        reportSsrMiss('no_dashboard');
         return null;
       }
       return { ...dashboard, weather, weatherNow };

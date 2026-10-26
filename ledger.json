@@ -1205,6 +1205,25 @@
       "expiresAt": "2026-11-01T20:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6adeeedcd62a2f4f00431616"
+    },
+    {
+      "id": "d8b8e2b90617275612fecbf3d5e6805a1d5b6f1531a1f2ddc0c290337588ccbd",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "red-bull-usa-gp-starts-radio-strategy",
+          "revision": "7cfcdc22273545021f8de68038743dad049bc818740be374e52c4d99919b8107"
+        }
+      ],
+      "text": "Verstappen after Austin: \"Maybe we just start communicating in sign language.\" Radio dropouts, a disputed soft-tyre stop and a clutch Hadjar wants redesigned.",
+      "link": "https://grandprixpicks.com/f1-2026-usa-grand-prix-predictions?story=red-bull-usa-gp-starts-radio-strategy",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=red-bull-usa-gp-starts-radio-strategy&v=7cfcdc222735",
+      "dueAt": "2026-10-26T17:00:00.000Z",
+      "expiresAt": "2026-10-27T12:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

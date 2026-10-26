@@ -1,0 +1,26 @@
+[
+  {
+    "raceSlug": "usa-2026",
+    "key": "red-bull-usa-gp-starts-radio-strategy",
+    "headline": "Verstappen and Hadjar criticise Red Bull's starts, radio and strategy after Austin",
+    "body": "Verstappen finished third and Hadjar sixth after poor getaways from second and third on the grid. Both reported radio problems during the race, Verstappen disputed the second-stint soft-tyre call, and Hadjar said the clutch needs a redesign because it is too fragile in the heat. Mekies said the team will review why the soft tyres degraded so much.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["VER", "HAD"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/why-verstappen-hadjar-furious-red-bull-f1-us-gp/",
+    "sourcePublishedAt": "2026-10-26T02:22:01Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "hamilton-usa-gp-front-wing-understeer",
+    "headline": "Hamilton says Ferrari's front wing setting cost him a podium in Austin",
+    "body": "Hamilton finished fourth after heavy understeer in the first two stints and says he ran 12 clicks of front wing less than needed, even after adding four at each stop. He also started on used softs, which he put at two seconds of race time. Fourth leaves him a point behind Russell in the fight for second in the drivers' championship.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HAM"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/lewis-hamilton-reveals-the-ferrari-setup-mistake-that-cost-him-us-gp-podium/10868416/",
+    "sourcePublishedAt": "2026-10-25T23:33:18Z"
+  }
+]

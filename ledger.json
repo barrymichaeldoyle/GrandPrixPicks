@@ -1185,6 +1185,25 @@
       "expiresAt": "2026-10-25T19:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6add9cdf0b5343d070ba255d"
+    },
+    {
+      "id": "f14dd2d7867ba9a3761c20040af1f4518a4274e578c110d6fbd67742c2290a16",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "mexico-2026",
+          "key": "antonelli-title-mexico-scenarios",
+          "revision": "8eae2a940a7bdc4eb576ab228ca8fee6a524539a1dbacfe7d9a37dcc7e37af47"
+        }
+      ],
+      "text": "Antonelli can be champion in Mexico City. Russell would need to win with him no higher than tenth; Hamilton would need to win with him scoring nothing.",
+      "link": "https://grandprixpicks.com/f1-2026-mexican-grand-prix-predictions?story=antonelli-title-mexico-scenarios",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=antonelli-title-mexico-scenarios&v=8eae2a940a7b",
+      "dueAt": "2026-10-26T07:30:00.000Z",
+      "expiresAt": "2026-11-01T20:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

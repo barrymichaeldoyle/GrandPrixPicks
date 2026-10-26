@@ -129,7 +129,7 @@ export const Route = createFileRoute('/')({
     // would add an HTTP round trip to re-fetch what the socket has. `document`
     // is the check rather than `import.meta.env.SSR` because this file is also
     // rendered by the test environment.
-    const [data, dashboard] = await Promise.all([
+    const [data, dashboardSsr] = await Promise.all([
       context.queryClient.ensureQueryData(
         routeQuery(api.home.getHomePageData, { now }),
       ),
@@ -137,6 +137,7 @@ export const Route = createFileRoute('/')({
         ? fetchDashboardSsrData()
         : Promise.resolve(null),
     ]);
+    const dashboard = dashboardSsr?.data ?? null;
 
     // Keep the public landing payload focused on the data it actually renders.
     // The backend query is shared with other home states and intentionally
@@ -165,6 +166,9 @@ export const Route = createFileRoute('/')({
        */
       ssrViewerDataMissing:
         typeof document === 'undefined' && dashboard === null,
+      // Why, for a signed-in render: read from the page source when the
+      // dashboard keeps arriving as a skeleton. Null on client navigations.
+      ssrMissReason: dashboardSsr?.miss ?? null,
       now,
     };
   },

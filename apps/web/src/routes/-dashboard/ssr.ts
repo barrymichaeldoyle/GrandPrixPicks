@@ -2,7 +2,7 @@ import { api } from '@convex-generated/api';
 import type { FunctionReturnType } from 'convex/server';
 import { ConvexHttpClient } from 'convex/browser';
 import { createServerFn } from '@tanstack/react-start';
-import { getRequest, setResponseHeader } from '@tanstack/react-start/server';
+import { getRequest } from '@tanstack/react-start/server';
 
 import { bucketWeatherNow } from '@/lib/weatherNow';
 import {
@@ -43,22 +43,24 @@ export type DashboardSsrData = FunctionReturnType<
  * this is worse than not having it.
  */
 /**
- * Why a signed-in render came back without the viewer's data, on the response
- * itself as `x-gpp-ssr-auth`. Pages will not tail this project's logs, and a
- * header can be read from the browser that hit the miss. The document is
- * `private, no-store` here, so no other visitor ever sees it. Never a token.
+ * The dashboard, or why a signed-in render came back without it: the stage
+ * and error, never a token. The reason travels in the loader data, which is
+ * serialized into this viewer's own `private, no-store` document, because
+ * Pages will not tail this project's logs and server-side Sentry does not run
+ * there. A header set from here did not reach the document.
  */
-function reportSsrMiss(reason: string) {
-  console.warn('[dashboard-ssr] no viewer data', reason);
-  try {
-    setResponseHeader('x-gpp-ssr-auth', reason.replace(/[^\x20-\x7e]/g, '?'));
-  } catch {
-    // Outside a request (tests): the log above is enough.
-  }
-}
+export type DashboardSsrResult = {
+  data: DashboardSsrData | null;
+  miss: string | null;
+};
 
 export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
-  async (): Promise<DashboardSsrData | null> => {
+  async (): Promise<DashboardSsrResult> => {
+    let miss: string | null = null;
+    function reportSsrMiss(reason: string) {
+      console.warn('[dashboard-ssr] no viewer data', reason);
+      miss = reason;
+    }
     try {
       const request = getRequest();
       // The same test the cache headers use. A request that `__client_uat`
@@ -66,17 +68,16 @@ export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
       // viewer's dashboard off a lingering `__session` here would put one
       // player's picks and leagues in the page every visitor is then served.
       if (!(await isClerkSessionPresent(request))) {
-        return null;
+        return { data: null, miss: 'signed_out' };
       }
       const token = await getFreshClerkSessionToken(request, reportSsrMiss);
       if (!token) {
-        return null;
+        return { data: null, miss: miss ?? 'no_token' };
       }
 
       const convexUrl = import.meta.env.VITE_CONVEX_URL;
       if (!convexUrl) {
-        reportSsrMiss('no_convex_url');
-        return null;
+        return { data: null, miss: 'no_convex_url' };
       }
 
       const client = new ConvexHttpClient(convexUrl);
@@ -87,20 +88,18 @@ export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
         client.query(api.weather.getUpcoming, { now: weatherNow }),
       ]);
       if (!dashboard) {
-        reportSsrMiss('no_dashboard');
-        return null;
+        return { data: null, miss: 'no_dashboard' };
       }
-      return { ...dashboard, weather, weatherNow };
+      return { data: { ...dashboard, weather, weatherNow }, miss: null };
     } catch (error) {
       // A Convex error, or a session that ended between the mint and the read.
-      // The page still works, from the client; logged so a skeleton that
-      // should have been a dashboard can be told apart from a failed mint.
+      // The page still works, from the client.
       reportSsrMiss(
         `read: ${
           error instanceof Error ? `${error.name}: ${error.message}` : 'unknown'
         }`.slice(0, 200),
       );
-      return null;
+      return { data: null, miss };
     }
   },
 );

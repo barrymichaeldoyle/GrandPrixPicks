@@ -33,7 +33,7 @@ import {
   useIsConfirmedSignedOut,
   useIsSignedIn,
 } from '../../lib/useIsSignedIn';
-import { useCountdownNow } from '../../lib/useNow';
+import { useNowAtBoundaries } from '../../lib/useNow';
 import { useSignInSheet } from '../../lib/useSignInSheet';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { useToast } from '../../providers/ToastProvider';
@@ -109,8 +109,9 @@ function PredictForRace({
     () => getSessionsForWeekend(Boolean(race.hasSprint)),
     [race.hasSprint],
   );
-  // Every second only inside the last day before a lock; see useCountdownNow.
-  const now = useCountdownNow(
+  // Moves only when a session locks: the countdowns tick on their own clocks,
+  // so the editors are not re-rendered every second. See useNowAtBoundaries.
+  const now = useNowAtBoundaries(
     weekendSessions.map(
       (session) =>
         capabilities.find((c) => c.sessionType === session)?.lockAt ??
@@ -461,7 +462,6 @@ function PredictForRace({
           h2h={sessionH2H}
           hasAnyTop5={hasAnyTop5}
           matchups={matchups}
-          now={now}
           onEditTop5={() => setEmbeddedPicker('top5')}
           onFinishH2H={() => {
             setEmbeddedH2HMatchupId(undefined);
@@ -583,7 +583,7 @@ function PredictForRace({
         {embedded ? null : <RaceRecapCard />}
 
         {embedded ? null : (
-          <PageHeader race={race} selectedSession={selectedSession} now={now} />
+          <PageHeader race={race} selectedSession={selectedSession} />
         )}
 
         {(practiceResults?.length ?? 0) > 0 ? (

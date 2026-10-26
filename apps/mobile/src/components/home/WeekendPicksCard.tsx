@@ -27,6 +27,7 @@ import { PrimaryButton } from '../ui/PrimaryButton';
 import { SlantedStripe } from '../ui/SlantedStripe';
 import { Numeral } from '../ui/Numeral';
 import { siteUrl } from '../../lib/siteUrl';
+import { useCountdownNow, useNow } from '../../lib/useNow';
 
 const LABEL = 'text-xs font-medium text-muted';
 
@@ -50,7 +51,6 @@ export function WeekendPicksCard({
   sessions,
   selectedSession,
   onSelectSession,
-  now,
   drivers,
   matchups,
   top5,
@@ -71,7 +71,6 @@ export function WeekendPicksCard({
   sessions: ReadonlyArray<WeekendSession>;
   selectedSession: SessionType;
   onSelectSession?: (session: SessionType) => void;
-  now: number;
   drivers: ReadonlyArray<Driver>;
   matchups: ReadonlyArray<H2HBarMatchup>;
   top5: ReadonlyArray<string>;
@@ -152,7 +151,7 @@ export function WeekendPicksCard({
           ))}
         </ScrollView>
         <View className="pr-4">
-          <SessionClock now={now} session={active} />
+          <SessionClock session={active} />
         </View>
       </View>
 
@@ -176,7 +175,7 @@ export function WeekendPicksCard({
         {notice ? <View className="mt-4">{notice}</View> : null}
       </View>
 
-      <ForecastRow now={now} raceSlug={race.slug} startAt={active?.lockAt} />
+      <ForecastRow raceSlug={race.slug} startAt={active?.lockAt} />
 
       {writeup ? (
         <Pressable
@@ -379,14 +378,11 @@ function SessionChip({
   );
 }
 
-function SessionClock({
-  session,
-  now,
-}: {
-  session: WeekendSession | undefined;
-  now: number;
-}) {
+function SessionClock({ session }: { session: WeekendSession | undefined }) {
   const { numeralFontFamily } = useTypography();
+  // Its own clock, so the second-by-second tick of the last day re-renders
+  // this line and not the card and editors around it.
+  const now = useCountdownNow([session?.lockAt]);
   if (!session) {
     return null;
   }
@@ -428,13 +424,13 @@ function SessionClock({
 function ForecastRow({
   raceSlug,
   startAt,
-  now,
 }: {
   raceSlug: string;
   startAt: number | null | undefined;
-  now: number;
 }) {
   const { convexEnabled } = useMobileConfig();
+  // The query argument is bucketed, so a minute is plenty.
+  const now = useNow(60_000);
   const weather = useQuery(
     api.weather.getByRaceSlug,
     convexEnabled ? { raceSlug, now: bucketWeatherNow(now) } : 'skip',

@@ -94,8 +94,10 @@ export function FeedScreen() {
   // after sign-out/in never sees the previous player's history.
   const [archive, setArchive] = useState<{
     viewerId: string | undefined;
+    /** Where the archive begins: the last live page's end when it was read. */
+    startCursor: NonNullable<FeedPage>['nextCursor'];
     pages: NonNullable<FeedPage>[];
-  }>({ viewerId: undefined, pages: [] });
+  }>({ viewerId: undefined, startCursor: null, pages: [] });
   const [archiveLoading, setArchiveLoading] = useState(false);
 
   const page0 = useQuery(
@@ -212,6 +214,55 @@ export function FeedScreen() {
   const lastLoadedPage = loadedPages.at(-1);
   const hasMore = lastLoadedPage?.hasMore ?? false;
 
+  // The live pages move as events arrive, but the archive was read once from
+  // where the last of them ended then. A new event at the top pushes the last
+  // live page's final event past that point, onto no page at all. When the
+  // live end moves, the page that now follows it goes in front of the
+  // archive; the merge below drops the events the two share.
+  const liveEndCursor =
+    activePagesCount > MAX_EXTRA_PAGES ? page4?.nextCursor : undefined;
+  const bridgingRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (
+      archivePages.length === 0 ||
+      !liveEndCursor ||
+      liveEndCursor === archive.startCursor ||
+      bridgingRef.current === liveEndCursor
+    ) {
+      return;
+    }
+    bridgingRef.current = liveEndCursor;
+    const viewerId = archive.viewerId;
+    convex
+      .query(api.feed.getPersonalizedFeed, { paginationCursor: liveEndCursor })
+      .then((page) => {
+        if (!page) {
+          return;
+        }
+        setArchive((current) =>
+          current.viewerId === viewerId
+            ? {
+                viewerId,
+                startCursor: liveEndCursor,
+                pages: [page as NonNullable<FeedPage>, ...current.pages],
+              }
+            : current,
+        );
+      })
+      .catch(() => {
+        // The gap stays until the live end moves again or the screen reloads.
+      })
+      .finally(() => {
+        bridgingRef.current = null;
+      });
+  }, [
+    archive.startCursor,
+    archive.viewerId,
+    archivePages.length,
+    convex,
+    liveEndCursor,
+  ]);
+
   function handleLoadMore() {
     if (isLoadingMore || !hasMore || !lastLoadedPage?.nextCursor) {
       return;
@@ -228,6 +279,8 @@ export function FeedScreen() {
           if (page) {
             setArchive({
               viewerId: me?._id,
+              startCursor:
+                archivePages.length > 0 ? archive.startCursor : nextCursor,
               pages: [...archivePages, page as NonNullable<FeedPage>],
             });
           }

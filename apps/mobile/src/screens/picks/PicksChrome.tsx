@@ -7,6 +7,7 @@ import {
 import { FlagImage } from '../../components/ui/FlagImage';
 import { useUserDateFormat } from '../../lib/dates';
 import { formatCountdown, getLockStatusViewModel } from '../../lib/lockTime';
+import { useCountdownNow } from '../../lib/useNow';
 import { colors } from '../../theme/tokens';
 import { useTypography } from '../../theme/typography';
 import { Pressable, Text, View } from '../../tw';
@@ -17,15 +18,14 @@ import { getSessionLockAt, type RaceDoc } from './picksShared';
 export function PageHeader({
   race,
   selectedSession,
-  now,
 }: {
   race: RaceDoc;
   selectedSession: SessionType;
-  now: number;
 }) {
   const { formatRaceDate } = useUserDateFormat();
   const { titleFontFamily } = useTypography();
   const lockAt = getSessionLockAt(race, selectedSession);
+  const now = useCountdownNow([lockAt]);
   const remaining =
     typeof lockAt === 'number' ? lockAt - now : Number.POSITIVE_INFINITY;
   const lockStatus = getLockStatusViewModel(remaining, now);

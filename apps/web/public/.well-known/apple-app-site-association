@@ -6,12 +6,12 @@
         "appID": "LBZ6C9H52C.com.barrymichaeldoyle.grandprixpicks",
         "paths": [
           "/predict",
-          "/predict/*",
           "/feed",
           "/feed/*",
           "/leaderboard",
           "/more",
-          "/more/*",
+          "/more/settings",
+          "/notifications",
           "/sign-in"
         ]
       }

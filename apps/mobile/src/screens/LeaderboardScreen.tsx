@@ -32,6 +32,7 @@ import { useMobileConfig } from '../providers/mobile-config';
 import { colors } from '../theme/tokens';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from '../tw';
 import { leaderboardRowLabel } from '../lib/leaderboardRowLabel';
+import { isRaceSelectableForLeaderboard } from '@grandprixpicks/shared/sessions';
 
 type TimeScope = 'weekend' | 'season';
 type GameMode = 'combined' | 'top5' | 'h2h';
@@ -86,21 +87,6 @@ const SCOPE_OPTIONS = [
   { value: 'global', label: 'Global' },
   { value: 'following', label: 'Following' },
 ] as const;
-
-// Mirrors web's isRaceSelectableForLeaderboard: a race joins the weekend
-// selector once its first session has locked (or it is locked/finished).
-function isRaceSelectable(race: RaceLite, now: number): boolean {
-  if (race.status === 'cancelled') {
-    return false;
-  }
-  if (race.status === 'finished' || race.status === 'locked') {
-    return true;
-  }
-  const firstLockAt = race.hasSprint
-    ? (race.sprintQualiLockAt ?? race.qualiLockAt)
-    : race.qualiLockAt;
-  return firstLockAt !== undefined && now >= firstLockAt;
-}
 
 function modeSubline(entry: Entry, mode: GameMode): string | null {
   // Combined deliberately has no subline of its own, so it falls through to
@@ -318,7 +304,7 @@ export function LeaderboardScreen() {
   }
 
   const selectableRaces = (allRaces ?? [])
-    .filter((r) => isRaceSelectable(r, now))
+    .filter((r) => isRaceSelectableForLeaderboard(r, now))
     .concat(
       defaultRace && !(allRaces ?? []).some((r) => r._id === defaultRace._id)
         ? [defaultRace]

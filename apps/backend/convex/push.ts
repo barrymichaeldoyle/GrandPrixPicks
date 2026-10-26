@@ -256,6 +256,28 @@ export const deleteExpoPushToken = mutation({
   },
 });
 
+/**
+ * Stop pushing to a device that is no longer signed in, without a session.
+ *
+ * `deleteExpoPushToken` needs the account the token belongs to, and a device
+ * whose session was revoked elsewhere (or that signed out offline and gave up
+ * waiting) has none: it kept receiving that player's reminders and results
+ * while signed out. Only the device knows its token, so holding it is the
+ * proof, and all it can do is turn that device's pushes off.
+ */
+export const releaseExpoPushToken = mutation({
+  args: { token: v.string() },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query('expoPushTokens')
+      .withIndex('by_token', (q) => q.eq('token', args.token))
+      .unique();
+    if (existing) {
+      await ctx.db.delete(existing._id);
+    }
+  },
+});
+
 export const getSubscriptionsForUsers = internalQuery({
   args: {
     userIds: v.array(v.id('users')),

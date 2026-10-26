@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   COARSE_TICK_MS,
   countdownTickMs,
+  nextBoundary,
   SECONDS_SHOWN_WITHIN_MS,
 } from './useNow';
 
@@ -43,5 +44,17 @@ describe('countdownTickMs', () => {
   it('ticks coarsely with nothing ahead', () => {
     expect(countdownTickMs([], now)).toBe(COARSE_TICK_MS);
     expect(countdownTickMs([now - 1], now)).toBe(COARSE_TICK_MS);
+  });
+});
+
+describe('nextBoundary', () => {
+  it('is the soonest target still ahead', () => {
+    expect(nextBoundary([now - 1, now + 5_000, now + 1_000, null], now)).toBe(
+      now + 1_000,
+    );
+  });
+
+  it('is undefined once every target has passed', () => {
+    expect(nextBoundary([now - 1, now, undefined], now)).toBeUndefined();
   });
 });

@@ -55,6 +55,7 @@ function ClerkAwareNotifications() {
   const { isSignedIn, user } = useUser();
   const saveToken = useMutation(api.push.saveExpoPushToken);
   const deleteToken = useMutation(api.push.deleteExpoPushToken);
+  const releaseToken = useMutation(api.push.releaseExpoPushToken);
   const markOpened = useMutation(api.notificationDelivery.markOpened);
 
   // Mirror the in-app unread count on the home-screen icon badge. The count
@@ -70,6 +71,33 @@ function ClerkAwareNotifications() {
       // Badge permission not granted — nothing to do.
     });
   }, [unreadCount]);
+
+  // Signed out with a token still stored means sign-out never reached the
+  // server: the session was revoked from another device, or sign-out gave up
+  // waiting offline. Without this the phone kept getting the old player's
+  // pushes. The release needs no session, and Convex holds it until online.
+  const signedInRef = useRef(isSignedIn);
+  useEffect(() => {
+    signedInRef.current = isSignedIn;
+    if (isSignedIn !== false) {
+      return;
+    }
+    void (async () => {
+      const token = await getStoredExpoPushToken();
+      if (!token) {
+        return;
+      }
+      await releaseToken({ token });
+      // A queued release can land after the next sign-in has saved the same
+      // token again; forgetting it then would leave the next sign-out unable
+      // to unregister it.
+      if (signedInRef.current === false) {
+        await clearStoredExpoPushToken();
+      }
+    })().catch((err) => {
+      console.warn('[notifications] token release failed', err);
+    });
+  }, [isSignedIn, releaseToken]);
 
   // Refresh on account/permission changes. Cache only successful persistence.
   useEffect(() => {

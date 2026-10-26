@@ -1,5 +1,6 @@
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 // Load the pure parser without importing the native rendering entry point.
 const navigationRequire = createRequire(
@@ -44,5 +45,27 @@ describe('mobile links', () => {
       'HomeTab',
       'RaceDetail',
     ]);
+  });
+  // iOS hands the app every URL the web's association file claims. One the
+  // app cannot route opens it on whatever it last showed, and the page the
+  // link was for is gone: `/predict/*` and `/more/*` were claimed that way.
+  it('can open every path the association file claims', () => {
+    const association = JSON.parse(
+      readFileSync(
+        fileURLToPath(
+          new URL(
+            '../../../web/public/.well-known/apple-app-site-association',
+            import.meta.url,
+          ).href,
+        ),
+        'utf8',
+      ),
+    ) as { applinks: { details: { paths: string[] }[] } };
+    const paths = association.applinks.details.flatMap((detail) =>
+      detail.paths.map((path) => path.replace('*', 'sample')),
+    );
+    for (const path of paths) {
+      expect(getStateFromPath(path, linking.config), path).toBeDefined();
+    }
   });
 });

@@ -45,6 +45,58 @@ export function useCountdownNow(
   return now;
 }
 
+/** The soonest of `targets` still after `nowMs`, or undefined when none is. */
+export function nextBoundary(
+  targets: ReadonlyArray<number | null | undefined>,
+  nowMs: number,
+): number | undefined {
+  let nearest: number | undefined;
+  for (const target of targets) {
+    if (
+      typeof target === 'number' &&
+      target > nowMs &&
+      (nearest === undefined || target < nearest)
+    ) {
+      nearest = target;
+    }
+  }
+  return nearest;
+}
+
+/**
+ * A clock that only moves when one of `targets` passes.
+ *
+ * For a screen that needs to know *whether* a session has locked, not how
+ * long is left. The picks screen read `useCountdownNow`, so inside the last day
+ * before a lock it re-rendered every second, the Top 5 being dragged and the
+ * team-mate editor included, for the sake of two countdown strings. Those now
+ * keep their own clocks, and the screen wakes once per lock.
+ */
+export function useNowAtBoundaries(
+  targets: ReadonlyArray<number | null | undefined>,
+): number {
+  const [now, setNow] = useState(() => Date.now());
+  const boundary = nextBoundary(targets, now);
+
+  useEffect(() => {
+    if (boundary === undefined) {
+      return;
+    }
+    // Capped like `useIsBefore`: past the 32-bit limit a timeout fires at once.
+    const id = setTimeout(
+      () => {
+        setNow(Date.now());
+      },
+      Math.min(boundary - Date.now() + 250, 2_147_483_000),
+    );
+    return () => clearTimeout(id);
+    // `now` too: a timer that fires a hair early leaves the same boundary, and
+    // has to be set again rather than never.
+  }, [boundary, now]);
+
+  return now;
+}
+
 export function useNow(refreshMs = 1000) {
   const [now, setNow] = useState(() => Date.now());
 

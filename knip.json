@@ -48,8 +48,7 @@
     "apps/mobile": {
       "entry": ["App.tsx", "plugins/*.cjs"],
       "project": ["**/*.{ts,tsx,js,cjs,css}"],
-      "ignoreDependencies": ["tailwind-merge", "clsx"],
-      "ignore": ["src/tw/index.tsx"]
+      "ignoreDependencies": ["tailwind-merge", "clsx"]
     },
     "apps/reddit-news": {
       "entry": ["src/server/index.ts"],

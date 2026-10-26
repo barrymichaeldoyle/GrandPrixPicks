@@ -213,23 +213,61 @@ export async function getFreshClerkSessionToken(
 async function mintSessionToken(expiredToken: string): Promise<string | null> {
   const secretKey = process.env.CLERK_SECRET_KEY;
   if (!secretKey) {
+    logMintFailure('no_secret_key');
     return null;
   }
+  let sid: unknown;
   try {
     const verified = await verifyToken(expiredToken, {
       secretKey,
       ...(process.env.CLERK_JWT_KEY && { jwtKey: process.env.CLERK_JWT_KEY }),
       clockSkewInMs: STALE_SESSION_GRACE_MS,
     });
-    const sid = (verified.data as { sid?: unknown } | undefined)?.sid;
-    if (typeof sid !== 'string' || !sid) {
+    // Returned, not thrown: a rejected token comes back as `{ errors }`.
+    const rejection = (verified as { errors?: readonly unknown[] }).errors;
+    if (rejection) {
+      logMintFailure('verify', rejection[0]);
       return null;
     }
-    const minted = await getClerkServerClient().sessions.getToken(sid);
-    return minted.jwt || null;
-  } catch {
+    sid = (verified.data as { sid?: unknown } | undefined)?.sid;
+  } catch (error) {
+    logMintFailure('verify', error);
     return null;
   }
+  if (typeof sid !== 'string' || !sid) {
+    logMintFailure('no_sid');
+    return null;
+  }
+  try {
+    const minted = await getClerkServerClient().sessions.getToken(sid);
+    if (!minted.jwt) {
+      logMintFailure('empty_jwt');
+    }
+    return minted.jwt || null;
+  } catch (error) {
+    // Expected for a session that has ended since the cookie was written.
+    logMintFailure('get_token', error);
+    return null;
+  }
+}
+
+/**
+ * Every failure above returns null and the page falls back to the client, so
+ * nothing else would say why the dashboard still rendered as a skeleton.
+ * Server-side Sentry does not run on Pages (`instrument.server.mjs` is loaded
+ * only by the Node start script), so this goes to the Workers log, read with
+ * `wrangler pages deployment tail`. The stage and the error, never the token.
+ */
+function logMintFailure(stage: string, error?: unknown) {
+  console.warn('[auth] session token mint failed', {
+    stage,
+    error:
+      error instanceof Error
+        ? `${error.name}: ${error.message}`
+        : error === undefined
+          ? null
+          : String((error as { message?: unknown }).message ?? error),
+  });
 }
 
 export function buildConvexTokenIdentifier(params: {

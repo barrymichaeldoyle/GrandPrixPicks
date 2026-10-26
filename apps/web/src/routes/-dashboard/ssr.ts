@@ -74,9 +74,16 @@ export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
         return null;
       }
       return { ...dashboard, weather, weatherNow };
-    } catch {
+    } catch (error) {
       // A Convex error, or a session that ended between the mint and the read.
-      // Not reported: the page still works, from the client.
+      // The page still works, from the client; logged so a skeleton that
+      // should have been a dashboard can be told apart from a failed mint.
+      console.warn('[dashboard-ssr] read failed', {
+        error:
+          error instanceof Error
+            ? `${error.name}: ${error.message}`
+            : 'unknown',
+      });
       return null;
     }
   },

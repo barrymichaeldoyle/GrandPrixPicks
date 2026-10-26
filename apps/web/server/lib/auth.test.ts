@@ -1,6 +1,10 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { buildConvexTokenIdentifier, isClerkSessionPresent } from './auth';
+import {
+  buildConvexTokenIdentifier,
+  clerkJwtKey,
+  isClerkSessionPresent,
+} from './auth';
 
 // `pk_test_` + base64("rare-chimp-58.clerk.accounts.dev$"), whose SHA-1 gives
 // the cookie suffix Clerk's client SDK would use for this instance.
@@ -102,5 +106,28 @@ describe('isClerkSessionPresent', () => {
         ),
       ),
     ).resolves.toBe(true);
+  });
+});
+
+describe('clerkJwtKey', () => {
+  const pem = [
+    '-----BEGIN PUBLIC KEY-----',
+    'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA',
+    '-----END PUBLIC KEY-----',
+  ];
+
+  it('passes a PEM through', () => {
+    expect(clerkJwtKey(pem.join('\n'))).toBe(pem.join('\n'));
+  });
+
+  it('repairs line breaks pasted as literal \\n', () => {
+    expect(clerkJwtKey(pem.join('\\n'))).toBe(pem.join('\n'));
+  });
+
+  it('ignores anything that is not a PEM public key', () => {
+    expect(clerkJwtKey(undefined)).toBeUndefined();
+    expect(clerkJwtKey('')).toBeUndefined();
+    expect(clerkJwtKey('{"kty":"RSA","e":"AQAB"}')).toBeUndefined();
+    expect(clerkJwtKey(`"${pem.join('\n')}"`)).toBeUndefined();
   });
 });

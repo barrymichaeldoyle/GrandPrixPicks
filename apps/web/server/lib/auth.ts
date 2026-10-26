@@ -11,15 +11,42 @@ type AuthenticatedClerkIdentity = {
   tokenIdentifier: string;
 };
 
+/**
+ * `CLERK_JWT_KEY` as a PEM Clerk can parse, or undefined so Clerk fetches the
+ * instance's JWKS with the secret key instead (one call, cached per isolate).
+ *
+ * The production value did not parse: every verification failed with
+ * "Invalid RSA key in JSON Web Key; missing or invalid Modulus parameter",
+ * which silently broke the dashboard's server render as the viewer (October
+ * 2026) and anything else verifying a session here. A key pasted into a
+ * dashboard often arrives with literal `\n` for its line breaks, and Clerk
+ * strips real newlines only, so those are repaired; anything that is still
+ * not a PEM public key is ignored rather than trusted.
+ */
+export function clerkJwtKey(
+  raw: string | undefined = process.env.CLERK_JWT_KEY,
+): string | undefined {
+  const key = raw?.trim().replace(/\\n/g, '\n');
+  if (
+    !key ||
+    !key.startsWith('-----BEGIN PUBLIC KEY-----') ||
+    !key.endsWith('-----END PUBLIC KEY-----')
+  ) {
+    return undefined;
+  }
+  return key;
+}
+
 function getClerkServerClient() {
   const secretKey = process.env.CLERK_SECRET_KEY;
   if (!secretKey) {
     throw new Error('Missing CLERK_SECRET_KEY');
   }
+  const jwtKey = clerkJwtKey();
 
   return createClerkClient({
     secretKey,
-    ...(process.env.CLERK_JWT_KEY && { jwtKey: process.env.CLERK_JWT_KEY }),
+    ...(jwtKey && { jwtKey }),
     ...(process.env.VITE_CLERK_PUBLISHABLE_KEY && {
       publishableKey: process.env.VITE_CLERK_PUBLISHABLE_KEY,
     }),
@@ -231,12 +258,21 @@ async function mintSessionToken(
   }
   let sid: unknown;
   try {
-    const verified = await verifyToken(expiredToken, {
-      secretKey,
-      ...(process.env.CLERK_JWT_KEY && { jwtKey: process.env.CLERK_JWT_KEY }),
-      clockSkewInMs: STALE_SESSION_GRACE_MS,
-    });
-    // Returned, not thrown: a rejected token comes back as `{ errors }`.
+    const jwtKey = clerkJwtKey();
+    function verify(key: string | undefined) {
+      return verifyToken(expiredToken, {
+        secretKey,
+        ...(key && { jwtKey: key }),
+        clockSkewInMs: STALE_SESSION_GRACE_MS,
+      });
+    }
+    let verified = await verify(jwtKey);
+    // Returned, not thrown: a rejected token comes back as `{ errors }`. A
+    // PEM that parses can still be the wrong instance's key, so a rejection
+    // with the local key gets one try against Clerk's own JWKS.
+    if (jwtKey && (verified as { errors?: unknown }).errors) {
+      verified = await verify(undefined);
+    }
     const rejection = (verified as { errors?: readonly unknown[] }).errors;
     if (rejection) {
       logMintFailure('verify', rejection[0]);

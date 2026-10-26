@@ -1,6 +1,11 @@
 import { api } from '@convex-generated/api';
 import type { DriverStatus } from '@grandprixpicks/shared/driverStatus';
 import { DRIVER_STATUS_LABELS } from '@grandprixpicks/shared/driverStatus';
+import {
+  fastestPerPart,
+  formatGap,
+  lastQualifyingPart,
+} from '@grandprixpicks/shared/sessionTiming';
 
 import { renderOgImage } from '../../../src/lib/og/renderer';
 import { sessionResultsTemplate } from '../../../src/lib/og/templates';
@@ -54,6 +59,10 @@ export default async function handler(event: RouteEvent) {
       );
     }
 
+    // Each gap is to the fastest lap of the part the driver last ran in, as
+    // F1's timing gives it, so a Q1 exit is not measured against pole.
+    const partBest = fastestPerPart(result.enrichedClassification);
+    const finalPart = partBest.length - 1;
     const entries = result.enrichedClassification.map((entry) => ({
       position: entry.position,
       code: entry.code,
@@ -62,6 +71,18 @@ export default async function handler(event: RouteEvent) {
       status: entry.status
         ? DRIVER_STATUS_LABELS[entry.status as DriverStatus]
         : null,
+      time: entry.status ? '' : formatGap(entry, partBest),
+      // Gaps restart at each knockout, so a row timed in an earlier part says
+      // which: otherwise P11's +0.8 under P10's +2.0 reads as a mistake.
+      timePart: (() => {
+        const part = lastQualifyingPart(entry);
+        if (finalPart < 0) {
+          return null;
+        }
+        return entry.status || part === null || part === finalPart
+          ? ''
+          : `Q${part + 1}`;
+      })(),
     }));
 
     const flagSrc = await loadFlagDataUri(url.origin, race);

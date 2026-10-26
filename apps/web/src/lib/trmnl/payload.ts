@@ -24,6 +24,13 @@ import {
   temperatureFigure,
   windFigure,
 } from '@/lib/weatherPresentation';
+import {
+  fastestPerPart,
+  formatGap,
+} from '@grandprixpicks/shared/sessionTiming';
+
+// Re-exported for the plugin's own tests, which pin its rows' timing.
+export { fastestPerPart, formatGap };
 
 /**
  * The JSON a TRMNL e-ink display polls. The screen itself is Liquid kept in
@@ -555,79 +562,6 @@ export function buildTrmnlPayload(input: TrmnlInput): TrmnlPayload {
     news: formatNews(visibleNews),
     standings,
   };
-}
-
-/**
- * The fastest lap in each part of a qualifying session ([Q1, Q2, Q3]), null
- * for a part nobody set a time in. Empty for a session without lap times.
- */
-export function fastestPerPart(rows: readonly ResultRow[]): (number | null)[] {
-  const best: (number | null)[] = [];
-  for (const row of rows) {
-    (row.qualifyingSeconds ?? []).forEach((lap, part) => {
-      const current = best[part] ?? null;
-      if (lap !== null && (current === null || lap < current)) {
-        best[part] = lap;
-      } else if (best[part] === undefined) {
-        best[part] = null;
-      }
-    });
-  }
-  return best;
-}
-
-/**
- * A classification row's timing as F1's results write it: the winner's race
- * time, then each finisher's gap to the winner, or laps down.
- *
- * Qualifying reads the same way: pole's time, then everyone's gap. A
- * driver's lap is from the last part they set one in (Q3 for the top ten, Q2
- * for the next five, Q1 after that), and its gap is to the fastest lap of
- * that part (`partBest`, from {@link fastestPerPart}), as F1's timing gives
- * it: a Q2 lap measured against a Q3 lap would compare two different
- * tracks, and could come out negative. Without `partBest`, the lap itself.
- */
-export function formatGap(
-  row: ResultRow,
-  partBest: readonly (number | null)[] = [],
-): string {
-  const laps = row.qualifyingSeconds ?? [];
-  let part = laps.length - 1;
-  while (part >= 0 && laps[part] === null) {
-    part -= 1;
-  }
-  const qualifyingLap = part >= 0 ? laps[part] : null;
-  if (qualifyingLap) {
-    const best = partBest[part];
-    return row.position === 1 || !best
-      ? clockTime(qualifyingLap)
-      : `+${clockTime(Math.max(0, qualifyingLap - best))}`;
-  }
-  if (row.lapsDown) {
-    return `+${row.lapsDown} ${row.lapsDown === 1 ? 'lap' : 'laps'}`;
-  }
-  if (row.position === 1 && row.durationSeconds) {
-    return clockTime(row.durationSeconds);
-  }
-  if (row.gapToLeaderSeconds && row.gapToLeaderSeconds > 0) {
-    return `+${clockTime(row.gapToLeaderSeconds)}`;
-  }
-  return '';
-}
-
-/** 5882.143 → "1:38:02.143"; 64.221 → "1:04.221"; 0.196 → "0.196". */
-function clockTime(seconds: number): string {
-  const millis = Math.round(seconds * 1000);
-  const hours = Math.floor(millis / 3_600_000);
-  const minutes = Math.floor((millis % 3_600_000) / 60_000);
-  const rest = ((millis % 60_000) / 1000).toFixed(3);
-  if (hours > 0) {
-    return `${hours}:${String(minutes).padStart(2, '0')}:${rest.padStart(6, '0')}`;
-  }
-  if (minutes > 0) {
-    return `${minutes}:${rest.padStart(6, '0')}`;
-  }
-  return rest;
 }
 
 /**

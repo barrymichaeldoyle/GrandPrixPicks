@@ -2130,6 +2130,17 @@ export type SessionResultEntry = {
   color: string;
   /** DNF / DSQ / DNS / NC label, or null for ranked finishers. */
   status: string | null;
+  /**
+   * Pole's lap or the winner's time, then each gap to it (`formatGap`).
+   * Empty when OpenF1 sent no timing for the driver.
+   */
+  time: string;
+  /**
+   * "Q2" or "Q1" when `time` is a gap within that part; empty on other
+   * qualifying rows, which keeps the slot so the times line up; null outside
+   * qualifying.
+   */
+  timePart: string | null;
 };
 
 // Amber, not red: in this system red means one thing, a downward delta.
@@ -2202,7 +2213,36 @@ function sessionResultRow(entry: SessionResultEntry): ReactNode {
           },
           entry.status,
         )
-      : null,
+      : entry.time
+        ? e(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                alignItems: 'baseline',
+                fontSize: 19,
+                fontFamily: 'IBM Plex Mono',
+                color: entry.position === 1 ? colors.accent : colors.text,
+              },
+            },
+            entry.time,
+            entry.timePart === null
+              ? null
+              : e(
+                  'div',
+                  {
+                    style: {
+                      display: 'flex',
+                      width: 30,
+                      justifyContent: 'flex-end',
+                      fontSize: 14,
+                      color: colors.textMuted,
+                    },
+                  },
+                  entry.timePart,
+                ),
+          )
+        : null,
   );
 }
 

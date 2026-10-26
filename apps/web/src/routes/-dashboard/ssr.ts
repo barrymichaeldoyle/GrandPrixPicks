@@ -95,12 +95,11 @@ export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
       // A Convex error, or a session that ended between the mint and the read.
       // The page still works, from the client; logged so a skeleton that
       // should have been a dashboard can be told apart from a failed mint.
-      console.warn('[dashboard-ssr] read failed', {
-        error:
-          error instanceof Error
-            ? `${error.name}: ${error.message}`
-            : 'unknown',
-      });
+      reportSsrMiss(
+        `read: ${
+          error instanceof Error ? `${error.name}: ${error.message}` : 'unknown'
+        }`.slice(0, 200),
+      );
       return null;
     }
   },

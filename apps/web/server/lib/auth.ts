@@ -256,33 +256,36 @@ async function mintSessionToken(
     logMintFailure('no_secret_key');
     return null;
   }
-  let sid: unknown;
+  // The `verifyToken` exported from `@clerk/backend` is the legacy wrapper:
+  // it resolves to the payload itself and throws on a bad token. Reading
+  // `.data` off it, as this did until October 2026, found no session id on
+  // any token, so the mint never ran once in production.
+  const jwtKey = clerkJwtKey();
+  function verify(key: string | undefined) {
+    return verifyToken(expiredToken, {
+      secretKey,
+      ...(key && { jwtKey: key }),
+      clockSkewInMs: STALE_SESSION_GRACE_MS,
+    });
+  }
+  let payload: Awaited<ReturnType<typeof verify>>;
   try {
-    const jwtKey = clerkJwtKey();
-    function verify(key: string | undefined) {
-      return verifyToken(expiredToken, {
-        secretKey,
-        ...(key && { jwtKey: key }),
-        clockSkewInMs: STALE_SESSION_GRACE_MS,
-      });
-    }
-    let verified = await verify(jwtKey);
-    // Returned, not thrown: a rejected token comes back as `{ errors }`. A
-    // PEM that parses can still be the wrong instance's key, so a rejection
-    // with the local key gets one try against Clerk's own JWKS.
-    if (jwtKey && (verified as { errors?: unknown }).errors) {
-      verified = await verify(undefined);
-    }
-    const rejection = (verified as { errors?: readonly unknown[] }).errors;
-    if (rejection) {
-      logMintFailure('verify', rejection[0]);
+    payload = await verify(jwtKey);
+  } catch (error) {
+    if (!jwtKey) {
+      logMintFailure('verify', error);
       return null;
     }
-    sid = (verified.data as { sid?: unknown } | undefined)?.sid;
-  } catch (error) {
-    logMintFailure('verify', error);
-    return null;
+    // A PEM that parses can still be another instance's key, so a rejection
+    // with the local key gets one try against Clerk's own JWKS.
+    try {
+      payload = await verify(undefined);
+    } catch (retryError) {
+      logMintFailure('verify', retryError);
+      return null;
+    }
   }
+  const sid: unknown = payload.sid;
   if (typeof sid !== 'string' || !sid) {
     logMintFailure('no_sid');
     return null;

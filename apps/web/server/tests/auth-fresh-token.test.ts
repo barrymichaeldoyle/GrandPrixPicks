@@ -51,7 +51,7 @@ describe('getFreshClerkSessionToken', () => {
   it('mints a new token for the session an expired cookie belonged to', async () => {
     const { getFreshClerkSessionToken } = await import('../lib/auth');
     const expired = jwtWith({ sid: 'sess_1', exp: Date.now() / 1000 - 3600 });
-    clerk.verifyToken.mockResolvedValue({ data: { sid: 'sess_1' } });
+    clerk.verifyToken.mockResolvedValue({ sid: 'sess_1' });
     clerk.getToken.mockResolvedValue({ jwt: 'fresh.jwt.value' });
 
     expect(await getFreshClerkSessionToken(requestWith(expired))).toBe(
@@ -70,7 +70,7 @@ describe('getFreshClerkSessionToken', () => {
   it('treats a token about to expire as expired', async () => {
     const { getFreshClerkSessionToken } = await import('../lib/auth');
     const nearlyOut = jwtWith({ sid: 'sess_1', exp: Date.now() / 1000 + 5 });
-    clerk.verifyToken.mockResolvedValue({ data: { sid: 'sess_1' } });
+    clerk.verifyToken.mockResolvedValue({ sid: 'sess_1' });
     clerk.getToken.mockResolvedValue({ jwt: 'fresh.jwt.value' });
 
     expect(await getFreshClerkSessionToken(requestWith(nearlyOut))).toBe(
@@ -81,18 +81,41 @@ describe('getFreshClerkSessionToken', () => {
   it('never trusts a session id from a token whose signature fails', async () => {
     const { getFreshClerkSessionToken } = await import('../lib/auth');
     const forged = jwtWith({ sid: 'sess_victim', exp: Date.now() / 1000 - 60 });
-    clerk.verifyToken.mockResolvedValue({
-      errors: [new Error('signature invalid')],
-    });
+    clerk.verifyToken.mockRejectedValue(new Error('signature invalid'));
 
     expect(await getFreshClerkSessionToken(requestWith(forged))).toBeNull();
     expect(clerk.getToken).not.toHaveBeenCalled();
   });
 
+  it('retries against the JWKS when a local key rejects the token', async () => {
+    vi.stubEnv(
+      'CLERK_JWT_KEY',
+      '-----BEGIN PUBLIC KEY-----\\nMIIB\\n-----END PUBLIC KEY-----',
+    );
+    const { getFreshClerkSessionToken } = await import('../lib/auth');
+    const expired = jwtWith({ sid: 'sess_1', exp: Date.now() / 1000 - 60 });
+    clerk.verifyToken
+      .mockRejectedValueOnce(new Error('Invalid RSA key'))
+      .mockResolvedValueOnce({ sid: 'sess_1' });
+    clerk.getToken.mockResolvedValue({ jwt: 'fresh.jwt.value' });
+
+    expect(await getFreshClerkSessionToken(requestWith(expired))).toBe(
+      'fresh.jwt.value',
+    );
+    expect(clerk.verifyToken).toHaveBeenNthCalledWith(
+      1,
+      expired,
+      expect.objectContaining({
+        jwtKey: '-----BEGIN PUBLIC KEY-----\nMIIB\n-----END PUBLIC KEY-----',
+      }),
+    );
+    expect(clerk.verifyToken.mock.calls[1]?.[1]).not.toHaveProperty('jwtKey');
+  });
+
   it('falls back to null when the session has ended or Clerk is down', async () => {
     const { getFreshClerkSessionToken } = await import('../lib/auth');
     const expired = jwtWith({ sid: 'sess_1', exp: Date.now() / 1000 - 60 });
-    clerk.verifyToken.mockResolvedValue({ data: { sid: 'sess_1' } });
+    clerk.verifyToken.mockResolvedValue({ sid: 'sess_1' });
     clerk.getToken.mockRejectedValue(new Error('Session not found'));
 
     expect(await getFreshClerkSessionToken(requestWith(expired))).toBeNull();

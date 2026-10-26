@@ -1,0 +1,25 @@
+[
+  {
+    "raceSlug": "mexico-2026",
+    "key": "antonelli-title-mexico-scenarios",
+    "headline": "Antonelli can clinch the title in Mexico City",
+    "body": "Antonelli leads Russell by 123 points and Hamilton by 124 with 125 left after his Austin win. He is champion in Mexico City unless Russell wins with him no higher than tenth, or Hamilton wins with him scoring no points.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ANT"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/how-will-kimi-antonelli-become-f1-world-champion-at-mexico-gp/10868369/",
+    "sourcePublishedAt": "2026-10-25T22:28:28Z"
+  },
+  {
+    "raceSlug": "mexico-2026",
+    "key": "slater-audi-mexico-fp1",
+    "headline": "Audi junior Slater makes his F1 practice debut in Mexico",
+    "body": "Freddie Slater drives for Audi in Free Practice 1 in Mexico City and again in Sao Paulo, replacing Hulkenberg in one session and Bortoleto in the other. Both outings count towards the rookie-driver requirement.",
+    "category": "general",
+    "affectsSessions": [],
+    "sourceName": "Autosport",
+    "sourceUrl": "https://www.autosport.com/f1/news/slater-set-for-f1-practice-debut/10867005/",
+    "sourcePublishedAt": "2026-10-22T15:02:14Z"
+  }
+]

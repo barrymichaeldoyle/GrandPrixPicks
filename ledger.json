@@ -1223,7 +1223,7 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=red-bull-usa-gp-starts-radio-strategy&v=7cfcdc222735",
       "dueAt": "2026-10-26T17:00:00.000Z",
       "expiresAt": "2026-10-27T12:00:00.000Z",
-      "status": "creating",
+      "status": "scheduled",
       "bufferPostId": "6adf7b3cfbcc83d9686c545e"
     }
   ]

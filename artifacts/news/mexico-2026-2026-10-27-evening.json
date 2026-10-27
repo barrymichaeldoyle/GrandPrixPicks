@@ -1,0 +1,38 @@
+[
+  {
+    "raceSlug": "mexico-2026",
+    "key": "mexico-fp1-rookies-mini-vesti-browning",
+    "category": "general",
+    "headline": "Mini, Vesti and Browning take FP1 drives in Mexico",
+    "body": "Alpine's Gabriele Mini makes his race-weekend debut in Colapinto's car for Free Practice 1. Frederik Vesti drives Russell's Mercedes, and Williams reserve Luke Browning has FP1 outings in Mexico and Brazil, replacing Albon and Sainz.",
+    "affectsSessions": [],
+    "driverCodes": ["COL", "RUS"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/franco-colapinto-george-russell-to-sit-out-fp1-at-f1-mexico-gp/10868889/",
+    "sourcePublishedAt": "2026-10-27T15:50:28Z"
+  },
+  {
+    "raceSlug": "mexico-2026",
+    "key": "antonelli-title-race-cancellation",
+    "category": "general",
+    "headline": "Another cancelled round with no replacement would make Antonelli champion",
+    "body": "Antonelli leads Russell by 123 points with 125 left. One more cancellation without a replacement race would cut the points available to 100, more than any rival could take back. Carlos Sainz has voiced doubt over the Qatar and Abu Dhabi rounds, and F1 has indicated it would run an extra final race at Imola if needed.",
+    "affectsSessions": [],
+    "driverCodes": ["ANT"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/10/26/antonelli-will-automatically-become-champion-if-f1-cancels-another-race/",
+    "sourcePublishedAt": "2026-10-26T12:37:39Z"
+  },
+  {
+    "raceSlug": "usa-2026",
+    "key": "russell-usa-gp-five-second-penalty-mitigated",
+    "category": "general",
+    "headline": "Russell's Austin penalty was cut from ten seconds to five",
+    "body": "Russell received a five-second penalty for leaving the track and rejoining ahead of Piastri on lap one. The stewards said the normal penalty is ten seconds but mitigated it because he was defending from Piastri after pressuring Hadjar, and because it happened on the first lap. Wolff said he disagreed with the decision.",
+    "affectsSessions": [],
+    "driverCodes": ["RUS"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/10/25/stewards-explain-reason-for-russells-mitigated-us-gp-penalty/",
+    "sourcePublishedAt": "2026-10-25T22:09:32Z"
+  }
+]

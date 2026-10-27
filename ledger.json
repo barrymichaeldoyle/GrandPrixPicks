@@ -1225,6 +1225,25 @@
       "expiresAt": "2026-10-27T12:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6adf7b3cfbcc83d9686c545e"
+    },
+    {
+      "id": "c1fad6bd694bde40778f8df8a0311d6cdf6ff7f8fc0b057215998c67a9f8ede9",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "mexico-2026",
+          "key": "antonelli-title-race-cancellation",
+          "revision": "83f169bd38848bf4aa5839a05396744c6589b356b56020f27228f9398dfbc56b"
+        }
+      ],
+      "text": "Antonelli leads by 123 points with 125 left. If another round is cancelled with no replacement, only 100 remain and nobody can catch him.",
+      "link": "https://grandprixpicks.com/f1-2026-mexican-grand-prix-predictions?story=antonelli-title-race-cancellation",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=antonelli-title-race-cancellation&v=83f169bd3884",
+      "dueAt": "2026-10-27T17:00:00.000Z",
+      "expiresAt": "2026-10-30T12:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

@@ -1245,6 +1245,25 @@
       "expiresAt": "2026-10-30T12:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6ae0ccf03fd74e86c0524718"
+    },
+    {
+      "id": "f1e39a213553fc11ce4c66f418b61200484481089c0a5f63158a69aec4a1b6f0",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "mexico-2026",
+          "key": "perez-cadillac-extension-2029",
+          "revision": "084f9018aef8d739d9b2a0d0d2560e54dede23786b14a0e21adca79fb65458cc"
+        }
+      ],
+      "text": "Perez makes his 300th F1 start in Mexico City this weekend, and Cadillac has now signed him until at least 2029.",
+      "link": "https://grandprixpicks.com/f1-2026-mexico-grand-prix-predictions?story=perez-cadillac-extension-2029",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=perez-cadillac-extension-2029&v=084f9018aef8",
+      "dueAt": "2026-10-28T18:30:00.000Z",
+      "expiresAt": "2026-10-29T12:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

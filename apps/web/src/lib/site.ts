@@ -27,7 +27,7 @@ export const siteConfig = {
     },
     discord: {
       name: 'Discord',
-      url: 'https://discord.gg/c7YHSNE4Te',
+      url: 'https://discord.com/invite/c7YHSNE4Te',
     },
     instagram: {
       // Display casing only, to match the X handle. Instagram usernames are

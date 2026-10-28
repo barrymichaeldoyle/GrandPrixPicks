@@ -9,3 +9,10 @@ compatibility_flags = ["nodejs_compat", "nodejs_compat_populate_process_env"]
 
 # Environment variables are set in Cloudflare Dashboard
 # Don't put secrets here - this file is committed to git
+
+# Run the SSR worker near Convex instead of near the visitor. A cache miss
+# makes several sequential Convex reads, and from a far edge (JNB) each one is
+# a ~300ms trip to the US: race pages took 1.7s to first byte uncached. The
+# edge cache still answers at the visitor's location; only misses move.
+[placement]
+mode = "smart"

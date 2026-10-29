@@ -199,7 +199,7 @@ export function H2HDuelPicker({
   function focusActiveDuel() {
     window.requestAnimationFrame(() => {
       duelCardRef.current
-        ?.querySelector<HTMLButtonElement>('button[aria-label^="Pick "]')
+        ?.querySelector<HTMLButtonElement>('[data-testid="h2h-duel-pick"]')
         ?.focus({ preventScroll: true });
     });
   }

@@ -66,7 +66,7 @@ test.describe('[public] smoke', () => {
     expect(total).toBeGreaterThan(1);
     expect(total).toBeLessThanOrEqual(11);
     await page
-      .locator('[data-testid="h2h-duel-picker"] button[aria-label^="Pick"]')
+      .locator('[data-testid="h2h-duel-picker"] [data-testid="h2h-duel-pick"]')
       .first()
       .click();
     await expect(progress).toHaveText(`Team-mate pick 2 of ${total}`);

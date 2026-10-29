@@ -63,9 +63,11 @@ function render(props: Partial<Parameters<typeof H2HDuelFocusModal>[0]> = {}) {
 }
 
 function pickButton(name: string) {
-  return document.querySelector<HTMLButtonElement>(
-    `button[aria-label^="Pick "][aria-label*="${name}"]`,
-  );
+  return Array.from(
+    document.querySelectorAll<HTMLButtonElement>(
+      '[data-testid="h2h-duel-pick"]',
+    ),
+  ).find((button) => button.textContent?.includes(name));
 }
 
 function pick(name: string) {

@@ -120,6 +120,13 @@ describe('H2HPredictionForm fills duels from the Top 5', () => {
       '[data-testid="h2h-duel-strip"] button',
     )[index];
   }
+  function pickDriver(name: string) {
+    return Array.from(
+      container.querySelectorAll<HTMLButtonElement>(
+        '[data-testid="h2h-duel-pick"]',
+      ),
+    ).find((button) => button.textContent?.includes(name));
+  }
 
   it('asks only the duels the Top 5 leaves open', () => {
     render();
@@ -143,11 +150,7 @@ describe('H2HPredictionForm fills duels from the Top 5', () => {
     expect(loadPredictionDraft(getWebH2HDraftStorageKey(RACE_ID))).toBeNull();
 
     act(() => {
-      container
-        .querySelector<HTMLButtonElement>(
-          'button[aria-label^="Pick "][aria-label*="George Russell"]',
-        )
-        ?.click();
+      pickDriver('George Russell')?.click();
     });
 
     expect(
@@ -164,11 +167,7 @@ describe('H2HPredictionForm fills duels from the Top 5', () => {
     act(() => cell(0).click());
     expect(text('h2h-duel-progress')).toBe('Set from your Top 5');
     act(() => {
-      container
-        .querySelector<HTMLButtonElement>(
-          'button[aria-label^="Pick "][aria-label*="Lando Norris"]',
-        )
-        ?.click();
+      pickDriver('Lando Norris')?.click();
     });
 
     expect(cell(0).getAttribute('aria-label')).toContain(

@@ -109,7 +109,7 @@ test.describe('[public] anonymous pick handoff', () => {
     // appears on a complete card. The picker advances itself, so clicking the
     // first live option repeatedly walks the whole set.
     const duelOption = page.locator(
-      '[data-testid="h2h-duel-picker"] button[aria-label^="Pick"]',
+      '[data-testid="h2h-duel-picker"] [data-testid="h2h-duel-pick"]',
     );
     const saveWall = page.getByTestId('h2h-save-wall');
     for (let duel = 0; duel < 11; duel += 1) {

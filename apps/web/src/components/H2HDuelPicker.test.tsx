@@ -70,9 +70,12 @@ describe('H2HDuelPicker', () => {
 
     expect(container.textContent).toContain('McLaren');
     expect(container.textContent).not.toContain('Ferrari');
-    expect(
-      pickDriver(container, 'Lando Norris')?.getAttribute('aria-label'),
-    ).toBe('Pick NOR, Lando Norris');
+    expect(pickDriver(container, 'Lando Norris')?.textContent).toMatch(
+      /Pick\s+NOR/,
+    );
+    expect(pickDriver(container, 'Lando Norris')?.textContent).toContain(
+      'Lando Norris',
+    );
     expect(
       container.querySelector('[data-testid="h2h-duel-progress"]')?.textContent,
     ).toBe('Team-mate pick 1 of 2');
@@ -399,8 +402,8 @@ describe('H2HDuelPicker', () => {
     });
 
     const active = document.activeElement as HTMLButtonElement | null;
-    expect(active?.getAttribute('aria-label')).toMatch(/^Pick /);
-    expect(active?.getAttribute('aria-label')).not.toContain('Lando Norris');
+    expect(active?.getAttribute('data-testid')).toBe('h2h-duel-pick');
+    expect(active?.textContent).not.toContain('Lando Norris');
     expect(container.textContent).toContain('Team-mate pick 2 of 2');
 
     requestAnimationFrame.mockRestore();
@@ -408,9 +411,11 @@ describe('H2HDuelPicker', () => {
 });
 
 function pickDriver(container: HTMLDivElement | null, name: string) {
-  return container?.querySelector<HTMLButtonElement>(
-    `button[aria-label^="Pick "][aria-label*="${name}"]`,
-  );
+  return Array.from(
+    container?.querySelectorAll<HTMLButtonElement>(
+      '[data-testid="h2h-duel-pick"]',
+    ) ?? [],
+  ).find((button) => button.textContent?.includes(name));
 }
 
 function matchup(

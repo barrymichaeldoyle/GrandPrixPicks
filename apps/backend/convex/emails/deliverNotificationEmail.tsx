@@ -61,7 +61,7 @@ const payload = v.union(
   /**
    * The results mail for a player who has scored this season but sat this
    * weekend out. Without it a lapsed player never saw a result again, only
-   * deadlines: the podium and the weekend winner are what they missed.
+   * deadlines. The body is spoiler-free and names the race.
    */
   v.object({
     kind: v.literal('recap'),
@@ -69,10 +69,11 @@ const payload = v.union(
     raceUrl: v.string(),
     round: v.number(),
     countryCode: v.union(v.string(), v.null()),
-    podium: v.array(v.string()),
-    weekendWinner: v.union(
-      v.object({ name: v.string(), points: v.number() }),
-      v.null(),
+    // Optional because jobs already scheduled before spoiler-free emails
+    // still carry them. New jobs omit them; do not put them in the body.
+    podium: v.optional(v.array(v.string())),
+    weekendWinner: v.optional(
+      v.union(v.object({ name: v.string(), points: v.number() }), v.null()),
     ),
     nextRace,
   }),
@@ -97,10 +98,11 @@ const payload = v.union(
     raceUrl: v.string(),
     round: v.number(),
     countryCode: v.union(v.string(), v.null()),
-    top5Points: v.number(),
-    h2hPoints: v.number(),
-    // Optional because jobs already scheduled before a deploy carry the old
-    // shape, and a first-timer's one results email must not fail validation.
+    // Optional because jobs already scheduled before spoiler-free emails
+    // still carry scores, rank and best pick. New jobs omit them; do not
+    // put them in the body.
+    top5Points: v.optional(v.number()),
+    h2hPoints: v.optional(v.number()),
     weekendRank: v.optional(
       v.union(
         v.object({ position: v.number(), totalPlayers: v.number() }),
@@ -190,6 +192,40 @@ export function formatTimeUntil(ms: number): string {
   return minutes === 1 ? '1 minute' : `${minutes} minutes`;
 }
 
+export type ResultsMailCopy = {
+  subject: string;
+  previewText: string;
+  headline: string;
+  intro: string;
+  primaryCtaLabel: string;
+};
+
+/** Subject, preview and body for a player who scored this weekend. */
+export function summaryEmailCopy(raceName: string): ResultsMailCopy {
+  const headline = `Your ${raceName} results are ready`;
+  return {
+    subject: headline,
+    previewText: "Scores are in. Open the site when you've watched the race.",
+    headline,
+    intro:
+      "This email doesn't include any results, so it's safe to open before you've watched.",
+    primaryCtaLabel: 'View my results',
+  };
+}
+
+/** Subject, preview and body for a player who sat this weekend out. */
+export function recapEmailCopy(raceName: string): ResultsMailCopy {
+  const headline = `The ${raceName} is done and scored`;
+  const intro = 'See who topped the weekend board on the site.';
+  return {
+    subject: headline,
+    previewText: intro,
+    headline,
+    intro,
+    primaryCtaLabel: 'See weekend standings',
+  };
+}
+
 /** "Next: Mexican Grand Prix. Picks lock Sat, 31 Oct, 21:00 UTC." */
 export function nextRaceLine(
   next: { name: string; lockAt: number } | null | undefined,
@@ -203,19 +239,6 @@ export function nextRaceLine(
     timezone,
   );
   return `Next: ${next.name}. Picks lock ${lock.date}, ${lock.time}.`;
-}
-
-/** "Verstappen won the Italian Grand Prix from Norris and Leclerc." */
-export function podiumLine(raceName: string, podium: Array<string>): string {
-  const [first, second, third] = podium;
-  if (!first) {
-    return `The ${raceName} has been scored.`;
-  }
-  if (!second) {
-    return `${first} won the ${raceName}.`;
-  }
-  const rest = third ? `${second} and ${third}` : second;
-  return `${first} won the ${raceName} from ${rest}.`;
 }
 
 export function ordinal(n: number): string {
@@ -313,32 +336,27 @@ export const deliver = internalAction({
           />
         );
       } else if (args.payload.kind === 'recap') {
-        const { raceName, podium, weekendWinner } = args.payload;
+        const { raceName } = args.payload;
         const next = args.payload.nextRace;
-        const headline = podiumLine(raceName, podium);
-        const winner = weekendWinner
-          ? `${weekendWinner.name} topped the weekend board with ${weekendWinner.points} points.`
-          : 'Nobody has been scored yet.';
+        const copy = recapEmailCopy(raceName);
         const helperText = nextRaceLine(next, args.timezone);
-        subject = podium[0]
-          ? `${raceName}: ${podium[0]} wins`
-          : `${raceName}: results are in`;
+        subject = copy.subject;
         lines = [
-          headline,
-          winner,
+          copy.headline,
+          copy.intro,
           ...(helperText ? ['', helperText, next!.raceUrl] : []),
         ];
         body = (
           <ResultsEmailShell
             {...shared}
-            previewText={headline}
-            headline={headline}
-            intro={winner}
+            previewText={copy.previewText}
+            headline={copy.headline}
+            intro={copy.intro}
             raceName={raceName}
             raceUrl={args.payload.raceUrl}
             round={args.payload.round}
             countryCode={args.payload.countryCode}
-            primaryCtaLabel="See Weekend Standings"
+            primaryCtaLabel={copy.primaryCtaLabel}
             secondaryCtaLabel={next ? `Make ${next.name} picks` : undefined}
             secondaryCtaUrl={next?.raceUrl}
             helperText={helperText}
@@ -362,41 +380,27 @@ export const deliver = internalAction({
           />
         );
       } else {
-        const { top5Points, h2hPoints, raceName, weekendRank, bestPick } =
-          args.payload;
-        const total = top5Points + h2hPoints;
-        const intro = `Top 5: ${top5Points} points. Head-to-head: ${h2hPoints} points.`;
-        const details = [
-          weekendRank
-            ? `${ordinal(weekendRank.position)} of ${weekendRank.totalPlayers} players this weekend.`
-            : null,
-          bestPick
-            ? `Best pick: ${bestPick.driverName} P${bestPick.predictedPosition} in ${bestPick.sessionLabel.toLowerCase()}, ${bestPick.points} ${bestPick.points === 1 ? 'point' : 'points'}.`
-            : null,
-        ].filter((line): line is string => line !== null);
+        const { raceName } = args.payload;
+        const copy = summaryEmailCopy(raceName);
         const next = args.payload.nextRace;
         const helperText = nextRaceLine(next, args.timezone);
-        subject = weekendRank
-          ? `${raceName}: ${total} points, ${ordinal(weekendRank.position)} of ${weekendRank.totalPlayers}`
-          : `${raceName}: you scored ${total} points`;
+        subject = copy.subject;
         lines = [
-          `You scored ${total} points at the ${raceName}.`,
-          intro,
-          ...details,
+          copy.headline,
+          copy.intro,
           ...(helperText ? ['', helperText, next!.raceUrl] : []),
         ];
         body = (
           <ResultsEmailShell
             {...shared}
-            previewText={`You scored ${total} points at the ${raceName}.`}
-            headline={`You scored ${total} points`}
-            intro={intro}
-            details={details}
+            previewText={copy.previewText}
+            headline={copy.headline}
+            intro={copy.intro}
             raceName={raceName}
             raceUrl={args.payload.raceUrl}
             round={args.payload.round}
             countryCode={args.payload.countryCode}
-            primaryCtaLabel="See Weekend Standings"
+            primaryCtaLabel={copy.primaryCtaLabel}
             secondaryCtaLabel={next ? `Make ${next.name} picks` : undefined}
             secondaryCtaUrl={next?.raceUrl}
             helperText={helperText}

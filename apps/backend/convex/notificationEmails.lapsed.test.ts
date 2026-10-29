@@ -226,7 +226,7 @@ describe('the opening reminder for a reader who skipped the last round', () => {
 });
 
 describe('the weekend summary', () => {
-  it('carries the weekend rank, the best pick and the next lock', async () => {
+  it('carries the next lock without scores, rank or a best pick', async () => {
     const { t, lapsedId, monzaId } = await seasonWithALapsedReader();
     await t.mutation(internal.notificationEmails.queue, {
       userId: lapsedId,
@@ -238,29 +238,24 @@ describe('the weekend summary', () => {
     );
     await t.mutation(internal.notificationEmails.send, { id: job._id });
     const [delivery] = await scheduledDeliveries(t);
-    expect(delivery.args[0]).toMatchObject({
-      payload: {
-        kind: 'summary',
-        top5Points: 12,
-        weekendRank: { position: 2, totalPlayers: 2 },
-        bestPick: {
-          driverName: 'Lando Norris',
-          predictedPosition: 2,
-          actualPosition: 2,
-          points: 5,
-          sessionLabel: 'Race',
-        },
-        nextRace: {
-          name: 'Azerbaijan Grand Prix',
-          raceUrl: expect.stringContaining('/races/azerbaijan-2026?'),
-        },
+    const payload = delivery.args[0].payload as Record<string, unknown>;
+    expect(payload).toMatchObject({
+      kind: 'summary',
+      raceName: 'Italian Grand Prix',
+      nextRace: {
+        name: 'Azerbaijan Grand Prix',
+        raceUrl: expect.stringContaining('/races/azerbaijan-2026?'),
       },
     });
+    expect(payload).not.toHaveProperty('top5Points');
+    expect(payload).not.toHaveProperty('h2hPoints');
+    expect(payload).not.toHaveProperty('weekendRank');
+    expect(payload).not.toHaveProperty('bestPick');
   });
 });
 
 describe('the recap for a player who scored this season but sat this weekend out', () => {
-  it('sends the podium, the weekend winner and the next lock instead of nothing', async () => {
+  it('sends a spoiler-free recap with the next lock instead of nothing', async () => {
     const { t, lapsedId, rivalId, madridId } = await seasonWithALapsedReader();
     await t.run(async (ctx) => {
       const now = Date.now();
@@ -306,15 +301,14 @@ describe('the recap for a player who scored this season but sat this weekend out
       'accepted',
     );
     const [delivery] = await scheduledDeliveries(t);
-    expect(delivery.args[0]).toMatchObject({
-      payload: {
-        kind: 'recap',
-        raceName: 'Madrid Grand Prix',
-        podium: ['Max Verstappen', 'Lando Norris', 'Charles Leclerc'],
-        weekendWinner: { name: 'rival', points: 17 },
-        nextRace: { name: 'Azerbaijan Grand Prix' },
-      },
+    const payload = delivery.args[0].payload as Record<string, unknown>;
+    expect(payload).toMatchObject({
+      kind: 'recap',
+      raceName: 'Madrid Grand Prix',
+      nextRace: { name: 'Azerbaijan Grand Prix' },
     });
+    expect(payload).not.toHaveProperty('podium');
+    expect(payload).not.toHaveProperty('weekendWinner');
   });
 
   it('still sends nothing to an account that has never been scored', async () => {

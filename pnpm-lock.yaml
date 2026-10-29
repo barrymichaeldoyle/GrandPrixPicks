@@ -614,8 +614,8 @@ importers:
         specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
       satori:
-        specifier: 0.29.0
-        version: 0.29.0
+        specifier: 0.32.0
+        version: 0.32.0
       tailwindcss:
         specifier: 4.3.3
         version: 4.3.3
@@ -8876,8 +8876,8 @@ packages:
     engines: {node: '>=18.18'}
     hasBin: true
 
-  satori@0.29.0:
-    resolution: {integrity: sha512-fPAfrwNaIQ7EsJLhY382STEqpczN6ZEH9NsKXDQgRcxUXNNPB73iAjSshzFwTaaScT68pxV0pmG6TBzDQ4sEGw==}
+  satori@0.32.0:
+    resolution: {integrity: sha512-WwYeCWKjxfXvk7SsLSLTJhcPOrB2HCxbptqGIiYor0yqaPu3xA5uMTQ/4Dan5mxClhhk2Wn9ZE1pLGIlGdUxFQ==}
     engines: {node: '>=16'}
 
   sax@1.5.0:
@@ -19280,7 +19280,7 @@ snapshots:
 
   sandbox-cli-detector@0.2.0: {}
 
-  satori@0.29.0:
+  satori@0.32.0:
     dependencies:
       '@shuding/opentype.js': 1.4.0-beta.0
       css-background-parser: 0.1.0

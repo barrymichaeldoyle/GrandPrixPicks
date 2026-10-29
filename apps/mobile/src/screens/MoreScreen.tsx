@@ -119,7 +119,7 @@ export function MoreScreen() {
               label="Discord"
               onPress={() =>
                 void WebBrowser.openBrowserAsync(
-                  'https://discord.gg/c7YHSNE4Te',
+                  'https://discord.com/invite/c7YHSNE4Te',
                 )
               }
               subtitle="Bugs, ideas, and the Android beta"

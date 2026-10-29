@@ -62,18 +62,18 @@ function render(props: Partial<Parameters<typeof H2HDuelFocusModal>[0]> = {}) {
   return { onClose, body: document.body };
 }
 
+function pickButton(name: string) {
+  return document.querySelector<HTMLButtonElement>(
+    `button[aria-label^="Pick "][aria-label*="${name}"]`,
+  );
+}
+
 function pick(name: string) {
-  document
-    .querySelector<HTMLButtonElement>(`[aria-label^="Pick ${name}"]`)
-    ?.click();
+  pickButton(name)?.click();
 }
 
 function isPicked(name: string) {
-  return (
-    document
-      .querySelector(`[aria-label^="Pick ${name}"]`)
-      ?.getAttribute('aria-pressed') === 'true'
-  );
+  return pickButton(name)?.getAttribute('aria-pressed') === 'true';
 }
 
 beforeEach(() => {

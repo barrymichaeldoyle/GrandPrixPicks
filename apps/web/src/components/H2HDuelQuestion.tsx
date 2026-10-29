@@ -219,6 +219,21 @@ function BouncingDuelPanel({
 }
 
 /**
+ * Accessible name for a duel button. Must contain the visible text in DOM
+ * order (WCAG 2.5.3): the optional Top 5 chip, the code on the badge, the
+ * name, then the number. "Pick " stays so the picker can find these buttons.
+ */
+function duelPickLabel(driver: H2HDriver, topFivePosition?: number): string {
+  const parts = [
+    topFivePosition ? `Your P${topFivePosition}` : null,
+    driver.code,
+    driver.displayName,
+    driver.number != null ? `#${driver.number}` : null,
+  ].filter((part): part is string => part !== null);
+  return `Pick ${parts.join(', ')}`;
+}
+
+/**
  * One side of a duel. Not exported: both surfaces that ask a duel go through
  * `H2HDuelQuestion` above, and that is the point — a panel reachable on its own
  * is how the two places drifted apart in the first place.
@@ -281,9 +296,7 @@ function DuelDriverButton({
     <button
       type="button"
       aria-pressed={selected}
-      aria-label={`Pick ${driver.displayName}${
-        topFivePosition ? `, your P${topFivePosition}` : ''
-      }`}
+      aria-label={duelPickLabel(driver, topFivePosition)}
       onClick={onClick}
       // `w-full`: a button sizes to its content even as a grid item's child,
       // so without it each card hugged its own name and the pair came out at

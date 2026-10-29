@@ -131,9 +131,11 @@ describe('H2HPredictionForm fills duels from the Top 5', () => {
     expect(cell(0).getAttribute('aria-label')).toContain(
       'Oscar Piastri picked from your Top 5',
     );
+    expect(cell(0).getAttribute('aria-label')).toContain('PIA');
     expect(cell(1).getAttribute('aria-label')).toContain(
       'Charles Leclerc picked from your Top 5',
     );
+    expect(cell(1).getAttribute('aria-label')).toContain('LEC');
   });
 
   it('keeps filled-in calls out of the device draft', () => {
@@ -142,7 +144,9 @@ describe('H2HPredictionForm fills duels from the Top 5', () => {
 
     act(() => {
       container
-        .querySelector<HTMLButtonElement>('[aria-label="Pick George Russell"]')
+        .querySelector<HTMLButtonElement>(
+          'button[aria-label^="Pick "][aria-label*="George Russell"]',
+        )
         ?.click();
     });
 
@@ -161,7 +165,9 @@ describe('H2HPredictionForm fills duels from the Top 5', () => {
     expect(text('h2h-duel-progress')).toBe('Set from your Top 5');
     act(() => {
       container
-        .querySelector<HTMLButtonElement>('[aria-label="Pick Lando Norris"]')
+        .querySelector<HTMLButtonElement>(
+          'button[aria-label^="Pick "][aria-label*="Lando Norris"]',
+        )
         ?.click();
     });
 

@@ -1143,8 +1143,168 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=austin-lindblad-colapinto-bortoleto-grid-penalties&v=f0d2793e7c42",
       "dueAt": "2026-10-23T21:10:55.991Z",
       "expiresAt": "2026-10-24T20:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6adbcc45e4be8a4d8626cfd2"
+    },
+    {
+      "id": "c1681a92f31380bc01e20b54cf37c3023637eef3e536c74bcec55e93a300d635",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "leclerc-ferrari-upgrade-expectations",
+          "revision": "9d6c897fe3c4f1494a81a31e2335626fa5347354d3e4fd650c2f3417e7c2b6ff"
+        }
+      ],
+      "text": "Leclerc topped both Austin practice sessions and says Ferrari's upgrade is not worth what everyone thinks. He names Antonelli and Verstappen as the ones to beat in qualifying.",
+      "link": "https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=leclerc-ferrari-upgrade-expectations",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=leclerc-ferrari-upgrade-expectations&v=9d6c897fe3c4",
+      "dueAt": "2026-10-24T16:30:00.000Z",
+      "expiresAt": "2026-10-24T21:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6adcd7e3e4be8a4d8668e1fb"
+    },
+    {
+      "id": "6a67fc89f39dc23041f335c6b0fd081de9b1cceff90bd2816860755544314aeb",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "austin-starting-grid",
+          "revision": "6b751201481ad56cc0c7a3ee985360afc8c2a7e06168aee6e6f53cb68fe03247"
+        }
+      ],
+      "text": "Antonelli starts from pole in Austin. He is champion today if he wins, Hamilton finishes fifth or lower and Russell ninth or lower.",
+      "link": "https://grandprixpicks.com/f1-2026-united-states-grand-prix-predictions?story=austin-starting-grid",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=austin-starting-grid&v=6b751201481a",
+      "dueAt": "2026-10-25T07:30:00.000Z",
+      "expiresAt": "2026-10-25T19:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6add9cdf0b5343d070ba255d"
+    },
+    {
+      "id": "f14dd2d7867ba9a3761c20040af1f4518a4274e578c110d6fbd67742c2290a16",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "mexico-2026",
+          "key": "antonelli-title-mexico-scenarios",
+          "revision": "8eae2a940a7bdc4eb576ab228ca8fee6a524539a1dbacfe7d9a37dcc7e37af47"
+        }
+      ],
+      "text": "Antonelli can be champion in Mexico City. Russell would need to win with him no higher than tenth; Hamilton would need to win with him scoring nothing.",
+      "link": "https://grandprixpicks.com/f1-2026-mexican-grand-prix-predictions?story=antonelli-title-mexico-scenarios",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=antonelli-title-mexico-scenarios&v=8eae2a940a7b",
+      "dueAt": "2026-10-26T07:30:00.000Z",
+      "expiresAt": "2026-11-01T20:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6adeeedcd62a2f4f00431616"
+    },
+    {
+      "id": "d8b8e2b90617275612fecbf3d5e6805a1d5b6f1531a1f2ddc0c290337588ccbd",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "usa-2026",
+          "key": "red-bull-usa-gp-starts-radio-strategy",
+          "revision": "7cfcdc22273545021f8de68038743dad049bc818740be374e52c4d99919b8107"
+        }
+      ],
+      "text": "Verstappen after Austin: \"Maybe we just start communicating in sign language.\" Radio dropouts, a disputed soft-tyre stop and a clutch Hadjar wants redesigned.",
+      "link": "https://grandprixpicks.com/f1-2026-usa-grand-prix-predictions?story=red-bull-usa-gp-starts-radio-strategy",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=usa-2026&story=red-bull-usa-gp-starts-radio-strategy&v=7cfcdc222735",
+      "dueAt": "2026-10-26T17:00:00.000Z",
+      "expiresAt": "2026-10-27T12:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6adf7b3cfbcc83d9686c545e"
+    },
+    {
+      "id": "c1fad6bd694bde40778f8df8a0311d6cdf6ff7f8fc0b057215998c67a9f8ede9",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "mexico-2026",
+          "key": "antonelli-title-race-cancellation",
+          "revision": "83f169bd38848bf4aa5839a05396744c6589b356b56020f27228f9398dfbc56b"
+        }
+      ],
+      "text": "Antonelli leads by 123 points with 125 left. If another round is cancelled with no replacement, only 100 remain and nobody can catch him.",
+      "link": "https://grandprixpicks.com/f1-2026-mexican-grand-prix-predictions?story=antonelli-title-race-cancellation",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=antonelli-title-race-cancellation&v=83f169bd3884",
+      "dueAt": "2026-10-27T17:00:00.000Z",
+      "expiresAt": "2026-10-30T12:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6ae0ccf03fd74e86c0524718"
+    },
+    {
+      "id": "f1e39a213553fc11ce4c66f418b61200484481089c0a5f63158a69aec4a1b6f0",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "mexico-2026",
+          "key": "perez-cadillac-extension-2029",
+          "revision": "084f9018aef8d739d9b2a0d0d2560e54dede23786b14a0e21adca79fb65458cc"
+        }
+      ],
+      "text": "Perez makes his 300th F1 start in Mexico City this weekend, and Cadillac has now signed him until at least 2029.",
+      "link": "https://grandprixpicks.com/f1-2026-mexico-grand-prix-predictions?story=perez-cadillac-extension-2029",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=perez-cadillac-extension-2029&v=084f9018aef8",
+      "dueAt": "2026-10-28T18:30:00.000Z",
+      "expiresAt": "2026-10-29T12:00:00.000Z",
+      "status": "cancelled",
+      "bufferPostId": "6ae21fe74785904534fd8b48"
+    },
+    {
+      "id": "ab428e511452b73b32272fb66ad64230ae222b9e357a7cb005d0a45a34085672",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "mexico-2026",
+          "key": "perez-cadillac-extension-2029",
+          "revision": "50fdabba43cde2b38610637cd4ce300c4285c144bc934f3b2d92cbbcd5d5c2b0"
+        }
+      ],
+      "text": "Perez makes his 300th F1 start in Mexico City this weekend, and Cadillac has now signed him until at least 2029.",
+      "link": "https://grandprixpicks.com/f1-2026-mexico-city-grand-prix-predictions?story=perez-cadillac-extension-2029",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=perez-cadillac-extension-2029&v=50fdabba43cd",
+      "dueAt": "2026-10-28T18:30:00.000Z",
+      "expiresAt": "2026-10-29T12:00:00.000Z",
+      "status": "sent",
+      "bufferPostId": "6ae220501d398031838fa798"
+    },
+    {
+      "id": "f2b49effc880a323bc050bcfd0ff0553e765971a0f5f36187240403383f29c0d",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "mexico-2026",
+          "key": "mexico-fp1-ten-drivers-sit-out",
+          "revision": "8ff33c1f2f4c6cf8f066526a7f69a8bbd1f3e2dfe85a738b853af79b319f1084"
+        }
+      ],
+      "text": "Ten drivers hand their cars to rookies for Mexico FP1: Verstappen, Norris and Russell among them. Ferrari is the only team running both regulars on Friday.",
+      "link": "https://grandprixpicks.com/f1-2026-mexico-grand-prix-predictions?story=mexico-fp1-ten-drivers-sit-out",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=mexico-fp1-ten-drivers-sit-out&v=8ff33c1f2f4c",
+      "dueAt": "2026-10-29T16:29:28.724Z",
+      "expiresAt": "2026-10-30T18:30:00.000Z",
+      "status": "scheduled",
+      "bufferPostId": "6ae3734b263de3337342715e"
     }
   ]
 }

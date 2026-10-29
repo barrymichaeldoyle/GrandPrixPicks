@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/2026-10-29-evening/race-news.json",
+  "startAt": "2026-10-29T18:25:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["mexico-fp1-ten-drivers-sit-out"],
+      "text": "Ten drivers hand their cars to rookies for Mexico FP1: Verstappen, Norris and Russell among them. Ferrari is the only team running both regulars on Friday.",
+      "link": "https://grandprixpicks.com/f1-2026-mexico-grand-prix-predictions?story=mexico-fp1-ten-drivers-sit-out",
+      "expiresAt": "2026-10-30T18:30:00Z"
+    }
+  ]
+}

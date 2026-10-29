@@ -1303,7 +1303,7 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=mexico-fp1-ten-drivers-sit-out&v=8ff33c1f2f4c",
       "dueAt": "2026-10-29T16:29:28.724Z",
       "expiresAt": "2026-10-30T18:30:00.000Z",
-      "status": "creating",
+      "status": "scheduled",
       "bufferPostId": "6ae3734b263de3337342715e"
     }
   ]

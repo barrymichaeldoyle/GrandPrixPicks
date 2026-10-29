@@ -8,7 +8,8 @@ import {
   lastPlayedLine,
   nextRaceLine,
   ordinal,
-  podiumLine,
+  recapEmailCopy,
+  summaryEmailCopy,
 } from './deliverNotificationEmail';
 import { PredictionReminderEmail } from './PredictionReminderEmail';
 import { ResultsEmailShell } from './ResultsEmail.shared';
@@ -19,6 +20,10 @@ const shared = {
   unsubscribeUrl: 'https://convex.site/notifications/unsubscribe?token=abc',
   logoUrl: 'https://grandprixpicks.com/logo-email.png',
 };
+
+function readableHtml(html: string) {
+  return html.replaceAll('&#x27;', "'");
+}
 
 // The inline HTML this replaced was dark. `emailColors` is the light shell, and
 // nothing else in the product uses it, so a regression here is invisible
@@ -57,26 +62,38 @@ describe('notification email templates', () => {
     expect(html).toContain(shared.unsubscribeUrl);
   });
 
-  it('renders the summary with both point totals and the standings CTA', async () => {
+  it('renders the summary without scores, rank or a finishing position', async () => {
     const html = await render(
       <ResultsEmailShell
         {...shared}
-        previewText="You scored 31 points at the Azerbaijan Grand Prix."
-        headline="You scored 31 points"
-        intro="Top 5: 24 points. Head-to-head: 7 points."
+        previewText="Scores are in. Open the site when you've watched the race."
+        headline="Your Azerbaijan Grand Prix results are ready"
+        intro="This email doesn't include any results, so it's safe to open before you've watched."
         raceName="Azerbaijan Grand Prix"
         raceUrl="https://grandprixpicks.com/leaderboard?time=weekend&raceId=x"
         round={17}
         countryCode="az"
-        primaryCtaLabel="See Weekend Standings"
+        primaryCtaLabel="View my results"
         footerText="You're receiving this because you have result notifications enabled."
       />,
     );
+    const text = readableHtml(html);
     expect(html).toContain(`background-color:${emailColors.page}`);
-    expect(html).toContain('You scored 31 points');
-    expect(html).toContain('Top 5: 24 points.');
-    expect(html).toContain('Head-to-head: 7 points.');
-    expect(html).toContain('See Weekend Standings');
+    expect(html.indexOf('Round')).toBeGreaterThan(-1);
+    expect(html.indexOf('Round')).toBeLessThan(
+      html.indexOf('Your Azerbaijan Grand Prix results are ready'),
+    );
+    expect(text).toContain('Your Azerbaijan Grand Prix results are ready');
+    expect(text).toContain(
+      "This email doesn't include any results, so it's safe to open before you've watched.",
+    );
+    expect(text).toContain('View my results');
+    expect(text).toContain(
+      "Scores are in. Open the site when you've watched the race.",
+    );
+    expect(text).not.toMatch(/\b\d+\s+points?\b/i);
+    expect(text).not.toMatch(/\bP\d+\b/);
+    expect(text).not.toContain('Best pick');
     expect(html).toContain(shared.unsubscribeUrl);
   });
 
@@ -107,34 +124,52 @@ describe('notification email templates', () => {
     expect(html).toContain('Last time out: Italian Grand Prix');
   });
 
-  it('renders the summary details and the next-race button', async () => {
+  it('renders the summary next-race button without a weekend rank or best pick', async () => {
     const html = await render(
       <ResultsEmailShell
         {...shared}
-        previewText="You scored 31 points at the Azerbaijan Grand Prix."
-        headline="You scored 31 points"
-        intro="Top 5: 24 points. Head-to-head: 7 points."
-        details={[
-          '3rd of 14 players this weekend.',
-          'Best pick: Lando Norris P2 in qualifying, 5 points.',
-        ]}
+        previewText="Scores are in. Open the site when you've watched the race."
+        headline="Your Azerbaijan Grand Prix results are ready"
+        intro="This email doesn't include any results, so it's safe to open before you've watched."
         raceName="Azerbaijan Grand Prix"
         raceUrl="https://grandprixpicks.com/leaderboard?time=weekend&raceId=x"
         round={17}
         countryCode="az"
-        primaryCtaLabel="See Weekend Standings"
+        primaryCtaLabel="View my results"
         secondaryCtaLabel="Make Singapore Grand Prix picks"
         secondaryCtaUrl="https://grandprixpicks.com/races/singapore-2026?utm_medium=email"
         helperText="Next: Singapore Grand Prix. Picks lock Fri, 9 Oct, 12:30 UTC."
         footerText="You're receiving this because you have result notifications enabled."
       />,
     );
-    expect(html).toContain('3rd of 14 players this weekend.');
-    expect(html).toContain(
-      'Best pick: Lando Norris P2 in qualifying, 5 points.',
-    );
     expect(html).toContain('Make Singapore Grand Prix picks');
     expect(html).toContain('Picks lock Fri, 9 Oct, 12:30 UTC.');
+    expect(html).not.toContain('of 14 players');
+    expect(html).not.toContain('Best pick');
+    expect(html).not.toContain('Lando Norris');
+  });
+
+  it('renders the recap without a winner, podium or weekend leader', async () => {
+    const html = await render(
+      <ResultsEmailShell
+        {...shared}
+        previewText="See who topped the weekend board on the site."
+        headline="The Madrid Grand Prix is done and scored"
+        intro="See who topped the weekend board on the site."
+        raceName="Madrid Grand Prix"
+        raceUrl="https://grandprixpicks.com/leaderboard?time=weekend&raceId=x"
+        round={14}
+        countryCode="es"
+        primaryCtaLabel="See weekend standings"
+        footerText="You're receiving this because you have result notifications enabled."
+      />,
+    );
+    expect(html).toContain('The Madrid Grand Prix is done and scored');
+    expect(html).toContain('See who topped the weekend board on the site.');
+    expect(html).toContain('See weekend standings');
+    expect(html).not.toContain('wins');
+    expect(html).not.toContain('Verstappen');
+    expect(html).not.toMatch(/\b\d+\s+points?\b/i);
   });
 
   it('renders the signup nudge with an unsubscribe link', async () => {
@@ -204,24 +239,30 @@ describe('ordinal and last-played line', () => {
   });
 });
 
-describe('recap lines', () => {
-  it('names the podium in one sentence', () => {
-    expect(
-      podiumLine('Madrid Grand Prix', [
-        'Max Verstappen',
-        'Lando Norris',
-        'Charles Leclerc',
-      ]),
-    ).toBe(
-      'Max Verstappen won the Madrid Grand Prix from Lando Norris and Charles Leclerc.',
-    );
-    expect(podiumLine('Madrid Grand Prix', ['Max Verstappen'])).toBe(
-      'Max Verstappen won the Madrid Grand Prix.',
-    );
-    expect(podiumLine('Madrid Grand Prix', [])).toBe(
-      'The Madrid Grand Prix has been scored.',
-    );
+describe('spoiler-free results copy', () => {
+  it('keeps scores, rank and finishing positions out of the summary', () => {
+    expect(summaryEmailCopy('Italian Grand Prix')).toEqual({
+      subject: 'Your Italian Grand Prix results are ready',
+      previewText: "Scores are in. Open the site when you've watched the race.",
+      headline: 'Your Italian Grand Prix results are ready',
+      intro:
+        "This email doesn't include any results, so it's safe to open before you've watched.",
+      primaryCtaLabel: 'View my results',
+    });
   });
+
+  it('keeps the winner, podium and weekend leader out of the recap', () => {
+    expect(recapEmailCopy('Madrid Grand Prix')).toEqual({
+      subject: 'The Madrid Grand Prix is done and scored',
+      previewText: 'See who topped the weekend board on the site.',
+      headline: 'The Madrid Grand Prix is done and scored',
+      intro: 'See who topped the weekend board on the site.',
+      primaryCtaLabel: 'See weekend standings',
+    });
+  });
+});
+
+describe('next-race line', () => {
   it('states the next lock in the reader timezone', () => {
     expect(
       nextRaceLine(

@@ -28,7 +28,7 @@ import {
   shouldEmailReminder,
   wantsEmailResults,
 } from './lib/notificationChannels';
-import { rankWithinRace, weekendLeader } from './lib/weekendRank';
+import { rankWithinRace } from './lib/weekendRank';
 import { loadNewsHeadlines } from './raceNews';
 const kind = v.union(
   v.literal('reminder'),
@@ -233,39 +233,21 @@ async function prepare(ctx: MutationCtx, job: Doc<'notificationEmails'>) {
         ) {
           return await cancel();
         }
-        const [podium, leader] = await Promise.all([
-          podiumFor(ctx, race._id),
-          weekendLeader(ctx, race._id),
-        ]);
-        const leaderUser = leader ? await ctx.db.get(leader.userId) : null;
         payload = {
           kind: 'recap',
           raceName: race.name,
           raceUrl,
           round: race.round,
           countryCode,
-          podium,
-          weekendWinner:
-            leader && leaderUser?.username
-              ? { name: leaderUser.username, points: leader.points }
-              : null,
           nextRace,
         };
       } else {
-        const [weekendRank, bestPick] = await Promise.all([
-          rankWithinRace(ctx, race._id, user._id),
-          bestPickOf(ctx, top5),
-        ]);
         payload = {
           kind: 'summary',
           raceName: race.name,
           raceUrl,
           round: race.round,
           countryCode,
-          top5Points: top5.reduce((sum, row) => sum + row.points, 0),
-          h2hPoints: h2h.reduce((sum, row) => sum + row.points, 0),
-          weekendRank,
-          bestPick,
           nextRace,
         };
       }
@@ -380,63 +362,6 @@ async function prepare(ctx: MutationCtx, job: Doc<'notificationEmails'>) {
     await ctx.db.patch(job._id, { status: 'accepted' });
     return null;
   }
-}
-
-/** The race podium by driver name, for the recap. Empty until it is in. */
-async function podiumFor(ctx: QueryCtx, raceId: Id<'races'>) {
-  const result = await ctx.db
-    .query('results')
-    .withIndex('by_race_session', (q) =>
-      q.eq('raceId', raceId).eq('sessionType', 'race'),
-    )
-    .unique();
-  const drivers = await Promise.all(
-    (result?.classification ?? []).slice(0, 3).map((id) => ctx.db.get(id)),
-  );
-  return drivers.flatMap((driver) => (driver ? [driver.displayName] : []));
-}
-
-/**
- * The pick that earned the most in this weekend's Top 5, named for the email.
- * Ties go to the earlier session, which is the order the weekend was played.
- */
-async function bestPickOf(ctx: QueryCtx, scores: Array<Doc<'scores'>>) {
-  let best:
-    | {
-        driverId: Id<'drivers'>;
-        predictedPosition: number;
-        actualPosition: number | null;
-        points: number;
-        sessionLabel: string;
-      }
-    | undefined;
-  for (const score of scores) {
-    for (const item of score.breakdown ?? []) {
-      if (item.points > 0 && (!best || item.points > best.points)) {
-        best = {
-          driverId: item.driverId,
-          predictedPosition: item.predictedPosition,
-          actualPosition: item.actualPosition ?? null,
-          points: item.points,
-          sessionLabel: SESSION_LABELS_FULL[score.sessionType],
-        };
-      }
-    }
-  }
-  if (!best) {
-    return null;
-  }
-  const driver = await ctx.db.get(best.driverId);
-  if (!driver) {
-    return null;
-  }
-  return {
-    driverName: driver.displayName,
-    predictedPosition: best.predictedPosition,
-    actualPosition: best.actualPosition,
-    points: best.points,
-    sessionLabel: best.sessionLabel,
-  };
 }
 
 /**

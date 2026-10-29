@@ -123,7 +123,7 @@ describe('H2HPredictionForm fills duels from the Top 5', () => {
   function pickDriver(name: string) {
     return Array.from(
       container.querySelectorAll<HTMLButtonElement>(
-        '[data-testid="h2h-duel-pick"]',
+        '[data-testid="h2h-duel-panel"] button',
       ),
     ).find((button) => button.textContent?.includes(name));
   }

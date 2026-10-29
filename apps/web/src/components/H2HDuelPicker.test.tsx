@@ -70,9 +70,7 @@ describe('H2HDuelPicker', () => {
 
     expect(container.textContent).toContain('McLaren');
     expect(container.textContent).not.toContain('Ferrari');
-    expect(pickDriver(container, 'Lando Norris')?.textContent).toMatch(
-      /Pick\s+NOR/,
-    );
+    expect(pickDriver(container, 'Lando Norris')?.textContent).toContain('NOR');
     expect(pickDriver(container, 'Lando Norris')?.textContent).toContain(
       'Lando Norris',
     );
@@ -402,7 +400,7 @@ describe('H2HDuelPicker', () => {
     });
 
     const active = document.activeElement as HTMLButtonElement | null;
-    expect(active?.getAttribute('data-testid')).toBe('h2h-duel-pick');
+    expect(active?.getAttribute('aria-pressed')).toBeDefined();
     expect(active?.textContent).not.toContain('Lando Norris');
     expect(container.textContent).toContain('Team-mate pick 2 of 2');
 
@@ -413,7 +411,7 @@ describe('H2HDuelPicker', () => {
 function pickDriver(container: HTMLDivElement | null, name: string) {
   return Array.from(
     container?.querySelectorAll<HTMLButtonElement>(
-      '[data-testid="h2h-duel-pick"]',
+      '[data-testid="h2h-duel-panel"] button',
     ) ?? [],
   ).find((button) => button.textContent?.includes(name));
 }

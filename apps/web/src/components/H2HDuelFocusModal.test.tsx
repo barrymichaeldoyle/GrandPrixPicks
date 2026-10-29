@@ -65,7 +65,7 @@ function render(props: Partial<Parameters<typeof H2HDuelFocusModal>[0]> = {}) {
 function pickButton(name: string) {
   return Array.from(
     document.querySelectorAll<HTMLButtonElement>(
-      '[data-testid="h2h-duel-pick"]',
+      '[data-testid="h2h-duel-panel"] button',
     ),
   ).find((button) => button.textContent?.includes(name));
 }

@@ -281,7 +281,6 @@ function DuelDriverButton({
     <button
       type="button"
       aria-pressed={selected}
-      data-testid="h2h-duel-pick"
       onClick={onClick}
       // `w-full`: a button sizes to its content even as a grid item's child,
       // so without it each card hugged its own name and the pair came out at
@@ -294,13 +293,10 @@ function DuelDriverButton({
       style={{ '--team-colour': teamColor } as CSSProperties}
     >
       {/*
-       * No `aria-label`. A constructed name ("Pick LAW, Liam Lawson, #30")
-       * missed the visible string axe concatenates from the card ("LAWLiam
-       * Lawson#30"), which is WCAG 2.5.3. The name is this card's own text,
-       * with "Pick" prepended for a screen reader. `h2h-duel-pick` is how the
-       * picker finds these buttons.
+       * No `aria-label`. A constructed name missed the string axe concatenates
+       * from the card (WCAG 2.5.3). The name is this card's own text, as in
+       * DriverPool.
        */}
-      <span className="sr-only">Pick </span>
       {sweepId > 0 && !reduceMotion ? (
         <Fragment key={sweepId}>
           {/* The card lights up first: one quick accent bloom over the whole

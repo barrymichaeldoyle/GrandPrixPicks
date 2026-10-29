@@ -11,10 +11,10 @@ import { loadMotionFeatures } from './motionFeaturesLoader';
  * 88 KB never ran on a landing visit. `LazyMotion` + the `m` component ship
  * only the renderer, and the features arrive in their own chunk right after.
  *
- * `domMax` rather than `domAnimation` because `PredictionForm` animates pick
- * reordering with `layout`, which lives in the larger bundle. Everything else
- * in the app only needs initial/animate/exit and tap/hover, which either bundle
- * would cover.
+ * The lazy chunk is `domMin` plus `layout`, not `domMax`. PredictionForm
+ * animates pick reordering with `layout`; drag and pan from `domMax` are
+ * unused (dnd-kit owns dragging) and were what pushed the engine over the
+ * 26 kB budget after framer-motion 14.
  *
  * `strict` makes the swap enforceable: any `motion.*` left behind (or added
  * later) throws instead of silently pulling the full engine back onto the

@@ -929,7 +929,11 @@ function CornerCallout({
         fontWeight={600}
         fill="var(--text-muted)"
       >
+        {/* A newline, not a slash or extra glyph: the two tspans otherwise
+            concatenate to "Turn 311", which is not in the marker's name
+            "Turn 3, 11 incidents" (WCAG 2.5.3). SVG ignores the break. */}
         Turn {corner}
+        {'\n'}
       </tspan>
       <tspan
         x={tx}

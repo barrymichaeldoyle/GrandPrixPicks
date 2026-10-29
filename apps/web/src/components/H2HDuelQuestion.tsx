@@ -281,9 +281,6 @@ function DuelDriverButton({
     <button
       type="button"
       aria-pressed={selected}
-      aria-label={`Pick ${driver.displayName}${
-        topFivePosition ? `, your P${topFivePosition}` : ''
-      }`}
       onClick={onClick}
       // `w-full`: a button sizes to its content even as a grid item's child,
       // so without it each card hugged its own name and the pair came out at
@@ -295,6 +292,11 @@ function DuelDriverButton({
       } ${className}`}
       style={{ '--team-colour': teamColor } as CSSProperties}
     >
+      {/*
+       * No `aria-label`. A constructed name missed the string axe concatenates
+       * from the card (WCAG 2.5.3). The name is this card's own text, as in
+       * DriverPool.
+       */}
       {sweepId > 0 && !reduceMotion ? (
         <Fragment key={sweepId}>
           {/* The card lights up first: one quick accent bloom over the whole
@@ -357,6 +359,7 @@ function DuelDriverButton({
         nationality={driver.nationality}
         size={isLarge ? 'lg' : 'md'}
         prerenderTooltip={false}
+        tooltipFocusable={false}
       />
       <span className="min-w-0">
         <span

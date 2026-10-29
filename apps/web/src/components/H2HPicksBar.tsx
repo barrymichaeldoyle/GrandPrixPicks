@@ -77,7 +77,7 @@ export function H2HPicksBar({
           matchup.team,
         )}. ${
           picked
-            ? `${picked.displayName} picked${inferred ? ' from your Top 5' : ''}`
+            ? `${picked.code}, ${picked.displayName} picked${inferred ? ' from your Top 5' : ''}`
             : 'Not called yet'
         }.`;
 

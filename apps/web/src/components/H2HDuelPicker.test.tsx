@@ -70,14 +70,16 @@ describe('H2HDuelPicker', () => {
 
     expect(container.textContent).toContain('McLaren');
     expect(container.textContent).not.toContain('Ferrari');
+    expect(pickDriver(container, 'Lando Norris')?.textContent).toContain('NOR');
+    expect(pickDriver(container, 'Lando Norris')?.textContent).toContain(
+      'Lando Norris',
+    );
     expect(
       container.querySelector('[data-testid="h2h-duel-progress"]')?.textContent,
     ).toBe('Team-mate pick 1 of 2');
 
     act(() => {
-      container
-        ?.querySelector<HTMLButtonElement>('[aria-label="Pick Lando Norris"]')
-        ?.click();
+      pickDriver(container, 'Lando Norris')?.click();
       vi.runAllTimers();
     });
 
@@ -177,9 +179,7 @@ describe('H2HDuelPicker', () => {
 
     act(() => root?.render(<Harness />));
     act(() => {
-      container
-        ?.querySelector<HTMLButtonElement>('[aria-label="Pick Lando Norris"]')
-        ?.click();
+      pickDriver(container, 'Lando Norris')?.click();
       vi.runAllTimers();
     });
 
@@ -317,14 +317,10 @@ describe('H2HDuelPicker', () => {
     // Changing your mind before the card advances used to hit a disabled
     // button and be dropped with no feedback at all.
     act(() => {
-      container
-        ?.querySelector<HTMLButtonElement>('[aria-label="Pick Lando Norris"]')
-        ?.click();
+      pickDriver(container, 'Lando Norris')?.click();
     });
     act(() => {
-      container
-        ?.querySelector<HTMLButtonElement>('[aria-label="Pick Oscar Piastri"]')
-        ?.click();
+      pickDriver(container, 'Oscar Piastri')?.click();
       vi.runAllTimers();
     });
 
@@ -396,9 +392,7 @@ describe('H2HDuelPicker', () => {
 
     act(() => root?.render(<Harness />));
 
-    const firstPick = container.querySelector<HTMLButtonElement>(
-      '[aria-label="Pick Lando Norris"]',
-    );
+    const firstPick = pickDriver(container, 'Lando Norris');
     act(() => {
       firstPick?.focus();
       firstPick?.click();
@@ -406,13 +400,21 @@ describe('H2HDuelPicker', () => {
     });
 
     const active = document.activeElement as HTMLButtonElement | null;
-    expect(active?.getAttribute('aria-label')).toMatch(/^Pick /);
-    expect(active?.getAttribute('aria-label')).not.toBe('Pick Lando Norris');
+    expect(active?.getAttribute('aria-pressed')).toBeDefined();
+    expect(active?.textContent).not.toContain('Lando Norris');
     expect(container.textContent).toContain('Team-mate pick 2 of 2');
 
     requestAnimationFrame.mockRestore();
   });
 });
+
+function pickDriver(container: HTMLDivElement | null, name: string) {
+  return Array.from(
+    container?.querySelectorAll<HTMLButtonElement>(
+      '[data-testid="h2h-duel-panel"] button',
+    ) ?? [],
+  ).find((button) => button.textContent?.includes(name));
+}
 
 function matchup(
   matchupId: string,

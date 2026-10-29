@@ -1,7 +1,8 @@
-import { domMax } from 'framer-motion';
 import { describe, expect, it } from 'vitest';
 
 import { loadMotionFeatures } from './motionFeaturesLoader';
+
+type MotionFeatureBundle = Awaited<ReturnType<typeof loadMotionFeatures>>;
 
 async function expectToRemainPending(promise: Promise<unknown>) {
   let state = 'pending';
@@ -21,7 +22,9 @@ async function expectToRemainPending(promise: Promise<unknown>) {
 
 describe('loadMotionFeatures', () => {
   it('returns the lazy chunk when motionFeatures is present', async () => {
-    const lazyFeatures = { renderer: domMax.renderer } as typeof domMax;
+    const lazyFeatures = {
+      renderer: () => undefined,
+    } as unknown as MotionFeatureBundle;
 
     await expect(
       loadMotionFeatures(() =>

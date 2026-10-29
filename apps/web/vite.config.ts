@@ -80,6 +80,13 @@ const config = defineConfig(({ mode }) => {
         // Listed first: `@` is a prefix alias and the first match wins.
         ...(isVitest ? { '@/integrations/convex/query': 'convex/react' } : {}),
         '@': fileURLToPath(new URL('./src', import.meta.url)),
+        // Public API only exports layout as part of `domMax`, which also pulls
+        // drag/pan. Alias the layout feature so the lazy motion chunk can take
+        // it without the rest of that bundle.
+        'framer-motion/layout-features': join(
+          dirname(require.resolve('framer-motion/package.json')),
+          'dist/es/motion/features/layout.mjs',
+        ),
         ...(isCloudflarePages
           ? {
               '@sentry/tanstackstart-react': sentryTanstackClientEntry,

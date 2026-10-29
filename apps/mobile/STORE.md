@@ -199,7 +199,7 @@ For repeat captures:
   shell-only overrides with a second Metro process still served dev values;
   changing the local env file and restarting with a clean cache resolved it.
 - Use simulator-scoped input, such as AXe (`brew install
-cameroncooke/axe/axe`), with an explicit simulator UDID. Inspect the current
+  cameroncooke/axe/axe`), with an explicit simulator UDID. Inspect the current
   accessibility tree and wait for the destination before capturing. Avoid
   desktop mouse/keyboard events, which depend on window focus.
 - Check every image for loading indicators, offline banners, alerts, and

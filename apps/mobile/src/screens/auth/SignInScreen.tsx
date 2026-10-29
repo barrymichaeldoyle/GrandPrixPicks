@@ -25,10 +25,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useRef, useState } from 'react';
-import type {
-  ScrollView as RNScrollView,
-  TextInput as RNTextInput,
-} from 'react-native';
+import type { ScrollViewInstance, TextInputInstance } from 'react-native';
 import { Platform } from 'react-native';
 
 import { BrandMark } from '../../components/ui/BrandMark';
@@ -107,9 +104,9 @@ export function SignInScreen() {
    */
   const authReady = signInLoaded && signUpLoaded && !!signIn && !!signUp;
 
-  const emailRef = useRef<RNTextInput>(null);
-  const passwordRef = useRef<RNTextInput>(null);
-  const scrollRef = useRef<RNScrollView>(null);
+  const emailRef = useRef<TextInputInstance>(null);
+  const passwordRef = useRef<TextInputInstance>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
 
   // The form sits at the bottom of the sheet, so the keyboard covered every
   // field below the one focused (and the submit button). Scroll to the end
@@ -117,8 +114,8 @@ export function SignInScreen() {
   function revealForm() {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 250);
   }
-  const confirmPasswordRef = useRef<RNTextInput>(null);
-  const codeRef = useRef<RNTextInput>(null);
+  const confirmPasswordRef = useRef<TextInputInstance>(null);
+  const codeRef = useRef<TextInputInstance>(null);
 
   // The sheet is a route, not a gate. Successful auth used to leave it up:
   // `setActive` flipped the session and every handler just `return`ed. Pop

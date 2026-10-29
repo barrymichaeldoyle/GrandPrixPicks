@@ -58,7 +58,7 @@ races.
 - `GET /v1/race_control?session_key=…` gives flags with `scope`, `sector`
   (marshal sector, 1-21) and free-text messages that frequently name the turn
   outright: `TURN 2 INCIDENT INVOLVING CARS 11 (PER) AND 55 (SAI) NOTED -
-CAUSING A COLLISION`.
+  CAUSING A COLLISION`.
 - `GET /v1/session_result?session_key=…` carries a boolean `dnf` per driver.
   This endpoint is newer than most OpenF1 documentation suggests; it works.
 - `GET /v1/location?session_key=…&driver_number=…&date>…&date<…` gives x/y/z at

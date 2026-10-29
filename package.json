@@ -56,11 +56,11 @@
   },
   "devDependencies": {
     "@lhci/cli": "^0.15.1",
-    "@playwright/test": "1.63.0",
-    "knip": "6.38.0",
-    "oxfmt": "0.71.0",
-    "oxlint": "1.86.0",
-    "patch-pulse": "4.1.1",
+    "@playwright/test": "1.64.1",
+    "knip": "6.43.0",
+    "oxfmt": "0.75.0",
+    "oxlint": "1.90.0",
+    "patch-pulse": "4.2.1",
     "tsx": "4.23.15",
     "typescript": "catalog:"
   },

@@ -409,7 +409,7 @@ export function FeedScreen() {
         data={groups}
         keyExtractor={feedGroupKey}
         ListEmptyComponent={
-          isSignedIn && page0 != null ? <FeedEmptyState /> : null
+          isSignedIn && page0 != null ? <FeedEmptyState /> : undefined
         }
         // Reserved for as long as there is more to load, not only while a
         // page is in flight: a footer that came and went with each request
@@ -421,7 +421,7 @@ export function FeedScreen() {
                 <ActivityIndicator color={colors.textMuted} />
               ) : null}
             </View>
-          ) : null
+          ) : undefined
         }
         ListHeaderComponent={
           <FeedListHeader

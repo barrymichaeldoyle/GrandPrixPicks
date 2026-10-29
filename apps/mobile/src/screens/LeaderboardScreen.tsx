@@ -6,6 +6,7 @@ import { useConvex } from 'convex/react';
 import { useQuery } from '../integrations/convex/query';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
+import type { ScrollViewInstance } from 'react-native';
 import { ScrollView as NativeScrollView, RefreshControl } from 'react-native';
 
 import { Avatar } from '../components/ui/Avatar';
@@ -114,7 +115,7 @@ export function LeaderboardScreen() {
     useRoute<RouteProp<LeaderboardStackParamList, 'LeaderboardMain'>>();
   const [timeChoice, setTimeChoice] = useState<TimeScope | null>(null);
   const mode: GameMode = 'combined';
-  const roundScroll = useRef<NativeScrollView>(null);
+  const roundScroll = useRef<ScrollViewInstance>(null);
   const roundPositions = useRef<Record<string, number>>({});
   const isSignedIn = useIsSignedIn();
   // Following is a list of the viewer's follows, so signed out there is
@@ -451,7 +452,7 @@ export function LeaderboardScreen() {
               timeScope={timeScope}
               weekend={activeWeekend}
             />
-          ) : null
+          ) : undefined
         }
         // Held while the season has more rows, not only during a request, so
         // the list's height does not change under the reader's thumb.
@@ -462,7 +463,7 @@ export function LeaderboardScreen() {
                 <ActivityIndicator color={colors.textMuted} />
               ) : null}
             </View>
-          ) : null
+          ) : undefined
         }
         ListHeaderComponent={
           <View>

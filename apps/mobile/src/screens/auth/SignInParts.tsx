@@ -1,5 +1,5 @@
 import type { ComponentProps, RefObject } from 'react';
-import type { TextInput as RNTextInput } from 'react-native';
+import type { TextInputInstance } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 
 import { colors } from '../../theme/tokens';
@@ -82,7 +82,7 @@ export function AuthField({
   inputRef,
   ...props
 }: ComponentProps<typeof TextInput> & {
-  inputRef?: RefObject<RNTextInput | null>;
+  inputRef?: RefObject<TextInputInstance | null>;
 }) {
   return (
     <TextInput

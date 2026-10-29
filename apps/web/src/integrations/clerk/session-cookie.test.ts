@@ -113,7 +113,9 @@ describe('expireForeignClerkSessionCookies', () => {
     Object.defineProperty(document, 'cookie', {
       configurable: true,
       get: () => cookie,
-      set: (value: string) => written.push(value),
+      set: (value: string) => {
+        written.push(value);
+      },
     });
     (window as unknown as Record<string, unknown>)[SESSION_COOKIE_NAME_GLOBAL] =
       sessionCookieName;

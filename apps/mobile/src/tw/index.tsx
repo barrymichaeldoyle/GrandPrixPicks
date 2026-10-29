@@ -1,5 +1,10 @@
 import type React from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
+import type {
+  ScrollViewInstance,
+  StyleProp,
+  TextInputInstance,
+  ViewStyle,
+} from 'react-native';
 import {
   ActivityIndicator as RNActivityIndicator,
   FlatList as RNFlatList,
@@ -55,7 +60,7 @@ export function Text(props: React.ComponentProps<typeof CssText>) {
 // TextInputProps doesn't declare it — widen the type so focus chaining works.
 const CssTextInput = cssElement(RNTextInput) as React.ComponentType<
   React.ComponentProps<typeof RNTextInput> &
-    ClassNameProps & { ref?: React.Ref<RNTextInput> }
+    ClassNameProps & { ref?: React.Ref<TextInputInstance> }
 >;
 export function TextInput(props: React.ComponentProps<typeof CssTextInput>) {
   return <CssTextInput maxFontSizeMultiplier={MAX_TEXT_SCALE} {...props} />;
@@ -111,7 +116,7 @@ export function ScrollView(
     ClassNameProps & {
       contentContainerClassName?: string;
       // Forwarded as a plain prop under React 19, as with TextInput above.
-      ref?: React.Ref<RNScrollView>;
+      ref?: React.Ref<ScrollViewInstance>;
     },
 ) {
   const renderCssElement = useCssElement as (

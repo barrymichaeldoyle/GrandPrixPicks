@@ -220,7 +220,7 @@ export function NotificationsScreen({
               <ActivityIndicator color={colors.textMuted} />
             ) : null}
           </View>
-        ) : null
+        ) : undefined
       }
       {...(tabChrome ? hide.scrollProps : {})}
       refreshControl={

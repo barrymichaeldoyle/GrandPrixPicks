@@ -1,5 +1,5 @@
 import type { RefObject } from 'react';
-import type { TextInput as RNTextInput } from 'react-native';
+import type { TextInputInstance } from 'react-native';
 
 import { colors } from '../../theme/tokens';
 import { Text, TextInput } from '../../tw';
@@ -41,7 +41,7 @@ export function CodeStep({
   onBack: () => void;
   loading: boolean;
   error: string | null;
-  inputRef: RefObject<RNTextInput | null>;
+  inputRef: RefObject<TextInputInstance | null>;
 }) {
   return (
     <>
@@ -132,7 +132,7 @@ export function NewPasswordStep({
   onSubmit: () => void;
   loading: boolean;
   error: string | null;
-  confirmRef: RefObject<RNTextInput | null>;
+  confirmRef: RefObject<TextInputInstance | null>;
 }) {
   return (
     <>

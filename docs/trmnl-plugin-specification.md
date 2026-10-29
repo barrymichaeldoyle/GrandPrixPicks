@@ -543,7 +543,7 @@ authentication mechanism for a future paid API.
   four layouts, `shared.liquid`). `trmnlp` needs Ruby 4 or Docker. To import
   by hand, zip the flat files in `src/`. `settings.yml` keeps `trmnlp`'s own
   serialization, so it is in `.oxfmtrc.json`'s `ignorePatterns`: `pnpm
-format` used to rewrite it.
+  format` used to rewrite it.
 
 ### The screens page: `/trmnl`
 

@@ -11,7 +11,7 @@
   "devDependencies": {
     "tsx": "4.23.15",
     "typescript": "catalog:",
-    "vitest": "5.0.2"
+    "vitest": "5.0.5"
   },
   "exports": {
     "./amendmentSource": "./src/amendmentSource.ts",

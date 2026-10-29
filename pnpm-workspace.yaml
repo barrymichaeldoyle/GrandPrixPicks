@@ -5,7 +5,7 @@ packages:
 # Router declarations import React types. Resolve them from the consuming app
 # instead of hoisted React 19.2 types while web uses React 19.3.
 packageExtensions:
-  '@tanstack/react-router@1.170.40':
+  '@tanstack/react-router@1.170.46':
     peerDependencies:
       '@types/react': ^19.0.0
     peerDependenciesMeta:
@@ -35,7 +35,7 @@ auditConfig:
     - GHSA-mjw6-4jj6-33hc
 
 catalog:
-  convex: 1.46.0
+  convex: 1.48.0
   typescript: 7.0.2
 
 minimumReleaseAgeExclude:
@@ -78,25 +78,44 @@ minimumReleaseAgeExclude:
   - '@typescript/typescript-win32-arm64@7.0.2'
   - '@typescript/typescript-win32-x64@7.0.2'
   - typescript@7.0.2
-  - '@expo/cli@57.0.15'
-  - '@expo/config-plugins@57.0.8'
-  - '@expo/prebuild-config@57.0.12'
-  - '@expo/router-server@57.0.6'
-  - babel-preset-expo@57.0.7
-  - expo-asset@57.0.11
-  - expo-auth-session@57.0.7
-  - expo-constants@57.0.11 || 57.0.20
-  - expo-file-system@57.0.4
-  - expo-linking@57.0.6
-  - expo-modules-autolinking@57.0.10
-  - expo-modules-core@57.0.11 || 57.0.20
-  - expo-notifications@57.0.11
+  - '@expo/cli@57.0.15 || 58.1.17'
+  - '@expo/config-plugins@57.0.8 || 58.0.11'
+  - '@expo/prebuild-config@57.0.12 || 58.0.17'
+  - '@expo/router-server@57.0.6 || 58.0.19'
+  - babel-preset-expo@57.0.7 || 58.0.22
+  - expo-asset@57.0.11 || 58.0.19
+  - expo-auth-session@57.0.7 || 58.0.16
+  - expo-constants@57.0.11 || 57.0.20 || 58.0.14
+  - expo-file-system@57.0.4 || 58.0.13
+  - expo-linking@57.0.6 || 58.0.15
+  - expo-modules-autolinking@57.0.10 || 58.0.16
+  - expo-modules-core@57.0.11 || 57.0.20 || 58.0.28
+  - expo-notifications@57.0.11 || 58.1.7
   - expo-server@57.0.3
   - expo-store-review@57.0.2
-  - expo@57.0.13 || 57.0.26
+  - expo@57.0.13 || 57.0.26 || 58.0.21
   - knip@6.34.0
   - '@sentry/expo-upload-sourcemaps@8.26.0'
   - '@sentry/react-native@8.26.0'
+  - '@convex-dev/workpool@0.4.15'
+  - '@expo/config@58.0.9'
+  - '@expo/image-utils@0.12.6'
+  - '@expo/inline-modules@0.2.8'
+  - '@expo/local-build-cache-provider@58.0.9'
+  - '@expo/metro-config@58.0.19'
+  - '@expo/modules-macros-linux-arm64@0.27.1'
+  - '@expo/modules-macros-linux-x64@0.27.1'
+  - '@expo/modules-macros-win32-arm64@0.27.1'
+  - '@expo/modules-macros-win32-x64@0.27.1'
+  - '@expo/require-utils@58.0.5'
+  - expo-font@58.0.11
+  - expo-modules-cli@0.4.0
+  - expo-modules-jsi@58.0.21
+  - expo-modules-macros@0.27.1
+  - expo-dev-client@58.0.17
+  - expo-dev-launcher@58.0.17
+  - expo-splash-screen@58.0.12
+  - expo-system-ui@58.0.7
 
 onlyBuiltDependencies:
   - '@clerk/shared'
@@ -117,7 +136,7 @@ overrides:
   lightningcss: 1.30.1
   # Force the latest workpool (transitive via @convex-dev/resend, which allows
   # ^0.4.6) so the email workpool's internal crons run on the newest release.
-  '@convex-dev/workpool': 0.4.11
+  '@convex-dev/workpool': 0.4.15
   '@clerk/clerk-js@>=5.22.0 <=5.125.9': 5.125.10
   '@clerk/clerk-react@>=5.9.0 <=5.61.5': 5.61.6
   '@clerk/shared@>=3.0.0 <=3.47.4': 3.47.5

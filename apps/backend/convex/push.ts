@@ -520,8 +520,10 @@ export const sendPushResultsForSession = internalMutation({
     const title = isAmendment
       ? `🏁 ${race.name}: ${sessionLabel} results corrected`
       : `🏁 ${race.name}: ${sessionLabel} results`;
+    // Never the amendment note: it names drivers and positions, which would
+    // spoil the session on a lock screen. The leaderboard the tap opens has it.
     const body = isAmendment
-      ? args.amendmentNote!
+      ? 'Your session score has been updated.'
       : `Your session score is ready.`;
     // Matches the results email: "See how you scored" is a standings question,
     // so it opens the weekend leaderboard for this round rather than the race

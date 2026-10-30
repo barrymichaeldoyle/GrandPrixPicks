@@ -202,9 +202,8 @@ describe('notification delivery', () => {
     expect(corrections[0].userId).toBe(userId);
     expect(corrections[0].eventKey).toBe(`results_amended:${raceId}:quali:123`);
     expect(corrections[0].title).toContain('results corrected');
-    expect(corrections[0].body).toBe(
-      'Scores now use the completed qualifying order.',
-    );
+    // The note names drivers and positions, so it stays off the lock screen.
+    expect(corrections[0].body).toBe('Your session score has been updated.');
   });
   it('transfers a token to the authenticated account and cancels queued work for its previous owner', async () => {
     const t = setup();

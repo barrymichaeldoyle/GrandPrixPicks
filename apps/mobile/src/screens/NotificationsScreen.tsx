@@ -48,8 +48,6 @@ type Notification = {
   raceName?: string;
   raceSlug?: string;
   sessionType?: string;
-  points?: number;
-  amendmentNote?: string;
   title?: string;
   body?: string;
   linkPath?: string;
@@ -359,16 +357,14 @@ function NotificationIcon({ notification }: { notification: Notification }) {
   );
 }
 
+// Results rows carry no points and no amendment note: either would spoil the
+// session for anyone yet to watch it. The leaderboard the row opens has both.
 function getNotificationTitle(notification: Notification): string {
   if (notification.type === 'results_published') {
-    const points = notification.points ?? 0;
-    return `Results published: ${points} pt${points === 1 ? '' : 's'}`;
+    return 'Results are in';
   }
   if (notification.type === 'results_amended') {
-    const points = notification.points;
-    return points !== undefined
-      ? `Results amended: now ${points} pt${points === 1 ? '' : 's'}`
-      : 'Results amended';
+    return 'Results were amended';
   }
   if (notification.type === 'announcement') {
     return notification.title ?? 'Announcement';
@@ -382,9 +378,6 @@ function getNotificationSubtitle(notification: Notification): string {
         .replace(/_/g, ' ')
         .replace(/^./, (c) => c.toUpperCase())
     : null;
-  if (notification.type === 'results_amended' && notification.amendmentNote) {
-    return notification.amendmentNote;
-  }
   if (notification.type === 'announcement') {
     return notification.body ?? '';
   }

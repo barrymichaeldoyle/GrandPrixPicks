@@ -83,7 +83,6 @@ describe('NotificationItem', () => {
       raceName: 'Canadian Grand Prix',
       raceSlug: 'canadian-grand-prix-2026',
       sessionType: 'sprint_quali',
-      points: 14,
     });
 
     const link = view.container.querySelector<HTMLAnchorElement>(
@@ -105,7 +104,6 @@ describe('NotificationItem', () => {
       raceName: 'Canadian Grand Prix',
       raceSlug: 'canadian-grand-prix-2026',
       sessionType: 'race',
-      points: 6,
     });
 
     // The weekend is the only thing telling two "Race results are in" rows

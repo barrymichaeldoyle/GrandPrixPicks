@@ -23,8 +23,6 @@ export type Notification = {
   sessionType?: 'quali' | 'sprint_quali' | 'sprint' | 'race';
   raceName?: string;
   raceSlug?: string;
-  points?: number;
-  amendmentNote?: string;
   // announcement
   title?: string;
   body?: string;
@@ -248,7 +246,9 @@ export function NotificationItem({
     notification.type === 'results_amended'
   ) {
     // One row for both: an amendment is the same result told again, so it
-    // differs only in tone, icon, wording and the steward's note.
+    // differs only in tone, icon and wording. No points and no amendment
+    // note: either would spoil the session for anyone yet to watch it, and
+    // the race page they open has both.
     const amended = notification.type === 'results_amended';
     const title = amended
       ? sessionLabel
@@ -284,30 +284,11 @@ export function NotificationItem({
               />
             }
             title={title}
-            trailing={
-              notification.points !== undefined ? (
-                <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${amended ? 'bg-warning/15 text-warning' : 'bg-success/15 text-success'}`}
-                >
-                  {amended ? 'now ' : ''}+{notification.points} pts
-                </span>
-              ) : null
-            }
             meta={
-              <>
-                <NotificationMeta
-                  createdAt={notification.createdAt}
-                  raceName={notification.raceName}
-                />
-                {/* The steward's reason is the point of an amendment, so it
-                    keeps its own line rather than being folded into the meta
-                    run and truncated. */}
-                {amended && notification.amendmentNote ? (
-                  <p className="mt-1 text-xs leading-snug text-text-muted">
-                    {notification.amendmentNote}
-                  </p>
-                ) : null}
-              </>
+              <NotificationMeta
+                createdAt={notification.createdAt}
+                raceName={notification.raceName}
+              />
             }
           />
         </Link>

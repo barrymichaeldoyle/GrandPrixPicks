@@ -1,0 +1,33 @@
+{
+  "appId": "6810265048",
+  "version": "1.1.0",
+  "locale": "en-US",
+  "capturedOn": "2026-10-30",
+  "source": "production, dedicated review account",
+  "width": 2064,
+  "height": 2752,
+  "alpha": false,
+  "uploaded": false,
+  "images": [
+    {
+      "file": "02-top5.png",
+      "sha256": "648cad072c3c729b28dbbf0d1e31b2db3e22ed356f5d3537046c390058e0b3f2"
+    },
+    {
+      "file": "01-home.png",
+      "sha256": "f9e522195bd39476f13350983f442d190e2e010043e56d7c45a954d4eb3a61ae"
+    },
+    {
+      "file": "05-team-mate-pick.png",
+      "sha256": "8bd721c87b7d15333fb8f8b01f695a3d4f08c2af9a406c1c6a382ea13e9c469b"
+    },
+    {
+      "file": "03-leaderboard.png",
+      "sha256": "8ad55f542c883d8b8ce731d680046aba1d6919d7139cae6ff48a94e6f209b88a"
+    },
+    {
+      "file": "04-race-result.png",
+      "sha256": "f9ce913c484ce23f24e5b1994c0fb0c79fd8fb7aa76c7a03a8d1b8025faf9744"
+    }
+  ]
+}

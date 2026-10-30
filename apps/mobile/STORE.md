@@ -177,6 +177,15 @@ library and were placed on the English (US) version 1.0.0 draft under
 team-mate pick, season leaderboard, race result. `manifest.json` records the
 file hashes, asset IDs, and placement IDs. The app remains a draft.
 
+**iPad, captured 2026-10-30 for 1.1.0:** five production captures from the
+same review account are in `store-screenshots/ipad-13/`. They are 2064 × 2752
+RGB PNGs with no alpha channel, taken on the iPad Pro 13-inch (M5) simulator in
+portrait, which shows the two-column layout. They follow the iPhone set's order
+(Top 5, Home, team-mate pick, season leaderboard, race result). They are not
+uploaded yet: the 1.1.0 version does not exist in App Store Connect until 1.0.0
+clears review. The Home capture scrolls the feed column past the review
+account's own feed rows, because the account's display name is "Steve Jobs".
+
 For repeat captures:
 
 - Start a fresh Metro session with `--clear` and screenshot mode enabled.

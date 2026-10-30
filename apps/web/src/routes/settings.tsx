@@ -20,6 +20,10 @@ import { SettingsPageSkeleton } from './settings/-components/SettingsPageSkeleto
 import { SignInRequired } from './settings/-components/SignInRequired';
 import type { NotificationSettings } from './settings/-components/settingsTypes';
 import { pageMeta } from '@/lib/site';
+import {
+  isObjectionableName,
+  NAME_REJECTED_MESSAGE,
+} from '@grandprixpicks/shared/nameFilter';
 
 export const Route = createFileRoute('/settings')({
   validateSearch: (
@@ -385,6 +389,14 @@ function useProfileForm({
   async function onSave() {
     const trimmedUsername = username.trim().toLowerCase();
     const usernameChanged = trimmedUsername !== (user?.username ?? '');
+
+    if (
+      isObjectionableName(displayName) ||
+      (usernameChanged && isObjectionableName(trimmedUsername))
+    ) {
+      setError(NAME_REJECTED_MESSAGE);
+      return;
+    }
 
     if (usernameChanged && !showUsernameConfirm) {
       setShowUsernameConfirm(true);

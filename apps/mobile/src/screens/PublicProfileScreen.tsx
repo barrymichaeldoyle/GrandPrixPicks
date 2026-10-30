@@ -4,6 +4,7 @@ import { Avatar } from '../components/ui/Avatar';
 import { FollowButton } from '../components/ui/FollowButton';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
+import { PlayerSafetyActions } from '../components/PlayerSafetyActions';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { ScrollView, Text, View } from '../tw';
@@ -41,6 +42,7 @@ export function PublicProfileScreen({ route }: Props) {
 
   const isOwner = me ? profile._id === me._id : false;
   const displayName = profile.displayName ?? profile.username ?? username;
+  const blocked = profile.blockedByViewer;
 
   return (
     <ScrollView
@@ -63,27 +65,30 @@ export function PublicProfileScreen({ route }: Props) {
         </View>
       </View>
 
-      <View className="flex-row items-center justify-around">
-        <View className="flex-1 items-center py-1">
-          <Numeral variant="large">
-            {followCounts?.followerCount ?? '—'}
-          </Numeral>
-          <Text className="text-muted mt-0.5 text-xs font-medium">
-            Followers
-          </Text>
+      {/* A blocked player's profile stops at the header. */}
+      {blocked ? null : (
+        <View className="flex-row items-center justify-around">
+          <View className="flex-1 items-center py-1">
+            <Numeral variant="large">
+              {followCounts?.followerCount ?? '—'}
+            </Numeral>
+            <Text className="text-muted mt-0.5 text-xs font-medium">
+              Followers
+            </Text>
+          </View>
+          <View className="h-7 w-px bg-border" />
+          <View className="flex-1 items-center py-1">
+            <Numeral variant="large">
+              {followCounts?.followingCount ?? '—'}
+            </Numeral>
+            <Text className="text-muted mt-0.5 text-xs font-medium">
+              Following
+            </Text>
+          </View>
         </View>
-        <View className="h-7 w-px bg-border" />
-        <View className="flex-1 items-center py-1">
-          <Numeral variant="large">
-            {followCounts?.followingCount ?? '—'}
-          </Numeral>
-          <Text className="text-muted mt-0.5 text-xs font-medium">
-            Following
-          </Text>
-        </View>
-      </View>
+      )}
 
-      {!isOwner ? (
+      {!isOwner && !blocked ? (
         <View className="items-center">
           <FollowButton
             followeeId={profile._id as ConvexId<'users'>}
@@ -92,7 +97,15 @@ export function PublicProfileScreen({ route }: Props) {
         </View>
       ) : null}
 
-      {stats ? (
+      {!isOwner ? (
+        <PlayerSafetyActions
+          userId={profile._id as ConvexId<'users'>}
+          username={profile.username ?? undefined}
+          blocked={blocked}
+        />
+      ) : null}
+
+      {stats && !blocked ? (
         <View className="gap-2.5">
           <Text className="text-muted text-xs font-medium">Season stats</Text>
           <View className="flex-row items-center">

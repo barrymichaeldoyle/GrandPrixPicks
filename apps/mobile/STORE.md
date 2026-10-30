@@ -21,7 +21,7 @@ search results, so both are written to survive that rather than to fit exactly.
 | Field              | Value                                                   | Limit        |
 | ------------------ | ------------------------------------------------------- | ------------ |
 | App Name           | `Grand Prix Picks`                                      | 30 (16 used) |
-| Subtitle           | `Predict every F1 session`                              | 30 (24 used) |
+| Subtitle           | `Predict every F1 weekend`                              | 30 (24 used) |
 | Primary category   | Sports                                                  |              |
 | Secondary category | Entertainment                                           |              |
 | Copyright          | `2026 Barry Michael Doyle Software Solutions (Pty) Ltd` |              |
@@ -40,10 +40,10 @@ the launch listing or its current advertising/privacy declarations.
 ### Keywords (100 characters)
 
 ```
-f1,formula1,racing,motorsport,prediction,predictor,fantasy,qualifying,grid,standings
+f1,formula 1,racing,motorsport,prediction,predictor,fantasy,qualifying,sprint,pickem,tipping,game
 ```
 
-84 characters. Deliberately excludes "grand", "prix" and "picks": the app name
+97 characters. Deliberately excludes "grand", "prix" and "picks": the app name
 is already indexed, and repeating it wastes the field. "league" is omitted
 because private leagues are managed on the website, not in the app. Comma
 separated with no spaces, because spaces count.
@@ -53,52 +53,41 @@ separated with no spaces, because spaces count.
 Editable without review, so use it for the current round.
 
 ```
-The season is back. Get your Top 5 in before qualifying locks, choose who finishes ahead in each team, and see how you stack up against everyone else this weekend.
+Get your Top 5 in before qualifying locks, pick the winner of each team-mate duel, and see where you rank after every session.
 ```
 
 ## Description
 
 ```
-Everyone's a strategist on Sunday. Prove it.
+Grand Prix Picks is a free prediction game for every Formula 1 weekend. Pick the top five for qualifying, the sprint and the race, and see how you rank against everyone else.
 
-Grand Prix Picks turns every session of a Formula 1 weekend into a game you
-play against your friends and the rest of the grid.
+How it works
 
-HOW IT WORKS
+Rank the top five for each session. Then call every team-mate duel: which of the two drivers in each team finishes ahead.
 
-Rank the top five for qualifying, the sprint and the race. Then call every
-team-mate duel: which of the two drivers in each car finishes ahead.
+Five points for a driver in exactly the right position. Three for one place out. One for a driver who finished in the top five but further from your pick. A perfect session is 25 points.
 
-Scoring rewards precision, not luck. Five points for putting a driver in
-exactly the right position. Three for being one place out. One for naming a
-driver who finished in the top five but landing them further away. Twenty five
-points is a perfect session.
+Each session locks at its own start time. A sprint weekend gives you four sessions to score in, and a bad Saturday doesn't cost you Sunday.
 
-Every session locks at its own start time, so a sprint weekend gives you four
-separate chances to be right, and a bad Saturday does not cost you Sunday.
+Play with others
 
-PLAY WITH PEOPLE
+Climb the season and weekend leaderboards. Follow other players and see their picks once a session locks. Private leagues are on grandprixpicks.com.
 
-Take on the global leaderboard. Follow other players, watch their picks land
-or fall apart, and react to them in the feed. Private leagues are on
-grandprixpicks.com.
+Scored on the official result
 
-BUILT ON THE OFFICIAL RESULT
+Scores use the official FIA classification. If the stewards apply a penalty after the flag, your score changes with it.
 
-Scores come from the official classification, not the order the cars crossed
-the line. If the stewards apply a penalty after the flag, your score moves with
-it, the same way the championship does.
+Free to play
 
-FREE TO PLAY
+No wagering, no entry fees, no prizes.
 
-No wagering, no stakes, no prizes. Just whether you were right.
+Grand Prix Picks is unofficial and is not associated in any way with the Formula 1 companies. F1, FORMULA ONE, FORMULA 1 and related marks are trade marks of Formula One Licensing B.V.
 ```
 
 ## What's New (version 1.0.0)
 
 ```
-First release. Pick your Top 5 for every session, choose who finishes ahead in each team,
-and play the season out against your friends.
+First release. Pick your Top 5 for every qualifying, sprint and race, call each team-mate duel, and track your season on the leaderboard.
 ```
 
 ## App Review Information

@@ -10,6 +10,7 @@ import type {
 } from './_generated/server';
 import { internalMutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
+import { getHiddenUserIds } from './moderation';
 import {
   feedSortFor,
   feedSortWeekend,
@@ -1268,6 +1269,9 @@ export const getLeagueFeed = query({
     }
 
     const memberUserIds = await getLeagueFeedUserIds(ctx, leagueId);
+    for (const hiddenId of await getHiddenUserIds(ctx, viewer._id)) {
+      memberUserIds.delete(hiddenId);
+    }
     const { page, hasMore, nextCursor } = await buildFilteredFeedPage(
       ctx,
       memberUserIds,

@@ -1,9 +1,10 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
 import { applyFollowEdgeDelta } from './lib/followCounts';
+import { getHiddenUserIds, isBlockedEitherWay } from './moderation';
 import { toUserIdentity } from './lib/userIdentity';
 
 // The app currently treats follow relationships as a capped social graph rather than
@@ -92,6 +93,9 @@ export const follow = mutation({
     const target = await ctx.db.get(args.followeeId);
     if (!target) {
       throw new Error('User not found');
+    }
+    if (await isBlockedEitherWay(ctx, viewer._id, args.followeeId)) {
+      throw new ConvexError("You can't follow this player");
     }
 
     const existing = await ctx.db
@@ -272,6 +276,7 @@ export const getSuggestedLeagueMembersToFollow = query({
     const excludedUserIds = new Set<Id<'users'>>([
       viewer._id,
       ...follows.map((follow) => follow.followeeId),
+      ...(await getHiddenUserIds(ctx, viewer._id)),
     ]);
 
     const candidates = new Map<

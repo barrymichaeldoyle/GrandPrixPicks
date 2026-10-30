@@ -2,6 +2,7 @@ import { internal } from '../_generated/api';
 import type { Doc } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { syncUserToStandings } from './standings';
+import { isObjectionableName } from '@grandprixpicks/shared/nameFilter';
 
 export function getIdentityKeys(identity: {
   tokenIdentifier?: string;
@@ -119,14 +120,24 @@ export async function getOrCreateViewer(
     identity.email ??
     (Array.isArray(identity.emailAddresses) && identity.emailAddresses[0]);
   const email = typeof rawEmail === 'string' ? rawEmail : undefined;
-  const displayName =
+  const providedDisplayName =
     identity.name ??
     identity.nickname ??
     (identity.givenName && identity.familyName
       ? `${identity.givenName} ${identity.familyName}`
       : undefined);
-  const username = (identity as { preferredUsername?: string })
+  const providedUsername = (identity as { preferredUsername?: string })
     .preferredUsername;
+  // A name from Clerk is stored only if it passes the same filter as one typed
+  // in settings. Without one the player reads as Anonymous until they pick one.
+  const displayName =
+    providedDisplayName && !isObjectionableName(providedDisplayName)
+      ? providedDisplayName
+      : undefined;
+  const username =
+    providedUsername && !isObjectionableName(providedUsername)
+      ? providedUsername
+      : undefined;
   const avatarUrl = identity.pictureUrl;
 
   const existing = await findUserByClerkIdentity(ctx, {

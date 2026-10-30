@@ -1,6 +1,6 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import type { FunctionReference } from 'convex/server';
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
@@ -32,11 +32,17 @@ import {
   type StandingsSyncStep,
 } from './lib/standings';
 import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
+import {
+  isObjectionableName,
+  NAME_REJECTED_MESSAGE,
+} from '@grandprixpicks/shared/nameFilter';
 import { toUserIdentity } from './lib/userIdentity';
 import { resolvedNotificationSettings } from './lib/notificationChannels';
 
 type AccountDeletionSummary = {
   follows: number;
+  /** Optional: deletions already running when blocks shipped carry no count. */
+  userBlocks?: number;
   supportRequests: number;
   userSeasonPasses: number;
   pushSubscriptions: number;
@@ -67,6 +73,8 @@ const standingsSyncStepValidator = v.union(
 const DELETION_STEPS = [
   'follows_as_follower',
   'follows_as_followee',
+  'user_blocks_as_blocker',
+  'user_blocks_as_blocked',
   'support_requests',
   'user_season_passes',
   'push_subscriptions',
@@ -85,6 +93,7 @@ type AccountDeletionStep = (typeof DELETION_STEPS)[number];
 
 const accountDeletionSummaryValidator = v.object({
   follows: v.number(),
+  userBlocks: v.optional(v.number()),
   supportRequests: v.number(),
   userSeasonPasses: v.number(),
   pushSubscriptions: v.number(),
@@ -109,6 +118,7 @@ const accountDeletionStepValidator = v.union(
 function emptyDeletionSummary(): AccountDeletionSummary {
   return {
     follows: 0,
+    userBlocks: 0,
     supportRequests: 0,
     userSeasonPasses: 0,
     pushSubscriptions: 0,
@@ -215,6 +225,34 @@ async function processDeletionStep(
         await decrementFollowingCount(ctx, row.followerId);
       }
       summary.follows += await deleteRows(ctx, rows);
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'user_blocks_as_blocker',
+      };
+    }
+    case 'user_blocks_as_blocker': {
+      const rows = await ctx.db
+        .query('userBlocks')
+        .withIndex('by_blocker_and_blocked', (q) =>
+          q.eq('blockerId', args.userId),
+        )
+        .take(DELETION_BATCH_SIZE);
+      summary.userBlocks =
+        (summary.userBlocks ?? 0) + (await deleteRows(ctx, rows));
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'user_blocks_as_blocked',
+      };
+    }
+    case 'user_blocks_as_blocked': {
+      const rows = await ctx.db
+        .query('userBlocks')
+        .withIndex('by_blocked', (q) => q.eq('blockedId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      summary.userBlocks =
+        (summary.userBlocks ?? 0) + (await deleteRows(ctx, rows));
       return {
         summary,
         repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
@@ -880,10 +918,21 @@ export const getProfileByUsername = query({
       return null;
     }
 
+    const blockedByViewer =
+      viewer && viewer._id !== user._id
+        ? (await ctx.db
+            .query('userBlocks')
+            .withIndex('by_blocker_and_blocked', (q) =>
+              q.eq('blockerId', viewer._id).eq('blockedId', user._id),
+            )
+            .unique()) !== null
+        : false;
+
     return {
       _id: user._id,
       ...toUserIdentity(user),
       isOwner: viewer ? user._id === viewer._id : false,
+      blockedByViewer,
     };
   },
 });
@@ -1147,6 +1196,9 @@ export const updateProfile = mutation({
       if (trimmed.length < 1 || trimmed.length > 50) {
         throw new Error('Display name must be between 1 and 50 characters');
       }
+      if (isObjectionableName(trimmed)) {
+        throw new ConvexError(NAME_REJECTED_MESSAGE);
+      }
       patch.displayName = trimmed;
     }
 
@@ -1162,6 +1214,9 @@ export const updateProfile = mutation({
           throw new Error(
             'Username can only contain lowercase letters, numbers, underscores, and hyphens',
           );
+        }
+        if (isObjectionableName(trimmed)) {
+          throw new ConvexError(NAME_REJECTED_MESSAGE);
         }
 
         // 90-day cooldown

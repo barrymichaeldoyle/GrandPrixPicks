@@ -70,6 +70,7 @@ import type * as lib_weekendRank from "../lib/weekendRank.js";
 import type * as lib_youtube from "../lib/youtube.js";
 import type * as liveClassification from "../liveClassification.js";
 import type * as liveScoring from "../liveScoring.js";
+import type * as moderation from "../moderation.js";
 import type * as newsNotifications from "../newsNotifications.js";
 import type * as newsPipeline from "../newsPipeline.js";
 import type * as notificationDelivery from "../notificationDelivery.js";
@@ -170,6 +171,7 @@ declare const fullApi: ApiFromModules<{
   "lib/youtube": typeof lib_youtube;
   liveClassification: typeof liveClassification;
   liveScoring: typeof liveScoring;
+  moderation: typeof moderation;
   newsNotifications: typeof newsNotifications;
   newsPipeline: typeof newsPipeline;
   notificationDelivery: typeof notificationDelivery;

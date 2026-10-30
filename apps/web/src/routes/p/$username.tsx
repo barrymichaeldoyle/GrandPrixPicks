@@ -24,6 +24,7 @@ import { FeedEmptyState } from '@/components/FeedItem/states';
 import { InlineLoader } from '@/components/InlineLoader';
 import { FollowButton } from '@/components/FollowButton';
 import { PageLoader } from '@/components/PageLoader';
+import { PlayerSafetyActions } from '@/components/PlayerSafetyActions';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { RaceFlag } from '@/components/RaceFlag';
 import { pageMeta } from '@/lib/site';
@@ -295,7 +296,7 @@ function ProfilePage() {
                 </span>
                 <ArrowRight className="h-4 w-4 shrink-0 text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
               </Link>
-            ) : !isOwner ? (
+            ) : !isOwner && !currentProfile.blockedByViewer ? (
               <div className="shrink-0">
                 <FollowButton followeeId={currentProfile._id} />
               </div>
@@ -303,175 +304,195 @@ function ProfilePage() {
           </div>
         </div>
 
-        {/* Stats grid — rank cards only when user has an actual rank */}
-        {(() => {
-          const showTop5 = stats != null && stats.seasonRank != null;
-          const showH2H = stats != null && stats.h2hSeasonRank != null;
-          const gridCols =
-            !showTop5 && !showH2H
-              ? 'sm:grid-cols-2'
-              : showTop5 && showH2H
-                ? 'sm:grid-cols-4'
-                : 'sm:grid-cols-3';
-          return (
-            <div
-              className={`mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-border bg-border ${gridCols}`}
-            >
-              <div className="bg-surface px-3 py-4 text-center">
-                <div className="font-title text-2xl font-semibold text-accent">
-                  {stats?.totalPoints ?? '—'}
-                </div>
-                <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                  Top 5 points
-                </div>
-              </div>
-              <div className="bg-surface px-3 py-4 text-center">
-                <div className="font-title text-2xl font-semibold text-text">
-                  {stats?.weekendCount ?? '—'}
-                </div>
-                <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                  Weekends
-                </div>
-              </div>
-              {showTop5 && (
-                <div className="bg-surface px-3 py-4 text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    <Hash className="h-4 w-4 text-accent" />
-                    <span className="font-title text-2xl font-semibold text-accent">
-                      {stats.seasonRank}
-                    </span>
-                  </div>
-                  <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                    Top 5 rank of {stats.totalPlayers}
-                  </div>
-                </div>
-              )}
-              {showH2H && (
-                <div className="bg-surface px-3 py-4 text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    <Hash className="h-4 w-4 text-accent" />
-                    <span className="font-title text-2xl font-semibold text-accent">
-                      {stats.h2hSeasonRank}
-                    </span>
-                  </div>
-                  <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                    H2H rank of {stats.h2hTotalPlayers}
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })()}
-
-        {scoredWeekends.length > 0 ? (
-          <section className="mb-7">
-            <div className="mb-2 flex items-baseline justify-between gap-3">
-              <h2 className="font-title text-sm font-semibold text-text">
-                Weekend finishes
-              </h2>
-              <span className="text-xs text-text-muted">Top 5 scoring</span>
-            </div>
-            {/* Flat rows: a card per weekend holding three bordered cells was
-                two levels of border and ran past two thousand pixels on a
-                phone by the end of a season. */}
-            <ul className="grid border-t border-border sm:grid-cols-2 sm:gap-x-8">
-              {scoredWeekends.map((weekend) => {
-                const countryCode = getCountryCodeForRace({
-                  slug: weekend.raceSlug,
-                });
-                const scoredSessionCount = Object.values(
-                  weekend.sessions,
-                ).filter((session) => session?.points != null).length;
-
-                return (
-                  <li key={weekend.raceId} className="border-b border-border">
-                    <Link
-                      to="/races/$raceSlug"
-                      params={{ raceSlug: weekend.raceSlug }}
-                      className="group flex items-center gap-3 py-2.5"
-                    >
-                      {countryCode ? (
-                        <RaceFlag countryCode={countryCode} size="sm" />
-                      ) : null}
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-medium text-text group-hover:text-accent">
-                          {weekend.raceName}
-                        </span>
-                        <span className="block text-xs text-text-muted">
-                          Round {weekend.raceRound} · {scoredSessionCount}{' '}
-                          {scoredSessionCount === 1 ? 'session' : 'sessions'}
-                        </span>
-                      </span>
-                      <span className="w-14 shrink-0 text-right">
-                        <span className="gpp-mono block font-semibold text-accent">
-                          {weekend.top5Rank != null
-                            ? `P${weekend.top5Rank}`
-                            : '–'}
-                        </span>
-                        <span className="block text-xs text-text-muted">
-                          of {weekend.top5FieldSize}
-                        </span>
-                      </span>
-                      <span className="w-14 shrink-0 text-right">
-                        <span className="gpp-mono block font-semibold text-text">
-                          {weekend.totalPoints}
-                        </span>
-                        <span className="block text-xs text-text-muted">
-                          pts
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
+        {!isOwner ? (
+          <PlayerSafetyActions
+            userId={currentProfile._id}
+            username={currentProfile.username}
+            blocked={currentProfile.blockedByViewer}
+          />
         ) : null}
 
-        <div className="mt-7 mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="font-title text-sm font-semibold text-text">
-            {isOwner ? 'My recent results' : 'Recent results'}
-          </h2>
-          {userFeed && userFeed.events.length > 0 ? (
-            <span className="text-xs text-text-muted">Combined scoring</span>
-          ) : null}
-        </div>
-
-        {/* Result feed */}
-        {userFeed === undefined ? (
-          <InlineLoader label="Loading activity" />
-        ) : userFeed.events.length === 0 ? (
-          weekends?.length === 0 ? (
-            <div className="rounded-sm border border-border bg-surface p-8 text-center">
-              <History className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-              <h2 className="mb-2 text-xl font-semibold text-text">
-                No predictions yet
-              </h2>
-              <p className="text-text-muted">
-                {isOwner
-                  ? 'Make your first prediction to start tracking your scores.'
-                  : 'This user has not made any predictions yet.'}
-              </p>
-              {isOwner && (
-                <Link
-                  to="/races"
-                  className={`mt-4 inline-block ${primaryButtonStyles('md')}`}
+        {/* A blocked player's profile stops at the header. */}
+        {currentProfile.blockedByViewer ? null : (
+          <>
+            {/* Stats grid — rank cards only when user has an actual rank */}
+            {(() => {
+              const showTop5 = stats != null && stats.seasonRank != null;
+              const showH2H = stats != null && stats.h2hSeasonRank != null;
+              const gridCols =
+                !showTop5 && !showH2H
+                  ? 'sm:grid-cols-2'
+                  : showTop5 && showH2H
+                    ? 'sm:grid-cols-4'
+                    : 'sm:grid-cols-3';
+              return (
+                <div
+                  className={`mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-border bg-border ${gridCols}`}
                 >
-                  View Races
-                </Link>
-              )}
+                  <div className="bg-surface px-3 py-4 text-center">
+                    <div className="font-title text-2xl font-semibold text-accent">
+                      {stats?.totalPoints ?? '—'}
+                    </div>
+                    <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                      Top 5 points
+                    </div>
+                  </div>
+                  <div className="bg-surface px-3 py-4 text-center">
+                    <div className="font-title text-2xl font-semibold text-text">
+                      {stats?.weekendCount ?? '—'}
+                    </div>
+                    <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                      Weekends
+                    </div>
+                  </div>
+                  {showTop5 && (
+                    <div className="bg-surface px-3 py-4 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <Hash className="h-4 w-4 text-accent" />
+                        <span className="font-title text-2xl font-semibold text-accent">
+                          {stats.seasonRank}
+                        </span>
+                      </div>
+                      <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                        Top 5 rank of {stats.totalPlayers}
+                      </div>
+                    </div>
+                  )}
+                  {showH2H && (
+                    <div className="bg-surface px-3 py-4 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <Hash className="h-4 w-4 text-accent" />
+                        <span className="font-title text-2xl font-semibold text-accent">
+                          {stats.h2hSeasonRank}
+                        </span>
+                      </div>
+                      <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                        H2H rank of {stats.h2hTotalPlayers}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {scoredWeekends.length > 0 ? (
+              <section className="mb-7">
+                <div className="mb-2 flex items-baseline justify-between gap-3">
+                  <h2 className="font-title text-sm font-semibold text-text">
+                    Weekend finishes
+                  </h2>
+                  <span className="text-xs text-text-muted">Top 5 scoring</span>
+                </div>
+                {/* Flat rows: a card per weekend holding three bordered cells was
+                two levels of border and ran past two thousand pixels on a
+                phone by the end of a season. */}
+                <ul className="grid border-t border-border sm:grid-cols-2 sm:gap-x-8">
+                  {scoredWeekends.map((weekend) => {
+                    const countryCode = getCountryCodeForRace({
+                      slug: weekend.raceSlug,
+                    });
+                    const scoredSessionCount = Object.values(
+                      weekend.sessions,
+                    ).filter((session) => session?.points != null).length;
+
+                    return (
+                      <li
+                        key={weekend.raceId}
+                        className="border-b border-border"
+                      >
+                        <Link
+                          to="/races/$raceSlug"
+                          params={{ raceSlug: weekend.raceSlug }}
+                          className="group flex items-center gap-3 py-2.5"
+                        >
+                          {countryCode ? (
+                            <RaceFlag countryCode={countryCode} size="sm" />
+                          ) : null}
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate font-medium text-text group-hover:text-accent">
+                              {weekend.raceName}
+                            </span>
+                            <span className="block text-xs text-text-muted">
+                              Round {weekend.raceRound} · {scoredSessionCount}{' '}
+                              {scoredSessionCount === 1
+                                ? 'session'
+                                : 'sessions'}
+                            </span>
+                          </span>
+                          <span className="w-14 shrink-0 text-right">
+                            <span className="gpp-mono block font-semibold text-accent">
+                              {weekend.top5Rank != null
+                                ? `P${weekend.top5Rank}`
+                                : '–'}
+                            </span>
+                            <span className="block text-xs text-text-muted">
+                              of {weekend.top5FieldSize}
+                            </span>
+                          </span>
+                          <span className="w-14 shrink-0 text-right">
+                            <span className="gpp-mono block font-semibold text-text">
+                              {weekend.totalPoints}
+                            </span>
+                            <span className="block text-xs text-text-muted">
+                              pts
+                            </span>
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ) : null}
+
+            <div className="mt-7 mb-3 flex items-baseline justify-between gap-3">
+              <h2 className="font-title text-sm font-semibold text-text">
+                {isOwner ? 'My recent results' : 'Recent results'}
+              </h2>
+              {userFeed && userFeed.events.length > 0 ? (
+                <span className="text-xs text-text-muted">
+                  Combined scoring
+                </span>
+              ) : null}
             </div>
-          ) : (
-            <FeedEmptyState
-              icon={History}
-              message="Race-by-race results will appear here once sessions are scored."
-            />
-          )
-        ) : (
-          <ProfileResultHistory
-            key={currentProfile._id}
-            events={userFeed.events}
-          />
+
+            {/* Result feed */}
+            {userFeed === undefined ? (
+              <InlineLoader label="Loading activity" />
+            ) : userFeed.events.length === 0 ? (
+              weekends?.length === 0 ? (
+                <div className="rounded-sm border border-border bg-surface p-8 text-center">
+                  <History className="mx-auto mb-4 h-16 w-16 text-text-muted" />
+                  <h2 className="mb-2 text-xl font-semibold text-text">
+                    No predictions yet
+                  </h2>
+                  <p className="text-text-muted">
+                    {isOwner
+                      ? 'Make your first prediction to start tracking your scores.'
+                      : 'This user has not made any predictions yet.'}
+                  </p>
+                  {isOwner && (
+                    <Link
+                      to="/races"
+                      className={`mt-4 inline-block ${primaryButtonStyles('md')}`}
+                    >
+                      View Races
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <FeedEmptyState
+                  icon={History}
+                  message="Race-by-race results will appear here once sessions are scored."
+                />
+              )
+            ) : (
+              <ProfileResultHistory
+                key={currentProfile._id}
+                events={userFeed.events}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

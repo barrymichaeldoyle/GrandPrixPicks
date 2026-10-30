@@ -692,6 +692,20 @@ export default defineSchema({
     .index('by_followee', ['followeeId'])
     .index('by_follower_followee', ['followerId', 'followeeId']),
 
+  /**
+   * One row per "blocker no longer wants to see blocked". Blocking also drops
+   * the follow edges both ways and stops either following the other again, so
+   * neither shows up in the other's feed. Leaderboards ignore it: standings
+   * stay complete. See `moderation.ts`.
+   */
+  userBlocks: defineTable({
+    blockerId: v.id('users'),
+    blockedId: v.id('users'),
+    createdAt: v.number(),
+  })
+    .index('by_blocker_and_blocked', ['blockerId', 'blockedId'])
+    .index('by_blocked', ['blockedId']),
+
   // ============ SUPPORT ============
 
   supportRequests: defineTable({
@@ -699,6 +713,8 @@ export default defineSchema({
     subject: v.string(),
     message: v.string(),
     category: v.optional(v.string()),
+    /** Set on a "Report player" request: who was reported. */
+    reportedUserId: v.optional(v.id('users')),
     status: v.union(v.literal('open'), v.literal('closed')),
     createdAt: v.number(),
     updatedAt: v.number(),

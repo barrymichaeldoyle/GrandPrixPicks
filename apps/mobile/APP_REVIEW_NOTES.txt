@@ -4,6 +4,8 @@ Home, the feed, race results, and leaderboards can be browsed without signing in
 
 Picks are available from Home for the current race weekend. The first save applies to every session still open that weekend. Later edits apply only to the selected session. Each session locks at its start time; locked picks remain visible. If the current weekend is locked, previous results are available under More > Races.
 
+Any player can be reported or blocked from their profile: open a player from the leaderboard, then tap Report or Block. Reports go to our support inbox. Blocking unfollows both players and hides each from the other's feed. Usernames and display names are checked against a word filter when they are set.
+
 Accounts can be permanently deleted in the app under More > Settings > Delete account. Please use a separate account to test deletion so that the supplied review account remains available.
 
 Notifications are optional. The app offers pick reminders after the first saved pick; notification preferences are under More > Settings.

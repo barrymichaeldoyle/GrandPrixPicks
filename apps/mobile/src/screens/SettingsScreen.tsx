@@ -34,6 +34,10 @@ import {
   View,
 } from '../tw';
 import { userFacingMessage } from '../lib/userFacingError';
+import {
+  isObjectionableName,
+  NAME_REJECTED_MESSAGE,
+} from '@grandprixpicks/shared/nameFilter';
 
 type NotificationKey =
   | 'pushPredictionReminders'
@@ -201,6 +205,10 @@ export function SettingsScreen() {
     const trimmed = displayName.trim();
     if (trimmed.length < 1) {
       setNameError('Display name cannot be empty.');
+      return;
+    }
+    if (isObjectionableName(trimmed)) {
+      setNameError(NAME_REJECTED_MESSAGE);
       return;
     }
     setIsSavingName(true);

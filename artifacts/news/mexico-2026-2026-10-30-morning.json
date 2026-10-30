@@ -1,0 +1,26 @@
+[
+  {
+    "raceSlug": "mexico-2026",
+    "key": "mexico-altitude-active-aero-turbo-lag",
+    "headline": "Altitude, active aero and turbo lag make Mexico a harder test",
+    "body": "Teams normally run near-Monaco wing levels in Mexico to offset the thin air, but active aerodynamics leave less room to compensate. Verstappen expects much less grip and Hadjar says the cars will feel \"slippery as hell\". With the MGU-H no longer able to help the turbo at 2,286 metres, Russell expects Ferrari's smaller turbo to be an advantage.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["VER"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/slippery-as-hell-max-verstappen-and-isack-hadjar-explain-the-extreme-challenge-of-mexico/10869483/",
+    "sourcePublishedAt": "2026-10-30T15:30:02Z"
+  },
+  {
+    "raceSlug": "mexico-2026",
+    "key": "herta-cadillac-fp1-superlicence-mexico",
+    "headline": "Herta needs Mexico FP1 to complete his F1 superlicence",
+    "body": "Colton Herta drives Bottas's Cadillac in FP1 and is one point short of the 40 he needs for an F1 superlicence, which would make him an option for the team's 2027 seat. Cadillac wants 100 kilometres from him in the session. Perez says the choice between Herta and Bottas is a decision for team boss Marcin Budkowski.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["BOT"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/three-mexico-fp1-changes-with-high-driver-market-stakes/",
+    "sourcePublishedAt": "2026-10-30T11:30:15Z"
+  }
+]

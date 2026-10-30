@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/mexico-2026-2026-10-30-morning.json",
+  "startAt": "2026-10-30T16:30:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["mexico-altitude-active-aero-turbo-lag"],
+      "text": "Mexico City sits at 2,286m, and with active aero there is less wing to compensate for the thin air. Russell expects Ferrari's smaller turbo to be an advantage.",
+      "link": "https://grandprixpicks.com/f1-2026-mexico-city-grand-prix-predictions?story=mexico-altitude-active-aero-turbo-lag",
+      "expiresAt": "2026-10-31T11:00:00Z"
+    }
+  ]
+}

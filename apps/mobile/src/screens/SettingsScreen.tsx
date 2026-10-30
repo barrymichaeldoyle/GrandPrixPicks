@@ -1,3 +1,4 @@
+import { READABLE_COLUMN } from '../lib/layout';
 import { Ionicons } from '../components/ui/Ionicons';
 import { useMutation } from 'convex/react';
 import { useQuery } from '../integrations/convex/query';
@@ -344,6 +345,7 @@ export function SettingsScreen() {
     <ScrollView
       className="flex-1 bg-page"
       contentContainerClassName="gap-[26px] px-4 pb-8 pt-3"
+      contentContainerStyle={READABLE_COLUMN}
     >
       <View className="mb-1 gap-1">
         <Text className="text-xs font-medium text-accent">Settings</Text>

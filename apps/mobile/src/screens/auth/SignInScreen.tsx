@@ -1,3 +1,4 @@
+import { READABLE_COLUMN } from '../../lib/layout';
 import {
   isClerkAPIResponseError,
   useAuth,
@@ -535,6 +536,7 @@ export function SignInScreen() {
     >
       <ScrollView
         contentContainerClassName="grow"
+        contentContainerStyle={READABLE_COLUMN}
         keyboardShouldPersistTaps="handled"
         ref={scrollRef}
       >

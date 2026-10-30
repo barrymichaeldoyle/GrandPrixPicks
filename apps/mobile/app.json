@@ -3,7 +3,7 @@
     "name": "Grand Prix Picks",
     "slug": "grand-prix-picks",
     "scheme": "grandprixpicks",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "platforms": ["ios", "android"],
     "plugins": [
@@ -51,7 +51,7 @@
       },
       "appleTeamId": "LBZ6C9H52C",
       "associatedDomains": ["applinks:grandprixpicks.com"],
-      "supportsTablet": false,
+      "supportsTablet": true,
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
 import { colors } from '../../theme/tokens';
@@ -34,7 +35,13 @@ function strengthAt(centre: number, width: number): number {
  * No label. The card underneath already flies the flag and names the race.
  */
 export function WeekendSplit({ className }: { className?: string }) {
-  const { width } = useWindowDimensions();
+  // Its own width, not the window's: beside the weekend column on a tablet the
+  // feed is a fraction of the window, and the window's width put the fade in
+  // the wrong place and drew squares nobody could see. The window is the
+  // first guess so a phone's first frame is already right.
+  const window = useWindowDimensions();
+  const [measured, setMeasured] = useState<number | null>(null);
+  const width = measured ?? window.width;
   const columns = Math.ceil(width / CELL);
   // The run is pushed left by its own overhang, so it ends on a whole square at
   // the right wall and the clipped one is off the left edge instead. A half
@@ -46,6 +53,7 @@ export function WeekendSplit({ className }: { className?: string }) {
       accessibilityElementsHidden
       className={className}
       importantForAccessibility="no-hide-descendants"
+      onLayout={({ nativeEvent }) => setMeasured(nativeEvent.layout.width)}
       style={{ height: CELL * 2, overflow: 'hidden' }}
     >
       {[0, 1].map((row) => (

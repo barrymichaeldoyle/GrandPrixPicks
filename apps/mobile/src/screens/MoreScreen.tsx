@@ -1,3 +1,4 @@
+import { READABLE_COLUMN } from '../lib/layout';
 import { Ionicons } from '../components/ui/Ionicons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
@@ -60,7 +61,10 @@ export function MoreScreen() {
       <ScrollView
         className="flex-1"
         contentContainerClassName="gap-6 p-4"
-        contentContainerStyle={{ paddingBottom: 32 + CHROME_END_PADDING }}
+        contentContainerStyle={{
+          ...READABLE_COLUMN,
+          paddingBottom: 32 + CHROME_END_PADDING,
+        }}
         {...hide.scrollProps}
       >
         <View className="gap-2.5">

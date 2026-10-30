@@ -1,3 +1,4 @@
+import { READABLE_COLUMN } from '../lib/layout';
 import { Ionicons } from '../components/ui/Ionicons';
 import { NOTIFICATION_PAGE_SIZE } from '@grandprixpicks/shared/notifications';
 import { useMutation } from 'convex/react';
@@ -188,7 +189,10 @@ export function NotificationsScreen({
       contentContainerStyle={
         notifications.length === 0
           ? undefined
-          : { paddingBottom: 24 + (tabChrome ? CHROME_END_PADDING : 0) }
+          : {
+              ...READABLE_COLUMN,
+              paddingBottom: 24 + (tabChrome ? CHROME_END_PADDING : 0),
+            }
       }
       data={notifications}
       keyExtractor={(item) => String(item._id)}

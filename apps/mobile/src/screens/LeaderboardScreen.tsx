@@ -21,16 +21,20 @@ import {
 } from '../components/ui/TabChrome';
 import { SegmentedTabs } from '../components/ui/SegmentedTabs';
 import { SlantedStripe } from '../components/ui/SlantedStripe';
+import { TwoPane } from '../components/ui/TwoPane';
 import { useHideOnScroll } from '../hooks/useHideOnScroll';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { captureAnalyticsEvent } from '../lib/analytics';
+import { READABLE_COLUMN } from '../lib/layout';
+import { useLayoutClass } from '../lib/useLayoutClass';
 import { useIsSignedIn } from '../lib/useIsSignedIn';
 import { useRefreshSpinner } from '../lib/useRefreshSpinner';
 import { useNow } from '../lib/useNow';
 import type { LeaderboardStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors } from '../theme/tokens';
+import { PublicProfileView } from './PublicProfileScreen';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from '../tw';
 import { leaderboardRowLabel } from '../lib/leaderboardRowLabel';
 import { isRaceSelectableForLeaderboard } from '@grandprixpicks/shared/sessions';
@@ -125,6 +129,10 @@ export function LeaderboardScreen() {
   const scope: Scope = isSignedIn ? chosenScope : 'global';
   const [chosenRaceId, setChosenRaceId] = useState<string | null>(null);
   const hide = useHideOnScroll();
+  // Two columns put the player a row opens beside the board instead of
+  // pushing them over it, so a reader can run down the standings comparing.
+  const twoColumns = useLayoutClass() === 'expanded';
+  const [pickedUsername, setPickedUsername] = useState<string | null>(null);
   useEffect(() => {
     if (!route.params) {
       return;
@@ -269,6 +277,10 @@ export function LeaderboardScreen() {
     }
     void Haptics.selectionAsync();
     captureAnalyticsEvent('leaderboard_player_opened');
+    if (twoColumns) {
+      setPickedUsername(username);
+      return;
+    }
     navigation.navigate('PublicProfile', { username });
   }
 
@@ -334,6 +346,16 @@ export function LeaderboardScreen() {
   const viewerOutsideTop = Boolean(
     viewerEntry && !entries.some((e) => e.isViewer),
   );
+
+  // The detail column is never empty while the board has rows: until a row is
+  // tapped it shows the viewer, or the leader for a guest or a board the
+  // viewer is not on.
+  const selectedUsername = twoColumns
+    ? (pickedUsername ??
+      (viewerEntry ?? entries.find((e) => e.isViewer) ?? entries[0])
+        ?.username ??
+      null)
+    : null;
 
   const totalCount =
     timeScope === 'season' ? (activeSeason?.totalCount ?? 0) : 0;
@@ -431,101 +453,127 @@ export function LeaderboardScreen() {
     </View>
   );
 
+  const board = (
+    <FlatList
+      contentContainerClassName="px-4"
+      contentContainerStyle={[
+        { paddingBottom: 32 + CHROME_END_PADDING },
+        twoColumns ? undefined : READABLE_COLUMN,
+      ]}
+      data={rest}
+      extraData={selectedUsername}
+      ItemSeparatorComponent={RowSeparator}
+      keyExtractor={(item) => String(item.userId)}
+      ListEmptyComponent={
+        podium.length === 0 && !isBoardLoading ? (
+          <BoardEmptyState
+            defaultRace={defaultRace ?? null}
+            mode={mode}
+            scope={scope}
+            selectedRace={selectedRace}
+            timeScope={timeScope}
+            weekend={activeWeekend}
+          />
+        ) : undefined
+      }
+      // Held while the season has more rows, not only during a request, so
+      // the list's height does not change under the reader's thumb.
+      ListFooterComponent={
+        timeScope === 'season' && (pagedHasMore ?? activeSeason?.hasMore) ? (
+          <View className="h-14 items-center justify-center">
+            {loadingMore ? (
+              <ActivityIndicator color={colors.textMuted} />
+            ) : null}
+          </View>
+        ) : undefined
+      }
+      ListHeaderComponent={
+        <View>
+          <View className="flex-row items-center gap-2 py-3">
+            {/* The season line has no flag; an empty slot indented it. */}
+            {timeScope === 'weekend' && selectedRace ? (
+              <View className="h-5 w-[30px] shrink-0">
+                <FlagImage raceSlug={selectedRace.slug} />
+              </View>
+            ) : null}
+            <Text className="text-muted flex-1 text-[13px] leading-[18px]">
+              {subtitle}
+            </Text>
+          </View>
+          {filters}
+          {podium.length > 0 ? (
+            <View className="mb-1">
+              {podium.map((entry) => (
+                <PodiumRow
+                  entry={entry}
+                  key={String(entry.userId)}
+                  mode={mode}
+                  onPress={() => handleRowPress(entry.username)}
+                  selected={entry.username === selectedUsername}
+                />
+              ))}
+              {viewerOutsideTop && viewerEntry ? (
+                <View className="mt-2.5 rounded-lg border border-accent px-2">
+                  <Text className="mt-2 text-xs font-medium text-accent">
+                    Your rank
+                  </Text>
+                  <BoardRow
+                    entry={viewerEntry}
+                    mode={mode}
+                    onPress={() => handleRowPress(viewerEntry.username)}
+                    selected={viewerEntry.username === selectedUsername}
+                  />
+                </View>
+              ) : null}
+            </View>
+          ) : null}
+        </View>
+      }
+      onEndReached={() => void loadMoreSeason()}
+      // Two screens ahead: at one, a flick reached the end before the page.
+      onEndReachedThreshold={2}
+      // One bar over two columns: see the same note on Home.
+      {...(twoColumns ? {} : hide.scrollProps)}
+      refreshControl={
+        <RefreshControl
+          colors={[colors.accent]}
+          onRefresh={onRefresh}
+          refreshing={refreshing}
+          tintColor={colors.accent}
+        />
+      }
+      renderItem={({ item }) => (
+        <BoardRow
+          entry={item}
+          mode={mode}
+          onPress={() => handleRowPress(item.username)}
+          selected={item.username === selectedUsername}
+        />
+      )}
+      showsVerticalScrollIndicator={false}
+    />
+  );
+
   return (
     <CollapsingChrome
       chrome={<TabChrome title="Leaderboard" />}
       sheetStyle={hide.sheetStyle}
     >
-      <FlatList
-        contentContainerClassName="px-4"
-        contentContainerStyle={{ paddingBottom: 32 + CHROME_END_PADDING }}
-        data={rest}
-        ItemSeparatorComponent={RowSeparator}
-        keyExtractor={(item) => String(item.userId)}
-        ListEmptyComponent={
-          podium.length === 0 && !isBoardLoading ? (
-            <BoardEmptyState
-              defaultRace={defaultRace ?? null}
-              mode={mode}
-              scope={scope}
-              selectedRace={selectedRace}
-              timeScope={timeScope}
-              weekend={activeWeekend}
-            />
-          ) : undefined
-        }
-        // Held while the season has more rows, not only during a request, so
-        // the list's height does not change under the reader's thumb.
-        ListFooterComponent={
-          timeScope === 'season' && (pagedHasMore ?? activeSeason?.hasMore) ? (
-            <View className="h-14 items-center justify-center">
-              {loadingMore ? (
-                <ActivityIndicator color={colors.textMuted} />
-              ) : null}
-            </View>
-          ) : undefined
-        }
-        ListHeaderComponent={
-          <View>
-            <View className="flex-row items-center gap-2 py-3">
-              {/* The season line has no flag; an empty slot indented it. */}
-              {timeScope === 'weekend' && selectedRace ? (
-                <View className="h-5 w-[30px] shrink-0">
-                  <FlagImage raceSlug={selectedRace.slug} />
-                </View>
-              ) : null}
-              <Text className="text-muted flex-1 text-[13px] leading-[18px]">
-                {subtitle}
-              </Text>
-            </View>
-            {filters}
-            {podium.length > 0 ? (
-              <View className="mb-1">
-                {podium.map((entry) => (
-                  <PodiumRow
-                    entry={entry}
-                    key={String(entry.userId)}
-                    mode={mode}
-                    onPress={() => handleRowPress(entry.username)}
-                  />
-                ))}
-                {viewerOutsideTop && viewerEntry ? (
-                  <View className="mt-2.5 rounded-lg border border-accent px-2">
-                    <Text className="mt-2 text-xs font-medium text-accent">
-                      Your rank
-                    </Text>
-                    <BoardRow
-                      entry={viewerEntry}
-                      mode={mode}
-                      onPress={() => handleRowPress(viewerEntry.username)}
-                    />
-                  </View>
-                ) : null}
-              </View>
-            ) : null}
-          </View>
-        }
-        onEndReached={() => void loadMoreSeason()}
-        // Two screens ahead: at one, a flick reached the end before the page.
-        onEndReachedThreshold={2}
-        {...hide.scrollProps}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.accent]}
-            onRefresh={onRefresh}
-            refreshing={refreshing}
-            tintColor={colors.accent}
-          />
-        }
-        renderItem={({ item }) => (
-          <BoardRow
-            entry={item}
-            mode={mode}
-            onPress={() => handleRowPress(item.username)}
-          />
-        )}
-        showsVerticalScrollIndicator={false}
-      />
+      {twoColumns ? (
+        <TwoPane
+          main={board}
+          side={
+            selectedUsername ? (
+              <PublicProfileView
+                key={selectedUsername}
+                username={selectedUsername}
+              />
+            ) : null
+          }
+        />
+      ) : (
+        board
+      )}
     </CollapsingChrome>
   );
 }
@@ -614,10 +662,13 @@ function PodiumRow({
   entry,
   mode,
   onPress,
+  selected = false,
 }: {
   entry: Entry;
   mode: GameMode;
   onPress?: () => void;
+  /** The player open in the detail column, in two columns. */
+  selected?: boolean;
 }) {
   // Flat data colours, the way team colours are. The metallic #FFD700 /
   // #C0C0C0 / #CD7F32 that used to be here are the "gold, silver, bronze"
@@ -643,9 +694,11 @@ function PodiumRow({
         subline,
       })}
       accessibilityRole="button"
-      className={`mb-2 flex-row items-center gap-2.5 overflow-hidden border border-border py-3 pr-3 pl-4 ${
-        entry.isViewer ? 'bg-accent/10' : ''
-      }`}
+      accessibilityState={{ selected }}
+      className={`mb-2 flex-row items-center gap-2.5 overflow-hidden border border-border py-3 pr-3 pl-4 ${rowFill(
+        entry.isViewer,
+        selected,
+      )}`}
       disabled={!onPress}
       onPress={onPress}
     >
@@ -702,10 +755,13 @@ function BoardRow({
   entry,
   mode,
   onPress,
+  selected = false,
 }: {
   entry: Entry;
   mode: GameMode;
   onPress?: () => void;
+  /** The player open in the detail column, in two columns. */
+  selected?: boolean;
 }) {
   const subline = modeSubline(entry, mode);
   return (
@@ -718,9 +774,11 @@ function BoardRow({
         subline,
       })}
       accessibilityRole="button"
-      className={`flex-row items-center gap-2.5 px-1 py-2.5 ${
-        entry.isViewer ? 'bg-accent/10' : ''
-      }`}
+      accessibilityState={{ selected }}
+      className={`flex-row items-center gap-2.5 px-1 py-2.5 ${rowFill(
+        entry.isViewer,
+        selected,
+      )}`}
       disabled={!onPress}
       onPress={onPress}
     >
@@ -760,6 +818,17 @@ function BoardRow({
       </View>
     </Pressable>
   );
+}
+
+/**
+ * The open row takes the raised surface, over the viewer's tint: the "You"
+ * pill still says whose row it is, and one fill per row reads as one state.
+ */
+function rowFill(isViewer: boolean | undefined, selected: boolean): string {
+  if (selected) {
+    return 'bg-surface-elevated';
+  }
+  return isViewer ? 'bg-accent/10' : '';
 }
 
 /**

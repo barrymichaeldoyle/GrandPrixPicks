@@ -17,7 +17,9 @@ import { LockBadge } from '../components/ui/LockBadge';
 import { PageHeader } from '../components/ui/PageHeader';
 import { api } from '../integrations/convex/api';
 import { useUserDateFormat } from '../lib/dates';
+import { RAIL_WIDTH, READABLE_COLUMN, READABLE_MAX_WIDTH } from '../lib/layout';
 import { getLockStatusViewModel } from '../lib/lockTime';
+import { useLayoutClass } from '../lib/useLayoutClass';
 import { useCountdownNow } from '../lib/useNow';
 import { useRaceWeekends } from '../lib/useRaceWeekends';
 import type { RootTabParamList } from '../navigation/types';
@@ -45,6 +47,7 @@ export function RaceDetailScreen({ route }: Props) {
   const { formatRaceDate } = useUserDateFormat();
   const rootNav = useNavigation<NavigationProp<RootTabParamList>>();
   const [expandedPractice, setExpandedPractice] = useState<string[]>([]);
+  const twoColumns = useLayoutClass() === 'expanded';
 
   const raceIndex = races.findIndex(
     (item) => item.slug === route.params.raceSlug,
@@ -95,12 +98,12 @@ export function RaceDetailScreen({ route }: Props) {
       (actualTop5BySession?.[type]?.length ?? 0) > 0,
   );
 
-  return (
-    <ScrollView
-      className="flex-1 bg-page"
-      contentContainerClassName="gap-[22px] px-4 pb-8 pt-3"
-      showsVerticalScrollIndicator={false}
-    >
+  // The race itself (hero, results, practice) and its timetable. In two
+  // columns the timetable and the way to the picks sit beside the results, so
+  // a finished weekend's classification is not pushed below a schedule that
+  // has already run.
+  const raceColumn = (
+    <>
       <RaceDetailHero race={race} round={race.round} />
 
       {publishedSessions.length > 0 ? (
@@ -176,7 +179,10 @@ export function RaceDetailScreen({ route }: Props) {
           </View>
         </View>
       ) : null}
-
+    </>
+  );
+  const scheduleColumn = (
+    <>
       <View className="gap-2">
         <Text className="text-muted pb-0.5 text-xs font-medium">Sessions</Text>
         <View>
@@ -243,6 +249,38 @@ export function RaceDetailScreen({ route }: Props) {
           </Text>
         </Pressable>
       ) : null}
+    </>
+  );
+
+  if (twoColumns) {
+    return (
+      <ScrollView
+        className="flex-1 bg-page"
+        contentContainerClassName="flex-row justify-center gap-8 px-4 pb-8 pt-3"
+        showsVerticalScrollIndicator={false}
+      >
+        <View
+          className="gap-[22px]"
+          style={{ flex: 1, maxWidth: READABLE_MAX_WIDTH }}
+        >
+          {raceColumn}
+        </View>
+        <View className="gap-[22px]" style={{ width: RAIL_WIDTH }}>
+          {scheduleColumn}
+        </View>
+      </ScrollView>
+    );
+  }
+
+  return (
+    <ScrollView
+      className="flex-1 bg-page"
+      contentContainerClassName="gap-[22px] px-4 pb-8 pt-3"
+      contentContainerStyle={READABLE_COLUMN}
+      showsVerticalScrollIndicator={false}
+    >
+      {raceColumn}
+      {scheduleColumn}
     </ScrollView>
   );
 }

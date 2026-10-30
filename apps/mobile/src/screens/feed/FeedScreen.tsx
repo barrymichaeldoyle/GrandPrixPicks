@@ -31,6 +31,7 @@ import { RaceRecapCard } from '../../components/home/RaceRecapCard';
 import { SuggestedFollowsSection } from '../../components/home/SuggestedFollowsSection';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { TwoPane } from '../../components/ui/TwoPane';
 import {
   CHROME_END_PADDING,
   CollapsingChrome,
@@ -42,6 +43,8 @@ import { api } from '../../integrations/convex/api';
 import { captureAnalyticsEvent } from '../../lib/analytics';
 import { feedGroupKey, reuseFeedGroups } from '../../lib/feedGroupIdentity';
 import { homePaintIsPending } from '../../lib/homePaint';
+import { READABLE_COLUMN } from '../../lib/layout';
+import { useLayoutClass } from '../../lib/useLayoutClass';
 import { useConnectedDraft } from '../../lib/useConnectedDraft';
 import { CASCADE_DRAFT_SESSION } from '../picks/picksShared';
 import {
@@ -55,7 +58,13 @@ import { bucketWeatherNow } from '../../lib/weatherNow';
 import type { HomeStackParamList } from '../../navigation/types';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { colors } from '../../theme/tokens';
-import { ActivityIndicator, FlatList, RefreshControl, View } from '../../tw';
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  ScrollView,
+  View,
+} from '../../tw';
 
 // Up to 5 reactive pages of feed (5 × 40 = 200 events), matching web.
 const MAX_EXTRA_PAGES = 4;
@@ -377,6 +386,7 @@ export function FeedScreen() {
     isSignedIn ? 'signed-in' : 'signed-out',
   );
   const hide = useHideOnScroll();
+  const layoutClass = useLayoutClass();
 
   if (!convexEnabled) {
     return (
@@ -402,72 +412,114 @@ export function FeedScreen() {
     );
   }
 
+  const guestNewsRace = isSignedIn || !weekend ? null : weekend.race;
+  const showSignedOutPanel =
+    groups.length === 0 && !isSignedIn && !guestHasDraft;
+  const refreshControl = (
+    <RefreshControl
+      colors={[colors.accent]}
+      onRefresh={onRefresh}
+      refreshing={refreshing}
+      tintColor={colors.accent}
+    />
+  );
+  const twoColumns = layoutClass === 'expanded';
+
+  const feedList = (
+    <FlatList
+      contentContainerStyle={[
+        { paddingBottom: 24 + CHROME_END_PADDING },
+        // In two columns the feed has its own column and no cap to centre in.
+        twoColumns ? undefined : READABLE_COLUMN,
+      ]}
+      data={groups}
+      keyExtractor={feedGroupKey}
+      ListEmptyComponent={
+        isSignedIn && page0 != null ? <FeedEmptyState /> : undefined
+      }
+      // Reserved for as long as there is more to load, not only while a
+      // page is in flight: a footer that came and went with each request
+      // changed the list's height under the reader's thumb.
+      ListFooterComponent={
+        hasMore ? (
+          <View className="h-14 items-center justify-center">
+            {isLoadingMore ? (
+              <ActivityIndicator color={colors.textMuted} />
+            ) : null}
+          </View>
+        ) : undefined
+      }
+      ListHeaderComponent={
+        twoColumns ? (
+          <GuestSection
+            guestNewsRace={guestNewsRace}
+            showSignedOutPanel={showSignedOutPanel}
+          />
+        ) : (
+          <View>
+            <WeekendSection isSignedIn={isSignedIn} />
+            <GuestSection
+              guestNewsRace={guestNewsRace}
+              showSignedOutPanel={showSignedOutPanel}
+            />
+          </View>
+        )
+      }
+      onEndReached={handleLoadMore}
+      // Three screens ahead, which is about one page of 40 events: the next
+      // page is requested as the reader enters the last one loaded. At 1.5
+      // a few flicks still reached the end a second before the page did,
+      // and the list sat bouncing on its footer until it landed.
+      onEndReachedThreshold={3}
+      // Two scrolling columns cannot share one hide-on-scroll offset, and a
+      // tablet has the height to keep the bar, so it only hides in one.
+      {...(twoColumns ? {} : hide.scrollProps)}
+      refreshControl={refreshControl}
+      renderItem={renderItem}
+      showsVerticalScrollIndicator={false}
+    />
+  );
+
   return (
     <CollapsingChrome chrome={<TabChrome brand />} sheetStyle={hide.sheetStyle}>
-      <FlatList
-        contentContainerStyle={{ paddingBottom: 24 + CHROME_END_PADDING }}
-        data={groups}
-        keyExtractor={feedGroupKey}
-        ListEmptyComponent={
-          isSignedIn && page0 != null ? <FeedEmptyState /> : undefined
-        }
-        // Reserved for as long as there is more to load, not only while a
-        // page is in flight: a footer that came and went with each request
-        // changed the list's height under the reader's thumb.
-        ListFooterComponent={
-          hasMore ? (
-            <View className="h-14 items-center justify-center">
-              {isLoadingMore ? (
-                <ActivityIndicator color={colors.textMuted} />
-              ) : null}
-            </View>
-          ) : undefined
-        }
-        ListHeaderComponent={
-          <FeedListHeader
-            guestNewsRace={isSignedIn || !weekend ? null : weekend.race}
-            isSignedIn={isSignedIn}
-            showSignedOutPanel={
-              groups.length === 0 && !isSignedIn && !guestHasDraft
-            }
-          />
-        }
-        onEndReached={handleLoadMore}
-        // Three screens ahead, which is about one page of 40 events: the next
-        // page is requested as the reader enters the last one loaded. At 1.5
-        // a few flicks still reached the end a second before the page did,
-        // and the list sat bouncing on its footer until it landed.
-        onEndReachedThreshold={3}
-        {...hide.scrollProps}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.accent]}
-            onRefresh={onRefresh}
-            refreshing={refreshing}
-            tintColor={colors.accent}
-          />
-        }
-        renderItem={renderItem}
-        showsVerticalScrollIndicator={false}
-      />
+      {/* Two columns: the weekend on the left, the activity beside it. The
+          feed cards were drawn for a phone, so a phone-width column is where
+          they read best, and the picks stay in view while the feed scrolls. */}
+      {twoColumns ? (
+        <TwoPane
+          main={
+            <ScrollView
+              contentContainerStyle={{ paddingBottom: 24 }}
+              refreshControl={refreshControl}
+              showsVerticalScrollIndicator={false}
+            >
+              <WeekendSection isSignedIn={isSignedIn} />
+            </ScrollView>
+          }
+          side={feedList}
+          sideWidth={FEED_COLUMN_WIDTH}
+        />
+      ) : (
+        feedList
+      )}
     </CollapsingChrome>
   );
 }
 
+/** The feed column beside the weekend: its cards' phone width, and a little more. */
+const FEED_COLUMN_WIDTH = 400;
+
 /**
- * Everything above the activity. Memoised so a feed page arriving or the
- * clock ticking does not re-render the picks card and its editors; each part
- * holds its own subscriptions and re-renders itself when its data changes.
+ * The weekend: the result just in, the picks card, who to follow and the live
+ * order. Above the activity in one column, the left column in two. Memoised so
+ * a feed page arriving or the clock ticking does not re-render the picks card
+ * and its editors; each part holds its own subscriptions and re-renders itself
+ * when its data changes.
  */
-const FeedListHeader = memo(function FeedListHeader({
-  guestNewsRace,
+const WeekendSection = memo(function WeekendSection({
   isSignedIn,
-  showSignedOutPanel,
 }: {
-  /** The weekend whose news a guest reads here; null signed in (the feed has it). */
-  guestNewsRace: { slug: string; name: string } | null;
   isSignedIn: boolean;
-  showSignedOutPanel: boolean;
 }) {
   return (
     <View>
@@ -489,6 +541,24 @@ const FeedListHeader = memo(function FeedListHeader({
           a session in progress put them ahead of the picks the tab exists to
           take. */}
       <LiveClassificationCard />
+    </View>
+  );
+});
+
+/**
+ * What a guest reads in place of a feed of their own: the weekend's news and,
+ * over an empty feed, what an account gives them. Heads the activity column.
+ */
+const GuestSection = memo(function GuestSection({
+  guestNewsRace,
+  showSignedOutPanel,
+}: {
+  /** The weekend whose news a guest reads here; null signed in (the feed has it). */
+  guestNewsRace: { slug: string; name: string } | null;
+  showSignedOutPanel: boolean;
+}) {
+  return (
+    <View>
       {guestNewsRace ? (
         <View className="pt-3">
           <GuestWeekendNews

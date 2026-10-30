@@ -1,3 +1,4 @@
+import { READABLE_COLUMN } from '../lib/layout';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import type { FeedEvent } from '../components/feed/FeedEventCard';
@@ -51,6 +52,7 @@ export function FeedEventDetailScreen({ route }: Props) {
     <ScrollView
       className="flex-1 bg-page"
       contentContainerClassName="px-4 pb-8 pt-3"
+      contentContainerStyle={READABLE_COLUMN}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >

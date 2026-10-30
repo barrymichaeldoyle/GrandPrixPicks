@@ -7,6 +7,7 @@ import { Numeral } from '../components/ui/Numeral';
 import { PlayerSafetyActions } from '../components/PlayerSafetyActions';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
+import { READABLE_COLUMN } from '../lib/layout';
 import { ScrollView, Text, View } from '../tw';
 
 // Lightweight player view reachable from the Home, Leaderboard and More stacks.
@@ -16,8 +17,14 @@ type Props = {
 };
 
 export function PublicProfileScreen({ route }: Props) {
-  const { username } = route.params;
+  return <PublicProfileView username={route.params.username} />;
+}
 
+/**
+ * The profile itself, without the screen around it: pushed onto a stack on a
+ * phone, and the detail column beside the leaderboard in two columns.
+ */
+export function PublicProfileView({ username }: { username: string }) {
   const profile = useQuery(api.users.getProfileByUsername, { username });
   const me = useQuery(api.users.me);
   const followCounts = useQuery(
@@ -46,8 +53,9 @@ export function PublicProfileScreen({ route }: Props) {
 
   return (
     <ScrollView
-      className="flex-1 bg-page px-4"
-      contentContainerClassName="gap-[22px] pb-10 pt-4"
+      className="flex-1 bg-page"
+      contentContainerClassName="gap-[22px] px-4 pb-10 pt-4"
+      contentContainerStyle={READABLE_COLUMN}
     >
       <View className="flex-row items-center gap-4">
         <Avatar

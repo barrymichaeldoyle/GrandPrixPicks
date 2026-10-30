@@ -1,3 +1,4 @@
+import { READABLE_COLUMN } from '../lib/layout';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useRef } from 'react';
@@ -39,6 +40,7 @@ export function RacesScreen() {
   return (
     <NativeFlatList
       contentContainerStyle={{
+        ...READABLE_COLUMN,
         paddingBottom: 32,
         paddingHorizontal: 16,
         paddingTop: 8,

@@ -1,3 +1,4 @@
+import { READABLE_COLUMN } from '../../lib/layout';
 import { Modal } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -67,7 +68,13 @@ export function PickEditorModal({
             edges={['top', 'bottom']}
             style={{ flex: 1, backgroundColor: colors.page }}
           >
-            <View className="flex-row items-center justify-between px-4 py-2">
+            {/* Full screen at every size, never a page sheet: a sheet's
+                swipe-to-dismiss fights the Top 5 drag. On a tablet the editor
+                keeps a phone's column in the middle of it instead. */}
+            <View
+              className="flex-row items-center justify-between px-4 py-2"
+              style={READABLE_COLUMN}
+            >
               <View className="flex-1">
                 <Text className="text-foreground text-xl font-semibold">
                   {title}
@@ -87,6 +94,7 @@ export function PickEditorModal({
             <ScrollView
               scrollEnabled={scrollEnabled}
               contentContainerStyle={{
+                ...READABLE_COLUMN,
                 padding: 16,
                 paddingBottom: 40,
                 flexGrow: fillBody ? 1 : undefined,

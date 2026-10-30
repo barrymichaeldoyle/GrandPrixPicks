@@ -1323,7 +1323,8 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=mexico-altitude-active-aero-turbo-lag&v=bcc3c85f9de9",
       "dueAt": "2026-10-30T16:30:00.000Z",
       "expiresAt": "2026-10-31T11:00:00.000Z",
-      "status": "creating"
+      "status": "creating",
+      "bufferPostId": "6ae4c10f260ad0ee5bb719e1"
     }
   ]
 }

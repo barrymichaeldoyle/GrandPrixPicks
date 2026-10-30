@@ -1,7 +1,7 @@
 {
   "configVersion": 0,
   "apple": {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "copyright": "2026 Barry Michael Doyle Software Solutions (Pty) Ltd",
     "categories": ["SPORTS", "ENTERTAINMENT"],
     "info": {
@@ -12,7 +12,7 @@
         "keywords": [
           "f1,formula 1,racing,motorsport,prediction,predictor,fantasy,qualifying,sprint,pickem,tipping,game"
         ],
-        "releaseNotes": "First release. Pick your Top 5 for every qualifying, sprint and race, call each team-mate duel, and track your season on the leaderboard.",
+        "releaseNotes": "Grand Prix Picks now runs on iPad and iPhone Duo. On a wide screen your picks sit beside the feed, a player's profile opens beside the leaderboard, and a race's schedule sits beside its results.",
         "marketingUrl": "https://grandprixpicks.com",
         "supportUrl": "https://grandprixpicks.com/support",
         "privacyPolicyUrl": "https://grandprixpicks.com/privacy",

@@ -84,6 +84,12 @@ No wagering, no entry fees, no prizes.
 Grand Prix Picks is unofficial and is not associated in any way with the Formula 1 companies. F1, FORMULA ONE, FORMULA 1 and related marks are trade marks of Formula One Licensing B.V.
 ```
 
+## What's New (version 1.1.0)
+
+```
+Grand Prix Picks now runs on iPad and iPhone Duo. On a wide screen your picks sit beside the feed, a player's profile opens beside the leaderboard, and a race's schedule sits beside its results.
+```
+
 ## What's New (version 1.0.0)
 
 ```

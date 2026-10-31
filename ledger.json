@@ -1325,6 +1325,25 @@
       "expiresAt": "2026-10-31T11:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6ae4c10f260ad0ee5bb719e1"
+    },
+    {
+      "id": "85537e1430366795a97164efe5cfa1b4652f06b00b19a08d5cff1bc9adbf749b",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "mexico-2026",
+          "key": "verstappen-lawson-fp2-grid-penalty",
+          "revision": "ed4fad78f2478fb6468332deef282a34e5043ac2309da2b927f3778c2e4b7533"
+        }
+      ],
+      "text": "Verstappen and Lawson each start the Mexican GP one place lower. The stewards turned a warning into a grid penalty for their FP2 collision, with Racing Bulls and Red Bull under the same owners.",
+      "link": "https://grandprixpicks.com/f1-2026-mexico-city-grand-prix-predictions?story=verstappen-lawson-fp2-grid-penalty",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=verstappen-lawson-fp2-grid-penalty&v=ed4fad78f247",
+      "dueAt": "2026-10-31T07:30:00.000Z",
+      "expiresAt": "2026-11-01T20:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

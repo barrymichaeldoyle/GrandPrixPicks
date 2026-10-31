@@ -1,0 +1,38 @@
+[
+  {
+    "raceSlug": "mexico-2026",
+    "key": "verstappen-lawson-fp2-grid-penalty",
+    "headline": "Verstappen and Lawson take one-place grid penalties for their FP2 collision",
+    "body": "The stewards escalated the Turn 14 contact from a warning to a one-place grid penalty for each driver, after team managers were warned on Friday about overtaking in the final sector. The penalty applies to the race start. It does not change the qualifying classification.",
+    "category": "pick_related",
+    "affectsSessions": ["race"],
+    "driverCodes": ["VER", "LAW"],
+    "sourceName": "Sky Sports",
+    "sourceUrl": "https://www.skysports.com/f1/news/13605836/max-verstappen-liam-lawson-receive-grid-penalties-for-unacceptable-practice-collision-at-mexico-city-grand-prix",
+    "sourcePublishedAt": "2026-10-31T03:10:00Z"
+  },
+  {
+    "raceSlug": "mexico-2026",
+    "key": "hadjar-stewards-paddock-misconduct-summons",
+    "headline": "Hadjar is summoned by the stewards over an incident in the paddock",
+    "body": "The stewards have called Isack Hadjar to a hearing at 10:15 local time on Saturday for \"misconduct relating to an incident in the Formula 1 paddock\". The summons does not say what the incident was.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HAD"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/isack-hadjar-summoned-alleged-f1-paddock-misconduct/",
+    "sourcePublishedAt": "2026-10-31T03:20:35Z"
+  },
+  {
+    "raceSlug": "mexico-2026",
+    "key": "hamilton-fp2-power-loss-mexico",
+    "headline": "Hamilton loses a high-fuel long run to a Ferrari issue in FP2",
+    "body": "Hamilton had an issue in second practice that cost him a long run with high fuel. He says the car was losing power in a few places and cost him about three tenths on his lap, and that Ferrari is still giving up two to three tenths on the straights.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HAM"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/lewis-hamilton-makes-confident-ferrari-statement-despite-mexican-gp-technical-problems/10869895/",
+    "sourcePublishedAt": "2026-10-31T00:43:35Z"
+  }
+]

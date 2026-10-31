@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/mexico-2026-2026-10-31-evening.json",
+  "startAt": "2026-10-31T18:20:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["haas-ocon-replaced-hirakawa-mexico"],
+      "text": "Haas has replaced Esteban Ocon with Ryo Hirakawa for the rest of the Mexico weekend. Hirakawa, 32, makes his F1 qualifying and race debut. No reason given, and it isn't illness.",
+      "link": "https://grandprixpicks.com/f1-2026-mexico-grand-prix-predictions?story=haas-ocon-replaced-hirakawa-mexico",
+      "expiresAt": "2026-11-01T18:00:00Z"
+    }
+  ]
+}

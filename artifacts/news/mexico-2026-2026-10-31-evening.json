@@ -1,0 +1,11 @@
+[{
+  "raceSlug": "mexico-2026",
+  "key": "haas-ocon-replaced-hirakawa-mexico",
+  "headline": "Haas replaces Ocon with Hirakawa for the rest of the Mexico weekend",
+  "body": "Reserve driver Ryo Hirakawa takes Esteban Ocon's seat for final practice, qualifying and the race. Haas gave no reason and said Ocon is not ill. Hirakawa makes his F1 qualifying and race debut.",
+  "affectsSessions": ["quali", "race"],
+  "driverCodes": ["OCO"],
+  "sourceName": "Sky Sports",
+  "sourceUrl": "https://www.skysports.com/f1/news/13606155/esteban-ocon-haas-replace-french-driver-with-ryo-hirakawa-for-remainder-of-mexico-city-gp-weekend-without-providing-reason",
+  "sourcePublishedAt": "2026-10-31T14:46:00Z"
+}]

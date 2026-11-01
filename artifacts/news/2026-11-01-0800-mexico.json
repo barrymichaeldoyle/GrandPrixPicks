@@ -1,0 +1,36 @@
+[
+  {
+    "raceSlug": "mexico-2026",
+    "key": "lawson-mexico-qualifying-disqualification",
+    "headline": "Lawson is disqualified from Mexico qualifying and starts from the back",
+    "body": "Lawson had qualified eighth for Racing Bulls, ninth after his one-place penalty for the FP2 collision with Verstappen. The stewards disqualified him for not reducing MGU-K deployment at the required rate after his fastest Q2 lap, and he starts the race from the back of the grid.",
+    "affectsSessions": ["quali", "race"],
+    "driverCodes": ["LAW"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/lawson-disqualified-from-mexico-city-gp-qualifying-for-technical-breach.1LIHCl2P75cYj0cGJgyZhx",
+    "sourcePublishedAt": "2026-11-01T01:10:02Z"
+  },
+  {
+    "raceSlug": "mexico-2026",
+    "key": "mexico-stewards-lap-one-track-limits-guidance",
+    "headline": "Stewards set lap-one rules for Turns 1 to 6 in Mexico",
+    "body": "On lap one and the first lap after any restart, cars are treated as both attacking and defending through Turns 1 to 3 and Turns 4 to 6. A car that leaves the track and stays ahead of a car close behind may be judged to have gained a lasting advantage unless it yields the position by Turn 4, or by Turn 12 for the second section.",
+    "affectsSessions": [],
+    "category": "general",
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/10/31/stewards-warn-drivers-over-cutting-first-corner-sequences-at-start-and-restarts/",
+    "sourcePublishedAt": "2026-10-31T23:13:06Z"
+  },
+  {
+    "raceSlug": "mexico-2026",
+    "key": "hadjar-stewards-paddock-misconduct-summons",
+    "headline": "Hadjar gets a formal warning for pushing a paddock visitor",
+    "body": "The stewards found Hadjar breached the regulations when he pushed aside a guest in the paddock before FP1. No further penalty was given, with the stewards citing provocation, congestion and a lack of security.",
+    "affectsSessions": [],
+    "category": "general",
+    "driverCodes": ["HAD"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/10/31/hadjar-given-formal-warning-for-pushing-paddock-visitor/",
+    "sourcePublishedAt": "2026-10-31T08:44:55Z"
+  }
+]

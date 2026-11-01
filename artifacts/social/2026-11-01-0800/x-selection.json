@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/2026-11-01-0800-mexico.json",
+  "startAt": "2026-11-01T07:30:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["lawson-mexico-qualifying-disqualification"],
+      "text": "Lawson is disqualified from Mexico qualifying for an MGU-K breach on his Q2 in-lap. He had qualified eighth and now starts the race from the back of the grid.",
+      "link": "https://grandprixpicks.com/f1-2026-mexico-city-grand-prix-predictions?story=lawson-mexico-qualifying-disqualification",
+      "expiresAt": "2026-11-01T19:00:00Z"
+    }
+  ]
+}

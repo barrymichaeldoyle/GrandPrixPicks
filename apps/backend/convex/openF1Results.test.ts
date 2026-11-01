@@ -10,6 +10,7 @@ import {
   getFallbackWindow,
   isLiveSessionRestriction,
   isMissingSessionResults,
+  isTokenEndpointOutage,
   isPracticeSession,
   parseOpenF1Results,
   parseOpenF1Sessions,
@@ -398,6 +399,48 @@ describe('OpenF1 practice sessions', () => {
   it('does not exempt a session we score', () => {
     for (const name of ['Qualifying', 'Sprint Qualifying', 'Sprint', 'Race']) {
       expect(isPracticeSession(name), name).toBe(false);
+    }
+  });
+});
+
+describe('isTokenEndpointOutage', () => {
+  const refused =
+    'OpenF1 request failed with HTTP 401: {"detail":"Live F1 session in ' +
+    'progress."}';
+
+  it('recognises an anonymous fallback forced by a token endpoint 5xx', () => {
+    expect(
+      isTokenEndpointOutage(
+        new Error(
+          `${refused} (sent anonymously: OpenF1 token exchange failed with HTTP 502: <html>)`,
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('recognises an unreachable token endpoint', () => {
+    expect(
+      isTokenEndpointOutage(
+        new Error(
+          `${refused} (sent anonymously: OpenF1 token exchange failed: fetch failed)`,
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  // These are about our access, so they must keep reaching Sentry.
+  it('does not match a credential problem', () => {
+    for (const reason of [
+      'OpenF1 token exchange failed with HTTP 401: bad password',
+      'OPEN_F1_USERNAME and OPEN_F1_PASSWORD are not configured',
+      'OpenF1 token response was incomplete',
+    ]) {
+      expect(
+        isTokenEndpointOutage(
+          new Error(`${refused} (sent anonymously: ${reason})`),
+        ),
+        reason,
+      ).toBe(false);
     }
   });
 });

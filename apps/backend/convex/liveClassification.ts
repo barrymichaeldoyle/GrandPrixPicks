@@ -12,7 +12,9 @@ import {
 import {
   discoverSessions,
   fetchJson,
+  isLiveSessionRestriction,
   isMissingSessionResults,
+  isTokenEndpointOutage,
 } from './openF1Results';
 import { qualifyingSegmentLaps } from './lib/qualifyingSegments';
 import { loadRacesInSessionWindow } from './lib/sessionWindows';
@@ -265,6 +267,14 @@ export const refresh = internalAction({
       if (isMissingSessionResults(error)) {
         console.info(
           `Live classification: no OpenF1 data yet for ${task.raceSlug} ${task.sessionType}`,
+        );
+        return null;
+      }
+      // OpenF1's token endpoint was down, so we asked anonymously and met the
+      // live-session block. Their outage, not ours: the next tick retries.
+      if (isLiveSessionRestriction(error) && isTokenEndpointOutage(error)) {
+        console.warn(
+          `Live classification: OpenF1 paid access is down, skipping ${task.raceSlug} ${task.sessionType}`,
         );
         return null;
       }

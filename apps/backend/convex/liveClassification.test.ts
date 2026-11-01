@@ -332,6 +332,43 @@ describe('liveClassification.refresh', () => {
     expect(rows).toEqual([]);
   });
 
+  it('skips the tick when OpenF1 paid access is down mid-session', async () => {
+    // 2026-10-31: OpenF1's token endpoint 502'd for four minutes during a
+    // session, so every anonymous fallback met the live-session block.
+    const username = process.env.OPEN_F1_USERNAME;
+    const password = process.env.OPEN_F1_PASSWORD;
+    process.env.OPEN_F1_USERNAME = 'paid@example.com';
+    process.env.OPEN_F1_PASSWORD = 'secret';
+    try {
+      const t = convexTest(schema, modules);
+      await seedQualifyingUnderway(t);
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async (input: URL | string) =>
+          new URL(String(input)).pathname === '/token'
+            ? new Response('<html>502 Bad Gateway</html>', { status: 502 })
+            : Response.json(
+                {
+                  detail:
+                    'Live F1 session in progress. Global API access ' +
+                    '(including past sessions) is restricted to ' +
+                    'authenticated users until the session ends.',
+                },
+                { status: 401 },
+              ),
+        ),
+      );
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      await expect(
+        t.action(internal.liveClassification.refresh, {}),
+      ).resolves.toBeNull();
+    } finally {
+      process.env.OPEN_F1_USERNAME = username;
+      process.env.OPEN_F1_PASSWORD = password;
+    }
+  });
+
   it('still fails on a real OpenF1 outage', async () => {
     const t = convexTest(schema, modules);
     const qualiStartAt = await seedQualifyingUnderway(t);

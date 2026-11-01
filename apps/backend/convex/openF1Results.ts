@@ -536,6 +536,21 @@ export function isLiveSessionRestriction(error: unknown): boolean {
 }
 
 /**
+ * A refusal we only got because OpenF1's own token endpoint was down (5xx or
+ * unreachable), so `fetchJson` fell back to anonymous. Paired with the
+ * live-session block it is the same "come back later": nothing on our side is
+ * broken, and a once-a-minute poll that throws on it pages Sentry every tick.
+ * A token failure that is about our credentials (4xx, unset env) still counts
+ * as broken access.
+ */
+const TOKEN_ENDPOINT_OUTAGE =
+  /sent anonymously: OpenF1 token exchange failed(?: with HTTP 5\d\d|:)/;
+
+export function isTokenEndpointOutage(error: unknown): boolean {
+  return TOKEN_ENDPOINT_OUTAGE.test(errorMessage(error));
+}
+
+/**
  * OpenF1 answers `session_result` with 404 `"No results found."` for a session
  * it knows about but has not classified yet. The smoke test only reads, so a
  * session without results is nothing to fix: it is the same "come back later"

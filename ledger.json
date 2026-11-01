@@ -1385,6 +1385,25 @@
       "expiresAt": "2026-11-01T19:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6ae6d78bf0984eef334dc50c"
+    },
+    {
+      "id": "4050c3314f4b94e1b6d0bd0f7c4a009f5658da01175ea70176b0e4c928f527ce",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "mexico-2026",
+          "key": "alonso-power-unit-failure-mexico-quali",
+          "revision": "da052b78900e4182ef50d69e21269abdeabd6dbaa577cf429e8c0ca01b66c729"
+        }
+      ],
+      "text": "Alonso was fastest of the 11 cars on track when his power unit failed in Mexico qualifying. Classified 18th, 0.387s off Q2: \"frustration is beyond imagination.\"",
+      "link": "https://grandprixpicks.com/f1-2026-mexico-grand-prix-predictions?story=alonso-power-unit-failure-mexico-quali",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=alonso-power-unit-failure-mexico-quali&v=da052b78900e",
+      "dueAt": "2026-11-01T16:17:00.000Z",
+      "expiresAt": "2026-11-01T19:30:00.000Z",
+      "status": "creating"
     }
   ]
 }

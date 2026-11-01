@@ -98,6 +98,8 @@ type PollTask = {
   firstAttemptAt: number;
   deadlineAt: number;
   kind: 'poll' | 'timeout';
+  /** The previous attempt's error, so a roster gap can hold off the timeout. */
+  lastError?: string;
 };
 
 type OpenF1Session = {
@@ -551,6 +553,44 @@ export function isTokenEndpointOutage(error: unknown): boolean {
 }
 
 /**
+ * OpenF1 classified a car number our roster does not have: a stand-in driver
+ * nobody has added yet. Unlike every other poll failure this one never fixes
+ * itself, so waiting is pointless and timing out is wrong. At Mexico City 2026
+ * it failed quietly 25 times, then the deadline marked qualifying `timed_out`
+ * and the cron never looked at it again: results sat unpublished for 20 hours
+ * after Hirakawa replaced Ocon.
+ *
+ * So a roster gap does two things the generic retry does not. It throws at the
+ * end of the run, which reaches Sentry and names the number, and it holds off
+ * the timeout, so the poll publishes on its own once `seed:applyLineup` adds
+ * the driver. `RACE_LOOKBACK` still bounds how long it keeps trying.
+ */
+const UNMAPPED_DRIVER = /Unmapped OpenF1 driver number\(s\)/;
+
+export function isRosterGap(error: unknown): boolean {
+  return UNMAPPED_DRIVER.test(
+    typeof error === 'string' ? error : errorMessage(error),
+  );
+}
+
+/**
+ * Whether a poll past its deadline should be given up on now. A poll whose
+ * last failure was a roster gap is not: see `isRosterGap`.
+ */
+export function shouldTimeOut(args: {
+  kind: 'poll' | 'timeout';
+  now: number;
+  deadlineAt: number;
+  lastError: string | undefined;
+}): boolean {
+  return (
+    args.kind === 'timeout' &&
+    args.now > args.deadlineAt &&
+    !(args.lastError !== undefined && isRosterGap(args.lastError))
+  );
+}
+
+/**
  * OpenF1 answers `session_result` with 404 `"No results found."` for a session
  * it knows about but has not classified yet. The smoke test only reads, so a
  * session without results is nothing to fix: it is the same "come back later"
@@ -931,6 +971,7 @@ export const getDuePolls = internalQuery({
           firstAttemptAt,
           deadlineAt,
           kind: args.now > deadlineAt ? 'timeout' : 'poll',
+          lastError: poll?.lastError,
         });
       }
     }
@@ -1071,6 +1112,7 @@ export const pollDueResults = internalAction({
     }
 
     const driverByNumber = await loadDriverNumberMap(ctx);
+    const rosterGaps: string[] = [];
 
     for (const task of tasks) {
       await ctx.runMutation(internal.openF1Results.recordAttempt, {
@@ -1089,7 +1131,14 @@ export const pollDueResults = internalAction({
               task.deadlineAt,
               getFallbackWindow(task.sessionType, actualStartAt).deadlineAt,
             );
-      if (task.kind === 'timeout' && now > deadlineAt) {
+      if (
+        shouldTimeOut({
+          kind: task.kind,
+          now,
+          deadlineAt,
+          lastError: task.lastError,
+        })
+      ) {
         await ctx.runMutation(internal.openF1Results.recordOutcome, {
           raceId: task.raceId,
           sessionType: task.sessionType,
@@ -1149,7 +1198,22 @@ export const pollDueResults = internalAction({
                 ),
           openF1SessionKey: fallback.openF1SessionKey ?? openF1SessionKey,
         });
+        if (fallback.status !== 'published' && isRosterGap(error)) {
+          rosterGaps.push(
+            `${task.raceName} ${task.sessionType}: ${errorMessage(error)}`,
+          );
+        }
       }
+    }
+
+    // Thrown after the loop so one session's gap cannot stop the others
+    // publishing. It repeats every tick until the driver is added, which is
+    // the point: nothing else will publish that session.
+    if (rosterGaps.length > 0) {
+      throw new Error(
+        `OpenF1 result blocked on the roster. Add the driver to seed.ts and ` +
+          `run seed:applyLineup --prod. ${rosterGaps.join('; ')}`,
+      );
     }
 
     return { processed: tasks.length };

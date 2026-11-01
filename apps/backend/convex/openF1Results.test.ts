@@ -12,8 +12,10 @@ import {
   isMissingSessionResults,
   isTokenEndpointOutage,
   isPracticeSession,
+  isRosterGap,
   parseOpenF1Results,
   parseOpenF1Sessions,
+  shouldTimeOut,
 } from './openF1Results';
 
 afterEach(() => vi.unstubAllGlobals());
@@ -442,5 +444,59 @@ describe('isTokenEndpointOutage', () => {
         reason,
       ).toBe(false);
     }
+  });
+});
+
+describe('roster gaps', () => {
+  // The exact shape the Mexico City 2026 qualifying poll stored: the official
+  // error first, then the live-timing fallback's reason.
+  const stored =
+    'Unmapped OpenF1 driver number(s): 50 | live timing: Unmapped OpenF1 ' +
+    'driver number(s): 50';
+
+  it('recognises an unmapped car number, thrown or stored', () => {
+    expect(isRosterGap(new Error('Unmapped OpenF1 driver number(s): 50'))).toBe(
+      true,
+    );
+    expect(isRosterGap(stored)).toBe(true);
+  });
+
+  it('does not match the ordinary come-back-later failures', () => {
+    for (const message of [
+      'OpenF1 request failed with HTTP 404: {"detail":"No results found."}',
+      'OpenF1 race control has not reported the session as over',
+      'Deployed drivers are missing OpenF1 number(s): 50',
+    ]) {
+      expect(isRosterGap(message), message).toBe(false);
+    }
+  });
+
+  const pastDeadline = { kind: 'timeout' as const, now: 2, deadlineAt: 1 };
+
+  it('times out a poll past its deadline', () => {
+    expect(shouldTimeOut({ ...pastDeadline, lastError: undefined })).toBe(true);
+    expect(
+      shouldTimeOut({
+        ...pastDeadline,
+        lastError: 'OpenF1 race control has not reported the session as over',
+      }),
+    ).toBe(true);
+  });
+
+  // Adding the driver is what fixes it, so the poll must still be there to
+  // publish when that happens.
+  it('keeps polling while the last failure was a roster gap', () => {
+    expect(shouldTimeOut({ ...pastDeadline, lastError: stored })).toBe(false);
+  });
+
+  it('never times out before the deadline', () => {
+    expect(
+      shouldTimeOut({
+        kind: 'poll',
+        now: 1,
+        deadlineAt: 2,
+        lastError: undefined,
+      }),
+    ).toBe(false);
   });
 });

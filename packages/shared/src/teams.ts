@@ -125,7 +125,19 @@ export const TEAMMATE_PAIRINGS_2026: ReadonlyArray<TeammatePairing> = [
     fromRound: 15,
   },
   { team: 'Audi', driver1Code: 'HUL', driver2Code: 'BOR', fromRound: 1 },
-  { team: 'Haas', driver1Code: 'OCO', driver2Code: 'BEA', fromRound: 1 },
+  // Haas dropped Ocon on the Saturday morning of round 19 (Mexico City), after
+  // he had driven FP1 and FP2. Reserve Ryo Hirakawa drove qualifying and the
+  // race, so round 19 is his: practice is not scored. Open-ended because Haas
+  // has not said whether Ocon returns. If he does, add a new pairing from that
+  // round rather than closing this one early.
+  {
+    team: 'Haas',
+    driver1Code: 'OCO',
+    driver2Code: 'BEA',
+    fromRound: 1,
+    toRound: 18,
+  },
+  { team: 'Haas', driver1Code: 'HIR', driver2Code: 'BEA', fromRound: 19 },
   { team: 'Cadillac', driver1Code: 'BOT', driver2Code: 'PER', fromRound: 1 },
 ];
 

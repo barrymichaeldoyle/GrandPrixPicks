@@ -321,7 +321,7 @@ describe('seat moves', () => {
   });
 
   it('finds the rounds that have a change', () => {
-    expect(roundsWithSeatMoves()).toEqual([12, 15]);
+    expect(roundsWithSeatMoves()).toEqual([12, 15, 19]);
   });
 
   // The announcement is derived from the same list the grid is built from, so

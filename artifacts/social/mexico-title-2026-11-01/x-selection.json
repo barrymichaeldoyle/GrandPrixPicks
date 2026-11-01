@@ -1,0 +1,17 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/mexico-2026-11-01-1800.json",
+  "startAt": "2026-11-01T16:17:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": [
+        "alonso-power-unit-failure-mexico-quali"
+      ],
+      "text": "Alonso was fastest of the 11 cars on track when his power unit failed in Mexico qualifying. Classified 18th, 0.387s off Q2: \"frustration is beyond imagination.\"",
+      "link": "https://grandprixpicks.com/f1-2026-mexico-grand-prix-predictions?story=alonso-power-unit-failure-mexico-quali",
+      "expiresAt": "2026-11-01T19:30:00Z"
+    }
+  ]
+}

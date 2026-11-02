@@ -1463,7 +1463,7 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=brazil-2026&story=mercedes-constructors-title-brazil&v=fffc6d827af3",
       "dueAt": "2026-11-02T17:10:00.000Z",
       "expiresAt": "2026-11-08T17:00:00.000Z",
-      "status": "creating",
+      "status": "scheduled",
       "bufferPostId": "6ae8c09f16eeb393286aaa8a"
     }
   ]

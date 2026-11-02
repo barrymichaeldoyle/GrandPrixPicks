@@ -1,0 +1,62 @@
+[
+  {
+    "raceSlug": "mexico-2026",
+    "key": "antonelli-world-champion-mexico",
+    "category": "general",
+    "headline": "Antonelli becomes the youngest world champion in Formula 1 history",
+    "body": "Kimi Antonelli clinches the 2026 drivers' title with third place in Mexico, four rounds before the end of the season. At 20 years and 68 days he beats Sebastian Vettel's record of 23 years and 134 days, and he is the first Italian champion since Alberto Ascari in 1953.",
+    "affectsSessions": [],
+    "driverCodes": ["ANT"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/kimi-antonelli-becomes-youngest-world-champion-in-f1-history/10870717/",
+    "sourcePublishedAt": "2026-11-01T22:25:24Z"
+  },
+  {
+    "raceSlug": "mexico-2026",
+    "key": "leclerc-turn-4-penalty-explained-mexico",
+    "category": "general",
+    "headline": "Stewards explain Leclerc's five-second penalty for passing Hamilton off track",
+    "body": "Charles Leclerc was given five seconds for cutting across the grass at Turn 4 and passing Lewis Hamilton for the lead on lap one. The stewards said both Ferraris entered the corner too fast and Hamilton also ran off, which cut the 10-second baseline. Hamilton argued the penalty should have been 10 seconds.",
+    "affectsSessions": [],
+    "driverCodes": ["LEC", "HAM"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/fia-explains-controversial-leclerc-penalty-decision/",
+    "sourcePublishedAt": "2026-11-01T21:30:46Z"
+  },
+  {
+    "raceSlug": "mexico-2026",
+    "key": "bottas-suspension-failure-red-flag-mexico",
+    "category": "general",
+    "headline": "Bottas escapes injury after his Cadillac's front suspension fails",
+    "body": "The left front suspension on Valtteri Bottas's Cadillac failed on lap 45 as he approached Turn 1, sending him backwards into the barriers and stopping the race for repairs. Cadillac says he has been released from the medical centre and is OK.",
+    "affectsSessions": [],
+    "driverCodes": ["BOT"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/bottas-taken-for-medical-checks-after-race-stopping-crash/",
+    "sourcePublishedAt": "2026-11-01T22:08:00Z"
+  },
+  {
+    "raceSlug": "mexico-2026",
+    "key": "piastri-lindblad-post-race-penalty-mexico",
+    "category": "general",
+    "headline": "Piastri takes a 10-second penalty for the Lindblad collision and loses his points",
+    "body": "Oscar Piastri has a 10-second post-race penalty for the Turn 1 collision with Arvid Lindblad, which drops him out of the points in Mexico. The stewards ruled he was never fully alongside and could have avoided the contact.",
+    "affectsSessions": [],
+    "driverCodes": ["PIA"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/11/02/piastri-loses-points-finish-after-10-second-penalty-for-lindblad-collision/",
+    "sourcePublishedAt": "2026-11-02T00:10:25Z"
+  },
+  {
+    "raceSlug": "mexico-2026",
+    "key": "alpine-yellow-flag-penalties-mexico",
+    "category": "general",
+    "headline": "Yellow-flag penalties for Colapinto and Gasly cost Alpine all its Mexico points",
+    "body": "Franco Colapinto takes 10 seconds and Pierre Gasly 30 for yellow-flag infringements, dropping them to 15th and 17th. Liam Lawson moves up to seventh, with Gabriel Bortoleto, Isack Hadjar and Ryo Hirakawa taking the last three points places. Racing Bulls is now 35 points clear of Alpine in the fight for fifth in the constructors' championship.",
+    "affectsSessions": [],
+    "driverCodes": ["COL", "GAS"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/double-penalty-costs-alpine-all-its-mexican-gp-points/",
+    "sourcePublishedAt": "2026-11-02T02:09:22Z"
+  }
+]

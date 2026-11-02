@@ -1445,6 +1445,25 @@
       "expiresAt": "2026-11-03T20:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6ae8299f76279ec7eb96fbac"
+    },
+    {
+      "id": "f953fa607f41abd00eee7320f4c816a496871ade4696c342941b324cde964d33",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "brazil-2026",
+          "key": "mercedes-constructors-title-brazil",
+          "revision": "fffc6d827af3bde81c083eb0e020e36040b9741e44aee4f8156d82ee9a35ee00"
+        }
+      ],
+      "text": "Mercedes can clinch the Constructors' Championship at Interlagos. They lead Ferrari by 126 points and need to outscore them by three.",
+      "link": "https://grandprixpicks.com/f1-2026-sao-paulo-grand-prix-predictions?story=mercedes-constructors-title-brazil",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=brazil-2026&story=mercedes-constructors-title-brazil&v=fffc6d827af3",
+      "dueAt": "2026-11-02T17:10:00.000Z",
+      "expiresAt": "2026-11-08T17:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

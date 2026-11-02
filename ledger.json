@@ -1425,6 +1425,25 @@
       "expiresAt": "2026-11-03T20:00:00.000Z",
       "status": "cancelled",
       "bufferPostId": "6ae8293d76279ec7eb96e5e2"
+    },
+    {
+      "id": "ab0317fdbee0883afae2c28119e3270f69adf2a057dca0c5db28544e7170f542",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "mexico-2026",
+          "key": "alpine-yellow-flag-penalties-mexico",
+          "revision": "ca7e6f52dfece64eb5439b59dc0fcdf9ced33bb75ca3387176cbb4e229176327"
+        }
+      ],
+      "text": "Two yellow-flag penalties wipe out Alpine's Mexico points: ten seconds for Colapinto, thirty for Gasly. Racing Bulls end up 35 points clear of them in the fight for fifth.",
+      "link": "https://grandprixpicks.com/f1-2026-mexico-city-grand-prix-predictions?story=alpine-yellow-flag-penalties-mexico",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=alpine-yellow-flag-penalties-mexico&v=ca7e6f52dfec",
+      "dueAt": "2026-11-02T07:30:00.000Z",
+      "expiresAt": "2026-11-03T20:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

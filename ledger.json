@@ -1483,7 +1483,8 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=honda-ers-cooling-aston-martin-mexico&v=db63f410e753",
       "dueAt": "2026-11-03T16:30:00.000Z",
       "expiresAt": "2026-11-04T06:00:00.000Z",
-      "status": "creating"
+      "status": "creating",
+      "bufferPostId": "6aea07245a8533248e71eb9a"
     }
   ]
 }

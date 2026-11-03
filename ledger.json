@@ -1465,6 +1465,25 @@
       "expiresAt": "2026-11-08T17:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6ae8c09f16eeb393286aaa8a"
+    },
+    {
+      "id": "e94f97d8a376b473e6d4d1cd89f5018b603b70010050650597f3e556b9ad2aaf",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "mexico-2026",
+          "key": "honda-ers-cooling-aston-martin-mexico",
+          "revision": "db63f410e75357400501a3b51b664a9b51e6bcad393a52c494de0e60592985d6"
+        }
+      ],
+      "text": "Both Aston Martins stopped after five laps in Mexico. Honda says the ERS cooling circuit took more stress at altitude than it expected, and the same problem hit Alonso in qualifying.",
+      "link": "https://grandprixpicks.com/f1-2026-mexico-grand-prix-predictions?story=honda-ers-cooling-aston-martin-mexico",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=mexico-2026&story=honda-ers-cooling-aston-martin-mexico&v=db63f410e753",
+      "dueAt": "2026-11-03T16:30:00.000Z",
+      "expiresAt": "2026-11-04T06:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

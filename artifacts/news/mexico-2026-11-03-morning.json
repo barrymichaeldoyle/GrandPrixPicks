@@ -1,0 +1,26 @@
+[
+  {
+    "raceSlug": "mexico-2026",
+    "key": "mercedes-fined-russell-media-duties-mexico",
+    "headline": "Mercedes is fined €5,000 after Russell skips post-race media",
+    "body": "George Russell did not attend the media pen after the Mexican Grand Prix and was summoned to the stewards, who fined Mercedes €5,000. Toto Wolff says Russell was distraught after an energy deployment problem at the start sent him back from the front row, and that his absence was understandable.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["RUS"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/mercedes-explains-distraught-russells-post-race-absence-after-fine/",
+    "sourcePublishedAt": "2026-11-02T01:52:25Z"
+  },
+  {
+    "raceSlug": "mexico-2026",
+    "key": "cadillac-bottas-suspension-failure-investigation-mexico",
+    "headline": "Cadillac will investigate the failure behind Bottas's crash",
+    "body": "Team principal Marcin Budkowski says Cadillac will fully investigate the front-left suspension failure that put Valtteri Bottas into the barrier at Turn 1, and make sure such accidents do not happen again. Bottas was given the all-clear after a trip to the medical centre.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["BOT"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/cadillac-to-investigate-high-speed-mexico-gp-failure-that-led-to-angry-valtteri-bottas-reaction/10871021/",
+    "sourcePublishedAt": "2026-11-02T17:30:02Z"
+  }
+]

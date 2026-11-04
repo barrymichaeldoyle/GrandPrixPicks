@@ -1,0 +1,25 @@
+[
+  {
+    "raceSlug": "brazil-2026",
+    "key": "leclerc-late-arrival-brazil",
+    "category": "general",
+    "headline": "Leclerc arrives late in Brazil after the birth of his daughter",
+    "body": "Ferrari has confirmed Leclerc will skip Thursday's media day after returning to Monaco to be with his family. His daughter Bianca was born on 3 November.",
+    "affectsSessions": [],
+    "driverCodes": ["LEC"],
+    "sourceName": "Crash.net",
+    "sourceUrl": "https://www.crash.net/f1/news/1109315/1/charles-and-alexandra-leclerc-share-heartwarming-news-brazil-gp",
+    "sourcePublishedAt": "2026-11-04T13:15:57+00:00"
+  },
+  {
+    "raceSlug": "brazil-2026",
+    "key": "sao-paulo-weather-forecast-brazil",
+    "category": "general",
+    "headline": "Rain is forecast for qualifying and the race at Interlagos",
+    "body": "Saturday carries a 50% chance of rain, most likely after 14:00 local time, and it could be heavy. Sunday is cooler at 13 to 19°C with a 40% chance of heavy rain and thunderstorms. Friday is mostly dry.",
+    "affectsSessions": [],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/what-is-the-weather-forecast-for-the-2026-sao-paulo-grand-prix.6DTTG84ES6tbC6eISpqnR8",
+    "sourcePublishedAt": "2026-11-04T14:00:05.985Z"
+  }
+]

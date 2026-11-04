@@ -271,8 +271,11 @@ describe('liveClassification.current', () => {
 describe('liveClassification.refresh', () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  async function seedQualifyingUnderway(t: ReturnType<typeof convexTest>) {
-    const qualiStartAt = Date.now() - 2 * 60_000;
+  async function seedQualifyingUnderway(
+    t: ReturnType<typeof convexTest>,
+    minutesIn = 2,
+  ) {
+    const qualiStartAt = Date.now() - minutesIn * 60_000;
     await t.run(async (ctx) => {
       await ctx.db.insert('races', {
         season: 2026,
@@ -332,41 +335,79 @@ describe('liveClassification.refresh', () => {
     expect(rows).toEqual([]);
   });
 
-  it('skips the tick when OpenF1 paid access is down mid-session', async () => {
-    // 2026-10-31: OpenF1's token endpoint 502'd for four minutes during a
-    // session, so every anonymous fallback met the live-session block.
+  async function withPaidAccessDown(run: () => Promise<void>) {
     const username = process.env.OPEN_F1_USERNAME;
     const password = process.env.OPEN_F1_PASSWORD;
     process.env.OPEN_F1_USERNAME = 'paid@example.com';
     process.env.OPEN_F1_PASSWORD = 'secret';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: URL | string) =>
+        new URL(String(input)).pathname === '/token'
+          ? new Response('<html>502 Bad Gateway</html>', { status: 502 })
+          : Response.json(
+              {
+                detail:
+                  'Live F1 session in progress. Global API access ' +
+                  '(including past sessions) is restricted to ' +
+                  'authenticated users until the session ends.',
+              },
+              { status: 401 },
+            ),
+      ),
+    );
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     try {
-      const t = convexTest(schema, modules);
-      await seedQualifyingUnderway(t);
-      vi.stubGlobal(
-        'fetch',
-        vi.fn(async (input: URL | string) =>
-          new URL(String(input)).pathname === '/token'
-            ? new Response('<html>502 Bad Gateway</html>', { status: 502 })
-            : Response.json(
-                {
-                  detail:
-                    'Live F1 session in progress. Global API access ' +
-                    '(including past sessions) is restricted to ' +
-                    'authenticated users until the session ends.',
-                },
-                { status: 401 },
-              ),
-        ),
-      );
-      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-
-      await expect(
-        t.action(internal.liveClassification.refresh, {}),
-      ).resolves.toBeNull();
+      await run();
     } finally {
       process.env.OPEN_F1_USERNAME = username;
       process.env.OPEN_F1_PASSWORD = password;
     }
+  }
+
+  it('skips the tick when OpenF1 paid access is down mid-session', async () => {
+    // 2026-10-31: OpenF1's token endpoint 502'd for four minutes during a
+    // session, so every anonymous fallback met the live-session block.
+    await withPaidAccessDown(async () => {
+      const t = convexTest(schema, modules);
+      await seedQualifyingUnderway(t);
+      await expect(
+        t.action(internal.liveClassification.refresh, {}),
+      ).resolves.toBeNull();
+    });
+  });
+
+  it('reports a paid access outage that has left the board stale', async () => {
+    await withPaidAccessDown(async () => {
+      const t = convexTest(schema, modules);
+      await seedQualifyingUnderway(t, 20);
+      await expect(
+        t.action(internal.liveClassification.refresh, {}),
+      ).rejects.toThrow(
+        /stale for 20 minutes while OpenF1 paid access is down/,
+      );
+    });
+  });
+
+  it('counts the outage from the last board update, not the session start', async () => {
+    await withPaidAccessDown(async () => {
+      const t = convexTest(schema, modules);
+      await seedQualifyingUnderway(t, 40);
+      await t.run(async (ctx) => {
+        const race = await ctx.db.query('races').first();
+        await ctx.db.insert('liveClassifications', {
+          raceId: race!._id,
+          raceName: race!.name,
+          raceSlug: race!.slug,
+          sessionType: 'quali',
+          entries: [],
+          updatedAt: Date.now() - 3 * 60_000,
+        });
+      });
+      await expect(
+        t.action(internal.liveClassification.refresh, {}),
+      ).resolves.toBeNull();
+    });
   });
 
   it('still fails on a real OpenF1 outage', async () => {

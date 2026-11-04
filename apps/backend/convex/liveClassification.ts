@@ -187,6 +187,12 @@ export const activeTask = internalQuery({
           if (published) {
             continue;
           }
+          const board = await ctx.db
+            .query('liveClassifications')
+            .withIndex('by_raceId_and_sessionType', (q) =>
+              q.eq('raceId', race._id).eq('sessionType', sessionType),
+            )
+            .unique();
           return {
             raceId: race._id,
             raceName: race.name,
@@ -194,6 +200,7 @@ export const activeTask = internalQuery({
             season: race.season,
             sessionType,
             startAt,
+            lastWrittenAt: board?.updatedAt ?? null,
           };
         }
       }
@@ -273,6 +280,17 @@ export const refresh = internalAction({
       // OpenF1's token endpoint was down, so we asked anonymously and met the
       // live-session block. Their outage, not ours: the next tick retries.
       if (isLiveSessionRestriction(error) && isTokenEndpointOutage(error)) {
+        // A blip is not worth paging for, but a whole session with an empty
+        // board is: past the grace period, let it throw so Sentry hears.
+        const since = task.lastWrittenAt ?? task.startAt;
+        if (Date.now() - since > PAID_ACCESS_OUTAGE_GRACE_MS) {
+          throw new Error(
+            `Live classification has been stale for ${Math.round(
+              (Date.now() - since) / 60_000,
+            )} minutes while OpenF1 paid access is down: ${errorMessage(error)}`,
+            { cause: error },
+          );
+        }
         console.warn(
           `Live classification: OpenF1 paid access is down, skipping ${task.raceSlug} ${task.sessionType}`,
         );
@@ -283,6 +301,16 @@ export const refresh = internalAction({
   },
 });
 
+/**
+ * How long a token endpoint outage may leave the live board stale before the
+ * refresh starts throwing. The 2026-10-31 outage lasted four minutes.
+ */
+export const PAID_ACCESS_OUTAGE_GRACE_MS = 15 * 60_000;
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 interface ActiveTask {
   raceId: Id<'races'>;
   raceName: string;
@@ -290,6 +318,8 @@ interface ActiveTask {
   season: number;
   sessionType: TimedSession;
   startAt: number;
+  /** When the live board last updated; null before its first write. */
+  lastWrittenAt: number | null;
 }
 
 async function refreshTask(ctx: ActionCtx, task: ActiveTask): Promise<null> {

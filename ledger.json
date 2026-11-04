@@ -1485,6 +1485,25 @@
       "expiresAt": "2026-11-04T06:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6aea07245a8533248e71eb9a"
+    },
+    {
+      "id": "9fd04271c3f588ed2b2df7f65f9ba2d577efa1567d462ffdb100e091573a6ab3",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "brazil-2026",
+          "key": "haas-camara-replaces-ocon-brazil",
+          "revision": "7374b4e4adeef4a2c873a64baaec2b9d72fa51cef992345d4125a73991a2ba00"
+        }
+      ],
+      "text": "Rafael Camara makes his F1 debut for Haas at his home race in Brazil. Esteban Ocon will not race for the team again this season, and Ollie Bearman keeps his seat.",
+      "link": "https://grandprixpicks.com/f1-2026-sao-paulo-grand-prix-predictions?story=haas-camara-replaces-ocon-brazil",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=brazil-2026&story=haas-camara-replaces-ocon-brazil&v=7374b4e4adee",
+      "dueAt": "2026-11-04T07:30:00.000Z",
+      "expiresAt": "2026-11-06T12:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

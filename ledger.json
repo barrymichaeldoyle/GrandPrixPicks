@@ -1505,6 +1505,25 @@
       "expiresAt": "2026-11-06T12:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6aeacbfc4c41ba80aa5f9542"
+    },
+    {
+      "id": "0f29604bb5542a819a23bbe8a1e9745c6ddeeda8b5873ce923f2ad8236fc52ee",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "brazil-2026",
+          "key": "sao-paulo-weather-forecast-brazil",
+          "revision": "6baba239b9646d5823749c849761b84fc47c7f5f31e59f1898e98d13baae47c3"
+        }
+      ],
+      "text": "Interlagos qualifying has a 50% chance of rain, mostly after 14:00 local, and Sunday's race carries a 40% chance of heavy rain and thunderstorms. Friday looks mostly dry.",
+      "link": "https://grandprixpicks.com/f1-2026-brazilian-grand-prix-predictions?story=sao-paulo-weather-forecast-brazil",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=brazil-2026&story=sao-paulo-weather-forecast-brazil&v=6baba239b964",
+      "dueAt": "2026-11-04T16:13:02.442Z",
+      "expiresAt": "2026-11-07T16:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

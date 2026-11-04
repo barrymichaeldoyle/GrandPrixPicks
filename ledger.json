@@ -1523,7 +1523,8 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=brazil-2026&story=sao-paulo-weather-forecast-brazil&v=6baba239b964",
       "dueAt": "2026-11-04T16:13:02.442Z",
       "expiresAt": "2026-11-07T16:00:00.000Z",
-      "status": "creating"
+      "status": "creating",
+      "bufferPostId": "6aeb587127467506b87a0bfd"
     }
   ]
 }

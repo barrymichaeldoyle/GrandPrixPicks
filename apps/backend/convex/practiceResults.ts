@@ -11,6 +11,7 @@ import {
 } from './_generated/server';
 import { discoverSessions, fetchJson } from './openF1Results';
 import { getViewer } from './lib/auth';
+import { driverNumbersForRound, loadStintsForSeason } from './lib/lineups';
 import { insertFeedEvent } from './lib/feedSort';
 import { loadRacesInSessionWindow } from './lib/sessionWindows';
 
@@ -737,18 +738,29 @@ export async function loadPracticeResultsForRace(
       .withIndex('by_race_kind', (q) => q.eq('raceId', raceId))
       .take(8),
   ]);
-  const canonicalNumbers = new Set(
-    drivers.flatMap((driver) =>
-      driver.number === undefined ? [] : [driver.number],
-    ),
+  // Numbers as that round's grid held them: #50 was Hirakawa's at round 19
+  // and Câmara's from 20, and a reserve's FP1 run in an earlier round belongs
+  // to neither race seat.
+  const race = await ctx.db.get(raceId);
+  const numberToDriver = race
+    ? driverNumbersForRound(
+        drivers,
+        await loadStintsForSeason(ctx, race.season),
+        race.round,
+      )
+    : new Map<number, Id<'drivers'>>();
+  const canonicalNumbers = new Set(numberToDriver.keys());
+  const nameById = new Map(
+    drivers.map((driver) => [driver._id, driver.displayName]),
   );
   // Rows stored before ingest normalised OpenF1's "George RUSSELL" still carry
   // it, so names are resolved here too: the roster's own name for a race
   // driver, a title-cased one for a reserve.
   const rosterNames = new Map(
-    drivers.flatMap((driver) =>
-      driver.number === undefined ? [] : [[driver.number, driver.displayName]],
-    ),
+    [...numberToDriver].map(([number, driverId]) => [
+      number,
+      nameById.get(driverId)!,
+    ]),
   );
   return results.map((result) => {
     const video = videos.find((video) => video.kind === result.sessionType);
@@ -814,9 +826,11 @@ export const getPracticeSessionSummariesForRace = query({
       ctx.db.query('drivers').take(40),
     ]);
     const canonicalDriverNumbers = new Set(
-      drivers.flatMap((driver) =>
-        driver.number === undefined ? [] : [driver.number],
-      ),
+      driverNumbersForRound(
+        drivers,
+        await loadStintsForSeason(ctx, race.season),
+        race.round,
+      ).keys(),
     );
 
     return {

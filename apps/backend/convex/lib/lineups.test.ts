@@ -4,6 +4,7 @@ import type { Id } from '../_generated/dataModel';
 import type { Stint } from './lineups';
 import {
   annotateRosterForRound,
+  driverNumbersForRound,
   rosterForRound,
   successorPick,
   teamForRound,
@@ -188,5 +189,55 @@ describe('annotateRosterForRound', () => {
     );
     expect(had?.racing).toBe(false);
     expect(had?.team).toBe('Red Bull Racing');
+  });
+});
+
+describe('driverNumbersForRound', () => {
+  // Haas, late 2026: Ocon to round 18, Hirakawa #50 at round 19, Câmara from
+  // round 20, possibly also as #50.
+  const haas = new Map<string, Stint[]>([
+    ['oco', [stint('oco', 'Haas', 1, 18)]],
+    ['hir', [stint('hir', 'Haas', 19, 19)]],
+    ['cam', [stint('cam', 'Haas', 20)]],
+    ['bea', [stint('bea', 'Haas', 1)]],
+  ]);
+  const roster = [
+    { _id: driverId('oco'), number: 31 },
+    { _id: driverId('hir'), number: 50 },
+    { _id: driverId('cam'), number: 50 },
+    { _id: driverId('bea'), number: 87 },
+  ];
+
+  test('gives a shared number to whoever held it that round', () => {
+    expect(driverNumbersForRound(roster, haas, 19).get(50)).toBe('hir');
+    expect(driverNumbersForRound(roster, haas, 20).get(50)).toBe('cam');
+  });
+
+  test('maps an unshared number even outside its stint', () => {
+    // Rechecking round 18 still resolves Ocon, and an FP1 stand-in with no
+    // stint keeps resolving by number alone.
+    expect(driverNumbersForRound(roster, haas, 18).get(31)).toBe('oco');
+    expect(driverNumbersForRound(roster, haas, 20).get(31)).toBe('oco');
+    expect(
+      driverNumbersForRound(
+        [{ _id: driverId('res'), number: 99 }],
+        new Map(),
+        5,
+      ).get(99),
+    ).toBe('res');
+  });
+
+  test('leaves a shared number out when no holder is racing that round', () => {
+    // Unmapped is a loud roster gap; guessing would misattribute a result.
+    expect(driverNumbersForRound(roster, haas, 18).has(50)).toBe(false);
+  });
+
+  test('skips drivers without a number', () => {
+    const map = driverNumbersForRound(
+      [{ _id: driverId('cam') }, { _id: driverId('bea'), number: 87 }],
+      haas,
+      20,
+    );
+    expect([...map]).toEqual([[87, 'bea']]);
   });
 });

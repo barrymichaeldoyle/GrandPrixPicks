@@ -39,6 +39,7 @@ type RecheckTask = {
   raceName: string;
   raceSlug: string;
   season: number;
+  round: number;
   sessionType: SessionType;
   sessionStartAt: number;
 };
@@ -120,6 +121,7 @@ export const getDueRechecks = internalQuery({
         raceName: race.name,
         raceSlug: race.slug,
         season: race.season,
+        round: race.round,
         sessionType: result.sessionType,
         sessionStartAt: start.sessionStartAt,
       });
@@ -157,6 +159,7 @@ export const getPublishedSessions = internalQuery({
           raceName: race.name,
           raceSlug: race.slug,
           season: race.season,
+          round: race.round,
           sessionType,
           sessionStartAt,
         });
@@ -481,7 +484,6 @@ async function reconcileTasks(
     acknowledgedStatuses?: Array<{ driverCode: string; status: DriverStatus }>;
   },
 ): Promise<ReconcileOutcome[]> {
-  const driverByNumber = await loadDriverNumberMap(ctx);
   const outcomes: ReconcileOutcome[] = [];
 
   for (const [index, task] of tasks.entries()) {
@@ -490,6 +492,7 @@ async function reconcileTasks(
       await sleep(OPEN_F1_PACING_MS);
     }
     try {
+      const driverByNumber = await loadDriverNumberMap(ctx, task);
       const official = await fetchOfficialClassification({
         season: task.season,
         sessionType: task.sessionType,
@@ -653,7 +656,6 @@ export const backfillTiming = internalAction({
     const tasks = allTasks.filter(
       (task) => !args.raceSlug || task.raceSlug === args.raceSlug,
     );
-    const driverByNumber = await loadDriverNumberMap(ctx);
     const outcomes: Array<{
       race: string;
       sessionType: SessionType;
@@ -665,6 +667,7 @@ export const backfillTiming = internalAction({
         await sleep(OPEN_F1_PACING_MS);
       }
       try {
+        const driverByNumber = await loadDriverNumberMap(ctx, task);
         const official = await fetchOfficialClassification({
           season: task.season,
           sessionType: task.sessionType,

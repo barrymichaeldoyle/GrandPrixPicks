@@ -19,6 +19,7 @@ import {
   query,
 } from './_generated/server';
 import { getViewer, requireAdmin, requireViewer } from './lib/auth';
+import { driverNumbersForRound, loadStintsForSeason } from './lib/lineups';
 import { qualifyingSecondsByDriver } from './lib/qualifyingSegments';
 import type { PendingInvestigation } from './openF1LiveTiming';
 import {
@@ -93,6 +94,7 @@ type PollTask = {
   raceId: Id<'races'>;
   raceName: string;
   season: number;
+  round: number;
   sessionType: SessionType;
   sessionStartAt: number;
   firstAttemptAt: number;
@@ -906,11 +908,19 @@ export async function fetchLiveTimingClassification(args: {
   };
 }
 
-export async function loadDriverNumberMap(ctx: {
-  runQuery: ActionCtx['runQuery'];
-}): Promise<Map<number, Id<'drivers'>>> {
+/**
+ * Car number to driver for one round. Round-scoped because a number can pass
+ * between drivers mid-season: see `driverNumbersForRound`.
+ */
+export async function loadDriverNumberMap(
+  ctx: { runQuery: ActionCtx['runQuery'] },
+  race: { season: number; round: number },
+): Promise<Map<number, Id<'drivers'>>> {
   const mappings: Array<{ number: number; driverId: Id<'drivers'> }> =
-    await ctx.runQuery(internal.openF1Results.getDriverNumberMap, {});
+    await ctx.runQuery(internal.openF1Results.getDriverNumberMap, {
+      season: race.season,
+      round: race.round,
+    });
   return new Map(mappings.map(({ number, driverId }) => [number, driverId]));
 }
 
@@ -966,6 +976,7 @@ export const getDuePolls = internalQuery({
           raceId: race._id,
           raceName: race.name,
           season: race.season,
+          round: race.round,
           sessionType,
           sessionStartAt,
           firstAttemptAt,
@@ -981,13 +992,26 @@ export const getDuePolls = internalQuery({
 });
 
 export const getDriverNumberMap = internalQuery({
+  args: { season: v.number(), round: v.number() },
+  handler: async (ctx, args) => {
+    const drivers = await ctx.db.query('drivers').take(40);
+    const stints = await loadStintsForSeason(ctx, args.season);
+    return [...driverNumbersForRound(drivers, stints, args.round)].map(
+      ([number, driverId]) => ({ number, driverId }),
+    );
+  },
+});
+
+/**
+ * Every car number on the roster, whoever holds it. Only for the deploy smoke
+ * test, which asks whether a number is known at all, not whose it is.
+ */
+export const getRosterNumbers = internalQuery({
   args: {},
   handler: async (ctx) => {
     const drivers = await ctx.db.query('drivers').take(40);
     return drivers.flatMap((driver) =>
-      driver.number === undefined
-        ? []
-        : [{ number: driver.number, driverId: driver._id }],
+      driver.number === undefined ? [] : [driver.number],
     );
   },
 });
@@ -1111,10 +1135,10 @@ export const pollDueResults = internalAction({
       return { processed: 0 };
     }
 
-    const driverByNumber = await loadDriverNumberMap(ctx);
     const rosterGaps: string[] = [];
 
     for (const task of tasks) {
+      const driverByNumber = await loadDriverNumberMap(ctx, task);
       await ctx.runMutation(internal.openF1Results.recordAttempt, {
         raceId: task.raceId,
         sessionType: task.sessionType,
@@ -1397,7 +1421,7 @@ export const adminPreviewLiveResults = action({
       };
     }
 
-    const driverByNumber = await loadDriverNumberMap(ctx);
+    const driverByNumber = await loadDriverNumberMap(ctx, task);
     try {
       const live = await fetchLiveTimingClassification({
         season: task.season,
@@ -1577,9 +1601,9 @@ async function runSmokeTest(ctx: ActionCtx, sessionKey: number) {
   const resultsUrl = new URL('https://api.openf1.org/v1/session_result');
   resultsUrl.searchParams.set('session_key', String(sessionKey));
   const results = parseOpenF1Results(await fetchJson(resultsUrl));
-  const mappings: Array<{ number: number; driverId: Id<'drivers'> }> =
-    await ctx.runQuery(internal.openF1Results.getDriverNumberMap, {});
-  const mappedNumbers = new Set(mappings.map(({ number }) => number));
+  const mappedNumbers = new Set<number>(
+    await ctx.runQuery(internal.openF1Results.getRosterNumbers, {}),
+  );
   const unmappedNumbers = results
     .map(({ driver_number }) => driver_number)
     .filter((number) => !mappedNumbers.has(number));
@@ -1687,6 +1711,7 @@ export const getManualFetchTask = internalQuery({
     return {
       raceName: race.name,
       season: race.season,
+      round: race.round,
       sessionStartAt: start.sessionStartAt,
       alreadyPublished: existingResult !== null,
       ...getFallbackWindow(args.sessionType, start.sessionStartAt),
@@ -1737,7 +1762,7 @@ export const adminFetchResultsNow = action({
       };
     }
 
-    const driverByNumber = await loadDriverNumberMap(ctx);
+    const driverByNumber = await loadDriverNumberMap(ctx, task);
     await ctx.runMutation(internal.openF1Results.recordAttempt, {
       raceId: args.raceId,
       sessionType: args.sessionType,
@@ -1797,6 +1822,7 @@ export const adminFetchResultsNow = action({
           raceId: args.raceId,
           raceName: task.raceName,
           season: task.season,
+          round: task.round,
           sessionType: args.sessionType,
           sessionStartAt: task.sessionStartAt,
           firstAttemptAt: task.firstAttemptAt,

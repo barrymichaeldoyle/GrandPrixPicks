@@ -12,6 +12,7 @@ import {
   query,
 } from './_generated/server';
 import { getViewer } from './lib/auth';
+import { driverNumbersForRound, loadStintsForSeason } from './lib/lineups';
 import { scoreTopFive } from './lib/scoring';
 import {
   discoverSessions,
@@ -287,11 +288,13 @@ export const getLiveInput = internalQuery({
       race,
       snapshot,
       resultPublished: result !== null,
-      driverMappings: drivers.flatMap((driver) =>
-        driver.number === undefined
-          ? []
-          : [{ driverNumber: driver.number, driverId: driver._id }],
-      ),
+      driverMappings: [
+        ...driverNumbersForRound(
+          drivers,
+          await loadStintsForSeason(ctx, race.season),
+          race.round,
+        ),
+      ].map(([driverNumber, driverId]) => ({ driverNumber, driverId })),
       topFivePredictions,
       h2hPredictions,
       matchups,

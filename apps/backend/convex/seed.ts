@@ -246,15 +246,17 @@ const F1_DRIVERS_2026 = [
     team: 'Haas',
     nationality: 'JP',
   },
-  // Replaced Ocon from round 20 (São Paulo). No number until the entry list
-  // or OpenF1 shows one: he has said he wants #50 for 2027, but Hirakawa
-  // raced #50 at round 19 and the results import maps car numbers without
-  // regard to round, so two drivers sharing a number would misattribute.
+  // Replaced Ocon from round 20 (São Paulo). #50 is his stated number, and
+  // the same car number Hirakawa ran at round 19: the results import resolves
+  // a shared number by whose stint covers the round (`driverNumbersForRound`).
+  // If OpenF1 shows a different number at FP1, change it here and re-run
+  // `seed:applyLineup`.
   {
     code: 'CAM',
     givenName: 'Rafael',
     familyName: 'Câmara',
     displayName: 'Rafael Câmara',
+    number: 50,
     team: 'Haas',
     nationality: 'BR',
   },

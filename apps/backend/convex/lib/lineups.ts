@@ -144,3 +144,47 @@ export function successorPick(
     ? next.driver1Id
     : next.driver2Id;
 }
+
+/**
+ * Car number to driver, as the grid stood in `round`.
+ *
+ * A car number is not a person for a whole season: Hirakawa raced #50 for
+ * Haas at round 19 and Câmara can take #50 into the same seat from round 20.
+ * Mapping numbers off the `drivers` table alone would hand one of them the
+ * other's result, and a recheck of the earlier round would quietly rescore it.
+ *
+ * A number held by one driver maps to them whatever their stints say, so this
+ * only changes anything once a number is shared. Then the one whose stint
+ * covers `round` gets it. If that is not exactly one driver the number is left
+ * out, which surfaces as an unmapped-number roster gap: loud, and never a
+ * wrong attribution.
+ */
+export function driverNumbersForRound(
+  drivers: ReadonlyArray<{ _id: Id<'drivers'>; number?: number }>,
+  stints: ReadonlyMap<string, Stint[]>,
+  round: number,
+): Map<number, Id<'drivers'>> {
+  const byNumber = new Map<number, Array<Id<'drivers'>>>();
+  for (const driver of drivers) {
+    if (driver.number === undefined) {
+      continue;
+    }
+    const holders = byNumber.get(driver.number) ?? [];
+    holders.push(driver._id);
+    byNumber.set(driver.number, holders);
+  }
+
+  const resolved = new Map<number, Id<'drivers'>>();
+  for (const [number, holders] of byNumber) {
+    const racing =
+      holders.length === 1
+        ? holders
+        : holders.filter(
+            (driverId) => teamForRound(stints, driverId, round) !== null,
+          );
+    if (racing.length === 1) {
+      resolved.set(number, racing[0]);
+    }
+  }
+  return resolved;
+}

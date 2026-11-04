@@ -1,0 +1,37 @@
+[
+  {
+    "raceSlug": "brazil-2026",
+    "key": "haas-camara-replaces-ocon-brazil",
+    "headline": "Camara makes his F1 debut for Haas in Brazil as Ocon is out for the season",
+    "body": "Haas has told Esteban Ocon he will not race for the team again this season. Rafael Camara, who leads the Formula 2 standings and joins Haas for 2027, drives alongside Ollie Bearman at Interlagos. Ryo Hirakawa, who scored a point on his debut in Mexico, is not in the car for Brazil.",
+    "category": "pick_related",
+    "affectsSessions": ["quali", "race"],
+    "driverCodes": ["OCO"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/camara-to-debut-in-f1-brazil-gp-as-ocon-out-at-haas/10871372/",
+    "sourcePublishedAt": "2026-11-03T20:43:22Z"
+  },
+  {
+    "raceSlug": "brazil-2026",
+    "key": "herta-cadillac-fp1-superlicence-brazil",
+    "headline": "Herta drives Perez's Cadillac in Brazil FP1 for his last superlicence point",
+    "body": "Colton Herta takes a sixth Friday practice session of the season after Cadillac found he was one point short of the 40 he needs for an F1 superlicence. Twenty-four laps of Interlagos meets the 100km distance for a point. The team is weighing Bottas for a second year against giving Herta a 2027 debut.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["PER"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/colton-herta-to-run-cadillac-fp1-in-brazil-as-fia-superlicense-quest-continues/10871403/",
+    "sourcePublishedAt": "2026-11-03T23:01:56Z"
+  },
+  {
+    "raceSlug": "brazil-2026",
+    "key": "mclaren-2027-front-wing-brazil",
+    "headline": "McLaren brings a front wing concept for its 2027 car to Brazil",
+    "body": "McLaren is updating the front wing, rear wing and floor components of the MCL40 at Interlagos. It expects to carry the new front wing concept into the launch specification of its 2027 car. McLaren is 17 points behind Red Bull in the fight for third in the constructors' championship.",
+    "category": "general",
+    "affectsSessions": [],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/mclaren-to-introduce-2027-f1-front-wing-at-brazil-gp/10871326/",
+    "sourcePublishedAt": "2026-11-03T16:43:26Z"
+  }
+]

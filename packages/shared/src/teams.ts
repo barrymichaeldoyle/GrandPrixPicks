@@ -137,7 +137,19 @@ export const TEAMMATE_PAIRINGS_2026: ReadonlyArray<TeammatePairing> = [
     fromRound: 1,
     toRound: 18,
   },
-  { team: 'Haas', driver1Code: 'HIR', driver2Code: 'BEA', fromRound: 19 },
+  {
+    team: 'Haas',
+    driver1Code: 'HIR',
+    driver2Code: 'BEA',
+    fromRound: 19,
+    toRound: 19,
+  },
+  // On 4 November Haas confirmed Ocon will not race for it again in 2026 and
+  // named Rafael Câmara for round 20 (São Paulo). Haas has not yet said who
+  // drives Las Vegas, Qatar and Abu Dhabi. Open-ended on the expectation that
+  // Câmara keeps the seat; if another driver gets it, add a pairing from that
+  // round.
+  { team: 'Haas', driver1Code: 'CAM', driver2Code: 'BEA', fromRound: 20 },
   { team: 'Cadillac', driver1Code: 'BOT', driver2Code: 'PER', fromRound: 1 },
 ];
 

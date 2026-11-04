@@ -246,6 +246,18 @@ const F1_DRIVERS_2026 = [
     team: 'Haas',
     nationality: 'JP',
   },
+  // Replaced Ocon from round 20 (São Paulo). No number until the entry list
+  // or OpenF1 shows one: he has said he wants #50 for 2027, but Hirakawa
+  // raced #50 at round 19 and the results import maps car numbers without
+  // regard to round, so two drivers sharing a number would misattribute.
+  {
+    code: 'CAM',
+    givenName: 'Rafael',
+    familyName: 'Câmara',
+    displayName: 'Rafael Câmara',
+    team: 'Haas',
+    nationality: 'BR',
+  },
 
   // Cadillac (New for 2026)
   {
@@ -1053,6 +1065,7 @@ const LINEUP_CHANGE_NOTES: Record<number, string | undefined> = {
   12: HADJAR_DUTCH_GP_LINEUP_NOTE,
   15: 'Isack Hadjar has recovered from his wrist injury and returns alongside Max Verstappen at Red Bull. Liam Lawson goes back to Racing Bulls next to Arvid Lindblad, and Yuki Tsunoda returns to reserve duty.',
   19: 'Haas has dropped Esteban Ocon for the rest of the Mexico City weekend. Reserve driver Ryo Hirakawa takes his seat alongside Oliver Bearman for qualifying and the race. Haas has not said whether Ocon returns for the remaining rounds.',
+  20: 'Haas has confirmed Esteban Ocon will not race for the team again this season. Rafael Câmara makes his F1 debut in São Paulo alongside Oliver Bearman. Haas has not yet named its driver for Las Vegas, Qatar and Abu Dhabi.',
 };
 
 /**

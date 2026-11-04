@@ -134,7 +134,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
   // context of who Haas considered before 14 October 2026.
   'f1-2027-haas-second-seat': {
     status:
-      'Haas signed Rafael Câmara on 14 October 2026 on a multi-year deal for 2027. He replaces Esteban Ocon alongside Oliver Bearman.',
+      'Haas signed Rafael Câmara on 14 October 2026 on a multi-year deal for 2027. He replaces Esteban Ocon alongside Oliver Bearman, and makes his F1 debut early, at the 2026 São Paulo Grand Prix.',
     hero: {
       src: '/images/guides/haas-monza-2025.jpg',
       width: 1280,
@@ -154,8 +154,14 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         paragraphs: [
           'Esteban Ocon announced on 30 September 2026 that he will leave Haas when the season ends, and Haas confirmed it with a statement from Ayao Komatsu. The team said it would not share further driver news at that time.',
           'Ocon said he leaves with his head held high and that this is “absolutely not the end of my Formula 1 career”. He has not said where he goes next. Haas named Rafael Câmara as his replacement on 14 October 2026.',
+          'Haas dropped Ocon midway through the Mexico City Grand Prix weekend without giving a reason, and reserve Ryo Hirakawa drove from Saturday. On 4 November Haas confirmed Ocon will not race for the team again in 2026, and named Câmara to partner Bearman at the São Paulo Grand Prix. Haas has not said who drives in Las Vegas, Qatar and Abu Dhabi.',
         ],
         sources: [
+          {
+            label:
+              'Sky Sports: Ocon will not race for Haas again this season (4 November 2026)',
+            url: 'https://www.skysports.com/f1/news/13607256/esteban-ocon-will-not-race-for-haas-again-this-season-as-rafael-camara-replaces-him-at-sao-paulo-grand-prix',
+          },
           {
             label:
               'Formula 1: Ocon confirms he will leave Haas (30 September 2026)',
@@ -263,9 +269,14 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
             'https://creativecommons.org/publicdomain/zero/1.0/deed.en',
         },
         paragraphs: [
-          'Ocon joined Haas in 2025 and finished fifth in China in his second race for the team. He won the 2021 Hungarian Grand Prix with Alpine. He leaves Haas at the end of 2026 after two seasons. Haas named Rafael Câmara as his replacement on 14 October 2026. Ocon has not announced his next team.',
+          'Ocon joined Haas in 2025 and finished fifth in China in his second race for the team. He won the 2021 Hungarian Grand Prix with Alpine. Haas dropped him during the 2026 Mexico City Grand Prix weekend and confirmed on 4 November that he will not race for the team again that season. Rafael Câmara, already signed for 2027, takes the seat from São Paulo. Ocon has not announced his next team.',
         ],
         sources: [
+          {
+            label:
+              'Sky Sports: Ocon will not race for Haas again this season (4 November 2026)',
+            url: 'https://www.skysports.com/f1/news/13607256/esteban-ocon-will-not-race-for-haas-again-this-season-as-rafael-camara-replaces-him-at-sao-paulo-grand-prix',
+          },
           {
             label: 'Haas: Esteban Ocon’s career and results',
             url: 'https://www.haasf1team.com/season/team/esteban-ocon',
@@ -328,7 +339,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
         },
         paragraphs: [
-          'Hirakawa became a Haas reserve in April 2025 after testing the VF-24 in Abu Dhabi. He ran four Haas FP1 sessions in 2025: Bahrain, Spain, Mexico City and Abu Dhabi. In 2026 he drove FP1 in Austria and Hungary. He also races Toyota’s endurance programme, and Toyota is a Haas partner. Diario Motor reported on 16 October 2026 that he stays in that programme for 2027.',
+          'Hirakawa became a Haas reserve in April 2025 after testing the VF-24 in Abu Dhabi. He ran four Haas FP1 sessions in 2025: Bahrain, Spain, Mexico City and Abu Dhabi. In 2026 he drove FP1 in Austria and Hungary, then made his race debut in Ocon’s place at the Mexico City Grand Prix and finished 10th. He also races Toyota’s endurance programme, and Toyota is a Haas partner. Diario Motor reported on 16 October 2026 that he stays in that programme for 2027.',
         ],
         sources: [
           {
@@ -342,6 +353,11 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
           {
             label: 'Formula 1: Hirakawa’s second 2026 FP1, in Hungary',
             url: 'https://www.formula1.com/en/latest/article/which-rookie-drivers-are-getting-fp1-outings-at-the-hungarian-grand-prix.1kS8Yo1hscVdKb4AS3J4eX',
+          },
+          {
+            label:
+              'Sky Sports: Ocon will not race for Haas again this season (4 November 2026)',
+            url: 'https://www.skysports.com/f1/news/13607256/esteban-ocon-will-not-race-for-haas-again-this-season-as-rafael-camara-replaces-him-at-sao-paulo-grand-prix',
           },
           {
             label: 'Diario Motor: Hirakawa stays in WEC (16 October 2026)',
@@ -444,7 +460,7 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
         to: '/f1-team-mate-battles',
         label: 'F1 teammate head-to-head results',
         detail:
-          'Compare the current driver pairings, including Ocon and Bearman.',
+          'Compare this season’s driver pairings, including Bearman against Ocon, Hirakawa and Câmara.',
       },
     ],
   },

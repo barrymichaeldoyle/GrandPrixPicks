@@ -1543,7 +1543,7 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=brazil-2026&story=herta-cadillac-fp1-superlicence-brazil&v=b27b3e50a56d",
       "dueAt": "2026-11-05T16:30:00.000Z",
       "expiresAt": "2026-11-06T13:00:00.000Z",
-      "status": "creating",
+      "status": "scheduled",
       "bufferPostId": "6aecaaa2517659178a1ff7b8"
     }
   ]

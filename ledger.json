@@ -1525,6 +1525,25 @@
       "expiresAt": "2026-11-07T16:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6aeb587127467506b87a0bfd"
+    },
+    {
+      "id": "7321595af35a48819c6b4aa87da2cf7fd4ced38c8439740b23f859a86a2601b0",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "brazil-2026",
+          "key": "herta-cadillac-fp1-superlicence-brazil",
+          "revision": "b27b3e50a56d8dab23796685456d86f5ff8d05630e1a0e143fee251beaf1b1ae"
+        }
+      ],
+      "text": "Herta drives Cadillac in Brazil FP1 because he is one point short of the 40 he needs for an F1 superlicence. Twenty-four laps of Interlagos meets the distance for that point.",
+      "link": "https://grandprixpicks.com/f1-2026-sao-paulo-grand-prix-predictions?story=herta-cadillac-fp1-superlicence-brazil",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=brazil-2026&story=herta-cadillac-fp1-superlicence-brazil&v=b27b3e50a56d",
+      "dueAt": "2026-11-05T16:30:00.000Z",
+      "expiresAt": "2026-11-06T13:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

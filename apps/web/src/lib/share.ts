@@ -36,6 +36,45 @@ export function buildPicksSharePageUrl({
   return `${siteConfig.url}/races/${raceSlug}?${params.toString()}`;
 }
 
+/**
+ * A player's season in one post. Rank is left out when the player has not been
+ * scored yet, so the line never reads "P— of 0".
+ */
+export function buildSeasonRecapShareText({
+  season,
+  points,
+  rank,
+  players,
+  bestWeekend,
+  seasonComplete,
+  accountHandle,
+}: {
+  season: number;
+  points: number;
+  rank: number | null;
+  players: number;
+  bestWeekend: { raceName: string; points: number } | null;
+  seasonComplete: boolean;
+  accountHandle: string;
+}) {
+  const lines = [
+    seasonComplete
+      ? `My ${season} season on ${accountHandle} 🏆`
+      : `My ${season} season so far on ${accountHandle} 📈`,
+    '',
+    rank === null
+      ? `${points} points`
+      : `${points} points · P${rank} of ${players}`,
+  ];
+  if (bestWeekend) {
+    lines.push(
+      `Best weekend: ${bestWeekend.raceName}, ${bestWeekend.points} pts`,
+    );
+  }
+  lines.push('', '#F1');
+  return lines.join('\n');
+}
+
 export function buildRaceResultShareText({
   raceName,
   sessionLabel,

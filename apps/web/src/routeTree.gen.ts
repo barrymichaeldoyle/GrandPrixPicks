@@ -61,6 +61,7 @@ import { Route as AdminRacesRaceIdRouteImport } from './routes/admin/races/$race
 import { Route as LeaguesSlugSettingsRouteImport } from './routes/leagues/$slug/settings'
 import { Route as PUsernameFollowersRouteImport } from './routes/p/$username/followers'
 import { Route as PUsernameFollowingRouteImport } from './routes/p/$username/following'
+import { Route as PUsernameSeasonRouteImport } from './routes/p/$username/season'
 import { Route as PocChinwagIndexRouteImport } from './routes/poc/chinwag/index'
 import { Route as PocChinwagDemoRouteImport } from './routes/poc/chinwag/demo'
 import { Route as PocChinwagResultsRouteImport } from './routes/poc/chinwag/results'
@@ -340,6 +341,11 @@ const PUsernameFollowingRoute = PUsernameFollowingRouteImport.update({
   path: '/following',
   getParentRoute: () => PUsernameRoute,
 } as any)
+const PUsernameSeasonRoute = PUsernameSeasonRouteImport.update({
+  id: '/season',
+  path: '/season',
+  getParentRoute: () => PUsernameRoute,
+} as any)
 const PocChinwagIndexRoute = PocChinwagIndexRouteImport.update({
   id: '/poc/chinwag/',
   path: '/poc/chinwag/',
@@ -419,6 +425,7 @@ export interface FileRoutesByFullPath {
   '/leagues/$slug/settings': typeof LeaguesSlugSettingsRoute
   '/p/$username/followers': typeof PUsernameFollowersRoute
   '/p/$username/following': typeof PUsernameFollowingRoute
+  '/p/$username/season': typeof PUsernameSeasonRoute
   '/poc/chinwag/demo': typeof PocChinwagDemoRoute
   '/poc/chinwag/results': typeof PocChinwagResultsRoute
   '/races/$raceSlug/practice': typeof RacesRaceSlugPracticeRoute
@@ -477,6 +484,7 @@ export interface FileRoutesByTo {
   '/leagues/$slug/settings': typeof LeaguesSlugSettingsRoute
   '/p/$username/followers': typeof PUsernameFollowersRoute
   '/p/$username/following': typeof PUsernameFollowingRoute
+  '/p/$username/season': typeof PUsernameSeasonRoute
   '/poc/chinwag/demo': typeof PocChinwagDemoRoute
   '/poc/chinwag/results': typeof PocChinwagResultsRoute
   '/races/$raceSlug/practice': typeof RacesRaceSlugPracticeRoute
@@ -537,6 +545,7 @@ export interface FileRoutesById {
   '/leagues/$slug/settings': typeof LeaguesSlugSettingsRoute
   '/p/$username/followers': typeof PUsernameFollowersRoute
   '/p/$username/following': typeof PUsernameFollowingRoute
+  '/p/$username/season': typeof PUsernameSeasonRoute
   '/poc/chinwag/demo': typeof PocChinwagDemoRoute
   '/poc/chinwag/results': typeof PocChinwagResultsRoute
   '/races/$raceSlug/practice': typeof RacesRaceSlugPracticeRoute
@@ -598,6 +607,7 @@ export interface FileRouteTypes {
     | '/leagues/$slug/settings'
     | '/p/$username/followers'
     | '/p/$username/following'
+    | '/p/$username/season'
     | '/poc/chinwag/demo'
     | '/poc/chinwag/results'
     | '/races/$raceSlug/practice'
@@ -656,6 +666,7 @@ export interface FileRouteTypes {
     | '/leagues/$slug/settings'
     | '/p/$username/followers'
     | '/p/$username/following'
+    | '/p/$username/season'
     | '/poc/chinwag/demo'
     | '/poc/chinwag/results'
     | '/races/$raceSlug/practice'
@@ -715,6 +726,7 @@ export interface FileRouteTypes {
     | '/leagues/$slug/settings'
     | '/p/$username/followers'
     | '/p/$username/following'
+    | '/p/$username/season'
     | '/poc/chinwag/demo'
     | '/poc/chinwag/results'
     | '/races/$raceSlug/practice'
@@ -1143,6 +1155,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PUsernameFollowingRouteImport
       parentRoute: typeof PUsernameRoute
     }
+    '/p/$username/season': {
+      id: '/p/$username/season'
+      path: '/season'
+      fullPath: '/p/$username/season'
+      preLoaderRoute: typeof PUsernameSeasonRouteImport
+      parentRoute: typeof PUsernameRoute
+    }
     '/poc/chinwag/': {
       id: '/poc/chinwag/'
       path: '/poc/chinwag'
@@ -1208,11 +1227,13 @@ const LeaguesSlugRouteWithChildren = LeaguesSlugRoute._addFileChildren(
 interface PUsernameRouteChildren {
   PUsernameFollowersRoute: typeof PUsernameFollowersRoute
   PUsernameFollowingRoute: typeof PUsernameFollowingRoute
+  PUsernameSeasonRoute: typeof PUsernameSeasonRoute
 }
 
 const PUsernameRouteChildren: PUsernameRouteChildren = {
   PUsernameFollowersRoute: PUsernameFollowersRoute,
   PUsernameFollowingRoute: PUsernameFollowingRoute,
+  PUsernameSeasonRoute: PUsernameSeasonRoute,
 }
 
 const PUsernameRouteWithChildren = PUsernameRoute._addFileChildren(

@@ -91,6 +91,7 @@ import type * as raceVideos from "../raceVideos.js";
 import type * as races from "../races.js";
 import type * as results from "../results.js";
 import type * as resultsRecheck from "../resultsRecheck.js";
+import type * as seasonRecap from "../seasonRecap.js";
 import type * as seed from "../seed.js";
 import type * as siteTotals from "../siteTotals.js";
 import type * as socialPosts from "../socialPosts.js";
@@ -192,6 +193,7 @@ declare const fullApi: ApiFromModules<{
   races: typeof races;
   results: typeof results;
   resultsRecheck: typeof resultsRecheck;
+  seasonRecap: typeof seasonRecap;
   seed: typeof seed;
   siteTotals: typeof siteTotals;
   socialPosts: typeof socialPosts;

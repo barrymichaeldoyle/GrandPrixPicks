@@ -120,6 +120,19 @@ export function shareCardOgImageUrl(search: Record<string, string>) {
 }
 
 /**
+ * Absolute URL for a player's season recap card.
+ *
+ * The season is in the URL so a scraper that cached this year's card does not
+ * keep showing it once the recap rolls over to the next season.
+ */
+export function seasonRecapOgImageUrl(username: string, season: number) {
+  return `${ogBaseUrl}/og/season?${new URLSearchParams({
+    username,
+    season: String(season),
+  }).toString()}`;
+}
+
+/**
  * Absolute URL for a guide's own OG card.
  *
  * The slug travels in the query string so one endpoint serves every guide;

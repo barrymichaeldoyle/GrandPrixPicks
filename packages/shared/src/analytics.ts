@@ -106,6 +106,8 @@ export const analyticsEventNames = [
   'score_share_opened',
   'score_shared_x',
   'screen_viewed',
+  'season_recap_shared',
+  'season_recap_shared_x',
   'session_results_button_pressed',
   'session_results_expanded',
   'session_results_modal_opened',

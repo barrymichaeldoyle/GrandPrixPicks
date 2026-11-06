@@ -86,7 +86,8 @@ export const Route = createFileRoute('/p/$username')({
     const childOwnsHead = matches.some(
       (match) =>
         (match.routeId as string) === '/p/$username/followers' ||
-        (match.routeId as string) === '/p/$username/following',
+        (match.routeId as string) === '/p/$username/following' ||
+        (match.routeId as string) === '/p/$username/season',
     );
     if (childOwnsHead) {
       return {};
@@ -154,7 +155,8 @@ function ProfilePage() {
   const isChildRoute = matches.some(
     (m) =>
       m.routeId === '/p/$username/followers' ||
-      m.routeId === '/p/$username/following',
+      m.routeId === '/p/$username/following' ||
+      m.routeId === '/p/$username/season',
   );
   if (isChildRoute) {
     return <Outlet />;
@@ -381,7 +383,24 @@ function ProfilePage() {
                   <h2 className="font-title text-sm font-semibold text-text">
                     Weekend finishes
                   </h2>
-                  <span className="text-xs text-text-muted">Top 5 scoring</span>
+                  {currentProfile.username ? (
+                    <Link
+                      to="/p/$username/season"
+                      params={{ username: currentProfile.username }}
+                      search={{
+                        from: undefined,
+                        fromLabel: undefined,
+                        season: undefined,
+                      }}
+                      className="text-xs font-semibold text-accent hover:text-accent/90"
+                    >
+                      Season recap
+                    </Link>
+                  ) : (
+                    <span className="text-xs text-text-muted">
+                      Top 5 scoring
+                    </span>
+                  )}
                 </div>
                 {/* Flat rows: a card per weekend holding three bordered cells was
                 two levels of border and ran past two thousand pixels on a

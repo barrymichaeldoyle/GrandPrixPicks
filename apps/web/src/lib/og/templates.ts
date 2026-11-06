@@ -2939,3 +2939,120 @@ export function raceNewsTemplate(data: RaceNewsOgData): ReactNode {
     ),
   });
 }
+
+// ────────── Season Recap Card (per-player share) ──────────
+
+export interface SeasonRecapOgData {
+  by: string;
+  season: number;
+  seasonComplete: boolean;
+  points: number;
+  rank: number | null;
+  players: number;
+  weekendsScored: number;
+  exactPicks: number;
+  winnerCalls: number;
+  bestWeekend: { raceName: string; points: number } | null;
+}
+
+/**
+ * A player's season as one card: the points large, the rank beside them, and
+ * three figures underneath that a weekend score card cannot show. The frame
+ * is the same as the score card so a recap sits in a timeline as its sibling.
+ */
+/** One figure of the recap's bottom row: the value in mono over its label. */
+function recapStat(label: string, value: string): ReactNode {
+  return e(
+    'div',
+    { style: { display: 'flex', flexDirection: 'column' as const, gap: 6 } },
+    e(
+      'div',
+      {
+        style: {
+          fontSize: 40,
+          fontWeight: 600,
+          fontFamily: 'IBM Plex Mono',
+          lineHeight: 1,
+          color: colors.text,
+        },
+      },
+      value,
+    ),
+    e(
+      'div',
+      { style: { fontSize: 20, fontWeight: 600, color: colors.textMuted } },
+      label,
+    ),
+  );
+}
+
+export function seasonRecapTemplate(
+  data: SeasonRecapOgData,
+  size: OgImageSize = 'og',
+): ReactNode {
+  return layout(
+    size,
+    e(
+      'div',
+      { style: { display: 'flex', flexDirection: 'column' as const, gap: 22 } },
+      eyebrow(
+        `${data.by}'s ${data.season} season${data.seasonComplete ? '' : ' so far'}`,
+      ),
+      e(
+        'div',
+        { style: { display: 'flex', alignItems: 'baseline', gap: 20 } },
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 132,
+              fontWeight: 600,
+              fontFamily: 'IBM Plex Mono',
+              lineHeight: 1,
+              color: colors.accent,
+            },
+          },
+          String(data.points),
+        ),
+        e(
+          'div',
+          { style: { fontSize: 44, fontWeight: 600, color: colors.text } },
+          'pts',
+        ),
+        data.rank === null
+          ? null
+          : e(
+              'div',
+              {
+                style: {
+                  fontSize: 36,
+                  fontWeight: 600,
+                  color: colors.textMuted,
+                  marginLeft: 18,
+                },
+              },
+              `P${data.rank} of ${data.players}`,
+            ),
+      ),
+      e(
+        'div',
+        { style: { display: 'flex', gap: 64, marginTop: 12 } },
+        recapStat(
+          data.weekendsScored === 1 ? 'weekend' : 'weekends',
+          String(data.weekendsScored),
+        ),
+        recapStat('exact picks', String(data.exactPicks)),
+        recapStat(
+          data.winnerCalls === 1 ? 'winner called' : 'winners called',
+          String(data.winnerCalls),
+        ),
+        data.bestWeekend
+          ? recapStat(
+              `best weekend · ${data.bestWeekend.raceName}`,
+              `${data.bestWeekend.points} pts`,
+            )
+          : null,
+      ),
+    ),
+  );
+}

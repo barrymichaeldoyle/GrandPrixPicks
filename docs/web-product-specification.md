@@ -930,6 +930,7 @@ keyboard-accessible interaction.
 | `/p/:username`            | Public        | Player identity, stats, eligible history/activity     |
 | `/p/:username/followers`  | Player        | Followers list                                        |
 | `/p/:username/following`  | Player        | Following list                                        |
+| `/p/:username/season`     | Public        | Season recap: points, rank, best weekend, pick bands  |
 | `/me`                     | Player        | Signed-in player's prediction history                 |
 | `/settings`               | Player        | Profile, pass, regional, notification preferences     |
 | `/pricing`                | Public/player | Season Pass offer and checkout entry                  |

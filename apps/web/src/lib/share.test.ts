@@ -9,6 +9,7 @@ import {
   buildPicksShareText,
   buildRaceResultShareText,
   buildScoreShareText,
+  buildSeasonRecapShareText,
   buildXShareIntentUrl,
   countryCodeToFlagEmoji,
 } from './share';
@@ -217,5 +218,37 @@ describe('buildPicksSharePageUrl', () => {
     expect(url).toContain('share=picks');
     expect(url).toContain('picks=VER%2CNOR');
     expect(url).toContain('utm_source=share&utm_medium=share_sheet');
+  });
+});
+
+describe('buildSeasonRecapShareText', () => {
+  it('leads with the season, then points and rank, then the best weekend', () => {
+    expect(
+      buildSeasonRecapShareText({
+        season: 2026,
+        points: 212,
+        rank: 4,
+        players: 61,
+        bestWeekend: { raceName: 'Monaco Grand Prix', points: 31 },
+        seasonComplete: true,
+        accountHandle: '@GrandPrixPicks',
+      }),
+    ).toBe(
+      'My 2026 season on @GrandPrixPicks 🏆\n\n212 points · P4 of 61\nBest weekend: Monaco Grand Prix, 31 pts\n\n#F1',
+    );
+  });
+
+  it('drops the rank and best weekend before the first scored weekend', () => {
+    expect(
+      buildSeasonRecapShareText({
+        season: 2026,
+        points: 0,
+        rank: null,
+        players: 0,
+        bestWeekend: null,
+        seasonComplete: false,
+        accountHandle: '@GrandPrixPicks',
+      }),
+    ).toBe('My 2026 season so far on @GrandPrixPicks 📈\n\n0 points\n\n#F1');
   });
 });

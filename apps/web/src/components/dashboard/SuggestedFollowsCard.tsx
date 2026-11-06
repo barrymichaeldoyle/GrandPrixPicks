@@ -51,10 +51,45 @@ function MutualAvatars({ user }: { user: Suggestion }) {
   );
 }
 
+/** One row of the card, whichever query it came from. */
+type CardRow = {
+  _id: Suggestion['_id'];
+  username: string;
+  displayName: string;
+  avatarUrl?: string;
+  reason: string;
+  /** League suggestions carry these; the season-board fallback has none. */
+  mutuals: Suggestion | null;
+};
+
 export function SuggestedFollowsCard() {
   const suggested = useQuery(api.follows.getSuggestedLeagueMembersToFollow, {
     limit: 3,
   });
+  // For the player in no league, who used to get no card at all: the rows
+  // either side of them on the season board.
+  const nearYou = useQuery(api.follows.getPlayersNearYou, { limit: 3 });
+
+  const liveRows: CardRow[] | undefined =
+    suggested === undefined || nearYou === undefined
+      ? undefined
+      : suggested.length > 0
+        ? suggested.map((user) => ({
+            _id: user._id,
+            username: user.username,
+            displayName: user.displayName,
+            avatarUrl: user.avatarUrl,
+            reason: reasonText(user),
+            mutuals: user,
+          }))
+        : (nearYou ?? []).map((user) => ({
+            _id: user._id,
+            username: user.username,
+            displayName: user.displayName,
+            avatarUrl: user.avatarUrl,
+            reason: `P${user.rank} · ${user.points.toLocaleString()} pts`,
+            mutuals: null,
+          }));
 
   /*
    * The query is reactive, so following someone drops them from its result and
@@ -66,14 +101,14 @@ export function SuggestedFollowsCard() {
    * of people the way a finite list should. Fresh suggestions arrive on the
    * next visit to the page.
    */
-  const [pinned, setPinned] = useState<typeof suggested>(undefined);
+  const [pinned, setPinned] = useState<CardRow[] | undefined>(undefined);
   // React permits a guarded render-time state adjustment. Capturing this
   // synchronously avoids painting a blank card for one frame when the first
   // query result arrives, while never accepting reactive replacements.
-  if (pinned === undefined && suggested && suggested.length > 0) {
-    setPinned(suggested);
+  if (pinned === undefined && liveRows && liveRows.length > 0) {
+    setPinned(liveRows);
   }
-  const rows = pinned ?? suggested;
+  const rows = pinned ?? liveRows;
 
   if (!rows || rows.length === 0) {
     return null;
@@ -125,9 +160,9 @@ export function SuggestedFollowsCard() {
               </Link>
 
               <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
-                <MutualAvatars user={user} />
+                {user.mutuals ? <MutualAvatars user={user.mutuals} /> : null}
                 <p className="min-w-0 truncate text-xs leading-snug text-text-muted">
-                  {reasonText(user)}
+                  {user.reason}
                 </p>
               </div>
             </div>

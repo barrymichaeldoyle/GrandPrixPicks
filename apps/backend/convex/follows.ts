@@ -2,8 +2,13 @@ import { ConvexError, v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
+import { createNewFollowerNotification } from './inAppNotifications';
 import { getViewer, requireViewer } from './lib/auth';
 import { applyFollowEdgeDelta } from './lib/followCounts';
+import {
+  getDefaultLeaderboardSeason,
+  loadCombinedSeasonRows,
+} from './leaderboards';
 import { getHiddenUserIds, isBlockedEitherWay } from './moderation';
 import { toUserIdentity } from './lib/userIdentity';
 
@@ -81,6 +86,112 @@ export function rankSuggestionsByMutuals<
   });
 }
 
+/**
+ * The rows either side of the viewer on the season board, nearest first and
+ * alternating above and below, so a player at P40 of 45 is offered P39 and P41
+ * rather than the three leaders they will never catch. Unranked viewers (no
+ * scored session yet) get the top of the board instead.
+ *
+ * `include` carries every exclusion (the viewer, people already followed,
+ * blocked either way, rows with no username) so this stays a pure ordering
+ * rule that a test can pin.
+ */
+export function pickNearbyRows<T>(
+  ranked: readonly T[],
+  viewerIndex: number,
+  include: (row: T) => boolean,
+  limit: number,
+): Array<T & { position: 'above' | 'below' | 'top' }> {
+  if (limit <= 0) {
+    return [];
+  }
+  if (viewerIndex < 0) {
+    return ranked
+      .filter(include)
+      .slice(0, limit)
+      .map((row) => ({ ...row, position: 'top' as const }));
+  }
+
+  const picked: Array<T & { position: 'above' | 'below' | 'top' }> = [];
+  let above = viewerIndex - 1;
+  let below = viewerIndex + 1;
+  while (picked.length < limit && (above >= 0 || below < ranked.length)) {
+    while (above >= 0 && !include(ranked[above]!)) {
+      above -= 1;
+    }
+    if (above >= 0 && picked.length < limit) {
+      picked.push({ ...ranked[above]!, position: 'above' });
+      above -= 1;
+    }
+    while (below < ranked.length && !include(ranked[below]!)) {
+      below += 1;
+    }
+    if (below < ranked.length && picked.length < limit) {
+      picked.push({ ...ranked[below]!, position: 'below' });
+      below += 1;
+    }
+  }
+  return picked;
+}
+
+/**
+ * Players to follow for someone with no league to draw them from: the people
+ * around them on the season board. 26 of the 43 players who had scored by
+ * November 2026 were in no league and followed nobody, and for them every
+ * other suggestion surface rendered nothing.
+ */
+export const getPlayersNearYou = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return [];
+    }
+    const limit = Math.min(Math.max(args.limit ?? 5, 1), MAX_SUGGESTED_FOLLOWS);
+
+    const [follows, hidden, season] = await Promise.all([
+      ctx.db
+        .query('follows')
+        .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
+        .take(MAX_FOLLOWS_PER_USER),
+      getHiddenUserIds(ctx, viewer._id),
+      getDefaultLeaderboardSeason(ctx),
+    ]);
+    const excludedUserIds = new Set<Id<'users'>>([
+      viewer._id,
+      ...follows.map((follow) => follow.followeeId),
+      ...hidden,
+    ]);
+
+    const ranked = await loadCombinedSeasonRows(ctx, { season });
+    const viewerIndex = ranked.findIndex((row) => row.userId === viewer._id);
+    const nearby = pickNearbyRows(
+      ranked,
+      viewerIndex,
+      (row) => !excludedUserIds.has(row.userId) && row.username !== undefined,
+      limit,
+    );
+
+    return nearby.flatMap((row) =>
+      // The guard above already required a username; this is the same
+      // narrowing-lost-across-helpers rule as the league suggestions.
+      row.username === undefined
+        ? []
+        : [
+            {
+              _id: row.userId,
+              username: row.username,
+              displayName: row.displayName ?? row.username,
+              avatarUrl: row.avatarUrl,
+              rank: row.rank,
+              points: row.top5Points + row.h2hPoints,
+              position: row.position,
+            },
+          ],
+    );
+  },
+});
+
 export const follow = mutation({
   args: { followeeId: v.id('users') },
   handler: async (ctx, args) => {
@@ -125,6 +236,9 @@ export const follow = mutation({
       createdAt: Date.now(),
     });
     await applyFollowEdgeDelta(ctx, viewer._id, args.followeeId, 1);
+    // The one place a follow is visible to the person followed. Without it
+    // following was a one-way read: nobody learned they had an audience.
+    await createNewFollowerNotification(ctx, viewer, target);
     return followId;
   },
 });

@@ -1345,9 +1345,15 @@ export default defineSchema({
       v.literal('results_amended'),
       v.literal('session_locked'),
       v.literal('announcement'),
+      v.literal('new_follower'),
     ),
     readAt: v.optional(v.number()),
     createdAt: v.number(),
+    // new_follower — who followed; the row links to their profile. One row
+    // per follower, so a follow/unfollow loop cannot fill the bell.
+    actorUserId: v.optional(v.id('users')),
+    actorUsername: v.optional(v.string()),
+    actorDisplayName: v.optional(v.string()),
     // race context (results_published + results_amended + session_locked)
     raceId: v.optional(v.id('races')),
     sessionType: v.optional(sessionType),

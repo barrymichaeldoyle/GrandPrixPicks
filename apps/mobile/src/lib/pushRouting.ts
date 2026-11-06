@@ -44,6 +44,19 @@ function navigateTo(url: string): boolean {
     return true;
   }
 
+  // A new-follower notification links to the follower's profile.
+  const profileMatch = /^\/p\/([^/]+)$/.exec(path);
+  if (profileMatch) {
+    navigationRef.navigate('Tabs', {
+      screen: 'HomeTab',
+      params: {
+        screen: 'PublicProfile',
+        params: { username: decodeURIComponent(profileMatch[1]!) },
+      },
+    });
+    return true;
+  }
+
   const feedEventMatch = /^\/feed\/([^/]+)$/.exec(path);
   if (feedEventMatch) {
     navigationRef.navigate('Tabs', {

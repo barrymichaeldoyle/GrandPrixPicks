@@ -2,6 +2,7 @@ import { Loader2, Trophy } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { PAGE_SIZE, playerCountFormatter } from './constants';
+import { useFollowColumn } from './followColumn';
 import { LeaderboardRow } from './rows';
 import type { LeaderboardEntry } from './types';
 import { NoticeCard } from '@/components/NoticeCard';
@@ -17,6 +18,7 @@ export function LeaderboardBoard({
   entries: LeaderboardEntry[];
   footer?: ReactNode;
 }) {
+  const followColumn = useFollowColumn() !== null;
   return (
     <div className="space-y-3">
       <div className="overflow-hidden rounded-lg border border-border bg-surface">
@@ -32,6 +34,11 @@ export function LeaderboardBoard({
               <th className="w-20 py-2.5 pr-4 pl-2 text-right text-xs font-medium text-text-muted">
                 Points
               </th>
+              {followColumn ? (
+                <th className="w-11 py-2.5 pr-3 sm:w-28 sm:pr-4">
+                  <span className="sr-only">Follow</span>
+                </th>
+              ) : null}
             </tr>
           </thead>
           <tbody>

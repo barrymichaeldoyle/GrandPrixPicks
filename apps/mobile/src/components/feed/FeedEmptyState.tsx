@@ -30,6 +30,9 @@ export function FeedEmptyState() {
   const topPlayers = useQuery(api.leaderboards.getCombinedSeasonLeaderboard, {
     limit: 6,
   });
+  // The board around the player beats the top of it; the top is for a player
+  // with no rank yet. Same order as web's `FeedContent`.
+  const nearYou = useQuery(api.follows.getPlayersNearYou, { limit: 5 });
 
   /*
    * Which branch this mount settled on, held once chosen. Following the first
@@ -71,9 +74,23 @@ export function FeedEmptyState() {
     );
   }
 
-  const top = (topPlayers?.entries ?? [])
-    .filter((player) => !player.isViewer)
-    .slice(0, 5);
+  const nearby = (nearYou ?? []).map((player) => ({
+    userId: player._id,
+    username: player.username,
+    rank: player.rank,
+    points: player.points,
+    avatarUrl: player.avatarUrl,
+  }));
+  const top =
+    nearby.length > 0
+      ? nearby
+      : (topPlayers?.entries ?? [])
+          .filter((player) => !player.isViewer)
+          .slice(0, 5);
+  const listLabel =
+    nearby.length > 0
+      ? 'Near you on the season board'
+      : 'Top players this season';
 
   return (
     <View className="mx-4 mt-3 overflow-hidden rounded-lg border border-border bg-surface">
@@ -88,7 +105,7 @@ export function FeedEmptyState() {
       {top.length > 0 ? (
         <>
           <Text className="text-muted border-t border-border px-4 pt-3 text-xs font-medium">
-            Top players this season
+            {listLabel}
           </Text>
           <View className="mt-1">
             {top.map((player, index) => (
@@ -125,7 +142,7 @@ export function FeedEmptyState() {
                       className="text-muted mt-px text-xs"
                       numberOfLines={1}
                     >
-                      {`Rank #${player.rank} · ${player.points.toLocaleString()} pts`}
+                      {`P${player.rank} · ${player.points.toLocaleString()} pts`}
                     </Text>
                   </View>
                 </Pressable>

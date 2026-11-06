@@ -42,9 +42,12 @@ type Notification = {
     | 'results_published'
     | 'results_amended'
     | 'session_locked'
-    | 'announcement';
+    | 'announcement'
+    | 'new_follower';
   readAt?: number;
   createdAt: number;
+  actorUsername?: string;
+  actorDisplayName?: string;
   raceId?: string;
   raceName?: string;
   raceSlug?: string;
@@ -354,6 +357,13 @@ function NotificationIcon({ notification }: { notification: Notification }) {
       </View>
     );
   }
+  if (notification.type === 'new_follower') {
+    return (
+      <View className="h-9 w-9 items-center justify-center rounded-full bg-accent/20">
+        <Ionicons color={colors.accent} name="person-add" size={18} />
+      </View>
+    );
+  }
   return (
     <View className="h-9 w-9 items-center justify-center rounded-full bg-warning/20">
       <Ionicons color={colors.warning} name="lock-closed" size={18} />
@@ -373,6 +383,11 @@ function getNotificationTitle(notification: Notification): string {
   if (notification.type === 'announcement') {
     return notification.title ?? 'Announcement';
   }
+  if (notification.type === 'new_follower') {
+    const name =
+      notification.actorDisplayName ?? notification.actorUsername ?? 'A player';
+    return `${name} followed you`;
+  }
   return 'Session locked';
 }
 
@@ -384,6 +399,9 @@ function getNotificationSubtitle(notification: Notification): string {
     : null;
   if (notification.type === 'announcement') {
     return notification.body ?? '';
+  }
+  if (notification.type === 'new_follower') {
+    return '';
   }
   return [session, notification.raceName].filter(Boolean).join(' · ');
 }

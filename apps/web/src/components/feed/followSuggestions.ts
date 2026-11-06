@@ -9,15 +9,16 @@ type FeedPage = NonNullable<
 /**
  * Whether the activity stream is currently offering people to follow.
  *
- * The dashboard has two surfaces for the same three people: the rail's
- * "Players to follow" card, and the stream's empty state, which is the same
- * query with the same limit. They can only collide in one situation — an empty
- * feed — and there they did: the identical list twice on one screen, in two
- * different card shapes, with a pair of Follow buttons each. The rail card
- * stands down for that one case; see `SuggestedFollowsCard` at its call site.
+ * The dashboard has two surfaces for the same people: the rail's "Players to
+ * follow" card, and the stream, which offers them in its empty state and, for a
+ * player who follows nobody, as a block after the first group. Both read the
+ * same queries, so they used to collide: the identical list twice on one
+ * screen, in two card shapes, with a pair of Follow buttons each. The rail card
+ * stands down whenever this is true; see `SuggestedFollowsCard` at its call
+ * site, and keep the rule here in step with the branches in `FeedContent`.
  *
- * Read from the same two queries `FeedContent` branches on, rather than from
- * anything it reports upwards: both are already subscribed on this page, so
+ * Read from the same queries `FeedContent` branches on, rather than from
+ * anything it reports upwards: all are already subscribed on this page, so
  * this is the state that is on screen, not a second guess at it.
  */
 export function useFeedOffersFollows(initialPage?: FeedPage | null): boolean {
@@ -28,6 +29,11 @@ export function useFeedOffersFollows(initialPage?: FeedPage | null): boolean {
   const suggested = useQuery(api.follows.getSuggestedLeagueMembersToFollow, {
     limit: 3,
   });
+  const followedIds = useQuery(api.follows.getViewerFollowedIds, {});
+  const nearYou = useQuery(api.follows.getPlayersNearYou, { limit: 5 });
+  const topPlayers = useQuery(api.leaderboards.getCombinedSeasonLeaderboard, {
+    limit: 6,
+  });
 
   if (page0 === undefined) {
     return false;
@@ -35,5 +41,13 @@ export function useFeedOffersFollows(initialPage?: FeedPage | null): boolean {
   // The stream counts every event it loaded, before it drops the practice ones
   // for the block above it — an empty feed is empty of all of them.
   const feedIsEmpty = page0 === null || page0.events.length === 0;
-  return feedIsEmpty && (suggested?.length ?? 0) > 0;
+  const followsNobody = (followedIds?.length ?? 0) === 0;
+  const hasPeopleToOffer =
+    (nearYou?.length ?? 0) > 0 ||
+    (topPlayers?.entries ?? []).some((entry) => !entry.isViewer);
+
+  if (feedIsEmpty && (suggested?.length ?? 0) > 0) {
+    return true;
+  }
+  return followsNobody && hasPeopleToOffer;
 }

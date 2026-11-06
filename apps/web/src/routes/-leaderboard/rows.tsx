@@ -1,7 +1,10 @@
+import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import { Avatar } from '@/components/Avatar';
+import { FollowButton } from '@/components/FollowButton';
 import { InlineLoader } from '@/components/InlineLoader';
 
+import { useFollowColumn } from './followColumn';
 import type { LeaderboardEntry } from './types';
 import { podiumClasses } from '@/lib/podium';
 
@@ -28,6 +31,7 @@ export function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
   // Present once a viewer is signed in. Unsigned responses strip it (see
   // `toBoardEntry`). The fallback is that rule, not defensive coding.
   const name = entry.displayName ?? entry.username;
+  const followedIds = useFollowColumn();
 
   return (
     <tr
@@ -66,6 +70,23 @@ export function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
       <td className="py-2.5 pr-4 pl-2 text-right" data-testid="points">
         <span className="gpp-mono font-medium text-text">{entry.points}</span>
       </td>
+      {/* The board is where a player sees who is around their rank, and it
+          used to be the one place with no way to follow them: every follow
+          meant opening a profile. The viewer's own row leaves the cell
+          empty so the column keeps its width. */}
+      {followedIds ? (
+        <td className="w-11 py-2.5 pr-3 text-right sm:w-28 sm:pr-4">
+          {entry.isViewer ? null : (
+            <FollowButton
+              followeeId={entry.userId as Id<'users'>}
+              isFollowing={followedIds.has(entry.userId)}
+              source="leaderboard"
+              compact
+              iconOnlyOnPhone
+            />
+          )}
+        </td>
+      ) : null}
     </tr>
   );
 }

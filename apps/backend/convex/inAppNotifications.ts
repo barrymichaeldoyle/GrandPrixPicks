@@ -136,15 +136,13 @@ export const getMyNotificationCounts = query({
       .take(COUNT_SCAN_LIMIT + 1);
 
     const rows = scanned.slice(0, COUNT_SCAN_LIMIT);
-    const counts: Record<
-      NotificationFilter,
-      { total: number; unread: number }
-    > = {
-      all: { total: 0, unread: 0 },
-      results: { total: 0, unread: 0 },
-      locked: { total: 0, unread: 0 },
-      announcements: { total: 0, unread: 0 },
-    };
+    // Built from the filter list so a new category cannot be forgotten here.
+    const counts = Object.fromEntries(
+      NOTIFICATION_FILTER_VALUES.map((filter) => [
+        filter,
+        { total: 0, unread: 0 },
+      ]),
+    ) as Record<NotificationFilter, { total: number; unread: number }>;
 
     for (const row of rows) {
       for (const filter of NOTIFICATION_FILTER_VALUES) {
@@ -191,6 +189,48 @@ export const getMyUnreadCount = query({
     };
   },
 });
+
+/**
+ * How far back the new-follower dedupe looks. A follower who unfollows and
+ * follows again inside this window makes no second row; past it the bell
+ * tells the truth, which is that they did follow again.
+ */
+const NEW_FOLLOWER_DEDUPE_SCAN = 100;
+
+/**
+ * Tells a player someone followed them. In-app only: it is not worth a push,
+ * and there is no preference for it to respect.
+ */
+export async function createNewFollowerNotification(
+  ctx: MutationCtx,
+  follower: Doc<'users'>,
+  followee: Doc<'users'>,
+) {
+  if (!follower.username || followee.deletingAt !== undefined) {
+    return;
+  }
+  const recent = await ctx.db
+    .query('inAppNotifications')
+    .withIndex('by_user_created', (q) => q.eq('userId', followee._id))
+    .order('desc')
+    .take(NEW_FOLLOWER_DEDUPE_SCAN);
+  if (
+    recent.some(
+      (row) => row.type === 'new_follower' && row.actorUserId === follower._id,
+    )
+  ) {
+    return;
+  }
+  await ctx.db.insert('inAppNotifications', {
+    userId: followee._id,
+    type: 'new_follower',
+    createdAt: Date.now(),
+    actorUserId: follower._id,
+    actorUsername: follower.username,
+    actorDisplayName: follower.displayName,
+    linkPath: `/p/${follower.username}`,
+  });
+}
 
 // ============ Public mutations ============
 

@@ -16,6 +16,11 @@ vi.mock('@convex-generated/api', () => ({
     feed: { getPersonalizedFeed: 'getPersonalizedFeed' },
     follows: {
       getSuggestedLeagueMembersToFollow: 'getSuggestedLeagueMembersToFollow',
+      getViewerFollowedIds: 'getViewerFollowedIds',
+      getPlayersNearYou: 'getPlayersNearYou',
+    },
+    leaderboards: {
+      getCombinedSeasonLeaderboard: 'getCombinedSeasonLeaderboard',
     },
   },
 }));
@@ -24,18 +29,34 @@ vi.mock('@/integrations/convex/query', () => ({ useQuery: vi.fn() }));
 
 const mockedUseQuery = vi.mocked(useQuery);
 
-/** Answers each of the hook's two queries by name. */
+/**
+ * Answers each of the hook's queries by name. The viewer follows someone and
+ * the board has nobody to offer unless a test says otherwise, so the older
+ * cases below exercise the league-mates rule on its own.
+ */
 function answerWith({
   feed,
   suggested,
+  followed = ['user_9'],
+  nearYou = [],
+  top = { entries: [] },
 }: {
   feed?: unknown;
   suggested?: unknown;
+  followed?: unknown;
+  nearYou?: unknown;
+  top?: unknown;
 }) {
-  mockedUseQuery.mockImplementation(((query: string) =>
-    query === 'getPersonalizedFeed'
-      ? feed
-      : suggested) as unknown as typeof useQuery);
+  const answers: Record<string, unknown> = {
+    getPersonalizedFeed: feed,
+    getSuggestedLeagueMembersToFollow: suggested,
+    getViewerFollowedIds: followed,
+    getPlayersNearYou: nearYou,
+    getCombinedSeasonLeaderboard: top,
+  };
+  mockedUseQuery.mockImplementation(
+    ((query: string) => answers[query]) as unknown as typeof useQuery,
+  );
 }
 
 const someone = [{ _id: 'user_1' }];
@@ -83,6 +104,38 @@ describe('useFeedOffersFollows', () => {
 
   it('is false once the stream has events: the rail keeps the card', () => {
     answerWith({ feed: page([{ _id: 'event_1' }]), suggested: someone });
+    expect(render()).toBe('false');
+  });
+
+  // The stream's block under the first group for a player who follows nobody:
+  // the rail stands down for that one too, whatever the feed holds.
+  it('is true for a player who follows nobody once the board has neighbours', () => {
+    answerWith({
+      feed: page([{ _id: 'event_1' }]),
+      suggested: [],
+      followed: [],
+      nearYou: someone,
+    });
+    expect(render()).toBe('true');
+  });
+
+  it('is true for an unranked player who follows nobody via the top of the board', () => {
+    answerWith({
+      feed: page([{ _id: 'event_1' }]),
+      suggested: [],
+      followed: [],
+      top: { entries: [{ userId: 'user_2', isViewer: false }] },
+    });
+    expect(render()).toBe('true');
+  });
+
+  it('is false for a player who follows nobody when the board is only them', () => {
+    answerWith({
+      feed: page([{ _id: 'event_1' }]),
+      suggested: [],
+      followed: [],
+      top: { entries: [{ userId: 'me', isViewer: true }] },
+    });
     expect(render()).toBe('false');
   });
 

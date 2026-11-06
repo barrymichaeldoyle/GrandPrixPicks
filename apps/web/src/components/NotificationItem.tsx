@@ -2,7 +2,7 @@ import { sanitizeInternalPath } from '@grandprixpicks/shared/internalPath';
 import type { Id } from '@convex-generated/dataModel';
 import { SESSION_LABELS } from '@/lib/sessions';
 import { Link } from '@tanstack/react-router';
-import { Check, Gavel, Lock, Megaphone, Trophy } from 'lucide-react';
+import { Check, Gavel, Lock, Megaphone, Trophy, UserPlus } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { abbreviateGrandPrix } from '@/lib/display';
@@ -16,7 +16,8 @@ export type Notification = {
     | 'results_published'
     | 'results_amended'
     | 'session_locked'
-    | 'announcement';
+    | 'announcement'
+    | 'new_follower';
   readAt?: number;
   createdAt: number;
   raceId?: Id<'races'>;
@@ -27,6 +28,9 @@ export type Notification = {
   title?: string;
   body?: string;
   linkPath?: string;
+  // new_follower
+  actorUsername?: string;
+  actorDisplayName?: string;
 };
 
 /**
@@ -333,6 +337,45 @@ export function NotificationItem({
       <NotificationRow unreadControl={unreadControl}>
         {linkPath ? (
           <Link to={linkPath} onClick={handleClick} className={itemClass}>
+            {content}
+          </Link>
+        ) : (
+          <div className={isUnread ? 'bg-accent/[0.04]' : undefined}>
+            {content}
+          </div>
+        )}
+      </NotificationRow>
+    );
+  }
+
+  if (notification.type === 'new_follower') {
+    const { actorUsername } = notification;
+    const name = notification.actorDisplayName ?? actorUsername ?? 'A player';
+    const content = (
+      <NotificationRowBody
+        unreadLabel={unreadLabel}
+        leading={
+          <NotificationIcon countryCode={null} tone="accent" icon={UserPlus} />
+        }
+        title={
+          <>
+            <span className="font-medium">{name}</span> followed you
+          </>
+        }
+        meta={<NotificationMeta createdAt={notification.createdAt} />}
+      />
+    );
+    // The row opens their profile, where the follow-back button is.
+    return (
+      <NotificationRow unreadControl={unreadControl}>
+        {actorUsername ? (
+          <Link
+            to="/p/$username"
+            params={{ username: actorUsername }}
+            search={{ from: undefined, fromLabel: undefined }}
+            onClick={handleClick}
+            className={itemClass}
+          >
             {content}
           </Link>
         ) : (

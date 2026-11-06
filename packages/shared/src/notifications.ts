@@ -22,6 +22,7 @@ export const NOTIFICATION_FILTER_VALUES = [
   'results',
   'locked',
   'announcements',
+  'followers',
 ] as const;
 
 export type NotificationFilter = (typeof NOTIFICATION_FILTER_VALUES)[number];
@@ -36,6 +37,7 @@ export const NOTIFICATION_TYPES_BY_FILTER = {
   results: ['results_published', 'results_amended'],
   locked: ['session_locked'],
   announcements: ['announcement'],
+  followers: ['new_follower'],
 } as const satisfies Record<
   Exclude<NotificationFilter, 'all'>,
   readonly string[]

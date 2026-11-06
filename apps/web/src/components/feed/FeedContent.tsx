@@ -95,6 +95,68 @@ function FollowSuggestions({
   );
 }
 
+type SuggestionRowProps = {
+  userId: Id<'users'>;
+  username: string;
+  name: string;
+  avatarUrl?: string | null;
+  meta: string;
+  /** Analytics: which surface the follow came from. */
+  source?: string;
+};
+
+type FollowOffer = {
+  kind: 'nearby' | 'top';
+  listLabel: string;
+  rows: SuggestionRowProps[];
+};
+
+/**
+ * Who to offer a player who follows nobody. The board around them first; the
+ * top of the board only before they have a rank of their own (no scored
+ * session yet), when "near you" has nothing to point at. `null` until both
+ * queries have answered, so the pin below does not settle on a half answer.
+ */
+function toFollowRows(
+  nearYou: FunctionReturnType<typeof api.follows.getPlayersNearYou> | undefined,
+  topPlayers:
+    | FunctionReturnType<
+        typeof api.leaderboards.getCombinedSeasonLeaderboard
+      >['entries']
+    | undefined,
+): FollowOffer | null {
+  if (nearYou === undefined || topPlayers === undefined) {
+    return null;
+  }
+  if (nearYou.length > 0) {
+    return {
+      kind: 'nearby',
+      listLabel: 'Near you on the season board',
+      rows: nearYou.map((p) => ({
+        userId: p._id,
+        username: p.username,
+        name: p.displayName,
+        avatarUrl: p.avatarUrl,
+        meta: `P${p.rank} · ${p.points.toLocaleString()} pts`,
+      })),
+    };
+  }
+  return {
+    kind: 'top',
+    listLabel: 'Top players this season',
+    rows: topPlayers
+      .filter((p) => !p.isViewer)
+      .slice(0, 5)
+      .map((p) => ({
+        userId: p.userId,
+        username: p.username,
+        name: p.username,
+        avatarUrl: p.avatarUrl,
+        meta: `P${p.rank} · ${p.points.toLocaleString()} pts`,
+      })),
+  };
+}
+
 /** One person to follow: who they are, why they are here, and the button. */
 function SuggestionRow({
   userId,
@@ -102,13 +164,8 @@ function SuggestionRow({
   name,
   avatarUrl,
   meta,
-}: {
-  userId: Id<'users'>;
-  username: string;
-  name: string;
-  avatarUrl?: string | null;
-  meta: string;
-}) {
+  source = 'feed_empty_state',
+}: SuggestionRowProps) {
   const profile = {
     to: '/p/$username',
     params: { username },
@@ -129,7 +186,7 @@ function SuggestionRow({
         </Link>
         <p className="truncate text-xs text-text-muted">{meta}</p>
       </div>
-      <FollowButton followeeId={userId} />
+      <FollowButton followeeId={userId} source={source} />
     </li>
   );
 }
@@ -246,6 +303,26 @@ export function FeedContent({
     api.leaderboards.getCombinedSeasonLeaderboard,
     { limit: 6 },
   );
+  const nearYou = useQuery(api.follows.getPlayersNearYou, { limit: 5 });
+
+  /*
+   * The people offered to a player who follows nobody: the rows either side
+   * of them on the season board, or the top of it before they have a rank.
+   *
+   * Pinned on first answer for the life of the mount. The query drops anyone
+   * just followed and pulls the next person in behind them, and a list that
+   * refills under the thumb is how you give someone follow fatigue in three
+   * taps. Fresh names arrive on the next visit.
+   */
+  const liveToFollow = toFollowRows(nearYou, topPlayersForFollow?.entries);
+  const [pinnedToFollow, setPinnedToFollow] = useState<FollowOffer | null>(
+    null,
+  );
+  if (pinnedToFollow === null && liveToFollow !== null) {
+    // Guarded render-time state adjustment, as `SuggestedFollowsCard` does.
+    setPinnedToFollow(liveToFollow);
+  }
+  const toFollow = pinnedToFollow ?? liveToFollow;
 
   const allPageData = [page0, page1, page2, page3, page4];
   const activePagesCount = 1 + extraPageCount;
@@ -358,9 +435,6 @@ export function FeedContent({
     }
 
     if (followsNobody) {
-      const topToFollow = (topPlayersForFollow?.entries ?? [])
-        .filter((p) => !p.isViewer)
-        .slice(0, 5);
       const title = hasLeagues
         ? 'You are not following anyone yet'
         : 'Find players to follow';
@@ -373,7 +447,7 @@ export function FeedContent({
         </Button>
       );
 
-      if (topToFollow.length === 0) {
+      if (toFollow === null || toFollow.rows.length === 0) {
         return withInterleaved(
           <InsetBlock>
             <FeedEmptyState icon={Gauge} title={title} message={message}>
@@ -387,18 +461,11 @@ export function FeedContent({
         <FollowSuggestions
           title={title}
           message={message}
-          listLabel="Top players this season"
+          listLabel={toFollow.listLabel}
           footer={leaderboardLink}
         >
-          {topToFollow.map((p) => (
-            <SuggestionRow
-              key={p.userId}
-              userId={p.userId}
-              username={p.username}
-              name={p.username}
-              avatarUrl={p.avatarUrl}
-              meta={`Rank #${p.rank} · ${p.points.toLocaleString()} pts`}
-            />
+          {toFollow.rows.map((row) => (
+            <SuggestionRow key={row.userId} {...row} />
           ))}
         </FollowSuggestions>,
       );
@@ -486,16 +553,44 @@ export function FeedContent({
 
   const startsWeekend = weekendStarts(groups);
 
+  /*
+   * A player who follows nobody has a stream of their own results and the
+   * site's news, and nothing in it from another person. The offer to follow
+   * used to live only in the empty state, so it vanished the moment their
+   * first session scored and never came back: 26 of 43 scored players had
+   * never seen it (November 2026). It sits under the first group, where the
+   * eye lands after the headline result, until they follow anyone.
+   */
+  const followsNobodyBlock =
+    (followedIds?.length ?? 0) === 0 &&
+    followedIds !== undefined &&
+    toFollow !== null &&
+    toFollow.rows.length > 0 ? (
+      <FollowSuggestions
+        title={
+          toFollow.kind === 'nearby' ? 'Players near you' : 'Players to follow'
+        }
+        message="Follow players to see their picks and results here."
+        listLabel={toFollow.listLabel}
+      >
+        {toFollow.rows.map((row) => (
+          <SuggestionRow key={row.userId} {...row} source="feed_stream" />
+        ))}
+      </FollowSuggestions>
+    ) : null;
+
   return withInterleaved(
     <div className="space-y-0 md:space-y-4">
       {groups.map((group, index) => {
         const split = startsWeekend[index] ? <WeekendSplit /> : null;
+        const afterFirst = index === 0 ? followsNobodyBlock : null;
 
         if (group.kind === 'standalone') {
           return (
             <Fragment key={group.event._id}>
               {split}
               <FeedItem event={group.event} />
+              {afterFirst}
             </Fragment>
           );
         }
@@ -509,6 +604,7 @@ export function FeedContent({
                 onNoteSelect={scrollToFeedNews}
                 pinnedNewsKeys={pinnedNewsKeys}
               />
+              {afterFirst}
             </Fragment>
           );
         }
@@ -522,6 +618,7 @@ export function FeedContent({
               viewerId={me?._id}
             />
             {slotted.get(group.key) ?? null}
+            {afterFirst}
           </Fragment>
         );
       })}

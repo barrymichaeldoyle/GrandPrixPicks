@@ -22,6 +22,15 @@ import { Pressable, Text, View } from '../../tw';
  * sits directly under the picks card instead, same as web's placement logic
  * (context for the picks a player just made or is about to).
  */
+type Row = {
+  _id: ConvexId<'users'>;
+  username: string;
+  displayName: string;
+  avatarUrl?: string;
+  /** The "why" line; empty when there is nothing worth saying. */
+  reason: string;
+};
+
 export function SuggestedFollowsSection() {
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const isSignedIn = useIsSignedIn();
@@ -29,20 +38,47 @@ export function SuggestedFollowsSection() {
     api.follows.getSuggestedLeagueMembersToFollow,
     isSignedIn ? { limit: 3 } : 'skip',
   );
+  // For the player in no league, who used to get no section at all: the
+  // rows either side of them on the season board. Same fallback as web.
+  const nearYou = useQuery(
+    api.follows.getPlayersNearYou,
+    isSignedIn ? { limit: 3 } : 'skip',
+  );
+
+  const liveRows: Row[] | undefined =
+    suggested === undefined || nearYou === undefined
+      ? undefined
+      : suggested.length > 0
+        ? suggested.map((user) => ({
+            _id: user._id as ConvexId<'users'>,
+            username: user.username,
+            displayName: user.displayName,
+            avatarUrl: user.avatarUrl,
+            // Leagues are web-only for now, so a shared-league reason would
+            // name something the app cannot show.
+            reason: user.mutualFollowerCount > 0 ? reasonText(user) : '',
+          }))
+        : nearYou.map((user) => ({
+            _id: user._id as ConvexId<'users'>,
+            username: user.username,
+            displayName: user.displayName,
+            avatarUrl: user.avatarUrl,
+            reason: `P${user.rank} · ${user.points.toLocaleString()} pts`,
+          }));
 
   /*
    * Following someone drops them from this reactive query's result and pulls
    * a replacement in behind them — refilling the list is what causes follow
    * fatigue, so the mount pins whoever it showed first. Matches web.
    */
-  const [pinned, setPinned] = useState<typeof suggested>(undefined);
-  if (pinned === undefined && suggested && suggested.length > 0) {
+  const [pinned, setPinned] = useState<Row[] | undefined>(undefined);
+  if (pinned === undefined && liveRows && liveRows.length > 0) {
     // Guarded render-time state adjustment, not an effect: avoids painting
     // a blank section for one frame while never accepting a reactive swap.
     // oxlint-disable-next-line react/set-state-in-effect
-    setPinned(suggested);
+    setPinned(liveRows);
   }
-  const rows = pinned ?? suggested;
+  const rows = pinned ?? liveRows;
 
   if (!rows || rows.length === 0) {
     return null;
@@ -84,21 +120,19 @@ export function SuggestedFollowsSection() {
                   >
                     {user.displayName}
                   </Text>
-                  {/* Leagues are web-only for now, so a shared-league
-                      reason would name something the app cannot show. */}
-                  {user.mutualFollowerCount > 0 ? (
+                  {user.reason ? (
                     <Text
                       className="text-muted mt-px text-xs"
                       numberOfLines={1}
                     >
-                      {reasonText(user)}
+                      {user.reason}
                     </Text>
                   ) : null}
                 </View>
               </Pressable>
               <FollowButton
                 compact
-                followeeId={user._id as ConvexId<'users'>}
+                followeeId={user._id}
                 source="suggested_follows"
               />
             </View>

@@ -310,7 +310,8 @@ The leaderboard supports three independent dimensions:
 - Available publicly.
 - Includes eligible players with published scores.
 - Displays rank, player identity, and the score relevant to the selected time
-  scope and game mode.
+  scope and game mode, plus a follow control on every other player's row for a
+  signed-in viewer.
 - Weekend mode allows selection of an eligible race.
 - Season mode aggregates published scores for the current season.
 - Long season boards support incremental loading.
@@ -495,7 +496,18 @@ Rules:
 - a user may follow up to 5,000 players;
 - public follower and following lists are available through profile routes but
   require sign-in to view their contents;
-- suggested players may be derived from shared league membership.
+- suggested players come from shared league membership first
+  (`SuggestedFollowsCard`, `getSuggestedLeagueMembersToFollow`), and for a
+  player in no league from the rows either side of them on the combined season
+  board (`getPlayersNearYou`), or the top of the board before they have a rank;
+- a player who follows nobody is offered those players in the activity stream
+  (`FeedContent`), in its empty state and, once their own results fill it, as
+  a block under the first group; the rail card stands down while the stream is
+  offering them (`useFeedOffersFollows`);
+- every leaderboard row carries a follow control for a signed-in viewer
+  (`LeaderboardRow`, state read once per board by `FollowColumnProvider`);
+- following a player writes them a `new_follower` in-app notification, once
+  per follower, linking to the follower's profile. No push or email.
 
 ### 11.2 Personalized feed
 
@@ -605,9 +617,11 @@ authenticated players and include:
 - results and scores published;
 - results/scores amended;
 - session locked when the player has picks;
+- a new follower (`new_follower`), filterable under "New followers";
 
 Players can mark individual notifications or all notifications as read.
-Notification links lead to the relevant race, session, or feed event.
+Notification links lead to the relevant race, session, feed event, or the
+follower's profile.
 
 ### 13.2 Web push notifications
 

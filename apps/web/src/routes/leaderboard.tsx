@@ -34,6 +34,7 @@ import {
   sessionScopeOptions,
   type SessionScope,
 } from './-leaderboard/sessionScope';
+import { FollowColumnProvider } from './-leaderboard/followColumn';
 import { SeasonContent } from './-leaderboard/SeasonContent';
 import type { LeaderboardEntry, Scope, TimeScope } from './-leaderboard/types';
 import { useStickyValue } from '@/hooks/useStickyValue';
@@ -412,58 +413,61 @@ function LeaderboardPage() {
         ) : undefined
       }
     >
-      <div>
-        <PageHeader
-          title="Leaderboard"
-          subtitle={
-            <>
-              {/* Season vs weekend, which race, and which session are already
+      {/* Every row gets a Follow button, with the viewer's follow state read
+          once here rather than once per row. */}
+      <FollowColumnProvider>
+        <div>
+          <PageHeader
+            title="Leaderboard"
+            subtitle={
+              <>
+                {/* Season vs weekend, which race, and which session are already
                   the filters under this header. Repeating them here is a
                   second status line on a phone that has just stacked those
                   controls. Wide screens keep the line as a read of the board
                   next to the standing card. */}
-              <p className="hidden flex-wrap items-center gap-x-2 sm:flex">
-                {heroSubtitle}
-              </p>
-              <p className="sm:mt-1">
-                Looking for the real-world points?{' '}
-                <Link
-                  to="/f1-standings"
-                  className="inline-block font-medium whitespace-nowrap text-accent underline-offset-2 hover:underline"
-                >
-                  F1 championship standings
-                </Link>
-              </p>
-            </>
-          }
-          actionsPlacement="below"
-          actions={
-            isSignedIn && headerViewerEntry ? (
-              <div className="min-h-14">
-                <ViewTransition default="none" update="leaderboard-change">
-                  <div className="inline-flex items-center gap-3 rounded-lg bg-accent-muted px-3 py-2">
-                    <span className="gpp-mono flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-semibold text-text-on-accent">
-                      {headerViewerEntry.rank}
-                    </span>
-                    <div className="min-w-0">
-                      <div className="text-xs font-medium text-text-muted">
-                        {standingScopeLabel}
-                      </div>
-                      <div className="truncate text-sm font-semibold text-text">
-                        {standingName}
-                      </div>
-                      <div className="text-sm font-semibold text-accent">
-                        {headerViewerEntry.points} pts
+                <p className="hidden flex-wrap items-center gap-x-2 sm:flex">
+                  {heroSubtitle}
+                </p>
+                <p className="sm:mt-1">
+                  Looking for the real-world points?{' '}
+                  <Link
+                    to="/f1-standings"
+                    className="inline-block font-medium whitespace-nowrap text-accent underline-offset-2 hover:underline"
+                  >
+                    F1 championship standings
+                  </Link>
+                </p>
+              </>
+            }
+            actionsPlacement="below"
+            actions={
+              isSignedIn && headerViewerEntry ? (
+                <div className="min-h-14">
+                  <ViewTransition default="none" update="leaderboard-change">
+                    <div className="inline-flex items-center gap-3 rounded-lg bg-accent-muted px-3 py-2">
+                      <span className="gpp-mono flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-semibold text-text-on-accent">
+                        {headerViewerEntry.rank}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="text-xs font-medium text-text-muted">
+                          {standingScopeLabel}
+                        </div>
+                        <div className="truncate text-sm font-semibold text-text">
+                          {standingName}
+                        </div>
+                        <div className="text-sm font-semibold text-accent">
+                          {headerViewerEntry.points} pts
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </ViewTransition>
-              </div>
-            ) : undefined
-          }
-        />
+                  </ViewTransition>
+                </div>
+              ) : undefined
+            }
+          />
 
-        {/* Filters. Container queries, not viewport ones: on a signed-in
+          {/* Filters. Container queries, not viewport ones: on a signed-in
             desktop the rails leave this column around 640px, so a `lg:` row
             that measures the window put four controls in a space that fits
             two, and the session tabs lost their labels to a 100px scroller.
@@ -476,110 +480,111 @@ function LeaderboardPage() {
             The container is the outer wrapper, not the row itself: an
             element's own `@` variants resolve against its nearest ancestor
             container, never against itself. */}
-        <div className="@container mb-4">
-          <div
-            className="reveal-up reveal-delay-1 flex flex-col gap-2.5 @lg:flex-row @lg:flex-wrap @lg:items-center @lg:gap-3"
-            aria-label="Leaderboard filters"
-          >
-            <div className="flex flex-col gap-2.5 @sm:flex-row @sm:items-center @sm:gap-4 @lg:contents">
-              <TabSwitch
-                value={timeScope}
-                onChange={(v) =>
-                  navigate({
-                    search: (prev) => ({ ...prev, time: v }),
-                    replace: true,
-                  })
-                }
-                options={[...TIME_SCOPE_OPTIONS]}
-                className="flex gap-1 rounded-lg bg-surface-muted/55 p-1 @sm:flex-1 @lg:w-auto @lg:grow-0 @lg:basis-auto"
-                buttonClassName="flex-1 @lg:flex-none @lg:px-4"
-                ariaLabel="Leaderboard time scope"
-              />
-
-              {isSignedIn && (
+          <div className="@container mb-4">
+            <div
+              className="reveal-up reveal-delay-1 flex flex-col gap-2.5 @lg:flex-row @lg:flex-wrap @lg:items-center @lg:gap-3"
+              aria-label="Leaderboard filters"
+            >
+              <div className="flex flex-col gap-2.5 @sm:flex-row @sm:items-center @sm:gap-4 @lg:contents">
                 <TabSwitch
-                  value={scope}
+                  value={timeScope}
                   onChange={(v) =>
                     navigate({
-                      search: (prev) => ({ ...prev, scope: v }),
+                      search: (prev) => ({ ...prev, time: v }),
                       replace: true,
                     })
                   }
-                  options={[...SCOPE_OPTIONS]}
-                  className="flex shrink-0 gap-1 rounded-lg bg-surface-muted/40 p-1 @sm:w-56 @4xl:order-2"
-                  buttonClassName="flex-1"
-                  ariaLabel="Leaderboard scope"
+                  options={[...TIME_SCOPE_OPTIONS]}
+                  className="flex gap-1 rounded-lg bg-surface-muted/55 p-1 @sm:flex-1 @lg:w-auto @lg:grow-0 @lg:basis-auto"
+                  buttonClassName="flex-1 @lg:flex-none @lg:px-4"
+                  ariaLabel="Leaderboard time scope"
                 />
-              )}
-            </div>
 
-            {timeScope === 'weekend' && selectableRaces.length > 1 && (
-              <RaceWeekendSelect
-                races={selectableRaces}
-                value={selectedRaceId ?? ''}
-                onChange={(raceId) =>
-                  navigate({
-                    search: (prev) => ({ ...prev, raceId }),
-                    replace: true,
-                  })
-                }
-                className="@lg:w-full @lg:max-w-md @4xl:w-auto @4xl:min-w-64 @4xl:grow"
-              />
-            )}
-
-            {/* Session filter (weekend tab only, and only once the weekend has
-              more than one scored session — with a single session the combined
-              board and that session's board are the same list, and a switch
-              between two identical boards is noise). */}
-            {timeScope === 'weekend' &&
-              (sessionBreakdown?.sessions.length ?? 0) > 1 && (
-                <div className="@lg:order-3 @lg:basis-full">
+                {isSignedIn && (
                   <TabSwitch
-                    value={sessionScope}
+                    value={scope}
                     onChange={(v) =>
                       navigate({
-                        search: (prev) => ({ ...prev, session: v }),
+                        search: (prev) => ({ ...prev, scope: v }),
                         replace: true,
                       })
                     }
-                    options={sessionScopeOptions(sessionBreakdown!.sessions)}
-                    className="flex gap-1 overflow-x-auto rounded-lg bg-surface-muted/40 p-1 @lg:inline-flex @lg:overflow-visible"
-                    buttonClassName="flex-1 whitespace-nowrap @lg:flex-none @lg:px-4"
-                    ariaLabel="Leaderboard session"
+                    options={[...SCOPE_OPTIONS]}
+                    className="flex shrink-0 gap-1 rounded-lg bg-surface-muted/40 p-1 @sm:w-56 @4xl:order-2"
+                    buttonClassName="flex-1"
+                    ariaLabel="Leaderboard scope"
                   />
-                </div>
-              )}
-          </div>
-        </div>
+                )}
+              </div>
 
-        {/* Deferred filter state activates this boundary without delaying navigation. */}
-        <ViewTransition default="none" update="leaderboard-change">
-          <div>
-            {timeScope === 'weekend' ? (
-              <WeekendContent
-                key={activeViewKey}
-                defaultRace={selectedRace}
-                scope={scope}
-                sessionScope={sessionScope}
-                isSignedIn={isSignedIn}
-                activeData={activeWeekendData}
-              />
-            ) : (
-              <SeasonContent
-                key={activeViewKey}
-                scope={scope}
-                seasonEntries={seasonEntries}
-                seasonHasMore={seasonHasMore}
-                isLoadingMore={isLoadingMore}
-                activeTotalCount={activeTotalCount ?? 0}
-                loadMoreSeason={() => void loadMoreSeason()}
-                seasonCombinedFollowing={stickySeasonCombinedFollowing}
-              />
-            )}
+              {timeScope === 'weekend' && selectableRaces.length > 1 && (
+                <RaceWeekendSelect
+                  races={selectableRaces}
+                  value={selectedRaceId ?? ''}
+                  onChange={(raceId) =>
+                    navigate({
+                      search: (prev) => ({ ...prev, raceId }),
+                      replace: true,
+                    })
+                  }
+                  className="@lg:w-full @lg:max-w-md @4xl:w-auto @4xl:min-w-64 @4xl:grow"
+                />
+              )}
+
+              {/* Session filter (weekend tab only, and only once the weekend has
+              more than one scored session — with a single session the combined
+              board and that session's board are the same list, and a switch
+              between two identical boards is noise). */}
+              {timeScope === 'weekend' &&
+                (sessionBreakdown?.sessions.length ?? 0) > 1 && (
+                  <div className="@lg:order-3 @lg:basis-full">
+                    <TabSwitch
+                      value={sessionScope}
+                      onChange={(v) =>
+                        navigate({
+                          search: (prev) => ({ ...prev, session: v }),
+                          replace: true,
+                        })
+                      }
+                      options={sessionScopeOptions(sessionBreakdown!.sessions)}
+                      className="flex gap-1 overflow-x-auto rounded-lg bg-surface-muted/40 p-1 @lg:inline-flex @lg:overflow-visible"
+                      buttonClassName="flex-1 whitespace-nowrap @lg:flex-none @lg:px-4"
+                      ariaLabel="Leaderboard session"
+                    />
+                  </div>
+                )}
+            </div>
           </div>
-        </ViewTransition>
-        <LeaderboardExplainer />
-      </div>
+
+          {/* Deferred filter state activates this boundary without delaying navigation. */}
+          <ViewTransition default="none" update="leaderboard-change">
+            <div>
+              {timeScope === 'weekend' ? (
+                <WeekendContent
+                  key={activeViewKey}
+                  defaultRace={selectedRace}
+                  scope={scope}
+                  sessionScope={sessionScope}
+                  isSignedIn={isSignedIn}
+                  activeData={activeWeekendData}
+                />
+              ) : (
+                <SeasonContent
+                  key={activeViewKey}
+                  scope={scope}
+                  seasonEntries={seasonEntries}
+                  seasonHasMore={seasonHasMore}
+                  isLoadingMore={isLoadingMore}
+                  activeTotalCount={activeTotalCount ?? 0}
+                  loadMoreSeason={() => void loadMoreSeason()}
+                  seasonCombinedFollowing={stickySeasonCombinedFollowing}
+                />
+              )}
+            </div>
+          </ViewTransition>
+          <LeaderboardExplainer />
+        </div>
+      </FollowColumnProvider>
     </AppPageLayout>
   );
 }

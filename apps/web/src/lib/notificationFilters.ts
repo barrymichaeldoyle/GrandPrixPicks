@@ -1,5 +1,5 @@
 import type { NotificationFilter } from '@grandprixpicks/shared/notifications';
-import { Inbox, Lock, Megaphone, Trophy } from 'lucide-react';
+import { Inbox, Lock, Megaphone, Trophy, UserPlus } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import type { Notification } from '@/components/NotificationItem';
@@ -31,6 +31,12 @@ export const NOTIFICATION_FILTERS: {
     shortLabel: 'News',
     icon: Megaphone,
   },
+  {
+    value: 'followers',
+    label: 'New followers',
+    shortLabel: 'Followers',
+    icon: UserPlus,
+  },
 ];
 
 export function mergeNotificationPages(notifications: Notification[]) {
@@ -48,6 +54,7 @@ export const EMPTY_NOTIFICATION_FILTER_COUNTS: NotificationFilterCounts = {
   results: { total: 0, unread: 0 },
   locked: { total: 0, unread: 0 },
   announcements: { total: 0, unread: 0 },
+  followers: { total: 0, unread: 0 },
 };
 
 /**

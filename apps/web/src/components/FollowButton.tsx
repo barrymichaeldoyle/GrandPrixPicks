@@ -24,6 +24,12 @@ interface FollowButtonProps {
    * and a lower minimum width.
    */
   compact?: boolean;
+  /**
+   * Below `sm` the label is read to screen readers only and the button
+   * shrinks to its icon. For a table row on a phone, where a 96px button
+   * cost the player's name its last ten letters.
+   */
+  iconOnlyOnPhone?: boolean;
 }
 
 export function FollowButton({
@@ -31,6 +37,7 @@ export function FollowButton({
   source = 'follow_button',
   isFollowing: isFollowingProp,
   compact = false,
+  iconOnlyOnPhone = false,
 }: FollowButtonProps) {
   const { isAuthenticated } = useConvexAuth();
   const queriedIsFollowing = useQuery(
@@ -88,9 +95,12 @@ export function FollowButton({
     }
   }
 
-  const buttonClass = compact
-    ? 'inline-flex min-w-[5.5rem] items-center justify-start gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors'
-    : 'inline-flex min-w-[7rem] items-center justify-start gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors';
+  const buttonClass = `${
+    compact
+      ? 'inline-flex min-w-[5.5rem] items-center justify-start gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors'
+      : 'inline-flex min-w-[7rem] items-center justify-start gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors'
+  }${iconOnlyOnPhone ? ' max-sm:min-w-0 max-sm:gap-0 max-sm:p-1.5' : ''}`;
+  const labelClass = iconOnlyOnPhone ? 'flex-1 max-sm:sr-only' : 'flex-1';
   const iconClass = compact ? 'h-3 w-3' : 'h-3.5 w-3.5';
   const iconWrapClass = compact
     ? 'relative flex h-3 w-3 shrink-0 items-center justify-center'
@@ -138,7 +148,7 @@ export function FollowButton({
             <User className={iconClass} />
           </span>
         </span>
-        <span className="flex-1">
+        <span className={labelClass}>
           {offeringUnfollow ? 'Unfollow' : 'Following'}
         </span>
       </button>
@@ -156,7 +166,7 @@ export function FollowButton({
       >
         <UserPlus className={iconClass} />
       </span>
-      <span className="flex-1">Follow</span>
+      <span className={labelClass}>Follow</span>
     </button>
   );
 }

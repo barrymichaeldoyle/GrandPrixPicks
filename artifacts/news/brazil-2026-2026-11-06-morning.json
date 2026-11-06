@@ -1,0 +1,26 @@
+[
+  {
+    "raceSlug": "brazil-2026",
+    "key": "ferrari-hamilton-leclerc-meeting-brazil",
+    "category": "general",
+    "headline": "Ferrari plans a Friday sit-down for Hamilton and Leclerc in Brazil",
+    "body": "Fred Vasseur is set to meet Lewis Hamilton and Charles Leclerc together at Interlagos about their opening-lap fight in Mexico. Leclerc missed Thursday's media day after the birth of his child, so the two have not yet spoken about it face to face.",
+    "affectsSessions": [],
+    "driverCodes": ["HAM", "LEC"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/ferrari-drivers-set-for-crunch-meeting-in-brazil/",
+    "sourcePublishedAt": "2026-11-05T19:48:42Z"
+  },
+  {
+    "raceSlug": "brazil-2026",
+    "key": "honda-aston-martin-countermeasures-brazil",
+    "category": "general",
+    "headline": "Honda brings countermeasures to Brazil after Aston Martin's Mexico failures",
+    "body": "Honda says ERS cooling stress and an MGU-K failure in Mexico's thin air ended both Aston Martins' races after five laps. Brazil is also high altitude, though less extreme, and Honda is bringing hardware and software changes to improve robustness.",
+    "affectsSessions": [],
+    "driverCodes": ["ALO", "STR"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/aston-martin-knew-before-mexico-gp-it-would-not-finish-honda-brings-new-countermeasures/10871784/",
+    "sourcePublishedAt": "2026-11-05T16:50:49Z"
+  }
+]

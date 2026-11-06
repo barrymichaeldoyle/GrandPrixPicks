@@ -43,6 +43,9 @@ describe('race-independent news', () => {
       sourceUrl: 'https://example.com/story',
     };
     const id = await t.mutation(internal.globalNews.publish, input);
+    if (typeof id !== 'string') {
+      throw new Error('Expected a write, not a dry run.');
+    }
     const first = await t.run((ctx) => ctx.db.get(id));
     expect(first).toBeTruthy();
     expect(await discordPostJobs(t)).toHaveLength(1);
@@ -106,6 +109,50 @@ describe('race-independent news', () => {
         deliveryId: deliveries[0]._id,
       }),
     ).toBeNull();
+  });
+
+  it('rehearses a publish with dryRun and writes nothing', async () => {
+    const t = convexTest(schema, modules);
+    rateLimiter.register(t);
+    const input = {
+      key: 'dry-run-story',
+      headline: 'A Formula 1 announcement',
+      body: 'The organizer announced a new initiative.',
+      sourceName: 'Organizer',
+      sourceUrl: 'https://example.com/story',
+    };
+    expect(
+      await t.mutation(internal.globalNews.publish, {
+        ...input,
+        dryRun: true,
+      }),
+    ).toEqual({ dryRun: true, valid: true, action: 'created', key: input.key });
+    expect(
+      await t.mutation(internal.globalNews.publish, {
+        ...input,
+        headline: '<b>',
+        dryRun: true,
+      }),
+    ).toMatchObject({ valid: false });
+    expect(
+      await t.run((ctx) => ctx.db.query('globalNews').collect()),
+    ).toHaveLength(0);
+    expect(
+      await t.run((ctx) => ctx.db.query('feedEvents').collect()),
+    ).toHaveLength(0);
+    expect(await discordPostJobs(t)).toHaveLength(0);
+
+    await t.mutation(internal.globalNews.publish, input);
+    expect(
+      await t.mutation(internal.globalNews.publish, {
+        ...input,
+        headline: 'An updated announcement',
+        dryRun: true,
+      }),
+    ).toMatchObject({ action: 'updated' });
+    const [row] = await t.run((ctx) => ctx.db.query('globalNews').collect());
+    expect(row.headline).toBe(input.headline);
+    expect(row).not.toHaveProperty('dryRun');
   });
 
   it('lists live news newest first, without retracted items', async () => {

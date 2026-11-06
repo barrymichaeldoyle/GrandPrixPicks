@@ -1545,6 +1545,26 @@
       "expiresAt": "2026-11-06T13:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6aecaaa2517659178a1ff7b8"
+    },
+    {
+      "id": "b04738b10e3a11d1ff396186e9fece455d84ee1ee5990d68aa9a5a1984a208c4",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "brazil-2026",
+          "key": "russell-brazil-engine-grid-penalty",
+          "revision": "fe7ef30e3353af87e19e43094662e745b5edf22ca75678c4f0a49f68b1a4ae88"
+        }
+      ],
+      "text": "Russell takes a five-place grid penalty in Brazil for a new engine. His second grid drop in four races, after 60 places in Singapore.",
+      "dailyCapException": "Confirmed five-place grid penalty for Russell's new engine, reported by The Race with Russell's own confirmation.",
+      "link": "https://grandprixpicks.com/f1-2026-brazil-grand-prix-predictions?story=russell-brazil-engine-grid-penalty",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=brazil-2026&story=russell-brazil-engine-grid-penalty&v=fe7ef30e3353",
+      "dueAt": "2026-11-06T16:20:00.000Z",
+      "expiresAt": "2026-11-08T14:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

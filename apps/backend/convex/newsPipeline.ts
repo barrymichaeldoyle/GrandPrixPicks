@@ -761,7 +761,7 @@ export const reviewProposal = mutation({
       if (category !== 'general' || affectsSessions.length) {
         throw new Error('Pick-related news requires a weekend.');
       }
-      publishedGlobalId = await ctx.runMutation(internal.globalNews.publish, {
+      const published = await ctx.runMutation(internal.globalNews.publish, {
         key,
         headline,
         body,
@@ -770,6 +770,10 @@ export const reviewProposal = mutation({
         sourceUrl: candidate.canonicalUrl,
         sourcePublishedAt: candidate.sourcePublishedAt,
       });
+      if (typeof published !== 'string') {
+        throw new Error('Global news publish returned a dry run.');
+      }
+      publishedGlobalId = published;
     }
     await ctx.db.patch(proposal._id, {
       status: 'published',

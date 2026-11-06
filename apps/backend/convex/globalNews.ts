@@ -62,7 +62,23 @@ export const listForOperators = internalQuery({
   },
 });
 
-/** Race-independent, reviewed news. Its feed card keeps arrival-time order on correction. */
+/**
+ * Race-independent, reviewed news. Its feed card keeps arrival-time order on
+ * correction.
+ *
+ * Run with `dryRun: true` first. A dry run checks the payload and reports what
+ * a real run would do, with no write and no Discord post.
+ *
+ * Run via:
+ *   npx convex run --prod globalNews:publish '{
+ *     "key": "williams-f2-entry",
+ *     "headline": "...",
+ *     "body": "...",
+ *     "sourceName": "...",
+ *     "sourceUrl": "https://...",
+ *     "dryRun": true
+ *   }'
+ */
 export const publish = internalMutation({
   args: {
     key: v.string(),
@@ -72,19 +88,33 @@ export const publish = internalMutation({
     sourceName: v.string(),
     sourceUrl: v.string(),
     sourcePublishedAt: v.optional(v.number()),
+    dryRun: v.optional(v.boolean()),
   },
-  returns: v.id('globalNews'),
-  handler: async (ctx, args) => {
-    if (
-      !/^[A-Za-z0-9-]{3,150}$/.test(args.key) ||
-      !safeHttpUrl(args.sourceUrl) ||
-      args.headline.length < 3 ||
-      args.headline.length > 180 ||
-      args.body.length < 10 ||
-      args.body.length > 1000 ||
-      /<[^>]*>|&lt;|&#\d+;/i.test(`${args.headline} ${args.body}`) ||
-      (args.team !== undefined && !Object.hasOwn(teams, args.team))
-    ) {
+  returns: v.union(
+    v.id('globalNews'),
+    v.object({
+      dryRun: v.literal(true),
+      valid: v.boolean(),
+      action: v.union(
+        v.literal('created'),
+        v.literal('updated'),
+        v.literal('republished'),
+      ),
+      key: v.string(),
+      team: v.optional(v.string()),
+    }),
+  ),
+  handler: async (ctx, { dryRun, ...args }) => {
+    const valid =
+      /^[A-Za-z0-9-]{3,150}$/.test(args.key) &&
+      safeHttpUrl(args.sourceUrl) !== null &&
+      args.headline.length >= 3 &&
+      args.headline.length <= 180 &&
+      args.body.length >= 10 &&
+      args.body.length <= 1000 &&
+      !/<[^>]*>|&lt;|&#\d+;/i.test(`${args.headline} ${args.body}`) &&
+      (args.team === undefined || Object.hasOwn(teams, args.team));
+    if (!valid && !dryRun) {
       throw new Error('Invalid news.');
     }
     const now = Date.now();
@@ -93,6 +123,19 @@ export const publish = internalMutation({
       .withIndex('by_key', (q) => q.eq('key', args.key))
       .unique();
     const team = args.team ?? existing?.team;
+    if (dryRun) {
+      return {
+        dryRun: true as const,
+        valid,
+        action: existing
+          ? existing.active
+            ? ('updated' as const)
+            : ('republished' as const)
+          : ('created' as const),
+        key: args.key,
+        team,
+      };
+    }
     const card = {
       type: 'race_news' as const,
       newsKey: args.key,

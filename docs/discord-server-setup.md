@@ -147,7 +147,8 @@ is exactly two places, both in mutations:
 This gives the right behaviour without extra state:
 
 - A correction (republish of an existing key) patches the card: **no repost**.
-- A dry run (`raceNews.publish` with `dryRun`) returns before any write: no post.
+- A dry run (`raceNews.publish` or `globalNews.publish` with `dryRun`)
+  returns before any write: no post.
 - An item published with `feedSelected: false` never gets a card: no post.
 - Retract then republish deletes and recreates the card: **posts again**. That
   is acceptable; say so in the docs.

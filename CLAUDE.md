@@ -311,7 +311,8 @@ is one `scoreTopFive()` and no per-session branching in the point math.
 - **Season pass**: a paid (Paddle) per-season entitlement (`userSeasonPasses`)
   gates premium surfaces.
 - **Feed**: activity events (score published, session locked, joined league,
-  streak milestone); other users can react to an event with an emoji.
+  streak milestone, race news, lineup changes). There is no reactions feature:
+  no table, mutation or UI exists for reacting to an event.
 
 ### Database Tables (Convex)
 

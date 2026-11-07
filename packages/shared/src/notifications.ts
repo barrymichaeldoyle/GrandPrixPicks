@@ -34,7 +34,7 @@ export type NotificationFilter = (typeof NOTIFICATION_FILTER_VALUES)[number];
  * someone remembers to add it here.
  */
 export const NOTIFICATION_TYPES_BY_FILTER = {
-  results: ['results_published', 'results_amended'],
+  results: ['results_published', 'results_amended', 'season_recap'],
   locked: ['session_locked'],
   announcements: ['announcement'],
   followers: ['new_follower'],

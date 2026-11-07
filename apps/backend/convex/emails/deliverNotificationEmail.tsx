@@ -9,6 +9,7 @@ import { internalAction } from '../_generated/server';
 import { sendEmail } from '../lib/email';
 import { PredictionReminderEmail } from './PredictionReminderEmail';
 import { ResultsEmailShell } from './ResultsEmail.shared';
+import { SeasonRecapEmail } from './SeasonRecapEmail';
 import { SignupNudgeEmail } from './SignupNudgeEmail';
 
 /**
@@ -58,6 +59,19 @@ const nextRace = v.union(
 );
 
 const payload = v.union(
+  /**
+   * The season-end mail. `raceUrl` is the player's recap page: the field keeps
+   * its name because the plain-text footer prints it for every kind.
+   */
+  v.object({
+    kind: v.literal('season_recap'),
+    season: v.number(),
+    raceUrl: v.string(),
+    points: v.number(),
+    rank: v.union(v.number(), v.null()),
+    players: v.number(),
+    weekends: v.number(),
+  }),
   /**
    * The results mail for a player who has scored this season but sat this
    * weekend out. Without it a lapsed player never saw a result again, only
@@ -226,6 +240,30 @@ export function recapEmailCopy(raceName: string): ResultsMailCopy {
   };
 }
 
+/**
+ * Subject and body for the season-end mail. The rank is the hook, so it leads
+ * when there is one; a player on the board alone just gets their points.
+ */
+export function seasonRecapEmailCopy(recap: {
+  season: number;
+  points: number;
+  rank: number | null;
+  players: number;
+  weekends: number;
+}): { subject: string; headline: string; intro: string } {
+  const weekends =
+    recap.weekends === 1 ? '1 weekend' : `${recap.weekends} weekends`;
+  const standing =
+    recap.rank !== null && recap.players > 1
+      ? `You finished ${ordinal(recap.rank)} of ${recap.players} with ${recap.points} points from ${weekends}.`
+      : `You scored ${recap.points} points from ${weekends}.`;
+  return {
+    subject: `Your ${recap.season} season recap`,
+    headline: `That's the ${recap.season} season`,
+    intro: `${standing} Your recap has your best weekend, your most-backed driver and every round you played.`,
+  };
+}
+
 /** "Next: Mexican Grand Prix. Picks lock Sat, 31 Oct, 21:00 UTC." */
 export function nextRaceLine(
   next: { name: string; lockAt: number } | null | undefined,
@@ -333,6 +371,19 @@ export const deliver = internalAction({
                 : undefined
             }
             lastPlayed={lastPlayed ?? undefined}
+          />
+        );
+      } else if (args.payload.kind === 'season_recap') {
+        const copy = seasonRecapEmailCopy(args.payload);
+        subject = copy.subject;
+        lines = [copy.headline, copy.intro];
+        body = (
+          <SeasonRecapEmail
+            {...shared}
+            season={args.payload.season}
+            recapUrl={args.payload.raceUrl}
+            headline={copy.headline}
+            intro={copy.intro}
           />
         );
       } else if (args.payload.kind === 'recap') {

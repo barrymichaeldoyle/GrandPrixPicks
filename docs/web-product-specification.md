@@ -53,7 +53,7 @@ Players can:
 - **Casual F1 fans** who want a simple prediction game.
 - **Competitive fans** who want season-long rankings and detailed scores.
 - **Friend groups and communities** that want private or public leagues.
-- **Social players** who follow other players, react to picks, and share results.
+- **Social players** who follow other players and share results.
 - **Site operators** who configure race weekends, publish results, and manage
   product announcements and users.
 
@@ -618,10 +618,20 @@ authenticated players and include:
 - results/scores amended;
 - session locked when the player has picks;
 - a new follower (`new_follower`), filterable under "New followers";
+- the season recap (`season_recap`), once per season for every player who
+  scored that season, linking to `/p/:username/season`. Filed under "Results".
 
 Players can mark individual notifications or all notifications as read.
-Notification links lead to the relevant race, session, feed event, or the
-follower's profile.
+Notification links lead to the relevant race, session, feed event, the
+follower's profile, or the player's season recap.
+
+The season recap announcement (`seasonWrapUp.ts`) is not a results publish: a
+cron checks hourly whether every calendar race of the season is finished and
+the final race's result is at least three hours old, then fires once, guarded
+by a `notificationCampaigns` row. A rescore of the final race can neither send
+it again nor send it early. Players who take results pushes get a push with
+the same copy; players who take results emails get the season recap email.
+`seasonWrapUp:inspect` reports whether it is due and how many it would reach.
 
 ### 13.2 Web push notifications
 
@@ -652,7 +662,8 @@ Players can independently configure:
 
 - prediction reminders, normally sent 24 hours before the first relevant lock
   and suppressed when the player has already predicted;
-- results and score emails when a session is published.
+- results and score emails when a session is published, which also covers
+  the one season-end email pointing at the player's recap.
 
 Email times use the timezone and time-format preferences stored in Regional
 settings.

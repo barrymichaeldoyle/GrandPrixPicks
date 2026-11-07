@@ -95,7 +95,7 @@ export function FeedScreen() {
   }>({ viewerId: userId, count: 0 });
   const extraPageCount = extraPages.viewerId === userId ? extraPages.count : 0;
   // Pages past the live ones. The first five pages are subscriptions so
-  // reactions and late scores update in place; older history is fetched once
+  // late scores and amendments update in place; older history is fetched once
   // and appended. Without this the feed ended at 200 events, which a player
   // following a couple of dozen people reaches inside three weekends.
   const convex = useConvex();

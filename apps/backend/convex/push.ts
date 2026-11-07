@@ -99,7 +99,7 @@ export async function getExpoTokensForUser(
  */
 const PUSH_FANOUT_PAGE_SIZE = 100;
 
-type PushTargets = {
+export type PushTargets = {
   subscriptions: Array<PushSubscriptionPayload>;
   tokens: Array<string>;
 };
@@ -125,7 +125,7 @@ function pushTargetCount(targets: PushTargets): number {
  * passed: a roster full of people who never enabled push then costs one read
  * each rather than a walk of both device tables.
  */
-async function addUserPushTargets(
+export async function addUserPushTargets(
   ctx: MutationCtx,
   targets: PushTargets,
   userId: Id<'users'>,

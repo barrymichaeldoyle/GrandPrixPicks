@@ -17,14 +17,15 @@ export type Notification = {
     | 'results_amended'
     | 'session_locked'
     | 'announcement'
-    | 'new_follower';
+    | 'new_follower'
+    | 'season_recap';
   readAt?: number;
   createdAt: number;
   raceId?: Id<'races'>;
   sessionType?: 'quali' | 'sprint_quali' | 'sprint' | 'race';
   raceName?: string;
   raceSlug?: string;
-  // announcement
+  // announcement + season_recap
   title?: string;
   body?: string;
   linkPath?: string;
@@ -333,6 +334,47 @@ export function NotificationItem({
     // Without a link there is nowhere to go, so the row drops its hover
     // affordance rather than pretending to be clickable; the corner control
     // still marks it read.
+    return (
+      <NotificationRow unreadControl={unreadControl}>
+        {linkPath ? (
+          <Link to={linkPath} onClick={handleClick} className={itemClass}>
+            {content}
+          </Link>
+        ) : (
+          <div className={isUnread ? 'bg-accent/[0.04]' : undefined}>
+            {content}
+          </div>
+        )}
+      </NotificationRow>
+    );
+  }
+
+  if (notification.type === 'season_recap') {
+    const linkPath = sanitizeInternalPath(notification.linkPath);
+    const content = (
+      <NotificationRowBody
+        unreadLabel={unreadLabel}
+        leading={
+          <NotificationIcon countryCode={null} tone="success" icon={Trophy} />
+        }
+        title={<span className="font-medium">{notification.title}</span>}
+        meta={
+          <>
+            {notification.body && (
+              <p className="mt-1 text-xs leading-snug text-text-muted">
+                {notification.body}
+              </p>
+            )}
+            <NotificationMeta createdAt={notification.createdAt} />
+            {linkPath && (
+              <p className="mt-1.5 text-xs font-medium text-accent">
+                See my season recap
+              </p>
+            )}
+          </>
+        }
+      />
+    );
     return (
       <NotificationRow unreadControl={unreadControl}>
         {linkPath ? (

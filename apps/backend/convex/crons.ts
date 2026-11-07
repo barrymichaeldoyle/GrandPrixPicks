@@ -82,6 +82,16 @@ crons.interval(
   {},
 );
 
+// Once the final round is scored and three hours have passed, every player
+// who scored this season is pointed at their recap. The campaign key makes it
+// fire once per season, so the interval only sets how late it can be.
+crons.interval(
+  'announce season recap',
+  { hours: 1 },
+  internal.seasonWrapUp.announceIfDue,
+  {},
+);
+
 crons.interval(
   'deliver notifications',
   { minutes: 1 },

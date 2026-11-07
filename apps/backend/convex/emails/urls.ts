@@ -49,3 +49,15 @@ export function buildWriteupEmailUrl(params: {
 }) {
   return withCampaign(new URL(params.path, params.appUrl), params.campaign);
 }
+
+/** A player's season recap, the destination of the season-end mail. */
+export function buildSeasonRecapEmailUrl(params: {
+  appUrl: string;
+  username: string;
+  campaign: string;
+}) {
+  return withCampaign(
+    new URL(`/p/${encodeURIComponent(params.username)}/season`, params.appUrl),
+    params.campaign,
+  );
+}

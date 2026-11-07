@@ -40,11 +40,12 @@ Our own events are listed in `analyticsEventNames` in
 `landing_picker_viewed` and `feed_loaded`. Web page views are `$pageview`,
 with the path in `properties.$pathname`.
 
-The write-up and hub pickers report `picker_viewed`, `picker_first_pick_added`,
-`picker_top_five_completed` and `picker_save_wall_viewed` with `source` set to
-`writeup` or `predictions_hub` (since 2026-10-20); the landing keeps its
-`landing_*` names. `prediction_signin_prompted` and `prediction_saved` carry
-the same `source`.
+The write-up and hub pickers report `picker_viewed`, `picker_first_pick_added`
+and `picker_top_five_completed` with `source` set to `writeup` or
+`predictions_hub` (since 2026-10-20); the landing keeps its `landing_*` names.
+They have no save wall: a signed-out visitor who presses save there emits
+`prediction_signin_prompted` with the same `source`, and `prediction_saved`
+carries it too.
 
 Short visits are under-counted. Analytics loads after `load` plus an idle
 window, then asks `/api/consent-region` which side of the GDPR line the

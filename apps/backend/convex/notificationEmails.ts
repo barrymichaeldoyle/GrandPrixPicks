@@ -13,6 +13,7 @@ import type {
 } from './emails/deliverNotificationEmail';
 import {
   buildRaceEmailUrl,
+  buildSeasonRecapEmailUrl,
   buildWeekendLeaderboardEmailUrl,
   buildWriteupEmailUrl,
 } from './emails/urls';
@@ -29,11 +30,14 @@ import {
   wantsEmailResults,
 } from './lib/notificationChannels';
 import { rankWithinRace } from './lib/weekendRank';
+import { streamRankedLeaderboardRows } from './lib/leaderboard';
+import { seasonRecapCampaignKey } from './seasonWrapUp';
 import { loadNewsHeadlines } from './raceNews';
 const kind = v.union(
   v.literal('reminder'),
   v.literal('summary'),
   v.literal('signup'),
+  v.literal('season_recap'),
 );
 /**
  * Tries before a job is abandoned. The dispatch cron re-runs every `queued`
@@ -172,18 +176,59 @@ async function prepare(ctx: MutationCtx, job: Doc<'notificationEmails'>) {
     ) {
       return await cancel();
     }
+    const campaignKey =
+      job.kind === 'season_recap'
+        ? seasonRecapCampaignKey(race.season)
+        : `summary:${race._id}`;
     const campaign = await ctx.db
       .query('notificationCampaigns')
-      .withIndex('by_key', (q) => q.eq('key', `summary:${race._id}`))
+      .withIndex('by_key', (q) => q.eq('key', campaignKey))
       .unique();
-    if (job.kind === 'summary' && campaign?.cancelled) {
+    if (
+      (job.kind === 'summary' || job.kind === 'season_recap') &&
+      campaign?.cancelled
+    ) {
       return await cancel();
     }
     const now = Date.now();
     const appUrl = process.env.APP_URL ?? 'https://grandprixpicks.com';
     const countryCode = getCountryCodeForRaceSlug(race.slug);
     let payload: DeliverPayload;
-    if (job.kind === 'summary') {
+    if (job.kind === 'season_recap') {
+      // Same opt-out as the weekly results mail: it is the season's results.
+      if (!wantsEmailResults(user) || !user.username) {
+        return await cancel();
+      }
+      const standing = await ctx.db
+        .query('seasonStandings')
+        .withIndex('by_user_season', (q) =>
+          q.eq('userId', user._id).eq('season', race.season),
+        )
+        .unique();
+      if (!standing || standing.raceCount === 0) {
+        return await cancel();
+      }
+      const ranked = await streamRankedLeaderboardRows(
+        ctx.db
+          .query('seasonStandings')
+          .withIndex('by_season_points', (q) => q.eq('season', race.season))
+          .order('desc'),
+        { offset: 0, limit: 1, viewerId: user._id },
+      );
+      payload = {
+        kind: 'season_recap',
+        season: race.season,
+        raceUrl: buildSeasonRecapEmailUrl({
+          appUrl,
+          username: user.username,
+          campaign: 'season_recap',
+        }),
+        points: standing.totalPoints,
+        rank: ranked.viewerRank,
+        players: ranked.totalCount,
+        weekends: standing.raceCount,
+      };
+    } else if (job.kind === 'summary') {
       if (!wantsEmailResults(user)) {
         return await cancel();
       }
@@ -341,7 +386,10 @@ async function prepare(ctx: MutationCtx, job: Doc<'notificationEmails'>) {
     if (!site) {
       throw new Error('CONVEX_SITE_URL is required for email unsubscribe');
     }
-    const category = job.kind === 'summary' ? 'results' : 'reminders';
+    const category =
+      job.kind === 'summary' || job.kind === 'season_recap'
+        ? 'results'
+        : 'reminders';
     const unsubscribeUrl = `${site}/notifications/unsubscribe?token=${encodeURIComponent(token)}&category=${category}`;
     // Scheduling commits with this mutation, so flipping the job to `accepted`
     // here cannot hand the same job to Resend twice.

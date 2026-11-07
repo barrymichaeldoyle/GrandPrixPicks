@@ -1584,7 +1584,7 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=brazil-2026&story=verstappen-perez-brazil-grid-penalties&v=94daa6455993",
       "dueAt": "2026-11-07T17:30:00.000Z",
       "expiresAt": "2026-11-08T17:00:00.000Z",
-      "status": "creating",
+      "status": "scheduled",
       "bufferPostId": "6aef4ce0229bf05daf5e5b61"
     }
   ]

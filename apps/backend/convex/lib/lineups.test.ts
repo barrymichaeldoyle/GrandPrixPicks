@@ -194,7 +194,7 @@ describe('annotateRosterForRound', () => {
 
 describe('driverNumbersForRound', () => {
   // Haas, late 2026: Ocon to round 18, Hirakawa #50 at round 19, Câmara from
-  // round 20, possibly also as #50.
+  // round 20. Câmara races #51, but here he shares #50 to test the shared case.
   const haas = new Map<string, Stint[]>([
     ['oco', [stint('oco', 'Haas', 1, 18)]],
     ['hir', [stint('hir', 'Haas', 19, 19)]],

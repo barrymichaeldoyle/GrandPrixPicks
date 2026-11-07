@@ -738,9 +738,9 @@ export async function loadPracticeResultsForRace(
       .withIndex('by_race_kind', (q) => q.eq('raceId', raceId))
       .take(8),
   ]);
-  // Numbers as that round's grid held them: #50 was Hirakawa's at round 19
-  // and Câmara's from 20, and a reserve's FP1 run in an earlier round belongs
-  // to neither race seat.
+  // Numbers as that round's grid held them: a number two drivers share goes to
+  // whoever raced it that round, and a reserve's FP1 run in an earlier round
+  // belongs to neither race seat.
   const race = await ctx.db.get(raceId);
   const numberToDriver = race
     ? driverNumbersForRound(

@@ -29,7 +29,6 @@ import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { MobileTabBar } from '@/components/MobileTabBar';
-import { OfflineBanner } from '@/components/OfflineBanner';
 import { PendingPickSubmitter } from '@/components/PendingPickSubmitter';
 import {
   AuthCurtainHost,
@@ -76,6 +75,13 @@ import { routeQuery } from '@/lib/routeQuery';
 import { CURRENT_SEASON, siteConfig } from '@/lib/site';
 import appCss from '@/styles.css?url';
 
+// The offline banner renders nothing until connectivity has been lost for 3s.
+// Keep its connection observer and icon out of the initial client entry.
+const OfflineBanner = lazy(() =>
+  import('@/components/OfflineBanner').then((module) => ({
+    default: module.OfflineBanner,
+  })),
+);
 const DeferredShellFeatures = lazy(() =>
   import('@/components/DeferredGlobalFeatures').then((module) => ({
     default: module.DeferredShellFeatures,
@@ -392,7 +398,11 @@ function RootDocument({ children }: PropsWithChildren) {
                   {bare ? null : <Header />}
                   {/* Shell chrome like the rest: the app's in-app browser read a
                     false "No internet connection" over the privacy policy. */}
-                  {bare ? null : <OfflineBanner />}
+                  {bare ? null : (
+                    <Suspense fallback={null}>
+                      <OfflineBanner />
+                    </Suspense>
+                  )}
                   {bare ? null : (
                     <DeferredFeaturesBoundary>
                       <DeferredShellFeatures />

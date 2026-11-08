@@ -407,6 +407,9 @@ export function LeaderboardScreen() {
                 accessibilityLabel={`Round ${race.round}, ${race.name}`}
                 accessibilityRole="button"
                 accessibilityState={{ selected: isSelected }}
+                // 30pt chips in a strip: vertical slop only, so neighbours
+                // do not overlap.
+                hitSlop={{ top: 7, bottom: 7 }}
                 onLayout={({ nativeEvent }) => {
                   roundPositions.current[race._id] = nativeEvent.layout.x;
                   if (isSelected) {

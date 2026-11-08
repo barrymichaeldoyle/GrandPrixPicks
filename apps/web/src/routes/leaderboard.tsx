@@ -1,4 +1,5 @@
 import { AppPageLayout, RailItem } from '@/components/AppPageLayout';
+import { ProseFold } from '@/components/ProseFold';
 import { MyLeaguesCard } from '@/components/dashboard/MyLeaguesCard';
 import { ProfileCard } from '@/components/dashboard/ProfileCard';
 import { QuickLinksCard } from '@/components/dashboard/QuickLinksCard';
@@ -10,7 +11,6 @@ import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ChevronDown } from 'lucide-react';
 import { ViewTransition, useDeferredValue, useEffect, useState } from 'react';
 
 import { RaceFlag } from '@/components/RaceFlag';
@@ -598,87 +598,66 @@ function LeaderboardPage() {
  * prose rather than sending people to /how-to-play to find out.
  */
 function LeaderboardExplainer() {
-  // Folded on a phone, where it followed thirty rows of board and ran the
-  // page past 5,000px; the heading stays as the control and the prose is one
-  // tap away. Wider screens show it in full, as before.
-  const [open, setOpen] = useState(false);
   return (
-    <section className="pt-8 sm:pt-12">
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls="leaderboard-explainer"
-        onClick={() => setOpen((value) => !value)}
-        className="font-title flex min-h-11 w-full items-center justify-between gap-3 border-y border-border text-left text-lg font-semibold text-text sm:hidden"
-      >
-        How these standings are scored
-        <ChevronDown
-          className={`h-5 w-5 shrink-0 text-text-muted transition-transform ${open ? 'rotate-180' : ''}`}
-          aria-hidden
-        />
-      </button>
-      <h2 className="font-title hidden text-2xl font-semibold text-text sm:block">
-        How these standings are scored
+    <ProseFold
+      id="leaderboard-explainer"
+      title="How these standings are scored"
+      className="pt-8 sm:pt-12"
+    >
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Every player ranks the five drivers they expect to finish at the front
+        of each session of a race weekend. Scoring is order-sensitive, so where
+        you put a driver matters as much as whether you picked them at all. An
+        exact position match is worth 5 points. Being off by a single position
+        is worth 3, which is also what you get for a driver you placed fifth who
+        finished sixth. A driver who does finish in the actual top five but two
+        or more places away from where you put them is worth 1 point. Everything
+        else scores nothing.
+      </p>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Head-to-Head picks are scored separately and more simply. You earn one
+        point when the driver you chose finishes ahead of their team-mate. The
+        totals here combine both games.
+      </p>
+      <h2 className="font-title mt-10 text-2xl font-semibold text-text">
+        Weekend and season views
       </h2>
-      <div id="leaderboard-explainer" className={open ? '' : 'max-sm:hidden'}>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Every player ranks the five drivers they expect to finish at the front
-          of each session of a race weekend. Scoring is order-sensitive, so
-          where you put a driver matters as much as whether you picked them at
-          all. An exact position match is worth 5 points. Being off by a single
-          position is worth 3, which is also what you get for a driver you
-          placed fifth who finished sixth. A driver who does finish in the
-          actual top five but two or more places away from where you put them is
-          worth 1 point. Everything else scores nothing.
-        </p>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Head-to-Head picks are scored separately and more simply. You earn one
-          point when the driver you chose finishes ahead of their team-mate. The
-          totals here combine both games.
-        </p>
-        <h2 className="font-title mt-10 text-2xl font-semibold text-text">
-          Weekend and season views
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          The weekend view ranks players on a single race weekend, added up
-          across every session that weekend held. Because qualifying, the sprint
-          and the race are each scored on their own, a player can lose the race
-          badly and still finish the weekend high. The season view is the
-          running total of every session scored so far, which is the standing
-          that decides who finishes the year in front.
-        </p>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Ties are shown as shared ranks rather than broken arbitrarily, so two
-          players on the same total both hold the position and the next rank
-          skips accordingly. Scores appear here once an{' '}
-          <Link
-            to="/results-policy"
-            className="font-medium text-accent hover:underline"
-          >
-            official classification
-          </Link>{' '}
-          is published for a session, which means the standings can move after
-          the flag if a stewards' decision changes the result.
-        </p>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          New to it?{' '}
-          <Link
-            to="/how-to-play"
-            className="font-medium text-accent hover:underline"
-          >
-            How to play
-          </Link>{' '}
-          walks through a full weekend, and the{' '}
-          <Link
-            to="/guides"
-            className="font-medium text-accent hover:underline"
-          >
-            F1 guides
-          </Link>{' '}
-          cover the sport itself rather than the game.
-        </p>
-      </div>
-    </section>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        The weekend view ranks players on a single race weekend, added up across
+        every session that weekend held. Because qualifying, the sprint and the
+        race are each scored on their own, a player can lose the race badly and
+        still finish the weekend high. The season view is the running total of
+        every session scored so far, which is the standing that decides who
+        finishes the year in front.
+      </p>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Ties are shown as shared ranks rather than broken arbitrarily, so two
+        players on the same total both hold the position and the next rank skips
+        accordingly. Scores appear here once an{' '}
+        <Link
+          to="/results-policy"
+          className="font-medium text-accent hover:underline"
+        >
+          official classification
+        </Link>{' '}
+        is published for a session, which means the standings can move after the
+        flag if a stewards' decision changes the result.
+      </p>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        New to it?{' '}
+        <Link
+          to="/how-to-play"
+          className="font-medium text-accent hover:underline"
+        >
+          How to play
+        </Link>{' '}
+        walks through a full weekend, and the{' '}
+        <Link to="/guides" className="font-medium text-accent hover:underline">
+          F1 guides
+        </Link>{' '}
+        cover the sport itself rather than the game.
+      </p>
+    </ProseFold>
   );
 }
 

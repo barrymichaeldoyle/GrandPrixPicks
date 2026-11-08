@@ -192,6 +192,8 @@ function SessionLockedCard({ event }: { event: FeedEvent }) {
           <Pressable
             accessibilityLabel="View H2H picks"
             accessibilityRole="button"
+            // A 26pt chip; the slop takes the target to 44 without growing it.
+            hitSlop={9}
             className="rounded-sm border border-accent/30 bg-accent/10 px-2 py-1 active:border-accent/60"
             onPress={() => setH2hOpen(true)}
           >

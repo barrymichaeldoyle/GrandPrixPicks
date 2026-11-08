@@ -67,7 +67,13 @@ export function TextLink({
   align?: 'center' | 'right';
 }) {
   return (
-    <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress}>
+    <Pressable
+      accessibilityRole="button"
+      disabled={disabled}
+      // A 13px text line is a 16pt target on its own.
+      hitSlop={14}
+      onPress={onPress}
+    >
       <Text
         className={`${align === 'right' ? 'text-right' : 'text-center'} text-[13px] text-accent-hover`}
       >

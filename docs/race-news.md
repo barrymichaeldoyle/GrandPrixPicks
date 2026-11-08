@@ -90,7 +90,8 @@ Race-independent stories published through `globalNews:publish` can set an
 optional `team` to colour their feed card when no driver belongs to the story.
 Use the canonical team name from `packages/shared/src/tokens.ts`; leave it
 unset for stories about the calendar or Formula 1 as a whole. Corrections keep
-the existing team when `team` is omitted.
+the existing team when `team` is omitted. Pass `"dryRun": true` to rehearse one: the
+call checks the payload and returns without a write.
 
 ## Commands
 

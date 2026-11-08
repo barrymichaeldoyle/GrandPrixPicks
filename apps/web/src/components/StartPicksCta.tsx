@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Lock } from 'lucide-react';
 
 import { Button } from './Button/Button';
 import { StepBadge } from './StepBadge';
@@ -13,7 +13,12 @@ interface StartPicksCtaProps {
   icon: LucideIcon;
   actionLabel: string;
   onStart?: () => void;
-  /** When set, the CTA renders dimmed with this note and the button disabled. */
+  /**
+   * When set, the step is locked: the note replaces the button, with a lock
+   * beside it. A dimmed button read as broken (2.6:1 on the card, with the
+   * reason in 12px under it); a lock says the step is waiting on the one
+   * before, and the reason is the only line.
+   */
   disabledNote?: string;
   'data-testid'?: string;
 }
@@ -39,7 +44,7 @@ export function StartPicksCta({
     // text a reader most needs in this state was the least legible thing in it.
     //
     // So the inactive signal is carried by the parts that are decoration: the
-    // icon medallion below, and the Button's own disabled styling.
+    // icon medallion below, and the locked row where the button would be.
     <div className="rounded-xl border border-dashed border-border-strong/70 px-4 py-6 text-center sm:py-8">
       <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
         <span
@@ -62,20 +67,26 @@ export function StartPicksCta({
           </div>
         )}
         <p className="text-sm text-text-muted">{description}</p>
-        <Button
-          variant="primary"
-          size="md"
-          rightIcon={ArrowRight}
-          disabled={disabled}
-          onClick={onStart}
-          data-testid={testId}
-          className="w-full max-w-xs"
-        >
-          {actionLabel}
-        </Button>
         {disabledNote ? (
-          <p className="text-xs text-text-muted">{disabledNote}</p>
-        ) : null}
+          <p
+            className="flex min-h-11 w-full max-w-xs items-center justify-center gap-2 rounded-md border border-border bg-surface-muted px-3 py-2 text-sm text-text-muted"
+            data-testid={testId}
+          >
+            <Lock className="h-4 w-4 shrink-0" aria-hidden />
+            {disabledNote}
+          </p>
+        ) : (
+          <Button
+            variant="primary"
+            size="md"
+            rightIcon={ArrowRight}
+            onClick={onStart}
+            data-testid={testId}
+            className="w-full max-w-xs"
+          >
+            {actionLabel}
+          </Button>
+        )}
       </div>
     </div>
   );

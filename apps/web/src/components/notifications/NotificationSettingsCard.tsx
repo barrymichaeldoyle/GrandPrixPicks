@@ -22,7 +22,9 @@ export function NotificationSettingsCard() {
       <Link
         to="/settings"
         hash="notifications"
-        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-hover"
+        // Same as the dashboard rail links: 17px of text is a poor thumb
+        // target, so coarse pointers get a 44px row and give the margin back.
+        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-hover pointer-coarse:mt-1 pointer-coarse:min-h-11"
       >
         Notification settings
         <ArrowRight className="h-3 w-3" aria-hidden />

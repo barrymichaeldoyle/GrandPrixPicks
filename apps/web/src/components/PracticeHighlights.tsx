@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 
 import { PracticeClassificationDialog } from '@/components/PracticeClassificationDialog';
@@ -167,6 +168,10 @@ export function PracticeHighlights({
   weather?: RaceWeather | null;
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  // Phones: the latest session only, with the earlier ones one tap away. A
+  // returning player scrolled three six-row tables, FP3 then FP2 then FP1,
+  // before the first feed card. Wider screens keep every session in view.
+  const [showEarlier, setShowEarlier] = useState(false);
   const sessions = publishedPracticeSessions(results);
   const latest = latestPracticeResult(results);
   if (!latest) {
@@ -175,6 +180,16 @@ export function PracticeHighlights({
 
   const multi = sessions.length > 1;
   const latestSessionType = latest.sessionType;
+  const earlier = sessions.filter((s) => s.sessionType !== latestSessionType);
+  const earlierLabels = [...earlier]
+    .reverse()
+    .map((s) => PRACTICE_SESSION_LABELS[s.sessionType])
+    .join(' and ');
+  function phoneHidden(sessionType: PracticeSessionType) {
+    return !showEarlier && sessionType !== latestSessionType
+      ? 'max-sm:hidden'
+      : '';
+  }
 
   function openFullResults() {
     setDialogOpen(true);
@@ -213,7 +228,9 @@ export function PracticeHighlights({
             type="button"
             aria-haspopup="dialog"
             onClick={openFullResults}
-            className="gpp-touch-target shrink-0 text-sm text-text-muted hover:text-text"
+            // The header row is 40px; on a thumb the button borrows the
+            // row's padding so the target reaches 44px without moving it.
+            className="gpp-touch-target shrink-0 text-sm text-text-muted hover:text-text pointer-coarse:-my-3 pointer-coarse:py-3"
           >
             Full results
           </button>
@@ -222,17 +239,18 @@ export function PracticeHighlights({
       <div className="flex flex-col gap-y-4 sm:gap-y-0">
         {groupSessions(sessions).map((pair) => {
           const split = pair.length === 2;
+          const allHidden = pair.every((s) => phoneHidden(s.sessionType));
           return (
             <div
               key={pair[0]!.sessionType}
-              className={
+              className={`${
                 split
                   ? 'grid grid-cols-1 gap-y-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-y-0'
-                  : undefined
-              }
+                  : ''
+              } ${allHidden ? 'max-sm:hidden' : ''}`}
             >
               <div
-                className={split ? 'sm:col-start-3 sm:row-start-1' : undefined}
+                className={`${split ? 'sm:col-start-3 sm:row-start-1' : ''} ${phoneHidden(pair[0]!.sessionType)}`}
               >
                 <SessionColumn
                   result={pair[0]!}
@@ -253,7 +271,9 @@ export function PracticeHighlights({
                 />
               ) : null}
               {pair[1] ? (
-                <div className="sm:col-start-1 sm:row-start-1">
+                <div
+                  className={`sm:col-start-1 sm:row-start-1 ${phoneHidden(pair[1].sessionType)}`}
+                >
                   <SessionColumn
                     result={pair[1]}
                     labelled={multi}
@@ -271,6 +291,20 @@ export function PracticeHighlights({
           );
         })}
       </div>
+      {earlier.length > 0 ? (
+        <button
+          type="button"
+          aria-expanded={showEarlier}
+          onClick={() => setShowEarlier((open) => !open)}
+          className="flex min-h-11 w-full items-center justify-center gap-1 border-t border-border px-4 text-sm text-text-muted hover:text-text sm:hidden"
+        >
+          {showEarlier ? 'Hide' : 'Show'} {earlierLabels}
+          <ChevronDown
+            className={`h-4 w-4 transition-transform ${showEarlier ? 'rotate-180' : ''}`}
+            aria-hidden
+          />
+        </button>
+      ) : null}
       {dialogOpen ? (
         <PracticeClassificationDialog
           open

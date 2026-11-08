@@ -68,6 +68,7 @@ type PredictionFormSlotProps = {
   onSuccess?: (save: { autoSaved: boolean; wasFirstSave: boolean }) => void;
   onDirtyChange?: (dirty: boolean) => void;
   hidePicksHeading?: boolean;
+  mobileActionFirst?: boolean;
 };
 
 type H2HSectionSlotProps = {
@@ -681,6 +682,10 @@ export function RaceEventPage({
           <PredictionFormComponent
             raceId={race._id}
             hidePicksHeading
+            // Same phone layout as the dashboard and write-up pickers: the
+            // pool first, filled rows only. Five empty 64px slots and a
+            // disabled Save filled the first screen before a single driver.
+            mobileActionFirst
             sessionType={top5OverlaySession ?? undefined}
             existingPicks={
               top5EditingSession

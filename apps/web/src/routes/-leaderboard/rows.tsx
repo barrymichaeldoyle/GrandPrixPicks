@@ -49,12 +49,14 @@ export function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
       >
         <RankMarker rank={entry.rank} isViewer={entry.isViewer} />
       </td>
-      <td className="max-w-0 py-2.5 pr-2" data-testid="username">
+      {/* The link's hit area is the whole cell, padding included: a 15px
+          name is a poor thumb target and the row already has the height. */}
+      <td className="relative max-w-0 py-2.5 pr-2" data-testid="username">
         <Link
           to="/p/$username"
           params={{ username: entry.username }}
           search={{ from: undefined, fromLabel: undefined }}
-          className="flex min-w-0 items-center gap-3 font-medium text-text"
+          className="flex min-w-0 items-center gap-3 font-medium text-text after:absolute after:inset-0 after:content-['']"
         >
           <Avatar avatarUrl={entry.avatarUrl} username={name} size="sm" />
           <span className="truncate">{name}</span>

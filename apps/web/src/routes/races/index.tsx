@@ -294,13 +294,15 @@ function RacesPage() {
               <p className="mt-1 text-sm text-text-muted">
                 Session times, results and the picks you made, round by round.
               </p>
-              <ul className="mt-3 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+              {/* 24px rows are fine under a mouse and tight under a thumb,
+                  so coarse pointers get 44px rows and drop the gap. */}
+              <ul className="mt-3 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2 pointer-coarse:gap-y-0">
                 {orderedRaces.map((race) => (
                   <li key={race._id}>
                     <Link
                       to="/races/$raceSlug"
                       params={{ raceSlug: race.slug }}
-                      className="text-accent hover:text-accent-hover"
+                      className="text-accent hover:text-accent-hover pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
                     >
                       Round {race.round}: {race.name}
                     </Link>
@@ -322,12 +324,12 @@ function RacesPage() {
                 The circuit, the weekend&rsquo;s news and practice results, for
                 the rounds we have written up.
               </p>
-              <ul className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+              <ul className="mt-4 grid gap-2 text-sm sm:grid-cols-2 pointer-coarse:gap-y-0">
                 {previewRaces.map(({ race, writeup }) => (
                   <li key={race._id}>
                     <Link
                       to={writeup.to}
-                      className="text-accent hover:text-accent-hover"
+                      className="text-accent hover:text-accent-hover pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
                     >
                       Round {race.round}: {race.name} preview
                     </Link>

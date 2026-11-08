@@ -613,6 +613,7 @@ export function SettingsScreen() {
         <Pressable
           accessibilityRole="button"
           className="flex-row items-center gap-2.5"
+          hitSlop={{ top: 12, bottom: 12 }}
           onPress={handleSignOut}
         >
           <Ionicons color={colors.error} name="log-out-outline" size={18} />
@@ -623,6 +624,7 @@ export function SettingsScreen() {
             accessibilityRole="button"
             className="flex-row items-center gap-2.5"
             disabled={isDeletingAccount}
+            hitSlop={{ top: 12, bottom: 12 }}
             onPress={handleDeleteAccount}
           >
             <Ionicons color={colors.error} name="trash-outline" size={18} />

@@ -322,17 +322,6 @@ function PickedRow({
   );
 }
 
-function EmptySlot() {
-  return (
-    <View
-      className="justify-center border-b border-dashed border-border bg-surface px-3 last:border-b-0"
-      style={{ height: ROW_HEIGHT }}
-    >
-      <Text className="text-muted text-sm">Select a driver</Text>
-    </View>
-  );
-}
-
 function PoolDriverCard({
   driver,
   pickedPosition,
@@ -403,10 +392,11 @@ function sortDrivers(drivers: Driver[]): Driver[] {
   return [...drivers].sort((a, b) => compareDriversByTeam(a, b));
 }
 
-function TimingRail() {
+/** One P-label per filled row: the empty slots are not drawn, see below. */
+function TimingRail({ count }: { count: number }) {
   return (
     <View className="border-r border-border bg-surface-muted">
-      {[1, 2, 3, 4, 5].map((n) => (
+      {[1, 2, 3, 4, 5].slice(0, count).map((n) => (
         <View
           className="w-10 items-center justify-center border-b border-border last:border-b-0"
           key={n}
@@ -452,7 +442,6 @@ export function DraggableTop5({
     index,
   }));
 
-  const emptyCount = MAX_PICKS - pickedItems.length;
   const dragIndex = useSharedValue(-1);
   const hoverIndex = useSharedValue(-1);
   const dragTranslation = useSharedValue(0);
@@ -509,33 +498,36 @@ export function DraggableTop5({
 
   return (
     <View className="gap-3.5">
-      <View className="overflow-hidden rounded-xl border border-border bg-surface">
-        <View className="flex-row">
-          <TimingRail />
-          <View className="min-w-0 flex-1">
-            {pickedItems.map((item, index) => (
-              <PickedRow
-                count={pickedItems.length}
-                disabled={disabled}
-                dragIndex={dragIndex}
-                dragTranslation={dragTranslation}
-                hoverIndex={hoverIndex}
-                index={index}
-                item={item}
-                key={item.driverId}
-                onDraggingChange={onDraggingChange}
-                onMoveDown={() => handleMove(index, 'down')}
-                onMoveUp={() => handleMove(index, 'up')}
-                onRemove={() => handleRemove(index)}
-                onReorder={handleReorder}
-              />
-            ))}
-            {Array.from({ length: emptyCount }).map((_, i) => (
-              <EmptySlot key={`empty-${pickedItems.length + i}`} />
-            ))}
+      {/* Filled rows only, as on the web pickers. Five "Select a driver"
+          slots and the Save button filled the first screen before a single
+          driver could be tapped; the pool's own "5 remaining. Tap to add"
+          line already says what is left to do. */}
+      {pickedItems.length > 0 ? (
+        <View className="overflow-hidden rounded-xl border border-border bg-surface">
+          <View className="flex-row">
+            <TimingRail count={pickedItems.length} />
+            <View className="min-w-0 flex-1">
+              {pickedItems.map((item, index) => (
+                <PickedRow
+                  count={pickedItems.length}
+                  disabled={disabled}
+                  dragIndex={dragIndex}
+                  dragTranslation={dragTranslation}
+                  hoverIndex={hoverIndex}
+                  index={index}
+                  item={item}
+                  key={item.driverId}
+                  onDraggingChange={onDraggingChange}
+                  onMoveDown={() => handleMove(index, 'down')}
+                  onMoveUp={() => handleMove(index, 'up')}
+                  onRemove={() => handleRemove(index)}
+                  onReorder={handleReorder}
+                />
+              ))}
+            </View>
           </View>
         </View>
-      </View>
+      ) : null}
 
       {/* The primary action sits above the pool so a completed list never
           buries Save beneath a grid of already-dimmed drivers. */}

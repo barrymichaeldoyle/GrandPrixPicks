@@ -10,7 +10,8 @@ import { siteUrl } from './siteUrl';
  * ignored rather than guessed at.
  *
  * A site path the app has no screen for (an announcement linking to
- * `/results-policy`, say) opens in the in-app browser instead. It used to be
+ * `/results-policy`, or the season recap at `/p/:username/season`) opens in
+ * the in-app browser instead. It used to be
  * dropped, which made those taps do nothing. A new push destination that
  * deserves a native screen still has to be added here in the same change.
  *

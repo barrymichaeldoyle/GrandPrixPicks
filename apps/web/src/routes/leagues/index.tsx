@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
 import { AppPageLayout, RailItem } from '@/components/AppPageLayout';
+import { ProseFold } from '@/components/ProseFold';
 import { ProfileCard } from '@/components/dashboard/ProfileCard';
 import { QuickLinksCard } from '@/components/dashboard/QuickLinksCard';
 import { RailFooterLinks } from '@/components/dashboard/RailFooterLinks';
@@ -475,10 +476,11 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
  */
 function LeaguesLongform() {
   return (
-    <section className="mt-12 border-t border-border pt-8">
-      <h2 className="font-title text-2xl font-semibold text-text">
-        Why play in a league rather than the global standings
-      </h2>
+    <ProseFold
+      id="leagues-longform"
+      title="Why play in a league rather than the global standings"
+      className="mt-10 sm:mt-12 sm:border-t sm:border-border sm:pt-8"
+    >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         The global leaderboard ranks everybody who plays, which makes it a fair
         measure and a poor rivalry. Most people care far more about beating four
@@ -529,7 +531,7 @@ function LeaguesLongform() {
         </Link>{' '}
         covers scoring and session deadlines first.
       </p>
-    </section>
+    </ProseFold>
   );
 }
 

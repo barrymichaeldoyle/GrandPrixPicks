@@ -223,9 +223,16 @@ describe('DashboardPracticeCard', () => {
         '[data-testid="dashboard-practice"] button',
       ),
     ];
+    // Two controls: the dialog opener, and the phone-only disclosure that
+    // shows the earlier session (wider screens show every session outright).
     expect(openers.map((button) => button.textContent)).toEqual([
       'Full results',
+      'Show Free Practice 1',
     ]);
+    expect(openers[1]!.getAttribute('aria-expanded')).toBe('false');
+    act(() => openers[1]!.click());
+    expect(openers[1]!.textContent).toBe('Hide Free Practice 1');
+    expect(openers[1]!.getAttribute('aria-expanded')).toBe('true');
 
     act(() => openers[0]!.click());
     const dialog = document.querySelector('[role="dialog"]');

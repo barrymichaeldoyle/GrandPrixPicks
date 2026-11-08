@@ -43,7 +43,8 @@ type Notification = {
     | 'results_amended'
     | 'session_locked'
     | 'announcement'
-    | 'new_follower';
+    | 'new_follower'
+    | 'season_recap';
   readAt?: number;
   createdAt: number;
   actorUsername?: string;
@@ -364,6 +365,13 @@ function NotificationIcon({ notification }: { notification: Notification }) {
       </View>
     );
   }
+  if (notification.type === 'season_recap') {
+    return (
+      <View className="h-9 w-9 items-center justify-center rounded-full bg-accent-muted">
+        <Ionicons color={colors.accent} name="ribbon" size={18} />
+      </View>
+    );
+  }
   return (
     <View className="h-9 w-9 items-center justify-center rounded-full bg-warning/20">
       <Ionicons color={colors.warning} name="lock-closed" size={18} />
@@ -383,6 +391,9 @@ function getNotificationTitle(notification: Notification): string {
   if (notification.type === 'announcement') {
     return notification.title ?? 'Announcement';
   }
+  if (notification.type === 'season_recap') {
+    return notification.title ?? 'Your season recap is ready';
+  }
   if (notification.type === 'new_follower') {
     const name =
       notification.actorDisplayName ?? notification.actorUsername ?? 'A player';
@@ -397,7 +408,10 @@ function getNotificationSubtitle(notification: Notification): string {
         .replace(/_/g, ' ')
         .replace(/^./, (c) => c.toUpperCase())
     : null;
-  if (notification.type === 'announcement') {
+  if (
+    notification.type === 'announcement' ||
+    notification.type === 'season_recap'
+  ) {
     return notification.body ?? '';
   }
   if (notification.type === 'new_follower') {

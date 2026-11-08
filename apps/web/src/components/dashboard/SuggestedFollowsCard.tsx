@@ -149,12 +149,16 @@ export function SuggestedFollowsCard() {
               />
             </Link>
 
-            <div className="min-w-0 flex-1">
+            {/* The name is a 21px line; its hit area is the whole name and
+                reason column, row padding included, so a thumb lands on the
+                profile without the row growing. The Follow button sits
+                outside the column and keeps its own target. */}
+            <div className="relative -my-2 min-w-0 flex-1 py-2">
               <Link
                 to="/p/$username"
                 params={{ username: user.username }}
                 search={{ from: undefined, fromLabel: undefined }}
-                className="block truncate text-sm leading-tight font-semibold text-text hover:text-accent focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
+                className="block truncate text-sm leading-tight font-semibold text-text after:absolute after:inset-0 after:content-[''] hover:text-accent focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
               >
                 {user.displayName}
               </Link>

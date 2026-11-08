@@ -145,6 +145,23 @@ describe('NotificationItem', () => {
     view.unmount();
   });
 
+  it('links a season recap notification to the recap page', () => {
+    const view = renderItem({
+      _id: 'notification_recap' as never,
+      type: 'season_recap',
+      createdAt: Date.now(),
+      title: 'Your 2026 season recap is ready',
+      body: 'Your points, rank, best weekend and most-backed driver.',
+      linkPath: '/p/overcut/season',
+    });
+
+    expect(view.container.textContent).toContain('season recap is ready');
+    expect(
+      view.container.querySelector('a[href="/p/overcut/season"]'),
+    ).not.toBeNull();
+    view.unmount();
+  });
+
   it('lets an announcement with no link be marked read on its own', () => {
     const view = renderItem({
       _id: 'notification_3' as never,

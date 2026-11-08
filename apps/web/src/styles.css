@@ -725,6 +725,23 @@
     position: relative;
   }
 
+  /*
+   * A horizontal scroll strip whose scrollbar is hidden has nothing that says
+   * "there is more": the last chip simply ends at the screen edge, cut in
+   * half if the widths happen to fall that way. The fade is the affordance.
+   * It is the width of the strip's own `px-4`, so a chip scrolled fully into
+   * view is never dimmed; only the ones part-way off the edge are.
+   */
+  .gpp-scroll-fade-x {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 1rem,
+      #000 calc(100% - 1rem),
+      transparent
+    );
+  }
+
   .gpp-touch-target::after {
     content: '';
     position: absolute;

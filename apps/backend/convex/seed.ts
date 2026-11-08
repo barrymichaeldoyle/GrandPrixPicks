@@ -246,17 +246,18 @@ const F1_DRIVERS_2026 = [
     team: 'Haas',
     nationality: 'JP',
   },
-  // Replaced Ocon from round 20 (São Paulo). #50 is his stated number, and
-  // the same car number Hirakawa ran at round 19: the results import resolves
-  // a shared number by whose stint covers the round (`driverNumbersForRound`).
-  // If OpenF1 shows a different number at FP1, change it here and re-run
-  // `seed:applyLineup`.
+  // Replaced Ocon from round 20 (São Paulo). He had said #50, which was
+  // Hirakawa's number at round 19, but OpenF1 timing at Interlagos ran him as
+  // #51, and the import maps whatever OpenF1 reports. A wrong number here is
+  // a roster gap: the result poll keeps retrying and Sentry names the number
+  // (as it did at São Paulo qualifying). Change it here and re-run
+  // `seed:applyLineup --prod`.
   {
     code: 'CAM',
     givenName: 'Rafael',
     familyName: 'Câmara',
     displayName: 'Rafael Câmara',
-    number: 50,
+    number: 51,
     team: 'Haas',
     nationality: 'BR',
   },

@@ -1,0 +1,122 @@
+[
+  {
+    "raceSlug": "brazil-2026",
+    "key": "ferrari-brazil-engine-grid-penalties",
+    "headline": "Hamilton starts Brazil from the back; Leclerc drops 10 places",
+    "body": "Hamilton's new engine lost power and smoked in third practice after seven laps, so Ferrari replaced the entire power unit before qualifying and he starts the race from the back of the grid. Leclerc keeps the original 10-place drop for a fifth internal combustion engine of the year.",
+    "affectsSessions": ["race"],
+    "driverCodes": ["HAM", "LEC"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/hamilton-set-to-start-at-back-of-the-grid-after-further-penalty-ahead-of-sao-paulo-grand-prix.5SFs44M6cNSDvUBCWE9FWZ",
+    "sourcePublishedAt": "2026-11-07T17:29:05Z"
+  },
+  {
+    "raceSlug": "brazil-2026",
+    "key": "sao-paulo-starting-grid",
+    "headline": "The São Paulo grid is set",
+    "body": "Norris starts from pole with Antonelli alongside after Russell's five-place drop puts him seventh. Lawson and Hülkenberg fill the second row. Leclerc starts 14th, and Hamilton, Verstappen and Perez fill the last three places after power unit changes. Rain is forecast for the race.",
+    "affectsSessions": ["race"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/results/2026/races/1299/brazil/starting-grid",
+    "startingGrid": [
+      {
+        "position": 1,
+        "code": "NOR"
+      },
+      {
+        "position": 2,
+        "code": "ANT"
+      },
+      {
+        "position": 3,
+        "code": "LAW"
+      },
+      {
+        "position": 4,
+        "code": "HUL"
+      },
+      {
+        "position": 5,
+        "code": "HAD"
+      },
+      {
+        "position": 6,
+        "code": "BEA"
+      },
+      {
+        "position": 7,
+        "code": "RUS",
+        "note": "5-place penalty",
+        "newsKey": "russell-brazil-engine-grid-penalty"
+      },
+      {
+        "position": 8,
+        "code": "ALO"
+      },
+      {
+        "position": 9,
+        "code": "ALB"
+      },
+      {
+        "position": 10,
+        "code": "PIA"
+      },
+      {
+        "position": 11,
+        "code": "CAM"
+      },
+      {
+        "position": 12,
+        "code": "LIN"
+      },
+      {
+        "position": 13,
+        "code": "SAI"
+      },
+      {
+        "position": 14,
+        "code": "LEC",
+        "note": "10-place penalty",
+        "newsKey": "ferrari-brazil-engine-grid-penalties"
+      },
+      {
+        "position": 15,
+        "code": "COL"
+      },
+      {
+        "position": 16,
+        "code": "GAS"
+      },
+      {
+        "position": 17,
+        "code": "STR"
+      },
+      {
+        "position": 18,
+        "code": "BOT"
+      },
+      {
+        "position": 19,
+        "code": "BOR"
+      },
+      {
+        "position": 20,
+        "code": "HAM",
+        "note": "Back of grid",
+        "newsKey": "ferrari-brazil-engine-grid-penalties"
+      },
+      {
+        "position": 21,
+        "code": "VER",
+        "note": "Back of grid",
+        "newsKey": "verstappen-perez-brazil-grid-penalties"
+      },
+      {
+        "position": 22,
+        "code": "PER",
+        "note": "Back of grid",
+        "newsKey": "verstappen-perez-brazil-grid-penalties"
+      }
+    ]
+  }
+]

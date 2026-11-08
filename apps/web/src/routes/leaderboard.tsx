@@ -1,4 +1,5 @@
 import { AppPageLayout, RailItem } from '@/components/AppPageLayout';
+import { ProseFold } from '@/components/ProseFold';
 import { MyLeaguesCard } from '@/components/dashboard/MyLeaguesCard';
 import { ProfileCard } from '@/components/dashboard/ProfileCard';
 import { QuickLinksCard } from '@/components/dashboard/QuickLinksCard';
@@ -598,10 +599,11 @@ function LeaderboardPage() {
  */
 function LeaderboardExplainer() {
   return (
-    <section className="pt-12">
-      <h2 className="font-title text-2xl font-semibold text-text">
-        How these standings are scored
-      </h2>
+    <ProseFold
+      id="leaderboard-explainer"
+      title="How these standings are scored"
+      className="pt-8 sm:pt-12"
+    >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         Every player ranks the five drivers they expect to finish at the front
         of each session of a race weekend. Scoring is order-sensitive, so where
@@ -655,7 +657,7 @@ function LeaderboardExplainer() {
         </Link>{' '}
         cover the sport itself rather than the game.
       </p>
-    </section>
+    </ProseFold>
   );
 }
 

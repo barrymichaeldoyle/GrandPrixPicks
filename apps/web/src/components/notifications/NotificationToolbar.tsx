@@ -111,7 +111,7 @@ export function NotificationToolbar({
         // which is the same set of categories at `lg`. Two landmarks answering
         // to one name is a coin toss for anyone navigating by label.
         aria-label="Filter notifications"
-        className="-mx-4 flex [scrollbar-width:none] items-center gap-2 overflow-x-auto px-4 pb-1 [&::-webkit-scrollbar]:hidden"
+        className="gpp-scroll-fade-x -mx-4 flex snap-x scroll-px-4 [scrollbar-width:none] items-center gap-2 overflow-x-auto px-4 pb-1 [&::-webkit-scrollbar]:hidden"
       >
         {NOTIFICATION_FILTERS.map(({ value, shortLabel, icon: Icon }) => {
           const selected = filter === value;
@@ -125,7 +125,7 @@ export function NotificationToolbar({
               replace
               resetScroll={false}
               aria-current={selected ? 'true' : undefined}
-              className={`${pillClass} ${
+              className={`${pillClass} snap-start ${
                 selected
                   ? 'border-accent bg-accent text-text-on-accent'
                   : 'border-border bg-surface text-text hover:border-border-strong hover:bg-surface-muted/60'

@@ -149,7 +149,8 @@ export function successorPick(
  * Car number to driver, as the grid stood in `round`.
  *
  * A car number is not a person for a whole season: Hirakawa raced #50 for
- * Haas at round 19 and Câmara can take #50 into the same seat from round 20.
+ * Haas at round 19 and his replacement could have taken #50 into the same seat
+ * from round 20 (Câmara in fact ran #51).
  * Mapping numbers off the `drivers` table alone would hand one of them the
  * other's result, and a recheck of the earlier round would quietly rescore it.
  *

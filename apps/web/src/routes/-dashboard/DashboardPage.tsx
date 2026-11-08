@@ -272,7 +272,18 @@ export function DashboardPage({
 
   return (
     <AppPageLayout
-      centerClassName="space-y-6"
+      /*
+       * `max-md:min-h-dvh`: the centre column is at least a screen tall on a
+       * phone, so the rail cards below it can never start inside the first
+       * viewport. Prod mobile CLS on this page was 0.8, as two shifts of the
+       * same cards: when the dashboard renders client-side (a stale shell,
+       * or the curtain's 8s ceiling lifting before the weekend query answers)
+       * the centre is a short skeleton, the standing and leagues cards land
+       * in view under it, then the weekend and feed arrive and push them off
+       * the bottom. With the real content the column is always taller than a
+       * screen, so the floor costs nothing once loaded.
+       */
+      centerClassName="space-y-6 max-md:min-h-dvh"
       /*
        * `RailItem` order is the phone's reading order across both rails.
        *

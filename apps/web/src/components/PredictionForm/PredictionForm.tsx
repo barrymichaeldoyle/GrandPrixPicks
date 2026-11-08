@@ -706,12 +706,12 @@ export function PredictionForm({
       return;
     }
     saveWallCapturedRef.current = true;
+    // Only the landing passes `renderSaveWall`; the write-up and hub pickers
+    // report a signed-out save as `prediction_signin_prompted` instead.
     captureAnalyticsEvent(
-      analyticsSource !== 'landing'
-        ? 'picker_save_wall_viewed'
-        : onComplete
-          ? 'landing_top_five_handoff_viewed'
-          : 'landing_save_wall_viewed',
+      onComplete
+        ? 'landing_top_five_handoff_viewed'
+        : 'landing_save_wall_viewed',
       {
         source: analyticsSource,
         race_id: raceId,

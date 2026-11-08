@@ -84,7 +84,6 @@ export const analyticsEventNames = [
   'picks_shared',
   'picks_shared_x',
   'picker_first_pick_added',
-  'picker_save_wall_viewed',
   'picker_top_five_completed',
   'picker_viewed',
   'practice_results_page_viewed',

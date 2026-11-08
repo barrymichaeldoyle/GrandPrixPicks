@@ -817,6 +817,8 @@ export default defineSchema({
       v.literal('reminder'),
       v.literal('summary'),
       v.literal('signup'),
+      // The season-end recap mail; raceId is the season's final race.
+      v.literal('season_recap'),
     ),
     status: v.union(
       v.literal('queued'),
@@ -1346,6 +1348,9 @@ export default defineSchema({
       v.literal('session_locked'),
       v.literal('announcement'),
       v.literal('new_follower'),
+      // season_recap — once per season, links to /p/:username/season. Uses
+      // the announcement fields (title, body, linkPath).
+      v.literal('season_recap'),
     ),
     readAt: v.optional(v.number()),
     createdAt: v.number(),

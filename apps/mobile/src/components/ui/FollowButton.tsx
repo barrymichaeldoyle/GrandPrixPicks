@@ -94,6 +94,8 @@ export function FollowButton({
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected: isFollowing }}
+      // The compact pill is about 30pt tall; the full one already clears 44.
+      hitSlop={compact ? 7 : undefined}
       className={`flex-row items-center justify-center gap-1.5 rounded-full border ${
         compact ? 'px-3 py-1.5' : 'min-h-11 min-w-28 px-4 py-2'
       } ${

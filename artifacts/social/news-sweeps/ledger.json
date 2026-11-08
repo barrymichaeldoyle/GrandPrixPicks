@@ -1584,30 +1584,8 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=brazil-2026&story=verstappen-perez-brazil-grid-penalties&v=94daa6455993",
       "dueAt": "2026-11-07T17:30:00.000Z",
       "expiresAt": "2026-11-08T17:00:00.000Z",
-      "status": "scheduled",
+      "status": "sent",
       "bufferPostId": "6aef4ce0229bf05daf5e5b61"
-    },
-    {
-      "id": "38382b1529e24cbf6791c86e5e4626d5f84a59f303fdfbcaf7b841d26b958d7b",
-      "deployment": "prod",
-      "organizationId": "64f9a17b902afdecc48c8d02",
-      "channelId": "6a6f4b8a99afb44349e9c0f4",
-      "stories": [
-        {
-          "raceSlug": "brazil-2026",
-          "key": "sao-paulo-starting-grid",
-          "revision": "a8f10d914f3e36a6262bf2f1f724dcfcfb015aecbb1e1c34168b648467db8d24"
-        }
-      ],
-      "text": "Hamilton, Verstappen and Perez start today's Brazilian GP from the last three places after power unit changes. Russell drops five places to seventh and Leclerc 10 to 14th. Norris starts from pole with Antonelli alongside and Lawson third.",
-      "link": "https://grandprixpicks.com/f1-2026-sao-paulo-grand-prix-predictions?story=sao-paulo-starting-grid",
-      "imageUrl": "https://grandprixpicks.com/og/news?race=brazil-2026&story=sao-paulo-starting-grid&v=a8f10d914f3e",
-      "dueAt": "2026-11-08T07:30:00.000Z",
-      "expiresAt": "2026-11-08T17:00:00.000Z",
-      "status": "scheduled",
-      "bufferPostId": "6af003699214322f683274e1",
-      "dailyCapException": "Confirmed grid: Hamilton, Verstappen and Perez back of grid, Russell -5, Leclerc -10, per the formula1.com starting grid.",
-      "note": "Scheduled through the Buffer MCP: the buffer CLI is not installed on this machine."
     }
   ]
 }

@@ -479,7 +479,7 @@ function LeaguesLongform() {
     <ProseFold
       id="leagues-longform"
       title="Why play in a league rather than the global standings"
-      className="mt-10 border-t border-border pt-6 sm:mt-12 sm:pt-8"
+      className="mt-10 sm:mt-12 sm:border-t sm:border-border sm:pt-8"
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
         The global leaderboard ranks everybody who plays, which makes it a fair

@@ -142,17 +142,82 @@ describe('race-independent news', () => {
     ).toHaveLength(0);
     expect(await discordPostJobs(t)).toHaveLength(0);
 
-    await t.mutation(internal.globalNews.publish, input);
+    await t.mutation(internal.globalNews.publish, {
+      ...input,
+      team: 'Williams',
+      dryRun: false,
+    });
+    const snapshot = await t.run(async (ctx) => ({
+      rows: await ctx.db.query('globalNews').collect(),
+      events: await ctx.db.query('feedEvents').collect(),
+      jobs: await ctx.db.system.query('_scheduled_functions').collect(),
+    }));
     expect(
       await t.mutation(internal.globalNews.publish, {
         ...input,
         headline: 'An updated announcement',
         dryRun: true,
       }),
-    ).toMatchObject({ action: 'updated' });
+    ).toMatchObject({ action: 'updated', team: 'Williams' });
+    expect(
+      await t.run(async (ctx) => ({
+        rows: await ctx.db.query('globalNews').collect(),
+        events: await ctx.db.query('feedEvents').collect(),
+        jobs: await ctx.db.system.query('_scheduled_functions').collect(),
+      })),
+    ).toEqual(snapshot);
     const [row] = await t.run((ctx) => ctx.db.query('globalNews').collect());
     expect(row.headline).toBe(input.headline);
     expect(row).not.toHaveProperty('dryRun');
+
+    await t.mutation(internal.globalNews.retract, { key: input.key });
+    expect(
+      await t.mutation(internal.globalNews.publish, {
+        ...input,
+        dryRun: true,
+      }),
+    ).toMatchObject({ valid: true, action: 'republished', team: 'Williams' });
+    expect(
+      await t.run((ctx) => ctx.db.query('feedEvents').collect()),
+    ).toHaveLength(0);
+    const [retracted] = await t.run((ctx) =>
+      ctx.db.query('globalNews').collect(),
+    );
+    expect(retracted.active).toBe(false);
+    expect(await discordPostJobs(t)).toHaveLength(1);
+  });
+
+  it.each([
+    { key: 'invalid key' },
+    { sourceUrl: 'javascript:alert(1)' },
+    { headline: '<b>Announcement</b>' },
+    { headline: 'x'.repeat(181) },
+    { body: 'Too short' },
+    { body: 'x'.repeat(1001) },
+    { team: 'Unknown team' },
+  ])('previews invalid news but refuses to publish it: %j', async (invalid) => {
+    const t = convexTest(schema, modules);
+    const input = {
+      key: 'invalid-story',
+      headline: 'A Formula 1 announcement',
+      body: 'The organizer announced a new initiative.',
+      sourceName: 'Organizer',
+      sourceUrl: 'https://example.com/story',
+      ...invalid,
+    };
+    expect(
+      await t.mutation(internal.globalNews.publish, { ...input, dryRun: true }),
+    ).toMatchObject({ dryRun: true, valid: false });
+    await expect(
+      t.mutation(internal.globalNews.publish, input),
+    ).rejects.toThrow('Invalid news.');
+    expect(await t.run((ctx) => ctx.db.query('globalNews').collect())).toEqual(
+      [],
+    );
+    expect(await t.run((ctx) => ctx.db.query('feedEvents').collect())).toEqual(
+      [],
+    );
+    expect(await discordPostJobs(t)).toHaveLength(0);
   });
 
   it('lists live news newest first, without retracted items', async () => {

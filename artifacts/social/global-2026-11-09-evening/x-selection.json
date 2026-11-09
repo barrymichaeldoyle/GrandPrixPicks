@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/global-2026-11-09-evening.json",
+  "startAt": "2026-11-09T16:40:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["piastri-webber-management-split"],
+      "text": "Mark Webber has managed Oscar Piastri since 2019. Both sides have now ended the agreement, with Piastri thanking the Webbers for guiding the start of his F1 career.",
+      "link": "https://www.crash.net/f1/news/1110032/1/oscar-piastri-confirms-split-f1-career-manager-mark-webber",
+      "expiresAt": "2026-11-11T16:00:00Z"
+    }
+  ]
+}

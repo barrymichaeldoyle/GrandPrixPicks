@@ -1603,7 +1603,8 @@
       "link": "https://www.crash.net/f1/news/1110032/1/oscar-piastri-confirms-split-f1-career-manager-mark-webber",
       "dueAt": "2026-11-09T16:40:00.000Z",
       "expiresAt": "2026-11-11T16:00:00.000Z",
-      "status": "creating"
+      "status": "creating",
+      "bufferPostId": "6af1f03a704ab85a6bd2bb36"
     }
   ]
 }

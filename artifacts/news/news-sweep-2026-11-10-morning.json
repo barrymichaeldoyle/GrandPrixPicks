@@ -1,0 +1,37 @@
+[
+  {
+    "raceSlug": "brazil-2026",
+    "key": "hamilton-bearman-off-track-pass-no-action-brazil",
+    "category": "general",
+    "headline": "Stewards take no action over Hamilton's off-track pass on Bearman",
+    "body": "Hamilton passed Bearman on lap one at Descida do Lago while running off the track. The stewards ruled he had the momentum for the move and gained no advantage, and noted he gave the position back later in the race.",
+    "affectsSessions": [],
+    "driverCodes": ["HAM"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/11/08/stewards-ruled-hamilton-gained-no-advantage-by-passing-bearman-off-track/",
+    "sourcePublishedAt": "2026-11-08T21:50:30+00:00"
+  },
+  {
+    "raceSlug": "brazil-2026",
+    "key": "runner-up-fight-five-drivers-brazil",
+    "category": "general",
+    "headline": "Five drivers are in the fight for second in the championship",
+    "body": "Verstappen has 279 points, Russell 262, Hamilton 261, Leclerc 249 and Norris 246, with three rounds left if Qatar and Abu Dhabi go ahead. Russell has scored 26 points in the last five races to Verstappen's 116, and Toto Wolff says Mercedes may give Russell \"all the force\" to finish second.",
+    "affectsSessions": [],
+    "driverCodes": ["RUS", "VER"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/mercedes-considers-push-for-george-russell-to-be-f1-2026-runner-up/10873310/",
+    "sourcePublishedAt": "2026-11-09T13:46:01Z"
+  },
+  {
+    "raceSlug": "las-vegas-2026",
+    "key": "las-vegas-pre-race-music-lineup",
+    "category": "general",
+    "headline": "Las Vegas announces its pre-race line-up",
+    "body": "Steve Aoki, MORTEN and Jordin Sparks headline the grid entertainment before the race on 21 November. MORTEN plays ahead of the driver introductions and Sparks sings the national anthem.",
+    "affectsSessions": [],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/f1-las-vegas-grand-prix-announces-pre-race-music-line-up/10873488/",
+    "sourcePublishedAt": "2026-11-09T23:57:29Z"
+  }
+]

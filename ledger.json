@@ -1605,6 +1605,25 @@
       "expiresAt": "2026-11-11T16:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6af1f03a704ab85a6bd2bb36"
+    },
+    {
+      "id": "de004a37141a41e6c1bc18d41bf0e24de2fdb848ac8a940278b173f87d2c518c",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "las-vegas-2026",
+          "key": "mclaren-las-vegas-upgrades-stella",
+          "revision": "a90ef2106d86cd63edf7ca2aafdc079c82ceb09dd3bf8a8529000a569cf3496d"
+        }
+      ],
+      "text": "McLaren brings more new parts to Las Vegas, its hardest race on the calendar. Both cars were disqualified there last year for skid wear after finishing second and fourth.",
+      "link": "https://grandprixpicks.com/f1-2026-las-vegas-grand-prix-predictions?story=mclaren-las-vegas-upgrades-stella",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=las-vegas-2026&story=mclaren-las-vegas-upgrades-stella&v=a90ef2106d86",
+      "dueAt": "2026-11-11T16:13:35.543Z",
+      "expiresAt": "2026-11-13T18:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

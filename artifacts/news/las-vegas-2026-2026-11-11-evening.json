@@ -1,0 +1,25 @@
+[
+  {
+    "raceSlug": "las-vegas-2026",
+    "key": "mclaren-las-vegas-upgrades-stella",
+    "category": "general",
+    "affectsSessions": [],
+    "headline": "McLaren will bring more new parts to Las Vegas",
+    "body": "Andrea Stella says further upgrades arrive in Las Vegas, adding to the new front wing introduced in Brazil. He expects the long straights to suit McLaren less, because its gear ratios are not ideal at very high top speeds. Las Vegas has been the team's hardest race on the calendar, and both cars were disqualified there last year for skid wear after finishing second and fourth.",
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/andrea-stella-wants-mclaren-to-finally-make-peace-with-las-vegas/10873819/",
+    "sourcePublishedAt": "2026-11-11T11:18:24Z"
+  },
+  {
+    "raceSlug": "brazil-2026",
+    "key": "mercedes-brazil-strange-car-behaviour-investigation",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ANT", "RUS"],
+    "headline": "Mercedes puts its Brazil handling problems down to tyre temperatures",
+    "body": "Bradley Lord says Mercedes sat just below the tyre temperature window in the cool, damp conditions, which made the W17 very oversteery and led both drivers to think something was broken. Antonelli spun and flat-spotted all four tyres, and Russell spun in the pit lane. Lord says Mercedes was the fastest car on track for parts of the race.",
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/mercedes-explains-unusual-car-behaviour-behind-kimi-antonellis-costly-brazil-spin/10873891/",
+    "sourcePublishedAt": "2026-11-11T16:00:58Z"
+  }
+]

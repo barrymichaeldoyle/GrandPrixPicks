@@ -188,6 +188,17 @@ describe('useSessionTimeView', () => {
     expect(zones()).toEqual([DEVICE_ZONE]);
   });
 
+  it('uses track time when the device reports a zone Intl rejects', () => {
+    // Headless Chrome reports `Etc/Unknown`, then throws on it (GRAND-PRIX-PICKS-3C).
+    const resolved = Intl.DateTimeFormat().resolvedOptions();
+    vi.spyOn(Intl.DateTimeFormat.prototype, 'resolvedOptions').mockReturnValue({
+      ...resolved,
+      timeZone: 'Etc/Unknown',
+    });
+    render();
+    expect(zones()).toEqual([TRACK_ZONE]);
+  });
+
   it('server-renders track time without reading storage, even after client use', () => {
     render();
     expect(zones()).toEqual([DEVICE_ZONE]);

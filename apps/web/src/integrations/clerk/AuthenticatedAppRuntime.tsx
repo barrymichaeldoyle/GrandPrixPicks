@@ -11,6 +11,7 @@ import { AppConvexProvider } from '@/integrations/convex/provider';
 import { AppClerkProvider } from './provider';
 import { useClerkRuntimeControl } from './runtime-control';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { getDeviceTimeZone } from '@/lib/date';
 import { ObservabilityUserSync } from '@/components/DeferredAuthenticatedFeatures';
 
 export function AuthenticatedAppRuntime({
@@ -70,7 +71,7 @@ function ProfileSync() {
     if (isSignedIn && !hasSynced.current) {
       hasSynced.current = true;
       void syncProfile({
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timezone: getDeviceTimeZone(),
         locale: navigator.language,
       }).then((result) => {
         if (result?.isNewSignup) {

@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { getDeviceTimeZone } from '@/lib/date';
 
 /**
  * Track time vs the viewer's zone, shared by the write-up schedule and the
@@ -89,6 +90,9 @@ function useViewerTimeZone(trackTimeZone: string): {
   if (deviceZone === UNKNOWN_ZONE) {
     return { resolved: false, zone: null };
   }
+  if (deviceZone === NO_DEVICE_ZONE) {
+    return { resolved: true, zone: null };
+  }
   return {
     resolved: true,
     zone: deviceZone !== trackTimeZone ? deviceZone : null,
@@ -97,17 +101,15 @@ function useViewerTimeZone(trackTimeZone: string): {
 
 /** Distinct from a real zone name, and stable so the store never re-renders. */
 const UNKNOWN_ZONE = '';
+/** Asked, but the device has no zone `Intl` accepts: stay in track time. */
+const NO_DEVICE_ZONE = 'none';
 
 function subscribeToNothing() {
   return () => {};
 }
 
 function readDeviceTimeZone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || UNKNOWN_ZONE;
-  } catch {
-    return UNKNOWN_ZONE;
-  }
+  return getDeviceTimeZone() ?? NO_DEVICE_ZONE;
 }
 
 function readUnknownTimeZone(): string {

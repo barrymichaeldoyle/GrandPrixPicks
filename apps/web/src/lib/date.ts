@@ -170,13 +170,45 @@ export function formatSessionClockTime(
   timestamp: number,
   timeZone: string,
 ): string {
-  return new Intl.DateTimeFormat('en-GB', {
-    weekday: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
+  return formatInTimeZone(
+    timestamp,
     timeZone,
-  }).format(timestamp);
+    {
+      weekday: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    },
+    { locale: 'en-GB' },
+  );
+}
+
+/** Whether `Intl` accepts this zone name. */
+export function isValidTimeZone(timeZone: string): boolean {
+  try {
+    new Intl.DateTimeFormat('en', { timeZone });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The device's zone, or undefined when it has none `Intl` will take back.
+ *
+ * Headless Chrome reports `Etc/Unknown` from `resolvedOptions()`, a name the
+ * same engine then rejects with a RangeError (Sentry GRAND-PRIX-PICKS-3C).
+ */
+export function getDeviceTimeZone(): string | undefined {
+  if (typeof Intl === 'undefined') {
+    return undefined;
+  }
+  try {
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return zone && isValidTimeZone(zone) ? zone : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /** Zero-padded countdown, omitting seconds while at least one day remains. */

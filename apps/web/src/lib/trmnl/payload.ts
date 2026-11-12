@@ -2,6 +2,7 @@ import type { Doc } from '@convex-generated/dataModel';
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import { getCountryCodeForRaceSlug } from '@grandprixpicks/shared/raceCountries';
 
+import { isValidTimeZone } from '@/lib/date';
 import { getRaceWriteup } from '@/lib/raceWriteups';
 import { PRACTICE_LABELS } from '@/lib/raceSessions';
 import type { SessionType } from '@/lib/sessions';
@@ -1127,13 +1128,4 @@ function timeWithoutWeekday(format: Intl.DateTimeFormat, date: Date): string {
  */
 function plainSpaces(text: string): string {
   return text.replace(/[\u00a0\u2009\u202f]/g, ' ');
-}
-
-function isValidTimeZone(timeZone: string): boolean {
-  try {
-    new Intl.DateTimeFormat('en', { timeZone });
-    return true;
-  } catch {
-    return false;
-  }
 }

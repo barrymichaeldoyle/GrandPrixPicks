@@ -111,6 +111,11 @@ export async function getOrCreateViewer(
   if (!identityKeys) {
     return null;
   }
+  // A detected zone is only a guess: headless browsers report `Etc/Unknown`,
+  // which every formatter then throws on. Drop it rather than store it.
+  if (regional?.timezone && !isValidTimeZone(regional.timezone)) {
+    regional = { ...regional, timezone: undefined };
+  }
 
   const clerkUserId = identityKeys.primary;
   const now = Date.now();
@@ -237,4 +242,13 @@ export function requireAdmin(viewer: { isAdmin?: boolean } | null): void {
 
 export function isAdmin(viewer: { isAdmin?: boolean } | null): boolean {
   return viewer?.isAdmin === true;
+}
+
+function isValidTimeZone(timeZone: string): boolean {
+  try {
+    new Intl.DateTimeFormat('en', { timeZone });
+    return true;
+  } catch {
+    return false;
+  }
 }

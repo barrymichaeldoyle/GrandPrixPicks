@@ -1625,6 +1625,24 @@
       "expiresAt": "2026-11-13T18:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6af4930faf6d0ec061868da1"
+    },
+    {
+      "id": "6c4f7ad597f96a0c00fea1f0575fbafe89b7f6b391c45a59c47fbb8a3a610539",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "racing-bulls-2027-lineup-decision-timeline",
+          "revision": "428d2931f0aecb6434a1c1ca304029a3390f2f570e44919e6e9cfdfe1c92fb71"
+        }
+      ],
+      "text": "Lawson keeps his Racing Bulls seat for 2027, alongside Lindblad. Tsolov, who was in the frame for it, becomes reserve driver for both Red Bull teams.",
+      "link": "https://www.skysports.com/f1/news/13610206/racing-bulls-confirm-liam-lawson-and-arvid-lindblad-as-2027-formula-1-driver-line-up",
+      "dueAt": "2026-11-12T16:30:00.000Z",
+      "expiresAt": "2026-11-13T12:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

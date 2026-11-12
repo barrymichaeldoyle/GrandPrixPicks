@@ -52,17 +52,16 @@ really about the finished race but also matters for the next one, file it under
 the finished race.
 
 A story about no race at all (a team's F2 entry, the calendar, a future
-regulation) has no `raceSlug`. `news publish` refuses it; publish it with
-`npx convex run --prod globalNews:publish` instead, which takes `key`,
-`headline`, `body`, `sourceName`, `sourceUrl`, optional `sourcePublishedAt`
-(epoch ms), `team` and `dryRun`. It reaches the feed but never a write-up.
+regulation) has no `raceSlug`. Give it `"global": true` instead of `raceSlug`
+and `affectsSessions`, and publish it with `news publish` like any other item.
+It takes `key`, `headline`, `body`, `sourceName`, `sourceUrl`, and optionally
+`team` and `sourcePublishedAt` (ISO or epoch ms). It reaches the feed but never
+a write-up. The dry run reports `valid` and the action a real run would take.
 
-Choose the mutation before preparing the payload. Do not send a global story
-to `raceNews:publish` as a dry run: its required `raceSlug` and
-`affectsSessions` validators reject it before the dry-run handler runs, and
-the error is reported to Sentry. Rehearse a global story with
-`globalNews:publish` and `"dryRun": true`: it returns `valid` and the `action`
-a real run would take, and writes nothing.
+Do not call `globalNews:publish` or `raceNews:publish` with `npx convex run`.
+A field the validator rejects (an ISO date where it wants epoch ms, a missing
+`raceSlug`) is reported to Sentry. `news publish` checks the shape and converts
+dates before it calls Convex.
 
 Still skip: gossip with no named source, stories sourced to another prediction
 site, and anything already covered by an existing key (republish that one).

@@ -54,7 +54,9 @@ scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
   that links to them. `sourcePublishedAt` and `feedVisibleAt` take an ISO 8601
   timestamp with an explicit offset (or epoch ms); the dry run echoes
   `sourcePublished` as a full UTC ISO string and reports validation problems in
-  the preview. Editorial rules live in the `publish-race-news` skill.
+  the preview. An item with `"global": true` (a story about no race) goes to
+  `globalNews:publish` instead, and is refused locally if it carries a
+  race-only field. Editorial rules live in the `publish-race-news` skill.
 - **`news scan`** fetches eight F1 RSS feeds (list in `NEWS_FEEDS`) and prints
   the unfiled stories, two lines each: score, date, outlets, headline, tags,
   then the URL. The window starts a day before the race's newest item, and

@@ -39,7 +39,8 @@ const HELP = `gpp <command> [args] [--prod] [--json]
                                   --skill <name>  sessions that ran it   --session <id,...>  by id prefix
 
 Flags: --prod targets production Convex. --json prints the raw result.
-In publish files, sourcePublishedAt and feedVisibleAt may be ISO timestamps (prefer an explicit offset).`;
+In publish files, sourcePublishedAt and feedVisibleAt may be ISO timestamps (prefer an explicit offset).
+A story about no race takes "global": true instead of raceSlug and affectsSessions.`;
 
 // ---------------------------------------------------------------------------
 // args
@@ -382,6 +383,49 @@ const NEWS_REQUIRED_FIELDS = [
   'sourceName',
   'sourceUrl',
 ];
+// A story about no race (`"global": true`) goes to globalNews:publish, whose
+// validator takes exactly these fields. Anything else would fail there and be
+// reported to Sentry, so it is refused here instead.
+const GLOBAL_NEWS_REQUIRED_FIELDS = [
+  'key',
+  'headline',
+  'body',
+  'sourceName',
+  'sourceUrl',
+];
+const GLOBAL_NEWS_FIELDS = new Set([
+  ...GLOBAL_NEWS_REQUIRED_FIELDS,
+  'team',
+  'sourcePublishedAt',
+]);
+
+function newsShapeProblem(item) {
+  if (item.global === true) {
+    const missing = GLOBAL_NEWS_REQUIRED_FIELDS.filter(
+      (f) => item[f] === undefined,
+    );
+    if (missing.length) {
+      return `missing ${missing.join(', ')}`;
+    }
+    const extra = Object.keys(item).filter(
+      (f) => f !== 'global' && f !== 'dryRun' && !GLOBAL_NEWS_FIELDS.has(f),
+    );
+    if (extra.length) {
+      return `a global story does not take ${extra.join(', ')}`;
+    }
+    return null;
+  }
+  const missing = NEWS_REQUIRED_FIELDS.filter((f) => item[f] === undefined);
+  if (missing.length) {
+    return (
+      `missing ${missing.join(', ')}` +
+      (missing.includes('raceSlug')
+        ? ' (a story about no race needs "global": true)'
+        : '')
+    );
+  }
+  return null;
+}
 
 function toEpoch(value, field, key) {
   if (value === undefined || typeof value === 'number') {
@@ -408,23 +452,22 @@ function newsPublish(file, flags) {
   // Checked before the first call: Convex reports a validator miss to Sentry,
   // and an array would publish the items ahead of the bad one.
   for (const item of items) {
-    const missing = NEWS_REQUIRED_FIELDS.filter((f) => item[f] === undefined);
-    if (missing.length) {
-      fail(
-        `${item.key ?? 'item'}: missing ${missing.join(', ')}` +
-          (missing.includes('raceSlug')
-            ? ' (a story about no race goes through globalNews:publish)'
-            : ''),
-      );
+    const problem = newsShapeProblem(item);
+    if (problem) {
+      fail(`${item.key ?? 'item'}: ${problem}`);
     }
   }
   const apply = Boolean(flags.apply);
   for (const raw of items) {
-    const { dryRun: _ignored, ...item } = raw;
+    const { dryRun: _ignored, global: isGlobal, ...item } = raw;
     for (const field of DATE_FIELDS) {
       if (item[field] !== undefined) {
         item[field] = toEpoch(item[field], field, item.key);
       }
+    }
+    if (isGlobal === true) {
+      publishGlobalNews(item, apply, flags);
+      continue;
     }
     const res = convexRun(
       'raceNews:publish',
@@ -462,6 +505,36 @@ function newsPublish(file, flags) {
   }
   if (!apply) {
     console.log('dry run. Re-run with --apply to publish.');
+  }
+}
+
+function publishGlobalNews(item, apply, flags) {
+  const res = convexRun(
+    'globalNews:publish',
+    { ...item, ...(apply ? {} : { dryRun: true }) },
+    flags,
+  );
+  if (flags.json) {
+    console.log(JSON.stringify(res, null, 2));
+    return;
+  }
+  const bits = [
+    apply ? 'published' : `would ${WOULD[res.action] ?? res.action}`,
+    `global/${item.key}`,
+  ];
+  if (item.team) {
+    bits.push(item.team);
+  }
+  bits.push(
+    `source ${
+      item.sourcePublishedAt === undefined
+        ? 'undated'
+        : new Date(item.sourcePublishedAt).toISOString()
+    }`,
+  );
+  console.log(bits.join('  '));
+  if (!apply && res.valid === false) {
+    console.log('  VALIDATION: globalNews:publish would reject this item');
   }
 }
 

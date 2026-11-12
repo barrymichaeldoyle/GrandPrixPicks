@@ -43,7 +43,57 @@ test('Sentry 35: race-independent input is rejected locally with the correct pub
   assert.equal(result.stdout, '');
   assert.equal(
     result.stderr.trim(),
-    `gpp: ${globalStory.key}: missing raceSlug, affectsSessions (a story about no race goes through globalNews:publish)`,
+    `gpp: ${globalStory.key}: missing raceSlug, affectsSessions (a story about no race needs "global": true)`,
+  );
+});
+
+// convexRun refuses the test proxy, so reaching it proves local checks passed.
+const REACHED_CONVEX =
+  'gpp: Network-secret Convex access is restricted to Grand Prix Picks production.';
+
+test('Sentry 3B: a global story with an ISO date passes local checks', (t) => {
+  const result = publish(t, {
+    ...globalStory,
+    global: true,
+    sourcePublishedAt: '2026-11-09T09:34:59Z',
+  });
+  assert.equal(result.stderr.trim(), REACHED_CONVEX);
+});
+
+test('a global story with an unreadable date is refused locally', (t) => {
+  const result = publish(t, {
+    ...globalStory,
+    global: true,
+    sourcePublishedAt: 'last Tuesday',
+  });
+  assert.equal(result.status, 1);
+  assert.equal(
+    result.stderr.trim(),
+    `gpp: ${globalStory.key}: sourcePublishedAt "last Tuesday" is not a date`,
+  );
+});
+
+test('a global story refuses race-only fields before calling Convex', (t) => {
+  const result = publish(t, {
+    ...globalStory,
+    global: true,
+    affectsSessions: [],
+    driverCodes: ['NOR'],
+  });
+  assert.equal(result.status, 1);
+  assert.equal(
+    result.stderr.trim(),
+    `gpp: ${globalStory.key}: a global story does not take affectsSessions, driverCodes`,
+  );
+});
+
+test('a global story still needs its source', (t) => {
+  const { sourceUrl: _url, ...story } = globalStory;
+  const result = publish(t, { ...story, global: true });
+  assert.equal(result.status, 1);
+  assert.equal(
+    result.stderr.trim(),
+    `gpp: ${globalStory.key}: missing sourceUrl`,
   );
 });
 

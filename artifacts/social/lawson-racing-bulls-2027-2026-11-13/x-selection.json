@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/global-2026-11-13-evening.json",
+  "startAt": "2026-11-13T16:40:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["lawson-racing-bulls-2027"],
+      "text": "Lawson stays at Racing Bulls for 2027, with rookie Lindblad alongside him again. He has scored in 16 of 20 races this year and is ninth in the standings.",
+      "link": "https://www.crash.net/f1/news/1110045/1/liam-lawson-wins-race-keep-racing-bulls-seat-f1-2027",
+      "expiresAt": "2026-11-15T12:00:00Z"
+    }
+  ]
+}

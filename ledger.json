@@ -1661,7 +1661,8 @@
       "link": "https://www.crash.net/f1/news/1110045/1/liam-lawson-wins-race-keep-racing-bulls-seat-f1-2027",
       "dueAt": "2026-11-13T16:40:00.000Z",
       "expiresAt": "2026-11-15T12:00:00.000Z",
-      "status": "creating"
+      "status": "creating",
+      "bufferPostId": "6af73af20234d2352e1e847d"
     }
   ]
 }

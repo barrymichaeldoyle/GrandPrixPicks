@@ -1663,6 +1663,25 @@
       "expiresAt": "2026-11-15T12:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6af73af20234d2352e1e847d"
+    },
+    {
+      "id": "976772cf488ffce408e46b9be8974a245426ef4af189a0d23b74afe08eac5d79",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "las-vegas-2026",
+          "key": "pirelli-las-vegas-softest-compounds",
+          "revision": "ce3ba7b25a90626a3bbf26aec03ad458b2e6495037d75a48f876074134a4ebb8"
+        }
+      ],
+      "text": "Pirelli takes its softest three compounds to Las Vegas: C3, C4 and C5. The cold Strip makes it hard to get the tyres into their operating window quickly.",
+      "link": "https://grandprixpicks.com/f1-2026-las-vegas-grand-prix-predictions?story=pirelli-las-vegas-softest-compounds",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=las-vegas-2026&story=pirelli-las-vegas-softest-compounds&v=ce3ba7b25a90",
+      "dueAt": "2026-11-14T17:30:00.000Z",
+      "expiresAt": "2026-11-15T08:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/2026-11-15-1800.json",
+  "startAt": "2026-11-15T16:30:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["williams-sainz-albon-2027-test-programme"],
+      "text": "Sainz on Williams using Friday practice to test for 2027: \"I don't care about finishing 15th or 17th.\" Points in Las Vegas are a remote possibility he still plans to fight for.",
+      "link": "https://grandprixpicks.com/f1-2026-las-vegas-grand-prix-predictions?story=williams-sainz-albon-2027-test-programme",
+      "expiresAt": "2026-11-19T20:00:00Z"
+    }
+  ]
+}

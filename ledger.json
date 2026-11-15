@@ -1701,7 +1701,8 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=las-vegas-2026&story=williams-sainz-albon-2027-test-programme&v=8b98368b4255",
       "dueAt": "2026-11-15T16:30:00.000Z",
       "expiresAt": "2026-11-19T20:00:00.000Z",
-      "status": "creating"
+      "status": "creating",
+      "bufferPostId": "6af9d8b0544d0574a92ad240"
     }
   ]
 }

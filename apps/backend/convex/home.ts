@@ -181,63 +181,73 @@ export const getHomePageData = query({
     // `includeNotRacing` matches the client for the same reason the race page
     // gives: a saved pick naming a driver who has since lost their seat has to
     // resolve to five slots on the server too.
-    const { drivers, teamPoints } = await loadRosterWithConstructorPoints(ctx, {
-      round: nextRace?.round,
-      season: nextRace?.season,
-      includeNotRacing: true,
-    });
-
     const startedRaces = races
       .filter((race) => race.raceStartAt <= now && race.status !== 'cancelled')
       .sort((a, b) => b.raceStartAt - a.raceStartAt);
     const mostRecentStartedRace: Doc<'races'> | null = startedRaces[0] ?? null;
 
-    // Rank movement is measured against the most recent race that actually has
-    // scored players — not just the most recent started race, which may not be
-    // scored yet (mid-weekend) or may be a dev-only scenario race with no
-    // entries. Searching back six rounds covers a summer break.
-    let lastScoredRacePoints = new Map<string, number>();
-    // Captured alongside the points because the landing board is that race's
-    // board and has to name it. Same loop, same reads.
-    let lastScoredRace: Doc<'races'> | null = null;
-    for (const race of startedRaces.slice(0, 6)) {
-      const racePoints = await loadRacePointsByUser(ctx, race._id);
-      if (racePoints.size > 0) {
-        lastScoredRacePoints = racePoints;
-        lastScoredRace = race;
-        break;
-      }
-    }
-
-    const [nextRaceResults, recentRaceResults] = await Promise.all([
-      nextRace
-        ? getPublishedSessionTypes(ctx, nextRace._id)
-        : ([] as Array<SessionType>),
-      mostRecentStartedRace
-        ? getPublishedSessionTypes(ctx, mostRecentStartedRace._id)
-        : ([] as Array<SessionType>),
+    // Everything below depends only on the two races above, so the sections
+    // run side by side rather than one after another. This query once hit
+    // Convex's system timeout (time spent waiting on database calls, which the
+    // 1s user-code limit does not count): its reads are small and bounded, but
+    // eight serial waves of them turned a slow moment on the database into a
+    // failed landing page.
+    const [
+      { drivers, h2hMatchups },
+      { lastScoredRace, lastScoredRacePoints },
+      [nextRaceResults, recentRaceResults],
+      nextRaceNews,
+    ] = await Promise.all([
+      (async () => {
+        const roster = await loadRosterWithConstructorPoints(ctx, {
+          round: nextRace?.round,
+          season: nextRace?.season,
+          includeNotRacing: true,
+        });
+        // Same reasoning as drivers: a returning visitor resumes the picker on
+        // the team-mate step, and without this the card's first paint is
+        // eleven skeleton boxes waiting on a websocket round trip for data the
+        // SSR render already had in hand.
+        const matchups = nextRace
+          ? await loadMatchupsForSeason(
+              ctx,
+              nextRace.season,
+              nextRace.round,
+              roster.teamPoints,
+            )
+          : [];
+        return { drivers: roster.drivers, h2hMatchups: matchups };
+      })(),
+      // Rank movement is measured against the most recent race that actually
+      // has scored players — not just the most recent started race, which may
+      // not be scored yet (mid-weekend) or may be a dev-only scenario race
+      // with no entries. Searching back six rounds covers a summer break.
+      // The race is captured alongside the points because the landing board
+      // is that race's board and has to name it.
+      (async () => {
+        for (const race of startedRaces.slice(0, 6)) {
+          const racePoints = await loadRacePointsByUser(ctx, race._id);
+          if (racePoints.size > 0) {
+            return { lastScoredRace: race, lastScoredRacePoints: racePoints };
+          }
+        }
+        return {
+          lastScoredRace: null as Doc<'races'> | null,
+          lastScoredRacePoints: new Map<string, number>(),
+        };
+      })(),
+      Promise.all([
+        nextRace
+          ? getPublishedSessionTypes(ctx, nextRace._id)
+          : ([] as Array<SessionType>),
+        mostRecentStartedRace
+          ? getPublishedSessionTypes(ctx, mostRecentStartedRace._id)
+          : ([] as Array<SessionType>),
+      ]),
+      // Five headlines, not the stories: the landing page links each one into
+      // the race write-up, which is where the sourced text is published.
+      nextRace ? loadNewsHeadlines(ctx, nextRace, 5) : null,
     ]);
-
-    // Same reasoning as drivers: a returning visitor resumes the picker on the
-    // team-mate step, and without this the card's first paint is eleven
-    // skeleton boxes waiting on a websocket round trip for data the SSR render
-    // already had in hand.
-    const h2hMatchups = nextRace
-      ? await loadMatchupsForSeason(
-          ctx,
-          nextRace.season,
-          nextRace.round,
-          teamPoints,
-        )
-      : [];
-
-    // Five headlines, not the stories: the landing page links each one into
-    // the race write-up, which is where the sourced text is published.
-    const nextRaceNews = nextRace
-      ? await loadNewsHeadlines(ctx, nextRace, 5)
-      : null;
-
-    const season = await getDefaultLeaderboardSeason(ctx);
 
     /*
      * The landing page's board is ONE race weekend, not the season.
@@ -257,7 +267,9 @@ export const getHomePageData = query({
      *
      * Only the five displayed players need identities. Read their standings
      * by user instead of loading both entire season tables just for names.
-     * The user row remains the fallback for missing standings.
+     * The user row remains the fallback for missing standings. The standings
+     * are the scored race's season, which at a rollover is not the season of
+     * the race coming up.
      */
     const rankedWeekend = assignCompetitionRanks(
       [...lastScoredRacePoints.entries()]
@@ -269,6 +281,8 @@ export const getHomePageData = query({
         ),
       (row) => row.points,
     );
+    // Rows exist only when a race was scored, so the fallback is never read.
+    const season = lastScoredRace?.season ?? 0;
     const weekendPlayers = await Promise.all(
       rankedWeekend.slice(0, 5).map(async (row) => {
         const userId = row.userId as Id<'users'>;

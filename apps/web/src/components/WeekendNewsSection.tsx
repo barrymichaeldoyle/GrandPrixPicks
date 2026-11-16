@@ -505,26 +505,30 @@ function NewsCards({
                 `aria-expanded` on a button that no longer toggles anything
                 would tell a desktop screen reader the open story is closed.
                 Only one is displayed, so only one is read. */}
-            <h3 className="font-title text-lg font-medium text-text">
+            {/* One text node for the headline. It used to be in the h3 twice,
+                once in the phone's toggle button and once in a desktop span,
+                so the HTML (and a crawler) read every headline doubled. The
+                toggle now holds only the chevron, takes its name from the
+                headline, and stretches over the heading so the whole line
+                still taps. */}
+            <h3 className="font-title relative flex items-start justify-between gap-3 text-lg font-medium text-text">
+              <span id={`${cardId(item.key)}-headline`}>{item.headline}</span>
               {collapsible ? (
                 <button
                   type="button"
                   aria-expanded={isOpen}
+                  aria-labelledby={`${cardId(item.key)}-headline`}
                   onClick={() => onToggle(item.key)}
-                  className="flex w-full items-start justify-between gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:hidden"
+                  className="mt-1.5 shrink-0 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:hidden"
                 >
-                  {item.headline}
                   <ChevronDown
-                    className={`mt-1.5 size-4 shrink-0 text-text-muted transition-transform ${
+                    className={`size-4 text-text-muted transition-transform ${
                       isOpen ? 'rotate-180' : ''
                     }`}
                     aria-hidden
                   />
                 </button>
               ) : null}
-              <span className={collapsible ? 'max-sm:hidden' : undefined}>
-                {item.headline}
-              </span>
             </h3>
             <div className={collapsible && !isOpen ? 'max-sm:hidden' : ''}>
               {item.writeUpImage ? (

@@ -199,6 +199,35 @@ function delay(ms: number) {
   });
 }
 
+/**
+ * When a race page's content last changed: the latest session already run,
+ * since each one publishes a result, or when the race was created if none has.
+ *
+ * It was `updatedAt`, which any write to the row moves. A bulk patch on
+ * 2026-10-01 gave all twelve race URLs the same lastmod, and a lastmod that
+ * moves for writes nobody can see teaches a crawler to ignore it.
+ */
+export function raceContentChangedAt(
+  race: {
+    sprintQualiStartAt?: number;
+    sprintStartAt?: number;
+    qualiStartAt?: number;
+    raceStartAt: number;
+    _creationTime: number;
+  },
+  now: number,
+): number {
+  const sessionsRun = [
+    race.sprintQualiStartAt,
+    race.sprintStartAt,
+    race.qualiStartAt,
+    race.raceStartAt,
+  ].filter(
+    (startAt): startAt is number => startAt !== undefined && startAt <= now,
+  );
+  return sessionsRun.length > 0 ? Math.max(...sessionsRun) : race._creationTime;
+}
+
 async function loadRaceEntries() {
   const convex = getServerConvexClient();
 
@@ -211,7 +240,7 @@ async function loadRaceEntries() {
       return liveRaces
         .sort((a, b) => a.round - b.round)
         .flatMap((race) => {
-          const lastmod = toIsoDate(race.updatedAt ?? race._creationTime);
+          const lastmod = toIsoDate(raceContentChangedAt(race, Date.now()));
           // A race with an editorial write-up canonicalises to it, so listing
           // the race URL here would ask Google to index a page that points
           // somewhere else.

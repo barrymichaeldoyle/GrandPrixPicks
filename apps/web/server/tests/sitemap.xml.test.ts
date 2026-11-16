@@ -31,6 +31,8 @@ const RACES = [
     round: 6,
     slug: 'miami-2026',
     status: 'upcoming',
+    // Already run, so it is the page's lastmod (2023-11-14T22:15:00Z).
+    raceStartAt: 1_700_000_100_000,
     updatedAt: 1_700_000_100_000,
   },
   {
@@ -177,5 +179,19 @@ describe('sitemap.xml route', () => {
     expect(xml).toContain(
       '<loc>https://grandprixpicks.com/races/australia-2026</loc>',
     );
+  });
+});
+
+describe('raceContentChangedAt', () => {
+  it('is the latest session already run, ignoring row writes', async () => {
+    const { raceContentChangedAt } = await import('../routes/sitemap.xml');
+    const race = {
+      _creationTime: 100,
+      qualiStartAt: 1_000,
+      raceStartAt: 2_000,
+    };
+    expect(raceContentChangedAt(race, 500)).toBe(100);
+    expect(raceContentChangedAt(race, 1_500)).toBe(1_000);
+    expect(raceContentChangedAt(race, 9_000)).toBe(2_000);
   });
 });

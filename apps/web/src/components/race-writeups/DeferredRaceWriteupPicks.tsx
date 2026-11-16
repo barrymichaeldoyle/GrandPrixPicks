@@ -63,9 +63,12 @@ function copyForPhase(
     // The lock rule is not repeated here: the picker says it under its
     // save button, and this line said it a third time above the same form.
     heading: `Make your ${venueName} picks`,
+    // No body on a standard weekend: the picker's own scope line ("Applies to
+    // Qualifying and Race. You can edit each session until it starts.") says
+    // it directly under this heading, and saying it twice read as two rules.
     body: hasSprint
       ? 'Choose a Top 5 for all open sessions, or make a separate set for each.'
-      : 'Choose your Top 5 for qualifying and the race.',
+      : null,
   };
 }
 
@@ -229,7 +232,9 @@ export function DeferredRaceWriteupPicks({
         >
           {copy.heading}
         </h2>
-        <p className="gpp-reading-copy mt-2 text-text-muted">{copy.body}</p>
+        {copy.body ? (
+          <p className="gpp-reading-copy mt-2 text-text-muted">{copy.body}</p>
+        ) : null}
         {showNextLinks ? (
           <RaceWriteupNextLinks
             placement={

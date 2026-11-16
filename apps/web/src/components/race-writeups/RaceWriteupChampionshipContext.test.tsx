@@ -120,4 +120,64 @@ describe('RaceWriteupChampionshipContext', () => {
       'by 59 points from George Russell and Lewis Hamilton, level on 183.',
     );
   });
+
+  // 111 clear with three races (75 points) left is a title already won, and
+  // "leads by 111" undersold it.
+  it('says the title is won once the lead exceeds the points left', () => {
+    const championship = championshipWith([
+      driver(1, 'ANT', 'Kimi Antonelli', 390),
+      driver(2, 'VER', 'Max Verstappen', 279),
+    ]);
+    championship.roundsScored = 20;
+    (championship as unknown as { season: number }).season = 2026;
+    const races = [21, 22, 23].map((round) => ({
+      slug: `round-${round}`,
+      name: `Round ${round} Grand Prix`,
+      round,
+      status: 'upcoming',
+      hasSprint: false,
+    })) as unknown as Parameters<
+      typeof RaceWriteupChampionshipContext
+    >[0]['races'];
+    const view = document.createElement('div');
+    view.innerHTML = renderToStaticMarkup(
+      <RaceWriteupChampionshipContext
+        championship={championship}
+        races={races}
+        thisRound={21}
+        venueName="Las Vegas"
+      />,
+    );
+
+    expect(view.querySelector('p')!.textContent).toBe(
+      'Kimi Antonelli has won the 2026 drivers\u2019 title: 111 points clear of Max Verstappen after 20 rounds, with 75 left to score.',
+    );
+  });
+
+  it('keeps the lead wording while the title is still open', () => {
+    const championship = championshipWith([
+      driver(1, 'ANT', 'Kimi Antonelli', 390),
+      driver(2, 'VER', 'Max Verstappen', 330),
+    ]);
+    championship.roundsScored = 20;
+    const races = [21, 22, 23].map((round) => ({
+      slug: `round-${round}`,
+      name: `Round ${round} Grand Prix`,
+      round,
+      status: 'upcoming',
+      hasSprint: round === 22,
+    })) as unknown as Parameters<
+      typeof RaceWriteupChampionshipContext
+    >[0]['races'];
+    const html = renderToStaticMarkup(
+      <RaceWriteupChampionshipContext
+        championship={championship}
+        races={races}
+        thisRound={21}
+        venueName="Las Vegas"
+      />,
+    );
+
+    expect(html).toContain('leads the drivers’ table by 60 points');
+  });
 });

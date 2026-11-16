@@ -81,6 +81,21 @@ export function RaceWriteupChampionshipContext({
           .sort((a, b) => a.round - b.round)
       : [];
 
+  // Points still available after the rounds already scored: 25 for each
+  // remaining race, 8 for each remaining sprint. Only known when the page
+  // loads the season. A lead bigger than that is a title already decided, and
+  // "leads by 111 points" with 75 left undersold the one fact that mattered.
+  const pointsLeft = races
+    ? races
+        .filter(
+          (race) =>
+            race.round > championship.roundsScored &&
+            race.status !== 'cancelled',
+        )
+        .reduce((total, race) => total + 25 + (race.hasSprint ? 8 : 0), 0)
+    : null;
+  const decided = pointsLeft !== null && gap > pointsLeft;
+
   return (
     <section className="py-8 sm:py-16" aria-labelledby="championship-context">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
@@ -92,11 +107,22 @@ export function RaceWriteupChampionshipContext({
             Championship standings
           </h2>
           <p className="gpp-reading-copy mt-4 text-text-muted">
-            After {championship.roundsScored}{' '}
-            {championship.roundsScored === 1 ? 'round' : 'rounds'},{' '}
-            {leader.displayName} leads the drivers&rsquo; table by {gap}{' '}
-            {gap === 1 ? 'point' : 'points'} from {formatList(chaserNames)}
-            {chasers.length > 1 ? `, level on ${second.points}` : ''}.
+            {decided ? (
+              <>
+                {leader.displayName} has won the {championship.season}{' '}
+                drivers&rsquo; title: {gap} points clear of{' '}
+                {formatList(chaserNames)} after {championship.roundsScored}{' '}
+                rounds, with {pointsLeft} left to score.
+              </>
+            ) : (
+              <>
+                After {championship.roundsScored}{' '}
+                {championship.roundsScored === 1 ? 'round' : 'rounds'},{' '}
+                {leader.displayName} leads the drivers&rsquo; table by {gap}{' '}
+                {gap === 1 ? 'point' : 'points'} from {formatList(chaserNames)}
+                {chasers.length > 1 ? `, level on ${second.points}` : ''}.
+              </>
+            )}
             {pendingRaces.length > 0 ? (
               <>
                 {' '}

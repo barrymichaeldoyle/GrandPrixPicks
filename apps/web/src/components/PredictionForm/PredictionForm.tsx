@@ -1142,7 +1142,10 @@ export function PredictionForm({
                 {submissionBlockedMessage}
               </p>
             ) : null}
-            {showSaveWall || renderActionArea ? null : (
+            {/* Only for one session. A weekend form's scope line already
+                says "You can edit each session until it starts", and "this
+                session" was wrong on a card covering two. */}
+            {showSaveWall || renderActionArea || !sessionType ? null : (
               <p className="mt-2 text-center text-xs text-text-muted">
                 You can edit your picks any time before this session starts.
               </p>

@@ -131,7 +131,7 @@ describe('H2HPredictionForm fills duels from the Top 5', () => {
   it('asks only the duels the Top 5 leaves open', () => {
     render();
 
-    expect(text('h2h-duel-progress')).toBe('Team-mate pick 1 of 1');
+    expect(text('h2h-duel-progress')).toBe('Team-mate pick 1 of 1: Mercedes');
     expect(text('h2h-inferred-count')).toBe('2 set from your Top 5');
     expect(container.textContent).toContain('Who finishes ahead?');
     expect(container.textContent).toContain('George Russell');

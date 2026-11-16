@@ -1,6 +1,6 @@
 import { api } from '@convex-generated/api';
 import type { Doc, Id } from '@convex-generated/dataModel';
-import type { DragEndEvent } from '@dnd-kit/core';
+import type { Announcements, DragEndEvent } from '@dnd-kit/core';
 import {
   closestCenter,
   DndContext,
@@ -450,6 +450,53 @@ export function PredictionForm({
   // from being offered again.
   const driversSortedByTeam = pickPool(availableDrivers);
 
+  /**
+   * What a screen reader hears when a pick lands, leaves or moves. The counter
+   * beside the pool only ever said "4 left", which is not who went where, and
+   * the up and down arrows said nothing at all.
+   */
+  const [announcement, setAnnouncement] = useState('');
+  function announce(message: string) {
+    // Same text twice in a row is not re-read; the trailing space changes it.
+    setAnnouncement((previous) =>
+      previous === message ? `${message} ` : message,
+    );
+  }
+  function driverName(driverId: string): string {
+    const driver = availableDrivers.find((entry) => entry._id === driverId);
+    return driver?.displayName ?? 'Driver';
+  }
+  /** dnd-kit's defaults read out raw Convex ids ("Draggable item j572…"). */
+  function describeDropTarget(overId: string): string {
+    if (overId === DRIVER_POOL_DROPPABLE_ID) {
+      return 'the driver list';
+    }
+    const emptySlot = parseEmptySlotId(overId);
+    if (emptySlot !== null) {
+      return `P${emptySlot + 1}`;
+    }
+    const index = picks.indexOf(overId as Id<'drivers'>);
+    return index >= 0 ? `P${index + 1}` : driverName(overId);
+  }
+  const dndAnnouncements: Announcements = {
+    onDragStart: ({ active }) => {
+      const index = picks.indexOf(String(active.id) as Id<'drivers'>);
+      return index >= 0
+        ? `Picked up ${driverName(String(active.id))}, P${index + 1}.`
+        : `Picked up ${driverName(String(active.id))}.`;
+    },
+    onDragOver: ({ active, over }) =>
+      over
+        ? `${driverName(String(active.id))} is over ${describeDropTarget(String(over.id))}.`
+        : `${driverName(String(active.id))} is not over a position.`,
+    onDragEnd: ({ active, over }) =>
+      over
+        ? `${driverName(String(active.id))} dropped at ${describeDropTarget(String(over.id))}.`
+        : `${driverName(String(active.id))} dropped.`,
+    onDragCancel: ({ active }) =>
+      `Moving ${driverName(String(active.id))} cancelled.`,
+  };
+
   function addDriver(driverId: Id<'drivers'>) {
     if (picks.length >= 5) {
       return;
@@ -458,15 +505,61 @@ export function PredictionForm({
       return;
     }
     markInteraction();
+    const nextCount = picks.length + 1;
     setPicks([...picks, driverId]);
-    trackPickProgress(picks.length + 1);
+    trackPickProgress(nextCount);
     setSubmitStatus('idle');
+    announce(
+      nextCount === 5
+        ? `${driverName(driverId)} added at P5. Top 5 complete.`
+        : `${driverName(driverId)} added at P${nextCount}. ${5 - nextCount} left.`,
+    );
+    // The pool card just pressed becomes disabled, and a disabled button drops
+    // keyboard focus to <body>: a screen reader user lost their place on each
+    // of the five picks. Only when the card held focus, so a tap elsewhere is
+    // not pulled around.
+    const active = document.activeElement;
+    if (
+      active instanceof HTMLElement &&
+      active.closest('[data-testid="driver-pool"]')
+    ) {
+      focusAfterAddRef.current = active.dataset.testid ?? null;
+    }
   }
+
+  const focusAfterAddRef = useRef<string | null>(null);
+  useEffect(() => {
+    const pressedTestId = focusAfterAddRef.current;
+    if (pressedTestId === null) {
+      return;
+    }
+    focusAfterAddRef.current = null;
+    if (picks.length >= 5) {
+      yourPicksRef.current?.focus({ preventScroll: true });
+      return;
+    }
+    const pool = yourPicksRef.current?.parentElement?.querySelector(
+      '[data-testid="driver-pool"]',
+    );
+    const cards = Array.from(
+      pool?.querySelectorAll<HTMLButtonElement>(
+        'button[data-testid^="driver-"]',
+      ) ?? [],
+    );
+    const pressedIndex = cards.findIndex(
+      (card) => card.dataset.testid === pressedTestId,
+    );
+    const next =
+      cards.slice(pressedIndex + 1).find((card) => !card.disabled) ??
+      cards.find((card) => !card.disabled);
+    next?.focus({ preventScroll: true });
+  }, [picks]);
 
   function removeDriver(driverId: Id<'drivers'>) {
     markInteraction();
     setPicks(picks.filter((id) => id !== driverId));
     setSubmitStatus('idle');
+    announce(`${driverName(driverId)} removed. ${6 - picks.length} left.`);
   }
 
   /**
@@ -525,6 +618,7 @@ export function PredictionForm({
     ];
     setPicks(newPicks);
     setSubmitStatus('idle');
+    announce(`${driverName(picks[index]!)} moved to P${index}.`);
   }
 
   function moveDown(index: number) {
@@ -539,6 +633,7 @@ export function PredictionForm({
     ];
     setPicks(newPicks);
     setSubmitStatus('idle');
+    announce(`${driverName(picks[index]!)} moved to P${index + 2}.`);
   }
 
   async function handleSubmit(options?: {
@@ -887,7 +982,17 @@ export function PredictionForm({
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
+      accessibility={{
+        announcements: dndAnnouncements,
+        screenReaderInstructions: {
+          draggable:
+            'To move a pick, press space or enter, use the arrow keys, then press space or enter again to drop it. Press escape to cancel.',
+        },
+      }}
     >
+      <span className="sr-only" role="status" aria-live="polite">
+        {announcement}
+      </span>
       <div className="@container space-y-4 sm:space-y-6">
         {!sessionType && (
           <p

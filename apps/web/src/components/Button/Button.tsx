@@ -114,6 +114,11 @@ function Button({
 }: ButtonProps) {
   const effectiveVariant = saved ? 'saved' : variant;
   const isDisabled = disabled || loading || saved;
+  // A button that is only busy stays focusable. `disabled` on a focused
+  // button drops keyboard focus to <body>, so pressing "Sign in to save your picks"
+  // lost the reader's place for the seconds Clerk took to load. Busy is
+  // `aria-disabled` plus a swallowed click instead.
+  const busyOnly = loading && !disabled && !saved;
 
   // Selected = raised surface + accent hairline, the system's one selection
   // treatment. Applied to rows and slots as the stripe instead.
@@ -150,6 +155,9 @@ function Button({
           <span className="invisible inline-flex items-center" aria-hidden>
             {normalContent}
           </span>
+          {/* `invisible` takes the label out of the accessibility tree too;
+              this keeps the button's name while it spins. */}
+          {label ? <span className="sr-only">{label}</span> : null}
           <Loader2
             size={iconSizes[size]}
             className="absolute top-1/2 left-1/2 shrink-0 -translate-x-1/2 -translate-y-1/2 animate-spin"
@@ -187,11 +195,20 @@ function Button({
     <button
       ref={ref}
       type={type}
-      disabled={isDisabled}
+      disabled={isDisabled && !busyOnly}
       className={
         tooltip ? `${resolvedClassName} w-full`.trim() : resolvedClassName
       }
       {...rest}
+      aria-disabled={busyOnly ? true : rest['aria-disabled']}
+      aria-busy={loading ? true : rest['aria-busy']}
+      onClick={
+        busyOnly
+          ? (event) => {
+              event.preventDefault();
+            }
+          : rest.onClick
+      }
     >
       {renderContent(children)}
     </button>

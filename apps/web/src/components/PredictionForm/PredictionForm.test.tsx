@@ -309,6 +309,31 @@ describe('PredictionForm try-before-signup', () => {
     expect(picked?.disabled).toBe(true);
   });
 
+  // A picked pool card becomes disabled, and a disabled button drops focus to
+  // <body>. Focus moves on to the next driver, and the pick is announced by
+  // name and position rather than as "4 left".
+  it('keeps keyboard focus in the pool and announces each pick', async () => {
+    clearPredictionDraft(draftKey);
+    await act(async () => {
+      root.render(<PredictionForm raceId={RACE_ID} />);
+    });
+
+    const first = container.querySelector<HTMLButtonElement>(
+      '[data-testid="driver-D0"]',
+    );
+    act(() => {
+      first?.focus();
+      first?.click();
+    });
+
+    expect(document.activeElement).toBe(
+      container.querySelector('[data-testid="driver-D1"]'),
+    );
+    expect(container.querySelector('[role="status"]')?.textContent).toMatch(
+      / added at P1\. 4 left\.$/,
+    );
+  });
+
   it('keeps completed-pick guidance compact and beside the heading', async () => {
     await act(async () => {
       root.render(<PredictionForm raceId={RACE_ID} />);

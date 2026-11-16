@@ -96,6 +96,14 @@ export function H2HDuelPicker({
   const syncedToDraftRef = useRef(false);
   const duelCardRef = useRef<HTMLDivElement>(null);
   const shouldFocusDuelRef = useRef(false);
+  /**
+   * Set by the pick that answers the last open duel. The finished card has no
+   * duel button to move to, and the button just pressed unmounts, so focus fell
+   * to <body>. It lands on the "All team-mate picks made" line instead, which
+   * is the first thing on the finished card.
+   */
+  const shouldFocusFinishedRef = useRef(false);
+  const progressRef = useRef<HTMLParagraphElement>(null);
 
   const selectedCount = matchups.filter(
     (matchup) => selections[matchup._id] !== undefined,
@@ -221,6 +229,14 @@ export function H2HDuelPicker({
     focusActiveDuel();
   }, [activeIndex, collapsedEdit, complete, editingIndex]);
 
+  useEffect(() => {
+    if (!shouldFocusFinishedRef.current || !complete || editingIndex !== null) {
+      return;
+    }
+    shouldFocusFinishedRef.current = false;
+    progressRef.current?.focus({ preventScroll: true });
+  }, [complete, editingIndex]);
+
   function pick(driverId: H2HDriver['_id']) {
     if (!matchup) {
       return;
@@ -240,6 +256,13 @@ export function H2HDuelPicker({
         selections[candidate._id] !== undefined,
     );
     setJustSaved(answered);
+    if (
+      answered &&
+      !modalEdit &&
+      duelCardRef.current?.contains(document.activeElement)
+    ) {
+      shouldFocusFinishedRef.current = true;
+    }
     timerRef.current = window.setTimeout(
       () =>
         answered ? setEditingIndex(null) : goToNextOpenMatchup(matchup._id),
@@ -314,7 +337,9 @@ export function H2HDuelPicker({
             "All battles called" a third time. */}
         <div className="flex items-center justify-between gap-3">
           <p
-            className="flex items-center gap-1.5 text-xs font-medium text-text-muted"
+            ref={progressRef}
+            tabIndex={-1}
+            className="flex items-center gap-1.5 text-xs font-medium text-text-muted focus:outline-none"
             aria-live="polite"
             data-testid="h2h-duel-progress"
           >
@@ -326,7 +351,14 @@ export function H2HDuelPicker({
             ) : askedPosition === -1 ? (
               'Set from your Top 5'
             ) : (
-              `Team-mate pick ${askedPosition + 1} of ${askedIndexes.length}`
+              <>
+                {`Team-mate pick ${askedPosition + 1} of ${askedIndexes.length}`}
+                {/* Focus moves straight to the next driver, past the team
+                    label above the duel, so the announcement carries it. */}
+                <span className="sr-only">
+                  {`: ${displayTeamName(matchup.team)}`}
+                </span>
+              </>
             )}
           </p>
           {/* The "tap a battle to change your mind" hint used to sit under the

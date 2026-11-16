@@ -145,13 +145,15 @@ export function SortablePickRow({
               e.stopPropagation();
               moveUp(index);
             }}
-            disabled={index === 0}
-            className="group flex h-8 w-11 items-center justify-center rounded-sm transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none disabled:pointer-events-none sm:h-6 sm:w-8 pointer-coarse:h-8 pointer-coarse:w-11"
+            // `aria-disabled`, not `disabled`: moving a pick to the end disables
+            // the arrow just pressed, and a disabled button drops focus to <body>.
+            aria-disabled={index === 0}
+            className="group flex h-8 w-11 items-center justify-center rounded-sm transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none aria-disabled:cursor-default aria-disabled:hover:bg-transparent sm:h-6 sm:w-8 pointer-coarse:h-8 pointer-coarse:w-11"
             aria-label={`Move ${driver.displayName} up`}
           >
             <ChevronUp
               size={18}
-              className="text-accent group-disabled:text-text-disabled"
+              className="text-accent group-aria-disabled:text-text-disabled"
               aria-hidden
             />
           </button>
@@ -161,13 +163,15 @@ export function SortablePickRow({
               e.stopPropagation();
               moveDown(index);
             }}
-            disabled={index >= picksLength - 1}
-            className="group flex h-8 w-11 items-center justify-center rounded-sm transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none disabled:pointer-events-none sm:h-6 sm:w-8 pointer-coarse:h-8 pointer-coarse:w-11"
+            // `aria-disabled`, not `disabled`: moving a pick to the end disables
+            // the arrow just pressed, and a disabled button drops focus to <body>.
+            aria-disabled={index >= picksLength - 1}
+            className="group flex h-8 w-11 items-center justify-center rounded-sm transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none aria-disabled:cursor-default aria-disabled:hover:bg-transparent sm:h-6 sm:w-8 pointer-coarse:h-8 pointer-coarse:w-11"
             aria-label={`Move ${driver.displayName} down`}
           >
             <ChevronDown
               size={18}
-              className="text-accent group-disabled:text-text-disabled"
+              className="text-accent group-aria-disabled:text-text-disabled"
               aria-hidden
             />
           </button>

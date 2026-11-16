@@ -95,12 +95,15 @@ export function LandingHero({
         {/* The full clock is contextual, not the page's primary action. One
             timing rail anchors it without turning it into another card. */}
         {clock ? (
-          <aside
+          // A group, not an <aside>: a complementary landmark nested in a
+          // section is one axe flags, and the clock is part of the hero.
+          <div
+            role="group"
             className="gpp-stripe hidden py-5 pl-8 lg:block"
             aria-label="Next prediction deadline"
           >
             {clock}
-          </aside>
+          </div>
         ) : null}
       </div>
     </section>

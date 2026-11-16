@@ -76,7 +76,7 @@ describe('H2HDuelPicker', () => {
     );
     expect(
       container.querySelector('[data-testid="h2h-duel-progress"]')?.textContent,
-    ).toBe('Team-mate pick 1 of 2');
+    ).toMatch(/^Team-mate pick 1 of 2: /);
 
     act(() => {
       pickDriver(container, 'Lando Norris')?.click();
@@ -86,7 +86,7 @@ describe('H2HDuelPicker', () => {
     expect(container.textContent).toContain('Team-mate pick 2 of 2');
     expect(
       container.querySelector('[data-testid="h2h-duel-progress"]')?.textContent,
-    ).toBe('Team-mate pick 2 of 2');
+    ).toMatch(/^Team-mate pick 2 of 2: /);
   });
 
   it('moves to restored draft progress once the draft hydrates', () => {

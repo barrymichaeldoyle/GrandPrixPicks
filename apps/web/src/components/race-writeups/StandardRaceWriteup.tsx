@@ -7,6 +7,10 @@ import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceW
 import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
 import { RaceWriteupNextRound } from '@/components/race-writeups/RaceWriteupNextRound';
+import {
+  finishedRaceSummary,
+  RaceWriteupFinishedResults,
+} from '@/components/race-writeups/RaceWriteupFinishedResults';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
@@ -75,6 +79,7 @@ export function StandardRaceWriteup({
   } = data;
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
+  const isFinished = phase === 'finished';
   // The picker takes over from the closing panel by itself once this round is
   // the next on the calendar (`RaceWriteupFinish`), so the page needs no edit
   // on the day picks open. Austin's opened five days late for want of one.
@@ -88,11 +93,16 @@ export function StandardRaceWriteup({
           flagCode={flagCode}
           eyebrow={`${formatWeekendSpan(race, timeZone)} · ${venueName} · Round ${race.round}`}
           title={`${raceName} 2026 predictions`}
-          summary={raceWriteupHeroSummary(phase, `The ${raceName}`, summary)}
+          summary={raceWriteupHeroSummary(
+            phase,
+            `The ${raceName}`,
+            summary,
+            finishedRaceSummary(data.top5),
+          )}
           phase={phase}
           raceSlug={raceSlug}
           primaryActionTargetId={primaryActionTargetId}
-          nextRace={phase === 'finished' ? nextRace : undefined}
+          nextRace={isFinished ? nextRace : undefined}
           venueName={venueName}
           signalsHeading={signalsHeading}
           schedule={{
@@ -113,6 +123,13 @@ export function StandardRaceWriteup({
           item. */}
       {isLive ? (
         <WeekendNewsSection items={news.items} storePage={raceSlug} />
+      ) : null}
+      {/* A finished page leads with what it is an archive of: the result and
+          how players picked, which `race-writeup-lifecycle.md` asks for and
+          the noindexed race page cannot rank with. Both render nothing until
+          there is a scored or locked session. */}
+      {isFinished ? (
+        <RaceWriteupFinishedResults data={data} venueName={venueName} />
       ) : null}
       <RaceWriteupArticle
         actions={{ phase, raceSlug, venueName, primaryActionTargetId }}

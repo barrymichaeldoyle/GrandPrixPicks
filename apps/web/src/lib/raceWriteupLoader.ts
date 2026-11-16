@@ -23,29 +23,50 @@ export async function loadRaceWriteup(
 ) {
   await setRaceDataCacheHeaders();
   const weatherNow = Date.now();
-  const [race, championship, weather, news, season, practice, nextRace] =
-    await Promise.all([
-      queryClient.ensureQueryData(
-        routeQuery(api.races.getRaceBySlug, { slug: raceSlug }),
-      ),
-      queryClient.ensureQueryData(
-        routeQuery(api.f1Standings.getF1Championship, {}),
-      ),
-      queryClient.ensureQueryData(
-        routeQuery(api.weather.getForWriteup, {
-          raceSlug,
-          now: bucketWeatherNow(weatherNow),
-        }),
-      ),
-      queryClient.ensureQueryData(routeQuery(api.raceNews.list, { raceSlug })),
-      queryClient.ensureQueryData(routeQuery(api.races.listCurrentSeason, {})),
-      queryClient.ensureQueryData(
-        routeQuery(api.practiceResults.getPracticeResultsForRaceSlug, {
-          raceSlug,
-        }),
-      ),
-      queryClient.ensureQueryData(routeQuery(api.races.getNextRace, {})),
-    ]);
+  const [
+    race,
+    championship,
+    weather,
+    news,
+    season,
+    practice,
+    nextRace,
+    consensus,
+    top5,
+  ] = await Promise.all([
+    queryClient.ensureQueryData(
+      routeQuery(api.races.getRaceBySlug, { slug: raceSlug }),
+    ),
+    queryClient.ensureQueryData(
+      routeQuery(api.f1Standings.getF1Championship, {}),
+    ),
+    queryClient.ensureQueryData(
+      routeQuery(api.weather.getForWriteup, {
+        raceSlug,
+        now: bucketWeatherNow(weatherNow),
+      }),
+    ),
+    queryClient.ensureQueryData(routeQuery(api.raceNews.list, { raceSlug })),
+    queryClient.ensureQueryData(routeQuery(api.races.listCurrentSeason, {})),
+    queryClient.ensureQueryData(
+      routeQuery(api.practiceResults.getPracticeResultsForRaceSlug, {
+        raceSlug,
+      }),
+    ),
+    queryClient.ensureQueryData(routeQuery(api.races.getNextRace, {})),
+    // How the field picked, and the official Top 5 it was scored against.
+    // Both are what a finished write-up is an archive of, and both have to
+    // be in the SSR HTML: the race page that also shows them is noindexed
+    // and canonicalised here. The consensus is empty before a session locks.
+    queryClient.ensureQueryData(
+      routeQuery(api.consensus.getWeekendConsensusForRaceSlug, { raceSlug }),
+    ),
+    queryClient.ensureQueryData(
+      routeQuery(api.results.getEnrichedTop5BySessionForRaceSlug, {
+        raceSlug,
+      }),
+    ),
+  ]);
   if (!race) {
     throw notFound();
   }
@@ -58,6 +79,8 @@ export async function loadRaceWriteup(
     season,
     practice,
     nextRace,
+    consensus,
+    top5,
   };
 }
 

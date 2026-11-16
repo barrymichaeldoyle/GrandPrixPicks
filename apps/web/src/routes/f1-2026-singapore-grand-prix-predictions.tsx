@@ -1,5 +1,4 @@
-import { api } from '@convex-generated/api';
-import { createFileRoute, Link, notFound } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RACE_WRITEUP_PICKS_ANCHOR } from '@/components/race-writeups/DeferredRaceWriteupPicks';
@@ -8,6 +7,10 @@ import { RaceWriteupArticle } from '@/components/race-writeups/RaceWriteupArticl
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupFinish } from '@/components/race-writeups/RaceWriteupFinish';
 import { RaceWriteupHero } from '@/components/race-writeups/RaceWriteupHero';
+import {
+  finishedRaceSummary,
+  RaceWriteupFinishedResults,
+} from '@/components/race-writeups/RaceWriteupFinishedResults';
 import { RaceWriteupPage } from '@/components/race-writeups/RaceWriteupPage';
 import {
   RACE_WRITEUP_CIRCUIT_ANCHOR,
@@ -18,8 +21,6 @@ import { TyreCompoundSection } from '@/components/race-writeups/TyreCompoundSect
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { lastReviewedAt } from '@/lib/lastReviewed';
-import { bucketWeatherNow } from '@/lib/weatherNow';
-import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
   getRaceWriteupPhase,
   isRaceWriteupLive,
@@ -27,7 +28,7 @@ import {
 } from '@/lib/raceWriteupPhase';
 import { raceWriteupPageHead } from '@/lib/raceWriteupSeo';
 import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
-import { routeQuery } from '@/lib/routeQuery';
+import { loadRaceWriteup } from '@/lib/raceWriteupLoader';
 
 const RACE_SLUG = 'singapore-2026';
 
@@ -91,52 +92,7 @@ export const Route = createFileRoute(
   '/f1-2026-singapore-grand-prix-predictions',
 )({
   component: SingaporeGrandPrixPredictionsPage,
-  loader: async ({ context }) => {
-    await setRaceDataCacheHeaders();
-    const weatherNow = Date.now();
-    const [race, championship, weather, news, season, practice, nextRace] =
-      await Promise.all([
-        context.queryClient.ensureQueryData(
-          routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.f1Standings.getF1Championship, {}),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.weather.getForWriteup, {
-            raceSlug: RACE_SLUG,
-            now: bucketWeatherNow(weatherNow),
-          }),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.raceNews.list, { raceSlug: RACE_SLUG }),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.races.listCurrentSeason, {}),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.practiceResults.getPracticeResultsForRaceSlug, {
-            raceSlug: RACE_SLUG,
-          }),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.races.getNextRace, {}),
-        ),
-      ]);
-    if (!race) {
-      throw notFound();
-    }
-    return {
-      race,
-      championship,
-      weather,
-      weatherNow,
-      news,
-      season,
-      practice,
-      nextRace,
-    };
-  },
+  loader: ({ context }) => loadRaceWriteup(context.queryClient, RACE_SLUG),
   head: ({ loaderData, match }) =>
     raceWriteupPageHead({
       path: PATH,
@@ -161,6 +117,7 @@ export const Route = createFileRoute(
 });
 
 function SingaporeGrandPrixPredictionsPage() {
+  const data = Route.useLoaderData();
   const {
     race,
     championship,
@@ -170,7 +127,7 @@ function SingaporeGrandPrixPredictionsPage() {
     season,
     practice,
     nextRace,
-  } = Route.useLoaderData();
+  } = data;
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
   const canPick = isLive && (!nextRace || nextRace.slug === RACE_SLUG);
@@ -200,6 +157,7 @@ function SingaporeGrandPrixPredictionsPage() {
             phase,
             'The Singapore Grand Prix',
             'Singapore hosts its first sprint weekend, with one practice session before Sprint Qualifying on Friday.',
+            finishedRaceSummary(data.top5),
           )}
           phase={phase}
           raceSlug={RACE_SLUG}
@@ -249,6 +207,9 @@ function SingaporeGrandPrixPredictionsPage() {
           there is an item. */}
       {/* Race updates and shared story links remain useful after picks lock. */}
       <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
+      {phase === 'finished' ? (
+        <RaceWriteupFinishedResults data={data} venueName="Singapore" />
+      ) : null}
       <RaceWriteupArticle
         actions={{
           phase,

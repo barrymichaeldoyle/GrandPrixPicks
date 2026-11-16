@@ -15,6 +15,7 @@ import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWrite
 import { abbreviateGrandPrix, displayTeamName } from '@/lib/display';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { ScoringBands } from '@/components/ScoringBands';
 import { getRaceWriteup } from '@/lib/raceWriteups';
 import {
   getRaceWriteupPhase,
@@ -70,33 +71,6 @@ type Driver = FunctionReturnType<typeof api.drivers.listDrivers>[number];
  * the server and the client agree on which heading they rendered.
  */
 const THIS_WEEKEND_MS = 7 * 24 * 60 * 60 * 1000;
-
-const SCORING_BANDS = [
-  {
-    points: '5',
-    unit: 'points',
-    label: 'Exact position',
-    detail: 'Your driver finishes exactly where you put them.',
-    textClass: 'text-result-exact',
-    ruleClass: 'after:bg-result-exact',
-  },
-  {
-    points: '3',
-    unit: 'points',
-    label: 'One position away',
-    detail: 'Your driver finishes one place above or below your pick.',
-    textClass: 'text-result-near',
-    ruleClass: 'after:bg-result-near',
-  },
-  {
-    points: '1',
-    unit: 'point',
-    label: 'Elsewhere in the top 5',
-    detail: 'Your driver still finishes in the top 5, two or more places out.',
-    textClass: 'text-result-top5',
-    ruleClass: 'after:bg-result-top5',
-  },
-] as const;
 
 function isThisWeekend(race: NextRace, now: number): boolean {
   return race !== null && race.raceStartAt - now <= THIS_WEEKEND_MS;
@@ -285,7 +259,7 @@ function PredictionsThisWeekendPage() {
 
   return (
     <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-5xl px-4 py-6">
+      <div className="mx-auto max-w-(--page-max) px-4 py-6">
         <PageHeader
           title={headingFor(race, now)}
           subtitle={
@@ -371,15 +345,18 @@ function PredictionsThisWeekendPage() {
         ) : null}
 
         {race && phase && picksOpen ? (
-          <DeferredRaceWriteupPicks
-            phase={phase}
-            raceId={race._id}
-            round={race.round}
-            season={race.season}
-            raceSlug={race.slug}
-            surface="predictions_hub"
-            venueName={venueName}
-          />
+          // Spaced off the schedule: flush, the two cards read as one shape.
+          <div className="mt-10">
+            <DeferredRaceWriteupPicks
+              phase={phase}
+              raceId={race._id}
+              round={race.round}
+              season={race.season}
+              raceSlug={race.slug}
+              surface="predictions_hub"
+              venueName={venueName}
+            />
+          </div>
         ) : null}
 
         {/* Kept alongside the picker rather than folded into it. The picker is
@@ -445,35 +422,7 @@ function PredictionsThisWeekendPage() {
           >
             How picks score
           </h2>
-          {/* The same three cards the landing page uses, for the same three
-              facts: the sector colour is a thick strip closing each card, not
-              a hairline floating above its heading. `border-b-0` plus a filled
-              strip rather than `border-b-8`, because CSS miters adjacent
-              borders and the colour has to stay square-ended. The strip is a
-              pseudo-element because a `dl` group may hold only `dt` and `dd`:
-              a wrapper or a decorative `div` inside it breaks the term/detail
-              pairing for screen readers. */}
-          <dl className="mt-5 grid gap-4 md:grid-cols-3">
-            {SCORING_BANDS.map((band) => (
-              <div
-                key={band.label}
-                className={`relative border border-b-0 border-border bg-surface p-5 pb-7 after:absolute after:inset-x-0 after:bottom-0 after:h-2 md:min-h-48 ${band.ruleClass}`}
-              >
-                <dt className={`flex items-end gap-2 ${band.textClass}`}>
-                  <span className="gpp-mono text-4xl leading-none font-semibold">
-                    {band.points}
-                  </span>
-                  <span className="gpp-label pb-0.5">{band.unit}</span>
-                </dt>
-                <dd>
-                  <p className="mt-5 font-semibold text-text">{band.label}</p>
-                  <p className="gpp-reading-copy mt-2 text-text-muted">
-                    {band.detail}
-                  </p>
-                </dd>
-              </div>
-            ))}
-          </dl>
+          <ScoringBands className="mt-5 md:grid-cols-3" />
           <p className="mt-5 max-w-3xl text-lg leading-7 text-text-muted">
             Every session scores out of 25, and each one locks at its own start
             time, so qualifying can be settled while the race is still open.{' '}

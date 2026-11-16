@@ -18,6 +18,26 @@ export function isTransientNetworkError(error: unknown): boolean {
   );
 }
 
+/**
+ * True for a Convex function that failed on the server for a reason the app
+ * did not throw: the generic "Server Error" production returns, or the system
+ * timeout Convex raises when a function waits too long on database calls.
+ *
+ * Not transient in general, so {@link isTransientNetworkError} leaves it out
+ * and most callers should too. A read-only query whose failure costs a whole
+ * page (the landing page's SSR) can afford one more attempt. `ConvexError` is
+ * excluded because the app throws that on purpose and it will not change.
+ */
+export function isConvexServerError(error: unknown): boolean {
+  if (!(error instanceof Error) || error.name === 'ConvexError') {
+    return false;
+  }
+  return (
+    error.message.includes('Server Error') ||
+    error.message.includes('too many system operations')
+  );
+}
+
 type RetryOptions = {
   retries?: number;
   delayMs?: number;

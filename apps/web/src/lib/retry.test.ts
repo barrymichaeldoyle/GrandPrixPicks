@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { isTransientNetworkError, withRetry } from './retry';
+import { ConvexError } from 'convex/values';
+
+import {
+  isConvexServerError,
+  isTransientNetworkError,
+  withRetry,
+} from './retry';
 
 describe('isTransientNetworkError', () => {
   it('matches the network TypeErrors mobile browsers throw', () => {
@@ -20,6 +26,27 @@ describe('isTransientNetworkError', () => {
     );
     expect(isTransientNetworkError('Load failed')).toBe(false);
     expect(isTransientNetworkError(undefined)).toBe(false);
+  });
+});
+
+describe('isConvexServerError', () => {
+  it('matches the server errors Convex returns for a failed function', () => {
+    expect(
+      isConvexServerError(new Error('[Request ID: 8aa5d03c] Server Error')),
+    ).toBe(true);
+    expect(
+      isConvexServerError(
+        new Error(
+          'Your request timed out performing too many system operations.',
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('ignores errors the app throws on purpose and everything else', () => {
+    expect(isConvexServerError(new ConvexError('Server Error'))).toBe(false);
+    expect(isConvexServerError(new TypeError('Failed to fetch'))).toBe(false);
+    expect(isConvexServerError('Server Error')).toBe(false);
   });
 });
 

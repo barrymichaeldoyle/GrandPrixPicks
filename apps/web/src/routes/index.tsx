@@ -8,6 +8,7 @@ import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { setHomeCacheHeaders } from '@/lib/homeCacheHeaders';
+import { isConvexServerError, isTransientNetworkError } from '@/lib/retry';
 import { routeQuery } from '@/lib/routeQuery';
 import {
   CURRENT_SEASON,
@@ -130,9 +131,17 @@ export const Route = createFileRoute('/')({
     // is the check rather than `import.meta.env.SSR` because this file is also
     // rendered by the test environment.
     const [data, dashboardSsr] = await Promise.all([
-      context.queryClient.ensureQueryData(
-        routeQuery(api.home.getHomePageData, { now }),
-      ),
+      context.queryClient.ensureQueryData({
+        ...routeQuery(api.home.getHomePageData, { now }),
+        // One extra attempt for a server-side failure, on top of the usual
+        // network retries. This query is the whole landing page, an uncaught
+        // failure here is an error page, and the one seen in production was
+        // Convex's system timeout: a slow moment, not a bug that repeats.
+        retry: (failureCount: number, error: Error) =>
+          isTransientNetworkError(error)
+            ? failureCount < 2
+            : failureCount < 1 && isConvexServerError(error),
+      }),
       typeof document === 'undefined'
         ? fetchDashboardSsrData()
         : Promise.resolve(null),

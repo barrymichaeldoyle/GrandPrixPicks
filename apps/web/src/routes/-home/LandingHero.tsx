@@ -37,7 +37,7 @@ export function LandingHero({
     >
       {/* The deadline gets a deliberate second column instead of floating in
           the wide gap between the hook and the edge of the page. */}
-      <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:items-center lg:gap-x-12 xl:gap-x-16">
+      <div className="mx-auto grid w-full max-w-(--page-max) gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:items-center lg:gap-x-12 xl:gap-x-16">
         <div className="flex flex-col justify-center">
           {/*
            * The break is authored, not left to the browser: balance minimises

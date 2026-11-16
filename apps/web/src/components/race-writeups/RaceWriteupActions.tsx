@@ -59,6 +59,9 @@ export function RaceWriteupActions({
   venueName,
   note,
 }: RaceWriteupActionsProps) {
+  // The hero's button is this page's one accent action, so the header's
+  // "Make your picks" hides while it is on the page (see styles.css).
+  const isHero = !compact && !placement;
   // Every primary action here leads to picking on the web; from the app the
   // reader picks in the app. The circuit link and the note stay.
   const inApp = useInAppView();
@@ -94,6 +97,7 @@ export function RaceWriteupActions({
             to="/races/$raceSlug"
             params={{ raceSlug: nextRace.slug }}
             onClick={() => trackPrimaryAction('next_race_page')}
+            data-page-cta={isHero ? 'true' : undefined}
             className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             Make {nextRace.name.replace(/ Grand Prix$/, '')} picks
@@ -117,6 +121,7 @@ export function RaceWriteupActions({
           onPointerEnter={preloadRaceWriteupPicksForm}
           onFocus={preloadRaceWriteupPicksForm}
           onTouchStart={preloadRaceWriteupPicksForm}
+          data-page-cta={isHero ? 'true' : undefined}
           className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           {raceWriteupPrimaryAction(phase, venueName, compact, hasPicks)}
@@ -132,6 +137,7 @@ export function RaceWriteupActions({
           to="/races/$raceSlug"
           params={{ raceSlug }}
           onClick={() => trackPrimaryAction('race_page')}
+          data-page-cta={isHero ? 'true' : undefined}
           className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           {raceWriteupPrimaryAction(phase, venueName, compact, hasPicks)}

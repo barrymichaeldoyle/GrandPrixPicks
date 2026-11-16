@@ -1050,7 +1050,7 @@ export function PredictionForm({
                 {[1, 2, 3, 4, 5].map((n) => (
                   <div
                     key={n}
-                    className={`gpp-mono h-16 w-9 shrink-0 items-center justify-center border-b border-border text-sm font-semibold text-accent last:border-b-0 sm:w-12 ${mobileActionFirst && n > picks.length ? 'hidden @min-[875px]:flex' : 'flex'}`}
+                    className={`gpp-mono h-16 w-9 shrink-0 items-center justify-center border-b border-border text-sm font-semibold text-text-muted last:border-b-0 sm:w-12 ${mobileActionFirst && n > picks.length ? 'hidden @min-[875px]:flex' : 'flex'}`}
                     aria-hidden
                   >
                     P{n}

@@ -456,7 +456,10 @@ function NewsCards({
         // First driver, not all of them: an item about two team mates is one
         // team's story, and the badges already name both.
         const team = item.drivers?.[0]?.team ?? null;
-        const teamColour = (team && TEAM_COLORS[team]) || 'var(--accent)';
+        // A story about no team falls back to a neutral bar. It was the
+        // accent, which made chartreuse the commonest bar on the page.
+        const teamColour =
+          (team && TEAM_COLORS[team]) || 'var(--border-strong)';
         // A grid card never folds (see the note on the table below), and the
         // card a shared link points at opens, or the link lands on a headline.
         const collapsible =

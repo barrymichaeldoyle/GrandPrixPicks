@@ -319,6 +319,7 @@ function PredictionsThisWeekendPage() {
                 to={writeup.to}
                 onClick={() => trackPrimaryAction('race_writeup')}
                 className={actionClass}
+                data-page-cta="true"
               >
                 {writeup.cta}
                 <ArrowRight className="h-4 w-4" aria-hidden />
@@ -329,6 +330,7 @@ function PredictionsThisWeekendPage() {
                   href={`#${RACE_WRITEUP_PICKS_ANCHOR}`}
                   onClick={() => trackPrimaryAction('picks_anchor')}
                   className={actionClass}
+                  data-page-cta="true"
                 >
                   {raceWriteupPrimaryAction(phase, venueName, true)}
                   <ArrowDown className="h-4 w-4" aria-hidden />
@@ -339,13 +341,14 @@ function PredictionsThisWeekendPage() {
                   params={{ raceSlug: race.slug }}
                   onClick={() => trackPrimaryAction('race_page')}
                   className={actionClass}
+                  data-page-cta="true"
                 >
                   {raceWriteupPrimaryAction(phase, venueName, true)}
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
               )
             ) : (
-              <Link to="/races" className={actionClass}>
+              <Link to="/races" className={actionClass} data-page-cta="true">
                 Browse the race calendar
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>

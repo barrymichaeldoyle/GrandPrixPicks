@@ -1,7 +1,7 @@
 import { ArrowUpRight } from 'lucide-react';
 import { useEffect, useState, type CSSProperties } from 'react';
 
-import { primaryButtonStyles } from '@/components/Button/Button';
+import { secondaryButtonStyles } from '@/components/Button/Button';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { TEAM_COLORS } from '@/lib/teamColors';
 
@@ -89,7 +89,9 @@ export function RaceWriteupStoreCard({
             : 'sm:col-span-2 sm:flex-row sm:items-end sm:gap-10'
           : ''
       }`}
-      style={{ '--team-colour': 'var(--accent)' } as CSSProperties}
+      // Neutral, with a secondary button: an affiliate link in the accent sat
+      // three lime buttons on one desktop screen with the page's own actions.
+      style={{ '--team-colour': 'var(--border-strong)' } as CSSProperties}
     >
       <div className={wide && !hasProducts ? 'sm:flex-1' : ''}>
         <p className="gpp-mono text-xs text-text-muted">
@@ -141,7 +143,7 @@ export function RaceWriteupStoreCard({
       >
         <a
           {...storeLinkProps('news')}
-          className={`${primaryButtonStyles('sm')} w-full sm:w-auto`}
+          className={`${secondaryButtonStyles('sm')} w-full sm:w-auto`}
         >
           Shop the F1 Store
           <ArrowUpRight aria-hidden />
@@ -374,7 +376,7 @@ export function F1StorePageLink({
         <p className="text-sm text-text">{text}</p>
         <a
           {...storeLinkProps('guide', page)}
-          className={`${primaryButtonStyles('sm')} shrink-0`}
+          className={`${secondaryButtonStyles('sm')} shrink-0`}
         >
           {label}
           <ArrowUpRight aria-hidden />

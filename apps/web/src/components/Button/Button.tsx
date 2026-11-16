@@ -231,3 +231,12 @@ export { Button };
 export function primaryButtonStyles(size: ButtonSize = 'md'): string {
   return [base, sizes[size], variants.primary].join(' ');
 }
+
+/**
+ * Class names for styling a link as a secondary button. For a link that sits
+ * beside the page's primary action, or one (like an affiliate link) that must
+ * not compete with it for the accent.
+ */
+export function secondaryButtonStyles(size: ButtonSize = 'md'): string {
+  return [base, sizes[size], variants.secondary].join(' ');
+}

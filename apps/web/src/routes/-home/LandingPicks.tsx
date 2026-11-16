@@ -454,7 +454,7 @@ export function LandingPicks({
       {/* The Top 5 step needs the full width for its two-column driver grid;
           the team-mate step is a single narrow column. Sizing the container to
           the active step keeps the heading on the same left edge as the picker
-          under it, instead of the heading spanning 6xl while a centred 3xl
+          under it, instead of the heading spanning the page while a centred 3xl
           panel sat 192px inboard of it.
 
           That column has to move between the steps, then — there is no width
@@ -470,7 +470,7 @@ export function LandingPicks({
           in the first 100ms, which is the snap again with a slow tail bolted
           on; a symmetric curve is the one that reads as the column moving. */}
       <div
-        className={`mx-auto w-full transition-[max-width] duration-300 ease-in-out motion-reduce:transition-none ${activeStep === 'top5' ? 'max-w-6xl' : 'max-w-3xl'}`}
+        className={`mx-auto w-full transition-[max-width] duration-300 ease-in-out motion-reduce:transition-none ${activeStep === 'top5' ? 'max-w-(--page-max)' : 'max-w-3xl'}`}
       >
         {/* No rule under the step heading: the section already opens on a
             hairline, and a second one here reads as a divider between the

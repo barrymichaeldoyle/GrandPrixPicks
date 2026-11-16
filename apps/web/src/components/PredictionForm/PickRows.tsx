@@ -153,7 +153,7 @@ export function SortablePickRow({
           >
             <ChevronUp
               size={18}
-              className="text-accent group-aria-disabled:text-text-disabled"
+              className="text-text-muted group-hover:text-text group-aria-disabled:text-text-disabled"
               aria-hidden
             />
           </button>
@@ -171,7 +171,7 @@ export function SortablePickRow({
           >
             <ChevronDown
               size={18}
-              className="text-accent group-aria-disabled:text-text-disabled"
+              className="text-text-muted group-hover:text-text group-aria-disabled:text-text-disabled"
               aria-hidden
             />
           </button>

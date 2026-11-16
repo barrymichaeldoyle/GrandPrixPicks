@@ -15,8 +15,12 @@ function ReorderHint() {
       Reorder: drag or use
       <span className="inline-flex items-center">
         <span className="sr-only">the up and down buttons</span>
-        <ChevronUp size={14} className="text-accent" aria-hidden />
-        <ChevronDown size={14} className="-ml-0.5 text-accent" aria-hidden />
+        <ChevronUp size={14} className="text-text-muted" aria-hidden />
+        <ChevronDown
+          size={14}
+          className="-ml-0.5 text-text-muted"
+          aria-hidden
+        />
       </span>
     </p>
   );

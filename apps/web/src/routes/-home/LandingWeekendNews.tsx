@@ -66,7 +66,7 @@ export function LandingWeekendNews({
       {/* Same width as the hero and picker above, so the page keeps one left
           edge. Two columns only when there are headlines to fill the second. */}
       <div
-        className={`mx-auto grid w-full max-w-6xl grid-cols-1 gap-8 md:gap-12 ${items.length > 0 ? 'md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]' : ''}`}
+        className={`mx-auto grid w-full max-w-(--page-max) grid-cols-1 gap-8 md:gap-12 ${items.length > 0 ? 'md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]' : ''}`}
       >
         <div className={items.length > 0 ? '' : 'max-w-2xl'}>
           <h2
@@ -92,8 +92,10 @@ export function LandingWeekendNews({
         {items.length > 0 ? (
           <ul className="border-t border-border">
             {items.map((item) => {
+              // No team, no colour: chartreuse is the page's one action
+              // colour, and three of five headlines wearing it read as a code.
               const teamColour =
-                (item.team && TEAM_COLORS[item.team]) || 'var(--accent)';
+                (item.team && TEAM_COLORS[item.team]) || 'var(--border-strong)';
               return (
                 <li key={item.key} className="border-b border-border">
                   <Link

@@ -768,8 +768,12 @@
    *
    * Keyed off the hero CTA rather than the route so the between-seasons hero,
    * which has no picker to scroll to, keeps the header CTA.
+   *
+   * Write-ups and the predictions hub mark their hero button `data-page-cta`
+   * for the same reason: each already leads with a lime action, and the header
+   * copy made two on one screen, on the hub pointing at different places.
    */
-  html:has([data-landing-hero-cta]) .gpp-public-header-cta {
+  html:has([data-landing-hero-cta], [data-page-cta]) .gpp-public-header-cta {
     display: none;
   }
 

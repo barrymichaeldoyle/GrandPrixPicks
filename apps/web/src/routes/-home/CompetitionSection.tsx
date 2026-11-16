@@ -180,7 +180,7 @@ export function CompetitionSection({
       {/* `grid-cols-1`, not a bare `grid`: an implicit track sizes to its
           content, and one long username in the board widened the column past
           a phone's screen, clipping the heading and the button beside it. */}
-      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
+      <div className="mx-auto grid w-full max-w-(--page-max) grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
         <div>
           {/*
            * Two facts, each said once: the weekend resets, and one save reaches

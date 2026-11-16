@@ -152,7 +152,7 @@ function SingaporeGrandPrixPredictionsPage() {
         <RaceWriteupHero
           flagCode="SG"
           eyebrow={`09–11 Oct · Marina Bay · Round ${race.round}`}
-          title="Singapore Grand Prix 2026 predictions"
+          title={`Singapore Grand Prix 2026 ${phase === 'finished' ? 'results' : 'predictions'}`}
           summary={raceWriteupHeroSummary(
             phase,
             'The Singapore Grand Prix',

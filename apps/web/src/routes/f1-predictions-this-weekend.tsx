@@ -198,10 +198,14 @@ export const Route = createFileRoute('/f1-predictions-this-weekend')({
                 isPartOf: { '@id': `${siteConfig.url}/#app` },
                 ...(race && circuit
                   ? {
+                      // The event belongs to the race's write-up when there is
+                      // one: same `@id` and `url`, so search reads one event
+                      // owned by that page, not two pages claiming it. The hub
+                      // owns "f1 picks this weekend", the write-up the race.
                       about: sportsEventSchema({
                         name: `${race.season} ${race.name}`,
                         startAt: race.raceStartAt,
-                        path: PATH,
+                        path: getRaceWriteup(race.slug)?.to ?? PATH,
                         description,
                         image: raceOgImageUrl(race.slug),
                         location: circuit,

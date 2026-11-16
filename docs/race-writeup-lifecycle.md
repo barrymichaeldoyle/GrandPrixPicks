@@ -21,7 +21,11 @@ weekend-specific news.
 After the current race, complete one archive pass and move editorial attention
 to the next round:
 
-- Sunday: add the official result, and aggregated player picks when they exist.
+- Sunday: the official result and aggregated player picks appear by
+  themselves once published (`RaceWriteupFinishedResults`, loaded by
+  `loadRaceWriteup`), and the title, breadcrumb and H1 switch from
+  "Predictions" to "Results" (`finishedWriteupTitle`). Nothing to edit; check
+  the page renders them.
 - Monday: confirm penalties and the official classification, remove unresolved
   language, update internal links, and freeze the page.
 - Reopen the page only for a factual correction or an amended official result.
@@ -59,6 +63,7 @@ Publish the durable foundation:
 - links to the race page and circuit guide.
 
 The title names predictions because that is what the reader is here to make.
+Once the race is finished it names results instead (see Sunday above).
 Do not invent a Grand Prix Picks Top 5 to satisfy the title. Circuit facts,
 tyres, standings and sourced news are the preview. Aggregated player picks,
 when they exist, wait until the finished phase.

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { listRaceWriteups } from './raceWriteups';
 import {
   circuitPageRedirectTarget,
+  finishedWriteupTitle,
   racePageWriteupHeadOptions,
   raceWeekendSnippet,
   raceWriteupPageHead,
@@ -219,5 +220,29 @@ describe('raceWeekendSnippet', () => {
         gridPublished: true,
       }),
     ).toBe(false);
+  });
+});
+
+describe('finishedWriteupTitle', () => {
+  it('swaps the predictions wording for results and keeps the suffix', () => {
+    expect(
+      finishedWriteupTitle(
+        '2026 Las Vegas Grand Prix Predictions & Picks | The Strip',
+      ),
+    ).toBe('2026 Las Vegas Grand Prix Results & Picks | The Strip');
+    expect(
+      finishedWriteupTitle(
+        '2026 Singapore Grand Prix Predictions & Sprint Picks',
+      ),
+    ).toBe('2026 Singapore Grand Prix Results & Picks');
+    expect(
+      finishedWriteupTitle('2026 Spanish Grand Prix Predictions | Madrid'),
+    ).toBe('2026 Spanish Grand Prix Results & Picks | Madrid');
+  });
+
+  it('leaves a title that is already a results title alone', () => {
+    expect(
+      finishedWriteupTitle('2026 Bahrain Grand Prix Results & Picks | Sepang'),
+    ).toBe('2026 Bahrain Grand Prix Results & Picks | Sepang');
   });
 });

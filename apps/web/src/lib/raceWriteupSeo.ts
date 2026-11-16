@@ -124,6 +124,20 @@ function sharedStory(
     : undefined;
 }
 
+/**
+ * A finished write-up's title. Once the race is run the page leads with the
+ * official result and how players picked (`RaceWriteupFinishedResults`), and a
+ * title still selling "Predictions & Picks" promised a picker the page no
+ * longer has (`docs/race-writeup-lifecycle.md`: metadata matches the phase).
+ * "Picks" stays because the page reports how players picked.
+ */
+export function finishedWriteupTitle(title: string): string {
+  return title.replace(
+    /Predictions(?: & (?:Sprint )?Picks)?/,
+    'Results & Picks',
+  );
+}
+
 type WriteupHeadFaq = {
   question: string;
   answer: string;
@@ -175,6 +189,11 @@ export function raceWriteupPageHead({
   faqs: readonly WriteupHeadFaq[];
   extraGraph?: readonly object[];
 }) {
+  const finished = race?.status === 'finished';
+  const resolvedTitle = finished ? finishedWriteupTitle(title) : title;
+  const resolvedBreadcrumb = finished
+    ? breadcrumbName.replace(/\bpredictions\b/, 'results')
+    : breadcrumbName;
   const resolvedDescription =
     race?.status === 'finished'
       ? description.finished
@@ -185,7 +204,7 @@ export function raceWriteupPageHead({
   const image = raceWriteupOgImageUrl(raceSlug);
   const story = sharedStory(search, news);
   const meta = pageMeta({
-    title,
+    title: resolvedTitle,
     description: resolvedDescription,
     path,
     image: story
@@ -225,7 +244,7 @@ export function raceWriteupPageHead({
               '@type': 'WebPage',
               '@id': `${siteConfig.url}${path}#page`,
               url: `${siteConfig.url}${path}`,
-              name: title,
+              name: resolvedTitle,
               description: resolvedDescription,
               dateModified: reviewedIsoDate(reviewedAt),
               inLanguage: 'en',
@@ -243,7 +262,7 @@ export function raceWriteupPageHead({
             },
             breadcrumbSchema(path, [
               { name: 'Races', path: '/races' },
-              { name: breadcrumbName, path },
+              { name: resolvedBreadcrumb, path },
             ]),
             ...extraGraph,
           ],

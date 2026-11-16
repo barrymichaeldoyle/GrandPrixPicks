@@ -92,7 +92,7 @@ export function StandardRaceWriteup({
         <RaceWriteupHero
           flagCode={flagCode}
           eyebrow={`${formatWeekendSpan(race, timeZone)} · ${venueName} · Round ${race.round}`}
-          title={`${raceName} 2026 predictions`}
+          title={`${raceName} 2026 ${isFinished ? 'results' : 'predictions'}`}
           summary={raceWriteupHeroSummary(
             phase,
             `The ${raceName}`,

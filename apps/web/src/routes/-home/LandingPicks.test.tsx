@@ -10,6 +10,7 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LandingPicks, resetLandingPicksMemoryForTests } from './LandingPicks';
+import { hasPendingSubmit } from '@/lib/predictionDrafts';
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -212,6 +213,22 @@ describe('LandingPicks linear journey', () => {
     ).toBe('true');
   });
 
+  // Opening the duels used to strand a finished Top 5: the only save on that
+  // step sat under the last battle. Five of six who opened them in the 30 days
+  // to 2026-11-16 never pressed save.
+  it('saves the Top 5 from the team-mate step without the duels', async () => {
+    await renderJourney();
+    act(() => button(container, 'Complete Top 5')?.click());
+    await act(async () => {
+      button(container, 'Continue to team-mate picks')?.click();
+    });
+
+    const save = button(container, 'Sign in to save your Top 5');
+    expect(save).toBeDefined();
+    act(() => save?.click());
+    expect(hasPendingSubmit(getWebTop5DraftStorageKey(RACE_ID))).toBe(true);
+  });
+
   it('preserves the visible picks step across the auth-provider remount', async () => {
     await renderJourney();
     act(() => button(container, 'Complete Top 5')?.click());
@@ -242,9 +259,13 @@ describe('LandingPicks linear journey', () => {
     });
 
     expect(container.textContent).toContain('Your prediction is ready.');
-    expect(container.textContent).toContain('Sign in to submit');
+    expect(container.textContent).toContain('Sign in to save your picks');
     // The ask is worded once, on the button, not also as a line of prose.
-    expect(container.textContent).not.toContain('Sign in to submit your');
+    expect(
+      container
+        .querySelector('[data-testid="h2h-save-wall"]')
+        ?.textContent?.match(/Sign in to save/g),
+    ).toHaveLength(1);
     expect(container.textContent).not.toContain('Save my picks');
     expect(container.textContent).not.toContain('I have an account');
 

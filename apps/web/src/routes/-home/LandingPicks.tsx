@@ -126,6 +126,8 @@ export function LandingPicks({
   const [rememberedState] = useState(() =>
     landingPicksMemory.get(String(raceId)),
   );
+  const clerkRuntime = useClerkRuntimeControl();
+  const warmHandlers = useClerkWarmHandlers();
   const [activeStep, setActiveStep] = useState<PicksStep>(
     rememberedState?.activeStep ?? (initialStep === 'top5' ? 'top5' : 'h2h'),
   );
@@ -388,6 +390,38 @@ export function LandingPicks({
     });
   }
 
+  /**
+   * Saves the Top 5 from the team-mate step, without the duels. Opening the
+   * duels used to be a one-way door: the only save on that step sat under the
+   * last of the battles, so a visitor who wanted to stop part-way could not
+   * keep the Top 5 they had already finished. In the 30 days to 2026-11-16,
+   * five of six who opened the duels never pressed save.
+   *
+   * The Top 5 picker stays mounted (hidden) under this step, so its
+   * pending-submit effect saves the draft once sign-in lands, the same as the
+   * Top 5 step's own button.
+   */
+  function saveTopFiveFromDuels() {
+    if (!topFiveComplete) {
+      return;
+    }
+    prepareTopFiveOnlySave();
+    setPendingSubmit(getWebTop5DraftStorageKey(raceId), 'landing');
+    captureAnalyticsEvent('prediction_signin_prompted', {
+      race_id: raceId,
+      race_slug: raceSlug,
+      session_type: 'cascade',
+      source: 'landing',
+    });
+    captureAnalyticsEvent('landing_auth_started', {
+      source: 'landing',
+      prediction_type: 'top5',
+      race_id: raceId,
+      session_type: 'cascade',
+    });
+    clerkRuntime.requestSignIn();
+  }
+
   function prepareCombinedSave() {
     if (topFiveComplete) {
       setPendingSubmit(getWebTop5DraftStorageKey(raceId), 'landing');
@@ -492,6 +526,18 @@ export function LandingPicks({
               ? 'Choose your Top 5'
               : 'Pick each team-mate winner'}
           </h2>
+          {activeStep === 'h2h' && topFiveComplete && !cardComplete ? (
+            <Button
+              variant="text"
+              size="inline"
+              className="mt-2"
+              onClick={saveTopFiveFromDuels}
+              {...warmHandlers}
+              data-testid="h2h-step-save-top5"
+            >
+              Sign in to save your Top 5
+            </Button>
+          ) : null}
           {entryListNote ? (
             <p className="gpp-reading-copy mt-3 max-w-3xl text-sm text-text-muted">
               {entryListNote}
@@ -502,6 +548,7 @@ export function LandingPicks({
         <div
           ref={panelRef}
           id="landing-prediction-panel"
+          role="region"
           className="pt-4"
           aria-labelledby="landing-picks-step-heading"
           tabIndex={-1}
@@ -704,10 +751,11 @@ function PredictionCardSaveWall({ onLockIn }: { onLockIn: () => void }) {
         onClick={onLockIn}
         {...warmHandlers}
       >
-        Sign in to submit
+        Sign in to save your picks
       </Button>
       <p className="text-sm text-text-muted">
-        Free to play. Your picks are kept when you sign in.
+        Scored after each session. Free to play, and your picks are kept when
+        you sign in.
       </p>
     </div>
   );

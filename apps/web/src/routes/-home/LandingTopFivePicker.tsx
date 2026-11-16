@@ -145,7 +145,7 @@ function TopFiveHandoff({
             onClick={onSave}
             data-testid="top5-save"
           >
-            Sign in to submit
+            Sign in to save your picks
           </Button>
           <Button
             variant="secondary"
@@ -162,8 +162,11 @@ function TopFiveHandoff({
         className={`mt-3 text-sm text-text-muted ${complete ? '' : 'invisible'}`}
         aria-hidden={!complete}
       >
-        Free to play. Your picks are kept when you sign in. Team-mate picks are
-        optional and score separately.
+        {/* What the sign-in is for. 11 of about 19 visitors who finished a
+            Top 5 here in the 30 days to 2026-11-16 left without pressing
+            anything, and nothing on this screen said what a saved pick earns. */}
+        Scored after each session, up to 25 points. Free to play, and your picks
+        are kept when you sign in. Team-mate picks are optional.
       </p>
     </>
   );

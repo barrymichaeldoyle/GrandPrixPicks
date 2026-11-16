@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/las-vegas-2026-2026-11-16-evening.json",
+  "startAt": "2026-11-16T18:35:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["haas-hirakawa-bearman-fp1-vegas"],
+      "text": "Ryo Hirakawa, fresh from winning the WEC title with Toyota, drives Bearman's Haas in Las Vegas FP1. Camara races again after his Brazil debut.",
+      "link": "https://grandprixpicks.com/f1-2026-las-vegas-grand-prix-predictions?story=haas-hirakawa-bearman-fp1-vegas",
+      "expiresAt": "2026-11-20T04:00:00Z"
+    }
+  ]
+}

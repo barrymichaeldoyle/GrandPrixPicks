@@ -439,7 +439,8 @@ itself, set in the display register (`docs/design-display-register.md`):
   that team's colour; any other story stays on the surface colour. No news
   column appears for a race without a write-up;
 - a lap outline behind the race name where `apps/web/src/lib/circuitLaps.ts`
-  has one (Las Vegas so far). It draws in once and a single car runs one lap.
+  has one (Las Vegas, Lusail and Yas Marina, generated from OpenStreetMap by
+  `apps/web/scripts/generate-circuit-laps.mts`). It draws in once and a single car runs one lap.
   Reduced motion shows the finished outline.
 
 Between seasons the hero falls back to "Predict the F1 Top 5" and the calendar

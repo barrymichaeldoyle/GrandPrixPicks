@@ -15,6 +15,7 @@
     "apps/web/src/routeTree.gen.ts",
     "apps/trmnl/src/settings.yml",
     "artifacts/baku-crash-map",
+    "artifacts/circuit-laps/raw",
     "convex/_generated",
     "package-lock.json",
     "pnpm-lock.yaml",

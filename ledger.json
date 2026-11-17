@@ -1723,6 +1723,25 @@
       "expiresAt": "2026-11-20T04:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6afb2a81b34088cbfd8298b6"
+    },
+    {
+      "id": "50a13d3abf9f88413e3857e086c9a9b32238d48c2d14d2ce0c44407489422450",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "las-vegas-2026",
+          "key": "mercedes-aduo-turbo-antonelli-las-vegas",
+          "revision": "a5ad88f4cee5d32bafcc85c2250e10cd0ea807c98f66a713252b5e4c05067609"
+        }
+      ],
+      "text": "Mercedes' long-delayed ADUO turbo finally arrives in Las Vegas, on Antonelli's car only. Russell has used five turbos already, so a sixth would cost him five places on the grid.",
+      "link": "https://grandprixpicks.com/f1-2026-las-vegas-grand-prix-predictions?story=mercedes-aduo-turbo-antonelli-las-vegas",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=las-vegas-2026&story=mercedes-aduo-turbo-antonelli-las-vegas&v=a5ad88f4cee5",
+      "dueAt": "2026-11-17T16:30:00.000Z",
+      "expiresAt": "2026-11-21T04:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

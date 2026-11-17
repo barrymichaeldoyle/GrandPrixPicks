@@ -10,12 +10,12 @@ describe('footerWeekendPreview', () => {
   it('names the current write-up so the footer link stands on its own', () => {
     expect(footerWeekendPreview('madrid-2026')).toEqual({
       to: '/f1-2026-madrid-grand-prix-predictions',
-      label: 'Madrid Weekend News',
+      label: 'Madrid weekend news',
       countryCode: 'es',
     });
     expect(footerWeekendPreview('bahrain-2026')).toEqual({
       to: '/f1-2026-bahrain-grand-prix-predictions',
-      label: 'Sepang Weekend News',
+      label: 'Sepang weekend news',
       countryCode: 'bh',
     });
   });
@@ -30,7 +30,7 @@ describe('footerWeekendPreview', () => {
       const preview = footerWeekendPreview(writeup.raceSlug);
       expect(preview, writeup.to).not.toBeNull();
       expect(preview!.to).toBe(writeup.to);
-      expect(preview!.label).toBe(`${writeup.venueName} Weekend News`);
+      expect(preview!.label).toBe(`${writeup.venueName} weekend news`);
       expect(preview!.countryCode).toBeTruthy();
     }
   });

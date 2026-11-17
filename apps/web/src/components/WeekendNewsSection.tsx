@@ -23,6 +23,8 @@ import { formatUtcDate, utcDateAttribute } from '@/lib/date';
 import { hashId } from '@/lib/hashId';
 import { TEAM_COLORS } from '@/lib/teamColors';
 
+import { RACE_WRITEUP_SECTION_HEADING } from './race-writeups/RaceWriteupSection';
+
 type NewsDriver = {
   code: string;
   displayName: string;
@@ -45,6 +47,8 @@ type NewsItem = {
    */
   sourcePublishedAt?: number;
   drivers?: NewsDriver[];
+  /** The one team the story is about, or null (`newsTeam`). */
+  team?: string | null;
   startingGrid?: StartingGridEntry[];
   // The component's own props, not a copy of them: these are forwarded whole
   // with a spread, so a field added to the photo and to the Convex validator
@@ -205,10 +209,7 @@ export function WeekendNewsSection({
       aria-labelledby="weekend-news"
     >
       <div className="max-w-3xl">
-        <h2
-          id="weekend-news"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
+        <h2 id="weekend-news" className={RACE_WRITEUP_SECTION_HEADING}>
           {heading}
         </h2>
       </div>
@@ -453,9 +454,12 @@ function NewsCards({
         // as a Ferrari story then a Williams one, rather than as three grey
         // blocks a reader has to parse to tell apart.
         //
-        // First driver, not all of them: an item about two team mates is one
-        // team's story, and the badges already name both.
-        const team = item.drivers?.[0]?.team ?? null;
+        // From the backend's `newsTeam`: a story is a team's when it says so
+        // or when every driver it names drives for that team. It used to be
+        // the first driver, which painted a tyre story naming Norris McLaren
+        // orange while McLaren's own upgrade story, naming nobody, stayed
+        // grey.
+        const team = item.team ?? null;
         // A story about no team falls back to a neutral bar. It was the
         // accent, which made chartreuse the commonest bar on the page.
         const teamColour =

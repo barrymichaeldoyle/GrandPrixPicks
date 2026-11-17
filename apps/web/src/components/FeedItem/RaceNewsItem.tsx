@@ -1,3 +1,4 @@
+import { newsTeam } from '@grandprixpicks/shared/newsTeam';
 import { Link } from '@tanstack/react-router';
 import { ChevronDown, ExternalLink } from 'lucide-react';
 import { type CSSProperties, useState } from 'react';
@@ -80,11 +81,10 @@ export function RaceNewsItem({
   const collapsible = foldable && !hasGrid;
   const [open, setOpen] = useState(false);
 
-  // The item's own colour, from the driver it is about. Same colour the badges
-  // and `LineupChangeItem` use, so a run of news reads as a Williams story
-  // then a Mercedes one rather than two grey blocks. With the badges gone it is
-  // the only thing saying whose story this is before the headline.
-  const team = event.newsTeam ?? event.newsDrivers?.[0]?.team ?? null;
+  // The item's own colour, from the team it is about (`newsTeam`, the rule
+  // every news surface shares). Events written before `newsTeam` was set on
+  // race news fall back to the same rule over their drivers.
+  const team = newsTeam(event.newsTeam, event.newsDrivers);
   const teamColour = hasGrid
     ? null
     : (team && TEAM_COLORS[team]) || 'var(--accent)';

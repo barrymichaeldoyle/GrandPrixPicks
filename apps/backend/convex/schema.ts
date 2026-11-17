@@ -1154,6 +1154,13 @@ export default defineSchema({
      */
     driverCodes: v.optional(v.array(v.string())),
     /**
+     * The team a story is about, when it is about one team and the drivers it
+     * names do not say so: "McLaren will bring more new parts" names nobody.
+     * Overrides the team inferred from `driverCodes`. One of the team names in
+     * `packages/shared/src/tokens.ts` (`teams`).
+     */
+    team: v.optional(v.string()),
+    /**
      * Optional photo for race write-up pages only. The feed card deliberately
      * does not render this field.
      */

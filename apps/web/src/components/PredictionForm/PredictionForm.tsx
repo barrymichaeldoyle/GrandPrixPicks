@@ -375,11 +375,18 @@ export function PredictionForm({
     reportDirty(hasChanges);
   }, [hasChanges]);
 
+  // Only a signed-in player can lose picks by leaving. A signed-out visitor's
+  // picks are a local draft that is written on every change and restored on
+  // return, so blocking them protected nothing: it put a "leave this page?"
+  // prompt on every write-up a visitor arrived at carrying a draft from the
+  // landing page, before they had touched anything.
+  const blockNavigation =
+    enableNavigationBlocker && isAuthenticated && hasChanges;
   const blocker = useBlocker({
-    shouldBlockFn: () => hasChanges,
-    enableBeforeUnload: true,
+    shouldBlockFn: () => blockNavigation,
+    enableBeforeUnload: () => blockNavigation,
     withResolver: true,
-    disabled: !enableNavigationBlocker || !hasChanges,
+    disabled: !blockNavigation,
   });
 
   // Cascade mode (no sessionType) saves until the last session locks. The

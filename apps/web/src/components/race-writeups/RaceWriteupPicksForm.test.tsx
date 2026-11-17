@@ -206,7 +206,7 @@ describe('race write-up picks form', () => {
     h2hPicks = { quali: { matchup_1: 'lec' } };
     const view = render();
 
-    expect(view.textContent).toContain('Tap one to change it');
+    expect(view.textContent).toContain('Select one to change it');
     expect(view.querySelector('[data-testid="writeup-h2h-start"]')).toBeNull();
     expect(document.querySelector('[data-testid="h2h-form"]')).toBeNull();
   });

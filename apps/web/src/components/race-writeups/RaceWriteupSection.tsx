@@ -5,9 +5,14 @@ import type { ReactNode } from 'react';
  *
  * Exported because a page that cannot use this shell — a photo section, an
  * archive block — still has to look like one.
+ *
+ * Extra-bold and tight, in the display register's voice
+ * (`docs/design-display-register.md`), a step below the landing page's
+ * `.gpp-display-h2`: a write-up has a dozen of these and they head reading,
+ * not a pitch.
  */
 export const RACE_WRITEUP_SECTION_HEADING =
-  'font-title text-2xl font-medium text-text sm:text-3xl';
+  'text-3xl leading-[1.05] font-extrabold tracking-[-0.03em] text-balance text-text sm:text-4xl';
 
 /**
  * A labelled write-up section: heading, prose, optional margin, optional extra.

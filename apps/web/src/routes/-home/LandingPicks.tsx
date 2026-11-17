@@ -449,7 +449,7 @@ export function LandingPicks({
       // Top padding stays deliberately short of the section rhythm used lower
       // down the page: this section has to start above the fold on a laptop, so
       // the first pick slots are visible rather than merely reachable.
-      className="scroll-mt-28 border-t border-border px-4 pt-8 pb-10 sm:pb-12"
+      className="scroll-mt-28 border-t border-border pt-8 pb-10 sm:pb-12"
     >
       {/* The Top 5 step needs the full width for its two-column driver grid;
           the team-mate step is a single narrow column. Sizing the container to
@@ -470,7 +470,7 @@ export function LandingPicks({
           in the first 100ms, which is the snap again with a slow tail bolted
           on; a symmetric curve is the one that reads as the column moving. */}
       <div
-        className={`mx-auto w-full transition-[max-width] duration-300 ease-in-out motion-reduce:transition-none ${activeStep === 'top5' ? 'max-w-(--page-max)' : 'max-w-3xl'}`}
+        className={`mx-auto w-full px-4 transition-[max-width] duration-300 ease-in-out motion-reduce:transition-none ${activeStep === 'top5' ? 'max-w-(--page-max)' : 'max-w-3xl'}`}
       >
         {/* No rule under the step heading: the section already opens on a
             hairline, and a second one here reads as a divider between the
@@ -492,10 +492,11 @@ export function LandingPicks({
                   variant="text"
                   size="inline"
                   className="-ml-1.5"
-                  aria-label="Back to your Top 5"
                   leftIcon={ChevronLeft}
                   onClick={editTopFive}
-                />
+                >
+                  Back to your Top 5
+                </Button>
               ) : null}
               {/* No kicker over the heading. This was "Step 1 of 2", which
                   told the reader something the heading could not — where they
@@ -517,9 +518,7 @@ export function LandingPicks({
           <h2
             id="landing-picks-step-heading"
             className={
-              cardComplete
-                ? 'sr-only'
-                : 'mt-1 text-xl font-semibold text-text sm:text-2xl'
+              cardComplete ? 'sr-only' : 'gpp-display-h2 mt-1 text-text'
             }
           >
             {activeStep === 'top5'
@@ -527,10 +526,13 @@ export function LandingPicks({
               : 'Pick each team-mate winner'}
           </h2>
           {activeStep === 'h2h' && topFiveComplete && !cardComplete ? (
+            // A real button, not a text link: this is the step most visitors
+            // who finish a Top 5 stop at, and saving is the one thing it
+            // should offer. Duels stay optional below it.
             <Button
-              variant="text"
-              size="inline"
-              className="mt-2"
+              variant="primary"
+              size="md"
+              className="mt-4 mb-3"
               onClick={saveTopFiveFromDuels}
               {...warmHandlers}
               data-testid="h2h-step-save-top5"

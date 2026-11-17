@@ -146,6 +146,19 @@ describe('LandingHero', () => {
     expect(grandPrix?.textContent).toContain('Picks');
   });
 
+  it('reads a running session as live, and a finished one as run', () => {
+    render({
+      now: race.qualiStartAt + 30 * 60_000,
+      lockSession: { label: 'Race', startAt: race.raceStartAt },
+    });
+    const sessions = [...container.querySelectorAll('li.gpp-hero-session')];
+    const quali = sessions.find((li) => li.textContent?.includes('Qualifying'));
+    const fp3 = sessions.find((li) => li.textContent?.includes('Practice 3'));
+    expect(quali?.textContent).toContain('Live');
+    expect(quali?.textContent).not.toContain('Has run');
+    expect(fp3?.textContent).toContain('Has run');
+  });
+
   it('links each headline to its card on the write-up, in its team colour', () => {
     render();
     const story = container.querySelector(

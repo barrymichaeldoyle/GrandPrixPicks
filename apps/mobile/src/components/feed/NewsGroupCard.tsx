@@ -1,3 +1,4 @@
+import { newsTeam } from '@grandprixpicks/shared/newsTeam';
 import { useState } from 'react';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import * as WebBrowser from 'expo-web-browser';
@@ -57,7 +58,7 @@ function storyFromFeedEvent(event: FeedEvent): NewsStory {
     publishedAt: event.createdAt,
     sourceName: event.newsSourceName,
     sourceUrl: event.newsSourceUrl,
-    team: event.newsTeam ?? event.newsDrivers?.[0]?.team ?? null,
+    team: newsTeam(event.newsTeam, event.newsDrivers),
     startingGrid: event.newsStartingGrid,
     raceName: event.raceName,
   };

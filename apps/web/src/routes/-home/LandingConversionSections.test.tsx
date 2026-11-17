@@ -58,6 +58,8 @@ describe('landing conversion sections', () => {
     expect(container.textContent).toContain('5 pointsExact position');
     expect(container.textContent).toContain('3 pointsOne position away');
     expect(container.textContent).toContain('1 pointIn the actual Top 5');
+    // The worked example's total is the sum of its rows.
+    expect(container.textContent).toContain('Top 5 total10');
     expect(container.querySelector('a')?.getAttribute('href')).toBe(
       '/how-to-play',
     );
@@ -99,9 +101,11 @@ describe('landing conversion sections', () => {
     expect(container.textContent).toContain(
       'Every weekend is scored from zero.',
     );
-    // The board is one race weekend, named and sized, not the season table.
+    // The board is one race weekend, named, not the season table. The head
+    // count stays off it: a small number reads as a small game.
     expect(container.textContent).toContain('Dutch Grand Prix');
-    expect(container.textContent).toContain('14 players');
+    expect(container.textContent).toContain('Round 12');
+    expect(container.textContent).not.toContain('14 players');
     // The handle, never a display name: public boards are named by username.
     expect(container.textContent).toContain('overcut-king');
     expect(container.textContent).not.toContain('Example');

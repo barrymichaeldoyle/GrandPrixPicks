@@ -270,8 +270,8 @@ describe('LandingPicks linear journey', () => {
     expect(container.textContent).not.toContain('I have an account');
 
     act(() =>
-      container
-        .querySelector<HTMLButtonElement>('[aria-label="Back to your Top 5"]')
+      [...container.querySelectorAll<HTMLButtonElement>('button')]
+        .find((button) => button.textContent === 'Back to your Top 5')
         ?.click(),
     );
     expect(container.textContent).toContain('Choose your Top 5');
@@ -305,7 +305,9 @@ describe('LandingPicks linear journey', () => {
     expect(container.textContent).toContain('Choose your Top 5');
     expect(container.querySelector('[data-testid="h2h-step"]')).toBeNull();
     expect(
-      container.querySelector('[aria-label="Back to your Top 5"]'),
-    ).toBeNull();
+      [...container.querySelectorAll('button')].some(
+        (button) => button.textContent === 'Back to your Top 5',
+      ),
+    ).toBe(false);
   });
 });

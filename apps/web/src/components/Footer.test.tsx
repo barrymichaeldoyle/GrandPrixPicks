@@ -59,7 +59,7 @@ describe('Footer weekend preview', () => {
     const link = html.querySelector(`a[href="${preview!.to}"]`);
 
     expect(link, 'missing weekend preview link').not.toBeNull();
-    expect(link!.textContent).toContain('Madrid Weekend News');
+    expect(link!.textContent).toContain('Madrid weekend news');
     expect(link!.querySelector('[data-flag="es"]')).not.toBeNull();
     expect(link!.className).not.toMatch(/bg-accent/);
   });

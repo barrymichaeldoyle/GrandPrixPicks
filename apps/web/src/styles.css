@@ -977,14 +977,23 @@
   }
 
   /* Section headings on display-register pages: the same face as the hero,
-     a step down, so the page reads as one voice from top to bottom. */
+     a step down, so the page reads as one voice from top to bottom. One size
+     for every section, the picker's included: the action must not read
+     quieter than the explanation under it. */
   .gpp-display-h2 {
     font-family: var(--font-ui);
-    font-size: clamp(2rem, 4.2vw, 3.25rem);
+    font-size: clamp(1.875rem, 3.2vw, 2.625rem);
     font-weight: 800;
     line-height: 1;
     letter-spacing: -0.035em;
     text-wrap: balance;
+  }
+
+  /* The write-up hero's title is longer ("Las Vegas Grand Prix" on one line,
+     "predictions" on the next) and shares its row with the schedule card. */
+  .gpp-display-writeup {
+    font-size: clamp(2.75rem, 6.2vw, 5.75rem);
+    line-height: 0.92;
   }
 
   .gpp-display-light {
@@ -1013,11 +1022,11 @@
     height: auto;
   }
 
+  /* Not on phones: cropped to the screen it was a few loose strokes beside
+     the title, which read as scribbles rather than a circuit. */
   @media (max-width: 639px) {
     .gpp-hero-lap {
-      top: 7.5rem;
-      left: -1.5rem;
-      width: 27rem;
+      display: none;
     }
   }
 

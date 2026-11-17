@@ -1,4 +1,7 @@
+import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
+
 import { Flag } from '@/components/Flag';
+import { getCircuitLap } from '@/lib/circuitLaps';
 import {
   isRaceWriteupLive,
   type RaceWriteupPhase,
@@ -61,53 +64,79 @@ export function RaceWriteupHero({
   };
 }) {
   const [titleLead, titleTail] = splitHeroTitle(title);
+  const lap = getCircuitLap(getCircuitForRace(raceSlug)?.slug);
   return (
-    // A full-bleed band under the header, on the sunken surface so the
-    // schedule card (`bg-surface`) reads as lifted off it without a shadow.
-    // Its content keeps to the header's frame, so the flag lines up under the
-    // logo and the schedule card's right edge under the header's last button.
-    <div className="border-b border-border bg-surface-sunken">
+    // A full-bleed band under the header, in the display register as the
+    // landing hero is: the page colour (the schedule card's `bg-surface`
+    // still reads as lifted off it), the race name in black-weight type, and
+    // the lap drawn in behind it where we have one. Its content keeps to the
+    // header's frame, so the flag lines up under the logo and the schedule
+    // card's right edge under the header's last button.
+    <div className="relative overflow-hidden border-b border-border bg-page">
       <div className="mx-auto grid max-w-(--page-max) gap-8 px-4 pt-6 pb-8 sm:pt-12 sm:pb-12 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-center lg:gap-16 lg:py-16 xl:gap-24">
-        <header>
-          <div className="flex items-center gap-3">
-            <Flag code={flagCode} size="xl" />
-            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-              <p className="gpp-mono text-sm text-text-muted">{eyebrow}</p>
-              {/* Only where the eyebrow fits on one line. A phone wraps before
+        <header className="relative">
+          {lap ? (
+            <svg
+              className="gpp-hero-lap"
+              viewBox={`-30 -30 ${lap.width + 60} ${lap.height + 60}`}
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path className="gpp-hero-lap-asphalt" d={lap.d} />
+              <path className="gpp-hero-lap-line" d={lap.d} pathLength={1000} />
+              <path className="gpp-hero-lap-car" d={lap.d} pathLength={1000} />
+            </svg>
+          ) : null}
+          <div className="relative">
+            <div className="flex items-center gap-3">
+              <Flag code={flagCode} size="xl" />
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                <p className="gpp-mono text-sm text-text-muted">{eyebrow}</p>
+                {/* Only where the eyebrow fits on one line. A phone wraps before
                   the phase label, and a separator is punctuation between two
                   things on the same line: dropped to the next one it becomes a
                   dot opening a sentence. The line break separates them. */}
-              <span className="hidden text-text-disabled sm:inline" aria-hidden>
-                ·
-              </span>
-              <RaceWriteupPhaseLabel phase={phase} />
+                <span
+                  className="hidden text-text-disabled sm:inline"
+                  aria-hidden
+                >
+                  ·
+                </span>
+                <RaceWriteupPhaseLabel phase={phase} />
+              </div>
             </div>
-          </div>
-          {/* Hero-scale type, so the break is authored rather than balanced:
+            {/* Hero-scale type, so the break is authored rather than balanced:
               the race on one line, what this page is about on the next
               (`docs/product-voice.md`, "Line breaks"). The space between the
               spans keeps the accessible name and the search snippet whole. */}
-          <h1 className="font-title mt-6 text-[2.75rem] leading-[1.02] font-light tracking-tight text-text sm:text-6xl lg:text-[4.25rem] xl:text-7xl">
-            {titleTail ? (
-              <>
-                <span className="block">{titleLead}</span>{' '}
-                <span className="block text-text-muted">{titleTail}</span>
-              </>
-            ) : (
-              title
-            )}
-          </h1>
-          <p className="gpp-reading-copy-lg mt-6 max-w-2xl text-text-muted">
-            {summary}
-          </p>
-          <RaceWriteupActions
-            phase={phase}
-            primaryActionTargetId={primaryActionTargetId}
-            raceSlug={raceSlug}
-            nextRace={nextRace}
-            venueName={venueName}
-            signalsHeading={signalsHeading}
-          />
+            <h1 className="mt-6 text-text">
+              {titleTail ? (
+                <>
+                  <span className="gpp-display gpp-display-writeup block">
+                    {titleLead}
+                  </span>{' '}
+                  <span className="gpp-display gpp-display-light gpp-display-writeup mt-[0.12em] block text-text-muted">
+                    {titleTail}
+                  </span>
+                </>
+              ) : (
+                <span className="gpp-display gpp-display-writeup block">
+                  {title}
+                </span>
+              )}
+            </h1>
+            <p className="gpp-reading-copy-lg mt-6 max-w-2xl text-text-muted">
+              {summary}
+            </p>
+            <RaceWriteupActions
+              phase={phase}
+              primaryActionTargetId={primaryActionTargetId}
+              raceSlug={raceSlug}
+              nextRace={nextRace}
+              venueName={venueName}
+              signalsHeading={signalsHeading}
+            />
+          </div>
         </header>
 
         <RaceWriteupWeekendSchedule

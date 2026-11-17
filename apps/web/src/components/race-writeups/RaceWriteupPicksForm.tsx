@@ -228,7 +228,7 @@ export function RaceWriteupPicksForm({
                   </p>
                   <p className="text-xs text-text-muted">
                     {h2hComplete
-                      ? 'Tap one to change it'
+                      ? 'Select one to change it'
                       : `${h2hTotal - h2hCalled} left to pick`}
                   </p>
                 </div>

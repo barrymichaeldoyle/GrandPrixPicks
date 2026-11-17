@@ -31,7 +31,7 @@ export function footerWeekendPreview(raceSlug: string | undefined): {
   }
   return {
     to: writeup.to,
-    label: `${writeup.venueName} Weekend News`,
+    label: `${writeup.venueName} weekend news`,
     countryCode: getCountryCodeForRace({ slug: raceSlug }),
   };
 }

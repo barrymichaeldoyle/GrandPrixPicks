@@ -43,7 +43,7 @@ export function GuestWeekendNews({
           publishedAt: item.publishedAt,
           sourceName: item.sourceName,
           sourceUrl: item.sourceUrl,
-          team: item.drivers[0]?.team ?? null,
+          team: item.team,
           startingGrid: item.startingGrid,
           raceName,
         };

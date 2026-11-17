@@ -118,11 +118,9 @@ function GlobalBoard({ board }: { board: WeekendBoard | null }) {
       <BoardHeader
         title={board ? board.raceName : 'Global leaderboard'}
         countryCode={countryCode}
-        detail={
-          board
-            ? `${board.playerCount} ${board.playerCount === 1 ? 'player' : 'players'}`
-            : 'Global'
-        }
+        // The round, not the head count: a cold visitor reads "11 players"
+        // as how small the game is, which is not what this board is for.
+        detail={board ? `Round ${board.round}` : 'Global'}
       />
       {board ? (
         <ol aria-label={`Global leaderboard for the ${board.raceName}`}>
@@ -148,7 +146,7 @@ function GlobalBoard({ board }: { board: WeekendBoard | null }) {
       <div className="mt-auto flex min-h-16 items-center justify-end border-t border-border px-4 py-3">
         <Link
           to="/leaderboard"
-          className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover"
+          className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-text underline decoration-border-strong underline-offset-4 hover:decoration-text"
           onClick={() =>
             captureAnalyticsEvent('landing_global_leaderboard_clicked', {
               source: 'landing_competition',
@@ -177,12 +175,12 @@ export function CompetitionSection({
   return (
     <section
       aria-labelledby="landing-competition-heading"
-      className="border-t border-border px-4 py-14 sm:py-20"
+      className="border-t border-border py-14 sm:py-20"
     >
       {/* `grid-cols-1`, not a bare `grid`: an implicit track sizes to its
           content, and one long username in the board widened the column past
           a phone's screen, clipping the heading and the button beside it. */}
-      <div className="mx-auto grid w-full max-w-(--page-max) grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
+      <div className="mx-auto grid w-full max-w-(--page-max) grid-cols-1 gap-8 px-4 md:grid-cols-2 md:gap-12">
         <div>
           {/*
            * Two facts, each said once: the weekend resets, and one save reaches

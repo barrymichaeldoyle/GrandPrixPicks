@@ -31,8 +31,10 @@ function DriverPickBadge({ driver }: { driver: Driver }) {
     >
       <span className="hidden flex-col items-center gap-0.5 leading-none sm:inline-flex">
         {driver.number != null && (
+          // "#16", not "16": beside the row's "P2" a bare number read as a
+          // second position.
           <span className="gpp-mono text-sm font-semibold sm:text-base">
-            {driver.number}
+            #{driver.number}
           </span>
         )}
         <span className="gpp-mono text-xs opacity-75">{driver.code}</span>

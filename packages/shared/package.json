@@ -44,6 +44,7 @@
     "./syntheticRaces": "./src/syntheticRaces.ts",
     "./share": "./src/share.ts",
     "./teams": "./src/teams.ts",
+    "./newsTeam": "./src/newsTeam.ts",
     "./tokens": "./src/tokens.ts",
     "./userFacingError": "./src/userFacingError.ts"
   }

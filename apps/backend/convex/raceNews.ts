@@ -1,3 +1,5 @@
+import { newsTeam } from '@grandprixpicks/shared/newsTeam';
+import { teams as TEAM_NAMES } from '@grandprixpicks/shared/tokens';
 import { ConvexError, v } from 'convex/values';
 
 import { internal } from './_generated/api';
@@ -70,6 +72,8 @@ const raceNewsListResultValidator = v.object({
       publishedAt: v.number(),
       headlineUpdatedAt: v.optional(v.number()),
       sourcePublishedAt: v.optional(v.number()),
+      /** The one team the story is about, or null. See `newsTeam`. */
+      team: v.union(v.string(), v.null()),
       drivers: v.array(
         v.object({
           code: v.string(),
@@ -391,6 +395,13 @@ async function listRaceNews(
       const driver = roster.get(code);
       return driver ? [driver] : [];
     }),
+    team: newsTeam(
+      row.team,
+      (row.driverCodes ?? []).flatMap((code) => {
+        const driver = roster.get(code);
+        return driver ? [driver] : [];
+      }),
+    ),
     writeUpImage: row.writeUpImage,
     startingGrid: row.startingGrid
       ? resolveStartingGrid(row.startingGrid, (code) => roster.get(code))
@@ -453,22 +464,15 @@ export async function loadNewsHeadlines(
   ];
   return {
     total: items.length,
-    items: picksFirst.slice(0, limit).map((item) => {
-      // A story is a team's only when every driver it names drives for that
-      // team. "Mercedes may back Russell" names RUS and ANT, both Mercedes;
-      // a story naming drivers from two teams belongs to neither, and one
-      // naming nobody (tyres, the venue) has no team at all.
-      const teams = new Set(item.drivers.map((driver) => driver.team));
-      return {
-        key: item.key,
-        headline: item.headline,
-        sourceName: item.sourceName,
-        sourcePublishedAt: item.sourcePublishedAt ?? null,
-        driverCodes: item.drivers.map((driver) => driver.code),
-        team: teams.size === 1 ? [...teams][0] : null,
-        affectsPicks: item.affectsSessions.length > 0,
-      };
-    }),
+    items: picksFirst.slice(0, limit).map((item) => ({
+      key: item.key,
+      headline: item.headline,
+      sourceName: item.sourceName,
+      sourcePublishedAt: item.sourcePublishedAt ?? null,
+      driverCodes: item.drivers.map((driver) => driver.code),
+      team: item.team,
+      affectsPicks: item.affectsSessions.length > 0,
+    })),
   };
 }
 
@@ -594,6 +598,13 @@ export const publish = internalMutation({
      * team, a circuit or the weather belongs to no driver.
      */
     driverCodes: v.optional(v.array(v.string())),
+    /**
+     * The team the story is about, when the drivers it names do not say so,
+     * e.g. "McLaren" for a story about the team's upgrades that names nobody.
+     * Must be a team name from `teams` in `packages/shared/src/tokens.ts`.
+     * Kept on a republish that omits it.
+     */
+    team: v.optional(v.string()),
     writeUpImage: v.optional(raceNewsWriteUpImageValidator),
     /**
      * The confirmed starting grid, on the item that announces it, as
@@ -699,6 +710,11 @@ export const publish = internalMutation({
     // Resolved before the write so a typo fails at publish with a message
     // naming the bad code, rather than publishing an item whose badge silently
     // never renders. An agent re-running this needs the failure to be loud.
+    if (args.team !== undefined && !(args.team in TEAM_NAMES)) {
+      throw new ConvexError(
+        `Unknown team "${args.team}". Use one of: ${Object.keys(TEAM_NAMES).join(', ')}.`,
+      );
+    }
     const resolved = await resolveDriverCodes(ctx, args.driverCodes);
     const driverCodes = resolved?.codes;
     const grid = await resolveGridForPublish(
@@ -773,6 +789,7 @@ export const publish = internalMutation({
       sourceName: args.sourceName,
       sourceUrl: args.sourceUrl,
       driverCodes,
+      ...(args.team !== undefined ? { team: args.team } : {}),
       // Spread rather than assigned, so republishing corrected copy for an item
       // that has a photo does not have to restate the photo to keep it. The
       // trade is that `publish` cannot clear one: `patch` leaves an omitted key
@@ -827,7 +844,7 @@ export const publish = internalMutation({
       await syncFeedEvent(
         ctx,
         race,
-        { ...args, affectsSessions },
+        { ...args, affectsSessions, team: args.team ?? existing?.team },
         resolved?.drivers,
         grid?.resolved,
         now,
@@ -1195,6 +1212,7 @@ async function syncFeedEvent(
     category?: 'pick_related' | 'general';
     sourceName: string;
     sourceUrl: string;
+    team?: string;
   },
   drivers:
     | {
@@ -1217,6 +1235,9 @@ async function syncFeedEvent(
     newsSourceName: args.sourceName,
     newsSourceUrl: args.sourceUrl,
     newsDrivers: drivers,
+    // The feed colours a card by this, so it follows the same rule as the
+    // write-up and the landing hero (`newsTeam`).
+    newsTeam: newsTeam(args.team, drivers ?? []) ?? undefined,
     newsStartingGrid: startingGrid,
     raceName: race.name,
     raceSlug: race.slug,

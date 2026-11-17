@@ -236,7 +236,7 @@ export function LandingHero({
               {suffix ? (
                 <>
                   {' '}
-                  <span className="gpp-display gpp-display-light block text-text-muted">
+                  <span className="gpp-display gpp-display-light mt-[0.12em] block text-text-muted">
                     {suffix}
                   </span>
                 </>
@@ -328,7 +328,7 @@ function HeroCountdown({
   return (
     <div className="mt-5 flex flex-wrap items-end gap-x-7 gap-y-2 sm:mt-6">
       <p
-        className="text-sm text-text-muted sm:pb-1.5 sm:text-base"
+        className="text-sm text-text-muted sm:min-w-[12.5rem] sm:pb-1.5 sm:text-base"
         aria-hidden="true"
       >
         <span className="block font-semibold text-text">
@@ -394,7 +394,9 @@ function HeroSchedule({
       ? `${locality} time`
       : 'Track time';
   const forecast = weather?.forecast ?? null;
-  const weatherSessions = forecast ? buildWeatherSessions(race) : [];
+  // Each session's window, so a running session reads as live rather than
+  // done, and a forecast can be matched to it.
+  const sessionWindows = buildWeatherSessions(race);
 
   return (
     <section
@@ -433,11 +435,13 @@ function HeroSchedule({
 
         <ol className="contents">
           {scheduleRows(race).map((row) => {
-            const past = row.startAt !== undefined && row.startAt <= now;
             const isLock = row.startAt !== undefined && row.startAt === lockAt;
-            const session = weatherSessions.find(
+            const session = sessionWindows.find(
               (candidate) => candidate.startsAt === row.startAt,
             );
+            const started = row.startAt !== undefined && row.startAt <= now;
+            const past = started && (!session || session.endsAt <= now);
+            const live = started && !past;
             const summary =
               forecast && session && !past
                 ? summarizeSessionWindow(forecast, session)
@@ -450,7 +454,7 @@ function HeroSchedule({
               <li
                 key={row.key}
                 className={`gpp-hero-session relative grid grid-cols-[minmax(0,1fr)_auto_5.75rem] items-center gap-x-4 border-b border-border py-2.5 last:border-b-0 sm:block sm:border-r sm:border-b-0 sm:px-3 sm:py-4 sm:last:border-r-0 lg:px-4 ${
-                  row.scored && !past
+                  row.scored && !started
                     ? isLock
                       ? 'gpp-hero-session-lock'
                       : 'gpp-hero-session-scored'
@@ -465,7 +469,11 @@ function HeroSchedule({
                     <span className="gpp-mono rounded-xs bg-accent px-1.5 text-[0.6875rem] text-text-on-accent">
                       Next lock
                     </span>
-                  ) : row.scored && !past ? (
+                  ) : live ? (
+                    <span className="gpp-mono rounded-xs bg-text px-1.5 text-[0.6875rem] text-page">
+                      Live
+                    </span>
+                  ) : row.scored && !started ? (
                     <span className="gpp-mono rounded-xs bg-surface-elevated px-1.5 text-[0.6875rem] text-text-muted">
                       Picks
                     </span>

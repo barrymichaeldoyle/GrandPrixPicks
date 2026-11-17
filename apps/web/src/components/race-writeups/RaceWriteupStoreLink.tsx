@@ -1,5 +1,5 @@
 import { ArrowUpRight } from 'lucide-react';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 
 import { secondaryButtonStyles } from '@/components/Button/Button';
 import { captureAnalyticsEvent } from '@/lib/analytics';
@@ -48,9 +48,11 @@ const DISCLOSURE = 'We earn a commission on purchases made through this link.';
 
 /**
  * The store as one card in the weekend news grid, where a reader is already
- * scanning. It looks like its neighbours on purpose (same surface, same edge
- * bar) and says it is an affiliate link before the headline, because a reader
- * has to know that before they click, not after.
+ * scanning. It is the grid's one chartreuse field (display register, see
+ * `docs/design-display-register.md`): a block of the brand colour among the
+ * team-coloured stories, so the shop reads as ours rather than as one more
+ * headline. It says it is an affiliate link before the headline, because a
+ * reader has to know that before they click, not after.
  *
  * `wide` takes both grid columns, for when a single cell would leave the
  * grid's last row half empty.
@@ -82,22 +84,19 @@ export function RaceWriteupStoreCard({
 
   return (
     <article
-      className={`gpp-team-bar gpp-team-bar-lean flex flex-col bg-surface p-4 sm:p-6 ${leanClassName} ${
+      className={`flex flex-col bg-accent p-4 text-text-on-accent sm:p-6 ${leanClassName} ${
         wide
           ? hasProducts
             ? 'sm:col-span-2'
             : 'sm:col-span-2 sm:flex-row sm:items-end sm:gap-10'
           : ''
       }`}
-      // Neutral, with a secondary button: an affiliate link in the accent sat
-      // three lime buttons on one desktop screen with the page's own actions.
-      style={{ '--team-colour': 'var(--border-strong)' } as CSSProperties}
     >
       <div className={wide && !hasProducts ? 'sm:flex-1' : ''}>
-        <p className="gpp-mono text-xs text-text-muted">
+        <p className="gpp-mono text-xs opacity-75">
           {hasProducts ? 'Affiliate links' : 'Affiliate link'}
         </p>
-        <h3 className="font-title mt-1 text-lg font-medium text-text">
+        <h3 className="mt-1 text-2xl leading-tight font-extrabold tracking-tight">
           {hasProducts
             ? 'Race merch at the F1 Store'
             : 'Team kit at the F1 Store'}
@@ -106,6 +105,7 @@ export function RaceWriteupStoreCard({
           products={products}
           className={`mt-3 grid gap-2 ${wide ? 'sm:grid-cols-3' : ''}`}
           columns={wide}
+          onAccent
           onClick={() =>
             captureAnalyticsEvent('race_writeup_store_link_clicked', {
               placement: 'news',
@@ -126,7 +126,7 @@ export function RaceWriteupStoreCard({
           </div>
         )}
         {hasProducts ? null : (
-          <p className="gpp-reading-copy mt-3 text-text-muted">
+          <p className="gpp-reading-copy mt-3 opacity-80">
             Caps, shirts and driver merch for every team on the grid, from the
             official store for your country.
           </p>
@@ -143,14 +143,16 @@ export function RaceWriteupStoreCard({
       >
         <a
           {...storeLinkProps('news')}
-          className={`${secondaryButtonStyles('sm')} w-full sm:w-auto`}
+          // Dark on the chartreuse field, so the field stays the colour and
+          // the button is the thing to press.
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-sm bg-page px-4 text-sm font-semibold text-text transition-colors hover:bg-surface-elevated focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-page sm:w-auto"
         >
           Shop the F1 Store
           <ArrowUpRight aria-hidden />
           <span className="sr-only"> (opens in a new tab)</span>
         </a>
         <p
-          className={`text-xs text-text-muted ${wide && hasProducts ? '' : 'mt-2'}`}
+          className={`text-xs opacity-75 ${wide && hasProducts ? '' : 'mt-2'}`}
         >
           {hasProducts
             ? 'We earn a commission on purchases made through these links.'
@@ -262,8 +264,11 @@ function StoreProductList({
   className,
   onClick,
   columns = false,
+  onAccent = false,
 }: {
   products: StoreProduct[];
+  /** Tiles on the chartreuse store card: dark rules, inherited ink. */
+  onAccent?: boolean;
   className: string;
   onClick: () => void;
   /**
@@ -287,9 +292,11 @@ function StoreProductList({
             target="_blank"
             rel="sponsored noopener"
             onClick={onClick}
-            className={`group flex items-center gap-3 rounded-sm border border-border p-2 hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-              columns ? 'h-full sm:flex-col sm:items-stretch' : ''
-            }`}
+            className={`group flex items-center gap-3 rounded-sm border p-2 focus-visible:outline-2 focus-visible:outline-offset-2 ${
+              onAccent
+                ? 'border-text-on-accent/20 hover:border-text-on-accent/60 focus-visible:outline-page'
+                : 'border-border hover:border-border-strong focus-visible:outline-accent'
+            } ${columns ? 'h-full sm:flex-col sm:items-stretch' : ''}`}
           >
             {/* White behind the photo: the catalog shoots products on white,
                 and a dark surface around a white square reads as a hole in
@@ -306,13 +313,17 @@ function StoreProductList({
               }`}
             />
             <span className="min-w-0">
-              <span className="line-clamp-2 text-sm text-text group-hover:underline">
+              <span
+                className={`line-clamp-2 text-sm group-hover:underline ${onAccent ? '' : 'text-text'}`}
+              >
                 {/* The upstream catalog misspells Norris; correct the display
                     name here so catalog refreshes keep the correction. */}
                 {product.name.replace(/\bLando Noris\b/g, 'Lando Norris')}
               </span>
               <span className="gpp-mono mt-1 block text-sm">
-                <span className="font-semibold text-text">
+                <span
+                  className={`font-semibold ${onAccent ? '' : 'text-text'}`}
+                >
                   {formatPrice(product.currentPrice, product.currency)}
                 </span>
                 {/* Strikethrough is not announced, so a screen reader would
@@ -320,7 +331,9 @@ function StoreProductList({
                 {product.originalPrice ? (
                   <>
                     <span className="sr-only">, was </span>
-                    <s className="ml-2 text-text-muted">
+                    <s
+                      className={`ml-2 ${onAccent ? 'opacity-70' : 'text-text-muted'}`}
+                    >
                       {formatPrice(product.originalPrice, product.currency)}
                     </s>
                   </>

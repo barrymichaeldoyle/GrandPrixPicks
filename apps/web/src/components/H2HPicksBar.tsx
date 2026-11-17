@@ -83,9 +83,11 @@ export function H2HPicksBar({
             : 'Not called yet'
         }.`;
 
-        // A called duel wears the team's colour, as a Top 5 pick does; the
+        // A decided duel wears the team's colour, as a Top 5 pick does, and
+        // that includes one decided by the Top 5 itself: left unfilled, the
+        // five picks a player made first read as the ones still to make. The
         // cell being edited keeps the accent edge.
-        const filled = Boolean(picked) && !inferred && !isActive;
+        const filled = Boolean(picked) && !isActive;
         const cellStyle = {
           '--team-colour': teamColor,
           ...(filled ? teamFillStyle(matchup.team) : {}),
@@ -98,11 +100,9 @@ export function H2HPicksBar({
         } ${
           isActive
             ? 'border-accent bg-surface-elevated'
-            : inferred
-              ? `border-border bg-page ${interactive ? 'hover:border-border-strong' : ''}`
-              : picked
-                ? 'gpp-team-fill'
-                : `border-dashed border-border bg-page ${interactive ? 'hover:border-border-strong' : ''}`
+            : picked
+              ? 'gpp-team-fill'
+              : `border-dashed border-border bg-page ${interactive ? 'hover:border-border-strong' : ''}`
         }`;
 
         // Re-keying on the code replays the settle, so a cell visibly takes the
@@ -113,7 +113,7 @@ export function H2HPicksBar({
           <span
             key={picked ? picked.code : 'open'}
             className={`gpp-row-in gpp-mono truncate text-xs leading-none ${
-              picked && !inferred
+              picked
                 ? isActive
                   ? 'text-text'
                   : 'font-semibold'

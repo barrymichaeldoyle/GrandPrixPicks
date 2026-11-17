@@ -366,7 +366,7 @@ export function H2HDuelPicker({
               finished card spent three lines of chrome on eleven cells. It is a
               hint, not a heading: quiet, and on the row it belongs to. */}
           {showFinishedCard ? (
-            <p className="text-xs text-text-muted">Tap one to change it</p>
+            <p className="text-xs text-text-muted">Select one to change it</p>
           ) : inferredCount > 0 ? (
             <p
               className="text-xs text-text-muted"

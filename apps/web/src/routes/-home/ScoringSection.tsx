@@ -56,14 +56,20 @@ const scoringExample = [
   },
 ] as const;
 
+/**
+ * Summed, not typed: the total said 11 over rows that add to 10, on the one
+ * section that exists to teach the arithmetic.
+ */
+const EXAMPLE_TOTAL = scoringExample.reduce((sum, row) => sum + row.points, 0);
+
 /** Result-colour rules beside a worked example, stacked on smaller screens. */
 export function ScoringSection() {
   return (
     <section
       aria-labelledby="landing-scoring-heading"
-      className="border-t border-border px-4 py-12 sm:py-16"
+      className="border-t border-border py-12 sm:py-16"
     >
-      <div className="mx-auto w-full max-w-(--page-max)">
+      <div className="mx-auto w-full max-w-(--page-max) px-4">
         <h2 id="landing-scoring-heading" className="gpp-display-h2 text-text">
           How scoring works
         </h2>
@@ -143,7 +149,8 @@ export function ScoringSection() {
                     Top 5 total
                   </th>
                   <td className="gpp-mono py-3 pl-2 text-right font-semibold text-text">
-                    11<span className="sr-only"> points</span>
+                    {EXAMPLE_TOTAL}
+                    <span className="sr-only"> points</span>
                   </td>
                 </tr>
               </tfoot>
@@ -158,7 +165,7 @@ export function ScoringSection() {
           </p>
           <Link
             to="/how-to-play"
-            className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover"
+            className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-text underline decoration-border-strong underline-offset-4 hover:decoration-text"
             onClick={() =>
               captureAnalyticsEvent('landing_scoring_rules_clicked', {
                 source: 'landing_scoring',

@@ -66,8 +66,7 @@ export function SignedOutRacePreview({
           Predict the {race.name} top 5
         </h2>
         <p className="mt-2 max-w-md text-sm text-text-muted">
-          Rank five drivers for each session. Free to play. No account needed
-          until you save.
+          Rank five drivers for each session.
         </p>
         {nextLock && (
           <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">

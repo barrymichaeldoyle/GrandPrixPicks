@@ -754,8 +754,7 @@ function PredictionCardSaveWall({ onLockIn }: { onLockIn: () => void }) {
         Sign in to save your picks
       </Button>
       <p className="text-sm text-text-muted">
-        Scored after each session. Free to play, and your picks are kept when
-        you sign in.
+        Scored after each session. Your picks are kept when you sign in.
       </p>
     </div>
   );

@@ -1,50 +1,58 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 
+import type { CSSProperties } from 'react';
+
 import { ScoringBands } from '@/components/ScoringBands';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { TEAM_COLORS } from '@/lib/teamColors';
 
 // Illustrative finishing order, not a past or forecast race classification.
 const scoringExample = [
   {
     driver: 'Norris',
+    team: 'McLaren',
     predicted: 1,
     actual: 1,
     points: 5,
     result: 'Exact position',
-    color: 'text-result-exact',
+    color: 'bg-result-exact',
   },
   {
     driver: 'Leclerc',
+    team: 'Ferrari',
     predicted: 2,
     actual: 3,
     points: 3,
     result: 'One position away',
-    color: 'text-result-near',
+    color: 'bg-result-near',
   },
   {
     driver: 'Verstappen',
+    team: 'Red Bull Racing',
     predicted: 3,
     actual: 5,
     points: 1,
     result: 'In the actual Top 5',
-    color: 'text-result-top5',
+    color: 'bg-result-top5',
   },
   {
     driver: 'Piastri',
+    team: 'McLaren',
     predicted: 4,
     actual: 2,
     points: 1,
     result: 'In the actual Top 5',
-    color: 'text-result-top5',
+    color: 'bg-result-top5',
   },
   {
     driver: 'Russell',
+    team: 'Mercedes',
     predicted: 5,
     actual: 8,
     points: 0,
     result: 'Outside the scoring positions',
-    color: 'text-text-muted',
+    color: 'bg-result-miss',
   },
 ] as const;
 
@@ -56,10 +64,7 @@ export function ScoringSection() {
       className="border-t border-border px-4 py-12 sm:py-16"
     >
       <div className="mx-auto w-full max-w-(--page-max)">
-        <h2
-          id="landing-scoring-heading"
-          className="text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"
-        >
+        <h2 id="landing-scoring-heading" className="gpp-display-h2 text-text">
           How scoring works
         </h2>
         <p className="gpp-reading-copy-lg mt-3 max-w-3xl text-text-muted">
@@ -68,7 +73,7 @@ export function ScoringSection() {
         </p>
 
         <div className="mt-7 grid gap-8 lg:grid-cols-2 lg:gap-12">
-          <ScoringBands className="sm:grid-cols-3 lg:grid-cols-1" />
+          <ScoringBands variant="field" />
 
           <div className="max-w-2xl">
             <table className="w-full text-left text-sm">
@@ -97,7 +102,15 @@ export function ScoringSection() {
               <tbody className="divide-y divide-border">
                 {scoringExample.map((row) => (
                   <tr key={row.driver}>
-                    <th scope="row" className="py-3 pr-2 font-medium text-text">
+                    <th
+                      scope="row"
+                      className="gpp-team-bar py-3 pr-2 pl-3 font-medium text-text"
+                      style={
+                        {
+                          '--team-colour': TEAM_COLORS[row.team],
+                        } as CSSProperties
+                      }
+                    >
                       {row.driver}
                     </th>
                     <td className="gpp-mono px-2 py-3 text-right text-text-muted">
@@ -106,10 +119,12 @@ export function ScoringSection() {
                     <td className="gpp-mono px-2 py-3 text-right text-text">
                       P{row.actual}
                     </td>
-                    <td
-                      className={`gpp-mono py-3 pl-2 text-right ${row.color}`}
-                    >
-                      {row.points}
+                    <td className="py-2 pl-2 text-right">
+                      <span
+                        className={`gpp-mono inline-flex h-7 min-w-7 items-center justify-center px-1.5 font-semibold text-text-on-accent ${row.color}`}
+                      >
+                        {row.points}
+                      </span>
                       <span className="sr-only">
                         {' '}
                         {row.points === 1 ? 'point' : 'points'} · {row.result}

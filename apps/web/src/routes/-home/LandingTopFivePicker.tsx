@@ -6,6 +6,7 @@ import {
   PredictionForm,
   type SaveState,
 } from '@/components/PredictionForm/PredictionForm';
+import { pickMoreLabel } from '@/components/PredictionForm/SubmitRow';
 
 export function LandingTopFivePicker({
   raceId,
@@ -69,9 +70,10 @@ export function LandingTopFivePicker({
       enableNavigationBlocker={false}
       onStartOver={onStartOver}
       draftNoticeTarget={draftNoticeTarget}
-      renderActionArea={({ complete, submit, saveState }) => (
+      renderActionArea={({ complete, picksLeft, submit, saveState }) => (
         <TopFiveHandoff
           complete={complete}
+          picksLeft={picksLeft}
           saveState={saveState}
           onContinue={onContinue}
           label={continueLabel}
@@ -102,6 +104,7 @@ export function LandingTopFivePicker({
  */
 function TopFiveHandoff({
   complete,
+  picksLeft,
   saveState,
   onContinue,
   label,
@@ -110,6 +113,7 @@ function TopFiveHandoff({
   onSave,
 }: {
   complete: boolean;
+  picksLeft: number;
   saveState: SaveState;
   onContinue: () => void;
   label: string;
@@ -136,26 +140,32 @@ function TopFiveHandoff({
         saveState={saveState}
         showSaveStatus={false}
       >
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+        {/* Stacked and full width: this sits in the narrow "Your picks"
+            column, where two buttons side by side broke "team-mate" across
+            lines. Until the Top 5 is complete the save button says what it
+            is waiting for, the same as the race page's. A greyed "Sign in to
+            save your picks" read as a wall in front of an unfinished form. */}
+        <div className="flex w-full flex-col gap-3">
           <Button
             variant="primary"
             size="md"
-            className="w-full sm:w-auto"
+            className="w-full"
             disabled={!complete}
             onClick={onSave}
             data-testid="top5-save"
           >
-            Sign in to save your picks
+            {complete ? 'Sign in to save your picks' : pickMoreLabel(picksLeft)}
           </Button>
-          <Button
-            variant="secondary"
-            size="md"
-            className="w-full sm:w-auto"
-            disabled={!complete}
-            onClick={onContinue}
-          >
-            {label}
-          </Button>
+          {complete ? (
+            <Button
+              variant="secondary"
+              size="md"
+              className="w-full"
+              onClick={onContinue}
+            >
+              {label}
+            </Button>
+          ) : null}
         </div>
       </PicksFormActionRow>
       <p
@@ -165,8 +175,8 @@ function TopFiveHandoff({
         {/* What the sign-in is for. 11 of about 19 visitors who finished a
             Top 5 here in the 30 days to 2026-11-16 left without pressing
             anything, and nothing on this screen said what a saved pick earns. */}
-        Scored after each session, up to 25 points. Free to play, and your picks
-        are kept when you sign in. Team-mate picks are optional.
+        Scored after each session, up to 25 points. Your picks are kept when you
+        sign in. Team-mate picks are optional.
       </p>
     </>
   );

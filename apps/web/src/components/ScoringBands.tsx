@@ -13,6 +13,7 @@ const scoringBands = [
     copy: 'Your driver finishes exactly where you predicted.',
     textClass: 'text-result-exact',
     ruleClass: 'border-result-exact',
+    fieldClass: 'bg-result-exact',
   },
   {
     points: 3,
@@ -21,6 +22,7 @@ const scoringBands = [
     copy: 'Your driver finishes one place above or below your pick.',
     textClass: 'text-result-near',
     ruleClass: 'border-result-near',
+    fieldClass: 'bg-result-near',
   },
   {
     points: 1,
@@ -29,10 +31,50 @@ const scoringBands = [
     copy: 'Your driver finishes in the Top 5, two or more places from your pick.',
     textClass: 'text-result-top5',
     ruleClass: 'border-result-top5',
+    fieldClass: 'bg-result-top5',
   },
 ] as const;
 
-export function ScoringBands({ className = '' }: { className?: string }) {
+/**
+ * `rule` is the product register: a sector-colour rule over each row.
+ * `field` is the display register (`docs/design-display-register.md`) for
+ * the landing page: each band is a block of its own scoring colour, the same
+ * colour a pick wears on the results it earns, with near-black ink on it (all
+ * three clear 4.5:1).
+ */
+export function ScoringBands({
+  className = '',
+  variant = 'rule',
+}: {
+  className?: string;
+  variant?: 'rule' | 'field';
+}) {
+  if (variant === 'field') {
+    return (
+      <dl className={`grid content-start gap-1 ${className}`}>
+        {scoringBands.map((band) => (
+          <div
+            key={band.points}
+            className={`grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-x-4 px-4 py-4 text-text-on-accent sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:px-5 ${band.fieldClass}`}
+          >
+            <dt className="contents">
+              <span className="gpp-hero-digits row-span-2 text-current">
+                {band.points}
+                <span className="sr-only"> {band.unit}</span>
+              </span>
+              <span className="text-lg leading-tight font-semibold">
+                {band.title}
+              </span>
+            </dt>
+            <dd className="col-start-2 mt-0.5 text-sm leading-snug opacity-80">
+              {band.copy}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    );
+  }
+
   return (
     <dl className={`grid content-start gap-x-8 gap-y-5 ${className}`}>
       {scoringBands.map((band) => (

@@ -107,14 +107,6 @@ export function RaceWriteupHero({
             nextRace={nextRace}
             venueName={venueName}
             signalsHeading={signalsHeading}
-            note={
-              // The two questions that stop a reader arriving from search
-              // before the button: does it cost anything, and must I sign up
-              // first.
-              isRaceWriteupLive(phase) || (phase === 'finished' && nextRace)
-                ? 'Free to play. No account needed until you save.'
-                : undefined
-            }
           />
         </header>
 

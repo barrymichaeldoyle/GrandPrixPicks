@@ -124,9 +124,6 @@ export function SignInPrompt({
                 <Link to="/">Try a pick without an account</Link>
               </Button>
             </div>
-            <p className="gpp-reading-meta mt-3 text-text-disabled">
-              Free to play. No card needed.
-            </p>
           </header>
 
           <NextEventPanel />

@@ -112,6 +112,8 @@ interface PredictionFormProps {
    */
   renderActionArea?: (state: {
     complete: boolean;
+    /** Empty slots, so a waiting button can say what it is waiting for. */
+    picksLeft: number;
     saveState: SaveState;
     saveNow: () => Promise<void>;
     /**
@@ -1112,6 +1114,7 @@ export function PredictionForm({
             {renderActionArea ? (
               renderActionArea({
                 complete: picks.length === 5,
+                picksLeft: 5 - picks.length,
                 saveState,
                 saveNow,
                 submit: () => requestSubmit(),

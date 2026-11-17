@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowDown, ArrowRight } from 'lucide-react';
-import type { ReactNode } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import {
@@ -30,12 +29,6 @@ type RaceWriteupActionsProps = {
    */
   signalsHeading?: string;
   venueName: string;
-  /**
-   * A line about the primary action. It sits directly under the button on a
-   * phone, where the secondary link wraps below it and would otherwise come
-   * between the two, and under the whole row from `sm`.
-   */
-  note?: ReactNode;
 };
 
 /**
@@ -57,13 +50,12 @@ export function RaceWriteupActions({
   nextRace,
   signalsHeading,
   venueName,
-  note,
 }: RaceWriteupActionsProps) {
   // The hero's button is this page's one accent action, so the header's
   // "Make your picks" hides while it is on the page (see styles.css).
   const isHero = !compact && !placement;
   // Every primary action here leads to picking on the web; from the app the
-  // reader picks in the app. The circuit link and the note stay.
+  // reader picks in the app. The circuit link stays.
   const inApp = useInAppView();
   // The only button above the fold on every write-up, and until this it was
   // invisible to analytics: nobody could tell whether a reader who never
@@ -144,11 +136,6 @@ export function RaceWriteupActions({
           <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       )}
-      {!compact && note ? (
-        <p className="order-1 -mt-1 basis-full text-sm leading-6 text-text-muted sm:order-2 sm:mt-0 sm:max-w-xl">
-          {note}
-        </p>
-      ) : null}
       {!compact && signalsHeading ? (
         <a
           href={`#${RACE_WRITEUP_CIRCUIT_ANCHOR}`}

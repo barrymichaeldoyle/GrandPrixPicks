@@ -605,7 +605,9 @@ function HeroNews({
                 animationDelay: `${120 + index * 50}ms`,
               } as CSSProperties)
             : ({ animationDelay: `${120 + index * 50}ms` } as CSSProperties);
-          const codes = item.driverCodes.slice(0, 2);
+          const eyebrow = [item.driverCodes.slice(0, 3).join(' '), item.team]
+            .filter(Boolean)
+            .join(' · ');
           return (
             <li
               key={item.key}
@@ -615,31 +617,24 @@ function HeroNews({
               <Link
                 to={writeupTo}
                 hash={`news-${item.key}`}
-                className={`gpp-hero-band-link grid min-h-[4.5rem] grid-cols-[4.5rem_minmax(0,1fr)] ${
+                className={`gpp-hero-band-link flex flex-col justify-center px-4 py-3 ${
                   fill ? 'gpp-hero-band-team' : 'bg-surface-elevated text-text'
                 }`}
                 onClick={() => track('headline')}
               >
-                <span
-                  className="gpp-mono flex flex-col justify-center gap-0.5 border-r border-current/20 pl-3 text-sm leading-tight font-semibold"
-                  aria-hidden="true"
-                >
-                  {codes.map((code) => (
-                    <span key={code}>{code}</span>
-                  ))}
-                  {item.team ? (
-                    <span className="truncate pr-1 text-[0.625rem] font-medium opacity-75">
-                      {item.team}
-                    </span>
-                  ) : null}
+                {/* Who the story is about, when it names anyone. A story
+                    about the tyres or the venue has no line here rather than
+                    an empty cell. */}
+                {eyebrow ? (
+                  <span className="gpp-mono mb-1 text-xs font-semibold tracking-wide opacity-80">
+                    {eyebrow}
+                  </span>
+                ) : null}
+                <span className="text-[0.9375rem] leading-snug font-semibold text-pretty">
+                  {item.headline}
                 </span>
-                <span className="flex flex-col justify-center px-3.5 py-2.5">
-                  <span className="text-[0.9375rem] leading-snug font-semibold text-pretty">
-                    {item.headline}
-                  </span>
-                  <span className="gpp-mono mt-0.5 text-xs opacity-75">
-                    {item.sourceName}
-                  </span>
+                <span className="gpp-mono mt-1 text-xs opacity-75">
+                  {item.sourceName}
                 </span>
               </Link>
             </li>
@@ -670,9 +665,6 @@ export function ScrollToPicksCta({ targetId }: { targetId: string }) {
         Make your picks
         <ArrowRight size={20} aria-hidden="true" />
       </a>
-      <p className="text-sm text-text-muted">
-        Free to play. No account needed until you save.
-      </p>
     </div>
   );
 }

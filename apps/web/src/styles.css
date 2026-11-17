@@ -976,6 +976,17 @@
     text-wrap: balance;
   }
 
+  /* Section headings on display-register pages: the same face as the hero,
+     a step down, so the page reads as one voice from top to bottom. */
+  .gpp-display-h2 {
+    font-family: var(--font-ui);
+    font-size: clamp(2rem, 4.2vw, 3.25rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+
   .gpp-display-light {
     font-weight: 300;
     letter-spacing: -0.05em;

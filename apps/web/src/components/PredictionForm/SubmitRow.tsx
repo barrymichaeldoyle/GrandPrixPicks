@@ -81,7 +81,7 @@ export function SubmitRow({
   );
 }
 
-function pickMoreLabel(picksLeft: number): string {
+export function pickMoreLabel(picksLeft: number): string {
   if (picksLeft >= 5) {
     return 'Pick 5 drivers';
   }

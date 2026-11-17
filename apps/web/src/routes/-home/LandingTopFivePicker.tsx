@@ -168,16 +168,20 @@ function TopFiveHandoff({
           ) : null}
         </div>
       </PicksFormActionRow>
-      <p
-        className={`mt-3 text-sm text-text-muted ${complete ? '' : 'invisible'}`}
-        aria-hidden={!complete}
-      >
-        {/* What the sign-in is for. 11 of about 19 visitors who finished a
-            Top 5 here in the 30 days to 2026-11-16 left without pressing
-            anything, and nothing on this screen said what a saved pick earns. */}
-        Scored after each session, up to 25 points. Your picks are kept when you
-        sign in. Team-mate picks are optional.
-      </p>
+      {/* What the sign-in is for. 11 of about 19 visitors who finished a Top
+          5 here in the 30 days to 2026-11-16 left without pressing anything,
+          and nothing on this screen said what a saved pick earns.
+
+          Rendered only once the Top 5 is complete, with the second button
+          above it. It used to hold its height while invisible, which left a
+          blank band under every unfinished picker; appearing on the
+          visitor's own tap is not a layout shift. */}
+      {complete ? (
+        <p className="mt-3 text-sm text-text-muted">
+          Scored after each session, up to 25 points. Your picks are kept when
+          you sign in. Team-mate picks are optional.
+        </p>
+      ) : null}
     </>
   );
 }

@@ -61,7 +61,6 @@ describe('landing conversion sections', () => {
     expect(container.querySelector('a')?.getAttribute('href')).toBe(
       '/how-to-play',
     );
-    expect(container.textContent).toContain('Form and scoring guides');
     expect(container.querySelector('a[href="/f1-standings"]')).not.toBeNull();
     expect(
       container.querySelector('a[href="/guides/$guideSlug"]'),

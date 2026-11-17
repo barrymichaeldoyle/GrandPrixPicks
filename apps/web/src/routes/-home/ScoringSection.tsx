@@ -170,18 +170,15 @@ export function ScoringSection() {
           </Link>
         </div>
 
-        <nav
-          aria-label="F1 prediction resources"
-          className="mt-8 border-t border-border pt-6"
-        >
-          <h3 className="font-title text-lg font-medium text-text">
-            Form and scoring guides
-          </h3>
-          <ul className="mt-4 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+        {/* Kept for the guides' sake: the home page is the strongest page
+            linking to them. It was a headed, ruled block of three accent
+            links, which read as a section of its own with nothing in it. */}
+        <nav aria-label="F1 prediction guides" className="mt-5">
+          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             <li>
               <Link
                 to="/f1-standings"
-                className="font-medium text-accent hover:text-accent-hover"
+                className="text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text"
               >
                 2026 F1 standings
               </Link>
@@ -190,7 +187,7 @@ export function ScoringSection() {
               <Link
                 to="/guides/$guideSlug"
                 params={{ guideSlug: 'f1-points-system-explained' }}
-                className="font-medium text-accent hover:text-accent-hover"
+                className="text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text"
               >
                 F1 points system explained
               </Link>
@@ -198,7 +195,7 @@ export function ScoringSection() {
             <li>
               <Link
                 to="/how-to-play"
-                className="font-medium text-accent hover:text-accent-hover"
+                className="text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text"
               >
                 How to predict an F1 Top 5
               </Link>

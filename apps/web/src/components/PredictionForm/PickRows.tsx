@@ -209,7 +209,11 @@ export function EmptySlotDroppable({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: emptySlotId(slotIndex) });
   return (
-    <Tooltip content={driverSlotTooltip}>
+    // Not a tab stop. A keyboard reader picks from the pool, and focus moves
+    // through the pool on its own after each pick (`PredictionForm`), so five
+    // empty slots in the tab order were five stops before the first driver,
+    // each saying only where the drivers are.
+    <Tooltip content={driverSlotTooltip} focusable={false}>
       <div
         ref={setNodeRef}
         className={`flex h-16 w-full shrink-0 cursor-default items-center border-b border-dashed border-border bg-surface text-left last:border-b-0 sm:cursor-help ${isOver ? 'bg-accent-muted/30' : ''}`}

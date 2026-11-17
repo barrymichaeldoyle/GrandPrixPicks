@@ -30,6 +30,9 @@ interface TooltipProps {
    * stop that announces nothing. `inert` on the region would also fix it and
    * would take the pointer affordance down with it, which is the half worth
    * keeping.
+   *
+   * Also false on a hint that only points elsewhere (an empty pick slot that
+   * says where the drivers are), where the stop costs more than it tells.
    */
   focusable?: boolean;
 }

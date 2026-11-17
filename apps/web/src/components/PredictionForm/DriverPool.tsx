@@ -3,6 +3,7 @@ import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { m } from 'framer-motion';
 import type { ReactNode } from 'react';
 
+import { displayTeamName } from '@/lib/display';
 import type { RosterDriver } from '@/lib/roster';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../DriverBadge';
 import { DRIVER_POOL_DROPPABLE_ID } from './dndIds';
@@ -97,6 +98,10 @@ function DraggableDriverCard({
         ) : null}
         <span className="gpp-mono text-xs leading-none text-text-muted">
           {driver.code}
+          {/* The bar says the team to the eye only. */}
+          {driver.team ? (
+            <span className="sr-only">{`, ${displayTeamName(driver.team)}`}</span>
+          ) : null}
         </span>
         {/* `shrink-0` so the marker never eats the surname's width: the name is
             the thing being picked, and it is the one that truncates well. */}

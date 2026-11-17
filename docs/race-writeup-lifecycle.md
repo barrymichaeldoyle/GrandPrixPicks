@@ -35,13 +35,13 @@ to the next round:
 The web app derives a page phase from race status and session lock times. Use
 the phase as the contract for copy, modules and actions.
 
-| Phase        | Boundary                        | Reader's job                                  | Page behavior                                                                                        |
-| ------------ | ------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Preview      | Published until FP1             | Understand the circuit and make an early call | Show schedule, forecast, known changes, durable analysis and both prediction actions                 |
-| Evidence     | FP1 until qualifying locks      | Use on-track evidence                         | Keep live modules current and explain only evidence that can change a pick                           |
-| Race picks   | Qualifying lock until race lock | Make the race Top 5                           | Freeze the qualifying call and move the primary action to race picks                                 |
-| Picks locked | Race lock until results publish | Review the submitted call                     | Remove forecasts and decision prompts; do not claim that results exist yet                           |
-| Finished     | Race results published          | Compare the field with the result             | Show the official result; aggregated player picks belong here when they exist; link to the next race |
+| Phase        | Boundary                        | Reader's job                                  | Page behavior                                                                                                                          |
+| ------------ | ------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Preview      | Published until FP1             | Understand the circuit and make an early call | Show schedule, forecast, known changes, durable analysis and both prediction actions                                                   |
+| Evidence     | FP1 until qualifying locks      | Use on-track evidence                         | Keep live modules current and explain only evidence that can change a pick                                                             |
+| Race picks   | Qualifying lock until race lock | Make the race Top 5                           | Freeze the qualifying call and move the primary action to race picks                                                                   |
+| Picks locked | Race lock until results publish | Review the submitted call                     | Remove forecasts and decision prompts; do not claim that results exist yet                                                             |
+| Finished     | Race results published          | Compare the field with the result             | Show the official result and player picks (`RaceWriteupFinishedResults`), the weather each session ran in, and a link to the next race |
 
 | Cancelled | Race status is cancelled | Understand what happened | Remove prediction prompts and show the race detail or cancellation notice |
 
@@ -129,6 +129,10 @@ Use one source for each kind of information:
 - circuit guide: facts that remain useful across seasons.
 
 Forecasts and decision prompts render only while a pick can still change.
+Once the race is finished, the schedule in `RaceWriteupHero` shows the
+weather again, as a record of the conditions each session ran in:
+`weather.getForWriteup` returns a finished weekend only when every session is
+covered. Between the race lock and the result it shows no weather at all.
 Published news remains accessible after picks lock: retirements, punctures and
 post-race decisions are still weekend news, and distributed story links need a
 visible card. After results publish, retain the dated news or a curated account
@@ -272,7 +276,8 @@ Review the pattern after three race weekends using:
    is not a child.
 4. Put labelled sections in `RaceWriteupSection` or the photo shells.
 5. Put weather and other expiring decision sections behind
-   `isRaceWriteupLive()`. Keep published news accessible after picks lock and
+   `isRaceWriteupLive()` (the hero's schedule also shows weather when the
+   race is finished; see above). Keep published news accessible after picks lock and
    in the finished archive, and follow the page order above.
 6. Pass cancellation state into SportsEvent structured data.
 7. Verify the preview, evidence, race-picks, picks-locked, finished and

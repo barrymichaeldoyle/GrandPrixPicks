@@ -142,12 +142,12 @@ export function RaceWriteupWeekendSchedule({
 
   return (
     // Named for assistive technology rather than by a visible heading. A
-    // heading here would have read "Schedule and forecast" over five rows
+    // heading here would have read "Schedule and weather" over five rows
     // that say `Practice 1 · Fri 13:30 · 28°C`, which is the redundant
     // heading `docs/product-voice.md` rules out: the table states its own
     // subject. `WeekendScheduleList` on the dashboard is named the same way.
     <section
-      aria-label={forecast ? 'Schedule and forecast' : 'Weekend schedule'}
+      aria-label={forecast ? 'Schedule and weather' : 'Weekend schedule'}
       className="@container rounded-sm border border-border bg-surface"
     >
       {/* The column head, in the timing-sheet sense: what unit the figures

@@ -186,7 +186,9 @@ export function RaceWriteupChampionshipContext({
                   size="sm"
                   prerenderTooltip={false}
                 />
-                <span className="min-w-0 truncate text-sm text-text">
+                {/* Wraps rather than truncates: with text spacing raised
+                    (WCAG 1.4.12) at 320px, an ellipsis cut most names. */}
+                <span className="min-w-0 text-sm wrap-break-word text-text">
                   {driver.displayName}
                 </span>
                 <span className="gpp-mono text-sm text-text">

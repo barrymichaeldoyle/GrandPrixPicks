@@ -1741,7 +1741,8 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=las-vegas-2026&story=mercedes-aduo-turbo-antonelli-las-vegas&v=a5ad88f4cee5",
       "dueAt": "2026-11-17T16:30:00.000Z",
       "expiresAt": "2026-11-21T04:00:00.000Z",
-      "status": "creating"
+      "status": "creating",
+      "bufferPostId": "6afc7c100ec7d2b0822dbfa1"
     }
   ]
 }

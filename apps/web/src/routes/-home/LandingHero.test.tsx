@@ -130,7 +130,7 @@ describe('LandingHero', () => {
   it('announces the deadline in words', () => {
     render();
     expect(container.textContent).toContain(
-      'Qualifying picks lock in 2 days, 5 hours, 0 minutes.',
+      'Qualifying picks lock in 2 days, 5 hours, 0 minutes, at Sat ',
     );
   });
 

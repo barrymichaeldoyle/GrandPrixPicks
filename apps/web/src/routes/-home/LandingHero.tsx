@@ -355,7 +355,10 @@ function HeroCountdown({
 
   return (
     <div className="mt-5 flex flex-wrap items-end gap-x-7 gap-y-2 sm:mt-6">
-      <p className="text-sm text-text-muted sm:pb-1.5 sm:text-base">
+      <p
+        className="text-sm text-text-muted sm:pb-1.5 sm:text-base"
+        aria-hidden="true"
+      >
         <span className="block font-semibold text-text">
           {label} picks lock in
         </span>
@@ -364,9 +367,11 @@ function HeroCountdown({
           {zone ? ` ${zone}` : null}
         </span>
       </p>
-      {/* The digits are for the eye; the sentence is what is announced. */}
+      {/* The label and digits are for the eye; this sentence is what is
+          announced, once. */}
       <p className="sr-only">
-        {label} picks lock in {spoken}.
+        {label} picks lock in {spoken}, at {day} {time}
+        {zone ? ` ${zone}` : null}.
       </p>
       <p className="flex items-start gap-4 sm:gap-5" aria-hidden="true">
         {imminent ? (

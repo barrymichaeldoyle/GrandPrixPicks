@@ -2,6 +2,8 @@ import type { CSSProperties } from 'react';
 
 import { displayTeamName } from '@/lib/display';
 
+import { teamFillStyle } from '@/lib/teamColors';
+
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
 import type { H2HDriver, H2HMatchup } from './H2HMatchupGrid';
 
@@ -81,6 +83,14 @@ export function H2HPicksBar({
             : 'Not called yet'
         }.`;
 
+        // A called duel wears the team's colour, as a Top 5 pick does; the
+        // cell being edited keeps the accent edge.
+        const filled = Boolean(picked) && !inferred && !isActive;
+        const cellStyle = {
+          '--team-colour': teamColor,
+          ...(filled ? teamFillStyle(matchup.team) : {}),
+        } as CSSProperties;
+
         const cellClassName = `gpp-team-bar flex h-9 min-w-0 items-center justify-center overflow-hidden rounded-sm border pr-1 pl-2 transition-colors sm:h-7 sm:pr-0.5 sm:pl-1.5 ${
           interactive
             ? 'focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none'
@@ -91,7 +101,7 @@ export function H2HPicksBar({
             : inferred
               ? `border-border bg-page ${interactive ? 'hover:border-border-strong' : ''}`
               : picked
-                ? `border-border bg-surface-elevated ${interactive ? 'hover:border-border-strong' : ''}`
+                ? 'gpp-team-fill'
                 : `border-dashed border-border bg-page ${interactive ? 'hover:border-border-strong' : ''}`
         }`;
 
@@ -103,7 +113,11 @@ export function H2HPicksBar({
           <span
             key={picked ? picked.code : 'open'}
             className={`gpp-row-in gpp-mono truncate text-xs leading-none ${
-              picked && !inferred ? 'text-text' : 'text-text-muted'
+              picked && !inferred
+                ? isActive
+                  ? 'text-text'
+                  : 'font-semibold'
+                : 'text-text-muted'
             }`}
           >
             {picked ? picked.code : index + 1}
@@ -116,7 +130,7 @@ export function H2HPicksBar({
               key={matchup._id}
               aria-label={label}
               className={cellClassName}
-              style={{ '--team-colour': teamColor } as CSSProperties}
+              style={cellStyle}
             >
               {cellContent}
             </span>
@@ -131,7 +145,7 @@ export function H2HPicksBar({
             aria-current={isActive ? 'step' : undefined}
             aria-label={label}
             className={cellClassName}
-            style={{ '--team-colour': teamColor } as CSSProperties}
+            style={cellStyle}
           >
             {cellContent}
           </button>

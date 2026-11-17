@@ -20,7 +20,23 @@ A short, fixed list. Adding a surface is a decision, not a styling choice.
 - Candidates, not yet built: write-up heroes, OG and social cards, the season
   recap.
 
-Never in game UI: the picker, pick rows, standings, results, leagues, settings.
+Never in game UI (the picker, pick rows, standings, results, leagues,
+settings), with one exception below.
+
+## Picked drivers (product register, since 2026-11-17)
+
+A driver the player has picked wears their team's colour as a fill, everywhere
+a pick is drawn: the pool card (`DriverPool`), the pick row's number block
+(`PickRows`), the phone summary strip (`MobilePickSummary`), the called duel
+card (`H2HDuelQuestion`) and the called cell in the team-mate bar
+(`H2HPicksBar`). Unpicked drivers keep the 3px bar, so the pool stays quiet and
+the five a player chose stand out. Chartreuse still marks the active cell.
+
+Fills go through `teamFillStyle` / `readableTeamFill` in
+`apps/web/src/lib/teamColors.ts`: the ink is whichever of near-black and
+near-white reads better, and a livery that reaches neither at 4.5:1 (Ferrari
+and Audi red) is darkened in small steps until white does. A test holds every
+team on the grid to 4.5:1.
 
 ## What it allows
 

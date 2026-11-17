@@ -1,4 +1,3 @@
-import { colors } from '@grandprixpicks/shared/tokens';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 import type { CSSProperties, ReactNode } from 'react';
@@ -12,7 +11,7 @@ import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import { formatTimeZoneAbbreviation } from '@/lib/date';
 import { getRaceWriteup } from '@/lib/raceWriteups';
 import { useSessionTimeView } from '@/lib/sessionTimeView';
-import { TEAM_COLORS } from '@/lib/teamColors';
+import { readableTeamFill, TEAM_COLORS } from '@/lib/teamColors';
 import {
   buildWeatherSessions,
   sessionWeatherLine,
@@ -165,33 +164,6 @@ function dayAndTime(timestamp: number, timeZone: string) {
     return parts.find((entry) => entry.type === type)?.value ?? '';
   }
   return { day: part('weekday'), time: `${part('hour')}:${part('minute')}` };
-}
-
-function relativeLuminance(hex: string) {
-  const value = hex.replace('#', '');
-  function channel(offset: number) {
-    const c = Number.parseInt(value.slice(offset, offset + 2), 16) / 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  }
-  return 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
-}
-
-function contrast(a: string, b: string) {
-  const [hi, lo] = [relativeLuminance(a), relativeLuminance(b)].sort(
-    (x, y) => y - x,
-  );
-  return (hi! + 0.05) / (lo! + 0.05);
-}
-
-/**
- * Text colour for a team-colour fill: whichever of the page's near-black and
- * near-white reads better on it. Williams blue takes white; Mercedes teal,
- * McLaren papaya and Haas grey take near-black.
- */
-export function inkForFill(fill: string): string {
-  return contrast(fill, colors.textOnAccent) >= contrast(fill, colors.text)
-    ? colors.textOnAccent
-    : colors.text;
 }
 
 export function LandingHero({
@@ -598,10 +570,11 @@ function HeroNews({
       <ol className="grid gap-1">
         {items.map((item, index) => {
           const fill = item.team ? TEAM_COLORS[item.team] : undefined;
-          const style = fill
+          const readable = fill ? readableTeamFill(fill) : null;
+          const style = readable
             ? ({
-                '--band-fill': fill,
-                '--band-ink': inkForFill(fill),
+                '--band-fill': readable.fill,
+                '--band-ink': readable.ink,
                 animationDelay: `${120 + index * 50}ms`,
               } as CSSProperties)
             : ({ animationDelay: `${120 + index * 50}ms` } as CSSProperties);

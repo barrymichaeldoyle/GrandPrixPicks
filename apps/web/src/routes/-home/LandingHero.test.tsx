@@ -5,9 +5,9 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { TEAM_COLORS } from '@/lib/teamColors';
+import { inkForFill, TEAM_COLORS } from '@/lib/teamColors';
 
-import { inkForFill, LandingHero, splitRaceName } from './LandingHero';
+import { LandingHero, splitRaceName } from './LandingHero';
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({

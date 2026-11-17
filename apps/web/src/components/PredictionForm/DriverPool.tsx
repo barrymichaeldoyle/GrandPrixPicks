@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 
 import { displayTeamName } from '@/lib/display';
 import type { RosterDriver } from '@/lib/roster';
-import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../DriverBadge';
+import { teamColor, teamFillStyle } from '@/lib/teamColors';
 import { DRIVER_POOL_DROPPABLE_ID } from './dndIds';
 
 type Driver = RosterDriver;
@@ -56,10 +56,11 @@ function DraggableDriverCard({
        * text, with the state appended below as screen-reader-only.
        */
       /*
-       * Team colour is the 3px left bar, not the fill. Twenty-two saturated
-       * tiles in a grid was the loudest surface in the app; confined to a bar
-       * the same twenty-two are still instantly sortable by team, and the
-       * code can sit at full contrast on a neutral surface.
+       * Team colour is the 3px left bar until the driver is picked, then the
+       * card's fill. Twenty-two saturated tiles was the loudest surface in the
+       * app, so the pool stays neutral; the five a player chose light up in
+       * their team's colour, which is the one thing on the grid that is
+       * theirs. Text on the fill is whichever ink reads (`teamFillStyle`).
        *
        * Hover is a surface step rather than an opacity change — opacity is
        * never used to signal hover in this system.
@@ -72,31 +73,35 @@ function DraggableDriverCard({
        */
       className={`gpp-team-bar flex min-h-14 w-full items-center justify-start gap-2 rounded-sm border py-2.5 pr-2 pl-3 text-left transition-colors duration-150 ease-out ${
         picked
-          ? 'cursor-not-allowed border-accent bg-surface-elevated'
+          ? 'gpp-team-fill cursor-not-allowed'
           : 'border-border bg-surface-elevated hover:border-border-strong hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface-elevated'
       }`}
       style={
         {
-          '--team-colour':
-            (driver.team && TEAM_COLORS[driver.team]) || FALLBACK_TEAM_COLOR,
+          '--team-colour': teamColor(driver.team),
+          ...(picked ? teamFillStyle(driver.team) : {}),
         } as React.CSSProperties
       }
     >
       {/* Corner badge, not in the text flow — stacked surnames used to collide
-          with an inline trailing P#. */}
+          with an inline trailing P#. Dark on every team fill. */}
       {picked ? (
-        <span className="gpp-mono absolute top-1.5 right-1.5 rounded-xs bg-accent px-1 py-0.5 text-xs leading-none font-semibold text-text-on-accent">
+        <span className="gpp-mono absolute top-1.5 right-1.5 rounded-xs bg-page px-1 py-0.5 text-xs leading-none font-semibold text-text">
           P{pickedPosition}
         </span>
       ) : null}
       {/* Surnames lead; codes remain available for broadcast-familiar fans. */}
       <span className="flex w-full min-w-0 flex-col gap-1">
         {surname ? (
-          <span className="min-w-0 truncate text-sm leading-tight font-medium text-text">
+          <span
+            className={`min-w-0 truncate text-sm leading-tight font-medium ${picked ? '' : 'text-text'}`}
+          >
             {surname}
           </span>
         ) : null}
-        <span className="gpp-mono text-xs leading-none text-text-muted">
+        <span
+          className={`gpp-mono text-xs leading-none ${picked ? 'opacity-75' : 'text-text-muted'}`}
+        >
           {driver.code}
           {/* The bar says the team to the eye only. */}
           {driver.team ? (

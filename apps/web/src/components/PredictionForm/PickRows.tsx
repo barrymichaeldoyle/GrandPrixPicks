@@ -9,7 +9,7 @@ import type { CSSProperties } from 'react';
 import { displayTeamName } from '@/lib/display';
 import type { RosterDriver } from '@/lib/roster';
 import { isRacing } from '@/lib/roster';
-import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../DriverBadge';
+import { teamColor, teamFillStyle } from '@/lib/teamColors';
 import { Flag } from '../Flag';
 import { Tooltip } from '../Tooltip';
 import { emptySlotId } from './dndIds';
@@ -18,28 +18,24 @@ type Driver = RosterDriver;
 /** Left-side badge (number + code) – reused so it can be wrapped as drag handle on mobile. */
 function DriverPickBadge({ driver }: { driver: Driver }) {
   return (
-    // The team colour is the 3px edge bar on this block, not its fill. The
-    // number and code are data, so they are mono and tabular.
+    // The team colour fills this block: the row is a driver the player
+    // picked, and a pick wears its team (see `teamFillStyle`). The number and
+    // code are data, so they are mono and tabular.
     //
-    // On a phone the block shrinks to the bar alone: beside the full name,
-    // the team and the summary chip above, the number and code were a third
-    // copy of who the driver is, in the width the name needs.
+    // On a phone the block shrinks to a bar: beside the full name, the team
+    // and the summary chip above, the number and code were a third copy of
+    // who the driver is, in the width the name needs.
     <div
-      className="gpp-team-bar flex h-full w-(--team-bar-width) shrink-0 items-center justify-center py-1 sm:w-14 sm:border-r sm:border-border sm:pl-1"
-      style={
-        {
-          '--team-colour':
-            (driver.team && TEAM_COLORS[driver.team]) || FALLBACK_TEAM_COLOR,
-        } as React.CSSProperties
-      }
+      className="gpp-team-fill flex h-full w-(--team-bar-width) shrink-0 items-center justify-center py-1 sm:w-14"
+      style={teamFillStyle(driver.team) as React.CSSProperties}
     >
       <span className="hidden flex-col items-center gap-0.5 leading-none sm:inline-flex">
         {driver.number != null && (
-          <span className="gpp-mono text-sm text-text sm:text-base">
+          <span className="gpp-mono text-sm font-semibold sm:text-base">
             {driver.number}
           </span>
         )}
-        <span className="gpp-mono text-xs text-text-muted">{driver.code}</span>
+        <span className="gpp-mono text-xs opacity-75">{driver.code}</span>
       </span>
     </div>
   );
@@ -123,8 +119,7 @@ export function SortablePickRow({
                 className="flex min-w-0 items-center gap-1.5 text-xs text-text-muted"
                 style={
                   {
-                    '--team-colour':
-                      TEAM_COLORS[driver.team] || FALLBACK_TEAM_COLOR,
+                    '--team-colour': teamColor(driver.team),
                   } as CSSProperties
                 }
               >

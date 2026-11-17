@@ -1075,6 +1075,13 @@
     }
   }
 
+  /* A picked driver wears their team's colour (`teamFillStyle`). */
+  .gpp-team-fill {
+    background: var(--team-fill);
+    color: var(--team-ink);
+    border-color: var(--team-fill);
+  }
+
   .gpp-hero-band-team {
     background: var(--band-fill);
     color: var(--band-ink);

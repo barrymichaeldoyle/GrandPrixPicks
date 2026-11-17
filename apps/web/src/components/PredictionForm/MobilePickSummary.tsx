@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 
 import type { RosterDriver } from '@/lib/roster';
-import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../DriverBadge';
+import { teamFillStyle } from '@/lib/teamColors';
 
 /**
  * Stays with the driver pool; the full list below owns editing and saving.
@@ -65,25 +65,23 @@ export function MobilePickSummary({
                     ? `Edit P${index + 1} ${driver.code}, ${driver.displayName}`
                     : `P${index + 1}, empty`
                 }
-                // Same 3px team bar as the pool card the pick came from, so
+                // The same team fill as the pool card the pick came from, so
                 // the order reads by team at a glance.
-                className={`min-h-14 w-full rounded-sm border py-1.5 pr-2 text-left ${driver ? 'gpp-team-bar border-border-strong bg-surface-elevated pl-2.5 hover:bg-surface-hover' : 'border-dashed border-border pl-2'}`}
+                className={`min-h-14 w-full rounded-sm border py-1.5 pr-2 pl-2 text-left ${driver ? 'gpp-team-fill' : 'border-dashed border-border'}`}
                 style={
                   driver
-                    ? ({
-                        '--team-colour':
-                          (driver.team && TEAM_COLORS[driver.team]) ||
-                          FALLBACK_TEAM_COLOR,
-                      } as CSSProperties)
+                    ? (teamFillStyle(driver.team) as CSSProperties)
                     : undefined
                 }
               >
                 <span className="sr-only">{driver?.displayName}</span>
-                <span className="gpp-mono block text-xs text-text-muted">
+                <span
+                  className={`gpp-mono block text-xs ${driver ? 'opacity-75' : 'text-text-muted'}`}
+                >
                   P{index + 1}
                 </span>
                 <span
-                  className={`gpp-mono mt-1 block text-sm ${driver ? 'text-text' : 'text-text-disabled'}`}
+                  className={`gpp-mono mt-1 block text-sm ${driver ? 'font-semibold' : 'text-text-disabled'}`}
                 >
                   <span aria-hidden="true">{driver?.code ?? '—'}</span>
                 </span>

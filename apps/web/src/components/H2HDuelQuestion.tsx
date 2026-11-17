@@ -5,6 +5,8 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
 
+import { teamFillStyle } from '@/lib/teamColors';
+
 import { DriverBadge, FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
 import { Flag } from './Flag';
 import type { H2HDriver, H2HMatchup } from './H2HMatchupGrid';
@@ -287,10 +289,18 @@ function DuelDriverButton({
       // two different widths, pinned to the left of their columns.
       className={`gpp-team-bar relative flex min-h-36 w-full min-w-0 flex-col items-center justify-center gap-3 overflow-hidden rounded-lg border px-2 py-5 text-center transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none sm:min-h-44 sm:px-4 ${
         selected
-          ? 'border-accent bg-accent-muted/25'
+          ? 'gpp-team-fill'
           : 'border-border bg-page hover:border-border-strong hover:bg-surface-elevated'
       } ${className}`}
-      style={{ '--team-colour': teamColor } as CSSProperties}
+      // The called driver wears his team's colour, like a Top 5 pick. Both
+      // cards in a duel are the same team, so the fill is what tells them
+      // apart.
+      style={
+        {
+          '--team-colour': teamColor,
+          ...(selected ? teamFillStyle(driver.team) : {}),
+        } as CSSProperties
+      }
     >
       {/*
        * No `aria-label`. A constructed name missed the string axe concatenates
@@ -347,7 +357,13 @@ function DuelDriverButton({
       {/* The one place the two games talk to each other: if you already put
           this driver in your Top 5, the duel should not make you remember. */}
       {topFivePosition ? (
-        <span className="gpp-mono absolute top-2 left-2 rounded-sm border border-accent/40 px-1 py-0.5 text-xs leading-none text-accent">
+        <span
+          className={`gpp-mono absolute top-2 left-2 rounded-sm border px-1 py-0.5 text-xs leading-none ${
+            selected
+              ? 'border-page bg-page text-text'
+              : 'border-accent/40 text-accent'
+          }`}
+        >
           Your P{topFivePosition}
         </span>
       ) : null}
@@ -363,7 +379,7 @@ function DuelDriverButton({
       />
       <span className="min-w-0">
         <span
-          className={`block leading-tight font-medium text-text ${
+          className={`block leading-tight font-medium ${selected ? '' : 'text-text'} ${
             isLarge ? 'text-xl sm:text-2xl' : 'text-base sm:text-lg'
           }`}
         >
@@ -376,7 +392,7 @@ function DuelDriverButton({
             make one quiet line under the name. */}
         {driver.nationality || driver.number != null ? (
           <span
-            className={`gpp-mono mt-1 flex items-center justify-center gap-1.5 text-text-muted ${
+            className={`gpp-mono mt-1 flex items-center justify-center gap-1.5 ${selected ? 'opacity-75' : 'text-text-muted'} ${
               isLarge ? 'text-base' : 'text-sm'
             }`}
           >
@@ -390,7 +406,7 @@ function DuelDriverButton({
       <m.span
         className={`absolute right-2 bottom-2 inline-flex h-5 w-5 items-center justify-center rounded-full border ${
           selected
-            ? 'border-accent bg-accent text-text-on-accent'
+            ? 'border-page bg-page text-text'
             : 'border-border text-transparent'
         }`}
         animate={selected && !reduceMotion ? { scale: [0.4, 1] } : { scale: 1 }}

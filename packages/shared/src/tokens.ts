@@ -299,7 +299,7 @@ export const tracking = {
   display: '-0.02em',
   tight: '-0.01em',
   normal: '0',
-  label: '0.12em', // uppercase micro labels
+  label: '0.01em', // sentence-case micro labels (were tracked capitals until 2026-11-17)
   data: '0.02em',
 } as const;
 

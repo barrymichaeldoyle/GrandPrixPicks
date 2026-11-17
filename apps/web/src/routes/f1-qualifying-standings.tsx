@@ -287,7 +287,7 @@ function F1QualifyingStandingsPage() {
                     comparison.
                   </caption>
                   <thead>
-                    <tr className="bg-surface-muted/50 text-left text-xs font-semibold tracking-label text-text-muted uppercase">
+                    <tr className="bg-surface-muted/50 text-left text-xs font-semibold text-text-muted">
                       <th
                         scope="col"
                         className="w-11 px-2 py-2.5 sm:w-auto sm:px-3"
@@ -424,7 +424,7 @@ function F1QualifyingStandingsPage() {
                       Constructors' Championship for comparison.
                     </caption>
                     <thead>
-                      <tr className="bg-surface-muted/50 text-left text-xs font-semibold tracking-label text-text-muted uppercase">
+                      <tr className="bg-surface-muted/50 text-left text-xs font-semibold text-text-muted">
                         <th scope="col" className="px-2 py-2.5 sm:px-3">
                           Pos
                         </th>

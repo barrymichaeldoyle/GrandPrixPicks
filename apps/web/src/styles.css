@@ -355,11 +355,10 @@
     letter-spacing: var(--tracking-data);
   }
 
-  /* The micro label that opens a card or heads a column. Uppercase and tracked
-     is the ONLY place uppercase is allowed — headings, buttons, nav items and
-     loading states are sentence case. Driver codes and session codes are the
-     one exception, and they are uppercase because that is how the abbreviation
-     is written, not as a style.
+  /* The micro label that opens a card or heads a column. Sentence case, like
+     every other piece of text: tracked capitals read as shouting (2026-11-17).
+     Driver codes and session codes are the one place capitals stay, because
+     that is how the abbreviation is written, not as a style.
 
      In `base`, not unlayered with the rest of this section: these are DEFAULTS
      a call site is expected to override, and unlayered they beat every Tailwind
@@ -371,7 +370,6 @@
      `font-*` or tracking utility written beside it now wins. */
   .gpp-label {
     font-size: var(--text-xs);
-    text-transform: uppercase;
     letter-spacing: var(--tracking-label);
     color: var(--text-muted);
     font-weight: var(--fw-medium);

@@ -286,7 +286,7 @@ function ProfilePage() {
                   />
                 ) : null}
                 <span className="min-w-0 flex-1">
-                  <span className="block text-xs font-semibold tracking-label text-accent uppercase">
+                  <span className="block text-xs font-semibold text-accent">
                     My Picks
                   </span>
                   <span className="block truncate text-sm font-semibold text-text">
@@ -335,7 +335,7 @@ function ProfilePage() {
                     <div className="font-title text-2xl font-semibold text-accent">
                       {stats?.totalPoints ?? '—'}
                     </div>
-                    <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                    <div className="text-xs font-semibold text-text-muted">
                       Top 5 points
                     </div>
                   </div>
@@ -343,7 +343,7 @@ function ProfilePage() {
                     <div className="font-title text-2xl font-semibold text-text">
                       {stats?.weekendCount ?? '—'}
                     </div>
-                    <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                    <div className="text-xs font-semibold text-text-muted">
                       Weekends
                     </div>
                   </div>
@@ -355,7 +355,7 @@ function ProfilePage() {
                           {stats.seasonRank}
                         </span>
                       </div>
-                      <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                      <div className="text-xs font-semibold text-text-muted">
                         Top 5 rank of {stats.totalPlayers}
                       </div>
                     </div>
@@ -368,7 +368,7 @@ function ProfilePage() {
                           {stats.h2hSeasonRank}
                         </span>
                       </div>
-                      <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                      <div className="text-xs font-semibold text-text-muted">
                         H2H rank of {stats.h2hTotalPlayers}
                       </div>
                     </div>

@@ -343,7 +343,7 @@ export function H2HResultsSection({
                   who finishes P6 is off by one and still scores.
                 </caption>
                 <thead>
-                  <tr className="border-b border-border text-xs uppercase sm:text-sm">
+                  <tr className="border-b border-border text-xs sm:text-sm">
                     {/*
                       `scope` is what lets a screen reader announce "P1,
                       Actual: Lando Norris" instead of reading cells blind.
@@ -522,7 +522,7 @@ export function H2HResultsSection({
                             index === 1 ? 'hidden md:table-header-group' : ''
                           }
                         >
-                          <tr className="border-b border-border text-xs uppercase">
+                          <tr className="border-b border-border text-xs">
                             <th
                               scope="col"
                               className="w-16 px-3 py-2 text-left text-text-muted"

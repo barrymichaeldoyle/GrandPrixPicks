@@ -308,7 +308,7 @@ function CompactSummaryCard({
             </span>
           )}
           <div className="min-w-0 self-center px-2 py-1.5">
-            <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
+            <p className="text-xs font-semibold text-text-muted">
               Round {data.raceRound}
             </p>
             <h3 className="line-clamp-2 text-sm leading-tight font-semibold text-text sm:text-base">
@@ -337,7 +337,7 @@ function CompactSummaryCard({
 
         <div className="rounded-lg border border-border/70 bg-surface-muted/35 p-2">
           <div className="mb-1 flex items-center justify-between">
-            <p className="text-xs font-medium tracking-label text-text-muted uppercase">
+            <p className="text-xs font-medium text-text-muted">
               Weekend Summary
             </p>
             <span className="rounded-md bg-accent/10 px-1.5 py-0.5 text-xs font-semibold text-accent">

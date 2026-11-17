@@ -62,8 +62,13 @@ export function LandingHero({
              * session" — which is what a screen reader, a search snippet and
              * the OG scraper all read.
              */}
+            {/*
+             * The second line is muted, not chartreuse: the accent belongs to
+             * the one action on the screen, the button below, and a lit
+             * headline was a second thing competing for it.
+             */}
             <span className="block">Predict the F1 Top 5,</span>{' '}
-            <span className="block text-accent">session by session.</span>
+            <span className="block text-text-muted">session by session.</span>
           </h1>
           {/*
            * Sentences are authored onto their own lines for the same reason as

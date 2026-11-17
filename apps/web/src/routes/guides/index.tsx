@@ -81,7 +81,7 @@ function GuidesIndexPage() {
           </p>
         </section>
 
-        <h2 className="font-title mt-10 text-sm font-semibold tracking-wide text-text-muted uppercase">
+        <h2 className="font-title mt-10 text-sm font-semibold text-text-muted">
           The guides
         </h2>
 

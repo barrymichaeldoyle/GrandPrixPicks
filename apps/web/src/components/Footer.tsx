@@ -222,9 +222,7 @@ export function Footer({
           </div>
 
           <div className="space-y-3">
-            <h2 className="font-title text-xs font-semibold tracking-label text-text uppercase">
-              Play
-            </h2>
+            <h2 className="font-title text-xs font-semibold text-text">Play</h2>
             <nav
               aria-label="Footer game navigation"
               className="flex flex-col gap-1 text-sm pointer-coarse:gap-0"
@@ -251,7 +249,7 @@ export function Footer({
           </div>
 
           <div className="space-y-3">
-            <h2 className="font-title text-xs font-semibold tracking-label text-text uppercase">
+            <h2 className="font-title text-xs font-semibold text-text">
               F1 data
             </h2>
             <nav
@@ -276,7 +274,7 @@ export function Footer({
           </div>
 
           <div className="space-y-3 min-[360px]:col-span-2 sm:col-span-1">
-            <h2 className="font-title text-xs font-semibold tracking-label text-text uppercase">
+            <h2 className="font-title text-xs font-semibold text-text">
               Support
             </h2>
             <nav

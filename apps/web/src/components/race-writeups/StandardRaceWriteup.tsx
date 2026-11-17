@@ -45,6 +45,7 @@ export function StandardRaceWriteup({
   reviewedAt,
   sources,
   faqs,
+  raceReport,
   children,
 }: {
   data: RaceWriteupData;
@@ -64,6 +65,12 @@ export function StandardRaceWriteup({
   reviewedAt: number;
   sources: ReactNode;
   faqs: readonly { question: string; answer: string }[];
+  /**
+   * What decided the race: the archive's short, sourced account, shown under
+   * the result once the race is finished (`docs/race-writeup-lifecycle.md`,
+   * Sunday and Monday). Omit it until it has been written and checked.
+   */
+  raceReport?: ReactNode;
   /** The article's sections. */
   children: ReactNode;
 }) {
@@ -131,6 +138,7 @@ export function StandardRaceWriteup({
       {isFinished ? (
         <RaceWriteupFinishedResults data={data} venueName={venueName} />
       ) : null}
+      {isFinished ? raceReport : null}
       <RaceWriteupArticle
         actions={{ phase, raceSlug, venueName, primaryActionTargetId }}
       >

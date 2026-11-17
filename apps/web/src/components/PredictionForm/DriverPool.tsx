@@ -106,7 +106,7 @@ function DraggableDriverCard({
         {/* `shrink-0` so the marker never eats the surname's width: the name is
             the thing being picked, and it is the one that truncates well. */}
         {'entryUnconfirmed' in driver && driver.entryUnconfirmed ? (
-          <span className="shrink-0 text-xs leading-none tracking-label text-text-muted uppercase">
+          <span className="shrink-0 text-xs leading-none text-text-muted">
             Unconfirmed
           </span>
         ) : null}

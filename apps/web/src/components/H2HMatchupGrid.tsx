@@ -74,7 +74,7 @@ export function H2HMatchupGrid({
                 style={{ backgroundColor: teamColor }}
                 aria-hidden="true"
               />
-              <span className="text-xs font-semibold tracking-label text-text-muted uppercase">
+              <span className="text-xs font-semibold text-text-muted">
                 {displayTeamName(matchup.team)}
               </span>
             </div>

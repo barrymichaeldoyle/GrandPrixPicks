@@ -273,7 +273,7 @@ function HowToPlayPage() {
                       <span className="gpp-mono text-5xl leading-none font-semibold">
                         {row.points}
                       </span>
-                      <span className="pb-1 text-xs font-semibold tracking-label uppercase">
+                      <span className="pb-1 text-xs font-semibold">
                         {row.points === 1 ? 'point' : 'points'}
                       </span>
                     </div>
@@ -285,7 +285,7 @@ function HowToPlayPage() {
                     </p>
 
                     <div className="mt-auto pt-6">
-                      <p className="gpp-mono text-xs font-semibold tracking-label text-text-muted uppercase">
+                      <p className="text-xs font-semibold text-text-muted">
                         Example
                       </p>
                       <div className="mt-2 border border-border bg-page">
@@ -307,7 +307,7 @@ function HowToPlayPage() {
                         </div>
                         <div className="grid grid-cols-[1fr_auto_1fr] items-center border-t border-border px-3 py-3">
                           <div>
-                            <span className="block text-xs font-semibold tracking-label text-text-muted uppercase">
+                            <span className="block text-xs font-semibold text-text-muted">
                               Your pick
                             </span>
                             <span
@@ -321,7 +321,7 @@ function HowToPlayPage() {
                             aria-hidden
                           />
                           <div className="text-right">
-                            <span className="block text-xs font-semibold tracking-label text-text-muted uppercase">
+                            <span className="block text-xs font-semibold text-text-muted">
                               Actual result
                             </span>
                             <span
@@ -390,9 +390,7 @@ function HowToPlayPage() {
                   P5
                   <ArrowRight className="h-4 w-4" aria-hidden />
                   P6
-                  <span className="text-xs tracking-label uppercase">
-                    3 points
-                  </span>
+                  <span className="text-xs">3 points</span>
                 </p>
               </div>
               <div className="h-1 shrink-0 bg-result-near" aria-hidden="true" />
@@ -422,7 +420,7 @@ function HowToPlayPage() {
                   <p className="font-title gpp-mono text-6xl leading-none font-semibold text-result-near">
                     1
                   </p>
-                  <p className="mt-2 text-xs font-semibold tracking-label text-text-muted uppercase">
+                  <p className="mt-2 text-xs font-semibold text-text-muted">
                     point per correct pick
                   </p>
                 </div>

@@ -303,7 +303,7 @@ function GuidePage() {
                           <th
                             key={column}
                             scope="col"
-                            className="font-title py-3 pr-6 text-xs font-semibold tracking-wide text-text-muted uppercase"
+                            className="font-title py-3 pr-6 text-xs font-semibold text-text-muted"
                           >
                             {column}
                           </th>

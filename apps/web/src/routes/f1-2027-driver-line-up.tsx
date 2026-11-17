@@ -391,7 +391,7 @@ function F1LineUp2027Page() {
                 what that rests on.
               </caption>
               <thead>
-                <tr className="bg-surface-muted/50 text-left text-xs font-semibold tracking-label text-text-muted uppercase">
+                <tr className="bg-surface-muted/50 text-left text-xs font-semibold text-text-muted">
                   <th scope="col" className="px-3 py-2.5 sm:px-4">
                     Driver
                   </th>

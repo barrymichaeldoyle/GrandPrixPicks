@@ -251,7 +251,7 @@ Team colours are **data, not theme**. They live in a separate export because the
 - **Headline** (400, 32px, 1.25, -0.01em): Section headings.
 - **Title** (500, 22px, 1.25, -0.01em): Card and panel headings.
 - **Body** (400, 16px, 1.5): The minimum default reading size. Public and marketing prose uses the reading roles (`.gpp-reading-copy` at 16px/1.65, `.gpp-reading-copy-lg` at 18px/1.6) rather than inheriting product density.
-- **Label** (500, 12px, 0.12em, uppercase): The micro label that opens a card or heads a column.
+- **Label** (500, 12px, 0.01em, sentence case): The micro label that opens a card or heads a column.
 - **Data** (IBM Plex Mono, 14px, tabular-nums, 0.02em): Everything a person compares.
 
 ### Named Rules
@@ -260,7 +260,7 @@ Team colours are **data, not theme**. They live in a separate export because the
 
 **The One Weight Down Rule.** Every type role sits one weight step below where it would normally land, because light-on-dark reads bolder: display and h1 at 300, h2 at 400, h3 and labels at 500, primary buttons at 600. Nothing is heavier than 600.
 
-**The Uppercase Rule.** Uppercase appears in exactly one form: the tracked micro label (`.gpp-label`, 12px, 0.12em). Headings and buttons are sentence case, always. The label does three jobs and no others: it opens a card, it heads a column, and it sits above a section heading as an eyebrow (`F1 PREDICTION GAME`, `HOW SCORING WORKS`, `STEP 1 OF 2`). The eyebrow is a deliberate part of this system, not a generic habit: on a timing sheet the column head names what the figures below are, and that is exactly what it does here. It carries the accent when the section is a step in the flow and muted ink when it is not.
+**The Sentence Case Rule.** Nothing is set in capitals as a style: not headings, buttons, nav items or the micro label (`.gpp-label`, 12px, 0.01em). The label was tracked uppercase until 2026-11-17 and read as shouting. Capitals appear only where the abbreviation itself is written that way: driver codes (`ANT`), session codes (`FP1`), `H2H`. The label does three jobs and no others: it opens a card, it heads a column, and it sits above a section heading as an eyebrow (`F1 prediction game`, `How scoring works`, `Step 1 of 2`). On a timing sheet the column head names what the figures below are, and that is exactly what it does here. It carries the accent when the section is a step in the flow and muted ink when it is not.
 
 ## Layout
 
@@ -311,7 +311,7 @@ Country flags are pinned to a fixed **4:3 ratio, cropped to fill**, regardless o
 
 ### Chips
 
-Driver chips and status badges share the control language: 2px radius, hairline border, `surface-elevated` fill when raised. A status badge is a micro label (uppercase, 12px, 0.12em, three words maximum). Selection is a raised surface plus an accent hairline, which is the system's one selection treatment; on rows and slots the same meaning is carried by the stripe instead.
+Driver chips and status badges share the control language: 2px radius, hairline border, `surface-elevated` fill when raised. A status badge is a micro label (sentence case, 12px, three words maximum). Selection is a raised surface plus an accent hairline, which is the system's one selection treatment; on rows and slots the same meaning is carried by the stripe instead.
 
 ### Cards / Containers
 
@@ -330,7 +330,7 @@ Driver chips and status badges share the control language: 2px radius, hairline 
 
 ### Navigation
 
-Icon over uppercase micro label, full bar height, accent underline when selected. The icon fills solid and drops its stroke when active, so selection reads without colour alone. The header uses a 2px bottom border; the mobile tab bar flips to a 2px top border, because a bottom border there would sit off-screen behind the home indicator. Active and inactive class strings are mutually exclusive and never concatenated.
+Icon over micro label, full bar height, accent underline when selected. The icon fills solid and drops its stroke when active, so selection reads without colour alone. The header uses a 2px bottom border; the mobile tab bar flips to a 2px top border, because a bottom border there would sit off-screen behind the home indicator. Active and inactive class strings are mutually exclusive and never concatenated.
 
 ### The Stripe
 
@@ -365,7 +365,7 @@ The recurring unit of the whole product, and the clearest expression of the Nort
 - **Don't** use red for an error or a warning. Red means a scoring miss. Amber means attention.
 - **Don't** put the accent on body text, on links by default, or on a large fill other than a primary button.
 - **Don't** nest a card inside a card. Use a hairline divider or a surface step.
-- **Don't** set anything in uppercase except the tracked micro label. Headings and buttons stay sentence case, including when the label directly above them is uppercase.
+- **Don't** set anything in uppercase as a style. Capitals appear only inside abbreviations written that way (driver and session codes).
 - **Don't** introduce a second display typeface. The display face is the UI face; personality comes from weight and tracking.
 - **Don't** animate anything outside hover, selection, drag, and the one-time row entrance fade. In particular, leaderboard positions never move.
 - **Don't** put a thick coloured border on the left or right edge of a card, list item, or callout. Above 1px, colour belongs on a bottom or top edge (the nav underline, the mobile bar tab, the 8px scoring-band rule) where it reads as a column marker rather than a tab.

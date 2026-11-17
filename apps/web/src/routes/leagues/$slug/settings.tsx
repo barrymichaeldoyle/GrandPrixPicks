@@ -222,9 +222,7 @@ function AdminGeneralSettings({ league }: { league: League }) {
 
   return (
     <div className="rounded-xl border border-border bg-surface p-4">
-      <h3 className="mb-3 text-sm font-semibold tracking-label text-text-muted uppercase">
-        General
-      </h3>
+      <h3 className="mb-3 text-sm font-semibold text-text-muted">General</h3>
       <div className="space-y-3">
         <div>
           <p className="mb-1 text-sm font-medium text-text">Visibility</p>
@@ -357,9 +355,7 @@ function DangerZone({
   return (
     <div className="overflow-hidden rounded-xl border-2 border-error/40 bg-error/5">
       <div className="border-b border-error/20 bg-error/10 px-4 py-3">
-        <h3 className="text-sm font-semibold tracking-label text-error uppercase">
-          Danger zone
-        </h3>
+        <h3 className="text-sm font-semibold text-error">Danger zone</h3>
         <p className="mt-0.5 text-xs text-text-muted">
           Irreversible actions. Leave removes you from the league; delete
           removes the league for everyone.

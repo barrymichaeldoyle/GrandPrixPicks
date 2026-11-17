@@ -221,7 +221,7 @@ export function SessionResultsTable({
                         index === 1 ? 'hidden md:table-header-group' : ''
                       }
                     >
-                      <tr className="border-b border-border text-xs tracking-label text-text-muted uppercase">
+                      <tr className="border-b border-border text-xs text-text-muted">
                         <th className="px-3 py-2 text-left">Pos</th>
                         <th className="px-3 py-2 text-left">Driver</th>
                       </tr>

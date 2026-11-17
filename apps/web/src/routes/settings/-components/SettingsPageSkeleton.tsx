@@ -64,7 +64,7 @@ export function SettingsPageSkeleton() {
             >
               <div className="space-y-6">
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                  <p className="text-xs font-semibold text-text-muted">
                     In-App
                   </p>
                   <div className="divide-y divide-border bg-page px-3">
@@ -79,9 +79,7 @@ export function SettingsPageSkeleton() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                    Email
-                  </p>
+                  <p className="text-xs font-semibold text-text-muted">Email</p>
                   <div className="divide-y divide-border bg-page px-3">
                     {[0, 1].map((index) => (
                       <div

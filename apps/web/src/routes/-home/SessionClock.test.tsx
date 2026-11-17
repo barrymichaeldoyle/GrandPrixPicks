@@ -162,8 +162,8 @@ describe('SessionClock', () => {
     expect(timer?.getAttribute('aria-label')).toBe(
       'Qualifying picks lock in 21 days',
     );
-    // Spelled out, not "21 D". Lowercase in the DOM because `.gpp-label` is
-    // what uppercases it, so the word stays a word for anything reading text.
+    // Spelled out, not "21 D", so the word stays a word for anything reading
+    // text.
     expect(timer?.textContent).toBe('21days');
     expect(container.textContent).toContain('Qualifying picks lock in');
     // The day count on its own could read as "come back later".

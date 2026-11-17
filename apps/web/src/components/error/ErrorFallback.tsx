@@ -132,7 +132,7 @@ export function ErrorFallback({
               hard-sets the muted colour and beats a colour utility beside it.
               `racing-red` is the system's one true red, so the flag reads as
               the real thing instead of the amber `error` resolves to. */}
-          <p className="flex items-center gap-2 text-xs font-semibold tracking-label text-racing-red uppercase">
+          <p className="flex items-center gap-2 text-xs font-semibold text-racing-red">
             <Flag className="h-3.5 w-3.5 fill-current" aria-hidden />
             Red flag
           </p>

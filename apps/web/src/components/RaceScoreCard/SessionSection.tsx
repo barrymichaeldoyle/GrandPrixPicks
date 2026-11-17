@@ -81,7 +81,7 @@ export function SessionSection({
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Trophy className="h-4 w-4 text-warning" />
-                <span className="font-title text-xs font-semibold tracking-label text-text-muted uppercase">
+                <span className="font-title text-xs font-semibold text-text-muted">
                   Top 5
                 </span>
               </div>

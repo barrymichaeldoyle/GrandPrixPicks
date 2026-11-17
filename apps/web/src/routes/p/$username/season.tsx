@@ -85,9 +85,7 @@ function Stat({
       >
         {value}
       </div>
-      <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
-        {label}
-      </div>
+      <div className="text-xs font-semibold text-text-muted">{label}</div>
     </div>
   );
 }

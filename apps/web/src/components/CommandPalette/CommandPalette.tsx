@@ -183,7 +183,7 @@ export function CommandPalette({
               <div key={section.group} role="group" aria-label={section.group}>
                 <p
                   aria-hidden
-                  className="px-4 pt-3 pb-1 text-xs font-medium tracking-label text-text-muted uppercase"
+                  className="px-4 pt-3 pb-1 text-xs font-medium text-text-muted"
                 >
                   {section.group}
                 </p>

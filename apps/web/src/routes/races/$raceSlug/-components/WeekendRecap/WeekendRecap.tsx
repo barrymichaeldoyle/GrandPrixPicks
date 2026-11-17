@@ -23,9 +23,7 @@ function RecapStat({
 }) {
   return (
     <div className="min-w-0 py-2 sm:py-0">
-      <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
-        {label}
-      </dt>
+      <dt className="text-xs font-semibold text-text-muted">{label}</dt>
       <dd className="mt-1 flex flex-wrap items-baseline gap-x-1.5 text-lg font-semibold text-text">
         {value}
         {detail != null && (
@@ -60,7 +58,7 @@ export function WeekendRecap({
     >
       <div className="grid gap-5 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
         <div className="min-w-0">
-          <p className="text-xs font-semibold tracking-label text-accent uppercase">
+          <p className="text-xs font-semibold text-accent">
             {raceName} · Weekend result
           </p>
 
@@ -123,7 +121,7 @@ export function WeekendRecap({
           )}
           {recap.bestCall && (
             <div className="col-span-2 min-w-0 py-2 sm:col-span-1 sm:py-0">
-              <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
+              <dt className="text-xs font-semibold text-text-muted">
                 Best call
               </dt>
               <dd className="mt-1 flex min-w-0 items-center gap-2">

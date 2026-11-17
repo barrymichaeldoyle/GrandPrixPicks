@@ -90,7 +90,7 @@ export function WeekendScheduleList({ race }: { race: Doc<'races'> }) {
               </span>
               <span className="flex items-baseline gap-2">
                 {isLocked && !isPractice && (
-                  <span className="text-xs font-medium tracking-label text-text-muted uppercase">
+                  <span className="text-xs font-medium text-text-muted">
                     Locked
                   </span>
                 )}

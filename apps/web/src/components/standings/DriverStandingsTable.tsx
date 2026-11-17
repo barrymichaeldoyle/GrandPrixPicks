@@ -55,7 +55,7 @@ export function DriverStandingsTable({
           round, team, race wins, podium finishes, points and gap.
         </caption>
         <thead>
-          <tr className="bg-surface-muted/50 text-left text-xs font-semibold tracking-label text-text-muted uppercase">
+          <tr className="bg-surface-muted/50 text-left text-xs font-semibold text-text-muted">
             <th scope="col" className="w-9 px-2 py-2.5 sm:w-14 sm:px-3">
               Pos
             </th>

@@ -173,8 +173,7 @@ const VIEW_OPTIONS: { value: ConsensusView; label: string }[] = [
   { value: 'top5', label: 'Top 5 picks' },
 ];
 
-const headClass =
-  'px-3 py-1.5 text-xs font-semibold tracking-label text-text-muted uppercase';
+const headClass = 'px-3 py-1.5 text-xs font-semibold text-text-muted';
 
 function DriverCell({
   driver,
@@ -202,7 +201,7 @@ function DriverCell({
           {driver.displayName}
         </span>
         {driver.tookP1 && (
-          <span className="shrink-0 rounded-sm bg-accent px-1.5 py-0.5 text-xs font-semibold tracking-label text-text-on-accent uppercase">
+          <span className="shrink-0 rounded-sm bg-accent px-1.5 py-0.5 text-xs font-semibold text-text-on-accent">
             {outcomeLabel}
           </span>
         )}

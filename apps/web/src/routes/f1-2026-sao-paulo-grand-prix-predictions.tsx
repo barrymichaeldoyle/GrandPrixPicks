@@ -41,6 +41,15 @@ const RACE_2025_SOURCE =
   'https://www.formula1.com/en/latest/article/norris-wins-thrilling-sao-paulo-gp-from-antonelli-as-verstappen-climbs-to.4T0Y5xGNn1MOVegzhGTqAx';
 const QUALIFYING_2025_SOURCE =
   'https://www.formula1.com/en/latest/article/norris-grabs-pole-position-in-sao-paulo-ahead-of-antonelli-and-leclerc-as.51zXqPIrqvKIKuvCL6CAgp';
+/** The official 2026 classification: margins and Bortoleto's finish. */
+const OFFICIAL_RESULT_SOURCE =
+  'https://www.formula1.com/en/results/2026/races/1299/brazil/race-result';
+/** Formula 1's 2026 race report: the lead changes, the rain and the title. */
+const RACE_REPORT_SOURCE =
+  'https://www.formula1.com/en/latest/article/norris-beats-verstappen-in-wet-sao-paulo-gp-thriller-as-mercedes-win-constructors-championship.7JN7MXLZf5lk5l0C3gfKGI';
+/** Formula 1's 2026 starting grid: the power unit penalties. */
+const GRID_SOURCE =
+  'https://www.formula1.com/en/latest/article/official-grid-who-starts-where-for-the-2026-sao-paulo-grand-prix.5Xx3QRgvo5BHgAm6lZRbZr';
 
 /*
  * Weekend facts only, per the note on the Singapore write-up: the scoring
@@ -49,14 +58,19 @@ const QUALIFYING_2025_SOURCE =
  */
 const FAQS = [
   {
-    question: 'Is the 2026 São Paulo Grand Prix a sprint weekend?',
+    question: 'Who won the 2026 São Paulo Grand Prix?',
     answer:
-      'No. São Paulo ran the Sprint format in 2025, but it is not one of the six 2026 sprint weekends, so the weekend has three practice sessions before qualifying.',
+      'Lando Norris, from pole position, ahead of Max Verstappen and Isack Hadjar.',
   },
   {
-    question: 'When is the 2026 São Paulo Grand Prix?',
+    question: 'Was the 2026 São Paulo Grand Prix a sprint weekend?',
     answer:
-      'The weekend runs from Friday 6 to Sunday 8 November 2026 at Interlagos. Qualifying starts at 15:00 São Paulo time on Saturday and the 71-lap Grand Prix starts at 14:00 on Sunday.',
+      'No. São Paulo ran the Sprint format in 2025, but it was not one of the six 2026 sprint weekends, so the weekend had three practice sessions before qualifying.',
+  },
+  {
+    question: 'When was the 2026 São Paulo Grand Prix?',
+    answer:
+      'The weekend ran from Friday 6 to Sunday 8 November 2026 at Interlagos. Qualifying started at 15:00 São Paulo time on Saturday and the 71-lap Grand Prix at 14:00 on Sunday.',
   },
   {
     question: 'Who won the 2025 São Paulo Grand Prix?',
@@ -109,8 +123,15 @@ function SaoPauloGrandPrixPredictionsPage() {
       }
       reviewedAt={PROSE_REVIEWED_AT}
       faqs={FAQS}
+      raceReport={<RaceReport />}
       sources={
         <>
+          2026 result:{' '}
+          <ExternalSource href={OFFICIAL_RESULT_SOURCE}>
+            Formula 1
+          </ExternalSource>
+          , <ExternalSource href={RACE_REPORT_SOURCE}>Formula 1</ExternalSource>{' '}
+          and <ExternalSource href={GRID_SOURCE}>Formula 1</ExternalSource>.{' '}
           Schedule and circuit:{' '}
           <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>.
           2026 sprint weekends:{' '}
@@ -140,6 +161,39 @@ function SaoPauloGrandPrixPredictionsPage() {
       <Rain />
       <LastYear />
     </StandardRaceWriteup>
+  );
+}
+
+function RaceReport() {
+  return (
+    <RaceWriteupSection id="race-report" heading="What decided the race">
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Norris won from pole by <Figure>14.602 seconds</Figure> from Verstappen,
+        with Hadjar third for a Red Bull double podium.{' '}
+        <ExternalSource href={OFFICIAL_RESULT_SOURCE}>
+          The official race result
+        </ExternalSource>
+        . Verstappen started 21st after a power unit penalty.{' '}
+        <ExternalSource href={GRID_SOURCE}>The official grid</ExternalSource>.
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        The race began wet and dried out before a late rain shower. Antonelli
+        took the lead from second on the grid, but spun at Turn 1 at the start
+        of lap 20 and Norris went ahead. Russell and Antonelli finished fourth
+        and fifth, enough for Mercedes to win the Constructors&rsquo;
+        Championship.{' '}
+        <ExternalSource href={RACE_REPORT_SOURCE}>
+          Read the F1 race report
+        </ExternalSource>
+        . Bortoleto started his home race with Audi from 19th and finished 16th.{' '}
+        <ExternalSource href={GRID_SOURCE}>The official grid</ExternalSource>{' '}
+        and{' '}
+        <ExternalSource href={OFFICIAL_RESULT_SOURCE}>
+          race result
+        </ExternalSource>
+        .
+      </p>
+    </RaceWriteupSection>
   );
 }
 

@@ -53,6 +53,11 @@ const RESULT_2025_SOURCE =
   'https://www.formula1.com/en/results/2025/races/1270/singapore/race-result';
 const QUALIFYING_2025_SOURCE =
   'https://www.formula1.com/en/results/2025/races/1270/singapore/qualifying';
+/** The official 2026 race classification and Formula 1's race report. */
+const OFFICIAL_RESULT_SOURCE =
+  'https://www.formula1.com/en/results/2026/races/1296/singapore/race-result';
+const RACE_REPORT_SOURCE =
+  'https://www.formula1.com/en/latest/article/verstappen-seals-commanding-singapore-grand-prix-victory-from-leclerc-and-antonelli.49wDzysiVqi5cloGjle40A';
 
 /*
  * Weekend facts only.
@@ -67,19 +72,24 @@ const QUALIFYING_2025_SOURCE =
  */
 const FAQS = [
   {
-    question: 'Is the 2026 Singapore Grand Prix a sprint weekend?',
+    question: 'Who won the 2026 Singapore Grand Prix?',
     answer:
-      'Yes. Singapore hosts its first Formula 1 sprint weekend in 2026. Sprint Qualifying follows the only practice session on Friday, the Sprint and Grand Prix Qualifying run on Saturday, and the Grand Prix is on Sunday.',
+      'Max Verstappen won for Red Bull, 7.335 seconds ahead of Charles Leclerc for Ferrari. Kimi Antonelli was third for Mercedes, and Lando Norris and Oscar Piastri finished fourth and fifth for McLaren.',
   },
   {
-    question: 'When is the 2026 Singapore Grand Prix?',
+    question: 'Was the 2026 Singapore Grand Prix a sprint weekend?',
     answer:
-      'The weekend runs from 9 to 11 October 2026 at Marina Bay. The Sprint starts at 17:00 Singapore time on Saturday and the 62-lap Grand Prix starts at 20:00 on Sunday.',
+      'Yes. Singapore hosted its first Formula 1 sprint weekend in 2026. Sprint Qualifying followed the only practice session on Friday, the Sprint and Grand Prix Qualifying ran on Saturday, and the Grand Prix was on Sunday.',
   },
   {
-    question: 'How many practice sessions are there in Singapore?',
+    question: 'When was the 2026 Singapore Grand Prix?',
     answer:
-      'One. Practice 1 runs on Friday before Sprint Qualifying. There is no second or third practice session on a sprint weekend.',
+      'The weekend ran from 9 to 11 October 2026 at Marina Bay. The Sprint was due to start at 17:00 Singapore time on Saturday and the 62-lap Grand Prix at 20:00 on Sunday.',
+  },
+  {
+    question: 'How many practice sessions were there in Singapore?',
+    answer:
+      'One. Practice 1 ran on Friday before Sprint Qualifying. A sprint weekend has no second or third practice session.',
   },
   {
     question: 'How does a sprint weekend change your predictions?',
@@ -195,6 +205,12 @@ function SingaporeGrandPrixPredictionsPage() {
           </ExternalSource>{' '}
           and{' '}
           <ExternalSource href={RESULT_2025_SOURCE}>Formula 1</ExternalSource>.
+          2026 race:{' '}
+          <ExternalSource href={OFFICIAL_RESULT_SOURCE}>
+            Formula 1
+          </ExternalSource>{' '}
+          and{' '}
+          <ExternalSource href={RACE_REPORT_SOURCE}>Formula 1</ExternalSource>.
         </>
       }
     >
@@ -208,7 +224,10 @@ function SingaporeGrandPrixPredictionsPage() {
       {/* Race updates and shared story links remain useful after picks lock. */}
       <WeekendNewsSection items={news.items} storePage={RACE_SLUG} />
       {phase === 'finished' ? (
-        <RaceWriteupFinishedResults data={data} venueName="Singapore" />
+        <>
+          <RaceWriteupFinishedResults data={data} venueName="Singapore" />
+          <RaceReport />
+        </>
       ) : null}
       <RaceWriteupArticle
         actions={{
@@ -253,6 +272,43 @@ function SingaporeGrandPrixPredictionsPage() {
 
       <RaceFaqSection faqs={FAQS} />
     </RaceWriteupPage>
+  );
+}
+
+/**
+ * What decided the race, on the finished page only. The margin is from the
+ * official classification; the rest is from Formula 1's race report.
+ */
+function RaceReport() {
+  return (
+    <RaceWriteupSection id="race-report" heading="What decided the race">
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Verstappen won from pole and led throughout, finishing{' '}
+        <Figure>7.335 seconds</Figure> ahead of Leclerc. Antonelli was third,
+        with Norris and Piastri fourth and fifth for McLaren. It was
+        Verstappen&rsquo;s first Grand Prix win at Marina Bay, a day after he
+        won the Sprint.{' '}
+        <ExternalSource href={OFFICIAL_RESULT_SOURCE}>
+          The official race result
+        </ExternalSource>{' '}
+        and{' '}
+        <ExternalSource href={RACE_REPORT_SOURCE}>
+          the F1 race report
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Verstappen held off Leclerc into the first corner and made one stop,
+        from soft to medium tyres. Leclerc stopped twice, the second time under
+        a Virtual Safety Car after Stroll&rsquo;s Aston Martin stopped on track.
+        Hamilton made one early stop and did not stop again. Antonelli, Norris
+        and Piastri all passed him in the closing laps, and he finished sixth.{' '}
+        <ExternalSource href={RACE_REPORT_SOURCE}>
+          Read the F1 race report
+        </ExternalSource>
+        .
+      </p>
+    </RaceWriteupSection>
   );
 }
 
@@ -363,12 +419,12 @@ function SaturdayEvidence() {
   return (
     <RaceWriteupSection
       id="saturday-evidence"
-      heading="What the Sprint tells us"
+      heading="What the Sprint told us"
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
-        The Sprint is the only race-pace evidence before Grand Prix Qualifying.
-        It starts four hours earlier on Saturday, and its result does not set
-        the Grand Prix grid.{' '}
+        The Sprint was the only race-pace evidence before Grand Prix Qualifying.
+        It was due to start four hours earlier on Saturday, and its result did
+        not set the Grand Prix grid.{' '}
         <Link
           to="/how-to-play"
           className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"

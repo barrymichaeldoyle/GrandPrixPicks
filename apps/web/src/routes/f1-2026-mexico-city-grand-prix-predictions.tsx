@@ -30,15 +30,21 @@ const SPRINT_2026_SOURCE =
 /** Pirelli's 2025 Mexico City preview: altitude, surface, graining and the 2025 compounds. */
 const PIRELLI_2025_SOURCE =
   'https://press.pirelli.com/once-again-a-skip-in-compounds-for-the-mexico-city-weekend/';
-/** Cadillac's announcement of the Reforma show run and Pérez's 300th start. */
 const TYRE_SOURCE =
   'https://press.pirelli.com/the-compound-selection-for-austin-mexico-city-and-so-paulo/';
+/** Cadillac's announcement of the Reforma show run and Pérez's 300th start. */
 const CADILLAC_PEREZ_SOURCE =
   'https://www.cadillacf1team.com/news/sergio-perez-returns-to-mexico-and-celebrates-300-formula-1-grands-prix-with-show-run-on-paseo-de-la-reforma';
 const RACE_2025_SOURCE =
   'https://www.formula1.com/en/latest/article/norris-seals-commanding-win-in-action-packed-mexico-city-gp-to-take-world.5ztiajHhdtqagu0qQLx0vS';
 const QUALIFYING_2025_SOURCE =
   'https://www.formula1.com/en/latest/article/norris-charges-to-pole-position-in-mexico-ahead-of-leclerc-and-hamilton.7HZL7OOKMbgNw5Rogc7iCC';
+/** The 2026 classification: the finishing order and every gap. */
+const OFFICIAL_RESULT_SOURCE =
+  'https://www.formula1.com/en/results/2026/races/1298/mexico/race-result';
+/** The 2026 race report: the grid, the lead changes, the title and Pérez. */
+const RACE_REPORT_SOURCE =
+  'https://www.formula1.com/en/latest/article/antonelli-crowned-youngest-ever-f1-champion-as-verstappen-wins-eventful-mexico-city-grand-prix.xpMMeef0KmRURs9IDs3LH';
 
 /*
  * Weekend facts only, per the note on the Singapore write-up: the scoring
@@ -47,14 +53,19 @@ const QUALIFYING_2025_SOURCE =
  */
 const FAQS = [
   {
-    question: 'Is the 2026 Mexico City Grand Prix a sprint weekend?',
+    question: 'Who won the 2026 Mexico City Grand Prix?',
     answer:
-      'No. Mexico City is not one of the six 2026 sprint weekends, so the weekend has three practice sessions before qualifying.',
+      'Max Verstappen, for Red Bull, ahead of Lewis Hamilton and Kimi Antonelli.',
   },
   {
-    question: 'When is the 2026 Mexico City Grand Prix?',
+    question: 'Was the 2026 Mexico City Grand Prix a sprint weekend?',
     answer:
-      'The weekend runs from Friday 30 October to Sunday 1 November 2026 at the Autódromo Hermanos Rodríguez. Qualifying starts at 15:00 Mexico City time on Saturday and the 71-lap Grand Prix starts at 14:00 on Sunday.',
+      'No. Mexico City was not one of the six 2026 sprint weekends, so the weekend had three practice sessions before qualifying.',
+  },
+  {
+    question: 'When was the 2026 Mexico City Grand Prix?',
+    answer:
+      'The weekend ran from Friday 30 October to Sunday 1 November 2026 at the Autódromo Hermanos Rodríguez. Qualifying started at 15:00 Mexico City time on Saturday and the 71-lap Grand Prix started at 14:00 on Sunday.',
   },
   {
     question: 'Who won the 2025 Mexico City Grand Prix?',
@@ -107,8 +118,15 @@ function MexicoCityGrandPrixPredictionsPage() {
       }
       reviewedAt={PROSE_REVIEWED_AT}
       faqs={FAQS}
+      raceReport={<RaceReport />}
       sources={
         <>
+          2026 result:{' '}
+          <ExternalSource href={OFFICIAL_RESULT_SOURCE}>
+            Formula 1
+          </ExternalSource>
+          . 2026 race report:{' '}
+          <ExternalSource href={RACE_REPORT_SOURCE}>Formula 1</ExternalSource>.
           Schedule and circuit:{' '}
           <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>.
           2026 sprint weekends:{' '}
@@ -136,18 +154,55 @@ function MexicoCityGrandPrixPredictionsPage() {
   );
 }
 
+/**
+ * What decided the race, on the finished page only. Every figure is from the
+ * official classification; the grid, the lead changes, the title and Pérez's
+ * finish are from the race report.
+ */
+function RaceReport() {
+  return (
+    <RaceWriteupSection id="race-report" heading="What decided the race">
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Verstappen won from fifth on the grid, <Figure>0.799 seconds</Figure>{' '}
+        ahead of Hamilton, with Antonelli a further 3.2 seconds back in third.{' '}
+        <ExternalSource href={OFFICIAL_RESULT_SOURCE}>
+          The official race result
+        </ExternalSource>
+        . Third place made Antonelli the 2026 champion, the youngest in Formula
+        1 history. Pérez finished 16th for Cadillac.{' '}
+        <ExternalSource href={RACE_REPORT_SOURCE}>
+          Read the F1 race report
+        </ExternalSource>
+        .
+      </p>
+      <p className="gpp-reading-copy mt-3 text-text-muted">
+        Leclerc took the lead on the first lap by crossing the grass while
+        battling polesitter Hamilton, and the stewards gave him a five-second
+        penalty. Verstappen came out ahead when they both pitted and Leclerc
+        served it. The race was stopped after Bottas crashed at Turn 1.
+        Verstappen held the lead at the standing restart, and again when the
+        Safety Car came in with eight laps left.{' '}
+        <ExternalSource href={RACE_REPORT_SOURCE}>
+          The 2026 race report
+        </ExternalSource>
+        .
+      </p>
+    </RaceWriteupSection>
+  );
+}
+
 function PerezHomeRace() {
   return (
     <RaceWriteupSection
       id="perez-home-race"
-      heading="Pérez is back for his home race"
+      heading="Pérez was back for his home race"
     >
       <p className="gpp-reading-copy mt-4 text-text-muted">
-        Sergio Pérez was not on the grid in Mexico City in 2025. He returns with
-        Cadillac, the 11th team, which is racing here for the first time in its
-        debut season. Cadillac says this is the week Pérez reaches{' '}
-        <Figure>300 Grand Prix starts</Figure>, and he opens it with a show run
-        down Paseo de la Reforma on Wednesday 28 October.{' '}
+        Sergio Pérez was not on the grid in Mexico City in 2025. He returned
+        with Cadillac, the 11th team, racing here for the first time in its
+        debut season. Before the weekend, Cadillac said this would be the week
+        Pérez reached <Figure>300 Grand Prix starts</Figure>, and it planned a
+        show run for him down Paseo de la Reforma on Wednesday 28 October.{' '}
         <ExternalSource href={CADILLAC_PEREZ_SOURCE}>
           Cadillac&rsquo;s announcement
         </ExternalSource>
@@ -210,12 +265,12 @@ function Circuit() {
 function TyreChoice() {
   return (
     <TyreCompoundSection
-      heading="Mexico City gets the softest three tyres"
+      heading="Mexico City got the softest three tyres"
       venue="Mexico City"
       hardest="C3"
     >
       <p className="gpp-reading-copy mt-7 text-text-muted">
-        Pirelli has nominated C3, C4 and C5, the same three as São Paulo a week
+        Pirelli nominated C3, C4 and C5, the same three as São Paulo a week
         later. In 2025 the Hard was the C2, a step further from the Medium, but
         teams relied on the two softer compounds rather than try to save a stop
         on it.{' '}

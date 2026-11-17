@@ -1,0 +1,24 @@
+[
+  {
+    "raceSlug": "las-vegas-2026",
+    "key": "mercedes-aduo-turbo-antonelli-las-vegas",
+    "category": "general",
+    "headline": "Mercedes debuts its ADUO turbo on Antonelli's car in Las Vegas",
+    "body": "Antonelli will run the upgraded turbo this weekend, with Toto Wolff expecting a relatively small gain. Russell stays on his current specification: he has already used five turbos, so another would cost him a five-place grid penalty.",
+    "affectsSessions": [],
+    "driverCodes": ["ANT", "RUS"],
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/mercedes-plan-to-debut-aduo-upgrade-on-antonellis-car-only/",
+    "sourcePublishedAt": "2026-11-17T15:05:38Z"
+  },
+  {
+    "global": true,
+    "key": "alonso-dakar-2027-aston-martin",
+    "headline": "Alonso will race the Dakar Rally for Aston Martin in January",
+    "body": "Alonso returns to Dakar seven years after finishing 13th with Toyota, with Marc Coma as co-driver in an Aston Martin Dreadnought run by Prodrive. He keeps his Formula 1 seat for 2027. The rally runs from 9 to 23 January in Portugal and Morocco.",
+    "team": "Aston Martin",
+    "sourceName": "Sky Sports",
+    "sourceUrl": "https://www.skysports.com/f1/news/13612958/fernando-alonso-aston-martin-driver-to-race-in-dakar-rally-ahead-of-2027-f1-season-in-return-to-rally-raid-event",
+    "sourcePublishedAt": "2026-11-17T09:00:00Z"
+  }
+]

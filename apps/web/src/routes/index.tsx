@@ -30,10 +30,8 @@ import {
   ScrollToPicksCta,
 } from './-home/LandingHero';
 import { LANDING_PICKS_ANCHOR, LandingPicks } from './-home/LandingPicks';
-import { LandingWeekendNews } from './-home/LandingWeekendNews';
 import { CompetitionSection } from './-home/CompetitionSection';
 import { ScoringSection } from './-home/ScoringSection';
-import { SessionClock, SessionClockChip } from './-home/SessionClock';
 import { buildSessions, getSessionStatus } from './-home/weekendSchedule';
 
 const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
@@ -161,6 +159,7 @@ export const Route = createFileRoute('/')({
       h2hMatchups: data.h2hMatchups,
       entryListNote: data.entryListNote,
       nextRaceNews: data.nextRaceNews,
+      nextRaceWeather: data.nextRaceWeather,
       dashboard,
       /*
        * "The server rendered this viewer's page without their data", which is
@@ -271,6 +270,7 @@ function PublicLandingPage() {
     h2hMatchups,
     entryListNote,
     nextRaceNews,
+    nextRaceWeather,
     now: serverNow,
   } = Route.useLoaderData();
   // The visible clocks only show whole minutes. Updating the entire landing
@@ -291,44 +291,22 @@ function PublicLandingPage() {
         getSessionStatus(session, publishedSessions, now) === 'upcoming',
     ) ?? null;
 
-  // Everything on this page is driven off the calendar's next open session, so
-  // it re-labels itself each race week with no manual edit: the clock reads
-  // "Next deadline · Qualifying picks" or "· Race picks" depending on what is
-  // actually next, and the flag follows the round. The desktop clock takes the
-  // full session label because that column is where "Sprint Quali" is least
-  // likely to be understood; the mobile chip and the picker keep the compact
-  // one so a single line can hold race + session + lock fact.
-  //
-  // Desktop clock and mobile chip share the same deadline inputs — the two
-  // disagreeing about when picks lock would be a hard bug to spot.
-  const clock =
-    featuredRace && nextSession ? (
-      <SessionClock
-        raceName={featuredRace.name}
-        raceSlug={featuredRace.slug}
-        round={featuredRace.round}
-        sessionLabel={nextSession.labelFull}
-        msRemaining={nextSession.startAt - now}
-        lockAt={nextSession.startAt}
-      />
-    ) : null;
-  const clockCompact =
-    featuredRace && nextSession ? (
-      <SessionClockChip
-        raceName={featuredRace.name}
-        raceSlug={featuredRace.slug}
-        sessionLabel={nextSession.label}
-        msRemaining={nextSession.startAt - now}
-        lockAt={nextSession.startAt}
-      />
-    ) : null;
-
   return (
     <>
       <div className="bg-page">
+        {/* The hero follows the calendar's next open session, so it
+            re-labels itself each race week with no manual edit: the race,
+            which session locks next, its schedule, forecast and news. */}
         <LandingHero
-          clock={clock}
-          clockCompact={clockCompact}
+          race={featuredRace}
+          lockSession={
+            nextSession
+              ? { label: nextSession.labelFull, startAt: nextSession.startAt }
+              : null
+          }
+          now={now}
+          weather={featuredRace === nextRace ? nextRaceWeather : null}
+          news={featuredRace === nextRace ? nextRaceNews : null}
           cta={
             nextRace && nextSession ? (
               <ScrollToPicksCta targetId={LANDING_PICKS_ANCHOR} />
@@ -348,14 +326,6 @@ function PublicLandingPage() {
             initialDrivers={drivers}
             initialMatchups={h2hMatchups}
             entryListNote={entryListNote}
-          />
-        ) : null}
-
-        {nextRace ? (
-          <LandingWeekendNews
-            raceName={nextRace.name}
-            raceSlug={nextRace.slug}
-            news={nextRaceNews}
           />
         ) : null}
 

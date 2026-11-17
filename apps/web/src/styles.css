@@ -11,14 +11,15 @@
    person compares. Both self-hosted from /public/fonts: no third-party
    connection, and Cloudflare serves them from the same origin as the app.
 
-   Archivo is a variable font — one file covers 300–600, which is the whole
-   range this system uses.
+   Archivo is a variable font. One file covers 300–900: the product register
+   uses 300–600, and the display register (below) adds 900 for one word a
+   page. Same file, so the extra weight costs no bytes.
    ========================================================================== */
 
 @font-face {
   font-family: 'Archivo';
   font-style: normal;
-  font-weight: 300 600;
+  font-weight: 300 900;
   font-display: swap;
   src: url('/fonts/archivo-latin-var.woff2') format('woff2');
   unicode-range:
@@ -950,6 +951,192 @@
     .banner-drop-in,
     .banner-drop-out {
       animation: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   Display register
+
+   Timing Sheet Minimal is the product register: quiet, flat, built for
+   tables. The display register is its loud counterpart for a short, fixed
+   list of surfaces where the race weekend itself is the content: the landing
+   hero now, write-up heroes and share cards later. It may use black-weight
+   display type, team colour as a fill, and motion that draws in once. It may
+   not leak into game UI. See docs/design-display-register.md.
+   ========================================================================== */
+
+@layer base {
+  .gpp-display {
+    font-family: var(--font-ui);
+    font-size: clamp(3.25rem, 9vw, 8rem);
+    font-weight: 900;
+    line-height: 0.86;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+  }
+
+  .gpp-display-light {
+    font-weight: 300;
+    letter-spacing: -0.05em;
+  }
+
+  .gpp-hero-digits {
+    font-family: var(--font-data);
+    font-size: clamp(2.75rem, 5vw, 4rem);
+    font-weight: 600;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text);
+  }
+
+  /* The lap: behind the race name, bleeding off to the right. */
+  .gpp-hero-lap {
+    position: absolute;
+    pointer-events: none;
+    top: 5.5rem;
+    left: 18%;
+    width: 39rem;
+    max-width: none;
+    height: auto;
+  }
+
+  @media (max-width: 639px) {
+    .gpp-hero-lap {
+      top: 7.5rem;
+      left: -1.5rem;
+      width: 27rem;
+    }
+  }
+
+  .gpp-hero-lap path {
+    fill: none;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  .gpp-hero-lap-asphalt {
+    stroke: var(--color-surface);
+    stroke-width: 30;
+  }
+
+  .gpp-hero-lap-line {
+    stroke: var(--color-border-strong);
+    stroke-width: 3;
+    stroke-dasharray: 1000;
+  }
+
+  /* One short dash: the car. Invisible unless it is running. */
+  .gpp-hero-lap-car {
+    stroke: var(--color-accent);
+    stroke-width: 7;
+    stroke-dasharray: 22 978;
+    opacity: 0;
+  }
+
+  /* Session cells that take picks carry a bar along their top edge (left
+     edge on phones): the accent on the next one to lock, text on the rest. */
+  .gpp-hero-session-lock::before,
+  .gpp-hero-session-scored::before {
+    content: '';
+    position: absolute;
+    left: -1rem;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--color-text);
+  }
+
+  .gpp-hero-session-lock::before {
+    background: var(--color-accent);
+  }
+
+  @media (min-width: 640px) {
+    .gpp-hero-session-lock::before,
+    .gpp-hero-session-scored::before {
+      left: 0;
+      right: 0;
+      top: -1px;
+      bottom: auto;
+      width: auto;
+      height: 3px;
+    }
+  }
+
+  .gpp-hero-band-team {
+    background: var(--band-fill);
+    color: var(--band-ink);
+  }
+
+  .gpp-hero-band-link {
+    transition: transform var(--dur) var(--ease-out);
+  }
+
+  .gpp-hero-band-link:hover {
+    transform: translateX(-6px);
+  }
+
+  .gpp-hero-band-link:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .gpp-hero-lap-line {
+      animation: gpp-hero-draw 1600ms var(--ease-out) both;
+    }
+
+    .gpp-hero-lap-car {
+      animation:
+        gpp-hero-lap 4200ms cubic-bezier(0.45, 0.05, 0.35, 1) 1300ms 1 both,
+        gpp-hero-car 5500ms linear both;
+    }
+
+    .gpp-hero-band {
+      animation: gpp-hero-slide 520ms var(--ease-out) backwards;
+    }
+  }
+
+  @keyframes gpp-hero-draw {
+    from {
+      stroke-dashoffset: 1000;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes gpp-hero-lap {
+    from {
+      stroke-dashoffset: 22;
+    }
+    to {
+      stroke-dashoffset: -978;
+    }
+  }
+
+  /* Shows the car for its lap and fades it at the line. */
+  @keyframes gpp-hero-car {
+    0%,
+    23% {
+      opacity: 0;
+    }
+    25%,
+    95% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes gpp-hero-slide {
+    from {
+      transform: translateX(105%);
+    }
+    to {
+      transform: none;
     }
   }
 }

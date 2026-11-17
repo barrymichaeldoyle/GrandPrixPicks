@@ -1,0 +1,51 @@
+# Display register
+
+Timing Sheet Minimal (`packages/shared/src/tokens.ts`, `apps/web/src/styles.css`)
+is the **product register**: flat surfaces, hairlines, one rare chartreuse
+accent, team colour confined to a 3px bar, Archivo 300–600 and IBM Plex Mono
+for figures. It is right for every screen where someone reads data or makes a
+pick, and it stays the default.
+
+The **display register** is its loud counterpart, for the few surfaces where
+the race weekend itself is the content and the page has to be an event rather
+than a table. It was introduced on 2026-11-17 with the landing hero, after
+three hero concepts built inside the product register were all judged boring:
+the register's quiet was the cause, not the copy.
+
+## Where it may be used
+
+A short, fixed list. Adding a surface is a decision, not a styling choice.
+
+- The landing hero: `apps/web/src/routes/-home/LandingHero.tsx`.
+- Candidates, not yet built: write-up heroes, OG and social cards, the season
+  recap.
+
+Never in game UI: the picker, pick rows, standings, results, leagues, settings.
+
+## What it allows
+
+| Rule in the product register                   | Display register                                                                                                                                                                       |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Archivo 300–600                                | Archivo 900 for one display line per page (`.gpp-display`). The variable font file already covers 300–900, so this costs no bytes. 300 is the companion weight (`.gpp-display-light`). |
+| Type scale tops out at page headings           | Display sizes: `.gpp-display` (up to 8rem) and `.gpp-hero-digits` (up to 4rem mono).                                                                                                   |
+| Team colour is a 3px bar or 5px dot            | Team colour may fill a block that is _about that team_: the hero's news bands. Text on it is whichever of `textOnAccent` and `text` has more contrast (`inkForFill`).                  |
+| Nothing moves except hover, selection and drag | One draw-in on load: a lap outline drawn with `stroke-dashoffset`, one car running one lap, staggered slide-ins. Each plays once. Nothing loops.                                       |
+| No illustration                                | Circuit outlines from licensed geometry (OpenStreetMap, ODbL, credited in the source file).                                                                                            |
+
+## What still holds
+
+- No shadows, gradients, glow, noise or textures. Depth is still a surface
+  step and a hairline.
+- Chartreuse still marks the one action and the active state (the next session
+  to lock). It does not become decoration.
+- Motion is transform, opacity and `stroke-dashoffset` only, and
+  `prefers-reduced-motion` shows the finished state.
+- The h1 is never hidden or faded in: it is the page's LCP element.
+- Copy follows `docs/product-voice.md` unchanged. Loud type is not licence for
+  louder words.
+
+## Classes
+
+All in the "Display register" block at the end of `apps/web/src/styles.css`:
+`.gpp-display`, `.gpp-display-light`, `.gpp-hero-digits`, `.gpp-hero-lap*`,
+`.gpp-hero-session-*`, `.gpp-hero-band*`.

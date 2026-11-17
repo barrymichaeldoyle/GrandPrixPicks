@@ -25,6 +25,7 @@ import { toUserIdentity } from './lib/userIdentity';
 import { loadMe } from './users';
 import { loadRosterWithConstructorPoints } from './drivers';
 import { loadNewsHeadlines } from './raceNews';
+import { loadSessionWeather } from './weather';
 import {
   getDefaultLeaderboardSeason,
   getFollowedUserIds,
@@ -197,6 +198,7 @@ export const getHomePageData = query({
       { lastScoredRace, lastScoredRacePoints },
       [nextRaceResults, recentRaceResults],
       nextRaceNews,
+      nextRaceWeather,
     ] = await Promise.all([
       (async () => {
         const roster = await loadRosterWithConstructorPoints(ctx, {
@@ -247,6 +249,8 @@ export const getHomePageData = query({
       // Five headlines, not the stories: the landing page links each one into
       // the race write-up, which is where the sourced text is published.
       nextRace ? loadNewsHeadlines(ctx, nextRace, 5) : null,
+      // The landing hero's schedule carries a forecast per session.
+      nextRace ? loadSessionWeather(ctx, nextRace, now) : null,
     ]);
 
     /*
@@ -332,6 +336,7 @@ export const getHomePageData = query({
       h2hMatchups,
       entryListNote: nextRace ? pendingEntryNoteForSlug(nextRace.slug) : null,
       nextRaceNews,
+      nextRaceWeather,
     };
   },
 });

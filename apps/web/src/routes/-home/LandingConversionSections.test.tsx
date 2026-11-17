@@ -5,7 +5,6 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CompetitionSection } from './CompetitionSection';
-import { LandingWeekendNews } from './LandingWeekendNews';
 import { ScoringSection } from './ScoringSection';
 
 vi.mock('@tanstack/react-router', () => ({
@@ -110,52 +109,5 @@ describe('landing conversion sections', () => {
     expect(container.querySelector('a[href="/leaderboard"]')).not.toBeNull();
     // The section's own call to action, back to the picker it argues for.
     expect(container.querySelector('a[href="#landing-picks"]')).not.toBeNull();
-  });
-
-  it('links each weekend headline to its card on the write-up', () => {
-    act(() =>
-      root.render(
-        <LandingWeekendNews
-          raceName="Bahrain Grand Prix"
-          raceSlug="bahrain-2026"
-          news={{
-            total: 18,
-            items: [
-              {
-                key: 'colapinto-sepang-grid-penalty',
-                headline: 'Colapinto drops 15 places on the Sepang grid',
-                sourceName: 'Formula 1',
-                team: null,
-              },
-            ],
-          }}
-        />,
-      ),
-    );
-
-    expect(container.textContent).toContain('Bahrain Grand Prix news');
-    expect(
-      container.querySelector(
-        'a[href="/f1-2026-bahrain-grand-prix-predictions#news-colapinto-sepang-grid-penalty"]',
-      )?.textContent,
-    ).toContain('Colapinto drops 15 places');
-    expect(
-      container.querySelector(
-        'a[href="/f1-2026-bahrain-grand-prix-predictions"]',
-      ),
-    ).not.toBeNull();
-  });
-
-  it('renders nothing for a race without a write-up', () => {
-    act(() =>
-      root.render(
-        <LandingWeekendNews
-          raceName="Test Grand Prix"
-          raceSlug="no-such-race"
-          news={null}
-        />,
-      ),
-    );
-    expect(container.innerHTML).toBe('');
   });
 });

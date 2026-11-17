@@ -3,7 +3,7 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
-import type { ActionCtx } from './_generated/server';
+import type { ActionCtx, QueryCtx } from './_generated/server';
 import {
   internalAction,
   internalMutation,
@@ -93,6 +93,49 @@ function publicWeather(forecast: Doc<'weatherForecasts'> | null) {
     isStale: isForecastStale(forecast),
     attribution: WEATHER_ATTRIBUTION,
   };
+}
+
+/**
+ * The forecast the landing hero draws: one word and a temperature per session.
+ *
+ * The hero reads it from the home page's one SSR query, so it travels in the
+ * HTML of every signed-out visit. A full forecast is up to nine days of hours,
+ * nearly all of them hours when nothing runs, so this keeps only the hours
+ * around a session: the window a session summary aggregates plus the margin
+ * its mid-session temperature is read from.
+ */
+export async function loadSessionWeather(
+  ctx: QueryCtx,
+  race: Doc<'races'>,
+  now: number,
+) {
+  if (!isWeatherEligible(race, now)) {
+    return null;
+  }
+  const forecast = await ctx.db
+    .query('weatherForecasts')
+    .withIndex('by_raceId', (q) => q.eq('raceId', race._id))
+    .unique();
+  const weather = publicWeather(forecast);
+  if (!weather) {
+    return null;
+  }
+  const starts = [
+    race.fp1StartAt,
+    race.fp2StartAt,
+    race.fp3StartAt,
+    race.sprintQualiStartAt,
+    race.sprintStartAt,
+    race.qualiStartAt,
+    race.raceStartAt,
+  ].filter((at): at is number => at !== undefined);
+  // Six hours either side covers a two-hour race and the coarsest (6h)
+  // forecast period that can overlap it.
+  const margin = 6 * HOUR;
+  const hours = weather.forecast.hours.filter((hour) =>
+    starts.some((at) => hour.at >= at - margin && hour.at <= at + margin),
+  );
+  return { ...weather, forecast: { ...weather.forecast, hours } };
 }
 
 /** Detailed forecast for an indexable race/writeup page. */

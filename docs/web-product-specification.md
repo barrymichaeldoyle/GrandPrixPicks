@@ -423,6 +423,29 @@ The signed-out landing page:
 Core home content must remain useful when no next race, current result, top
 player, or participation data is available.
 
+The hero (`apps/web/src/routes/-home/LandingHero.tsx`) is the race weekend
+itself, set in the display register (`docs/design-display-register.md`):
+
+- the h1 reads as one sentence, "Predict the F1 Top 5 at the {race}", with the
+  place set in black-weight display type;
+- a countdown to the next session whose picks lock, by the minute, with the
+  lock time in the active time zone;
+- the weekend's schedule, every session including practice, with a forecast
+  word and temperature per session (MET Norway, credited) and the shared
+  "Track time / My time" toggle. The server renders track time; the visitor's
+  zone takes over after hydration;
+- up to five of the race's news headlines, each linking to its card on the
+  write-up. A story whose named drivers all drive for one team is drawn on
+  that team's colour; any other story stays on the surface colour. No news
+  column appears for a race without a write-up;
+- a lap outline behind the race name where `apps/web/src/lib/circuitLaps.ts`
+  has one (Las Vegas so far). It draws in once and a single car runs one lap.
+  Reduced motion shows the finished outline.
+
+Between seasons the hero falls back to "Predict the F1 Top 5" and the calendar
+button. The news headlines used to sit in a separate section below the scoring
+explainer; the hero replaced it.
+
 ### 9.2 Authenticated dashboard
 
 The signed-in dashboard replaces the public landing page at the same `/` URL.

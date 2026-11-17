@@ -453,13 +453,22 @@ export async function loadNewsHeadlines(
   ];
   return {
     total: items.length,
-    items: picksFirst.slice(0, limit).map((item) => ({
-      key: item.key,
-      headline: item.headline,
-      sourceName: item.sourceName,
-      team: item.drivers[0]?.team ?? null,
-      affectsPicks: item.affectsSessions.length > 0,
-    })),
+    items: picksFirst.slice(0, limit).map((item) => {
+      // A story is a team's only when every driver it names drives for that
+      // team. "Mercedes may back Russell" names RUS and ANT, both Mercedes;
+      // a story naming drivers from two teams belongs to neither, and one
+      // naming nobody (tyres, the venue) has no team at all.
+      const teams = new Set(item.drivers.map((driver) => driver.team));
+      return {
+        key: item.key,
+        headline: item.headline,
+        sourceName: item.sourceName,
+        sourcePublishedAt: item.sourcePublishedAt ?? null,
+        driverCodes: item.drivers.map((driver) => driver.code),
+        team: teams.size === 1 ? [...teams][0] : null,
+        affectsPicks: item.affectsSessions.length > 0,
+      };
+    }),
   };
 }
 

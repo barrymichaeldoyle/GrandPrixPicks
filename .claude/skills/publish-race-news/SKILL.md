@@ -66,6 +66,22 @@ dates before it calls Convex.
 Still skip: gossip with no named source, stories sourced to another prediction
 site, and anything already covered by an existing key (republish that one).
 
+## Colour: `driverCodes` and `team`
+
+A card's team colour comes from one shared rule (`packages/shared/src/newsTeam.ts`),
+the same on the feed, the write-up and the landing hero:
+
+1. `team`, when set, wins. Use it for a story about one team that names no
+   driver: "McLaren will bring more new parts" is `"team": "McLaren"`. It must
+   be a name from `teams` in `packages/shared/src/tokens.ts`.
+2. Otherwise the card takes the team every named driver drives for: `["RUS",
+   "ANT"]` is Mercedes.
+3. Otherwise (drivers from two teams, or nobody) it stays neutral. A tyre story
+   naming Norris, Verstappen and Sainz is neutral, which is right: list all
+   three rather than only the first, or it will read as a McLaren story.
+
+`team` is kept on a republish that omits it.
+
 ## Name the drivers
 
 `driverCodes` is optional but nearly always worth setting. It puts the driver's

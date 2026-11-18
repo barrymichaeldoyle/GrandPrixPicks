@@ -1,0 +1,43 @@
+[
+  {
+    "raceSlug": "las-vegas-2026",
+    "key": "piastri-las-vegas-engine-grid-penalty",
+    "headline": "Piastri takes a 10-place grid penalty in Las Vegas",
+    "body": "Piastri will fit a fifth Mercedes engine of the season after a reliability issue, which costs him 10 places on the grid. McLaren expects him to recover positions with overtaking in the race.",
+    "affectsSessions": ["race"],
+    "driverCodes": ["PIA"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/oscar-piastri-set-for-grid-penalty-at-f1-las-vegas-gp/10875180/",
+    "sourcePublishedAt": "2026-11-18T00:21:42Z"
+  },
+  {
+    "raceSlug": "las-vegas-2026",
+    "key": "las-vegas-weather-forecast-dry-cold",
+    "headline": "Las Vegas forecast: cold and dry all weekend",
+    "body": "Air temperatures run from 4C to 14C across the weekend, with no rain forecast for practice, qualifying or the race. Last year's qualifying was wet.",
+    "affectsSessions": [],
+    "category": "general",
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/what-is-the-weather-forecast-for-the-2026-las-vegas-grand-prix.1ki78WcweOZ8vq2zQ1HOJX",
+    "sourcePublishedAt": "2026-11-18T10:11:03Z"
+  },
+  {
+    "global": true,
+    "key": "alonso-dakar-rally-2027-aston-martin",
+    "headline": "Alonso will race the Dakar Rally for Aston Martin in January",
+    "body": "Alonso returns to Dakar seven years after finishing 13th with Toyota, driving an Aston Martin Dreadnought run by Prodrive with Marc Coma as co-driver. Dakar runs 9 to 23 January, and he stays at Aston Martin in Formula 1 for 2027.",
+    "team": "Aston Martin",
+    "sourceName": "Sky Sports",
+    "sourceUrl": "https://www.skysports.com/f1/news/13612958/fernando-alonso-aston-martin-driver-to-race-in-dakar-rally-ahead-of-2027-f1-season-in-return-to-rally-raid-event",
+    "sourcePublishedAt": "2026-11-17T09:00:00+00:00"
+  },
+  {
+    "global": true,
+    "key": "fia-2030-v8-announcement-deleted",
+    "headline": "FIA posts, then deletes, a 2030 V8 engine announcement",
+    "body": "FIA president Mohammed Ben Sulayem posted \"V8s coming soon\" after Monday's meeting with manufacturers and Formula 1, and related posts were then removed. The understanding is of broad agreement on a turbocharged 2.1-litre V8 with a smaller electrical element, with a 2030 framework due at the World Motor Sport Council on 10 December.",
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/future-imperfect-whats-behind-the-abortive-2030-f1-rules-announcement/10875283/",
+    "sourcePublishedAt": "2026-11-18T14:04:19Z"
+  }
+]

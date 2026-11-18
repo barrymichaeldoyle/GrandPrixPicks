@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/2026-11-18-1800.json",
+  "startAt": "2026-11-18T16:17:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["piastri-las-vegas-engine-grid-penalty"],
+      "text": "Piastri takes a fifth engine in Las Vegas and a 10-place grid penalty. McLaren expects him to recover places in the race.",
+      "link": "https://grandprixpicks.com/f1-2026-las-vegas-grand-prix-predictions?story=piastri-las-vegas-engine-grid-penalty",
+      "expiresAt": "2026-11-22T03:00:00Z"
+    }
+  ]
+}

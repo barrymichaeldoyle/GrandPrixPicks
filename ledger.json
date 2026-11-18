@@ -1743,6 +1743,25 @@
       "expiresAt": "2026-11-21T04:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6afc7c100ec7d2b0822dbfa1"
+    },
+    {
+      "id": "01a230ade525e31bc2363616cf2903527b2dc34db6be8206465da15ab3d72dd8",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "las-vegas-2026",
+          "key": "piastri-las-vegas-engine-grid-penalty",
+          "revision": "c104837b9212bccb257e3cb6356309db7157616b7e254792b28ee2d5bfba073f"
+        }
+      ],
+      "text": "Piastri takes a fifth engine in Las Vegas and a 10-place grid penalty. McLaren expects him to recover places in the race.",
+      "link": "https://grandprixpicks.com/f1-2026-las-vegas-grand-prix-predictions?story=piastri-las-vegas-engine-grid-penalty",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=las-vegas-2026&story=piastri-las-vegas-engine-grid-penalty&v=c104837b9212",
+      "dueAt": "2026-11-18T16:17:00.000Z",
+      "expiresAt": "2026-11-22T03:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

@@ -442,10 +442,13 @@ function TeammateBattlesPage() {
                       link has to be reachable — but a permalink is a background
                       affordance, not a call to action, so it stays quiet until
                       the pairing is hovered and appears on keyboard focus.
+                      A touch screen has no hover, so there it is always shown,
+                      with a finger-sized hit area: invisible, it still caught
+                      taps and jumped the page.
                     */}
                     <a
                       href={`#${headingId}`}
-                      className="rounded-sm px-1 text-sm text-text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:text-accent focus-visible:opacity-100"
+                      className="rounded-sm px-1 text-sm text-text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:text-accent focus-visible:opacity-100 pointer-coarse:-my-3 pointer-coarse:min-w-11 pointer-coarse:py-3 pointer-coarse:text-center pointer-coarse:opacity-100"
                     >
                       <span aria-hidden>#</span>
                       <span className="sr-only">

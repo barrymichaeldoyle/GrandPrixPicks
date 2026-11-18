@@ -372,7 +372,7 @@ export function RaceWeekendSelect({
               close();
             }
           }}
-          className="h-11 min-w-0 flex-1 bg-transparent text-sm text-text placeholder:text-text-muted focus:outline-none"
+          className="h-11 min-w-0 flex-1 bg-transparent text-sm text-text placeholder:text-text-muted focus:outline-none pointer-coarse:text-base"
         />
       </div>
 

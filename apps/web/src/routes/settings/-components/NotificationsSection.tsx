@@ -132,7 +132,7 @@ export function NotificationsSection({
                   </label>
                   <select
                     id="news-push-preference"
-                    className="mt-2 w-full rounded border border-border bg-page p-2 text-sm text-text"
+                    className="mt-2 w-full rounded border border-border bg-page p-2 text-sm text-text pointer-coarse:text-base"
                     value={settings.newsPushPreference}
                     onChange={(event) =>
                       onUpdateSetting({

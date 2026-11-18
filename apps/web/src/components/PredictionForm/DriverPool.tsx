@@ -36,10 +36,14 @@ function DraggableDriverCard({
   return (
     <button
       ref={setNodeRef}
-      // Drag is pointer-only: dnd-kit's keyboard listener calls preventDefault
-      // on Enter/Space, which blocks native button activation (WCAG 2.1.1).
-      onPointerDown={(event) => {
-        listeners?.onPointerDown?.(event);
+      // Drag is mouse and touch only: dnd-kit's keyboard listener calls
+      // preventDefault on Enter/Space, which blocks native button activation
+      // (WCAG 2.1.1). These two names match the sensors in PredictionForm.
+      onMouseDown={(event) => {
+        listeners?.onMouseDown?.(event);
+      }}
+      onTouchStart={(event) => {
+        listeners?.onTouchStart?.(event);
       }}
       type="button"
       data-testid={`driver-${driver.code}`}
@@ -71,7 +75,7 @@ function DraggableDriverCard({
        * both identically made a picked driver read as "unavailable for some
        * reason" against twenty-one lookalikes.
        */
-      className={`gpp-team-bar flex min-h-14 w-full items-center justify-start gap-2 rounded-sm border py-2.5 pr-2 pl-3 text-left transition-colors duration-150 ease-out ${
+      className={`gpp-team-bar flex min-h-14 w-full touch-manipulation items-center justify-start gap-2 rounded-sm border py-2.5 pr-2 pl-3 text-left transition-colors duration-150 ease-out select-none [-webkit-touch-callout:none] ${
         picked
           ? 'gpp-team-fill cursor-not-allowed'
           : 'border-border bg-surface-elevated hover:border-border-strong hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface-elevated'

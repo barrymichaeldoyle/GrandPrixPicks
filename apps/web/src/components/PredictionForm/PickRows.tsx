@@ -88,8 +88,10 @@ export function SortablePickRow({
       <div
         {...attributes}
         {...listeners}
-        className="flex min-w-0 flex-1 cursor-grab active:cursor-grabbing"
-        style={{ touchAction: 'none' }}
+        // No `touch-action: none`: a swipe here has to scroll the page. Touch
+        // drags start on press-and-hold (the TouchSensor in PredictionForm),
+        // and the hold must not open iOS's text selection or link callout.
+        className="flex min-w-0 flex-1 cursor-grab select-none [-webkit-touch-callout:none] active:cursor-grabbing"
         // Position first: the P1-P5 column beside the list is aria-hidden, so
         // this is the only place a screen reader hears where the driver sits.
         aria-label={`P${position}, ${driver.displayName}. Drag to reorder`}
@@ -145,7 +147,7 @@ export function SortablePickRow({
             // `aria-disabled`, not `disabled`: moving a pick to the end disables
             // the arrow just pressed, and a disabled button drops focus to <body>.
             aria-disabled={index === 0}
-            className="group flex h-8 w-11 items-center justify-center rounded-sm transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none aria-disabled:cursor-default aria-disabled:hover:bg-transparent sm:h-6 sm:w-8 pointer-coarse:h-8 pointer-coarse:w-11"
+            className="group flex h-8 w-11 touch-manipulation items-center justify-center rounded-sm transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none aria-disabled:cursor-default aria-disabled:hover:bg-transparent sm:h-6 sm:w-8 pointer-coarse:h-8 pointer-coarse:w-11"
             aria-label={`Move ${driver.displayName} up`}
           >
             <ChevronUp
@@ -163,7 +165,7 @@ export function SortablePickRow({
             // `aria-disabled`, not `disabled`: moving a pick to the end disables
             // the arrow just pressed, and a disabled button drops focus to <body>.
             aria-disabled={index >= picksLength - 1}
-            className="group flex h-8 w-11 items-center justify-center rounded-sm transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none aria-disabled:cursor-default aria-disabled:hover:bg-transparent sm:h-6 sm:w-8 pointer-coarse:h-8 pointer-coarse:w-11"
+            className="group flex h-8 w-11 touch-manipulation items-center justify-center rounded-sm transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none aria-disabled:cursor-default aria-disabled:hover:bg-transparent sm:h-6 sm:w-8 pointer-coarse:h-8 pointer-coarse:w-11"
             aria-label={`Move ${driver.displayName} down`}
           >
             <ChevronDown
@@ -181,7 +183,7 @@ export function SortablePickRow({
           }}
           // Muted until pointed at: five amber crosses were the loudest thing in
           // the list, and amber is the colour that means something went wrong.
-          className="group flex h-11 w-11 items-center justify-center rounded-sm transition-colors hover:bg-error-muted focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none active:bg-error-muted sm:h-8 sm:w-8 pointer-coarse:h-11 pointer-coarse:w-11"
+          className="group flex h-11 w-11 touch-manipulation items-center justify-center rounded-sm transition-colors hover:bg-error-muted focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none active:bg-error-muted sm:h-8 sm:w-8 pointer-coarse:h-11 pointer-coarse:w-11"
           aria-label={`Remove ${driver.displayName}`}
           data-testid={`remove-pick-${position}`}
         >

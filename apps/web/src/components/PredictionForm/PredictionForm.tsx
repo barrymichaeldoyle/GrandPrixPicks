@@ -5,7 +5,8 @@ import {
   closestCenter,
   DndContext,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
@@ -317,8 +318,16 @@ export function PredictionForm({
     }
   }, [hasHydratedDraft, picks]);
 
+  // Mouse and touch are separate sensors because a finger has to share the
+  // gesture with page scroll. A PointerSensor needs `touch-action: none` to
+  // keep iOS from claiming the drag, which made a scroll that started on a
+  // pick row reorder the list instead. Touch drags start after a short
+  // press-and-hold; a swipe that moves first is left to the browser to scroll.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),

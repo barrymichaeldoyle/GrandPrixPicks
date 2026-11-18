@@ -170,7 +170,7 @@ export function CommandPalette({
             setActiveIndex(0);
           }}
           onKeyDown={handleKeyDown}
-          className="shrink-0 border-b border-border bg-transparent px-4 py-3 text-sm text-text placeholder:text-text-muted focus:outline-none"
+          className="shrink-0 border-b border-border bg-transparent px-4 py-3 text-sm text-text placeholder:text-text-muted focus:outline-none pointer-coarse:text-base"
         />
 
         <div id={LISTBOX_ID} role="listbox" className="min-h-0 overflow-y-auto">

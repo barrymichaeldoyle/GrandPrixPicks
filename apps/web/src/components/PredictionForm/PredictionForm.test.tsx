@@ -55,11 +55,13 @@ vi.mock('@dnd-kit/core', () => ({
   closestCenter: () => {},
   DndContext: ({ children }: { children?: ReactNode }) => children,
   KeyboardSensor: {},
-  PointerSensor: {},
+  MouseSensor: {},
+  TouchSensor: {},
   useDraggable: () => ({
     attributes: { role: 'button', tabIndex: 0 },
     listeners: {
-      onPointerDown: vi.fn(),
+      onMouseDown: vi.fn(),
+      onTouchStart: vi.fn(),
       onKeyDown: draggableOnKeyDown,
     },
     setNodeRef: () => {},

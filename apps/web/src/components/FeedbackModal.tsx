@@ -196,7 +196,7 @@ export function FeedbackModal({
               rows={4}
               required
               placeholder={PLACEHOLDERS[category]}
-              className="w-full resize-y rounded-sm border border-border bg-surface-elevated px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+              className="w-full resize-y rounded-sm border border-border bg-surface-elevated px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none pointer-coarse:text-base"
             />
 
             {error ? (

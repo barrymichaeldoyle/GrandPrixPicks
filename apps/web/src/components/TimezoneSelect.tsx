@@ -180,7 +180,7 @@ export function TimezoneSelect({
                 // Not on touch screens: the keyboard opened over the list it
                 // was meant to filter.
                 autoFocus={!isCoarsePointer()}
-                className="w-full rounded border border-border bg-page px-2 py-1.5 text-sm text-text placeholder:text-text-muted/50 focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+                className="w-full rounded border border-border bg-page px-2 py-1.5 text-sm text-text placeholder:text-text-muted/50 focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none pointer-coarse:text-base"
               />
             </div>
             {filteredTimezones.map(({ tz }) => {

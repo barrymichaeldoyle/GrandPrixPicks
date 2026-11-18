@@ -3,6 +3,8 @@ import { useNavigate } from '@tanstack/react-router';
 import { ShieldCheck, SlidersHorizontal, User } from 'lucide-react';
 import { useEffect } from 'react';
 
+import { reportSignInOpened, reportSignInTimeout } from '@/lib/signInFunnel';
+
 import { signInOptions } from './signInOptions';
 
 const signInButtonClasses =
@@ -121,7 +123,8 @@ function OpenSignInOnMount({ signInOpened }: { signInOpened: () => void }) {
       signInOpened();
     }
     function finishWhenModalExists() {
-      if (document.querySelector('.cl-modalBackdrop')) {
+      if (!finished && document.querySelector('.cl-modalBackdrop')) {
+        reportSignInOpened(() => Boolean(clerk.user));
         finish();
       }
     }
@@ -132,7 +135,12 @@ function OpenSignInOnMount({ signInOpened }: { signInOpened: () => void }) {
     finishWhenModalExists();
     // Never leave the anonymous shell disabled if Clerk fails to create its
     // modal. A normal second click can retry after this safety release.
-    const timeout = window.setTimeout(finish, 4_500);
+    const timeout = window.setTimeout(() => {
+      if (!finished) {
+        reportSignInTimeout();
+      }
+      finish();
+    }, 4_500);
 
     return () => {
       observer.disconnect();

@@ -4,14 +4,18 @@ import type { CSSProperties } from 'react';
 import type { RosterDriver } from '@/lib/roster';
 import { isRacing, resolvePicks } from '@/lib/roster';
 
+import { teamFillStyle } from '@/lib/teamColors';
+
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
 
 /**
  * Five slots on one line, the Top 5 half of a saved prediction card.
  *
- * Same cell height and stripe as {@link H2HPicksBar}, and the code sits against
- * its team colour rather than floating in the middle of a wide box: five slots
- * and eleven battles read as one card, not two unrelated grids.
+ * Same cell height as {@link H2HPicksBar}, and each pick wears its team colour
+ * as a fill, as a picked driver does everywhere a pick is drawn
+ * (`docs/design-display-register.md`, "Picked drivers"): five slots and eleven
+ * battles read as one card, not two unrelated grids. A driver who has lost the
+ * seat stays on the thin bar, struck through.
  */
 export function TopFivePicksBar({
   picks,
@@ -49,25 +53,31 @@ export function TopFivePicksBar({
       data-testid="top-five-picks-bar"
     >
       {pickedDrivers.map((driver, index) => {
-        const cellClassName = `gpp-team-bar flex h-9 w-full min-w-0 items-center gap-1.5 overflow-hidden rounded-sm border border-border bg-surface-elevated pr-1 pl-2 sm:h-7 ${
+        const racing = isRacing(driver);
+        const cellClassName = `gpp-team-bar flex h-9 w-full min-w-0 items-center gap-1.5 overflow-hidden rounded-sm border pr-1 pl-2 sm:h-7 ${
+          racing ? 'gpp-team-fill' : 'border-border bg-surface-elevated'
+        } ${
           onEdit
-            ? 'transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none'
+            ? 'transition-colors hover:brightness-110 focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none'
             : ''
         }`;
         const style = {
           '--team-colour':
             (driver.team && TEAM_COLORS[driver.team]) || FALLBACK_TEAM_COLOR,
+          ...(racing ? teamFillStyle(driver.team) : {}),
         } as CSSProperties;
-        const title = isRacing(driver) ? undefined : 'Not racing this round';
+        const title = racing ? undefined : 'Not racing this round';
 
         const content = (
           <>
-            <span className="gpp-mono text-xs leading-none text-accent">
+            <span
+              className={`gpp-mono text-xs leading-none ${racing ? '' : 'text-accent'}`}
+            >
               P{index + 1}
             </span>
             <span
               className={`gpp-mono truncate text-xs leading-none ${
-                isRacing(driver) ? 'text-text' : 'text-text-muted line-through'
+                racing ? 'font-semibold' : 'text-text-muted line-through'
               }`}
             >
               {driver.code}

@@ -67,6 +67,7 @@ import { AppConvexQueryCache } from '@/integrations/convex/queryCache';
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
 import { clerkFrontendApiOrigin } from '@/lib/clerkOrigin';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
+import { markSignInRequested } from '@/lib/signInFunnel';
 import { useInAppView } from '@/hooks/useInAppView';
 import { isBareRoute } from '@/lib/bareRoutes';
 import { showsGlobalFooter } from '@/lib/globalFooter';
@@ -679,6 +680,7 @@ function AppRuntimeBoundary({
   }
 
   function requestSignIn(nextPath?: '/leagues/create') {
+    markSignInRequested();
     void preloadClerkRuntime();
     setAfterSignInPath(nextPath ?? null);
     setRuntimeWarm(true);

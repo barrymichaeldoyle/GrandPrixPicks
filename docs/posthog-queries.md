@@ -47,6 +47,14 @@ They have no save wall: a signed-out visitor who presses save there emits
 `prediction_signin_prompted` with the same `source`, and `prediction_saved`
 carries it too.
 
+Sign-in is measured from the request to the modal since 2026-11-18:
+`signin_modal_opened` (`wait_ms` from the request, `path`),
+`signin_modal_timeout` (never appeared within 4.5s) and `signin_modal_closed`
+(`open_ms`, `signed_in`). A close with `signed_in: false` is a visitor who saw
+the modal and left it (`apps/web/src/lib/signInFunnel.ts`). The calendar offer
+reports `calendar_subscribe_clicked` (`provider`, `surface`) and
+`calendar_subscribe_dismissed`.
+
 Short visits are under-counted. Analytics loads after `load` plus an idle
 window, then asks `/api/consent-region` which side of the GDPR line the
 visitor is on, so a visitor who leaves within about a second or two of load

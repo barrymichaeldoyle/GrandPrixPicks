@@ -175,8 +175,19 @@ export function LandingPicks({
   const topFivePositions = Object.fromEntries(
     topFivePicks.map((driverId, index) => [driverId, index + 1]),
   );
+  // Set when the last duel is called during this visit, as opposed to a card
+  // restored already complete: only the first is a moment to move the page.
+  // A restored draft can report itself complete on load; only a card the
+  // visitor finished with their own hands counts, so the panel notes any tap or
+  // key press inside it first.
+  const [completedThisVisit, setCompletedThisVisit] = useState(false);
+  const interactedRef = useRef(false);
   function handleSelectionProgress(selected: number, total: number) {
-    setH2HComplete(total > 0 && selected === total);
+    const complete = total > 0 && selected === total;
+    if (complete && !h2hComplete && interactedRef.current) {
+      setCompletedThisVisit(true);
+    }
+    setH2HComplete(complete);
   }
 
   function revealActiveStep() {
@@ -554,6 +565,12 @@ export function LandingPicks({
           className="pt-4"
           aria-labelledby="landing-picks-step-heading"
           tabIndex={-1}
+          onPointerDownCapture={() => {
+            interactedRef.current = true;
+          }}
+          onKeyDownCapture={() => {
+            interactedRef.current = true;
+          }}
         >
           {/* Exactly one Top 5 picker is mounted at a time: this one and the
               overlay's share a draft key, so two would race each other on
@@ -614,7 +631,10 @@ export function LandingPicks({
                         />
                       )}
                       renderSaveWall={({ lockIn }) => (
-                        <PredictionCardSaveWall onLockIn={lockIn} />
+                        <PredictionCardSaveWall
+                          onLockIn={lockIn}
+                          reveal={completedThisVisit}
+                        />
                       )}
                     />
                   </Suspense>
@@ -730,9 +750,38 @@ function PredictionCardIntro({
  * the two things a signed-out visitor is actually weighing (cost, and whether
  * the picks they just made survive the account) rather than repeating the ask.
  */
-function PredictionCardSaveWall({ onLockIn }: { onLockIn: () => void }) {
+function PredictionCardSaveWall({
+  onLockIn,
+  reveal,
+}: {
+  onLockIn: () => void;
+  /**
+   * The card was just finished. Three of 21 landing visitors who completed a
+   * Top 5 in the month to 2026-11-18 went on to call every duel and still
+   * never saved: the last call left them on the eleventh battle, with the
+   * button below the fold. Bring it into view and give it focus, once.
+   */
+  reveal: boolean;
+}) {
   const { signInPending } = useClerkRuntimeControl();
   const warmHandlers = useClerkWarmHandlers();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!reveal) {
+      return;
+    }
+    const frame = window.requestAnimationFrame(() => {
+      const reduceMotion =
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      buttonRef.current?.scrollIntoView?.({
+        behavior: reduceMotion ? 'auto' : 'smooth',
+        block: 'center',
+      });
+      buttonRef.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [reveal]);
 
   return (
     <div
@@ -746,6 +795,7 @@ function PredictionCardSaveWall({ onLockIn }: { onLockIn: () => void }) {
           or tap that precedes the click, and the click itself gets a spinner
           in place of the label rather than a silent wait. */}
       <Button
+        ref={buttonRef}
         variant="primary"
         size="md"
         className="w-full sm:w-auto"

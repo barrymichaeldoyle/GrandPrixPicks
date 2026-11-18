@@ -49,7 +49,8 @@ settings), with one exception below.
 
 A driver the player has picked wears their team's colour as a fill, everywhere
 a pick is drawn: the pool card (`DriverPool`), the pick row's number block
-(`PickRows`), the phone summary strip (`MobilePickSummary`), the called duel
+(`PickRows`), the phone summary strip (`MobilePickSummary`), the saved Top 5
+bar (`TopFivePicksBar`), the called duel
 card (`H2HDuelQuestion`) and the called cell in the team-mate bar
 (`H2HPicksBar`). Unpicked drivers keep the 3px bar, so the pool stays quiet and
 the five a player chose stand out. Chartreuse still marks the active cell.

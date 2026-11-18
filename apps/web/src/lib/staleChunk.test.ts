@@ -86,10 +86,43 @@ describe('reloadForStaleChunk', () => {
     expect(isReloadingForStaleChunk()).toBe(true);
   });
 
-  it('does not reload twice inside the cooldown', () => {
+  it('reloads a page once, however many of its chunks fail', () => {
     expect(reloadForStaleChunk()).toBe(true);
-    expect(reloadForStaleChunk()).toBe(false);
+    expect(reloadForStaleChunk()).toBe(true);
     expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  // A deploy reaches Cloudflare's edge unevenly: the new HTML can arrive
+  // minutes before its chunks, so the first reload meets the same 404.
+  it('tries three times a minute, waiting longer each time, then gives up', () => {
+    vi.useFakeTimers();
+    try {
+      expect(reloadForStaleChunk()).toBe(true);
+      expect(reload).toHaveBeenCalledTimes(1);
+
+      // Each call after a reset stands for the fresh page the reload loaded.
+      resetStaleChunkReloadState();
+      expect(reloadForStaleChunk()).toBe(true);
+      vi.advanceTimersByTime(2_999);
+      expect(reload).toHaveBeenCalledTimes(1);
+      vi.advanceTimersByTime(1);
+      expect(reload).toHaveBeenCalledTimes(2);
+
+      resetStaleChunkReloadState();
+      expect(reloadForStaleChunk()).toBe(true);
+      vi.advanceTimersByTime(10_000);
+      expect(reload).toHaveBeenCalledTimes(3);
+
+      resetStaleChunkReloadState();
+      expect(reloadForStaleChunk()).toBe(false);
+
+      // A new window opens once the old one has passed.
+      vi.advanceTimersByTime(60_000);
+      expect(reloadForStaleChunk()).toBe(true);
+      expect(reload).toHaveBeenCalledTimes(4);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('still reloads when sessionStorage is unavailable', () => {
@@ -164,12 +197,12 @@ describe('listenForStaleChunks', () => {
   });
 
   it('lets the error through when it is not taking the reload', async () => {
-    // Second failure inside the cooldown: reloading did not help, so this is
-    // a real fault and must reach the error boundary as a rejection.
-    await expect(
-      vitePreload(() => Promise.reject(new Error('boom'))),
-    ).resolves.toBeUndefined();
-    reload.mockClear();
+    // All three attempts spent inside the window: reloading did not help, so
+    // this is a real fault and must reach the error boundary as a rejection.
+    window.sessionStorage.setItem(
+      'gpp:stale-chunk-reload-at',
+      JSON.stringify({ firstAt: Date.now(), count: 3 }),
+    );
 
     await expect(
       vitePreload(() => Promise.reject(new Error('boom'))),

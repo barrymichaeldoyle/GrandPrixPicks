@@ -12,18 +12,56 @@
  * in the notifications chunk; the visitor is simply one deploy behind. The
  * repair is to fetch the new HTML, which is what a reload does.
  *
- * The reload is rate-limited rather than counted. A counter has to be cleared
- * on success, and there is no reliable "success" event to hang that on — the
- * next failure could be a genuinely broken build, and clearing too eagerly
- * gives an infinite loop. A timestamp needs no cleanup: if reloading did not
- * help, the second failure lands inside the window and we show the error
- * screen like any other fault.
+ * The reloads are counted inside a window that expires by itself. A plain
+ * counter would have to be cleared on success, and there is no reliable
+ * "success" event to hang that on: the next failure could be a genuinely broken
+ * build, and clearing too eagerly gives an infinite loop. A count tied to the
+ * first attempt's timestamp needs no cleanup: once the window has passed, the
+ * next failure starts a fresh one.
+ *
+ * Three attempts, spaced out, not one. A deploy is not atomic across
+ * Cloudflare's edge: on 2026-11-18 the new HTML reached a visitor a few
+ * minutes before its chunks did, so the one reload fetched the same HTML, hit
+ * the same 404, and showed the error screen. Waiting 3s and then 10s before
+ * the later reloads lets the assets catch up; if they still have not, the
+ * error screen shows as for any other fault.
  */
 
 const RELOAD_MARK_KEY = 'gpp:stale-chunk-reload-at';
 
-/** Long enough to cover a reload plus a slow first paint on a phone. */
-const RELOAD_COOLDOWN_MS = 20_000;
+/** How long a run of attempts counts as one. Covers all three, with room. */
+const RELOAD_WINDOW_MS = 60_000;
+
+/** Wait before each attempt in a window: at once, then 3s, then 10s. */
+const RELOAD_DELAYS_MS = [0, 3_000, 10_000] as const;
+
+type ReloadMark = { firstAt: number; count: number };
+
+function readMark(): ReloadMark | null {
+  let raw: string | null = null;
+  try {
+    raw = window.sessionStorage.getItem(RELOAD_MARK_KEY);
+  } catch {
+    return null;
+  }
+  if (!raw) {
+    return null;
+  }
+  // The earlier format was a bare timestamp: one attempt.
+  const legacy = Number(raw);
+  if (Number.isFinite(legacy)) {
+    return { firstAt: legacy, count: 1 };
+  }
+  try {
+    const parsed = JSON.parse(raw) as Partial<ReloadMark>;
+    return typeof parsed.firstAt === 'number' &&
+      typeof parsed.count === 'number'
+      ? { firstAt: parsed.firstAt, count: parsed.count }
+      : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Vite's own wording, plus Safari's and Firefox's, since each browser writes
@@ -89,39 +127,53 @@ export function isStaleChunkError(error: unknown): boolean {
 }
 
 /**
- * Reloads once per cooldown window. Returns whether it took the reload, so a
- * caller can suppress its own error reporting for the case it handled.
+ * Reloads onto the current HTML, up to three times a minute, waiting longer
+ * before each later attempt. Returns whether it took the failure, so a caller
+ * can suppress its own error reporting for the case it handled.
  *
  * Storage access is wrapped: Safari throws on `sessionStorage` in Lockdown
  * Mode and some private windows, and a browser that will not remember the
- * mark should still get one reload rather than an exception on top of the
+ * mark should still get a reload rather than an exception on top of the
  * error it is already handling.
  */
 export function reloadForStaleChunk(): boolean {
   if (typeof window === 'undefined') {
     return false;
   }
-
-  let markedAt = 0;
-  try {
-    markedAt = Number(window.sessionStorage.getItem(RELOAD_MARK_KEY) ?? 0);
-  } catch {
-    markedAt = 0;
+  // This page is already on its way out; a second failing chunk on it is
+  // the same failure, not a new attempt.
+  if (reloadInFlight) {
+    return true;
   }
 
-  if (Number.isFinite(markedAt) && Date.now() - markedAt < RELOAD_COOLDOWN_MS) {
+  const now = Date.now();
+  const mark = readMark();
+  const inWindow = mark !== null && now - mark.firstAt < RELOAD_WINDOW_MS;
+  const attempt = inWindow ? mark.count + 1 : 1;
+  if (attempt > RELOAD_DELAYS_MS.length) {
     return false;
   }
 
   try {
-    window.sessionStorage.setItem(RELOAD_MARK_KEY, String(Date.now()));
+    window.sessionStorage.setItem(
+      RELOAD_MARK_KEY,
+      JSON.stringify({
+        firstAt: inWindow ? mark.firstAt : now,
+        count: attempt,
+      } satisfies ReloadMark),
+    );
   } catch {
-    // Nothing to do: without the mark we may reload twice, which is still a
-    // better outcome than the error screen.
+    // Nothing to do: without the mark we may reload more than three times,
+    // which is still a better outcome than the error screen.
   }
 
   reloadInFlight = true;
-  window.location.reload();
+  const delay = RELOAD_DELAYS_MS[attempt - 1]!;
+  if (delay === 0) {
+    window.location.reload();
+  } else {
+    window.setTimeout(() => window.location.reload(), delay);
+  }
   return true;
 }
 

@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react';
 
+import { teamCode } from '@grandprixpicks/shared/teamCode';
+
 import { displayTeamName } from '@/lib/display';
 
 import { teamFillStyle } from '@/lib/teamColors';
@@ -9,7 +11,10 @@ import type { H2HDriver, H2HMatchup } from './H2HMatchupGrid';
 
 /**
  * Every team-mate call at a glance: a team-coloured cell per battle showing the
- * driver you picked, or the battle number if you have not called it yet.
+ * driver you picked, or the team's code (MCL) if you have not called it yet.
+ * It used to show the battle number there, so one bar mixed two kinds of
+ * label: "NOR 2 3 LEC". Three-letter codes throughout read as one row, and
+ * the fill still tells a call from an open battle.
  *
  * It is both halves of the team-mate game's chrome. Inside the duel picker it
  * is progress ("which of the eleven am I on"); on a finished card it *is* the
@@ -120,7 +125,7 @@ export function H2HPicksBar({
                 : 'text-text-muted'
             }`}
           >
-            {picked ? picked.code : index + 1}
+            {picked ? picked.code : teamCode(matchup.team)}
           </span>
         );
 

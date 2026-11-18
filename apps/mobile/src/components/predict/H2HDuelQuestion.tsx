@@ -14,7 +14,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Rect } from 'react-native-svg';
 
-import { displayTeamName, getTeamColor } from '../../lib/teamColors';
+import {
+  displayTeamName,
+  getTeamColor,
+  getTeamFill,
+} from '../../lib/teamColors';
 import { colors } from '../../theme/tokens';
 import { useTypography } from '../../theme/typography';
 import { AnimatedView, Pressable, Text, View } from '../../tw';
@@ -247,6 +251,10 @@ function DuelDriverButton({
     ? { fontFamily: numeralFontFamily }
     : null;
   const name = driver.displayName ?? driver.code;
+  // The called driver wears his team's colour, like a Top 5 pick. Both cards
+  // in a duel are the same team, so the fill is what tells them apart.
+  const teamFill = selected ? getTeamFill(team) : null;
+  const inkStyle = teamFill ? { color: teamFill.ink } : null;
 
   const [box, setBox] = useState<{ width: number; height: number } | null>(
     null,
@@ -307,23 +315,26 @@ function DuelDriverButton({
       accessibilityState={{ selected, disabled }}
       className={`relative items-center justify-center gap-3 overflow-hidden rounded-lg border px-2 pt-9 pb-7 ${
         isLarge ? 'h-full min-h-40' : 'min-h-36'
-      } ${
-        selected
-          ? 'border-accent bg-accent-muted'
-          : 'border-border bg-page active:bg-surface-elevated'
-      }`}
+      } ${selected ? '' : 'border-border bg-page active:bg-surface-elevated'}`}
       disabled={disabled}
       onLayout={(event: LayoutChangeEvent) => {
         const { width, height } = event.nativeEvent.layout;
         setBox({ width, height });
       }}
       onPress={onPress}
+      style={
+        teamFill
+          ? { backgroundColor: teamFill.fill, borderColor: teamFill.fill }
+          : undefined
+      }
     >
-      {/* Team colour confined to the 3px left bar, as everywhere else. */}
-      <View
-        className="absolute top-0 bottom-0 left-0 w-[3px]"
-        style={{ backgroundColor: getTeamColor(team) }}
-      />
+      {/* Unpicked, the team colour is the 3px left bar. */}
+      {teamFill ? null : (
+        <View
+          className="absolute top-0 bottom-0 left-0 w-[3px]"
+          style={{ backgroundColor: getTeamColor(team) }}
+        />
+      )}
       <Animated.View
         pointerEvents="none"
         style={[
@@ -363,8 +374,15 @@ function DuelDriverButton({
 
       {/* If you already put this driver in your Top 5, say so here. */}
       {topFivePosition ? (
-        <View className="absolute top-2 left-2 rounded-sm border border-accent/40 px-1 py-0.5">
-          <Text className="text-xs leading-none text-accent" style={monoStyle}>
+        <View
+          className={`absolute top-2 left-2 rounded-sm border px-1 py-0.5 ${
+            selected ? 'border-page bg-page' : 'border-accent/40'
+          }`}
+        >
+          <Text
+            className={`text-xs leading-none ${selected ? 'text-foreground' : 'text-accent'}`}
+            style={monoStyle}
+          >
             Your P{topFivePosition}
           </Text>
         </View>
@@ -375,10 +393,11 @@ function DuelDriverButton({
       <DriverBadge code={driver.code} size="md" team={team} />
       <View className="min-w-0 items-center">
         <Text
-          className={`text-foreground text-center leading-tight font-medium ${
-            isLarge ? 'text-2xl' : 'text-base'
-          }`}
+          className={`text-center leading-tight font-medium ${
+            teamFill ? '' : 'text-foreground'
+          } ${isLarge ? 'text-2xl' : 'text-base'}`}
           numberOfLines={2}
+          style={inkStyle}
         >
           {name}
         </Text>
@@ -389,8 +408,8 @@ function DuelDriverButton({
             ) : null}
             {driver.number != null ? (
               <Text
-                className={`text-muted ${isLarge ? 'text-base' : 'text-sm'}`}
-                style={monoStyle}
+                className={`${teamFill ? 'opacity-75' : 'text-muted'} ${isLarge ? 'text-base' : 'text-sm'}`}
+                style={[monoStyle, inkStyle]}
               >
                 #{driver.number}
               </Text>
@@ -401,12 +420,12 @@ function DuelDriverButton({
 
       <AnimatedView
         className={`absolute right-2 bottom-2 h-5 w-5 items-center justify-center rounded-full border ${
-          selected ? 'border-accent bg-accent' : 'border-border'
+          selected ? 'border-page bg-page' : 'border-border'
         }`}
         style={checkStyle}
       >
         {selected ? (
-          <Ionicons color={colors.textOnAccent} name="checkmark" size={13} />
+          <Ionicons color={colors.text} name="checkmark" size={13} />
         ) : null}
       </AnimatedView>
     </Pressable>

@@ -14,7 +14,11 @@ import Animated, {
 import { compareDriversByTeam } from '@grandprixpicks/shared/teams';
 
 import type { ConvexDoc } from '../../integrations/convex/api';
-import { displayTeamName, getTeamColor } from '../../lib/teamColors';
+import {
+  displayTeamName,
+  getTeamColor,
+  getTeamFill,
+} from '../../lib/teamColors';
 import { colors } from '../../theme/tokens';
 import { Pressable, Text, View } from '../../tw';
 import { NationalityFlag } from '../ui/FlagImage';
@@ -100,18 +104,26 @@ function TeamDot({ team }: { team?: string | null }) {
   );
 }
 
+/**
+ * The row is a driver the player picked, and a pick wears its team: the
+ * number block is filled with the team colour, ink chosen to read on it
+ * (docs/design-display-register.md, "Picked drivers"; web `PickRows`).
+ */
 function DriverPickBadge({ driver }: { driver: Driver }) {
+  const { fill, ink } = getTeamFill(driver.team);
   return (
-    <View className="w-12 shrink-0 flex-row items-stretch border-r border-border">
-      <TeamEdge team={driver.team} />
-      <View className="flex-1 items-center justify-center gap-0.5">
-        {driver.number != null ? (
-          <Numeral variant="small">{driver.number}</Numeral>
-        ) : null}
-        <Numeral tone="muted" variant="small">
-          {driver.code}
+    <View
+      className="w-12 shrink-0 items-center justify-center gap-0.5"
+      style={{ backgroundColor: fill }}
+    >
+      {driver.number != null ? (
+        <Numeral style={{ color: ink }} variant="small">
+          {driver.number}
         </Numeral>
-      </View>
+      ) : null}
+      <Numeral style={{ color: ink, opacity: 0.75 }} variant="small">
+        {driver.code}
+      </Numeral>
     </View>
   );
 }
@@ -338,6 +350,9 @@ function PoolDriverCard({
   const picked = pickedPosition !== null;
   const isDisabled = disabled || (!picked && poolFull);
   const surname = driverSurname(driver);
+  // Unpicked, the team colour is the 3px bar and the pool stays quiet; the
+  // five a player chose wear it as the card's fill (web `DriverPool`).
+  const teamFill = picked ? getTeamFill(driver.team) : null;
 
   return (
     <Pressable
@@ -350,30 +365,43 @@ function PoolDriverCard({
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled && !picked }}
       className={`min-h-11 flex-row overflow-hidden rounded-sm border ${
-        picked
-          ? 'border-accent/40 bg-accent-muted/15'
-          : 'border-border bg-surface-elevated'
+        teamFill ? '' : 'border-border bg-surface-elevated'
       }`}
       disabled={isDisabled && !picked}
       onPress={onPress}
-      style={{ opacity: !picked && isDisabled ? 0.4 : 1 }}
+      style={
+        teamFill
+          ? { backgroundColor: teamFill.fill, borderColor: teamFill.fill }
+          : { opacity: isDisabled ? 0.4 : 1 }
+      }
     >
-      <TeamEdge team={driver.team} />
+      {teamFill ? (
+        <View className="w-[3px]" />
+      ) : (
+        <TeamEdge team={driver.team} />
+      )}
       <View className="min-w-0 flex-1 justify-center gap-0.5 py-2.5 pr-2 pl-2.5">
         {picked ? (
-          <Numeral
-            style={{ position: 'absolute', top: 4, right: 6 }}
-            tone="accent"
-            variant="small"
+          // Corner badge on the page colour, so it reads on every team fill.
+          <View
+            className="rounded-sm bg-page px-1 py-0.5"
+            style={{ position: 'absolute', top: 4, right: 4 }}
           >
-            {`P${pickedPosition}`}
-          </Numeral>
+            <Numeral variant="small">{`P${pickedPosition}`}</Numeral>
+          </View>
         ) : null}
-        <Numeral tone={picked ? 'muted' : 'default'} variant="small">
+        <Numeral
+          style={teamFill ? { color: teamFill.ink } : undefined}
+          variant="small"
+        >
           {driver.code}
         </Numeral>
         {surname ? (
-          <Text className="text-muted text-xs" numberOfLines={1}>
+          <Text
+            className={`text-xs ${teamFill ? 'opacity-75' : 'text-muted'}`}
+            numberOfLines={1}
+            style={teamFill ? { color: teamFill.ink } : undefined}
+          >
             {surname}
           </Text>
         ) : null}

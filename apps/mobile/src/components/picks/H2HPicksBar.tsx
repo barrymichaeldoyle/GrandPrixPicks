@@ -1,4 +1,9 @@
-import { displayTeamName, getTeamColor } from '../../lib/teamColors';
+import { teamCode } from '@grandprixpicks/shared/teamCode';
+import {
+  displayTeamName,
+  getTeamColor,
+  getTeamFill,
+} from '../../lib/teamColors';
 import { Pressable, Text, View } from '../../tw';
 import type { DimensionValue } from 'react-native';
 
@@ -52,28 +57,41 @@ export function H2HPicksBar({
             : 'Not called yet'
         }.`;
         const isActive = index === activeIndex;
+        // A decided duel wears the team's colour, as a Top 5 pick does, and
+        // that includes one decided by the Top 5 itself: left unfilled, the
+        // picks a player made first read as the ones still to make. The cell
+        // being edited keeps the accent edge. Same rule as web.
+        const teamFill = picked && !isActive ? getTeamFill(matchup.team) : null;
         const className = `relative h-9 min-w-0 flex-row items-center justify-center overflow-hidden rounded-sm border pr-1 pl-2 ${
           isActive
             ? 'border-accent bg-surface-elevated'
-            : inferred
-              ? 'border-border bg-page'
-              : picked
-                ? 'border-border bg-surface-elevated'
-                : 'border-dashed border-border bg-page'
+            : picked
+              ? ''
+              : 'border-dashed border-border bg-page'
         }`;
+        const fillStyle = teamFill
+          ? { backgroundColor: teamFill.fill, borderColor: teamFill.fill }
+          : null;
         const content = (
           <>
-            <View
-              className="absolute top-0 bottom-0 left-0 w-[3px]"
-              style={{ backgroundColor: getTeamColor(matchup.team) }}
-            />
+            {teamFill ? null : (
+              <View
+                className="absolute top-0 bottom-0 left-0 w-[3px]"
+                style={{ backgroundColor: getTeamColor(matchup.team) }}
+              />
+            )}
             <Text
               className={`text-xs leading-none ${
-                picked && !inferred ? 'text-foreground' : 'text-muted'
+                teamFill
+                  ? 'font-semibold'
+                  : picked
+                    ? 'text-foreground'
+                    : 'text-muted'
               }`}
               numberOfLines={1}
+              style={teamFill ? { color: teamFill.ink } : undefined}
             >
-              {picked ? picked.code : String(index + 1)}
+              {picked ? picked.code : teamCode(matchup.team)}
             </Text>
           </>
         );
@@ -85,7 +103,7 @@ export function H2HPicksBar({
               accessibilityLabel={label}
               className={className}
               key={matchup._id}
-              style={{ width: widthPercent }}
+              style={[{ width: widthPercent }, fillStyle]}
             >
               {content}
             </View>
@@ -100,7 +118,7 @@ export function H2HPicksBar({
             className={className}
             key={matchup._id}
             onPress={() => onSelectIndex(index)}
-            style={{ width: widthPercent }}
+            style={[{ width: widthPercent }, fillStyle]}
           >
             {content}
           </Pressable>

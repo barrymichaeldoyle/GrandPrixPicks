@@ -43,6 +43,8 @@
     "./sessionTiming": "./src/sessionTiming.ts",
     "./syntheticRaces": "./src/syntheticRaces.ts",
     "./share": "./src/share.ts",
+    "./teamFill": "./src/teamFill.ts",
+    "./teamCode": "./src/teamCode.ts",
     "./teams": "./src/teams.ts",
     "./newsTeam": "./src/newsTeam.ts",
     "./tokens": "./src/tokens.ts",

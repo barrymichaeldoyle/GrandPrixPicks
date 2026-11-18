@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { displayTeamName } from './teamColors';
+import { contrastRatio } from '@grandprixpicks/shared/teamFill';
+import { teams } from '@grandprixpicks/shared/tokens';
+
+import { displayTeamName, getTeamFill } from './teamColors';
 
 describe('displayTeamName', () => {
   it('shortens Red Bull Racing', () => {
@@ -15,5 +18,18 @@ describe('displayTeamName', () => {
     expect(displayTeamName('')).toBe('');
     expect(displayTeamName(null)).toBe('');
     expect(displayTeamName(undefined)).toBe('');
+  });
+});
+
+describe('getTeamFill', () => {
+  it('gives every team on the grid a readable fill', () => {
+    for (const team of Object.keys(teams)) {
+      const { fill, ink } = getTeamFill(team);
+      expect(contrastRatio(fill, ink)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it('falls back for a team not on the grid', () => {
+    expect(getTeamFill('Not A Team').fill).toBeTruthy();
   });
 });

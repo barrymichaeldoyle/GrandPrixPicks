@@ -4,10 +4,23 @@
 // it mirrored DriverBadge.tsx. The two still agreed, but nothing was keeping
 // them that way — the same setup that let the OG share cards drift into a
 // palette the product had abandoned.
+import { readableTeamFill } from '@grandprixpicks/shared/teamFill';
 import { fallbackTeamColor, teams } from '@grandprixpicks/shared/tokens';
 
 export function getTeamColor(team?: string | null): string {
   return (team && teams[team as keyof typeof teams]) || fallbackTeamColor;
+}
+
+/**
+ * A picked driver wears their team's colour as a fill, with the ink that reads
+ * on it (docs/design-display-register.md, "Picked drivers"). The contrast math
+ * is shared with web, so both apps darken Ferrari and Audi red the same way.
+ */
+export function getTeamFill(team?: string | null): {
+  fill: string;
+  ink: string;
+} {
+  return readableTeamFill(getTeamColor(team));
 }
 
 const TEAM_DISPLAY_NAMES: Record<string, string> = {

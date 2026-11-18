@@ -1,4 +1,4 @@
-import { getTeamColor } from '../../lib/teamColors';
+import { getTeamFill } from '../../lib/teamColors';
 import { Pressable, Text, View } from '../../tw';
 
 type Driver = {
@@ -30,29 +30,33 @@ export function TopFivePicksBar({
   return (
     <View className="mt-2 flex-row gap-1">
       {picked.map((driver, index) => {
+        // Every cell is a pick, so every cell wears its team's colour, as the
+        // pool card it came from does (web `MobilePickSummary`).
+        const { fill, ink } = getTeamFill(driver.team);
         const cell = (
           <>
-            <View
-              className="absolute top-0 bottom-0 left-0 w-[3px]"
-              style={{ backgroundColor: getTeamColor(driver.team) }}
-            />
-            <Text className="text-xs leading-none text-accent">
+            <Text
+              className="text-xs leading-none opacity-75"
+              style={{ color: ink }}
+            >
               {`P${index + 1}`}
             </Text>
             <Text
-              className="text-foreground min-w-0 flex-1 text-xs leading-none"
+              className="min-w-0 flex-1 text-xs leading-none font-semibold"
               numberOfLines={1}
+              style={{ color: ink }}
             >
               {driver.code}
             </Text>
           </>
         );
         const className =
-          'relative h-9 min-w-0 flex-1 flex-row items-center gap-1 overflow-hidden rounded-sm border border-border bg-surface-elevated pr-1 pl-2';
+          'relative h-9 min-w-0 flex-1 flex-row items-center gap-1 overflow-hidden rounded-sm border pr-1 pl-2';
+        const fillStyle = { backgroundColor: fill, borderColor: fill };
 
         if (!onEdit) {
           return (
-            <View className={className} key={driver._id}>
+            <View className={className} key={driver._id} style={fillStyle}>
               {cell}
             </View>
           );
@@ -65,6 +69,7 @@ export function TopFivePicksBar({
             className={className}
             key={driver._id}
             onPress={onEdit}
+            style={fillStyle}
           >
             {cell}
           </Pressable>

@@ -51,8 +51,18 @@ card (`H2HDuelQuestion`) and the called cell in the team-mate bar
 (`H2HPicksBar`). Unpicked drivers keep the 3px bar, so the pool stays quiet and
 the five a player chose stand out. Chartreuse still marks the active cell.
 
+The mobile app follows the same rule (since 2026-11-18): `DraggableTop5`,
+`TopFivePicksBar`, `H2HPicksBar`, `H2HDuelQuestion`, and the saved rows in
+`Top5Section` and `H2HSection`, through `getTeamFill` in
+`apps/mobile/src/lib/teamColors.ts`. The contrast maths is shared:
+`packages/shared/src/teamFill.ts`.
+
+An open battle in either app's team-mate bar shows the team's three-letter
+code (`teamCode`, `packages/shared/src/teamCode.ts`), so the bar reads as one
+row of codes: a filled cell is a call, a dashed one is still open.
+
 Fills go through `teamFillStyle` / `readableTeamFill` in
-`apps/web/src/lib/teamColors.ts`: the ink is whichever of near-black and
+`apps/web/src/lib/teamColors.ts` (the latter shared from `packages/shared/src/teamFill.ts`): the ink is whichever of near-black and
 near-white reads better, and a livery that reaches neither at 4.5:1 (Ferrari
 and Audi red) is darkened in small steps until white does. A test holds every
 team on the grid to 4.5:1.

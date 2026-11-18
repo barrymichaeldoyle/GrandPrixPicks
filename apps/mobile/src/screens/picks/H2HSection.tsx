@@ -21,7 +21,11 @@ import { useAutoSaveOnFirstComplete } from '../../hooks/useAutoSaveOnFirstComple
 import { captureAnalyticsEvent } from '../../lib/analytics';
 import { useUserDateFormat } from '../../lib/dates';
 import { loadConnectedDraft, patchConnectedDraft } from '../../lib/picksDrafts';
-import { displayTeamName, getTeamColor } from '../../lib/teamColors';
+import {
+  displayTeamName,
+  getTeamColor,
+  getTeamFill,
+} from '../../lib/teamColors';
 import { useIsSignedIn } from '../../lib/useIsSignedIn';
 import { useToast } from '../../providers/ToastProvider';
 import { colors } from '../../theme/tokens';
@@ -544,6 +548,9 @@ export function H2HReadonly({
         const winner = [matchup.driver1, matchup.driver2].find(
           (driver) => driver._id === selections[matchup._id],
         );
+        // A called duel wears the team's colour as a fill, as on web; an
+        // uncalled one keeps the thin team edge.
+        const teamFill = winner ? getTeamFill(matchup.team) : null;
         return (
           <Pressable
             key={matchup._id}
@@ -551,18 +558,30 @@ export function H2HReadonly({
             accessibilityLabel={`${displayTeamName(matchup.team)}: ${winner?.code ?? 'No pick'}${onEdit ? ', edit pick' : ''}`}
             disabled={!onEdit}
             onPress={() => onEdit?.(matchup._id)}
-            className="min-h-12 flex-row items-center justify-between gap-2 bg-surface px-3 py-2"
+            className={`min-h-12 flex-row items-center justify-between gap-2 px-3 py-2 ${
+              teamFill ? '' : 'bg-surface'
+            }`}
             style={{
               flexBasis: '47%',
               flexGrow: 1,
               borderBottomWidth: 2,
-              borderBottomColor: getTeamColor(matchup.team),
+              borderBottomColor: teamFill?.fill ?? getTeamColor(matchup.team),
+              ...(teamFill ? { backgroundColor: teamFill.fill } : null),
             }}
           >
-            <Text className="text-muted flex-1 text-xs" numberOfLines={1}>
+            <Text
+              className={`flex-1 text-xs ${teamFill ? 'opacity-75' : 'text-muted'}`}
+              numberOfLines={1}
+              style={teamFill ? { color: teamFill.ink } : undefined}
+            >
               {displayTeamName(matchup.team)}
             </Text>
-            <Numeral variant="small">{winner?.code ?? '—'}</Numeral>
+            <Numeral
+              style={teamFill ? { color: teamFill.ink } : undefined}
+              variant="small"
+            >
+              {winner?.code ?? '—'}
+            </Numeral>
           </Pressable>
         );
       })}

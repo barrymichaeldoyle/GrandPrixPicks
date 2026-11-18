@@ -15,7 +15,7 @@ import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { captureAnalyticsEvent } from '../../lib/analytics';
 import { useUserDateFormat } from '../../lib/dates';
 import { loadConnectedDraft, patchConnectedDraft } from '../../lib/picksDrafts';
-import { displayTeamName, getTeamColor } from '../../lib/teamColors';
+import { displayTeamName, getTeamFill } from '../../lib/teamColors';
 import { useIsSignedIn } from '../../lib/useIsSignedIn';
 import { useToast } from '../../providers/ToastProvider';
 import { colors } from '../../theme/tokens';
@@ -375,25 +375,30 @@ function Top5Readonly({
         <View className="min-w-0 flex-1">
           {picks.map((id, index) => {
             const driver = driverById.get(id);
+            // A saved pick wears its team, as in the editor (see
+            // docs/design-display-register.md, "Picked drivers").
+            const { fill, ink } = getTeamFill(driver?.team);
             return (
               <View
                 className="flex-row items-stretch border-b border-border last:border-b-0"
                 style={{ height: ROW_HEIGHT }}
                 key={`${id}-${index}`}
               >
-                <View className="w-12 shrink-0 flex-row items-stretch border-r border-border">
-                  <View
-                    className="w-[3px] self-stretch"
-                    style={{ backgroundColor: getTeamColor(driver?.team) }}
-                  />
-                  <View className="flex-1 items-center justify-center gap-0.5">
-                    {driver?.number != null ? (
-                      <Numeral variant="small">{driver.number}</Numeral>
-                    ) : null}
-                    <Numeral tone="muted" variant="small">
-                      {driver?.code ?? '???'}
+                <View
+                  className="w-12 shrink-0 items-center justify-center gap-0.5"
+                  style={{ backgroundColor: fill }}
+                >
+                  {driver?.number != null ? (
+                    <Numeral style={{ color: ink }} variant="small">
+                      {driver.number}
                     </Numeral>
-                  </View>
+                  ) : null}
+                  <Numeral
+                    style={{ color: ink, opacity: 0.75 }}
+                    variant="small"
+                  >
+                    {driver?.code ?? '???'}
+                  </Numeral>
                 </View>
                 <View className="min-w-0 flex-1 justify-center gap-0.5 px-2.5">
                   <Text

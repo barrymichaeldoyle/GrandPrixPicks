@@ -69,6 +69,7 @@ const news = {
       sourceName: 'Autosport',
       driverCodes: ['NOR'],
       team: 'McLaren',
+      sourcePublishedAt: now - 40 * 60_000,
     },
     {
       key: 'haas-hirakawa-bearman-fp1-vegas',
@@ -76,6 +77,8 @@ const news = {
       sourceName: 'RaceFans',
       driverCodes: ['BEA'],
       team: 'Haas',
+      affectsPicks: true,
+      sourcePublishedAt: now - 3 * HOUR,
     },
     {
       key: 'wolff-russell-second-place-priority',

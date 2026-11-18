@@ -12,6 +12,7 @@ import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import { formatTimeZoneAbbreviation } from '@/lib/date';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { getRaceWriteup } from '@/lib/raceWriteups';
+import { formatWeekendSpan } from '@/lib/weekendSpan';
 import { useSessionTimeView } from '@/lib/sessionTimeView';
 import { readableTeamFill, TEAM_COLORS } from '@/lib/teamColors';
 import {
@@ -69,6 +70,10 @@ export type LandingNews = {
     driverCodes: readonly string[];
     /** Set only when every driver the story names drives for this team. */
     team: string | null;
+    /** When the source published it, ms epoch, if the source dates it. */
+    sourcePublishedAt?: number | null;
+    /** The story names a session whose picks it could change. */
+    affectsPicks?: boolean;
   }[];
 };
 
@@ -231,7 +236,13 @@ export function LandingHero({
               ) : null}
               <p className="gpp-mono text-xs text-text-muted">
                 <span className="text-text">Round {race.round}</span>
-                {circuit ? <> · {circuit.name}</> : null}
+                {' · '}
+                {formatWeekendSpan(race, circuit?.timeZone ?? 'UTC')}
+                {/* The circuit's name would wrap the line on a phone, and the
+                    title under it already names the place. */}
+                {circuit ? (
+                  <span className="hidden sm:inline"> · {circuit.name}</span>
+                ) : null}
               </p>
             </div>
 
@@ -285,6 +296,7 @@ export function LandingHero({
             writeupTo={writeup.to}
             total={news?.total ?? items.length}
             items={items}
+            now={now}
           />
         ) : null}
       </div>
@@ -515,7 +527,7 @@ function HeroSchedule({
                   )}
                 </p>
                 {summary ? (
-                  <p className="flex items-center justify-between gap-2 text-sm text-text sm:mt-2.5 sm:justify-start">
+                  <p className="flex items-center gap-2 text-sm text-text sm:mt-2.5">
                     <WeatherIcon
                       conditionCode={summary.conditionCode}
                       className="h-4 w-4 shrink-0 text-text-muted"
@@ -526,7 +538,7 @@ function HeroSchedule({
                     {/* Stacked on a phone: "Showers 11°C" on one line is
                         wider than the column and ran over the start time. */}
                     <span
-                      className="flex flex-col items-end leading-tight sm:flex-row sm:items-baseline sm:gap-2"
+                      className="flex flex-col leading-tight sm:flex-row sm:items-baseline sm:gap-2"
                       aria-hidden="true"
                     >
                       <span>{weatherWord(summary)}</span>
@@ -563,12 +575,14 @@ function HeroNews({
   writeupTo,
   total,
   items,
+  now,
 }: {
   place: string;
   raceSlug: string;
   writeupTo: string;
   total: number;
   items: LandingNews['items'];
+  now: number;
 }) {
   function track(target: string) {
     captureAnalyticsEvent('landing_news_clicked', {
@@ -629,9 +643,21 @@ function HeroNews({
                 {/* Who the story is about, when it names anyone. A story
                     about the tyres or the venue has no line here rather than
                     an empty cell. */}
-                {eyebrow ? (
-                  <span className="gpp-mono mb-1 text-xs font-semibold tracking-wide">
-                    {eyebrow}
+                {eyebrow || item.affectsPicks ? (
+                  <span className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    {eyebrow ? (
+                      <span className="gpp-mono text-xs font-semibold tracking-wide">
+                        {eyebrow}
+                      </span>
+                    ) : null}
+                    {/* The one thing a player needs from a headline before
+                        reading it. Page-on-ink in a band of any colour, like
+                        the slot badge on a picked driver. */}
+                    {item.affectsPicks ? (
+                      <span className="gpp-mono rounded-xs bg-page px-1.5 text-[0.6875rem] whitespace-nowrap text-text">
+                        Affects picks
+                      </span>
+                    ) : null}
                   </span>
                 ) : null}
                 <span className="text-[0.9375rem] leading-snug font-semibold text-pretty">
@@ -644,6 +670,9 @@ function HeroNews({
                   className={`gpp-mono mt-1 text-xs ${fill ? '' : 'text-text-muted'}`}
                 >
                   {item.sourceName}
+                  {item.sourcePublishedAt ? (
+                    <> · {publishedAgo(item.sourcePublishedAt, now)}</>
+                  ) : null}
                 </span>
               </Link>
             </li>
@@ -652,6 +681,23 @@ function HeroNews({
       </ol>
     </section>
   );
+}
+
+/**
+ * "40m ago", "3h ago", "2d ago". Against the hero's own `now`, which the
+ * server and the first client render share, so it hydrates cleanly and then
+ * moves on with the countdown.
+ */
+export function publishedAgo(publishedAt: number, now: number): string {
+  const minutes = Math.max(1, Math.floor((now - publishedAt) / 60_000));
+  if (minutes < 60) {
+    return `${minutes}m ago`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
+  return `${Math.floor(hours / 24)}d ago`;
 }
 
 /** Scrolls to the embedded picker. Present on desktop too, since the picker sits below the fold on short viewports. */

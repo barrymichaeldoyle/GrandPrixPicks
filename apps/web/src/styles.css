@@ -1022,11 +1022,15 @@
     height: auto;
   }
 
-  /* Not on phones: cropped to the screen it was a few loose strokes beside
-     the title, which read as scribbles rather than a circuit. */
+  /* On phones the whole lap, never a crop: cropped to the screen it was a
+     few loose strokes beside the title, which read as scribbles rather than
+     a circuit. Fitted to the column width instead, behind the race name. */
   @media (max-width: 639px) {
     .gpp-hero-lap {
-      display: none;
+      top: 4.75rem;
+      left: auto;
+      right: 0;
+      width: 100%;
     }
   }
 

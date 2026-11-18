@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { inkForFill, TEAM_COLORS } from '@/lib/teamColors';
 
-import { LandingHero, splitRaceName } from './LandingHero';
+import { LandingHero, publishedAgo, splitRaceName } from './LandingHero';
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -63,6 +63,16 @@ describe('splitRaceName', () => {
   });
 });
 
+describe('publishedAgo', () => {
+  it('counts minutes, then hours, then days', () => {
+    const now = Date.UTC(2026, 10, 18, 12);
+    expect(publishedAgo(now - 20_000, now)).toBe('1m ago');
+    expect(publishedAgo(now - 40 * 60_000, now)).toBe('40m ago');
+    expect(publishedAgo(now - 3 * 3_600_000, now)).toBe('3h ago');
+    expect(publishedAgo(now - 50 * 3_600_000, now)).toBe('2d ago');
+  });
+});
+
 describe('inkForFill', () => {
   it('puts near-black on light team colours and near-white on dark ones', () => {
     expect(inkForFill(TEAM_COLORS.Mercedes!)).toBe(colors.textOnAccent);
@@ -103,6 +113,9 @@ describe('LandingHero', () => {
                 sourceName: 'Formula 1',
                 driverCodes: ['COL'],
                 team: 'Alpine',
+                affectsPicks: true,
+                sourcePublishedAt:
+                  race.qualiStartAt - (2 * 24 + 8) * 60 * 60_000,
               },
               {
                 key: 'pirelli-sepang-compounds',
@@ -176,6 +189,20 @@ describe('LandingHero', () => {
         'a[href="/f1-2026-bahrain-grand-prix-predictions#weekend-news"]',
       )?.textContent,
     ).toBe('All 18 stories');
+  });
+
+  it('dates the weekend and the story, and flags one that affects picks', () => {
+    render();
+    expect(container.textContent).toContain('Round 16 · 2–4 Oct');
+    const story = container.querySelector(
+      'a[href$="#news-colapinto-sepang-grid-penalty"]',
+    );
+    expect(story?.textContent).toContain('Affects picks');
+    expect(story?.textContent).toContain('Formula 1 · 3h ago');
+    expect(
+      container.querySelector('a[href$="#news-pirelli-sepang-compounds"]')
+        ?.textContent,
+    ).not.toContain('Affects picks');
   });
 
   it('shows no news for a race without a write-up to link into', () => {

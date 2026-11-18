@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatWeekendSpan } from './StandardRaceWriteup';
+import { formatWeekendSpan } from '@/lib/weekendSpan';
 
 describe('formatWeekendSpan', () => {
   it('reads first practice to the race in track time', () => {

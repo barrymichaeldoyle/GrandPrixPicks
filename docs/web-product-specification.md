@@ -426,6 +426,9 @@ player, or participation data is available.
 The hero (`apps/web/src/routes/-home/LandingHero.tsx`) is the race weekend
 itself, set in the display register (`docs/design-display-register.md`):
 
+- above it, the race's flag (sheared to the brand mark's angle), the round and
+  the weekend's dates in track time ("Round 21 · 19–21 Nov"), plus the
+  circuit's name from 640px up;
 - the h1 reads as one sentence, "Predict the F1 Top 5 at the {race}", with the
   place set in black-weight display type;
 - a countdown to the next session whose picks lock, by the minute, with the
@@ -436,12 +439,15 @@ itself, set in the display register (`docs/design-display-register.md`):
   zone takes over after hydration;
 - up to five of the race's news headlines, each linking to its card on the
   write-up. A story whose named drivers all drive for one team is drawn on
-  that team's colour; any other story stays on the surface colour. No news
-  column appears for a race without a write-up;
+  that team's colour; any other story stays on the surface colour. A story
+  that names a session it could change carries an "Affects picks" tag, and
+  the source line says how long ago the source published it ("3h ago"). No
+  news column appears for a race without a write-up;
 - a lap outline behind the race name where `apps/web/src/lib/circuitLaps.ts`
   has one (Las Vegas, Lusail and Yas Marina, generated from OpenStreetMap by
   `apps/web/scripts/generate-circuit-laps.mts`). It draws in once and a single car runs one lap.
-  Reduced motion shows the finished outline.
+  Reduced motion shows the finished outline. On phones the whole lap is
+  fitted to the column behind the title, never cropped.
 
 Between seasons the hero falls back to "Predict the F1 Top 5" and the calendar
 button. The news headlines used to sit in a separate section below the scoring

@@ -449,8 +449,14 @@ itself, set in the display register (`docs/design-display-register.md`):
   Reduced motion shows the finished outline. On phones the whole lap is
   fitted to the column behind the title, never cropped.
 
-Between seasons the hero falls back to "Predict the F1 Top 5" and the calendar
-button. The news headlines used to sit in a separate section below the scoring
+Between seasons (no next race, and more than 12 hours after the last one) the
+hero is `OffSeasonHero` (`apps/web/src/routes/-home/OffSeasonHero.tsx`): "Predict
+the F1 Top 5 in {year}" with the year in display type, the next season's
+opening round from `apps/web/src/lib/calendar2027.ts` (sheared flag, dates,
+whole days to race day), buttons to the next season's calendar and How to play,
+and the finished season's top three (`seasonPodium` from
+`home.getHomePageData`, ranked like the public season board: Top 5 plus
+team-mate points) in the podium fills, each linking to the player's profile. The news headlines used to sit in a separate section below the scoring
 explainer; the hero replaced it.
 
 ### 9.2 Authenticated dashboard

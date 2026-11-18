@@ -29,6 +29,7 @@ import {
   ScrollToPicksCta,
 } from './-home/LandingHero';
 import { LANDING_PICKS_ANCHOR, LandingPicks } from './-home/LandingPicks';
+import { OffSeasonHero } from './-home/OffSeasonHero';
 import { CompetitionSection } from './-home/CompetitionSection';
 import { ScoringSection } from './-home/ScoringSection';
 import { buildSessions, getSessionStatus } from './-home/weekendSchedule';
@@ -169,6 +170,7 @@ export const Route = createFileRoute('/')({
       entryListNote: data.entryListNote,
       nextRaceNews: data.nextRaceNews,
       nextRaceWeather: data.nextRaceWeather,
+      seasonPodium: data.seasonPodium,
       dashboard,
       /*
        * "The server rendered this viewer's page without their data", which is
@@ -280,6 +282,7 @@ function PublicLandingPage() {
     entryListNote,
     nextRaceNews,
     nextRaceWeather,
+    seasonPodium,
     now: serverNow,
   } = Route.useLoaderData();
   // The visible clocks only show whole minutes. Updating the entire landing
@@ -306,24 +309,28 @@ function PublicLandingPage() {
         {/* The hero follows the calendar's next open session, so it
             re-labels itself each race week with no manual edit: the race,
             which session locks next, its schedule, forecast and news. */}
-        <LandingHero
-          race={featuredRace}
-          lockSession={
-            nextSession
-              ? { label: nextSession.labelFull, startAt: nextSession.startAt }
-              : null
-          }
-          now={now}
-          weather={featuredRace === nextRace ? nextRaceWeather : null}
-          news={featuredRace === nextRace ? nextRaceNews : null}
-          cta={
-            nextRace && nextSession ? (
-              <ScrollToPicksCta targetId={LANDING_PICKS_ANCHOR} />
-            ) : (
-              <BrowseRacesCta />
-            )
-          }
-        />
+        {featuredRace === null ? (
+          <OffSeasonHero podium={seasonPodium ?? null} now={now} />
+        ) : (
+          <LandingHero
+            race={featuredRace}
+            lockSession={
+              nextSession
+                ? { label: nextSession.labelFull, startAt: nextSession.startAt }
+                : null
+            }
+            now={now}
+            weather={featuredRace === nextRace ? nextRaceWeather : null}
+            news={featuredRace === nextRace ? nextRaceNews : null}
+            cta={
+              nextRace && nextSession ? (
+                <ScrollToPicksCta targetId={LANDING_PICKS_ANCHOR} />
+              ) : (
+                <BrowseRacesCta />
+              )
+            }
+          />
+        )}
 
         {nextRace && nextSession ? (
           <LandingPicks

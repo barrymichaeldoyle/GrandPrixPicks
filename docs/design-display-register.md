@@ -37,6 +37,9 @@ A short, fixed list. Adding a surface is a decision, not a styling choice.
   Its icons and links stay quiet (muted, ink with an underline): chartreuse is
   still only the page's one primary action.
 
+- The off-season landing hero: `apps/web/src/routes/-home/OffSeasonHero.tsx`
+  (display year at `.gpp-display-year`, sheared opener flag, the finished
+  season's podium in its fills).
 - Candidates, not yet built: OG and social cards, the season recap.
 
 Never in game UI (the picker, pick rows, standings, results, leagues,

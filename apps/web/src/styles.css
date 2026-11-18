@@ -991,6 +991,13 @@
 
   /* The write-up hero's title is longer ("Las Vegas Grand Prix" on one line,
      "predictions" on the next) and shares its row with the schedule card. */
+  /* The off-season hero's year (`OffSeasonHero.tsx`): four figures carry
+     a page that a race name would fill at the standard display size. */
+  .gpp-display-year {
+    font-size: clamp(5.5rem, 17vw, 13rem);
+    line-height: 0.82;
+  }
+
   .gpp-display-writeup {
     font-size: clamp(2.75rem, 6.2vw, 5.75rem);
     line-height: 0.92;

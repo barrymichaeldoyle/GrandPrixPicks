@@ -326,6 +326,32 @@ export const getHomePageData = query({
           }
         : null;
 
+    /*
+     * Between seasons the landing hero has no race to lead with, so it leads
+     * with how the last one ended: the season's top three, ranked as the
+     * public season board ranks them (Top 5 plus team-mate points). Only read
+     * when there is no next race, which is the only time the hero shows it.
+     */
+    const seasonPodium =
+      nextRace === null && mostRecentStartedRace
+        ? {
+            season: mostRecentStartedRace.season,
+            players: (
+              await loadCombinedSeasonRows(ctx, {
+                season: mostRecentStartedRace.season,
+              })
+            )
+              .slice(0, 3)
+              .map((row) => ({
+                rank: row.rank,
+                userId: row.userId,
+                username: row.username ?? ANONYMOUS_NAME,
+                avatarUrl: row.avatarUrl,
+                points: row.top5Points + row.h2hPoints,
+              })),
+          }
+        : null;
+
     return {
       nextRace,
       mostRecentStartedRace,
@@ -337,6 +363,7 @@ export const getHomePageData = query({
       entryListNote: nextRace ? pendingEntryNoteForSlug(nextRace.slug) : null,
       nextRaceNews,
       nextRaceWeather,
+      seasonPodium,
     };
   },
 });

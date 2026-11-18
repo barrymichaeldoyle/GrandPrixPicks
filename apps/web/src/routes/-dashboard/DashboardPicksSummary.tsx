@@ -4,6 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { Suspense, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
+import { CalendarSubscribe } from '@/components/CalendarSubscribe';
 import { H2HDuelFocusModal } from '@/components/H2HDuelFocusModal';
 import { H2HDuelFormGuide } from '@/components/H2HDuelFormGuide';
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
@@ -338,6 +339,12 @@ export function DashboardPicksSummary({
           </Suspense>
         ) : null}
       </PicksFocusOverlay>
+
+      {/* A saved, still-open card is when a reminder for the next one is
+          worth offering: the player has just shown they will play. */}
+      {hasCard && !session.hasResult ? (
+        <CalendarSubscribe surface="dashboard" />
+      ) : null}
 
       <H2HDuelFocusModal
         open={activeDuel !== null}

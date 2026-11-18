@@ -61,3 +61,18 @@ export function buildSeasonRecapEmailUrl(params: {
     params.campaign,
   );
 }
+
+/**
+ * Subscribe links for the pick-lock calendar (web `lib/locksCalendar.ts`,
+ * served at `/calendar/picks.ics`). Apple Mail opens `webcal:` as a
+ * subscription; Google needs its own subscribe URL.
+ */
+export function buildCalendarLinks(appUrl: string) {
+  const webcal = new URL('/calendar/picks.ics', appUrl)
+    .toString()
+    .replace(/^https?:/, 'webcal:');
+  return {
+    apple: webcal,
+    google: `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcal)}`,
+  };
+}

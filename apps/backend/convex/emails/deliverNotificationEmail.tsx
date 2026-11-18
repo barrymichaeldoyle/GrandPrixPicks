@@ -11,6 +11,7 @@ import { PredictionReminderEmail } from './PredictionReminderEmail';
 import { ResultsEmailShell } from './ResultsEmail.shared';
 import { SeasonRecapEmail } from './SeasonRecapEmail';
 import { SignupNudgeEmail } from './SignupNudgeEmail';
+import { buildCalendarLinks } from './urls';
 
 /**
  * Renders and sends one notification email.
@@ -411,6 +412,7 @@ export const deliver = internalAction({
             secondaryCtaLabel={next ? `Make ${next.name} picks` : undefined}
             secondaryCtaUrl={next?.raceUrl}
             helperText={helperText}
+            calendarLinks={buildCalendarLinks('https://grandprixpicks.com')}
             footerText="You're receiving this because you have result notifications enabled."
           />
         );
@@ -455,6 +457,7 @@ export const deliver = internalAction({
             secondaryCtaLabel={next ? `Make ${next.name} picks` : undefined}
             secondaryCtaUrl={next?.raceUrl}
             helperText={helperText}
+            calendarLinks={buildCalendarLinks('https://grandprixpicks.com')}
             footerText="You're receiving this because you have result notifications enabled."
           />
         );

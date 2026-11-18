@@ -20,6 +20,24 @@ Selected news respects quiet hours (22:00–08:00 in the user's saved timezone, 
 
 `preferPushReminders` exposes automatic channel selection. With no explicit email preference, it defaults on. Explicit legacy/current email choices default it off, preserving deliberate “both” settings. Email and push opt-outs always apply. Email suppression from a complaint/bounce is independent of these preferences. A native token refreshed within 30 days or a registered browser subscription counts as an available push channel; this is availability evidence, not delivery proof. There is no automatic email fallback merely because a push was unopened.
 
+## Pick-lock calendar
+
+Since 2026-11-18 every weekend's first pick lock is also published as a
+subscribable calendar feed, `/calendar/picks.ics`
+(`apps/web/server/routes/calendar/picks.ics.ts`, built by
+`apps/web/src/lib/locksCalendar.ts`): one event per round at its first lock,
+with alarms a day and an hour before, linking to the race page with
+`utm_source=calendar`. It is public and needs no account, so it carries no
+per-player state. A cancelled round drops out; a finished one stays three days.
+
+It exists because new players who play one weekend were not coming back for
+the second: email reached them unopened and web push reached almost none
+(iOS needs the site installed). It is offered on the signed-in dashboard under
+a saved, still-open card (`CalendarSubscribe`, hidden once used or dismissed)
+and in every weekend-summary email (`calendarLinks` on `ResultsEmailShell`).
+Google ignores alarms in subscribed feeds, so Google subscribers see the event
+without the ping.
+
 ## Delivery records and cancellation
 
 `notificationDeliveries` records the user, device, event, category, expiry and status:

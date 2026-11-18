@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildRaceEmailUrl, buildWeekendLeaderboardEmailUrl } from './urls';
+import {
+  buildCalendarLinks,
+  buildRaceEmailUrl,
+  buildWeekendLeaderboardEmailUrl,
+} from './urls';
 
 describe('buildRaceEmailUrl', () => {
   it('uses the race slug in reminder links', () => {
@@ -54,5 +58,15 @@ describe('buildWeekendLeaderboardEmailUrl', () => {
     expect(url.searchParams.get('utm_source')).toBe('email');
     expect(url.searchParams.get('utm_medium')).toBe('email');
     expect(url.searchParams.get('utm_campaign')).toBe('results');
+  });
+});
+
+describe('buildCalendarLinks', () => {
+  it('subscribes Apple by webcal and Google by its cid link', () => {
+    const links = buildCalendarLinks('https://grandprixpicks.com');
+    expect(links.apple).toBe('webcal://grandprixpicks.com/calendar/picks.ics');
+    expect(links.google).toBe(
+      'https://calendar.google.com/calendar/r?cid=webcal%3A%2F%2Fgrandprixpicks.com%2Fcalendar%2Fpicks.ics',
+    );
   });
 });

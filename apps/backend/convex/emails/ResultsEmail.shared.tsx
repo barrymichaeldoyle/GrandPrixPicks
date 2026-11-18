@@ -32,6 +32,8 @@ export type ResultsEmailShellProps = {
   secondaryCtaLabel?: string;
   secondaryCtaUrl?: string;
   helperText?: string;
+  /** Pick-lock calendar subscribe links; see `buildCalendarLinks`. */
+  calendarLinks?: { apple: string; google: string };
   footerText: string;
 };
 
@@ -50,6 +52,7 @@ export function ResultsEmailShell({
   secondaryCtaLabel,
   secondaryCtaUrl,
   helperText,
+  calendarLinks,
   footerText,
 }: ResultsEmailShellProps) {
   return (
@@ -134,6 +137,22 @@ export function ResultsEmailShell({
 
             {helperText ? (
               <Text style={helperTextStyle}>{helperText}</Text>
+            ) : null}
+
+            {/* Players who played one weekend were not coming back for a
+                second, and these emails were not what brought them. A
+                calendar alert needs nothing from them after one tap. */}
+            {calendarLinks ? (
+              <Text style={helperTextStyle}>
+                Get every lock time in your calendar:{' '}
+                <Link href={calendarLinks.google} style={footerLink}>
+                  Google
+                </Link>
+                {' · '}
+                <Link href={calendarLinks.apple} style={footerLink}>
+                  Apple or Outlook
+                </Link>
+              </Text>
             ) : null}
           </Section>
           <Hr style={hr} />

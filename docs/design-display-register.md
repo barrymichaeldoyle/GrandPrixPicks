@@ -17,8 +17,27 @@ the register's quiet was the cause, not the copy.
 A short, fixed list. Adding a surface is a decision, not a styling choice.
 
 - The landing hero: `apps/web/src/routes/-home/LandingHero.tsx`.
-- Candidates, not yet built: write-up heroes, OG and social cards, the season
-  recap.
+- The landing scoring bands: `ScoringBands variant="field"`
+  (`apps/web/src/components/ScoringBands.tsx`).
+- Race write-up heroes: `apps/web/src/components/race-writeups/RaceWriteupHero.tsx`
+  (display title, lap outline) and the chartreuse store card
+  (`RaceWriteupStoreLink.tsx`).
+- How to play: `apps/web/src/routes/how-to-play.tsx` (since 2026-11-18). It is
+  read by people deciding whether to play, so it teaches with the game's own
+  colours instead of describing them:
+  - a display h1 (`.gpp-display .gpp-display-writeup`, light second line) and
+    `.gpp-display-h2` section headings;
+  - the four scoring outcomes as fields of their result colour
+    (`bg-result-*`, near-black ink), each with an example pick;
+  - example drivers as team-colour chips and a duel drawn as the picker
+    draws it (`.gpp-team-fill` + `teamFillStyle`, the picked-driver rule
+    below);
+  - the weekend's sessions as a strip, scored sessions filled.
+
+  Its icons and links stay quiet (muted, ink with an underline): chartreuse is
+  still only the page's one primary action.
+
+- Candidates, not yet built: OG and social cards, the season recap.
 
 Never in game UI (the picker, pick rows, standings, results, leagues,
 settings), with one exception below.

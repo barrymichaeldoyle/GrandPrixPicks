@@ -9,10 +9,15 @@ function TapToFillHint() {
   );
 }
 
+/**
+ * Phones only (`sm:hidden`), so it describes the touch gesture: a drag starts
+ * after a short hold (the TouchSensor in PredictionForm), since a plain swipe
+ * scrolls the page.
+ */
 function ReorderHint() {
   return (
     <p className="ml-auto flex shrink-0 items-center gap-1 text-xs text-text-muted sm:hidden">
-      Reorder: drag or use
+      Reorder: hold and drag, or use
       <span className="inline-flex items-center">
         <span className="sr-only">the up and down buttons</span>
         <ChevronUp size={14} className="text-text-muted" aria-hidden />

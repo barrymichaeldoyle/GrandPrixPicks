@@ -139,6 +139,20 @@ export function RaceWriteupWeekendSchedule({
       : null;
   const alert =
     forecast && nextSession ? forecastAlert(forecast, nextSession) : null;
+  // The row that leads is the next session whose picks lock, the same row
+  // the landing hero tags "Next lock". It used to be the next session to run
+  // (a practice, often), which put the page's one highlight on a session that
+  // takes no picks. The forecast alert above still reads the next session to
+  // run: that is a question about weather, not about picks.
+  const lockAt =
+    now === undefined
+      ? undefined
+      : sessions.find(
+          ([label, timestamp]) =>
+            !label.startsWith('Practice') &&
+            timestamp !== undefined &&
+            timestamp > now,
+        )?.[1];
 
   return (
     // Named for assistive technology rather than by a visible heading. A
@@ -188,7 +202,12 @@ export function RaceWriteupWeekendSchedule({
             forecast && session
               ? summarizeSessionWindow(forecast, session)
               : null;
-          const isNext = Boolean(session && session.key === nextSession?.key);
+          const isNext = lockAt !== undefined && timestamp === lockAt;
+          const takesPicks =
+            !label.startsWith('Practice') &&
+            timestamp !== undefined &&
+            now !== undefined &&
+            timestamp > now;
           return (
             <div
               key={label}
@@ -212,10 +231,16 @@ export function RaceWriteupWeekendSchedule({
                     already owns: two elements lit the same way meaning "you
                     chose this" and "this one runs next". Colour alone also does
                     not say which, hence the name. */}
-                {isNext ? (
-                  <span className="sr-only">Next session: </span>
-                ) : null}
                 {label}
+                {isNext ? (
+                  <span className="gpp-mono ml-2 rounded-xs bg-accent px-1.5 text-[0.6875rem] whitespace-nowrap text-text-on-accent">
+                    Next lock
+                  </span>
+                ) : takesPicks ? (
+                  <span className="gpp-mono ml-2 rounded-xs bg-surface-elevated px-1.5 text-[0.6875rem] whitespace-nowrap text-text-muted">
+                    Picks
+                  </span>
+                ) : null}
               </dt>
               {forecast &&
                 (summary ? (

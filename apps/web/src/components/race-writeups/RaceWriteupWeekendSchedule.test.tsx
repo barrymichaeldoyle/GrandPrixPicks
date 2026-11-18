@@ -63,6 +63,29 @@ describe('RaceWriteupWeekendSchedule', () => {
     expect(html).not.toContain('Sprint Qualifying');
   });
 
+  it('leads with the next session whose picks lock, not the next to run', () => {
+    const fp1 = Date.parse('2026-11-20T02:30:00Z');
+    const html = renderToStaticMarkup(
+      <RaceWriteupWeekendSchedule
+        race={{
+          fp1StartAt: fp1,
+          fp2StartAt: fp1 + 4 * 3_600_000,
+          fp3StartAt: fp1 + 24 * 3_600_000,
+          qualiStartAt: fp1 + 28 * 3_600_000,
+          raceStartAt: fp1 + 52 * 3_600_000,
+        }}
+        timeZone="UTC"
+        timeZoneLabel="TRACK TIME"
+        now={fp1 - 3_600_000}
+      />,
+    );
+
+    expect(html).toMatch(/Qualifying<span[^>]*>Next lock</);
+    expect(html).toMatch(/Grand Prix<span[^>]*>Picks</);
+    expect(html).not.toMatch(/Practice 1<span/);
+    expect(html.match(/Next lock/g)).toHaveLength(1);
+  });
+
   it('server-renders track time only, so a cached page carries nobody’s zone', () => {
     const html = renderToStaticMarkup(
       <RaceWriteupWeekendSchedule

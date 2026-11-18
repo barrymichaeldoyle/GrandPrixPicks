@@ -346,7 +346,7 @@ describe('PredictionForm try-before-signup', () => {
     );
 
     expect(heading?.parentElement?.textContent).toContain(
-      'Reorder: drag or use',
+      'Reorder: hold and drag, or use',
     );
     expect(container.textContent).not.toContain(
       'Tap drivers to fill your Top 5.',
@@ -371,7 +371,7 @@ describe('PredictionForm try-before-signup', () => {
       'Remove a pick to change',
     );
     expect(picks?.firstElementChild?.textContent).toContain(
-      'Reorder: drag or use',
+      'Reorder: hold and drag, or use',
     );
     expect(
       picks?.firstElementChild?.querySelector(

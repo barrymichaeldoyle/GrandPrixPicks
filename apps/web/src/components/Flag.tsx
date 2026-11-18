@@ -32,6 +32,11 @@ interface FlagProps {
   size?: FlagSize;
   /** Additional class names */
   className?: string;
+  /**
+   * Cut to the brand mark's -12deg shear (`.gpp-flag-shear`). Display
+   * register only: hero surfaces, never a list or a table.
+   */
+  shear?: boolean;
 }
 
 /**
@@ -44,7 +49,13 @@ interface FlagProps {
  * round — Qatar (4.17:1) drew 3.6x wider than Belgium (1.15:1) at the same
  * height.
  */
-export function Flag({ code, size = 'sm', className = '' }: FlagProps) {
+export function Flag({
+  code,
+  size = 'sm',
+  className = '',
+  shear = false,
+}: FlagProps) {
+  const shearClass = shear ? 'gpp-flag-shear' : '';
   const lowerCode = code.toLowerCase();
   const src = `${FLAG_BASE_PATH}/${lowerCode}.svg`;
 
@@ -57,7 +68,7 @@ export function Flag({ code, size = 'sm', className = '' }: FlagProps) {
         alt=""
         width={40}
         height={30}
-        className={`gpp-flag h-full w-auto max-w-none ${className}`}
+        className={`gpp-flag h-full w-auto max-w-none ${shearClass} ${className}`}
         loading="eager"
         decoding="sync"
         onError={hideBrokenFlag}
@@ -72,7 +83,7 @@ export function Flag({ code, size = 'sm', className = '' }: FlagProps) {
       alt=""
       width={width}
       height={height}
-      className={`gpp-flag shrink-0 ${sizeClassName} ${className}`}
+      className={`gpp-flag shrink-0 ${sizeClassName} ${shearClass} ${className}`}
       loading="eager"
       decoding="sync"
       onError={hideBrokenFlag}

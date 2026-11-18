@@ -89,7 +89,7 @@ export function RaceWriteupHero({
           ) : null}
           <div className="relative">
             <div className="flex items-center gap-3">
-              <Flag code={flagCode} size="xl" />
+              <Flag code={flagCode} size="xl" shear className="gpp-hero-flag" />
               <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                 <p className="gpp-mono text-sm text-text-muted">{eyebrow}</p>
                 {/* Only where the eyebrow fits on one line. A phone wraps before

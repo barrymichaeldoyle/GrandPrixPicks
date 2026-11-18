@@ -3,12 +3,14 @@ import { ArrowRight } from 'lucide-react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { Button, primaryButtonStyles } from '@/components/Button/Button';
+import { Flag } from '@/components/Flag';
 import { WeatherIcon } from '@/components/weather/WeatherIcon';
 import { WeatherTimeToggle } from '@/components/weather/WeatherTimeToggle';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { getCircuitLap } from '@/lib/circuitLaps';
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import { formatTimeZoneAbbreviation } from '@/lib/date';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { getRaceWriteup } from '@/lib/raceWriteups';
 import { useSessionTimeView } from '@/lib/sessionTimeView';
 import { readableTeamFill, TEAM_COLORS } from '@/lib/teamColors';
@@ -203,6 +205,7 @@ export function LandingHero({
 
   const circuit = getCircuitForRace(race.slug);
   const lap = getCircuitLap(circuit?.slug);
+  const flagCode = getCountryCodeForRace(race);
   const [place, suffix] = splitRaceName(race.name);
   const writeup = getRaceWriteup(race.slug);
   const items = writeup ? (news?.items ?? []) : [];
@@ -217,10 +220,20 @@ export function LandingHero({
           {lap ? <HeroLap lap={lap} /> : null}
 
           <div className="relative">
-            <p className="gpp-mono text-xs text-text-muted">
-              <span className="text-text">Round {race.round}</span>
-              {circuit ? <> · {circuit.name}</> : null}
-            </p>
+            <div className="flex items-center gap-3">
+              {flagCode ? (
+                <Flag
+                  code={flagCode}
+                  size="lg"
+                  shear
+                  className="gpp-hero-flag"
+                />
+              ) : null}
+              <p className="gpp-mono text-xs text-text-muted">
+                <span className="text-text">Round {race.round}</span>
+                {circuit ? <> · {circuit.name}</> : null}
+              </p>
+            </div>
 
             {/*
              * One sentence to a screen reader and a search engine: "Predict

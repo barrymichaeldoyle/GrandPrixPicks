@@ -66,6 +66,7 @@ team on the grid to 4.5:1.
 | Team colour is a 3px bar or 5px dot            | Team colour may fill a block that is _about that team_: the hero's news bands. Text on it is whichever of `textOnAccent` and `text` has more contrast (`inkForFill`).                  |
 | Nothing moves except hover, selection and drag | One draw-in on load: a lap outline drawn with `stroke-dashoffset`, one car running one lap, staggered slide-ins. Each plays once. Nothing loops.                                       |
 | No illustration                                | Circuit outlines from licensed geometry (OpenStreetMap, ODbL, credited in the source file).                                                                                            |
+| Flags are a plain 4:3 box                      | The race's flag cut to the brand mark's -12deg shear (`<Flag shear>`, `.gpp-flag-shear`) beside the hero eyebrow, sliding in once (`.gpp-hero-flag`).                                  |
 
 ## What still holds
 

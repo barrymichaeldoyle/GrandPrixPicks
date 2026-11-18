@@ -1203,3 +1203,35 @@
     }
   }
 }
+
+/* Race flag, sheared (display register). The brand mark's -12deg shear cut
+   into the flag with clip-path, so a race's flag reads as part of the same
+   timing-tower family instead of a sticker. Flags are a fixed 4:3 box
+   (`.gpp-flag`), so the 12deg offset is a fixed share of the width:
+   tan(12deg) x 3/4 = 16%. clip-path rather than skewX, which would shear the
+   artwork too. The entrance plays once and only with motion allowed. */
+@layer base {
+  .gpp-flag-shear {
+    clip-path: polygon(16% 0, 100% 0, 84% 100%, 0 100%);
+    border-radius: 0;
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .gpp-hero-flag {
+      transform-origin: left center;
+      animation: gpp-hero-flag 560ms var(--ease-out) both;
+    }
+  }
+
+  @keyframes gpp-hero-flag {
+    from {
+      opacity: 0;
+      transform: translateX(-0.75rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}

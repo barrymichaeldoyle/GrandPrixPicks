@@ -81,14 +81,18 @@ export function buildRaceReport({
       : second
         ? `, ahead of ${second}`
         : '';
-  // A winner who also took pole is one fact, not two sentences naming the
-  // same driver back to back. Matched on the name because that is the only
+  // A winner who also topped qualifying is one fact, not two sentences naming
+  // the same driver back to back. It says "qualified fastest", never "from
+  // pole": the qualifying classification is not the starting grid, and grid
+  // penalties regularly move the fastest qualifier back, so "won from pole"
+  // would often be false. Matched on the name because that is the only
   // identity the classification entries carry here.
   const poleEntry = classificationFor(resultsBySession, 'quali')[0];
   const wonFromPole = poleEntry?.displayName === race[0].displayName;
-  const fromPole = wonFromPole ? ' from pole' : '';
   sentences.push(
-    `${winner} won the ${season} ${raceName}${venue}${fromPole}${podium}.`,
+    `${winner} won the ${season} ${raceName}${venue}${podium}${
+      wonFromPole ? ', having qualified fastest' : ''
+    }.`,
   );
 
   const polesitter = wonFromPole ? null : withTeam(poleEntry);
@@ -97,10 +101,10 @@ export function buildRaceReport({
     : null;
   if (polesitter && sprintWinner) {
     sentences.push(
-      `${polesitter} took pole position, and ${sprintWinner} won the sprint.`,
+      `${polesitter} qualified fastest, and ${sprintWinner} won the sprint.`,
     );
   } else if (polesitter) {
-    sentences.push(`${polesitter} took pole position.`);
+    sentences.push(`${polesitter} qualified fastest.`);
   } else if (sprintWinner) {
     sentences.push(`${sprintWinner} won the sprint.`);
   }

@@ -139,9 +139,12 @@ function MexicoCityGrandPrixPredictionsPage() {
           <ExternalSource href={CADILLAC_PEREZ_SOURCE}>Cadillac</ExternalSource>
           . 2025 qualifying and race:{' '}
           <ExternalSource href={QUALIFYING_2025_SOURCE}>
-            Formula 1
+            Formula 1 qualifying report
           </ExternalSource>{' '}
-          and <ExternalSource href={RACE_2025_SOURCE}>Formula 1</ExternalSource>
+          and{' '}
+          <ExternalSource href={RACE_2025_SOURCE}>
+            Formula 1 race report
+          </ExternalSource>
           .
         </>
       }

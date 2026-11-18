@@ -383,7 +383,20 @@ export function PredictionForm({
   const blockNavigation =
     enableNavigationBlocker && isAuthenticated && hasChanges;
   const blocker = useBlocker({
-    shouldBlockFn: () => blockNavigation,
+    // A complete set is saved on the way out instead of asking. The edit
+    // auto-save waits `EDIT_SAVE_DEBOUNCE_MS`, so a tab tapped right after a
+    // reorder used to meet "Leave without saving?" for a change that was a
+    // second from saving itself. Only an incomplete set, or a save that fails,
+    // still asks.
+    shouldBlockFn: async () => {
+      if (!blockNavigation) {
+        return false;
+      }
+      if (picks.length === 5 && !isSubmissionBlocked && !isSubmitting) {
+        return !(await handleSubmit());
+      }
+      return true;
+    },
     enableBeforeUnload: () => blockNavigation,
     withResolver: true,
     disabled: !blockNavigation,
@@ -645,12 +658,13 @@ export function PredictionForm({
     announce(`${driverName(picks[index]!)} moved to P${index + 2}.`);
   }
 
+  /** Resolves `true` once the picks have landed, `false` otherwise. */
   async function handleSubmit(options?: {
     autoSaved?: boolean;
     afterSignIn?: boolean;
-  }) {
+  }): Promise<boolean> {
     if (picks.length !== 5 || isSubmitting) {
-      return;
+      return false;
     }
 
     const wasFirstSave = !existingPicks || existingPicks.length === 0;
@@ -699,6 +713,7 @@ export function PredictionForm({
         autoSaved: Boolean(options?.autoSaved),
         wasFirstSave,
       });
+      return true;
     } catch (error) {
       captureAnalyticsEvent(analyticsEvents.predictionSaveFailed, {
         prediction_type: 'top5',
@@ -715,6 +730,7 @@ export function PredictionForm({
           ? toUserFacingMessage(error, 'Your Top 5 wasn’t saved. Try again.')
           : 'Your Top 5 wasn’t saved. Try again.',
       );
+      return false;
     } finally {
       setIsSubmitting(false);
     }
@@ -1185,8 +1201,13 @@ export function PredictionForm({
           onClose={() => blocker.reset()}
           onConfirm={() => blocker.proceed()}
           title="Leave without saving?"
-          description="You have unsaved picks. We'll keep them as a draft on this device, but they won't count until you save them."
-          confirmLabel="Leave Page"
+          description={
+            picks.length === 5
+              ? 'Your picks didn’t save. We’ll keep them as a draft on this device, but they won’t count until they save.'
+              : 'A Top 5 saves once it has five drivers. We’ll keep this one as a draft on this device.'
+          }
+          confirmLabel="Leave page"
+          initialFocus="cancel"
         />
       )}
     </DndContext>

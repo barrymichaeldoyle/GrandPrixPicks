@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowLeft, ArrowRight, CheckCircle2, HelpCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
@@ -8,6 +8,7 @@ import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { Button } from '@/components/Button/Button';
 import { SignInActionButton } from '@/integrations/clerk/SignInActionButton';
 import { FaqItem, FaqSection } from '@/components/Faq';
+import { PageHeader } from '@/components/PageHeader';
 import { pageMeta } from '@/lib/site';
 
 /** Single source of truth for the price shown on the page and in Offer markup. */
@@ -88,18 +89,14 @@ function PricingPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl bg-page px-4 py-6 sm:py-8">
-      <div className="reveal-up mb-8 text-center sm:mb-10">
-        <h1 className="mb-2 text-3xl font-semibold text-text sm:text-4xl">
-          Pricing
-        </h1>
-        <p className="mx-auto max-w-2xl text-text-muted">
-          Grand Prix Picks is free to play. The Season Pass raises your league
-          limits.
-        </p>
-      </div>
+    <div className="mx-auto max-w-(--page-max) bg-page px-4 py-6 sm:py-8">
+      <PageHeader
+        className="reveal-up"
+        title="Pricing"
+        subtitle="Grand Prix Picks is free to play. The Season Pass raises your league limits."
+      />
 
-      <div className="space-y-8 sm:space-y-10">
+      <div className="max-w-3xl space-y-8 sm:space-y-10">
         {showCheckoutCancelled ? (
           <section className="reveal-up flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warning/35 bg-warning-muted/45 p-4">
             <p className="text-sm text-text">
@@ -140,7 +137,7 @@ function PricingPage() {
           <ul className="mb-6 space-y-2 text-sm text-text">
             <li className="reveal-up reveal-delay-1 flex items-start gap-2">
               <CheckCircle2
-                className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                className="mt-0.5 h-4 w-4 shrink-0 text-text-muted"
                 aria-hidden
               />
               <span>
@@ -149,14 +146,14 @@ function PricingPage() {
             </li>
             <li className="reveal-up reveal-delay-2 flex items-start gap-2">
               <CheckCircle2
-                className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                className="mt-0.5 h-4 w-4 shrink-0 text-text-muted"
                 aria-hidden
               />
               <span>Run up to five public leagues instead of the free one</span>
             </li>
             <li className="reveal-up reveal-delay-3 flex items-start gap-2">
               <CheckCircle2
-                className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                className="mt-0.5 h-4 w-4 shrink-0 text-text-muted"
                 aria-hidden
               />
               <span>One-time payment for the entire 2026 season</span>
@@ -183,8 +180,7 @@ function PricingPage() {
           )}
 
           <p className="mt-3 text-sm text-text-muted">
-            Secure checkout via Paddle. No subscriptions, no gambling, and no
-            real-money betting in gameplay.
+            Secure checkout via Paddle.
           </p>
           {isSignedIn ? (
             <p className="mt-1 text-xs text-text-muted">
@@ -201,11 +197,17 @@ function PricingPage() {
             </h3>
             <p className="mb-2 text-sm text-text-muted">
               Refunds follow Paddle&apos;s refund policy. The details are in our{' '}
-              <Link to="/refund-policy" className="text-accent underline">
+              <Link
+                to="/refund-policy"
+                className="text-text underline decoration-border-strong underline-offset-4 hover:decoration-text"
+              >
                 Refund Policy
               </Link>{' '}
               and{' '}
-              <Link to="/terms" className="text-accent underline">
+              <Link
+                to="/terms"
+                className="text-text underline decoration-border-strong underline-offset-4 hover:decoration-text"
+              >
                 Terms of Service
               </Link>
               .
@@ -213,28 +215,21 @@ function PricingPage() {
           </div>
         </section>
 
-        <FaqSection title="Pricing FAQ">
-          <FaqItem
-            icon={HelpCircle}
-            question="Do I need the Season Pass to play?"
-          >
+        <FaqSection title="Pricing FAQ" minimal className="mx-0! px-0!">
+          <FaqItem question="Do I need the Season Pass to play?">
             <p className="text-sm text-text-muted">
               No. Grand Prix Picks is free to play, and every player gets one
               free public league. The pass includes unlimited league joins and
               up to five public leagues.
             </p>
           </FaqItem>
-          <FaqItem icon={HelpCircle} question="Is this a subscription?">
+          <FaqItem question="Is this a subscription?">
             <p className="text-sm text-text-muted">
               No subscription. It is a one-time purchase for the full 2026
               season.
             </p>
           </FaqItem>
         </FaqSection>
-
-        <Button asChild size="sm" leftIcon={ArrowLeft}>
-          <Link to="/">Back to home</Link>
-        </Button>
       </div>
     </div>
   );

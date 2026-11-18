@@ -1,3 +1,5 @@
+import { Link } from '@tanstack/react-router';
+import { Button } from '@/components/Button/Button';
 import { Users } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 
@@ -60,9 +62,14 @@ export function FollowingSeasonContent({
         title="No followed players yet"
         description="Follow a player from their profile to see them on this leaderboard."
         action={
-          <p className="text-sm text-text-muted">
-            Browse the global leaderboard to find players to follow.
-          </p>
+          <Button asChild size="sm" variant="secondary">
+            <Link
+              to="/leaderboard"
+              search={(prev) => ({ ...prev, scope: 'global' })}
+            >
+              Show global leaderboard
+            </Link>
+          </Button>
         }
       />
     );

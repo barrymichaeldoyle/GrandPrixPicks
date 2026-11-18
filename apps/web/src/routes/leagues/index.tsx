@@ -80,16 +80,16 @@ function LeaguesExplainer() {
       >
         How F1 prediction leagues work
       </h2>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">
+      <p className="mt-2 max-w-3xl text-sm leading-6 text-text-muted">
         A league is a separate scoreboard for the picks you already make each
         race weekend. Your Top 5 and Head-to-Head picks are scored once and
         count in every league you belong to.
       </p>
-      <dl className="mt-6 grid gap-5 sm:grid-cols-2">
+      <dl className="mt-6 grid max-w-3xl gap-5 sm:grid-cols-2">
         {points.map((point) => (
           <div key={point.title}>
             <dt className="flex items-center gap-2 font-semibold text-text">
-              <point.icon className="h-4 w-4 text-accent" aria-hidden />
+              <point.icon className="h-4 w-4 text-text-muted" aria-hidden />
               {point.title}
             </dt>
             <dd className="mt-1 text-sm leading-6 text-text-muted">
@@ -204,7 +204,6 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
         <div className="mb-7">
           <PageHeader
             title="Leagues"
-            subtitle="Create, join, and compete with friends."
             actionsPlacement="trailing"
             className="mb-0"
             actions={
@@ -268,7 +267,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                 level="subsection"
                 icon={Shield}
                 title="No leagues yet"
-                description="Create a league to get started, or ask a friend for their league link to join."
+                description="Create one, or open a friend’s league link to join."
               />
             ) : (
               <div className="divide-y divide-border/50">
@@ -303,7 +302,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                             </span>
                           )}
                           {league.visibility === 'public' && (
-                            <span className="inline-flex items-center gap-1 rounded-sm bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent">
+                            <span className="inline-flex items-center gap-1 rounded-sm bg-surface-muted px-2 py-0.5 text-xs font-medium text-text-muted">
                               <Globe className="h-3 w-3" />
                               Public
                             </span>
@@ -326,7 +325,9 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
           </section>
         ) : null}
 
-        {!isSignedIn || (hasPublicLeagues && activeTab === 'discover') ? (
+        {/* With no public leagues there is nothing to discover, so the page
+            leads with creating or joining one instead of an empty search. */}
+        {hasPublicLeagues && (!isSignedIn || activeTab === 'discover') ? (
           <section className={isSignedIn ? '' : 'mt-2'}>
             <div className="mb-4">
               <h2 className="text-xl font-semibold text-text">
@@ -380,7 +381,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
               <div className="rounded-xl border border-border bg-surface p-6 text-sm text-text-muted">
                 {discoverQuery.trim()
                   ? 'No public leagues match your search.'
-                  : 'No public leagues available yet.'}
+                  : 'No public leagues yet.'}
               </div>
             ) : (
               <div className="divide-y divide-border/50">
@@ -394,7 +395,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                         <h3 className="truncate font-semibold text-text">
                           {league.name}
                         </h3>
-                        <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-surface-muted px-2 py-0.5 text-xs font-medium text-text-muted">
                           <Globe className="h-3 w-3" />
                           Public
                         </span>
@@ -444,7 +445,11 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
         ) : null}
 
         {!isSignedIn && (
-          <div className="mt-8 border-t border-border pt-6">
+          <div
+            className={
+              hasPublicLeagues ? 'mt-8 border-t border-border pt-6' : undefined
+            }
+          >
             <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-text">
@@ -474,6 +479,9 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
  * on the page is either a sign-in wall or a list that is empty until public
  * leagues exist.
  */
+const PROSE_LINK =
+  'font-medium text-text underline decoration-border-strong underline-offset-4 hover:decoration-text';
+
 function LeaguesLongform() {
   return (
     <ProseFold
@@ -481,7 +489,7 @@ function LeaguesLongform() {
       title="Why play in a league rather than the global standings"
       className="mt-10 sm:mt-12 sm:border-t sm:border-border sm:pt-8"
     >
-      <p className="gpp-reading-copy mt-4 text-text-muted">
+      <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
         The global leaderboard ranks everybody who plays, which makes it a fair
         measure and a poor rivalry. Most people care far more about beating four
         colleagues than about their place on a global table, and a league is
@@ -490,7 +498,7 @@ function LeaguesLongform() {
         scored once per session, then counted towards every league you belong to
         at the same time.
       </p>
-      <p className="gpp-reading-copy mt-4 text-text-muted">
+      <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
         Which kind you want depends on who you are trying to beat. An
         invite-only league is the better format for people you already know,
         because a scoreboard of six friends stays legible and every position on
@@ -501,7 +509,7 @@ function LeaguesLongform() {
       <h2 className="font-title mt-10 text-2xl font-semibold text-text">
         How a league behaves across a season
       </h2>
-      <p className="gpp-reading-copy mt-4 text-text-muted">
+      <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
         Leagues run for the whole season rather than resetting each weekend, and
         that changes how they feel to play. A bad Sunday costs you places
         instead of the title, so the game rewards turning up for twenty-odd
@@ -509,24 +517,21 @@ function LeaguesLongform() {
         standings tend to settle: the gap at the top usually reflects
         consistency rather than a single result.
       </p>
-      <p className="gpp-reading-copy mt-4 text-text-muted">
+      <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
         You can join at any point in the year. A league ranks its members on
         their season totals, so the points you scored before joining come with
         you. Each league also carries its own activity feed, so you can see how
         the people in it did on a given weekend without reading past everyone
         else's results.
       </p>
-      <p className="gpp-reading-copy mt-4 text-text-muted">
+      <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
         Playing the game in full is free. An optional{' '}
-        <Link to="/pricing" className="font-medium text-accent hover:underline">
+        <Link to="/pricing" className={PROSE_LINK}>
           Season Pass
         </Link>{' '}
         raises how many leagues you can create and join, and that limit is the
         only thing it changes. If you have not made a set of picks yet,{' '}
-        <Link
-          to="/how-to-play"
-          className="font-medium text-accent hover:underline"
-        >
+        <Link to="/how-to-play" className={PROSE_LINK}>
           how to play
         </Link>{' '}
         covers scoring and session deadlines first.
@@ -539,10 +544,7 @@ function LeaguesPageSkeleton() {
   return (
     <AppPageLayout>
       <div>
-        <PageHeader
-          title="Leagues"
-          subtitle="Create, join, and compete with friends."
-        />
+        <PageHeader title="Leagues" />
         <div
           className="animate-pulse"
           role="status"

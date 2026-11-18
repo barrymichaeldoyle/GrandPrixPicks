@@ -1,5 +1,7 @@
 import { Plus } from 'lucide-react';
 
+import { RACE_WRITEUP_SECTION_HEADING } from './RaceWriteupSection';
+
 /**
  * One question a reader might type into a search box, answered in the page's
  * own words. Plain strings: the same list feeds the page's FAQPage JSON-LD,
@@ -20,10 +22,7 @@ export type RaceFaq = {
 export function RaceFaqSection({ faqs }: { faqs: readonly RaceFaq[] }) {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="common-questions">
-      <h2
-        id="common-questions"
-        className="font-title text-2xl font-medium text-text sm:text-3xl"
-      >
+      <h2 id="common-questions" className={RACE_WRITEUP_SECTION_HEADING}>
         Common questions
       </h2>
       <div className="mt-7 grid gap-2">

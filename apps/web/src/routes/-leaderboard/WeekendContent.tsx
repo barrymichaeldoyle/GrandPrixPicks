@@ -1,3 +1,5 @@
+import { Link } from '@tanstack/react-router';
+import { Button } from '@/components/Button/Button';
 import type { Doc } from '@convex-generated/dataModel';
 import { CalendarDays, Trophy, Users } from 'lucide-react';
 
@@ -129,9 +131,14 @@ function WeekendFollowingContent({
             : 'Follow a player from their profile to see them here.'
         }
         action={
-          <p className="text-sm text-text-muted">
-            Browse the global leaderboard to find players to follow.
-          </p>
+          <Button asChild size="sm" variant="secondary">
+            <Link
+              to="/leaderboard"
+              search={(prev) => ({ ...prev, scope: 'global' })}
+            >
+              Show global leaderboard
+            </Link>
+          </Button>
         }
       />
     );

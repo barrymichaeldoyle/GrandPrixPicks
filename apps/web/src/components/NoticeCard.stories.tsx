@@ -33,7 +33,7 @@ export const NotFound: Story = {
       <NoticeCard
         level="page"
         icon={Shield}
-        title="League Not Found"
+        title="League not found"
         description="This league doesn't exist or may have been deleted."
         action={<Button size="sm">Back to Leagues</Button>}
       />
@@ -78,7 +78,7 @@ export const NoIcon: Story = {
     <div className="mx-auto max-w-4xl">
       <NoticeCard
         level="page"
-        title="Set a Username"
+        title="Set a username"
         description="You need a username to view your predictions."
         action={<Button size="sm">Go to Settings</Button>}
       />

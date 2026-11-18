@@ -177,7 +177,9 @@ export function TimezoneSelect({
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder="Search (e.g. London, GMT+2)..."
-                autoFocus
+                // Not on touch screens: the keyboard opened over the list it
+                // was meant to filter.
+                autoFocus={!isCoarsePointer()}
                 className="w-full rounded border border-border bg-page px-2 py-1.5 text-sm text-text placeholder:text-text-muted/50 focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
               />
             </div>
@@ -213,5 +215,13 @@ export function TimezoneSelect({
         )}
       </div>
     </div>
+  );
+}
+
+function isCoarsePointer(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(pointer: coarse)').matches
   );
 }

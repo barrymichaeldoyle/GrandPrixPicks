@@ -1,7 +1,7 @@
 import { api } from '@convex-generated/api';
 import { useQuery } from '@/integrations/convex/query';
 import { Loader2 } from 'lucide-react';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense } from 'react';
 
 import {
   HEADER_NAV_TAB_CLASS,
@@ -12,9 +12,6 @@ import {
   useClerkWarmHandlers,
 } from './runtime-control';
 import { useViewerSession } from './useViewerSession';
-
-/** Keep in sync with the header's mobile breakpoint. */
-const MOBILE_MENU_BREAKPOINT = '(max-width: 843px)';
 
 const ClerkHeaderUser = lazy(() =>
   import('./runtime-bundle').then((module) => ({
@@ -51,25 +48,10 @@ export function HeaderUser() {
   const { isSignedIn, confirmedSignedIn } = useViewerSession();
   const runtime = useClerkRuntimeControl();
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
-  const [isMobile, setIsMobile] = useState(false);
-  const profileHref = me?.username ? `/p/${me.username}` : '/me';
+  // Unknown until `users.me` answers. The row waits for it rather than
+  // pointing at `/me`, which only redirects here after a loader of its own.
+  const profileHref = me?.username ? `/p/${me.username}` : null;
   const isAdmin = me?.isAdmin ?? false;
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia(MOBILE_MENU_BREAKPOINT);
-    function sync(matches: boolean) {
-      setIsMobile(matches);
-    }
-
-    sync(mediaQuery.matches);
-
-    function handleChange(event: MediaQueryListEvent) {
-      sync(event.matches);
-    }
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
 
   // Signed-out renders identically before and after Clerk loads, so show the
   // real Sign in button immediately (correct from SSR).
@@ -78,7 +60,6 @@ export function HeaderUser() {
       return (
         <Suspense fallback={<AnonymousSignInButton />}>
           <ClerkHeaderUser
-            isMobile={isMobile}
             isSignedIn={false}
             isAdmin={false}
             profileHref={profileHref}
@@ -122,7 +103,6 @@ export function HeaderUser() {
     <div className={ME_SLOT_CLASS} data-testid="header-user-authenticated">
       <Suspense fallback={tabPlaceholder}>
         <ClerkHeaderUser
-          isMobile={isMobile}
           isSignedIn={true}
           isAdmin={isAdmin}
           profileHref={profileHref}

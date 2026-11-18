@@ -1,4 +1,5 @@
 import { SignInButton, useAuth, useClerk, UserButton } from '@clerk/react';
+import { useNavigate } from '@tanstack/react-router';
 import { ShieldCheck, SlidersHorizontal, User } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -8,20 +9,19 @@ const signInButtonClasses =
   'inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-sm border border-border-strong bg-surface-elevated text-text hover:border-accent/55 hover:bg-accent-muted/35 hover:text-accent-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-50';
 
 export function ClerkHeaderUser({
-  isMobile,
   isSignedIn,
   isAdmin,
   profileHref,
   openSignInOnMount,
   signInOpened,
 }: {
-  isMobile: boolean;
   isSignedIn: boolean;
   isAdmin: boolean;
-  profileHref: string;
+  profileHref: string | null;
   openSignInOnMount: boolean;
   signInOpened: () => void;
 }) {
+  const navigate = useNavigate();
   if (!isSignedIn) {
     return (
       <>
@@ -52,7 +52,6 @@ export function ClerkHeaderUser({
   // stats, followers, results), which is why it is not called "My Results".
   return (
     <UserButton
-      key={isMobile ? 'mobile' : 'desktop'}
       // Clerk's own wrapper around the trigger has to stretch too, or the tab
       // loses its full-height underline. It is set here rather than in
       // styles.css because a `.cl-userButton-root` selector would pin the
@@ -62,16 +61,24 @@ export function ClerkHeaderUser({
       // where it would also stretch the sign-in modal's root box.
       appearance={{ elements: { rootBox: 'flex h-full items-stretch' } }}
     >
+      {/* Actions that navigate, not `UserButton.Link`. Clerk awaits a link's
+          navigation before it closes the menu, and the router resolves only
+          once the next page's loaders finish, so on a phone the menu sat open
+          and unchanged for the whole load and the tap read as broken. An
+          action closes the menu at once and leaves the waiting to the router
+          (and `NavigationProgress`). */}
       <UserButton.MenuItems>
-        <UserButton.Link
-          label="Profile"
-          labelIcon={<User className="h-4 w-4" />}
-          href={profileHref}
-        />
-        <UserButton.Link
+        {profileHref ? (
+          <UserButton.Action
+            label="Profile"
+            labelIcon={<User className="h-4 w-4" />}
+            onClick={() => void navigate({ href: profileHref })}
+          />
+        ) : null}
+        <UserButton.Action
           label="Settings"
           labelIcon={<SlidersHorizontal className="h-4 w-4" />}
-          href="/settings"
+          onClick={() => void navigate({ to: '/settings' })}
         />
         {/* Admins reach race management and result publishing from here: /admin
             is not in the nav rail (it is not a player destination) and it turns
@@ -79,10 +86,10 @@ export function ClerkHeaderUser({
             somewhere. `isAdmin` comes from the server (`users.me`), so a client
             that fakes it still hits the same requireAdmin checks. */}
         {isAdmin && (
-          <UserButton.Link
+          <UserButton.Action
             label="Admin"
             labelIcon={<ShieldCheck className="h-4 w-4" />}
-            href="/admin"
+            onClick={() => void navigate({ to: '/admin' })}
           />
         )}
         {/* Clerk's own account modal: email, password, 2FA, devices, deletion.

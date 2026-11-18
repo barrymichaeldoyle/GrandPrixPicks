@@ -246,7 +246,7 @@ function RacesPage() {
                 }
               />
               {displayedFeaturedRace ? (
-                <div className="mb-6 max-w-3xl">
+                <div className="mb-6">
                   <p className="mb-2 text-xs font-semibold text-text-muted">
                     Next event
                   </p>
@@ -302,7 +302,7 @@ function RacesPage() {
                     <Link
                       to="/races/$raceSlug"
                       params={{ raceSlug: race.slug }}
-                      className="text-accent hover:text-accent-hover pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
+                      className="text-text underline decoration-border-strong underline-offset-4 hover:decoration-text pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
                     >
                       Round {race.round}: {race.name}
                     </Link>
@@ -329,7 +329,7 @@ function RacesPage() {
                   <li key={race._id}>
                     <Link
                       to={writeup.to}
-                      className="text-accent hover:text-accent-hover pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
+                      className="text-text underline decoration-border-strong underline-offset-4 hover:decoration-text pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
                     >
                       Round {race.round}: {race.name} preview
                     </Link>
@@ -338,31 +338,6 @@ function RacesPage() {
               </ul>
             </nav>
           ) : null}
-
-          <nav
-            aria-label="Plan your predictions"
-            className="mt-10 border-t border-border pt-6"
-          >
-            <h2 className="font-title text-xl font-semibold text-text">
-              Read the track before you pick
-            </h2>
-            {/* This used to open on the circuit index and offer it first.
-                Venue character is written per weekend now, in the round's own
-                preview above, so the block points at the method instead. */}
-            <p className="gpp-reading-copy mt-2 max-w-3xl text-text-muted">
-              Circuit character changes how closely the race tends to follow
-              qualifying. Each round&rsquo;s preview above covers the track it
-              is run on.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-              <Link
-                to="/how-to-play"
-                className="font-medium text-accent hover:text-accent-hover"
-              >
-                Build a Top 5 prediction
-              </Link>
-            </div>
-          </nav>
         </div>
       </div>
       {SHOW_DEV_TIME_CONTROLS ? (

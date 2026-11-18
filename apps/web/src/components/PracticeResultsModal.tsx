@@ -211,6 +211,13 @@ export function PracticeResultsButton({
   });
   const hasResults = (results?.length ?? 0) > 0;
 
+  // Nothing until there is something to show. A disabled "Results pending"
+  // button sat above an empty Top 5 in the picks modal days before practice,
+  // asking to be pressed and doing nothing.
+  if (!hasResults) {
+    return null;
+  }
+
   return (
     <Button
       type="button"
@@ -223,13 +230,8 @@ export function PracticeResultsButton({
           race_id: raceId,
         })
       }
-      disabled={!hasResults}
     >
-      {results === undefined
-        ? 'Checking Results…'
-        : hasResults
-          ? 'View session results'
-          : 'Results Pending'}
+      View session results
     </Button>
   );
 }

@@ -128,11 +128,17 @@ function SaoPauloGrandPrixPredictionsPage() {
         <>
           2026 result:{' '}
           <ExternalSource href={OFFICIAL_RESULT_SOURCE}>
-            Formula 1
+            Formula 1 classification
           </ExternalSource>
-          , <ExternalSource href={RACE_REPORT_SOURCE}>Formula 1</ExternalSource>{' '}
-          and <ExternalSource href={GRID_SOURCE}>Formula 1</ExternalSource>.{' '}
-          Schedule and circuit:{' '}
+          ,{' '}
+          <ExternalSource href={RACE_REPORT_SOURCE}>
+            Formula 1 race report
+          </ExternalSource>{' '}
+          and{' '}
+          <ExternalSource href={GRID_SOURCE}>
+            Formula 1 starting grid
+          </ExternalSource>
+          . Schedule and circuit:{' '}
           <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>.
           2026 sprint weekends:{' '}
           <ExternalSource href={SPRINT_2026_SOURCE}>
@@ -148,9 +154,12 @@ function SaoPauloGrandPrixPredictionsPage() {
           <ExternalSource href={BORTOLETO_SOURCE}>Formula 1</ExternalSource>.
           2025 qualifying and race:{' '}
           <ExternalSource href={QUALIFYING_2025_SOURCE}>
-            Formula 1
+            Formula 1 qualifying report
           </ExternalSource>{' '}
-          and <ExternalSource href={RACE_2025_SOURCE}>Formula 1</ExternalSource>
+          and{' '}
+          <ExternalSource href={RACE_2025_SOURCE}>
+            Formula 1 race report
+          </ExternalSource>
           .
         </>
       }

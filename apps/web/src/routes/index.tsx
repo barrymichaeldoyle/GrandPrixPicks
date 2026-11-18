@@ -2,7 +2,6 @@ import { api } from '@convex-generated/api';
 import { createFileRoute } from '@tanstack/react-router';
 import { lazy, Suspense, useEffect } from 'react';
 
-import { DevNowPanel } from '@/components/DevNowPanel';
 import { InlineLoader } from '@/components/InlineLoader';
 import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
@@ -37,6 +36,16 @@ import { buildSessions, getSessionStatus } from './-home/weekendSchedule';
 const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
 export const PUBLIC_HOME_TITLE = `Free F1 Prediction Game ${CURRENT_SEASON} | Grand Prix Picks`;
 const DASHBOARD_TITLE = 'Dashboard | Grand Prix Picks';
+// Lazy so the prod build drops it: a static import put its chunk in the
+// landing page's preloads even though the flag is always off there.
+const DevNowPanel = SHOW_DEV_TIME_CONTROLS
+  ? lazy(() =>
+      import('@/components/DevNowPanel').then((module) => ({
+        default: module.DevNowPanel,
+      })),
+    )
+  : null;
+
 const AuthenticatedDashboard = lazy(() =>
   preloadDashboardPage().then((module) => ({
     default: module.DashboardPage,
@@ -337,8 +346,10 @@ function PublicLandingPage() {
         />
       </div>
 
-      {SHOW_DEV_TIME_CONTROLS ? (
-        <DevNowPanel race={featuredRace ?? null} now={now} />
+      {DevNowPanel ? (
+        <Suspense fallback={null}>
+          <DevNowPanel race={featuredRace ?? null} now={now} />
+        </Suspense>
       ) : null}
     </>
   );

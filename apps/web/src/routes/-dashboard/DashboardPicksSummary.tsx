@@ -383,7 +383,7 @@ function summaryDetail({
     return editable ? null : 'This session locked before you picked for it.';
   }
   if (session.hasResult) {
-    return 'This is the card you submitted for this session.';
+    return null;
   }
   if (!editable) {
     return 'Locked in. Points land once the results are published.';

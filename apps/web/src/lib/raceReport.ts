@@ -81,9 +81,17 @@ export function buildRaceReport({
       : second
         ? `, ahead of ${second}`
         : '';
-  sentences.push(`${winner} won the ${season} ${raceName}${venue}${podium}.`);
+  // A winner who also took pole is one fact, not two sentences naming the
+  // same driver back to back. Matched on the name because that is the only
+  // identity the classification entries carry here.
+  const poleEntry = classificationFor(resultsBySession, 'quali')[0];
+  const wonFromPole = poleEntry?.displayName === race[0].displayName;
+  const fromPole = wonFromPole ? ' from pole' : '';
+  sentences.push(
+    `${winner} won the ${season} ${raceName}${venue}${fromPole}${podium}.`,
+  );
 
-  const polesitter = withTeam(classificationFor(resultsBySession, 'quali')[0]);
+  const polesitter = wonFromPole ? null : withTeam(poleEntry);
   const sprintWinner = hasSprint
     ? withTeam(classificationFor(resultsBySession, 'sprint')[0])
     : null;

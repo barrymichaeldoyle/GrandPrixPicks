@@ -101,12 +101,22 @@ function LasVegasGrandPrixPredictionsPage() {
           Schedule and circuit:{' '}
           <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>.
           Circuit, grip and tyres:{' '}
-          <ExternalSource href={PIRELLI_2025_SOURCE}>Pirelli</ExternalSource>{' '}
+          <ExternalSource href={PIRELLI_2025_SOURCE}>
+            Pirelli 2025 preview
+          </ExternalSource>{' '}
           and{' '}
-          <ExternalSource href={PIRELLI_2024_SOURCE}>Pirelli</ExternalSource>.
-          2025 race and classification:{' '}
-          <ExternalSource href={RACE_2025_SOURCE}>Formula 1</ExternalSource> and{' '}
-          <ExternalSource href={RESULT_2025_SOURCE}>Formula 1</ExternalSource>.
+          <ExternalSource href={PIRELLI_2024_SOURCE}>
+            Pirelli 2024 preview
+          </ExternalSource>
+          . 2025 race:{' '}
+          <ExternalSource href={RACE_2025_SOURCE}>
+            Formula 1 race report
+          </ExternalSource>{' '}
+          and{' '}
+          <ExternalSource href={RESULT_2025_SOURCE}>
+            Formula 1 classification
+          </ExternalSource>
+          .
         </>
       }
     >

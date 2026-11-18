@@ -29,6 +29,7 @@ import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { MobileTabBar } from '@/components/MobileTabBar';
+import { NavigationProgress } from '@/components/NavigationProgress';
 import { PendingPickSubmitter } from '@/components/PendingPickSubmitter';
 import {
   AuthCurtainHost,
@@ -395,6 +396,7 @@ function RootDocument({ children }: PropsWithChildren) {
                   >
                     Skip to main content
                   </a>
+                  {bare ? null : <NavigationProgress />}
                   {bare ? null : <Header />}
                   {/* Shell chrome like the rest: the app's in-app browser read a
                     false "No internet connection" over the privacy policy. */}

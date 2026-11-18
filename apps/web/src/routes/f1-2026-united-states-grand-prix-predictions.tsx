@@ -127,11 +127,13 @@ function UnitedStatesGrandPrixPredictionsPage() {
         <>
           2026 result:{' '}
           <ExternalSource href={OFFICIAL_RESULT_SOURCE}>
-            Formula 1
+            Formula 1 classification
           </ExternalSource>{' '}
           and{' '}
-          <ExternalSource href={RACE_REPORT_SOURCE}>Formula 1</ExternalSource>.{' '}
-          Schedule and circuit:{' '}
+          <ExternalSource href={RACE_REPORT_SOURCE}>
+            Formula 1 race report
+          </ExternalSource>
+          . Schedule and circuit:{' '}
           <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>.
           2026 sprint weekends:{' '}
           <ExternalSource href={SPRINT_2026_SOURCE}>
@@ -140,19 +142,24 @@ function UnitedStatesGrandPrixPredictionsPage() {
           . Circuit and 2025 tyres:{' '}
           <ExternalSource href={PIRELLI_2025_SOURCE}>Pirelli</ExternalSource>.
           2025 Sprint and race:{' '}
-          <ExternalSource href={SPRINT_2025_SOURCE}>Formula 1</ExternalSource>{' '}
-          and <ExternalSource href={RACE_2025_SOURCE}>Formula 1</ExternalSource>
+          <ExternalSource href={SPRINT_2025_SOURCE}>
+            Formula 1 sprint report
+          </ExternalSource>{' '}
+          and{' '}
+          <ExternalSource href={RACE_2025_SOURCE}>
+            Formula 1 race report
+          </ExternalSource>
           . Upgrades:{' '}
           <ExternalSource href={FERRARI_UPGRADE_SOURCE}>
             The Race
           </ExternalSource>
           ,{' '}
           <ExternalSource href={FERRARI_UPGRADE_RAN_SOURCE}>
-            Formula 1
+            Formula 1 on Ferrari
           </ExternalSource>
           ,{' '}
           <ExternalSource href={MERCEDES_ENGINE_SOURCE}>
-            Formula 1
+            Formula 1 on Mercedes
           </ExternalSource>{' '}
           and{' '}
           <ExternalSource href={MCLAREN_UPGRADE_SOURCE}>

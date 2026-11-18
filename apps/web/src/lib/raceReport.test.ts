@@ -54,6 +54,38 @@ describe('buildRaceReport', () => {
     );
   });
 
+  it('says the winner won from pole instead of naming them twice', () => {
+    const sentences = buildRaceReport({
+      raceName: 'Dutch Grand Prix',
+      season: 2026,
+      circuitName: 'Circuit Zandvoort',
+      resultsBySession: {
+        race: raceResult,
+        quali: classification([['Lando Norris', 'McLaren', null]]),
+      },
+    });
+
+    expect(sentences[0]).toBe(
+      'Lando Norris (McLaren) won the 2026 Dutch Grand Prix at Circuit Zandvoort from pole, ahead of Kimi Antonelli and George Russell.',
+    );
+    expect(sentences.some((s) => s.includes('took pole'))).toBe(false);
+  });
+
+  it('keeps the sprint sentence when the winner also took pole', () => {
+    const sentences = buildRaceReport({
+      raceName: 'Dutch Grand Prix',
+      season: 2026,
+      hasSprint: true,
+      resultsBySession: {
+        race: raceResult,
+        quali: classification([['Lando Norris', 'McLaren', null]]),
+        sprint: classification([['Oscar Piastri', 'McLaren', null]]),
+      },
+    });
+
+    expect(sentences[1]).toBe('Oscar Piastri (McLaren) won the sprint.');
+  });
+
   it('ignores the sprint classification on a non-sprint weekend', () => {
     const sentences = buildRaceReport({
       raceName: 'Dutch Grand Prix',

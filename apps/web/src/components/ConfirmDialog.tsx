@@ -15,6 +15,11 @@ interface ConfirmDialogProps {
   confirmLabel?: string;
   loading?: boolean;
   error?: string | null;
+  /**
+   * Which button takes focus on open. `cancel` for a confirm that loses
+   * something, so a reflexive Enter keeps it.
+   */
+  initialFocus?: 'confirm' | 'cancel';
 }
 
 export function ConfirmDialog({
@@ -26,8 +31,10 @@ export function ConfirmDialog({
   confirmLabel = 'Confirm',
   loading = false,
   error = null,
+  initialFocus = 'confirm',
 }: ConfirmDialogProps) {
   const confirmRef = useRef<HTMLButtonElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
   // While it is working, the dialog stops answering Escape: closing mid-write
   // would leave the user unsure whether the thing they confirmed happened.
   // Only Escape, though. `suspended` also dropped the focus trap, and the
@@ -36,16 +43,19 @@ export function ConfirmDialog({
   const dialogRef = useModalDialog<HTMLDivElement>({
     open,
     onClose: loading ? undefined : onClose,
-    initialFocusRef: confirmRef,
+    initialFocusRef: initialFocus === 'cancel' ? cancelRef : confirmRef,
   });
 
   if (!open) {
     return null;
   }
 
+  // Above Clerk's popovers (z-[120] in the Clerk provider): a blocked
+  // navigation from the account menu raised this dialog underneath the still
+  // open menu.
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-[140] flex items-center justify-center bg-black/50"
       onClick={(e) => {
         if (e.target === e.currentTarget && !loading) {
           onClose();
@@ -79,6 +89,7 @@ export function ConfirmDialog({
         )}
         <div className="flex justify-center gap-3">
           <Button
+            ref={cancelRef}
             variant="secondary"
             size="sm"
             onClick={onClose}

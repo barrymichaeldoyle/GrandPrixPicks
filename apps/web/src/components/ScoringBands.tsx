@@ -66,7 +66,7 @@ export function ScoringBands({
                 {band.title}
               </span>
             </dt>
-            <dd className="col-start-2 mt-0.5 text-sm leading-snug opacity-80">
+            <dd className="col-start-2 mt-0.5 text-sm leading-snug">
               {band.copy}
             </dd>
           </div>

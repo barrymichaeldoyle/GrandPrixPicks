@@ -74,11 +74,12 @@ export function RaceDetailHeader({
           </span>
           {/*
             The race name is the page hero, and the type scale names it as
-            such (`5xl`, weight 300). It previously rendered at `xl`/600 — the
-            *title* role — which put it level with the "Session results"
-            heading below it and a step under the circuit guide's own h2.
+            such (`5xl`). It previously rendered at `xl` (the *title* role),
+            which put it level with the "Session results" heading below it.
+            Weight 600, the product register's top weight: at 300 it read
+            fainter than the section headings it sits above.
           */}
-          <h1 className="mt-1 text-3xl leading-none font-light tracking-display text-balance text-text sm:text-5xl">
+          <h1 className="mt-1 text-3xl leading-none font-semibold tracking-display text-balance text-text sm:text-5xl">
             {race.name}
           </h1>
           <p className="mt-3 text-sm text-text-muted" suppressHydrationWarning>

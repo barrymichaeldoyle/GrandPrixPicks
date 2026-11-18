@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react';
 import { DriverBadge } from '@/components/DriverBadge';
 import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceNameLink } from '@/components/race-writeups/RaceNameLink';
+import { RACE_WRITEUP_SECTION_HEADING } from '@/components/race-writeups/RaceWriteupSection';
 import { reviewedStamp } from '@/lib/lastReviewed';
 
 type Championship = FunctionReturnType<
@@ -102,7 +103,7 @@ export function RaceWriteupChampionshipContext({
         <div>
           <h2
             id="championship-context"
-            className="font-title text-2xl font-medium text-text"
+            className={RACE_WRITEUP_SECTION_HEADING}
           >
             Championship standings
           </h2>
@@ -154,7 +155,7 @@ export function RaceWriteupChampionshipContext({
           ) : null}
           <Link
             to="/f1-standings"
-            className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent hover:text-accent-hover"
+            className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-text underline decoration-border-strong underline-offset-4 hover:decoration-text"
           >
             View full 2026 standings{' '}
             <ArrowRight className="h-4 w-4" aria-hidden />

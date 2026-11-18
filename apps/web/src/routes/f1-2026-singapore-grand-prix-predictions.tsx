@@ -201,16 +201,21 @@ function SingaporeGrandPrixPredictionsPage() {
           <ExternalSource href={HEAT_SOURCE}>Pirelli</ExternalSource>. 2025
           qualifying and race:{' '}
           <ExternalSource href={QUALIFYING_2025_SOURCE}>
-            Formula 1
+            Formula 1 qualifying classification
           </ExternalSource>{' '}
           and{' '}
-          <ExternalSource href={RESULT_2025_SOURCE}>Formula 1</ExternalSource>.
-          2026 race:{' '}
+          <ExternalSource href={RESULT_2025_SOURCE}>
+            Formula 1 race classification
+          </ExternalSource>
+          . 2026 race:{' '}
           <ExternalSource href={OFFICIAL_RESULT_SOURCE}>
-            Formula 1
+            Formula 1 classification
           </ExternalSource>{' '}
           and{' '}
-          <ExternalSource href={RACE_REPORT_SOURCE}>Formula 1</ExternalSource>.
+          <ExternalSource href={RACE_REPORT_SOURCE}>
+            Formula 1 race report
+          </ExternalSource>
+          .
         </>
       }
     >

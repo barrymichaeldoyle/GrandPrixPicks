@@ -62,3 +62,32 @@ it('closes after choosing a destination and on an outside pointer press', () => 
   );
   expect(details.open).toBe(false);
 });
+
+it('stays open when a tap blurs the toggle without focusing the link (Safari)', () => {
+  const details = container.querySelector('details')!;
+  details.open = true;
+  const summary = container.querySelector('summary')!;
+  act(() => {
+    summary.focus();
+    summary.dispatchEvent(
+      new FocusEvent('focusout', { bubbles: true, relatedTarget: null }),
+    );
+  });
+  expect(details.open).toBe(true);
+});
+
+it('closes when keyboard focus moves past the menu', () => {
+  const outside = document.createElement('button');
+  document.body.appendChild(outside);
+  const details = container.querySelector('details')!;
+  details.open = true;
+  act(() => {
+    container
+      .querySelector('summary')!
+      .dispatchEvent(
+        new FocusEvent('focusout', { bubbles: true, relatedTarget: outside }),
+      );
+  });
+  expect(details.open).toBe(false);
+  outside.remove();
+});

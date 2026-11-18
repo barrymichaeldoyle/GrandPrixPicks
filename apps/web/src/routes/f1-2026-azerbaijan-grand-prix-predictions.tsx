@@ -311,9 +311,14 @@ function AzerbaijanGrandPrixPredictionsPage() {
           <ExternalSource href={SATURDAY_SOURCE}>Formula 1</ExternalSource>.
           Tyres: <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>.
           2025 form:{' '}
-          <ExternalSource href={FORM_SOURCE}>Formula 1</ExternalSource> and{' '}
-          <ExternalSource href={RACE_SOURCE}>Formula 1</ExternalSource>. 2025
-          qualifying:{' '}
+          <ExternalSource href={FORM_SOURCE}>
+            Formula 1 strategy guide
+          </ExternalSource>{' '}
+          and{' '}
+          <ExternalSource href={RACE_SOURCE}>
+            Formula 1 team quotes
+          </ExternalSource>
+          . 2025 qualifying:{' '}
           <ExternalSource href={QUALIFYING_2025_SOURCE}>
             Autosport
           </ExternalSource>

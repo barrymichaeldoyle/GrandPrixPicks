@@ -149,12 +149,7 @@ function HowToPlayPage() {
           }
         />
 
-        <div className="relative pb-8 sm:pl-8">
-          <div
-            aria-hidden
-            className="absolute top-12 bottom-32 left-0 hidden w-px bg-border sm:block"
-          />
-
+        <div className="pb-8">
           <section
             aria-labelledby="quick-start-heading"
             className="pb-10 sm:pb-14"

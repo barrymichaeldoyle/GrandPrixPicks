@@ -91,9 +91,15 @@ export function H2HResultsTable({
         <caption className="sr-only">{caption}</caption>
         <thead>
           <tr className="border-b border-border">
+            {/*
+              No team column on a phone. It took 28% of the row to repeat what
+              each driver's team-colour bar already says, and left the names
+              truncating beside it. A screen reader still hears the team: see
+              the phone-only label in the winner's cell.
+            */}
             <th
               scope="col"
-              className="gpp-label w-[28%] px-3 py-2 text-left sm:w-[22%]"
+              className="gpp-label hidden px-3 py-2 text-left sm:table-cell sm:w-[22%]"
             >
               Team
             </th>
@@ -145,7 +151,7 @@ export function H2HResultsTable({
                 <th
                   scope="row"
                   aria-label={teamName}
-                  className="px-3 py-1.5 text-left font-normal"
+                  className="hidden px-3 py-1.5 text-left font-normal sm:table-cell"
                 >
                   <span className="flex min-w-0 items-center gap-2">
                     <span
@@ -159,6 +165,7 @@ export function H2HResultsTable({
                   </span>
                 </th>
                 <td className="px-1 py-1.5 sm:px-2">
+                  <span className="sr-only sm:hidden">{teamName}: </span>
                   {driverCell(won, picked === won._id, false)}
                 </td>
                 <td className="px-1 py-1.5 sm:px-2">

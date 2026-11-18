@@ -1,5 +1,5 @@
 import { api } from '@convex-generated/api';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@/integrations/convex/query';
 import { useEffect } from 'react';
 
@@ -67,14 +67,11 @@ function MyPredictionsPage() {
         <div className="mx-auto max-w-4xl px-4 py-6">
           <NoticeCard
             level="page"
-            title="Set a Username"
+            title="Set a username"
             description="You need a username to view your predictions."
             action={
-              <Button
-                size="sm"
-                onClick={() => void navigate({ to: '/settings' })}
-              >
-                Go to Settings
+              <Button asChild size="sm">
+                <Link to="/settings">Go to settings</Link>
               </Button>
             }
           />

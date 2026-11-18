@@ -124,7 +124,6 @@ export function DashboardWeekendPicks({
         level="section"
         icon={Flag}
         title="No prediction window is open"
-        description="View the race calendar for upcoming sessions."
         action={
           <Button asChild size="sm" variant="secondary">
             <Link to="/races">View race calendar</Link>

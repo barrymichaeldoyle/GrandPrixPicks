@@ -67,7 +67,7 @@ type League = NonNullable<
  *
  * Convex delivers the query update before the mutation's promise resolves, so
  * the lookup by the old slug turns `null` a beat before the form can navigate
- * to the new one, and the page flashed "League Not Found" mid-save.
+ * to the new one, and the page flashed "League not found" mid-save.
  */
 const RenameContext = createContext<(league: League | null) => void>(() => {});
 
@@ -105,7 +105,7 @@ function LeagueSettingsPage() {
           <NoticeCard
             level="page"
             icon={Shield}
-            title="League Not Found"
+            title="League not found"
             description="This league doesn't exist or may have been deleted."
             action={
               <Button asChild size="sm" leftIcon={ArrowLeft}>

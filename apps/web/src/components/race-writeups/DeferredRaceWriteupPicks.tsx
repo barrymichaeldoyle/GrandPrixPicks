@@ -12,6 +12,7 @@ import {
 } from '@/lib/raceWriteupPhase';
 
 import { RaceWriteupNextLinks } from './RaceWriteupNextLinks';
+import { RACE_WRITEUP_SECTION_HEADING } from './RaceWriteupSection';
 
 export const RACE_WRITEUP_PICKS_ANCHOR = PICKS_ANCHOR;
 
@@ -228,7 +229,14 @@ export function DeferredRaceWriteupPicks({
       <div className="max-w-2xl">
         <h2
           id="race-writeup-picks-heading"
-          className="font-title text-2xl font-medium text-text"
+          className={
+            // The hub's other headings are product-register; a write-up's
+            // are the display-register section heading, and the picks panel
+            // is one of those sections.
+            surface === 'writeup'
+              ? RACE_WRITEUP_SECTION_HEADING
+              : 'font-title text-2xl font-medium text-text'
+          }
         >
           {copy.heading}
         </h2>

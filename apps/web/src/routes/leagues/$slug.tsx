@@ -121,7 +121,7 @@ function LeagueDetailPage() {
           <NoticeCard
             level="page"
             icon={Shield}
-            title="League Not Found"
+            title="League not found"
             description="This league doesn't exist or may have been deleted."
             action={
               <Button asChild size="sm" leftIcon={ArrowLeft}>

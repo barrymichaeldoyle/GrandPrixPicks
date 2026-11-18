@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import { primaryButtonStyles } from '@/components/Button/Button';
 import { Flag } from '@/components/Flag';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { podiumClasses } from '@/lib/podium';
 import { sizedAvatarUrl } from '@/lib/avatar';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 
@@ -34,21 +35,11 @@ export type WeekendBoard = {
   }[];
 };
 
-/**
- * Podium places wear their podium colour as a fill (display register, see
- * `docs/design-display-register.md`); a shared rank shares the colour.
- */
-const PODIUM_FILL: Record<number, string> = {
-  1: 'border-podium-gold bg-podium-gold text-text-on-accent',
-  2: 'border-podium-silver bg-podium-silver text-text-on-accent',
-  3: 'border-podium-bronze bg-podium-bronze text-text-on-accent',
-};
-
 function RankCell({ rank }: { rank: number }) {
   return (
     <span
       className={`gpp-mono inline-flex h-7 w-9 shrink-0 items-center justify-center rounded-sm border text-xs font-semibold ${
-        PODIUM_FILL[rank] ?? 'border-border text-text-muted'
+        podiumClasses(rank) ?? 'border-border text-text-muted'
       }`}
     >
       {rank}

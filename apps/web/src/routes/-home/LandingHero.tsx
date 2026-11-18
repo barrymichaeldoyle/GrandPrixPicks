@@ -313,14 +313,17 @@ function HeroCountdown({
   now: number;
   trackTimeZone: string;
 }) {
-  const { activeTimeZone, showViewerTime } = useSessionTimeView(trackTimeZone);
+  const { activeTimeZone } = useSessionTimeView(trackTimeZone);
   const msRemaining = lockAt - now;
   const segments = segmentsFor(msRemaining);
   const imminent = msRemaining < IMMINENT_MS;
   const { day, time } = dayAndTime(lockAt, activeTimeZone);
-  const zone = showViewerTime
-    ? formatTimeZoneAbbreviation(lockAt, activeTimeZone)
-    : 'track time';
+  // The track's own abbreviation rather than the words "track time": the
+  // server renders track time and the browser swaps in the viewer's zone, and
+  // "track time" was wide enough to wrap the label under the digits on a phone,
+  // so the swap pulled everything below up 50px (CLS 0.137). Two
+  // abbreviations are near enough the same width.
+  const zone = formatTimeZoneAbbreviation(lockAt, activeTimeZone);
   const spoken = imminent
     ? 'under a minute'
     : segments.map(accessibleSegment).join(', ');
@@ -453,28 +456,28 @@ function HeroSchedule({
             return (
               <li
                 key={row.key}
-                className={`gpp-hero-session relative grid grid-cols-[minmax(0,1fr)_auto_5.75rem] items-center gap-x-4 border-b border-border py-2.5 last:border-b-0 sm:block sm:border-r sm:border-b-0 sm:px-3 sm:py-4 sm:last:border-r-0 lg:px-4 ${
+                className={`gpp-hero-session relative grid grid-cols-[minmax(0,1fr)_auto_5.5rem] items-center gap-x-4 border-b border-border py-2.5 last:border-b-0 sm:block sm:border-r sm:border-b-0 sm:px-3 sm:py-4 sm:last:border-r-0 lg:px-4 ${
                   row.scored && !started
                     ? isLock
                       ? 'gpp-hero-session-lock'
                       : 'gpp-hero-session-scored'
                     : ''
-                } ${past ? 'opacity-50' : ''}`}
+                } ${past ? '[&_*]:!text-text-muted' : ''}`}
               >
                 <p className="flex flex-col items-start gap-1 text-xs text-text-muted sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-sm font-medium text-text sm:text-xs">
                     {row.label}
                   </span>
                   {isLock ? (
-                    <span className="gpp-mono rounded-xs bg-accent px-1.5 text-[0.6875rem] text-text-on-accent">
+                    <span className="gpp-mono rounded-xs bg-accent px-1.5 text-[0.6875rem] whitespace-nowrap text-text-on-accent">
                       Next lock
                     </span>
                   ) : live ? (
-                    <span className="gpp-mono rounded-xs bg-text px-1.5 text-[0.6875rem] text-page">
+                    <span className="gpp-mono rounded-xs bg-text px-1.5 text-[0.6875rem] whitespace-nowrap text-page">
                       Live
                     </span>
                   ) : row.scored && !started ? (
-                    <span className="gpp-mono rounded-xs bg-surface-elevated px-1.5 text-[0.6875rem] text-text-muted">
+                    <span className="gpp-mono rounded-xs bg-surface-elevated px-1.5 text-[0.6875rem] whitespace-nowrap text-text-muted">
                       Picks
                     </span>
                   ) : null}
@@ -499,7 +502,7 @@ function HeroSchedule({
                   )}
                 </p>
                 {summary ? (
-                  <p className="flex items-center justify-end gap-2 text-sm text-text sm:mt-2.5 sm:justify-start">
+                  <p className="flex items-center justify-between gap-2 text-sm text-text sm:mt-2.5 sm:justify-start">
                     <WeatherIcon
                       conditionCode={summary.conditionCode}
                       className="h-4 w-4 shrink-0 text-text-muted"
@@ -507,9 +510,16 @@ function HeroSchedule({
                     <span className="sr-only">
                       {sessionWeatherLine(summary)}
                     </span>
-                    <span aria-hidden="true">{weatherWord(summary)}</span>
-                    <span className="gpp-mono" aria-hidden="true">
-                      {temperatureFigure(Math.round(summary.temperatureC))}
+                    {/* Stacked on a phone: "Showers 11°C" on one line is
+                        wider than the column and ran over the start time. */}
+                    <span
+                      className="flex flex-col items-end leading-tight sm:flex-row sm:items-baseline sm:gap-2"
+                      aria-hidden="true"
+                    >
+                      <span>{weatherWord(summary)}</span>
+                      <span className="gpp-mono text-xs text-text-muted sm:text-sm sm:text-text">
+                        {temperatureFigure(Math.round(summary.temperatureC))}
+                      </span>
                     </span>
                   </p>
                 ) : (
@@ -607,14 +617,19 @@ function HeroNews({
                     about the tyres or the venue has no line here rather than
                     an empty cell. */}
                 {eyebrow ? (
-                  <span className="gpp-mono mb-1 text-xs font-semibold tracking-wide opacity-80">
+                  <span className="gpp-mono mb-1 text-xs font-semibold tracking-wide">
                     {eyebrow}
                   </span>
                 ) : null}
                 <span className="text-[0.9375rem] leading-snug font-semibold text-pretty">
                   {item.headline}
                 </span>
-                <span className="gpp-mono mt-1 text-xs opacity-75">
+                {/* Full ink, no opacity: `readableTeamFill` holds 4.5:1 only
+                    at full strength, and Williams' source line fell to 3.3:1
+                    at 75%. Size and face set it apart instead. */}
+                <span
+                  className={`gpp-mono mt-1 text-xs ${fill ? '' : 'text-text-muted'}`}
+                >
                   {item.sourceName}
                 </span>
               </Link>

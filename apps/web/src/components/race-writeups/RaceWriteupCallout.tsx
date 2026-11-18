@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 
+import { secondaryButtonStyles } from '@/components/Button/Button';
 import { getRaceWriteup } from '@/lib/raceWriteups';
 
 /**
@@ -36,7 +37,7 @@ export function RaceWriteupCallout({
   return (
     <section
       aria-labelledby="weekend-writeup-heading"
-      className={`${className} rounded-sm border border-accent/25 bg-accent-muted/20 p-4 sm:p-5`}
+      className={`${className} rounded-sm border border-border bg-surface p-4 sm:p-5`}
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div className="min-w-0">
@@ -52,7 +53,9 @@ export function RaceWriteupCallout({
         </div>
         <Link
           to={writeup.to}
-          className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          // Secondary: the race page's own pick action is the one that
+          // carries the accent, and this sits on the same screen.
+          className={`${secondaryButtonStyles()} shrink-0`}
         >
           {writeup.cta}
           <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />

@@ -87,7 +87,7 @@ export function NotificationsSection({
             {errorMessage}
           </p>
         ) : null}
-        <NotificationGroup title="In-App">
+        <NotificationGroup title="In-app">
           <p className="text-xs text-text-muted">
             Always shown in the notification bell.
           </p>

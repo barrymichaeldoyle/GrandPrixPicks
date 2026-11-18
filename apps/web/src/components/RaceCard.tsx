@@ -149,38 +149,44 @@ export function RaceCard({
               : 'border-border hover:border-border-strong focus-visible:border-border-strong'
       }`}
     >
-      <div className="relative flex h-full flex-col">
-        {/* Header: flag + round + race name */}
-        <div className="flex items-center gap-2.5 px-3 pt-2.5">
-          {countryCode && (
-            <RaceFlag
-              countryCode={countryCode}
-              size="md"
-              className="shrink-0 rounded-sm"
+      {/* Phones stack the card; from md the sessions sit beside the header
+          so the card can span the page without an empty right half. */}
+      <div className="relative flex h-full flex-col md:grid md:grid-cols-2">
+        <div className="flex flex-col gap-1.5 px-3 pt-2.5 pb-2 md:pb-2.5">
+          {/* Header: flag + round + race name */}
+          <div className="flex items-center gap-2.5">
+            {countryCode && (
+              <RaceFlag
+                countryCode={countryCode}
+                size="md"
+                className="shrink-0 rounded-sm"
+              />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-text-muted">
+                Round {race.round}
+              </p>
+              {/* h2, not h3: these cards sit directly under the page's h1 on the
+                  calendar, and the level was skipping a rank. Heading level is
+                  document structure, not type scale — the size is set in CSS. */}
+              <h2 className="line-clamp-2 text-sm leading-tight font-semibold text-text sm:text-base">
+                {race.name}
+              </h2>
+            </div>
+            <ArrowRight
+              size={14}
+              strokeWidth={2}
+              className="shrink-0 text-text-muted transition-colors group-hover:text-text group-focus-visible:text-text"
+              aria-hidden
             />
-          )}
-          <div className="min-w-0 flex-1">
-            <p
-              className={`text-xs font-semibold ${
-                isNext ? 'text-accent' : 'text-text-muted'
-              }`}
-            >
-              Round {race.round}
-              {isNext ? ' · Next race' : ''}
-            </p>
-            {/* h2, not h3: these cards sit directly under the page's h1 on the
-                calendar, and the level was skipping a rank. Heading level is
-                document structure, not type scale — the size is set in CSS. */}
-            <h2 className="line-clamp-2 text-sm leading-tight font-semibold text-text sm:text-base">
-              {race.name}
-            </h2>
           </div>
+
           {/* The countdown reads as the dashboard hero's clock line rather
               than a bordered pill: quiet mono, the value carrying the
-              emphasis. It sits in the corner beside the race it belongs to,
-              so "locks in" needs no session name. */}
+              emphasis. It gets its own line so the race name keeps the full
+              width on a phone instead of wrapping to four lines. */}
           {isPredictable && msUntilLock > 0 && (
-            <p className="gpp-mono shrink-0 text-xs whitespace-nowrap text-text-muted">
+            <p className="gpp-mono text-xs whitespace-nowrap text-text-muted">
               locks in
               {/* The flag goes on the element that owns the ticking text: React
                   applies it one level deep, so on the <p> it covered only
@@ -194,17 +200,9 @@ export function RaceCard({
               </strong>
             </p>
           )}
-          <ArrowRight
-            size={14}
-            strokeWidth={2}
-            className="shrink-0 text-accent transition-colors group-hover:text-accent-hover group-focus-visible:text-accent-hover"
-            aria-hidden
-          />
-        </div>
 
-        <div className="flex h-full flex-col gap-1.5 px-3 pt-2 pb-2.5">
           {/* Badges and status */}
-          <div className="flex flex-wrap items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1 empty:hidden">
             {race.status === 'cancelled' && (
               <Badge variant="cancelled">Called off</Badge>
             )}
@@ -213,8 +211,8 @@ export function RaceCard({
             )}
             {race.hasSprint && <Badge variant="sprint">Sprint</Badge>}
             {/* The "Open" state is already conveyed by the "locks in" clock
-                line below the sessions — only surface this status pill when it
-                adds new info (Closing soon, Locked). */}
+                line — only surface this status pill when it adds new info
+                (Closing soon, Locked). */}
             {isPredictable && lockStatus.urgency !== 'open' && (
               <Pill
                 tone={lockStatus.badgeTone}
@@ -240,59 +238,58 @@ export function RaceCard({
               </Pill>
             )}
           </div>
-
-          {/* Weekend sessions */}
-          {scheduleEntries.length > 0 && (
-            <div className="mt-0.5 flex flex-1 flex-col border-t border-border/60 pt-1.5">
-              <div className="mb-1 flex items-center justify-between gap-2 text-xs font-medium text-text-muted">
-                <span className="inline-flex items-center gap-1">
-                  <Calendar size={12} aria-hidden />
-                  Weekend sessions
-                </span>
-                {timezoneLabel ? (
-                  <span suppressHydrationWarning>{timezoneLabel}</span>
-                ) : null}
-              </div>
-              <div className="grid flex-1 grid-cols-[auto_1fr] content-end items-baseline gap-x-2 gap-y-1 text-sm text-text-muted">
-                {scheduleEntries.map((entry) => {
-                  // Same state the dashboard's session chips carry: an icon and
-                  // a tone, no status word. A race doc has no per-session
-                  // results, so this stops at open / locked — the trophy state
-                  // needs data this card does not load.
-                  const isSessionLocked =
-                    now >= getRaceSessionLockAt(race, entry.type);
-                  const SessionIcon = isSessionLocked ? Lock : Clock3;
-                  return (
-                    <div key={entry.type} className="contents">
-                      <span
-                        className={`inline-flex items-center gap-1.5 font-medium ${
-                          entry.type === 'race' ? 'text-text' : ''
-                        }`}
-                      >
-                        <SessionIcon
-                          className={`size-3 shrink-0 ${
-                            isSessionLocked ? 'text-warning' : 'text-accent'
-                          }`}
-                          aria-hidden
-                        />
-                        {SESSION_LABELS[entry.type]}
-                      </span>
-                      <span
-                        suppressHydrationWarning
-                        className={`gpp-mono text-right ${
-                          entry.type === 'race' ? 'font-semibold text-text' : ''
-                        }`}
-                      >
-                        {formatDate(entry.startAt)} ·{' '}
-                        {formatTime(entry.startAt)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Weekend sessions */}
+        {scheduleEntries.length > 0 && (
+          <div className="mx-3 flex flex-1 flex-col border-t border-border/60 pt-1.5 pb-2.5 md:mx-0 md:border-t-0 md:border-l md:px-4 md:pt-2.5">
+            <div className="mb-1 flex items-center justify-between gap-2 text-xs font-medium text-text-muted">
+              <span className="inline-flex items-center gap-1">
+                <Calendar size={12} aria-hidden />
+                Weekend sessions
+              </span>
+              {timezoneLabel ? (
+                <span suppressHydrationWarning>{timezoneLabel}</span>
+              ) : null}
+            </div>
+            <div className="grid flex-1 grid-cols-[auto_1fr] content-end items-baseline gap-x-2 gap-y-1 text-sm text-text-muted">
+              {scheduleEntries.map((entry) => {
+                // Same state the dashboard's session chips carry: an icon and
+                // a tone, no status word. A race doc has no per-session
+                // results, so this stops at open / locked — the trophy state
+                // needs data this card does not load.
+                const isSessionLocked =
+                  now >= getRaceSessionLockAt(race, entry.type);
+                const SessionIcon = isSessionLocked ? Lock : Clock3;
+                return (
+                  <div key={entry.type} className="contents">
+                    <span
+                      className={`inline-flex items-center gap-1.5 font-medium ${
+                        entry.type === 'race' ? 'text-text' : ''
+                      }`}
+                    >
+                      <SessionIcon
+                        className={`size-3 shrink-0 ${
+                          isSessionLocked ? 'text-warning' : 'text-accent'
+                        }`}
+                        aria-hidden
+                      />
+                      {SESSION_LABELS[entry.type]}
+                    </span>
+                    <span
+                      suppressHydrationWarning
+                      className={`gpp-mono text-right ${
+                        entry.type === 'race' ? 'font-semibold text-text' : ''
+                      }`}
+                    >
+                      {formatDate(entry.startAt)} · {formatTime(entry.startAt)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </Link>
   );

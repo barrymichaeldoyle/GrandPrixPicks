@@ -100,14 +100,22 @@ function QatarGrandPrixPredictionsPage() {
           Schedule and circuit:{' '}
           <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>.
           Circuit, heat and tyres:{' '}
-          <ExternalSource href={PIRELLI_2025_SOURCE}>Pirelli</ExternalSource>{' '}
+          <ExternalSource href={PIRELLI_2025_SOURCE}>
+            Pirelli 2025 preview
+          </ExternalSource>{' '}
           and{' '}
           <ExternalSource href={PIRELLI_LAP_LIMIT_SOURCE}>
-            Pirelli
+            Pirelli lap limit
           </ExternalSource>
-          . 2025 race and classification:{' '}
-          <ExternalSource href={RACE_2025_SOURCE}>Formula 1</ExternalSource> and{' '}
-          <ExternalSource href={RESULT_2025_SOURCE}>Formula 1</ExternalSource>.
+          . 2025 race:{' '}
+          <ExternalSource href={RACE_2025_SOURCE}>
+            Formula 1 race report
+          </ExternalSource>{' '}
+          and{' '}
+          <ExternalSource href={RESULT_2025_SOURCE}>
+            Formula 1 classification
+          </ExternalSource>
+          .
         </>
       }
     >

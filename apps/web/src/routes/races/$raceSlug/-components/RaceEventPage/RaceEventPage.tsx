@@ -673,7 +673,7 @@ export function RaceEventPage({
         {/* The overlay body has no mobile bottom padding (see PicksFocusOverlay);
             this form has no sticky bar of its own, so pad the bottom here. */}
         <div className="pb-4 sm:pb-0">
-          <div className="mb-4 flex justify-end">
+          <div className="mb-4 flex justify-end empty:hidden">
             <PracticeResultsButton
               onClick={() => setShowPracticeResults(true)}
               raceId={race._id}

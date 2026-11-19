@@ -1,0 +1,24 @@
+[
+  {
+    "key": "cadillac-bottas-2027-confirmed",
+    "global": true,
+    "headline": "Cadillac confirms Bottas for 2027 alongside Perez",
+    "body": "Cadillac has kept Valtteri Bottas for 2027, partnering Sergio Perez, ahead of test driver Colton Herta, who has gained the superlicence needed to race in F1. The team says its reserve and test drivers for next year will be announced in due course.",
+    "team": "Cadillac",
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/11/18/official-bottas-to-stay-at-cadillacin-2027/",
+    "sourcePublishedAt": "2026-11-18T20:07:11Z"
+  },
+  {
+    "raceSlug": "las-vegas-2026",
+    "key": "bearman-haas-2027-unconfirmed",
+    "category": "general",
+    "headline": "Bearman still awaits Haas confirmation for 2027",
+    "body": "Oliver Bearman says he expects to drive for Haas next year but has no official confirmation, calling the delay disappointing at Las Vegas media day. He says he does not know what is holding it up. The Haas driver also expects a tough weekend after illness in Mexico and Brazil.",
+    "affectsSessions": [],
+    "driverCodes": ["BEA"],
+    "sourceName": "Formula 1",
+    "sourceUrl": "https://www.formula1.com/en/latest/article/theres-no-excuses-for-that-bearman-frustrated-by-delay-in-confirming-haas-future.3B6g2yqgJgf3g8UNtsYU5L",
+    "sourcePublishedAt": "2026-11-19T02:57:57Z"
+  }
+]

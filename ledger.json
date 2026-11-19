@@ -1763,6 +1763,24 @@
       "expiresAt": "2026-11-22T03:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6afdcd626a70d040da04ce5a"
+    },
+    {
+      "id": "4ce38e1f055bc6c85835d75a104186bcff5baf027b8cdd3e568d8123d665aafa",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": null,
+          "key": "bottas-cadillac-2027-confirmed",
+          "revision": "87a0be6846c50a9629ed43885273572307130c74f6c063b8e9d43398b2783405"
+        }
+      ],
+      "text": "Bottas stays at Cadillac for 2027, alongside Perez. Colton Herta, who has been getting FP1 runs, is not promoted. The 22-car grid is now complete.",
+      "link": "https://www.motorsport.com/f1/news/valtteri-bottas-retains-cadillac-f1-seat-for-2027-ahead-of-colton-herta/10875159/",
+      "dueAt": "2026-11-19T17:00:00.000Z",
+      "expiresAt": "2026-11-20T12:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

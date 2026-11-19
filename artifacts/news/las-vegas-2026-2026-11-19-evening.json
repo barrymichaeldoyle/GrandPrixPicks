@@ -1,0 +1,26 @@
+[
+  {
+    "raceSlug": "las-vegas-2026",
+    "key": "honda-battery-countermeasure-stroll-las-vegas",
+    "category": "general",
+    "headline": "Honda brings a new battery countermeasure to Las Vegas",
+    "body": "Honda found the cause of Lance Stroll's Brazil battery failure and has fitted another countermeasure for Las Vegas. Chief engineer Shintaro Orihara said it will probably not fully prevent a repeat, and that the battery structure will be updated for 2027.",
+    "affectsSessions": [],
+    "driverCodes": [
+      "STR"
+    ],
+    "sourceName": "Autosport",
+    "sourceUrl": "https://www.autosport.com/f1/news/honda-reveals-key-f1-power-unit-change-for-2027/10875538/",
+    "sourcePublishedAt": "2026-11-19T07:57:39Z"
+  },
+  {
+    "global": true,
+    "key": "bottas-cadillac-2027-confirmed",
+    "headline": "Bottas stays at Cadillac for 2027",
+    "body": "Cadillac has kept Valtteri Bottas alongside Sergio Perez for 2027 rather than promoting test driver Colton Herta. That completes next year's 22-car grid. Reserve and test drivers will be announced in due course.",
+    "team": "Cadillac",
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/valtteri-bottas-retains-cadillac-f1-seat-for-2027-ahead-of-colton-herta/10875159/",
+    "sourcePublishedAt": "2026-11-18T20:00:46Z"
+  }
+]

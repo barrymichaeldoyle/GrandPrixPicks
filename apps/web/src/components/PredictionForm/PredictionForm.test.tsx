@@ -101,6 +101,7 @@ vi.mock('@/integrations/clerk/runtime-control', () => ({
     active: false,
     openSignInOnMount: false,
     requestSignIn: requestSignInSpy,
+    requestPickSaveSignIn: requestSignInSpy,
     signInOpened: () => {},
   }),
 }));

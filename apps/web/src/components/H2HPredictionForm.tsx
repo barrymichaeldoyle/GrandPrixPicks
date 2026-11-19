@@ -484,7 +484,7 @@ export function H2HPredictionForm({
           session_type: sessionType ?? 'cascade',
         });
       }
-      clerkRuntime.requestSignIn();
+      clerkRuntime.requestPickSaveSignIn();
       return;
     }
     void handleSubmit();

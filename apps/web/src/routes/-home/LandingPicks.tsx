@@ -430,7 +430,7 @@ export function LandingPicks({
       race_id: raceId,
       session_type: 'cascade',
     });
-    clerkRuntime.requestSignIn();
+    clerkRuntime.requestPickSaveSignIn();
   }
 
   function prepareCombinedSave() {

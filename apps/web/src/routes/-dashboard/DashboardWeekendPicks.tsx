@@ -28,6 +28,7 @@ import { PracticeResultsModal } from '@/components/PracticeResultsModal';
 import { PredictionForm } from '@/components/PredictionForm/PredictionForm';
 import { RaceFlag } from '@/components/RaceFlag';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
+import { UsernamePrompt } from '@/components/UsernamePrompt';
 import { WeatherSessionLine } from '@/components/weather/WeatherSessionLine';
 import {
   weekendCardShell,
@@ -1053,6 +1054,9 @@ function PicksInvitation({
               : 'Make your picks'}
         </Button>
       </div>
+      {/* A saved Top 5 is the first point the picks are safe, which is when
+          a new player is asked for the name the boards will show. */}
+      {hasTopFive ? <UsernamePrompt surface="dashboard_invitation" /> : null}
     </div>
   );
 }

@@ -49,6 +49,12 @@ export const analyticsEventNames = [
   'landing_first_pick_added',
   'calendar_subscribe_clicked',
   'calendar_subscribe_dismissed',
+  'email_save_closed',
+  'email_save_code_sent',
+  'email_save_completed',
+  'email_save_failed',
+  'email_save_opened',
+  'email_save_other_way',
   'landing_global_leaderboard_clicked',
   'landing_h2h_completed',
   'landing_hero_cta_clicked',
@@ -123,6 +129,7 @@ export const analyticsEventNames = [
   'user_followed',
   'user_registered',
   'user_unfollowed',
+  'username_chosen',
   'x_follow_prompt_completed',
 ] as const;
 

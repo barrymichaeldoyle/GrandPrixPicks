@@ -99,6 +99,16 @@ When an anonymous visitor attempts to save or use an authenticated feature, the
 app prompts them to sign in. A locally assembled prediction draft should remain
 available through that transition when supported by the prediction flow.
 
+Saving picks on a Clerk-free route (the landing page, race pages, write-ups)
+opens `EmailSaveDialog` rather than Clerk's modal: an email, then the six-digit
+code sent to it, and the draft saves. A known email signs in; a new one signs
+up. "Use Google or Apple", and anything the form cannot finish (a second
+factor, an account with no email code), hand over to Clerk's modal. The header's
+Sign in button still opens the modal. Clerk calls go through
+`lib/emailCodeAuth.ts`, which receives the instance from `ClerkSignInOverlay`
+so the route never imports Clerk. Since 2026-11-19 sign-up asks for no password
+and no username.
+
 ### 4.2 Authenticated player
 
 An authenticated player has all anonymous capabilities and can:
@@ -514,7 +524,11 @@ History distinguishes:
 - Username characters: lowercase letters, numbers, underscores, and hyphens.
 - Usernames must be unique.
 - Changing a username breaks existing profile links.
-- A username can be changed at most once every 90 days.
+- A username can be changed at most once every 90 days. Choosing a first
+  username is not a change and does not start that window.
+- Sign-up does not ask for a username. A player without one is asked on the
+  dashboard's picks card once a Top 5 is saved (`UsernamePrompt`), ahead of
+  the calendar offer; until then the boards show them as Anonymous.
 - The UI requires explicit confirmation before a username change.
 - Authentication identity, email, and avatar originate from Clerk; the in-app
   profile stores the product-facing identity and preferences.

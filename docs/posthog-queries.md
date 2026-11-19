@@ -55,6 +55,14 @@ the modal and left it (`apps/web/src/lib/signInFunnel.ts`). The calendar offer
 reports `calendar_subscribe_clicked` (`provider`, `surface`) and
 `calendar_subscribe_dismissed`.
 
+Since 2026-11-19 a pick save on a Clerk-free route opens the email-and-code
+dialog instead of the modal, so the modal events above come mostly from the
+header's Sign in button. The dialog reports `email_save_opened` (`path`),
+`email_save_code_sent` (`flow`: `sign_up` or `sign_in`), `email_save_failed`
+(`step`, `reason`, `needs_modal`), `email_save_completed` (`flow`),
+`email_save_other_way` (went to the modal) and `email_save_closed` (`step`).
+A new player's first username is `username_chosen` (`surface`).
+
 Short visits are under-counted. Analytics loads after `load` plus an idle
 window, then asks `/api/consent-region` which side of the GDPR line the
 visitor is on, so a visitor who leaves within about a second or two of load

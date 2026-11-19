@@ -9,6 +9,12 @@ type ClerkRuntimeControl = {
   signInPending: boolean;
   afterSignInPath: '/leagues/create' | null;
   requestSignIn: (afterSignInPath?: '/leagues/create') => void;
+  /**
+   * Sign-in to save picks a signed-out visitor just made. On the Clerk-free
+   * routes this opens the email-and-code dialog (`EmailSaveDialog`); anywhere
+   * else it is {@link requestSignIn}.
+   */
+  requestPickSaveSignIn: () => void;
   /** Boot Clerk without opening anything, on an intent signal before the click. */
   warmSignIn: () => void;
   signInOpened: () => void;
@@ -21,6 +27,7 @@ const ClerkRuntimeControlContext = createContext<ClerkRuntimeControl>({
   signInPending: false,
   afterSignInPath: null,
   requestSignIn: () => undefined,
+  requestPickSaveSignIn: () => undefined,
   warmSignIn: () => undefined,
   signInOpened: () => undefined,
   clearAfterSignInPath: () => undefined,

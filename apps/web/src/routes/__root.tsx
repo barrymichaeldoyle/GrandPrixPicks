@@ -67,6 +67,7 @@ import { AppConvexQueryCache } from '@/integrations/convex/queryCache';
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
 import { clerkFrontendApiOrigin } from '@/lib/clerkOrigin';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
+import { captureAnalyticsEvent } from '@/lib/analytics';
 import { markSignInRequested } from '@/lib/signInFunnel';
 import { useInAppView } from '@/hooks/useInAppView';
 import { isBareRoute } from '@/lib/bareRoutes';
@@ -102,6 +103,11 @@ const UnreadTabIndicator = lazy(() =>
 const AuthenticatedAppRuntime = lazy(() =>
   import('@/integrations/clerk/runtime-bundle').then((module) => ({
     default: module.AuthenticatedAppRuntime,
+  })),
+);
+const EmailSaveDialog = lazy(() =>
+  import('@/components/EmailSaveDialog').then((module) => ({
+    default: module.EmailSaveDialog,
   })),
 );
 const ClerkSignInOverlay = lazy(() =>
@@ -540,6 +546,8 @@ function AppRuntimeBoundary({
    */
   const ssrViewerDataMissing = useSsrViewerDataMissing();
   const [signInOpen, setSignInOpen] = useState(false);
+  /** The email-and-code save is open (Clerk-free routes only). */
+  const [emailSaveOpen, setEmailSaveOpen] = useState(false);
   /** Clicked, modal not on screen yet. Drives the button's own pending state. */
   const [signInPending, setSignInPending] = useState(false);
   const [afterSignInPath, setAfterSignInPath] = useState<
@@ -693,6 +701,25 @@ function AppRuntimeBoundary({
     });
   }
 
+  /**
+   * A signed-out visitor pressed save on their picks. Off the Clerk-free
+   * routes Clerk is already mounted and its modal is the only way in.
+   */
+  function requestPickSaveSignIn() {
+    if (clerkRequired) {
+      requestSignIn();
+      return;
+    }
+    // Boots Clerk beside the page while the visitor types their email; the
+    // dialog waits for it only when they send.
+    void preloadClerkRuntime();
+    setRuntimeWarm(true);
+    captureAnalyticsEvent('email_save_opened', {
+      path: window.location.pathname,
+    });
+    setEmailSaveOpen(true);
+  }
+
   function signInOpened() {
     setSignInPending(false);
   }
@@ -706,6 +733,7 @@ function AppRuntimeBoundary({
     signInPending,
     afterSignInPath,
     requestSignIn,
+    requestPickSaveSignIn,
     warmSignIn,
     signInOpened,
     clearAfterSignInPath: () => setAfterSignInPath(null),
@@ -732,6 +760,18 @@ function AppRuntimeBoundary({
                 appear, boot and disappear without React unmounting a single
                 node of the page behind it. The slot itself is always here so
                 the children keep their position in this array. */}
+            {emailSaveOpen ? (
+              <Suspense fallback={null}>
+                <EmailSaveDialog
+                  open
+                  onClose={() => setEmailSaveOpen(false)}
+                  onUseModal={() => {
+                    setEmailSaveOpen(false);
+                    requestSignIn();
+                  }}
+                />
+              </Suspense>
+            ) : null}
             {runtimeWarm ? (
               <Suspense fallback={null}>
                 <ClerkSignInOverlay

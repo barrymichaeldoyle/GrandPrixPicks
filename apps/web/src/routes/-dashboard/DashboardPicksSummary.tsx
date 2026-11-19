@@ -14,6 +14,7 @@ import { PicksFormActionRow } from '@/components/PicksSaveStatus';
 import { PredictionForm } from '@/components/PredictionForm/PredictionForm';
 import { SharePicksButton } from '@/components/SharePicksButton';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
+import { UsernamePrompt } from '@/components/UsernamePrompt';
 import { SESSION_LABELS } from '@/lib/sessions';
 import { buildPicksMessageText, buildPicksSharePageUrl } from '@/lib/share';
 
@@ -343,7 +344,9 @@ export function DashboardPicksSummary({
       {/* A saved, still-open card is when a reminder for the next one is
           worth offering: the player has just shown they will play. */}
       {hasCard && !session.hasResult ? (
-        <CalendarSubscribe surface="dashboard" />
+        <UsernamePrompt surface="dashboard">
+          <CalendarSubscribe surface="dashboard" />
+        </UsernamePrompt>
       ) : null}
 
       <H2HDuelFocusModal

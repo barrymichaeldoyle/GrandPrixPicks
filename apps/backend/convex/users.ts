@@ -1208,10 +1208,10 @@ export const updateProfile = mutation({
 
       if (trimmed !== viewer.username) {
         if (trimmed.length < 3 || trimmed.length > 30) {
-          throw new Error('Username must be between 3 and 30 characters');
+          throw new ConvexError('Username must be between 3 and 30 characters');
         }
         if (!USERNAME_REGEX.test(trimmed)) {
-          throw new Error(
+          throw new ConvexError(
             'Username can only contain lowercase letters, numbers, underscores, and hyphens',
           );
         }
@@ -1226,7 +1226,7 @@ export const updateProfile = mutation({
             const nextDate = new Date(
               viewer.usernameChangedAt + USERNAME_COOLDOWN_MS,
             );
-            throw new Error(
+            throw new ConvexError(
               `You can change your username again on ${nextDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`,
             );
           }
@@ -1238,11 +1238,16 @@ export const updateProfile = mutation({
           .withIndex('by_username', (q) => q.eq('username', trimmed))
           .unique();
         if (existing && existing._id !== viewer._id) {
-          throw new Error('Username already taken');
+          throw new ConvexError('Username already taken');
         }
 
         patch.username = trimmed;
-        patch.usernameChangedAt = now;
+        // Choosing a first username is not a change: sign-up no longer asks
+        // for one (2026-11-19), so the first is picked after the first save,
+        // and starting the 90-day lock there would strand a typo.
+        if (viewer.username) {
+          patch.usernameChangedAt = now;
+        }
       }
     }
 

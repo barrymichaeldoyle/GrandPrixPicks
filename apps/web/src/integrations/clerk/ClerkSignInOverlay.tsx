@@ -1,6 +1,8 @@
 import { useAuth, useClerk } from '@clerk/react';
 import { useEffect, useRef } from 'react';
 
+import { publishClerk, type HeadlessClerk } from '@/lib/emailCodeAuth';
+
 import { AppClerkProvider } from './provider';
 import { signInOptions } from './signInOptions';
 
@@ -51,6 +53,14 @@ function SignInModalController({
   const clerk = useClerk();
   const { isLoaded, isSignedIn } = useAuth();
   const hasOpenedRef = useRef(false);
+
+  // Hands the loaded instance to the email-and-code save, which runs on routes
+  // that may not import Clerk (`lib/emailCodeAuth.ts`).
+  useEffect(() => {
+    if (isLoaded) {
+      publishClerk(clerk as unknown as HeadlessClerk);
+    }
+  }, [clerk, isLoaded]);
 
   useEffect(() => {
     if (!open || !isLoaded || hasOpenedRef.current) {

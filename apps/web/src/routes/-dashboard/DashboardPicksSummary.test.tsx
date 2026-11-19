@@ -1,5 +1,5 @@
 import type { Doc, Id } from '@convex-generated/dataModel';
-import { act } from 'react';
+import { act, type ReactNode } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -83,6 +83,11 @@ vi.mock('@/components/H2HPredictionForm', () => ({
   H2HPredictionForm: ({ sessionType }: { sessionType?: string }) => (
     <div data-testid="h2h-form" data-session={sessionType ?? 'cascade'} />
   ),
+}));
+
+// The username ask reads the viewer; these tests are about the card.
+vi.mock('@/components/UsernamePrompt', () => ({
+  UsernamePrompt: ({ children }: { children?: ReactNode }) => children,
 }));
 
 vi.mock('@/components/H2HDuelFocusModal', () => ({

@@ -764,7 +764,7 @@ export function PredictionForm({
       if (analyticsSource === 'landing') {
         captureAnalyticsEvent('landing_auth_started', analyticsProperties());
       }
-      clerkRuntime.requestSignIn();
+      clerkRuntime.requestPickSaveSignIn();
       return;
     }
     void handleSubmit(options);

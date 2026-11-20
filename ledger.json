@@ -1800,7 +1800,7 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=las-vegas-2026&story=las-vegas-grid-penalties-five-drivers&v=599af625a3c8",
       "dueAt": "2026-11-20T07:30:00.000Z",
       "expiresAt": "2026-11-22T04:00:00.000Z",
-      "status": "creating",
+      "status": "scheduled",
       "bufferPostId": "6affe3b7ca85ebefb0fea076"
     }
   ]

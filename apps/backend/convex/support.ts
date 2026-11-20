@@ -1,8 +1,12 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import { mutation } from './_generated/server';
 import { getOrCreateViewer, requireViewer } from './lib/auth';
+
+const HOUR_MS = 60 * 60 * 1000;
+/** Player reports share the table and count towards this too. */
+const MAX_REQUESTS_PER_HOUR = 5;
 
 /** Longest derived subject, well inside the stored field's 200. */
 const DERIVED_SUBJECT_MAX = 80;
@@ -44,6 +48,22 @@ export const submitRequest = mutation({
 
     if (!subject || subject.length > 200) {
       throw new Error('Subject must be between 1 and 200 characters');
+    }
+
+    // Every request emails the support inbox, so one account in a loop could
+    // flood it and spend the Resend quota.
+    const recent = await ctx.db
+      .query('supportRequests')
+      .withIndex('by_user', (q) => q.eq('userId', viewer._id))
+      .order('desc')
+      .take(MAX_REQUESTS_PER_HOUR);
+    if (
+      recent.length === MAX_REQUESTS_PER_HOUR &&
+      recent.every((request) => now - request.createdAt < HOUR_MS)
+    ) {
+      throw new ConvexError(
+        `You’ve sent ${MAX_REQUESTS_PER_HOUR} messages in the last hour. Try again later.`,
+      );
     }
 
     await ctx.db.insert('supportRequests', {

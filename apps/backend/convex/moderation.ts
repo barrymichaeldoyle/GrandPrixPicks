@@ -130,6 +130,22 @@ export const reportUser = mutation({
       throw new ConvexError('You cannot report yourself');
     }
 
+    // One open report per pair is enough: each report emails the support
+    // inbox, and a repeat adds nothing a moderator can act on.
+    const mine = await ctx.db
+      .query('supportRequests')
+      .withIndex('by_user', (q) => q.eq('userId', viewer._id))
+      .order('desc')
+      .take(200);
+    if (
+      mine.some(
+        (request) =>
+          request.status === 'open' && request.reportedUserId === reported._id,
+      )
+    ) {
+      return null;
+    }
+
     const now = Date.now();
     const name = reported.username ? `@${reported.username}` : reported._id;
     const subject = `Player report: ${name}`;

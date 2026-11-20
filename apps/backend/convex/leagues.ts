@@ -1,4 +1,4 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
@@ -589,8 +589,9 @@ export const joinLeague = mutation({
         .unique();
 
       if (attempt?.lockedUntil && attempt.lockedUntil > now) {
-        throw new Error(
-          'Too many incorrect password attempts. Please try again later.',
+        // A ConvexError: production hides the text of a plain Error.
+        throw new ConvexError(
+          'Too many incorrect passwords. Try again in 15 minutes.',
         );
       }
 
@@ -607,7 +608,10 @@ export const joinLeague = mutation({
           attempt,
           now,
         );
-        throw new Error('Incorrect password');
+        // Returned, not thrown: a thrown mutation rolls back its writes, so
+        // throwing here discarded the attempt just recorded and the lockout
+        // could never be reached.
+        return { joined: false as const, reason: 'incorrect_password' as const };
       }
 
       // Success: clear the throttle and migrate any legacy plaintext password
@@ -633,7 +637,12 @@ export const joinLeague = mutation({
       // re-fire the mutation after the membership already exists. Return the
       // success shape rather than throwing — the user's intent (be a member)
       // is already satisfied.
-      return { leagueId: league._id, slug: league.slug, alreadyMember: true };
+      return {
+        joined: true as const,
+        leagueId: league._id,
+        slug: league.slug,
+        alreadyMember: true,
+      };
     }
 
     const currentMembers = await ctx.db
@@ -705,7 +714,12 @@ export const joinLeague = mutation({
       updatedAt: Date.now(),
     });
 
-    return { leagueId: league._id, slug: league.slug, alreadyMember: false };
+    return {
+      joined: true as const,
+      leagueId: league._id,
+      slug: league.slug,
+      alreadyMember: false,
+    };
   },
 });
 

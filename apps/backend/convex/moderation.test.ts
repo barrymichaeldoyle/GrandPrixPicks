@@ -100,6 +100,17 @@ describe('reportUser', () => {
       subject: 'Player report: @bob',
     });
   });
+
+  it('files one report while the first is still open', async () => {
+    const { t, bob, as } = await seed();
+    await as('alice').mutation(api.moderation.reportUser, { userId: bob });
+    await as('alice').mutation(api.moderation.reportUser, { userId: bob });
+
+    const requests = await t.run((ctx) =>
+      ctx.db.query('supportRequests').collect(),
+    );
+    expect(requests).toHaveLength(1);
+  });
 });
 
 describe('updateProfile', () => {

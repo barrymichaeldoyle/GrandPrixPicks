@@ -146,10 +146,19 @@ function JoinSection({
     setError(null);
     setIsJoining(true);
     try {
-      await joinLeague({
+      const result = await joinLeague({
         leagueId,
         password: password || undefined,
       });
+      if (!result.joined) {
+        captureAnalyticsEvent('league_join_failed', {
+          league_id: leagueId,
+          had_password: hasPassword,
+        });
+        setError('That password is incorrect.');
+        setIsJoining(false);
+        return;
+      }
       captureAnalyticsEvent('league_joined', {
         league_id: leagueId,
         had_password: hasPassword,

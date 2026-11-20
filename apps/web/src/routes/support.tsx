@@ -6,6 +6,10 @@ import { AlertCircle, Loader2, Mail } from 'lucide-react';
 import type { SubmitEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
+import {
+  SEND_AFTER_SIGN_IN_WINDOW_MS,
+  useSessionDraft,
+} from '@/hooks/useSessionDraft';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '@/components/Button/Button';
@@ -50,6 +54,20 @@ function SupportPage() {
   /** Set when a signed-out visitor presses send, revealing the two routes out. */
   const [needsIdentity, setNeedsIdentity] = useState(false);
   const autoSubmittedRef = useRef(false);
+
+  const hasDraft = Boolean(subject || message || category);
+  useSessionDraft(
+    'gpp:support-draft',
+    hasDraft ? { subject, category, message, needsIdentity } : null,
+    (draft, ageMs) => {
+      setSubject(draft.subject);
+      setCategory(draft.category);
+      setMessage(draft.message);
+      setNeedsIdentity(
+        draft.needsIdentity && ageMs < SEND_AFTER_SIGN_IN_WINDOW_MS,
+      );
+    },
+  );
 
   async function send() {
     setError(null);
@@ -96,9 +114,9 @@ function SupportPage() {
    * They already pressed send, so finishing sign-in is consent to send — asking
    * them to press it a second time would be asking twice for one decision.
    *
-   * `/support` is not the landing page, so Clerk is already mounted here and the
-   * modal never remounts this route: the typed message is still in state when
-   * this fires.
+   * `/support` is a Clerk-free route, so signing in swaps the provider tree
+   * and remounts this page. `useSessionDraft` brings the message and this
+   * intent back, which is what lets the effect fire on the far side.
    */
   useEffect(() => {
     if (

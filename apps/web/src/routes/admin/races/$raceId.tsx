@@ -451,15 +451,22 @@ function AdminRaceDetailPage() {
     }
   }
 
-  if (isAdmin === undefined || race === undefined || drivers === undefined) {
-    return <PageLoader />;
-  }
-
-  if (!isAdmin) {
+  if (isAdmin === false) {
     return <NotFoundPage />;
   }
 
-  if (!race) {
+  // `drivers` is skipped while there is no race, and a skipped query stays
+  // undefined: waiting on it for an unknown id spun forever.
+  if (
+    isAdmin === undefined ||
+    race === undefined ||
+    (race !== null && drivers === undefined)
+  ) {
+    return <PageLoader />;
+  }
+
+  // `drivers` cannot be undefined past the loader above; this is for the types.
+  if (!race || drivers === undefined) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
         <div className="mx-auto max-w-4xl px-4 py-6">

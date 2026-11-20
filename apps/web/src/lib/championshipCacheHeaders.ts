@@ -12,9 +12,9 @@ import { applySsrCacheControl } from './ssrCacheHeaders';
  * home page, with a generous stale window so a cache miss never puts a crawler
  * behind that Convex round trip.
  *
- * Adding a page here is only half the job: the edge Cache Rule in
- * `scripts/apply-cache-rules.mjs` lists the paths that are eligible at all, so
- * a new path has to be added there and the script re-run.
+ * The edge Cache Rule is zone-wide, so a page added here needs no rule change.
+ * Do not run `scripts/apply-cache-rules.mjs` for it: the script still holds an
+ * old three-path list and replaces the live rules whole.
  */
 const applyChampionshipCacheHeaders = createServerFn({ method: 'GET' }).handler(
   async (): Promise<void> => {

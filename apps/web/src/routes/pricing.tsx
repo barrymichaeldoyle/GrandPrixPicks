@@ -1,9 +1,12 @@
+import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { useConvexAuth } from 'convex/react';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
+import { useQuery } from '@/integrations/convex/query';
 
 import { Button } from '@/components/Button/Button';
 import { SignInActionButton } from '@/integrations/clerk/SignInActionButton';
@@ -36,6 +39,13 @@ function PricingPage() {
   // SSR-resolved so the checkout CTA renders the right variant on the first
   // paint instead of flashing "Sign in to continue" before Clerk boots.
   const { isSignedIn } = useViewerSession();
+  // Skipped until the token reaches Convex: asked any earlier it answers as a
+  // guest, and "no pass" would put the buy button in front of a pass holder.
+  const { isAuthenticated } = useConvexAuth();
+  const hasPass = useQuery(
+    api.users.hasSeasonPassForSeason,
+    isAuthenticated ? { season: 2026 } : 'skip',
+  );
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const [isStartingCheckout, setIsStartingCheckout] = useState(false);
@@ -160,7 +170,15 @@ function PricingPage() {
             </li>
           </ul>
 
-          {isSignedIn ? (
+          {isSignedIn && hasPass ? (
+            <p className="flex items-center gap-2 text-sm font-medium text-text">
+              <CheckCircle2
+                className="h-4 w-4 shrink-0 text-success"
+                aria-hidden
+              />
+              You have the 2026 Season Pass.
+            </p>
+          ) : isSignedIn ? (
             <Button
               type="button"
               onClick={() => {
@@ -179,10 +197,12 @@ function PricingPage() {
             </SignInActionButton>
           )}
 
-          <p className="mt-3 text-sm text-text-muted">
-            Secure checkout via Paddle.
-          </p>
-          {isSignedIn ? (
+          {hasPass ? null : (
+            <p className="mt-3 text-sm text-text-muted">
+              Secure checkout via Paddle.
+            </p>
+          )}
+          {isSignedIn && !hasPass ? (
             <p className="mt-1 text-xs text-text-muted">
               You will be redirected to Paddle to complete payment.
             </p>

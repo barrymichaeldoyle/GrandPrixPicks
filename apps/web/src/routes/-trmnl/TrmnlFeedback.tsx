@@ -8,6 +8,10 @@ import {
   useClerkRuntimeControl,
   useClerkWarmHandlers,
 } from '@/integrations/clerk/runtime-control';
+import {
+  SEND_AFTER_SIGN_IN_WINDOW_MS,
+  useSessionDraft,
+} from '@/hooks/useSessionDraft';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
@@ -25,8 +29,8 @@ const SOURCE = 'trmnl_page';
  *
  * A signed-out visitor writes first and signs in on send; finishing sign-in
  * sends it, as on `/support`. `/trmnl` is a Clerk-free route, so sign-in goes
- * through `requestSignIn`, which opens the modal beside the page without
- * remounting it, and the draft survives.
+ * through `requestSignIn`. Signing in swaps the provider tree and remounts the
+ * page, so the draft and the intent to send it ride through `useSessionDraft`.
  */
 export function TrmnlFeedback() {
   const submitRequest = useMutation(api.support.submitRequest);
@@ -43,6 +47,17 @@ export function TrmnlFeedback() {
   /** Set when a signed-out visitor presses send, so sign-in sends it. */
   const [sendAfterSignIn, setSendAfterSignIn] = useState(false);
   const autoSentRef = useRef(false);
+
+  useSessionDraft(
+    'gpp:trmnl-feedback-draft',
+    message ? { message, sendAfterSignIn } : null,
+    (draft, ageMs) => {
+      setMessage(draft.message);
+      setSendAfterSignIn(
+        draft.sendAfterSignIn && ageMs < SEND_AFTER_SIGN_IN_WINDOW_MS,
+      );
+    },
+  );
 
   async function send() {
     const trimmed = message.trim();

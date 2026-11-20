@@ -23,6 +23,7 @@ import {
 import { promotedRaceRecap } from '@grandprixpicks/shared/raceRecap';
 import { useIsBefore } from '@/lib/testing/now';
 import { bucketWeatherNow } from '@/lib/weatherNow';
+import { useConvexAuth } from 'convex/react';
 import { useState } from 'react';
 
 import { DashboardPracticeCard } from './DashboardPracticeCard';
@@ -63,12 +64,23 @@ export function DashboardPage({
     useQuery(api.races.getCurrentWeekend, {}),
     initialDashboard?.weekend ?? undefined,
   );
+  /*
+   * The viewer's own reads wait for the token to reach Convex. Subscribed any
+   * earlier they answer as a guest, and that answer is a real null or an empty
+   * list, which `liveOrSsr` lets win: a reload painted the server's "your
+   * leagues", emptied it, then filled it back in when auth landed. Skipped,
+   * they stay undefined and the SSR value holds until the real answer.
+   */
+  const { isAuthenticated } = useConvexAuth();
   const me = liveOrSsr(
-    useQuery(api.users.me, {}),
+    useQuery(api.users.me, isAuthenticated ? {} : 'skip'),
     initialDashboard?.me ?? undefined,
   );
   const latestScoredWeekend = liveOrSsr(
-    useQuery(api.predictions.getMyLatestScoredWeekend, me ? {} : 'skip'),
+    useQuery(
+      api.predictions.getMyLatestScoredWeekend,
+      me && isAuthenticated ? {} : 'skip',
+    ),
     initialDashboard ? initialDashboard.latestScoredWeekend : undefined,
   );
   const seasonLeaderboard = liveOrSsr(
@@ -76,7 +88,7 @@ export function DashboardPage({
     initialDashboard?.seasonLeaderboard ?? undefined,
   );
   const leagues = liveOrSsr(
-    useQuery(api.leagues.getMyLeagues),
+    useQuery(api.leagues.getMyLeagues, isAuthenticated ? {} : 'skip'),
     initialDashboard?.leagues ?? undefined,
   );
   // Bucketed so a client navigation reuses the cached subscription instead of

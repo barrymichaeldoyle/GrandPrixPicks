@@ -29,6 +29,7 @@ type PaddleCompletedTransactionEvent = {
     };
     items?: {
       price?: {
+        id?: string;
         product_id?: string;
       };
     }[];
@@ -44,6 +45,13 @@ type PaddleCompletedTransactionEvent = {
 const PADDLE_API_BASE = 'https://api.paddle.com';
 const PADDLE_VERSION = '1';
 const DEFAULT_SEASON = 2026;
+/**
+ * The seasons a pass is on sale for. Billing is pinned to 2026 and there is
+ * one price. The checkout route and the webhook both hold to this: Paddle.js
+ * can open a checkout from the browser with any custom data, so a season
+ * checked only at our checkout route sold a 2031 pass at the 2026 price.
+ */
+export const SELLABLE_SEASONS: ReadonlySet<number> = new Set([2026]);
 
 export function getPaddleConfig() {
   const apiKey = process.env.PADDLE_API_KEY;
@@ -230,6 +238,22 @@ export async function grantSeasonPassFromWebhook(
     return { handled: false, reason: 'missing_custom_data' as const };
   }
   const normalizedSeason = Number(season);
+  if (!SELLABLE_SEASONS.has(normalizedSeason)) {
+    return { handled: false, reason: 'season_not_sellable' as const };
+  }
+  // Only the season pass price grants a pass. A transaction for anything else
+  // on the Paddle account must not, whatever its custom data says.
+  const seasonPassPriceId = process.env.PADDLE_SEASON_PASS_PRICE_ID;
+  const paidPriceIds = (event.data?.items ?? [])
+    .map((item) => item.price?.id)
+    .filter((id) => id !== undefined);
+  if (
+    seasonPassPriceId &&
+    paidPriceIds.length > 0 &&
+    !paidPriceIds.includes(seasonPassPriceId)
+  ) {
+    return { handled: false, reason: 'not_season_pass_price' as const };
+  }
 
   const convexUrl = process.env.VITE_CONVEX_URL;
   const webhookKey = process.env.PADDLE_CONVEX_WEBHOOK_KEY;

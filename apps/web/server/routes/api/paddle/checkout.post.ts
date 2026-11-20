@@ -1,14 +1,11 @@
 import { getAuthenticatedClerkIdentity } from '../../../lib/auth';
-import { createPaddleSeasonCheckout } from '../../../lib/paddle';
+import {
+  createPaddleSeasonCheckout,
+  SELLABLE_SEASONS,
+} from '../../../lib/paddle';
 import { captureServerException, startServerSpan } from '../../../lib/sentry';
 
 const DEFAULT_SEASON = 2026;
-/**
- * The seasons a pass is on sale for. Billing is pinned to 2026: there is one
- * price, and the webhook grants whatever season the checkout carried, so an
- * open range sold a 2031 pass at the 2026 price.
- */
-const SELLABLE_SEASONS: ReadonlySet<number> = new Set([2026]);
 const JSON_HEADERS = { 'content-type': 'application/json' } as const;
 
 type RouteEvent = {

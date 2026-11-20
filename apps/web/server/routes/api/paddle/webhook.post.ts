@@ -100,6 +100,23 @@ export default async function handler(event: RouteEvent) {
       reason: 'reason' in result ? result.reason : null,
     });
 
+    // Paid, but for a season or a price that does not grant a pass. Nothing
+    // to retry, but a completed payment that granted nothing needs a person.
+    if (
+      !result.handled &&
+      (result.reason === 'season_not_sellable' ||
+        result.reason === 'not_season_pass_price')
+    ) {
+      captureServerException(new Error('Paddle payment granted no pass'), {
+        name: 'api.paddle.webhook',
+        tags: {
+          failure_type: result.reason,
+          event_type: webhookEvent.event_type,
+          event_id: webhookEvent.event_id,
+        },
+      });
+    }
+
     // Paid, but no player to grant the pass to. The backend records this as
     // non-terminal precisely so a retry can grant it once the user row exists
     // (a sign-up whose Clerk webhook has not landed yet), but Paddle never

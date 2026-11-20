@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/las-vegas-2026-2026-11-20-morning.json",
+  "startAt": "2026-11-20T07:30:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["las-vegas-grid-penalties-five-drivers"],
+      "text": "Five drivers start Las Vegas with grid penalties: Sainz, Stroll and Piastri lose 10 places, Antonelli five, and Bearman is set to start at the back.",
+      "link": "https://grandprixpicks.com/f1-2026-las-vegas-grand-prix-predictions?story=las-vegas-grid-penalties-five-drivers",
+      "expiresAt": "2026-11-22T04:00:00Z"
+    }
+  ]
+}

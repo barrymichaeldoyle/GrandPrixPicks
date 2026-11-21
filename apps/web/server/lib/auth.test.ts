@@ -1,9 +1,12 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import {
+  allowRemoteVerify,
   buildConvexTokenIdentifier,
   clerkJwtKey,
   isClerkSessionPresent,
+  rememberVerifiedKid,
+  resetRemoteVerifyBudget,
 } from './auth';
 
 // `pk_test_` + base64("rare-chimp-58.clerk.accounts.dev$"), whose SHA-1 gives
@@ -129,5 +132,44 @@ describe('clerkJwtKey', () => {
     expect(clerkJwtKey('')).toBeUndefined();
     expect(clerkJwtKey('{"kty":"RSA","e":"AQAB"}')).toBeUndefined();
     expect(clerkJwtKey(`"${pem.join('\n')}"`)).toBeUndefined();
+  });
+});
+
+describe('allowRemoteVerify', () => {
+  beforeEach(() => {
+    resetRemoteVerifyBudget();
+  });
+
+  it('refuses a token with no key id', () => {
+    expect(allowRemoteVerify(null)).toBe(false);
+  });
+
+  it('caps unseen key ids per minute, then opens again', () => {
+    const now = 1_000_000;
+    const allowed = Array.from({ length: 8 }, (_, i) =>
+      allowRemoteVerify(`forged-${i}`, now),
+    );
+    expect(allowed).toEqual([
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+    ]);
+
+    expect(allowRemoteVerify('forged-next', now + 61_000)).toBe(true);
+  });
+
+  it('always allows a key id that has verified before', () => {
+    const now = 1_000_000;
+    rememberVerifiedKid('ins_real');
+    for (let i = 0; i < 10; i++) {
+      allowRemoteVerify(`forged-${i}`, now);
+    }
+
+    expect(allowRemoteVerify('ins_real', now)).toBe(true);
   });
 });

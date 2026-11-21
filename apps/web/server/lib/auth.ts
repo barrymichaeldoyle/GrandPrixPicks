@@ -197,6 +197,73 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
   }
 }
 
+function decodeJwtHeaderKid(token: string): string | null {
+  const header = token.split('.')[0];
+  if (!header) {
+    return null;
+  }
+  try {
+    const base64 = header.replace(/-/g, '+').replace(/_/g, '/');
+    const json = atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, '='));
+    const parsed: unknown = JSON.parse(json);
+    const kid =
+      typeof parsed === 'object' && parsed !== null
+        ? (parsed as { kid?: unknown }).kid
+        : undefined;
+    return typeof kid === 'string' && kid ? kid : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Verifying against Clerk's JWKS (no local key) looks the signing key up by
+ * the token's `kid` before it checks anything else, and a `kid` this isolate
+ * has not seen costs a Backend API call. Anyone can send a cookie with a new
+ * random `kid` on every request, and a cookie also bypasses the edge cache, so
+ * without a limit a signed-out request could be turned into a Clerk API call
+ * each time, spending the rate limit real sign-ins and checkout depend on.
+ *
+ * A `kid` that has verified once is free from then on. Unseen ones share a
+ * small per-isolate budget, which is plenty for Clerk rotating its key.
+ */
+const verifiedKids = new Set<string>();
+const UNSEEN_KID_BUDGET = 5;
+const UNSEEN_KID_WINDOW_MS = 60_000;
+let unseenKidWindowStartedAt = 0;
+let unseenKidAttempts = 0;
+
+export function allowRemoteVerify(
+  kid: string | null,
+  now: number = Date.now(),
+): boolean {
+  if (!kid) {
+    return false;
+  }
+  if (verifiedKids.has(kid)) {
+    return true;
+  }
+  if (now - unseenKidWindowStartedAt > UNSEEN_KID_WINDOW_MS) {
+    unseenKidWindowStartedAt = now;
+    unseenKidAttempts = 0;
+  }
+  unseenKidAttempts += 1;
+  return unseenKidAttempts <= UNSEEN_KID_BUDGET;
+}
+
+export function rememberVerifiedKid(kid: string | null) {
+  if (kid) {
+    verifiedKids.add(kid);
+  }
+}
+
+/** For tests: forget every `kid` and reset the budget. */
+export function resetRemoteVerifyBudget() {
+  verifiedKids.clear();
+  unseenKidWindowStartedAt = 0;
+  unseenKidAttempts = 0;
+}
+
 function sessionTokenExpiresAt(token: string): number | null {
   const exp = decodeJwtPayload(token)?.exp;
   return typeof exp === 'number' ? exp * 1000 : null;
@@ -268,9 +335,17 @@ async function mintSessionToken(
       clockSkewInMs: STALE_SESSION_GRACE_MS,
     });
   }
+  const kid = decodeJwtHeaderKid(expiredToken);
   let payload: Awaited<ReturnType<typeof verify>>;
   try {
+    if (!jwtKey && !allowRemoteVerify(kid)) {
+      logMintFailure('remote_verify_budget');
+      return null;
+    }
     payload = await verify(jwtKey);
+    if (!jwtKey) {
+      rememberVerifiedKid(kid);
+    }
   } catch (error) {
     if (!jwtKey) {
       logMintFailure('verify', error);
@@ -278,8 +353,13 @@ async function mintSessionToken(
     }
     // A PEM that parses can still be another instance's key, so a rejection
     // with the local key gets one try against Clerk's own JWKS.
+    if (!allowRemoteVerify(kid)) {
+      logMintFailure('remote_verify_budget');
+      return null;
+    }
     try {
       payload = await verify(undefined);
+      rememberVerifiedKid(kid);
     } catch (retryError) {
       logMintFailure('verify', retryError);
       return null;

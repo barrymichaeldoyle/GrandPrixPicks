@@ -2,14 +2,21 @@ import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useConvexAuth } from 'convex/react';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { useQuery } from '@/integrations/convex/query';
 
 import { Button } from '@/components/Button/Button';
-import { SignInActionButton } from '@/integrations/clerk/SignInActionButton';
+import {
+  useClerkRuntimeControl,
+  useClerkWarmHandlers,
+} from '@/integrations/clerk/runtime-control';
+import {
+  SEND_AFTER_SIGN_IN_WINDOW_MS,
+  useSessionDraft,
+} from '@/hooks/useSessionDraft';
 import { FaqItem, FaqSection } from '@/components/Faq';
 import { PageHeader } from '@/components/PageHeader';
 import { pageMeta } from '@/lib/site';
@@ -51,6 +58,22 @@ function PricingPage() {
   const [isStartingCheckout, setIsStartingCheckout] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const showCheckoutCancelled = search.checkout === 'cancelled';
+  const { requestSignIn, signInPending } = useClerkRuntimeControl();
+  const warmHandlers = useClerkWarmHandlers();
+  /**
+   * Set when a guest presses the buy button. Signing in was the step between
+   * them and checkout, so finishing it starts checkout. Kept in session
+   * storage because `/pricing` is Clerk-free: sign-in remounts the page.
+   */
+  const [checkoutAfterSignIn, setCheckoutAfterSignIn] = useState(false);
+  const resumedRef = useRef(false);
+  useSessionDraft(
+    'gpp:pricing-checkout-after-sign-in',
+    checkoutAfterSignIn ? true : null,
+    (_pending, ageMs) => {
+      setCheckoutAfterSignIn(ageMs < SEND_AFTER_SIGN_IN_WINDOW_MS);
+    },
+  );
 
   async function startCheckout() {
     setCheckoutError(null);
@@ -97,6 +120,24 @@ function PricingPage() {
       setIsStartingCheckout(false);
     }
   }
+
+  // Waits for the pass query: a guest who signs in as a pass holder must not
+  // be sent to buy it again.
+  useEffect(() => {
+    if (!checkoutAfterSignIn || !isAuthenticated || hasPass === undefined) {
+      return;
+    }
+    if (resumedRef.current) {
+      return;
+    }
+    resumedRef.current = true;
+    setCheckoutAfterSignIn(false);
+    if (!hasPass) {
+      void startCheckout();
+    }
+    // `startCheckout` is recreated each render; the ref keeps this to one run.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkoutAfterSignIn, isAuthenticated, hasPass]);
 
   return (
     <div className="mx-auto max-w-(--page-max) bg-page px-4 py-6 sm:py-8">
@@ -192,9 +233,21 @@ function PricingPage() {
               Get 2026 Season Pass
             </Button>
           ) : (
-            <SignInActionButton size="sm" rightIcon={ArrowRight}>
+            <Button
+              type="button"
+              size="sm"
+              rightIcon={ArrowRight}
+              {...warmHandlers}
+              loading={signInPending}
+              aria-busy={signInPending || undefined}
+              onClick={() => {
+                resumedRef.current = false;
+                setCheckoutAfterSignIn(true);
+                requestSignIn();
+              }}
+            >
               Sign in to continue
-            </SignInActionButton>
+            </Button>
           )}
 
           {hasPass ? null : (

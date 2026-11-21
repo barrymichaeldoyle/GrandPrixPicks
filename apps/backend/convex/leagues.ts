@@ -611,7 +611,10 @@ export const joinLeague = mutation({
         // Returned, not thrown: a thrown mutation rolls back its writes, so
         // throwing here discarded the attempt just recorded and the lockout
         // could never be reached.
-        return { joined: false as const, reason: 'incorrect_password' as const };
+        return {
+          joined: false as const,
+          reason: 'incorrect_password' as const,
+        };
       }
 
       // Success: clear the throttle and migrate any legacy plaintext password

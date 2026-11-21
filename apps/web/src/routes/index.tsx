@@ -1,6 +1,6 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';
 import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
@@ -218,6 +218,21 @@ export const Route = createFileRoute('/')({
 function HomePage() {
   const { isSignedIn } = useViewerSession();
   const { dashboard, drivers, h2hMatchups } = Route.useLoaderData();
+  /*
+   * The seed belongs to whoever was signed in when the loader ran. A session
+   * that ends with no navigation (signed out in another tab) leaves it in the
+   * loader data, and the next person to sign in on this tab would see the last
+   * player's dashboard until their own queries answered. Once the tab has been
+   * signed out, that seed is never used again; a fresh loader run brings a new
+   * one. `isSignedIn` holds through Clerk's boot, so this is a real sign-out.
+   */
+  const [abandonedSeed, setAbandonedSeed] = useState<typeof dashboard>(null);
+  // Set during render, React's pattern for state derived from a change, so the
+  // stale seed never reaches a commit.
+  if (!isSignedIn && dashboard && abandonedSeed !== dashboard) {
+    setAbandonedSeed(dashboard);
+  }
+  const seed = dashboard !== abandonedSeed ? dashboard : null;
 
   useEffect(() => {
     document.title = isSignedIn ? DASHBOARD_TITLE : PUBLIC_HOME_TITLE;
@@ -228,7 +243,7 @@ function HomePage() {
       <AuthenticatedDashboard
         initialDrivers={drivers}
         initialMatchups={h2hMatchups}
-        initialDashboard={dashboard}
+        initialDashboard={seed}
       />
     </Suspense>
   ) : (

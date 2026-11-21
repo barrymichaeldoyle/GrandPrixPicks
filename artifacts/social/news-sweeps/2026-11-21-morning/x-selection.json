@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../../news/las-vegas-2026-2026-11-21-morning.json",
+  "startAt": "2026-11-21T07:30:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["las-vegas-starting-grid"],
+      "text": "Verstappen starts the Las Vegas Grand Prix from pole. Antonelli set the fastest qualifying time and drops to sixth after a five-place engine penalty. Piastri starts 17th and Bearman last.",
+      "link": "https://grandprixpicks.com/f1-2026-las-vegas-grand-prix-predictions?story=las-vegas-starting-grid",
+      "expiresAt": "2026-11-22T03:30:00Z"
+    }
+  ]
+}

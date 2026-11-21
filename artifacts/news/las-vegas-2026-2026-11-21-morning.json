@@ -1,0 +1,173 @@
+[
+  {
+    "raceSlug": "las-vegas-2026",
+    "key": "las-vegas-starting-grid",
+    "headline": "The Las Vegas grid is set",
+    "body": "Verstappen starts from pole with Russell alongside and Norris third. Antonelli set the fastest qualifying time and drops to sixth after a five-place penalty. Piastri starts 17th, Sainz and Stroll 20th and 21st, and Bearman last. Lindblad is under investigation for an unsafe release in qualifying.",
+    "category": "pick_related",
+    "affectsSessions": [
+      "race"
+    ],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/11/21/2026-las-vegas-grand-prix-grid/",
+    "sourcePublishedAt": "2026-11-21T05:12:03Z",
+    "startingGrid": [
+      {
+        "position": 1,
+        "code": "VER"
+      },
+      {
+        "position": 2,
+        "code": "RUS"
+      },
+      {
+        "position": 3,
+        "code": "NOR"
+      },
+      {
+        "position": 4,
+        "code": "HAD"
+      },
+      {
+        "position": 5,
+        "code": "LIN"
+      },
+      {
+        "position": 6,
+        "code": "ANT",
+        "note": "5-place penalty",
+        "newsKey": "las-vegas-grid-penalties-five-drivers"
+      },
+      {
+        "position": 7,
+        "code": "LAW"
+      },
+      {
+        "position": 8,
+        "code": "GAS"
+      },
+      {
+        "position": 9,
+        "code": "COL"
+      },
+      {
+        "position": 10,
+        "code": "LEC"
+      },
+      {
+        "position": 11,
+        "code": "HAM"
+      },
+      {
+        "position": 12,
+        "code": "HUL"
+      },
+      {
+        "position": 13,
+        "code": "BOR"
+      },
+      {
+        "position": 14,
+        "code": "ALB"
+      },
+      {
+        "position": 15,
+        "code": "CAM"
+      },
+      {
+        "position": 16,
+        "code": "PER"
+      },
+      {
+        "position": 17,
+        "code": "PIA",
+        "note": "10-place penalty",
+        "newsKey": "piastri-las-vegas-engine-grid-penalty"
+      },
+      {
+        "position": 18,
+        "code": "ALO"
+      },
+      {
+        "position": 19,
+        "code": "BOT"
+      },
+      {
+        "position": 20,
+        "code": "SAI",
+        "note": "10-place penalty",
+        "newsKey": "las-vegas-grid-penalties-five-drivers"
+      },
+      {
+        "position": 21,
+        "code": "STR",
+        "note": "10-place penalty",
+        "newsKey": "las-vegas-grid-penalties-five-drivers"
+      },
+      {
+        "position": 22,
+        "code": "BEA",
+        "note": "35-place penalty",
+        "newsKey": "las-vegas-grid-penalties-five-drivers"
+      }
+    ]
+  },
+  {
+    "raceSlug": "las-vegas-2026",
+    "key": "verstappen-russell-fp3-warning",
+    "headline": "Verstappen gets a warning for his clash with Russell",
+    "body": "Verstappen receives a driver warning for changing direction under braking at turn 14 and touching Russell's Mercedes in final practice. The stewards took no further action over his run-in with Colapinto, and Albon is reprimanded for erratic driving in front of Hadjar. None of the three decisions carries a grid penalty.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": [
+      "VER"
+    ],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/11/21/verstappen-warned-over-russell-incident-cleared-over-colapinto-incident-in-practice/",
+    "sourcePublishedAt": "2026-11-21T04:17:29Z"
+  },
+  {
+    "raceSlug": "las-vegas-2026",
+    "key": "ferrari-las-vegas-q2-exit",
+    "headline": "Both Ferraris go out in Q2 in Las Vegas",
+    "body": "Hamilton says floor damage on his first laps cost him a few tenths and a deployment loss took about six more on his final lap. Leclerc ran wide at turn seven and missed the line in time for another run. They start 10th and 11th.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": [
+      "LEC",
+      "HAM"
+    ],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/11/21/hamilton-reveals-car-damage-leclerc-very-angry-as-ferrari-pair-fail-to-reach-q3/",
+    "sourcePublishedAt": "2026-11-21T05:48:56Z"
+  },
+  {
+    "global": true,
+    "key": "cadillac-own-power-unit-delayed-2030",
+    "headline": "Cadillac delays its own power unit to 2030",
+    "body": "Cadillac will stay a Ferrari customer through 2029 and bring its General Motors power unit in with the V8 in 2030, a year later than the 2029 plan. The V6 work continues alongside the V8 design when the Charlotte power unit facility opens on 18 December.",
+    "team": "Cadillac",
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/cadillac-confirms-gm-will-introduce-its-own-f1-power-unit-a-year-later-than-initially-planned/10875798/",
+    "sourcePublishedAt": "2026-11-20T04:02:15Z"
+  },
+  {
+    "global": true,
+    "key": "fia-full-time-stewards-2027",
+    "headline": "The FIA will bring in full-time F1 stewards from 2027",
+    "body": "A small number of full-time stewards join the existing rotating panels next year, with more in 2028. They will also help develop regulations and train new officials. Each race weekend currently has four or five stewards, at least one a former grand prix driver.",
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/11/19/fia-to-introduce-full-time-stewards-to-formula-1-during-2027/",
+    "sourcePublishedAt": "2026-11-19T20:24:42Z"
+  },
+  {
+    "global": true,
+    "key": "alpine-releases-aron-reserve-vesti",
+    "headline": "Alpine releases reserve driver Paul Aron",
+    "body": "Alpine and Aron have agreed to part ways with immediate effect so he can pursue other racing opportunities. Mercedes reserve Fred Vesti is available to Alpine for the rest of 2026 under a shared option agreement.",
+    "team": "Alpine",
+    "sourceName": "Crash.net",
+    "sourceUrl": "https://www.crash.net/f1/news/1110300/1/alpine-suddenly-releases-paul-aron-f1-reserve-driver-role",
+    "sourcePublishedAt": "2026-11-20T10:55:49Z"
+  }
+]

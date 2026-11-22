@@ -1,0 +1,32 @@
+[
+  {
+    "raceSlug": "qatar-2026",
+    "key": "qatar-pirelli-27-lap-stint-limit",
+    "category": "general",
+    "headline": "Qatar GP stints are capped at 27 laps",
+    "body": "Pirelli will again limit stints at Lusail, this time to 27 laps, up from 25 last year. Laps behind a safety car count, and a driver who exceeds the limit is likely to be disqualified. Teams are expected to run two stops in the 57-lap race.",
+    "affectsSessions": [],
+    "sourceName": "Autosport",
+    "sourceUrl": "https://www.autosport.com/f1/news/pirelli-reintroduces-stint-limit-for-f1-qatar-gp/10875958/",
+    "sourcePublishedAt": "2026-11-20T08:21:11Z"
+  },
+  {
+    "global": true,
+    "key": "fia-2030-v8-power-unit-framework",
+    "headline": "FIA, FOM and teams agree a V8 power unit for 2030",
+    "body": "The FIA says the 2030 power unit framework has been unanimously agreed with Formula One Management, the teams and the manufacturers: a 2.1 litre turbocharged V8 with limited hybridisation, intended to be lighter, simpler and cheaper than the current units. The definitive regulations go to the World Motor Sport Council in Shanghai next month.",
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/11/20/fia-f1-and-teams-unanimously-agree-to-drop-current-power-units-after-2029/",
+    "sourcePublishedAt": "2026-11-20T18:59:56Z"
+  },
+  {
+    "global": true,
+    "key": "alpine-aron-released-vesti-reserve",
+    "team": "Alpine",
+    "headline": "Alpine releases reserve driver Paul Aron",
+    "body": "Alpine and Aron have agreed to part ways with immediate effect. Mercedes reserve Frederik Vesti covers the reserve role for the rest of 2026 under a shared option agreement, and would step in for Gasly or Colapinto if either cannot take part in a session.",
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/news/1110300/1/alpine-suddenly-releases-paul-aron-f1-reserve-driver-role",
+    "sourcePublishedAt": "2026-11-20T10:55:49Z"
+  }
+]

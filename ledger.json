@@ -1822,6 +1822,25 @@
       "expiresAt": "2026-11-22T03:30:00.000Z",
       "status": "sent",
       "bufferPostId": "6b0135719ffbc8503c011c41"
+    },
+    {
+      "id": "3b8a4e11072df5cffd58cf96340f9842c28a19ac15415730e701ee6c171961f9",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "qatar-2026",
+          "key": "perez-qatar-grid-penalty",
+          "revision": "46424de08c6282ab51d4944eccf204251cd9c9b999892f5648cb36352d664edb"
+        }
+      ],
+      "text": "Perez will start the Qatar Grand Prix five places back. His Las Vegas retirement meant he couldn't serve the 10-second penalty for hitting Camara, so it converts to a grid drop.",
+      "link": "https://grandprixpicks.com/f1-2026-qatar-grand-prix-predictions?story=perez-qatar-grid-penalty",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=qatar-2026&story=perez-qatar-grid-penalty&v=46424de08c62",
+      "dueAt": "2026-11-22T16:30:00.000Z",
+      "expiresAt": "2026-11-29T16:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

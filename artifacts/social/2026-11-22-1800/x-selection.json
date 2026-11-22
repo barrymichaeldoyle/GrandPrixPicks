@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/2026-11-22-1800.json",
+  "startAt": "2026-11-22T16:30:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["perez-qatar-grid-penalty"],
+      "text": "Perez will start the Qatar Grand Prix five places back. His Las Vegas retirement meant he couldn't serve the 10-second penalty for hitting Camara, so it converts to a grid drop.",
+      "link": "https://grandprixpicks.com/f1-2026-qatar-grand-prix-predictions?story=perez-qatar-grid-penalty",
+      "expiresAt": "2026-11-29T16:00:00Z"
+    }
+  ]
+}

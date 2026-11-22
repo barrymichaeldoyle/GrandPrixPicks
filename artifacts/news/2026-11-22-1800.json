@@ -1,0 +1,13 @@
+[
+  {
+    "raceSlug": "qatar-2026",
+    "key": "perez-qatar-grid-penalty",
+    "headline": "Perez takes a five-place grid penalty in Qatar",
+    "body": "Perez was found wholly to blame for his collision with Camara in Las Vegas, which ended his race. The 10-second penalty could not be served, so it converts to five places on the grid at the next race. It moves his Qatar race start and leaves qualifying results untouched.",
+    "affectsSessions": ["race"],
+    "driverCodes": ["PER"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/11/22/perez-handed-five-place-grid-penalty-for-qatar-grand-prix-for-camara-collision/",
+    "sourcePublishedAt": "2026-11-22T07:37:13Z"
+  }
+]

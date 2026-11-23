@@ -1,0 +1,17 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/qatar-2026-2026-11-23-evening.json",
+  "startAt": "2026-11-23T18:30:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": [
+        "bearman-haas-2027-unconfirmed"
+      ],
+      "text": "Bearman is the only driver on the grid without a 2027 contract. Motorsport.com reports the hold-up is Haas's salary offer, with Ferrari having already taken up its option on him.",
+      "link": "https://grandprixpicks.com/f1-2026-las-vegas-grand-prix-predictions?story=bearman-haas-2027-unconfirmed",
+      "expiresAt": "2026-11-24T12:00:00Z"
+    }
+  ]
+}

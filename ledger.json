@@ -1859,7 +1859,7 @@
       "quote": "https://x.com/HaasF1Team/status/2124563620604391644",
       "dueAt": "2026-11-23T07:30:00.000Z",
       "expiresAt": "2026-11-25T18:00:00.000Z",
-      "status": "creating",
+      "status": "scheduled",
       "bufferPostId": "6b03d82bd5eabfb8cc0d7d53"
     }
   ]

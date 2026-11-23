@@ -1861,6 +1861,25 @@
       "expiresAt": "2026-11-25T18:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6b03d82bd5eabfb8cc0d7d53"
+    },
+    {
+      "id": "9a5a737472a2991c8a3da06ea04fbc31ce0c96ea4adc76c3f988462e4fe8ec1a",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "las-vegas-2026",
+          "key": "bearman-haas-2027-unconfirmed",
+          "revision": "737ec258d7669fb6cf9d70138d27905de03f6bb15ea51c68e51a253c0891dfaf"
+        }
+      ],
+      "text": "Bearman is the only driver on the grid without a 2027 contract. Motorsport.com reports the hold-up is Haas's salary offer, with Ferrari having already taken up its option on him.",
+      "link": "https://grandprixpicks.com/f1-2026-las-vegas-grand-prix-predictions?story=bearman-haas-2027-unconfirmed",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=las-vegas-2026&story=bearman-haas-2027-unconfirmed&v=737ec258d766",
+      "dueAt": "2026-11-23T16:30:00.000Z",
+      "expiresAt": "2026-11-24T12:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

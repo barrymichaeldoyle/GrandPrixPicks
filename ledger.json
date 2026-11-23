@@ -1879,7 +1879,8 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=las-vegas-2026&story=bearman-haas-2027-unconfirmed&v=737ec258d766",
       "dueAt": "2026-11-23T16:30:00.000Z",
       "expiresAt": "2026-11-24T12:00:00.000Z",
-      "status": "creating"
+      "status": "creating",
+      "bufferPostId": "6b046503cc150d473b8038a4"
     }
   ]
 }

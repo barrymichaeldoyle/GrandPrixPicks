@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/2026-11-23-0800.json",
+  "startAt": "2026-11-23T07:30:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["camara-haas-qatar-abu-dhabi"],
+      "text": "Camara stays in the second Haas for Qatar and Abu Dhabi. He turns down a return to F2, where he leads the championship.",
+      "quote": "https://x.com/HaasF1Team/status/2124563620604391644",
+      "expiresAt": "2026-11-25T18:00:00Z"
+    }
+  ]
+}

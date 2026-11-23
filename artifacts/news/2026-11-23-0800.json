@@ -1,0 +1,34 @@
+[
+  {
+    "raceSlug": "qatar-2026",
+    "key": "camara-haas-qatar-abu-dhabi",
+    "headline": "Camara races for Haas in Qatar and Abu Dhabi",
+    "body": "Haas has confirmed Rafael Camara will drive in the final two rounds instead of returning to Formula 2, where he leads the standings. He made his debut in Brazil after Esteban Ocon's departure and joins the team full-time in 2027.",
+    "affectsSessions": ["quali", "race"],
+    "driverCodes": ["CAM"],
+    "sourceName": "Sky Sports",
+    "sourceUrl": "https://www.skysports.com/f1/news/13615376/rafael-camara-haas-confirm-brazilian-will-race-in-final-two-rounds-of-f1-season-rather-than-chase-f2-championship",
+    "sourcePublishedAt": "2026-11-22T18:07:00Z"
+  },
+  {
+    "raceSlug": "las-vegas-2026",
+    "key": "vasseur-leclerc-hamilton-unacceptable",
+    "category": "general",
+    "headline": "Vasseur calls the Leclerc-Hamilton collision \"unacceptable\"",
+    "body": "Ferrari's team principal said \"this cannot continue\" after the Las Vegas contact, the second incident between the pair in three races after Mexico. Leclerc took a 10-second penalty and accepted the blame. Ferrari will discuss it internally in the coming days.",
+    "affectsSessions": [],
+    "driverCodes": ["LEC", "HAM"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/11/22/cannot-continue-vasseur-calls-latest-leclerc-hamilton-collision-unacceptable/",
+    "sourcePublishedAt": "2026-11-22T06:50:28Z"
+  },
+  {
+    "global": true,
+    "key": "f1-2030-two-team-engine-supply-limit",
+    "headline": "F1 plans a two-team limit per engine maker from 2030",
+    "body": "Each of the six 2030 power unit manufacturers is set to supply two teams, including its own, according to Autosport. That leaves one customer supply apiece and puts Mercedes' three current customers in question. The FIA confirmed unanimous support for bringing the 2.1-litre V8 rules forward to 2030.",
+    "sourceName": "Autosport",
+    "sourceUrl": "https://www.autosport.com/f1/news/f1-set-to-reduce-customer-teams-as-key-2030-details-emerge/10877058/",
+    "sourcePublishedAt": "2026-11-22T20:32:03Z"
+  }
+]

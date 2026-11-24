@@ -902,6 +902,30 @@ export const getH2HPicksForFeedItem = query({
 
 // ───────────────────────── Mutations ─────────────────────────
 
+/**
+ * The picks whose duel is on this race's grid.
+ *
+ * A pairing retired by a lineup change still exists, and a client holding an
+ * old draft (or an open tab from before the change) can still send its id. A
+ * row written for it makes the weekend read as complete when the duel that
+ * replaced it is still open, which disables Save. Those picks are dropped and
+ * the rest are saved, so the player is left with the one open duel to fill.
+ */
+export function picksOnThisWeekend<P>(
+  picks: P[],
+  matchups: Pick<Doc<'h2hMatchups'>, 'season' | 'fromRound' | 'toRound'>[],
+  race: Pick<Doc<'races'>, 'season' | 'round'>,
+): P[] {
+  return picks.filter((_, index) => {
+    const matchup = matchups[index];
+    return (
+      matchup !== undefined &&
+      matchup.season === race.season &&
+      coversRound(matchup, race.round)
+    );
+  });
+}
+
 export const submitH2HPredictions = mutation({
   args: {
     raceId: v.id('races'),
@@ -942,6 +966,7 @@ export const submitH2HPredictions = mutation({
     }
 
     // Validate each pick
+    const matchups: Doc<'h2hMatchups'>[] = [];
     for (const pick of args.picks) {
       const matchup = await ctx.db.get(pick.matchupId);
       if (!matchup) {
@@ -955,6 +980,11 @@ export const submitH2HPredictions = mutation({
           'Predicted winner must be one of the drivers in the matchup',
         );
       }
+      matchups.push(matchup);
+    }
+    const picks = picksOnThisWeekend(args.picks, matchups, race);
+    if (args.picks.length > 0 && picks.length === 0) {
+      throw new ConvexError('These duels are not on this weekend');
     }
 
     const existingForRace = await ctx.db
@@ -995,7 +1025,7 @@ export const submitH2HPredictions = mutation({
         continue;
       }
 
-      for (const pick of args.picks) {
+      for (const pick of picks) {
         const existing = await ctx.db
           .query('h2hPredictions')
           .withIndex('by_user_race_session_matchup', (q) =>

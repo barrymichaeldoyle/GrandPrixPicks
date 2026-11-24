@@ -23,6 +23,7 @@ scripts/gpp.mjs news retract <slug> <key> [--prod] [--apply]
 scripts/gpp.mjs news move <from> <to> <key>... [--prod] [--apply]
 scripts/gpp.mjs social stats [--days N]
 scripts/gpp.mjs page <url|/path> [--prod] [--grep re] [--full]
+scripts/gpp.mjs run <module:fn> [json] [--prod] [--apply]
 scripts/gpp.mjs schema [table...] [--full]
 scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
 ```
@@ -102,7 +103,33 @@ views are internal queries in `apps/backend/convex/ops.ts`; writes call the
 existing `raceNews:*` mutations unchanged.
 
 `ops:*` reaches prod with the next push to `main`. Until then the CLI says so,
-and the raw `npx convex run --prod raceNews:*` calls still work.
+and `scripts/gpp.mjs run --prod raceNews:*` still reaches the functions directly.
+
+## `run`: any function, args checked first
+
+`run <module:function> [json]` calls any Convex function, but first checks the
+args against the deployment's live function spec (`convex function-spec`,
+cached 10 minutes in the temp dir and refetched once if a check fails, in case
+a deploy added the argument). An extra field, a missing one or a wrong type
+fails locally with what the function does take:
+
+```
+gpp: globalNews:listForOperators would reject these args:
+  args: extra field `limit` is not in the validator
+globalNews:listForOperators takes {}
+```
+
+Queries run straight away. A mutation or action on `--prod` prints what it
+would run until given `--apply`, even one whose own args carry `"dryRun": true`.
+If the spec cannot be read, `run` refuses rather than sending an unchecked call.
+
+It exists because Convex reports every prod `ArgumentValidationError` to
+Sentry, and most of the six such issues from 6 to 21 Nov 2026 were agents
+guessing args in a raw `npx convex run --prod`. A PreToolUse hook
+(`.claude/hooks/block-raw-convex-run.mjs`, registered in `.claude/settings.json`)
+now blocks those calls and points here. Dev calls pass; they do not reach
+Sentry. Through the network-secret proxy, `run` reads the spec from the
+proxy's `/api/query` instead, since `convex function-spec` takes no `--url`.
 
 ## Adding a command
 

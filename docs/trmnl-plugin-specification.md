@@ -348,7 +348,7 @@ are written by `openF1Results.recordResultTiming`, apart from publishing, so
 they can never change a classification, a score or a notification; the
 automatic poll, the admin fetch and applied rechecks all call it. Results
 from before timing was stored are filled by
-`npx convex run --prod resultsRecheck:backfillTiming '{"season":2026}'`. A
+`scripts/gpp.mjs run --prod resultsRecheck:backfillTiming '{"season":2026}'`. A
 result with no timing shows no gap rather than a made-up one. When OpenF1's
 `session_result` is late, the result publishes from live timing, which
 carries no gaps, so a race or sprint shows none until the first recheck

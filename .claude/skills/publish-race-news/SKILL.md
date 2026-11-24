@@ -400,9 +400,11 @@ scripts/gpp.mjs news move bahrain-2026 azerbaijan-2026 <key> [<key>...] --prod
 
 - `--prod --apply` writes to the live feed that players read. Drop `--prod` to
   rehearse against dev.
-- `gpp` needs `ops:*` deployed. If it says a function is not on prod yet, the
-  raw `npx convex run --prod raceNews:<fn>` calls take the same JSON (with
-  `"dryRun": true` for a rehearsal and epoch ms for dates).
+- `gpp` needs `ops:*` deployed. If it says a function is not on prod yet,
+  `scripts/gpp.mjs run --prod raceNews:<fn> '<json>'` takes the same JSON (with
+  `"dryRun": true` for a rehearsal and epoch ms for dates). It checks the args
+  first and needs `--apply` to send a mutation. Raw `npx convex run --prod` is
+  blocked by a hook: a bad call there lands in Sentry.
 - Never invent a fact to fill a field. If the source does not say it, it does not
   go in the body.
 - Do not publish an item whose source is another prediction site.

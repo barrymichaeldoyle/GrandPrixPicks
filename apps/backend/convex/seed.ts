@@ -897,7 +897,7 @@ export const seedH2HMatchups = internalMutation({
  * runs find nothing. Run with `dryRun: true` first.
  *
  * Run via:
- *   npx convex run --prod seed:migrateOrphanedH2HPicks '{"dryRun":true}'
+ *   scripts/gpp.mjs run --prod seed:migrateOrphanedH2HPicks '{"dryRun":true}'
  */
 export const migrateOrphanedH2HPicks = internalMutation({
   args: { dryRun: v.optional(v.boolean()) },
@@ -1011,7 +1011,7 @@ export const migrateOrphanedH2HPicks = internalMutation({
  *
  * Run via:
  *   npx convex run seed:applyLineup            # dev
- *   npx convex run --prod seed:applyLineup     # prod
+ *   scripts/gpp.mjs run --prod seed:applyLineup --apply   # prod
  */
 export const applyLineup = internalAction({
   args: {},

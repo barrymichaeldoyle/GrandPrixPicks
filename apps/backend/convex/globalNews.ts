@@ -37,7 +37,7 @@ const globalNewsListResultValidator = v.object({
  * `retract`, the same job `raceNews:listForOperators` does for weekend news.
  *
  * Run via:
- *   npx convex run --prod globalNews:listForOperators '{}'
+ *   scripts/gpp.mjs run --prod globalNews:listForOperators '{}'
  */
 export const listForOperators = internalQuery({
   args: {},
@@ -70,7 +70,7 @@ export const listForOperators = internalQuery({
  * a real run would do, with no write and no Discord post.
  *
  * Run via:
- *   npx convex run --prod globalNews:publish '{
+ *   scripts/gpp.mjs run --prod globalNews:publish '{
  *     "key": "williams-f2-entry",
  *     "headline": "...",
  *     "body": "...",

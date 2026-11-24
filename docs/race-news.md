@@ -98,20 +98,23 @@ call checks the payload and returns without a write.
 Day to day, use `scripts/gpp.mjs news list|show|publish|retract|move` (see
 `docs/gpp-cli.md`): it prints one line per item, reads the item from a file,
 and dry-runs unless given `--apply`. These are the functions underneath it.
+`gpp run` checks the args against the live function spec, and a mutation on
+prod only prints what it would do until given `--apply` (even one that takes
+its own `"dryRun": true`).
 
 ```bash
 # 1. what is already published for this weekend
-npx convex run --prod raceNews:list '{"raceSlug":"italy-2026"}'
+scripts/gpp.mjs run --prod raceNews:list '{"raceSlug":"italy-2026"}'
 
 # inspect the operator audit trail, including retracted items
 # (takes raceId instead of raceSlug too)
-npx convex run --prod raceNews:listForOperators '{"raceSlug":"italy-2026"}'
+scripts/gpp.mjs run --prod raceNews:listForOperators '{"raceSlug":"italy-2026"}'
 
 # 2. rehearse: write the item to a JSON file and let the CLI send it. The CLI
 #    checks the required fields first, so a story with no race is refused with
 #    a message instead of a validator error that lands in Sentry.
 scripts/gpp.mjs news publish item.json --prod
-# the item (same shape for a raw `npx convex run --prod raceNews:publish`):
+# the item (same shape for `scripts/gpp.mjs run --prod raceNews:publish`):
 '{
   "raceSlug": "italy-2026",
   "key": "antonelli-grid-penalty",
@@ -127,10 +130,10 @@ scripts/gpp.mjs news publish item.json --prod
 # 3. publish (same call with --apply)
 
 # 4. corrections and retraction
-npx convex run --prod raceNews:retract '{"raceSlug":"italy-2026","key":"antonelli-grid-penalty"}'
+scripts/gpp.mjs run --prod raceNews:retract '{"raceSlug":"italy-2026","key":"antonelli-grid-penalty"}'
 
 # 5. filed under the wrong race: move in place (no second Discord post)
-npx convex run --prod raceNews:move '{"fromRaceSlug":"bahrain-2026","toRaceSlug":"azerbaijan-2026","keys":["piastri-baku-lockup"],"dryRun":true}'
+scripts/gpp.mjs run --prod raceNews:move '{"fromRaceSlug":"bahrain-2026","toRaceSlug":"azerbaijan-2026","keys":["piastri-baku-lockup"],"dryRun":true}'
 ```
 
 `raceSlug` is the race a story is about, not the next race on the calendar.
@@ -350,7 +353,7 @@ something back is what `retract` is for, and a correction must never silently
 pull a card. A missed release is recoverable by hand:
 
 ```bash
-npx convex run --prod raceNews:releaseToFeed '{"raceId":"jd7...","key":"..."}'
+scripts/gpp.mjs run --prod raceNews:releaseToFeed '{"raceId":"jd7...","key":"..."}'
 ```
 
 ## Deliberately not doing

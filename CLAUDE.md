@@ -90,6 +90,9 @@ Workspace package names:
   `race [slug] --prod` for weekend state, `news …` for race news, `page <url>`
   for the SSR text of a page, `schema [table]` for Convex tables, `usage` for
   which tool calls cost the most output.
+  For any other prod function, use `run <module:fn> '<json>' --prod`: it checks
+  the args against the live spec first, and a hook blocks raw
+  `convex run --prod` because a bad call there lands in Sentry.
 
 ## Deploys
 

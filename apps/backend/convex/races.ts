@@ -489,7 +489,7 @@ export const adminRestoreRace = mutation({
 
 /**
  * CLI/dashboard only — not callable from the public Convex API.
- * Run via: npx convex run --prod races:emergencySetRaceStatus \
+ * Run via: scripts/gpp.mjs run --prod races:emergencySetRaceStatus \
  *   '{"raceId":"...","status":"upcoming"}'
  */
 export const emergencySetRaceStatus = internalMutation({

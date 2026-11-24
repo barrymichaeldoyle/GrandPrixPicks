@@ -430,8 +430,8 @@ export const list = query({
  * `races` row is holding an id rather than a slug.
  *
  * Run via:
- *   npx convex run --prod raceNews:listForOperators '{"raceSlug":"italy-2026"}'
- *   npx convex run --prod raceNews:listForOperators '{"raceId":"jd7..."}'
+ *   scripts/gpp.mjs run --prod raceNews:listForOperators '{"raceSlug":"italy-2026"}'
+ *   scripts/gpp.mjs run --prod raceNews:listForOperators '{"raceId":"jd7..."}'
  */
 export const listForOperators = internalQuery({
   args: {
@@ -510,7 +510,7 @@ export async function loadActiveRaceNews(
  * and writes nothing.
  *
  * Run via:
- *   npx convex run --prod raceNews:publish '{
+ *   scripts/gpp.mjs run --prod raceNews:publish '{
  *     "raceSlug": "italy-2026",
  *     "key": "antonelli-grid-penalty",
  *     "headline": "Antonelli takes a grid penalty at Monza",
@@ -914,7 +914,7 @@ async function scheduleFeedRelease(
  * that has been retracted or has already appeared.
  *
  * Run via:
- *   npx convex run --prod raceNews:releaseToFeed '{"raceId":"jd7...","key":"..."}'
+ *   scripts/gpp.mjs run --prod raceNews:releaseToFeed '{"raceId":"jd7...","key":"..."}'
  */
 export const releaseToFeed = internalMutation({
   args: { raceId: v.id('races'), key: v.string() },
@@ -1273,7 +1273,7 @@ async function syncFeedEvent(
  * should not be readable.
  *
  * Run via:
- *   npx convex run --prod raceNews:retract '{"raceSlug":"italy-2026","key":"antonelli-grid-penalty"}'
+ *   scripts/gpp.mjs run --prod raceNews:retract '{"raceSlug":"italy-2026","key":"antonelli-grid-penalty"}'
  */
 export const retract = internalMutation({
   args: { raceSlug: v.string(), key: v.string() },
@@ -1337,7 +1337,7 @@ export const retract = internalMutation({
  * Run with `dryRun: true` first.
  *
  * Run via:
- *   npx convex run --prod raceNews:move '{
+ *   scripts/gpp.mjs run --prod raceNews:move '{
  *     "fromRaceSlug": "bahrain-2026",
  *     "toRaceSlug": "azerbaijan-2026",
  *     "keys": ["piastri-baku-lockup"],

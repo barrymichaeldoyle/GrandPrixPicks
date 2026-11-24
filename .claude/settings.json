@@ -28,5 +28,18 @@
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": false,
     "trmnl@trmnl-agent-skills": true
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block-raw-convex-run.mjs"
+          }
+        ]
+      }
+    ]
   }
 }

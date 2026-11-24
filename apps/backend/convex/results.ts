@@ -1142,7 +1142,7 @@ export const emergencyRollbackResults = internalMutation({
  * classification already entered; pass `classification` to override it.
  *
  * Run via:
- *   npx convex run --prod results:emergencyMoveResultToSession \
+ *   scripts/gpp.mjs run --prod results:emergencyMoveResultToSession \
  *     '{"raceId":"...","fromSession":"race","toSession":"quali","restoreRaceStatus":"locked"}'
  */
 export const emergencyMoveResultToSession = internalMutation({
@@ -1243,7 +1243,7 @@ export const emergencyMoveResultToSession = internalMutation({
  * keep the current link; pass "" to remove it.
  *
  * Run via:
- *   npx convex run --prod results:emergencyReviseAmendmentNote \
+ *   scripts/gpp.mjs run --prod results:emergencyReviseAmendmentNote \
  *     '{"raceId":"...","sessionType":"race","amendmentNote":"...","amendmentSourceUrl":"https://www.fia.com/..."}'
  */
 export const emergencyReviseAmendmentNote = internalMutation({

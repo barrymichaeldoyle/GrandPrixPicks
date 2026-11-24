@@ -653,7 +653,7 @@ const BROADCAST_BATCH_SIZE = 100;
  * explaining a bulk rescore after a policy change.
  *
  * Run via:
- *   npx convex run --prod inAppNotifications:broadcastAnnouncement \
+ *   scripts/gpp.mjs run --prod inAppNotifications:broadcastAnnouncement \
  *     '{"title":"...","body":"...","linkPath":"/results-policy"}'
  */
 export const broadcastAnnouncement = internalMutation({

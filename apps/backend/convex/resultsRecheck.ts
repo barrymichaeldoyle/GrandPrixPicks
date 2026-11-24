@@ -572,7 +572,7 @@ export const runDueRechecks = internalAction({
  * One-off reconciliation of a whole season against the official
  * classification. Run it read-only first to see what drifted:
  *
- *   npx convex run --prod resultsRecheck:auditSeason '{"season":2026}'
+ *   scripts/gpp.mjs run --prod resultsRecheck:auditSeason '{"season":2026}'
  *
  * then re-run with `"apply": true` to republish the sessions it flagged.
  */
@@ -641,7 +641,7 @@ export const auditSeason = internalAction({
  * Writes only the timing: no classification, score or notification can
  * change.
  *
- *   npx convex run --prod resultsRecheck:backfillTiming '{"season":2026}'
+ *   scripts/gpp.mjs run --prod resultsRecheck:backfillTiming '{"season":2026}'
  */
 export const backfillTiming = internalAction({
   args: {

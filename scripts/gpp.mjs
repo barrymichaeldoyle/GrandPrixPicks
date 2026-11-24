@@ -9,11 +9,14 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { homedir, tmpdir } from 'node:os';
+
 import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
+
+import { checkCall } from './convex-args.mjs';
 
 const repoRoot = path.resolve(import.meta.dirname, '..');
 const backendDir = path.join(repoRoot, 'apps/backend');
@@ -34,6 +37,8 @@ const HELP = `gpp <command> [args] [--prod] [--json]
   page <url|/path>                SSR text of a page (/path = localhost:3000, --prod = live)
                                   --grep <regex>  only matching lines   --full  no truncation
                                   also lists X posts embedded in the page (for quote posts)
+  run <module:fn> [json]          any Convex function, args checked against the live spec first
+                                  queries run; mutations and actions on --prod need --apply
   schema [table...]               Convex tables and indexes, or one table's fields (--full keeps comments)
   usage [--days N]                tool-output cost of recent Claude Code sessions here
                                   --skill <name>  sessions that ran it   --session <id,...>  by id prefix
@@ -181,6 +186,125 @@ function convexRun(fn, args, { prod }) {
   } catch {
     return out;
   }
+}
+
+// ---------------------------------------------------------------------------
+// run: any function, args checked before they reach the deployment
+
+const SPEC_TTL = 10 * 60 * 1000;
+
+function specCacheFile({ prod }) {
+  const target = process.env.GPP_CONVEX_PROXY_URL
+    ? 'proxy'
+    : prod
+      ? 'prod'
+      : 'dev';
+  return path.join(tmpdir(), `gpp-function-spec-${target}.json`);
+}
+
+async function fetchFunctionSpec({ prod }) {
+  const proxyUrl = process.env.GPP_CONVEX_PROXY_URL;
+  if (proxyUrl) {
+    // `convex function-spec` takes no --url, so ask the system query it uses
+    // directly. The network-secret proxy swaps in the real admin key.
+    const response = await fetch(`${proxyUrl}/api/query`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Convex cloud-network-secret',
+      },
+      body: JSON.stringify({
+        path: '_system/cli/modules:apiSpec',
+        args: {},
+        format: 'json',
+      }),
+    });
+    const body = await response.json().catch(() => null);
+    if (!response.ok || body?.status !== 'success') {
+      throw new Error(
+        `HTTP ${response.status}${body?.errorMessage ? `: ${body.errorMessage}` : ''}`,
+      );
+    }
+    return { functions: body.value };
+  }
+  const convexBin = path.join(backendDir, 'node_modules/.bin/convex');
+  const result = spawnSync(
+    convexBin,
+    ['function-spec', ...(prod ? ['--prod'] : [])],
+    { cwd: backendDir, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
+  );
+  if (result.error || result.status !== 0) {
+    throw new Error(
+      result.error?.message ??
+        (result.stderr || result.stdout || '').trim().split('\n')[0],
+    );
+  }
+  return JSON.parse(result.stdout);
+}
+
+async function functionSpec(flags, { fresh = false } = {}) {
+  const file = specCacheFile(flags);
+  if (!fresh) {
+    try {
+      if (Date.now() - statSync(file).mtimeMs < SPEC_TTL) {
+        return { spec: JSON.parse(readFileSync(file, 'utf8')), cached: true };
+      }
+    } catch {
+      // No usable cache: fetch it.
+    }
+  }
+  let spec;
+  try {
+    spec = await fetchFunctionSpec(flags);
+  } catch (error) {
+    // Fail closed: an unchecked call is the thing this command exists to stop.
+    fail(
+      `could not read the function spec from ${flags.prod ? 'prod' : 'dev'}, so the args cannot be checked: ${error.message}`,
+    );
+  }
+  try {
+    writeFileSync(file, JSON.stringify(spec));
+  } catch {
+    // The cache is only a speed-up.
+  }
+  return { spec, cached: false };
+}
+
+async function runCommand(name, json, flags) {
+  if (!name || !name.includes(':')) {
+    fail(
+      'run <module:function> [json args]   e.g. gpp run races:listRaces \'{"season":2026}\' --prod',
+    );
+  }
+  let args = {};
+  if (json !== undefined) {
+    try {
+      args = JSON.parse(json);
+    } catch (error) {
+      fail(`args are not valid JSON: ${error.message}`);
+    }
+  }
+  let { spec, cached } = await functionSpec(flags);
+  let check = checkCall(spec, name, args);
+  if (check.error && cached) {
+    // A deploy since the spec was cached can add a function or an argument.
+    ({ spec } = await functionSpec(flags, { fresh: true }));
+    check = checkCall(spec, name, args);
+  }
+  if (check.error) {
+    fail(check.error.join('\n'));
+  }
+  const target = flags.prod ? 'prod' : 'dev';
+  if (check.fn.functionType !== 'Query' && flags.prod && !flags.apply) {
+    console.log(
+      `would run ${check.fn.functionType.toLowerCase()} ${name} on ${target} with ${JSON.stringify(args)}\nargs check out; --apply to run it`,
+    );
+    return;
+  }
+  const result = convexRun(name, args, flags);
+  console.log(
+    typeof result === 'string' ? result : JSON.stringify(result, null, 2),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -1464,6 +1588,9 @@ switch (command) {
     break;
   case 'page':
     await pageCommand(sub, flags);
+    break;
+  case 'run':
+    await runCommand(sub, rest[0], flags);
     break;
   case 'schema':
     schemaCommand(positional.slice(1), flags);

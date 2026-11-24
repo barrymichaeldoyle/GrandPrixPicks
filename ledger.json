@@ -1881,6 +1881,25 @@
       "expiresAt": "2026-11-24T12:00:00.000Z",
       "status": "sent",
       "bufferPostId": "6b046503cc150d473b8038a4"
+    },
+    {
+      "id": "a3963bfa395a6c17de6010aca6dd28b5d32418592456204c7314fcdd36b45beb",
+      "deployment": "prod",
+      "organizationId": "64f9a17b902afdecc48c8d02",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "stories": [
+        {
+          "raceSlug": "las-vegas-2026",
+          "key": "gasly-las-vegas-cooling-podium",
+          "revision": "a40583c9e5e961d2318bde763cb22872f571074df7fbad8d6d6c5b9c0eac86b8"
+        }
+      ],
+      "text": "Gasly says Alpine had the pace to challenge for the win in Las Vegas until the car overheated. He was third after 31 laps, fifth at the flag, and ran the power down for most of the race.",
+      "link": "https://grandprixpicks.com/f1-2026-las-vegas-grand-prix-predictions?story=gasly-las-vegas-cooling-podium",
+      "imageUrl": "https://grandprixpicks.com/og/news?race=las-vegas-2026&story=gasly-las-vegas-cooling-podium&v=a40583c9e5e9",
+      "dueAt": "2026-11-24T16:30:00.000Z",
+      "expiresAt": "2026-11-26T12:00:00.000Z",
+      "status": "creating"
     }
   ]
 }

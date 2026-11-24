@@ -30,6 +30,12 @@ scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
 
 - **Writes rehearse by default.** `publish` and `move` dry-run, and `retract`
   shows the item, until given `--apply`. The safe call is the short one.
+- **`news publish` refuses a repeat.** A new key that cites the same source
+  article as a live story about the same people or teams is refused before
+  the first write, naming the key to update instead. A similar headline from
+  another outlet within a week prints `POSSIBLE DUPLICATE`: update that key or
+  skip the story unless it is a new development. A story that really is new
+  says so with `"notDuplicateOf": ["<key>"]`. See `scripts/news-duplicates.mjs`.
 - **`news social`** previews one or two editorially selected X posts from a
   published news batch, checks the live story revisions and Buffer queue, and
   spaces posts 20–30 minutes apart (25 by default). Post text carries no URL:

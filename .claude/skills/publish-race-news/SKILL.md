@@ -350,7 +350,7 @@ the rest a tap away. Both read the one record, so a correction fixes both.
 
 ## News for a later round
 
-News that breaks this weekend about a *future* one is worth publishing the day
+News that breaks this weekend about a _future_ one is worth publishing the day
 you find it: the write-up page is what gets indexed, and it wants the content
 early. The feed does not. Somebody reading it is picking this weekend, and a
 Madrid story above an unlocked Monza session is noise wearing a source link.
@@ -405,6 +405,11 @@ scripts/gpp.mjs news move bahrain-2026 azerbaijan-2026 <key> [<key>...] --prod
   `"dryRun": true` for a rehearsal and epoch ms for dates). It checks the args
   first and needs `--apply` to send a mutation. Raw `npx convex run --prod` is
   blocked by a hook: a bad call there lands in Sentry.
+- `news publish` refuses a new key that repeats a live story from the same
+  source, and prints `POSSIBLE DUPLICATE` for a close match from another
+  outlet. Update the existing key, or skip the story. Add
+  `"notDuplicateOf": ["<key>"]` only when it is a new development, never to
+  get a repeat through.
 - Never invent a fact to fill a field. If the source does not say it, it does not
   go in the body.
 - Do not publish an item whose source is another prediction site.

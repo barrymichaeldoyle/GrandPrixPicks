@@ -17,6 +17,7 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 import { checkCall } from './convex-args.mjs';
+import { findDuplicates } from './news-duplicates.mjs';
 
 const repoRoot = path.resolve(import.meta.dirname, '..');
 const backendDir = path.join(repoRoot, 'apps/backend');
@@ -532,7 +533,11 @@ function newsShapeProblem(item) {
       return `missing ${missing.join(', ')}`;
     }
     const extra = Object.keys(item).filter(
-      (f) => f !== 'global' && f !== 'dryRun' && !GLOBAL_NEWS_FIELDS.has(f),
+      (f) =>
+        f !== 'global' &&
+        f !== 'dryRun' &&
+        f !== 'notDuplicateOf' &&
+        !GLOBAL_NEWS_FIELDS.has(f),
     );
     if (extra.length) {
       return `a global story does not take ${extra.join(', ')}`;
@@ -562,6 +567,62 @@ function toEpoch(value, field, key) {
   return ms;
 }
 
+// The stories a batch could repeat: all global news, each race the batch
+// files under, and, for a global story, the races either side of today.
+function liveStories(items, flags) {
+  const stories = [];
+  const global = convexRun('globalNews:listForOperators', {}, flags);
+  for (const story of global?.items ?? []) {
+    stories.push({ ...story, scope: 'global' });
+  }
+  const slugs = new Set(
+    items.filter((item) => item.global !== true).map((item) => item.raceSlug),
+  );
+  if (items.some((item) => item.global === true)) {
+    const now = Date.now();
+    const season = new Date(now).getUTCFullYear();
+    const races = convexRun('races:listRaces', { season }, flags) ?? [];
+    for (const race of races) {
+      if (
+        race.raceStartAt > now - 10 * DAY &&
+        race.raceStartAt < now + 21 * DAY
+      ) {
+        slugs.add(race.slug);
+      }
+    }
+  }
+  for (const raceSlug of slugs) {
+    const res = convexRun('raceNews:listForOperators', { raceSlug }, flags);
+    for (const story of res?.items ?? []) {
+      stories.push({ ...story, scope: raceSlug });
+    }
+  }
+  return stories;
+}
+
+// A new key that repeats a live story is refused before the first write; a
+// likely repeat from another source is printed for the operator to judge.
+// See scripts/news-duplicates.mjs.
+function checkDuplicates(items, flags) {
+  const incoming = items.map((item) => ({
+    scope: item.global === true ? 'global' : item.raceSlug,
+    key: item.key,
+    headline: item.headline,
+    sourceUrl: item.sourceUrl,
+    notDuplicateOf: item.notDuplicateOf,
+  }));
+  const { refusals, warnings } = findDuplicates(
+    incoming,
+    liveStories(items, flags),
+  );
+  for (const warning of warnings) {
+    console.log(warning);
+  }
+  if (refusals.length) {
+    fail(`refused, nothing was published:\n${refusals.join('\n')}`);
+  }
+}
+
 function newsPublish(file, flags) {
   if (!file) {
     fail('news publish <file.json>');
@@ -581,9 +642,23 @@ function newsPublish(file, flags) {
       fail(`${item.key ?? 'item'}: ${problem}`);
     }
   }
+  // Every local check first: the duplicate check is the first Convex call.
+  for (const item of items) {
+    for (const field of DATE_FIELDS) {
+      if (item[field] !== undefined) {
+        toEpoch(item[field], field, item.key);
+      }
+    }
+  }
+  checkDuplicates(items, flags);
   const apply = Boolean(flags.apply);
   for (const raw of items) {
-    const { dryRun: _ignored, global: isGlobal, ...item } = raw;
+    const {
+      dryRun: _ignored,
+      global: isGlobal,
+      notDuplicateOf: _cleared,
+      ...item
+    } = raw;
     for (const field of DATE_FIELDS) {
       if (item[field] !== undefined) {
         item[field] = toEpoch(item[field], field, item.key);

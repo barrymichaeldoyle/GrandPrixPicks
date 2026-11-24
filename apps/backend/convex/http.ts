@@ -182,7 +182,7 @@ http.route({
               'confidence',
               'reviewReason',
             ],
-            ['raceSlug', 'contradictions'],
+            ['raceSlug', 'contradictions', 'topic'],
           )
         ) {
           return workerResponse({ error: 'Invalid proposal' }, 400);

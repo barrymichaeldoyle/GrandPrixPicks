@@ -136,6 +136,12 @@ const staticEntries: SitemapEntry[] = [
     priority: '0.5',
   },
   {
+    // The news API's description and waiting list (`docs/news-api.md`).
+    loc: `${siteConfig.url}/f1-news-api`,
+    changefreq: 'monthly',
+    priority: '0.5',
+  },
+  {
     loc: `${siteConfig.url}/refund-policy`,
     changefreq: 'monthly',
     priority: '0.6',

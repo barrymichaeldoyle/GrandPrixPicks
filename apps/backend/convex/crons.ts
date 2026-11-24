@@ -147,4 +147,15 @@ crons.interval(
   {},
 );
 
+// The safety net under news API webhooks. A story change books its own
+// delivery seconds later (`scheduleWebhookDrain`); this catches one that was
+// lost or crashed. With nothing pending it reads two index entries per
+// endpoint and sends nothing, and with no endpoints it reads one.
+crons.interval(
+  'deliver news API webhooks',
+  { minutes: 15 },
+  internal.newsApiWebhooks.drain,
+  {},
+);
+
 export default crons;

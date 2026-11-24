@@ -207,6 +207,7 @@ export const newsList = internalQuery({
         category: item.category ?? 'pick_related',
         affectsSessions: item.affectsSessions,
         driverCodes: item.driverCodes ?? [],
+        topic: item.topic ?? null,
         active: item.active,
         feedSelected: item.feedSelected ?? true,
         writeUpSelected: item.writeUpSelected ?? true,

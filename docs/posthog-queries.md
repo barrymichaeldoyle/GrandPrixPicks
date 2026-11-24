@@ -63,6 +63,14 @@ header's Sign in button. The dialog reports `email_save_opened` (`path`),
 `email_save_other_way` (went to the modal) and `email_save_closed` (`step`).
 A new player's first username is `username_chosen` (`surface`).
 
+A server-rendered signed-in dashboard reports `dashboard_ssr_timed` once,
+from the client (since 2026-11-24, `useReportSsrTimings`). Stage milliseconds
+from `fetchDashboardSsrData`: `session_ms`, `token_ms` (with `minted` true when
+the cookie's token was stale and Clerk issued a new one), `dashboard_ms`,
+`weather_ms`, `total_ms`, plus `home_query_ms` (the public query the render
+also waits on), `ttfb_ms` (the browser's wait for the HTML, network
+included) and `miss`. Read it against `$web_vitals` LCP for signed-in `/`.
+
 Short visits are under-counted. Analytics loads after `load` plus an idle
 window, then asks `/api/consent-region` which side of the GDPR line the
 visitor is on, so a visitor who leaves within about a second or two of load

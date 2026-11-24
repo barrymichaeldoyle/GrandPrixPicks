@@ -5,6 +5,11 @@ import {
   raceNewsStartingGridValidator,
   resolvedStartingGridValidator,
 } from './lib/raceNewsStartingGrid';
+import {
+  newsApiPlanValidator,
+  newsTopicValidator,
+  newsTranslationLanguageValidator,
+} from './lib/newsApiValidators';
 import { raceNewsWriteUpImageValidator } from './lib/raceNewsWriteUpImage';
 import { weatherDayValidator, weatherHourValidator } from './lib/weather';
 import { raceVideoKind } from './lib/raceVideos';
@@ -1161,6 +1166,12 @@ export default defineSchema({
      */
     team: v.optional(v.string()),
     /**
+     * What the story is about (`packages/shared/src/newsTopics.ts`). Served
+     * by the news API and filtered on there. Optional because stories
+     * published before it existed have none; every new story sets one.
+     */
+    topic: v.optional(newsTopicValidator),
+    /**
      * Optional photo for race write-up pages only. The feed card deliberately
      * does not render this field.
      */
@@ -1225,7 +1236,11 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index('by_race', ['raceId'])
-    .index('by_race_key', ['raceId', 'key']),
+    .index('by_race_key', ['raceId', 'key'])
+    // The news API pages across this table and `globalNews` in one order:
+    // newest published first, or oldest change first for its change feed.
+    .index('by_published', ['publishedAt'])
+    .index('by_updated', ['updatedAt']),
 
   newsSources: defineTable({
     name: v.string(),
@@ -1299,6 +1314,7 @@ export default defineSchema({
     ),
     contradictions: v.optional(v.array(v.string())),
     reviewReason: v.string(),
+    topic: v.optional(newsTopicValidator),
     status: v.union(
       v.literal('review'),
       v.literal('rejected'),
@@ -1322,6 +1338,8 @@ export default defineSchema({
     headline: v.string(),
     body: v.string(),
     team: v.optional(v.string()),
+    /** As on `raceNews`. */
+    topic: v.optional(newsTopicValidator),
     sourceName: v.string(),
     sourceUrl: v.string(),
     sourcePublishedAt: v.optional(v.number()),
@@ -1329,7 +1347,123 @@ export default defineSchema({
     active: v.boolean(),
     publishedAt: v.number(),
     updatedAt: v.number(),
-  }).index('by_key', ['key']),
+  })
+    .index('by_key', ['key'])
+    .index('by_published', ['publishedAt'])
+    .index('by_updated', ['updatedAt']),
+
+  // ============ NEWS API ============
+
+  /**
+   * Keys for the news API (`newsApi.ts`, `docs/news-api.md`). Only the
+   * SHA-256 of a key is stored: the key itself is shown once, by
+   * `newsApi:createKey`, and cannot be read back.
+   */
+  newsApiKeys: defineTable({
+    /**
+     * Who holds it, e.g. `trmnl`. For the operator and, on a self-serve
+     * key, its owner. Never returned by the API itself.
+     */
+    label: v.string(),
+    keyHash: v.string(),
+    /** The first characters of the key, so a list can tell two keys apart. */
+    prefix: v.string(),
+    /**
+     * What the key pays for, which sets its request limit and how late it
+     * sees news (`NEWS_API_PLANS` in `newsApi.ts`). Unset on keys issued
+     * before plans existed, which count as `commercial`.
+     */
+    plan: v.optional(newsApiPlanValidator),
+    /**
+     * The account that created it on `/f1-news-api/keys`
+     * (`newsApiAccount.ts`). Unset on a key the operator issued.
+     */
+    userId: v.optional(v.id('users')),
+    createdAt: v.number(),
+    revokedAt: v.optional(v.number()),
+  })
+    .index('by_keyHash', ['keyHash'])
+    .index('by_userId', ['userId']),
+
+  /** Requests served per key per UTC day (`newsApi:recordRequest`). */
+  newsApiUsage: defineTable({
+    keyId: v.id('newsApiKeys'),
+    /** `YYYY-MM-DD`, UTC. */
+    day: v.string(),
+    requests: v.number(),
+  }).index('by_key_day', ['keyId', 'day']),
+
+  /**
+   * Where a news API key's change feed is POSTed (`newsApiWebhooks.ts`,
+   * `docs/news-api.md`). Only a `commercial` key may have one.
+   */
+  newsApiWebhooks: defineTable({
+    keyId: v.id('newsApiKeys'),
+    /** https, a hostname, the default port. Checked by `webhookUrlProblem`. */
+    url: v.string(),
+    /**
+     * The signing secret, in the clear: an HMAC has to be computed with the
+     * secret itself, so a hash of it would sign nothing. Shown once, by
+     * `createWebhook` or `rotateWebhookSecret`, and never returned by a list.
+     */
+    secret: v.string(),
+    /** The secret a rotation replaced, still signed with until it expires. */
+    previousSecret: v.optional(v.string()),
+    previousSecretExpiresAt: v.optional(v.number()),
+    /** The first characters of `secret`, so a list can tell two apart. */
+    secretPrefix: v.string(),
+    active: v.boolean(),
+    disabledReason: v.optional(
+      v.union(v.literal('operator'), v.literal('failures')),
+    ),
+    disabledAt: v.optional(v.number()),
+    /**
+     * A change-feed cursor (`newsApi.ts` `encodeCursor`): everything before
+     * it has been delivered. It moves only when a batch is accepted.
+     */
+    cursor: v.string(),
+    consecutiveFailures: v.number(),
+    /** The next retry after a failure. Unset when nothing is owed. */
+    nextAttemptAt: v.optional(v.number()),
+    /** Held by the one delivery in flight, so two never overlap. */
+    leaseId: v.optional(v.string()),
+    leaseUntil: v.optional(v.number()),
+    lastAttemptAt: v.optional(v.number()),
+    /** HTTP status of the last attempt. Unset when it got no response. */
+    lastStatus: v.optional(v.number()),
+    lastError: v.optional(v.string()),
+    lastSuccessAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index('by_key', ['keyId'])
+    .index('by_active', ['active']),
+
+  /**
+   * A story's headline and body in another language, for the news API's
+   * `lang` (`newsApiTranslations.ts`, `docs/news-api.md`). One row per story
+   * per language. Served only while `sourceHash` matches the story's current
+   * English, so a correction is never read through a stale translation.
+   */
+  newsApiTranslations: defineTable({
+    /** The `raceNews` or `globalNews` id. */
+    newsId: v.string(),
+    language: newsTranslationLanguageValidator,
+    headline: v.string(),
+    body: v.string(),
+    /** `translationSourceHash` of the English headline and body it was made from. */
+    sourceHash: v.string(),
+    translatedAt: v.number(),
+  }).index('by_news_language', ['newsId', 'language']),
+
+  /** People who asked to hear when the news API opens to subscribers. */
+  newsApiWaitlist: defineTable({
+    /** Lower-cased, so one address joins once. */
+    email: v.string(),
+    useCase: v.optional(v.string()),
+    /** Whether they would build something personal or commercial. */
+    use: v.optional(v.union(v.literal('personal'), v.literal('commercial'))),
+    createdAt: v.number(),
+  }).index('by_email', ['email']),
 
   announcements: defineTable({
     message: v.string(),

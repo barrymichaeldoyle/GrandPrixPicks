@@ -11,11 +11,12 @@
 import { spawnSync } from 'node:child_process';
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-
 import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
+// The one list of story topics. Node runs the TypeScript file directly.
+import { NEWS_TOPICS } from '../packages/shared/src/newsTopics.ts';
 import { checkCall } from './convex-args.mjs';
 import { findDuplicates } from './news-duplicates.mjs';
 
@@ -46,7 +47,8 @@ const HELP = `gpp <command> [args] [--prod] [--json]
 
 Flags: --prod targets production Convex. --json prints the raw result.
 In publish files, sourcePublishedAt and feedVisibleAt may be ISO timestamps (prefer an explicit offset).
-A story about no race takes "global": true instead of raceSlug and affectsSessions.`;
+A story about no race takes "global": true instead of raceSlug and affectsSessions.
+Every story takes a "topic": ${NEWS_TOPICS.join(', ')}.`;
 
 // ---------------------------------------------------------------------------
 // args
@@ -425,7 +427,7 @@ function newsRow(item) {
     item.category === 'general'
       ? 'general'
       : `pick[${item.affectsSessions.join(',')}]`;
-  const extras = [];
+  const extras = [item.topic ?? 'no topic'];
   if (item.driverCodes.length) {
     extras.push(item.driverCodes.join(','));
   }
@@ -521,10 +523,16 @@ const GLOBAL_NEWS_REQUIRED_FIELDS = [
 const GLOBAL_NEWS_FIELDS = new Set([
   ...GLOBAL_NEWS_REQUIRED_FIELDS,
   'team',
+  'topic',
   'sourcePublishedAt',
 ]);
 
 function newsShapeProblem(item) {
+  // Checked here for both kinds: globalNews:publish would only say `valid:
+  // false`, and raceNews:publish throws on the first bad item of an array.
+  if (item.topic !== undefined && !NEWS_TOPICS.includes(item.topic)) {
+    return `topic "${item.topic}" is not one of ${NEWS_TOPICS.join(', ')}`;
+  }
   if (item.global === true) {
     const missing = GLOBAL_NEWS_REQUIRED_FIELDS.filter(
       (f) => item[f] === undefined,
@@ -682,6 +690,7 @@ function newsPublish(file, flags) {
       `${res.race.slug}/${res.key}`,
       `[${res.affectsSessions.join(',') || 'general'}]`,
     ];
+    bits.push(res.topic ?? 'no topic');
     if (res.driverCodes?.length) {
       bits.push(res.driverCodes.join(','));
     }
@@ -701,6 +710,7 @@ function newsPublish(file, flags) {
         `  VALIDATION: ${res.validationProblem.message ?? JSON.stringify(res.validationProblem)}`,
       );
     }
+    warnNoTopic(res.topic);
   }
   if (!apply) {
     console.log('dry run. Re-run with --apply to publish.');
@@ -721,6 +731,9 @@ function publishGlobalNews(item, apply, flags) {
     apply ? 'published' : `would ${WOULD[res.action] ?? res.action}`,
     `global/${item.key}`,
   ];
+  // A real run returns the row's id, so the topic is read from the item.
+  const topic = typeof res === 'object' && res ? res.topic : item.topic;
+  bits.push(topic ?? 'no topic');
   if (item.team) {
     bits.push(item.team);
   }
@@ -734,6 +747,15 @@ function publishGlobalNews(item, apply, flags) {
   console.log(bits.join('  '));
   if (!apply && res.valid === false) {
     console.log('  VALIDATION: globalNews:publish would reject this item');
+  }
+  warnNoTopic(topic);
+}
+
+// Every story gets a topic: the news API serves it and filters on it. A
+// correction keeps the one it has, so this only fires for a story with none.
+function warnNoTopic(topic) {
+  if (topic === undefined || topic === null) {
+    console.log(`  NO TOPIC: add "topic", one of ${NEWS_TOPICS.join(', ')}`);
   }
 }
 

@@ -275,6 +275,7 @@ describe('private news pipeline', () => {
         affectsSessions: [],
         confidence: 'medium',
         reviewReason: 'Confirm official wording.',
+        topic: 'team',
         status: 'review',
       });
     });
@@ -294,6 +295,7 @@ describe('private news pipeline', () => {
     const stories = await t.run((ctx) => ctx.db.query('globalNews').collect());
     expect(stories).toHaveLength(1);
     expect(stories[0].team).toBe('Cadillac');
+    expect(stories[0].topic).toBe('team');
     const events = await t.run((ctx) => ctx.db.query('feedEvents').collect());
     expect(events).toHaveLength(1);
     expect(events[0].newsTeam).toBe('Cadillac');

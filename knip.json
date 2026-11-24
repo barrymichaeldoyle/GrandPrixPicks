@@ -50,10 +50,6 @@
       "project": ["**/*.{ts,tsx,js,cjs,css}"],
       "ignoreDependencies": ["tailwind-merge", "clsx"]
     },
-    "apps/reddit-news": {
-      "entry": ["src/server/index.ts"],
-      "project": ["src/**/*.ts"]
-    },
     "packages/shared": {
       "project": ["src/**/*.{ts,tsx}"]
     }

@@ -10,6 +10,7 @@ import {
   query,
 } from './_generated/server';
 import { getViewer, requireAdmin } from './lib/auth';
+import { newsTopicValidator } from './lib/newsApiValidators';
 import { canonicalNewsUrl, parseRss, safeHttpUrl } from './lib/newsRss';
 import schema from './schema';
 
@@ -439,6 +440,7 @@ const proposalInput = v.object({
   confidence: v.union(v.literal('low'), v.literal('medium'), v.literal('high')),
   contradictions: v.optional(v.array(v.string())),
   reviewReason: v.string(),
+  topic: v.optional(newsTopicValidator),
 });
 
 export const claimBatch = internalMutation({
@@ -736,6 +738,7 @@ export const reviewProposal = mutation({
         headline,
         body,
         category,
+        topic: proposal.topic,
         affectsSessions,
         feedSelected: args.feedSelected,
         writeUpSelected: args.writeUpSelected,
@@ -766,6 +769,7 @@ export const reviewProposal = mutation({
         headline,
         body,
         team: args.team,
+        topic: proposal.topic,
         sourceName: source.name,
         sourceUrl: candidate.canonicalUrl,
         sourcePublishedAt: candidate.sourcePublishedAt,

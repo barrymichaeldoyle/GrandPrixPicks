@@ -46,6 +46,7 @@ const CLERK_FREE_EXACT = new Set([
   '/f1-2026-united-states-grand-prix-predictions',
   '/f1-2027-calendar',
   '/f1-2027-driver-line-up',
+  '/f1-news-api',
   '/f1-predictions-this-weekend',
   '/f1-qualifying-standings',
   '/f1-standings',

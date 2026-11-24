@@ -29,6 +29,11 @@ type SignInPromptProps = {
    * from it whether signing in gets them what they came for.
    */
   behind: readonly string[];
+  /**
+   * The public page offered beside sign-in. Defaults to a pick without an
+   * account; a page that is not about the game names its own.
+   */
+  alternative?: { to: '/' | '/f1-news-api'; label: string };
 };
 
 /**
@@ -55,6 +60,7 @@ export function SignInPrompt({
   actionLabel = 'Sign in',
   meta,
   behind,
+  alternative = { to: '/', label: 'Try a pick without an account' },
 }: SignInPromptProps) {
   const { requestSignIn, signInPending } = useClerkRuntimeControl();
   const warmHandlers = useClerkWarmHandlers();
@@ -121,7 +127,7 @@ export function SignInPrompt({
                 rightIcon={ArrowRight}
                 className="!px-0 sm:!px-5"
               >
-                <Link to="/">Try a pick without an account</Link>
+                <Link to={alternative.to}>{alternative.label}</Link>
               </Button>
             </div>
           </header>

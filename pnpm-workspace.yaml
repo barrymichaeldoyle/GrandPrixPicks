@@ -192,9 +192,6 @@ overrides:
   # GHSA-jmr9-qjv8-65gv out of the tree: extract-zip 2.0.1 is the newest
   # release, so there is nothing to override it to directly.
   'lighthouse@<13.4.1': 13.4.1
-  # The Devvit CLI (apps/reddit-news) pins image-size 2.0.2 exactly, inside
-  # GHSA-w3rx-r6r6-pgpr and its sibling. Same major, so a patch lift.
-  'image-size@>=0.6.3 <2.0.4': 2.0.4
 
   # Reached only through Convex/Nitro server plumbing; the 7.x line carries
   # the fix, so this is a patch lift rather than a major move.
@@ -208,7 +205,8 @@ overrides:
   'hono@>=4.0.0 <4.13.7': 4.13.7
   # 2026-10-06 audit pass, all patch lifts inside the major. Reached through
   # @lhci/cli (proxy-addr, basic-ftp, compression), @tanstack/react-devtools
-  # (seroval), the Devvit CLI's vitest (source-map-js) and knip (smol-toml).
+  # (seroval) and knip (smol-toml). source-map-js came through the Devvit CLI's
+  # vitest, deleted with apps/reddit-news on 2026-11-20.
   'proxy-addr@>=1.1.0 <2.0.8': 2.0.8
   'basic-ftp@<=6.2.0': 6.2.1
   'compression@<1.8.2': 1.8.2

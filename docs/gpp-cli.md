@@ -63,7 +63,13 @@ scripts/gpp.mjs usage [--days N] [--skill name] [--session id,...]
   `sourcePublished` as a full UTC ISO string and reports validation problems in
   the preview. An item with `"global": true` (a story about no race) goes to
   `globalNews:publish` instead, and is refused locally if it carries a
-  race-only field. Editorial rules live in the `publish-race-news` skill.
+  race-only field. `topic` is checked against `NEWS_TOPICS`
+  (`packages/shared/src/newsTopics.ts`, which the CLI imports directly) before
+  any call, each result line shows the story's topic, and a story that would
+  have none gets a `NO TOPIC` line. Editorial rules live in the
+  `publish-race-news` skill.
+- **`news list`** shows each item's topic first among its tags (`no topic`
+  when it has none); `news show` prints the whole row, `topic` included.
 - **`news scan`** fetches eight F1 RSS feeds (list in `NEWS_FEEDS`) and prints
   the unfiled stories, two lines each: score, date, outlets, headline, tags,
   then the URL. The window starts a day before the race's newest item, and

@@ -327,3 +327,34 @@ average position 18.1.
 
 After Las Vegas (22 November): is Las Vegas indexed and ranking in its race
 week, and has anything moved `/f1-team-mate-battles` off zero clicks.
+
+## 2026-11-24: checkpoint after Las Vegas
+
+Read from the PostHog GSC sync (impressions and position; its clicks column
+under-counts, so clicks below are floors). 28 days to 21 November, last 7 days
+shown separately.
+
+| Page                                         | Impr (7d / prior 21d) | Position (7d / prior 21d) |
+| -------------------------------------------- | --------------------- | ------------------------- |
+| `/f1-team-mate-battles`                      | 58 / 443              | 7.1 / 7.4                 |
+| `/f1-2026-las-vegas-grand-prix-predictions`  | 5 / 11                | 63.4 / 23.1               |
+| `/f1-2026-qatar-grand-prix-predictions`      | 2 / 1                 | 9.5 / 33.0                |
+| `/f1-2026-abu-dhabi-grand-prix-predictions`  | 0 / 4                 | - / 11.8                  |
+
+- Las Vegas is indexed now (it collects impressions) but never ranked: about
+  position 23 in early November and 63 in race week, on only four queries
+  ("f1 las vegas predictions" and close variants). Mexico City was at 7.0 six
+  days before its race. The likely cause is the late indexing (unknown to
+  Google until the hand request on 26 October), not the page. Its `dateModified`
+  is still 2026-10-01; Austin's is 2026-11-17.
+- `/f1-team-mate-battles` holds position 7 on about 500 impressions a month,
+  mostly "f1 h2h 2026" and "f1 teammate head to head 2026". The sync shows 3
+  clicks over the 28 days, so it is off zero, but confirm the real count in
+  the console before changing the snippet.
+- Qatar and Abu Dhabi: too few impressions to call. Both sit around position
+  10 ahead of their races.
+
+### Next checkpoint
+
+After Abu Dhabi (6 December): did Qatar and Abu Dhabi rank in their race weeks,
+and what are the console clicks for `/f1-team-mate-battles`.

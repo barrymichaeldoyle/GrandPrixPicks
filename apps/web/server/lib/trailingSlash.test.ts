@@ -19,7 +19,7 @@ describe('trailingSlashRedirect', () => {
   it('leaves the root, slashless paths and machine routes alone', () => {
     expect(at('/')).toBeNull();
     expect(at('/how-to-play')).toBeNull();
-    expect(at('/api/news/recent/')).toBeNull();
+    expect(at('/api/v1/news/')).toBeNull();
     expect(at('/og/next/')).toBeNull();
   });
 

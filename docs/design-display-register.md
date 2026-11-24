@@ -40,6 +40,10 @@ A short, fixed list. Adding a surface is a decision, not a styling choice.
 - The off-season landing hero: `apps/web/src/routes/-home/OffSeasonHero.tsx`
   (display year at `.gpp-display-year`, sheared opener flag, the finished
   season's podium in its fills).
+- The news API landing page: `apps/web/src/routes/f1-news-api.tsx` (since
+  2026-11-20). Display h1 and `.gpp-display-h2` headings, and five published
+  stories drawn as the landing hero's team-colour bands, static and unlinked,
+  so a developer sees the stories before the JSON.
 - Candidates, not yet built: OG and social cards, the season recap.
 
 Never in game UI (the picker, pick rows, standings, results, leagues,

@@ -29,7 +29,7 @@ function PrivacyPage() {
       <div className="mx-auto max-w-4xl px-4 py-6">
         <PageHeader
           title="Privacy policy"
-          subtitle="Last updated: August 2026"
+          subtitle="Last updated: November 2026"
         />
 
         <div className="reveal-up reveal-delay-1 prose prose-invert max-w-none space-y-6 text-text-muted">
@@ -57,6 +57,16 @@ function PrivacyPage() {
               the app. We also store your predictions (top 5 and head-to-head),
               scores, and follow relationships (who you follow and who follows
               you). We do not sell your data.
+            </p>
+            <p className="mt-3">
+              If you join the waiting list for the F1 news API, we store the
+              email address you enter and what you tell us you would build. We
+              use them only to write to you about the API. To be taken off the
+              list, email{' '}
+              <a href={SUPPORT_MAILTO} className="text-accent underline">
+                {SUPPORT_EMAIL}
+              </a>
+              .
             </p>
           </section>
 

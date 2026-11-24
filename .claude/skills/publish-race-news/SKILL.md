@@ -54,8 +54,8 @@ the finished race.
 A story about no race at all (a team's F2 entry, the calendar, a future
 regulation) has no `raceSlug`. Give it `"global": true` instead of `raceSlug`
 and `affectsSessions`, and publish it with `news publish` like any other item.
-It takes `key`, `headline`, `body`, `sourceName`, `sourceUrl`, and optionally
-`team` and `sourcePublishedAt` (ISO or epoch ms). It reaches the feed but never
+It takes `key`, `headline`, `body`, `sourceName`, `sourceUrl`, `topic`, and
+optionally `team` and `sourcePublishedAt` (ISO or epoch ms). It reaches the feed but never
 a write-up. The dry run reports `valid` and the action a real run would take.
 
 Do not call `globalNews:publish` or `raceNews:publish` with `npx convex run`.
@@ -81,6 +81,30 @@ the same on the feed, the write-up and the landing hero:
    three rather than only the first, or it will read as a McLaren story.
 
 `team` is kept on a republish that omits it.
+
+## Give every story a topic
+
+`topic` is what the story is about, and the news API serves and filters on
+it. Set it on every new story, race or global. One of:
+
+- `penalty`: grid and time penalties, stewards' decisions
+- `grid`: a starting grid announcement
+- `technical`: upgrades, car changes, reliability
+- `driver`: line-up changes, injuries, contracts, the driver market
+- `team`: management and team business
+- `weather`
+- `calendar`: the calendar, a venue, a weekend's format
+- `regulation`: rules, the FIA
+- `other`: only when none of these fits
+
+Pick the one a reader would file it under. A power unit change that brings a
+grid penalty is `penalty`, because the penalty is the news; the same part
+change with no penalty is `technical`. A story about who drives a car in FP1
+is `driver`. The list lives in `packages/shared/src/newsTopics.ts`, and
+`news publish` refuses anything else before calling Convex. A correction that
+leaves `topic` out keeps the one the story has, so restate it only to change
+it. The dry run prints `NO TOPIC` for a story that would be left without one:
+fix the file before `--apply`.
 
 ## Name the drivers
 
@@ -163,6 +187,7 @@ or update.
   "body": "Mercedes has confirmed a full power unit change after the Barcelona and Silverstone failures. Ten places minimum, reported as a back-of-grid start.",
   "affectsSessions": ["race"],
   "driverCodes": ["ANT"],
+  "topic": "penalty",
   "sourceName": "Formula 1",
   "sourceUrl": "https://www.formula1.com/en/latest/article/...",
   "sourcePublishedAt": "2026-09-03T09:00:00Z"
@@ -300,6 +325,7 @@ with the whole grid attached rather than as a sentence describing it. Put
   "headline": "The Monza grid is set",
   "body": "Gasly starts his maiden pole alongside Russell...",
   "affectsSessions": ["race"],
+  "topic": "grid",
   "sourceName": "Formula 1",
   "sourceUrl": "https://www.formula1.com/en/results/...",
   "startingGrid": [
@@ -350,7 +376,7 @@ the rest a tap away. Both read the one record, so a correction fixes both.
 
 ## News for a later round
 
-News that breaks this weekend about a _future_ one is worth publishing the day
+News that breaks this weekend about a *future* one is worth publishing the day
 you find it: the write-up page is what gets indexed, and it wants the content
 early. The feed does not. Somebody reading it is picking this weekend, and a
 Madrid story above an unlocked Monza session is noise wearing a source link.

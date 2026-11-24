@@ -1,4 +1,5 @@
 import { newsTeam } from '@grandprixpicks/shared/newsTeam';
+import { isNewsTopic, NEWS_TOPICS } from '@grandprixpicks/shared/newsTopics';
 import { teams as TEAM_NAMES } from '@grandprixpicks/shared/tokens';
 import { ConvexError, v } from 'convex/values';
 
@@ -12,6 +13,10 @@ import {
   type StartingGridEntry,
 } from './lib/raceNewsStartingGrid';
 import { feedSortFor, insertFeedEvent } from './lib/feedSort';
+import {
+  scheduleTranslation,
+  scheduleWebhookDrain,
+} from './lib/newsApiChanges';
 import { raceNewsWriteUpImageValidator } from './lib/raceNewsWriteUpImage';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
@@ -529,7 +534,7 @@ export async function loadActiveRaceNews(
  * way to miss is a roster edit afterwards, and a card short one badge beats a
  * page that will not render.
  */
-async function driversForCodes(
+export async function driversForCodes(
   ctx: QueryCtx,
   codes: string[],
 ): Promise<
@@ -605,6 +610,14 @@ export const publish = internalMutation({
      * Kept on a republish that omits it.
      */
     team: v.optional(v.string()),
+    /**
+     * What the story is about, one of `NEWS_TOPICS`
+     * (`packages/shared/src/newsTopics.ts`), e.g. `"penalty"`. The news API
+     * serves it and filters on it. Optional to the validator so a bad value
+     * gets a message naming the topics rather than a validator error; set it
+     * on every new story. Kept on a republish that omits it.
+     */
+    topic: v.optional(v.string()),
     writeUpImage: v.optional(raceNewsWriteUpImageValidator),
     /**
      * The confirmed starting grid, on the item that announces it, as
@@ -715,6 +728,12 @@ export const publish = internalMutation({
         `Unknown team "${args.team}". Use one of: ${Object.keys(TEAM_NAMES).join(', ')}.`,
       );
     }
+    const topicArg = args.topic;
+    if (topicArg !== undefined && !isNewsTopic(topicArg)) {
+      throw new ConvexError(
+        `Unknown topic "${topicArg}". Use one of: ${NEWS_TOPICS.join(', ')}.`,
+      );
+    }
     const resolved = await resolveDriverCodes(ctx, args.driverCodes);
     const driverCodes = resolved?.codes;
     const grid = await resolveGridForPublish(
@@ -739,6 +758,7 @@ export const publish = internalMutation({
         : ('republished' as const)
       : ('created' as const);
 
+    const topic = topicArg ?? existing?.topic;
     const feedVisibleAt = feedVisibleAtArg ?? existing?.feedVisibleAt;
     const alreadyInFeed =
       (await feedEventForNews(ctx, race._id, args.key)) !== null;
@@ -766,6 +786,7 @@ export const publish = internalMutation({
         headline: args.headline,
         affectsSessions: affectsSessions,
         driverCodes,
+        topic,
         gridPositions: grid?.resolved.length,
         // Must be empty before the real run: each entry is a row linking to a
         // story that is not live on this race yet.
@@ -790,6 +811,8 @@ export const publish = internalMutation({
       sourceUrl: args.sourceUrl,
       driverCodes,
       ...(args.team !== undefined ? { team: args.team } : {}),
+      // Spread like `team`: a correction keeps the topic it does not restate.
+      ...(topicArg !== undefined ? { topic: topicArg } : {}),
       // Spread rather than assigned, so republishing corrected copy for an item
       // that has a photo does not have to restate the photo to keep it. The
       // trade is that `publish` cannot clear one: `patch` leaves an omitted key
@@ -813,7 +836,26 @@ export const publish = internalMutation({
       updatedAt: now,
     };
 
+    // A republish that changes nothing the news API serves keeps its
+    // `updatedAt`, so the change feed, and every webhook reading it, does not
+    // report a correction nobody can see (moving a story off the feed, a
+    // photo, an embargo, an agent re-running the same call).
+    const servedChanged =
+      !existing ||
+      servedFingerprint(existing) !==
+        servedFingerprint({ ...existing, ...fields });
+
+    // Translated when the English is new, changed, or live again: the run
+    // skips languages already translated from this exact text.
+    const translate =
+      !existing ||
+      !existing.active ||
+      existing.headline !== args.headline ||
+      existing.body !== args.body;
+
+    let newsId: Id<'raceNews'>;
     if (existing) {
+      newsId = existing._id;
       if (!feedSelected && existing.feedReleaseScheduledId) {
         try {
           await ctx.scheduler.cancel(
@@ -825,12 +867,19 @@ export const publish = internalMutation({
       }
       await ctx.db.patch(existing._id, {
         ...fields,
+        updatedAt: servedChanged ? now : existing.updatedAt,
         ...(existing.headline !== args.headline
           ? { headlineUpdatedAt: now }
           : {}),
       });
     } else {
-      await ctx.db.insert('raceNews', { ...fields, publishedAt: now });
+      newsId = await ctx.db.insert('raceNews', { ...fields, publishedAt: now });
+    }
+    if (servedChanged) {
+      await scheduleWebhookDrain(ctx);
+    }
+    if (translate) {
+      await scheduleTranslation(ctx, newsId);
     }
 
     if (!feedSelected) {
@@ -858,6 +907,7 @@ export const publish = internalMutation({
       headline: args.headline,
       affectsSessions: affectsSessions,
       driverCodes,
+      topic,
       gridPositions: grid?.resolved.length,
       feedVisibleAt: heldBack ? feedVisibleAt : undefined,
       gridNewsLinks: grid?.resolved.filter((entry) => entry.newsKey).length,
@@ -867,6 +917,48 @@ export const publish = internalMutation({
     };
   },
 });
+
+/**
+ * The fields of a story the news API serves (`present` in `newsApi.ts`), as
+ * one string. `writeUpSelected` is here because it decides `url`; the feed
+ * placement, the photo and the embargo are not, because nothing served
+ * reads them. A grid is compared whole, `newsKey` links included, which errs
+ * towards reporting a change.
+ */
+function servedFingerprint(
+  row: Pick<
+    Doc<'raceNews'>,
+    | 'raceId'
+    | 'active'
+    | 'headline'
+    | 'body'
+    | 'sourceName'
+    | 'sourceUrl'
+    | 'sourcePublishedAt'
+    | 'affectsSessions'
+    | 'driverCodes'
+    | 'team'
+    | 'topic'
+    | 'startingGrid'
+    | 'writeUpSelected'
+  >,
+): string {
+  return JSON.stringify([
+    row.raceId,
+    row.active,
+    row.headline,
+    row.body,
+    row.sourceName,
+    row.sourceUrl,
+    row.sourcePublishedAt ?? null,
+    row.affectsSessions,
+    row.driverCodes ?? null,
+    row.team ?? null,
+    row.topic ?? null,
+    row.startingGrid ?? null,
+    row.writeUpSelected !== false,
+  ]);
+}
 
 /**
  * Move the scheduled release, or set one.
@@ -1300,8 +1392,13 @@ export const retract = internalMutation({
     await ctx.db.patch(existing._id, {
       active: false,
       feedReleaseScheduledId: undefined,
-      updatedAt: Date.now(),
+      // Retracting a story already retracted is no news, so the change feed
+      // does not report a second tombstone.
+      ...(existing.active ? { updatedAt: Date.now() } : {}),
     });
+    if (existing.active) {
+      await scheduleWebhookDrain(ctx);
+    }
     const event = await feedEventForNews(ctx, race._id, args.key);
     if (event) {
       await ctx.db.delete(event._id);
@@ -1465,6 +1562,7 @@ export const move = internalMutation({
       }
     }
 
+    await scheduleWebhookDrain(ctx);
     return { action: 'moved' as const, from: from.slug, to: to.slug, items };
   },
 });

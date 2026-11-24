@@ -59,6 +59,7 @@ weekend card flag the item on the Race tab and leave Qualifying alone, which is
 | `headline`, `body`        | One line and one or two sentences on what it means for picks    |
 | `affectsSessions`         | Non-empty for `pick_related`, empty for `general`. The UI hook  |
 | `driverCodes`             | Optional. Colours the card with the first driver's team         |
+| `topic`                   | What the story is about. Set on every new story. See below      |
 | `sourceName`, `sourceUrl` | Attribution, same standard as the write-up pages                |
 | `sourcePublishedAt`       | Optional. When the source published it, shown on the write-up   |
 | `startingGrid`            | Optional. The full sourced grid, on the item that announces it  |
@@ -82,12 +83,25 @@ Two things that look like bugs and are not:
 - **`drivers.team` is the driver's current team**, so the colour follows the
   seat they hold now, not the one they held when the news broke.
 
+### `topic`
+
+One of `NEWS_TOPICS` in `packages/shared/src/newsTopics.ts`: `penalty`,
+`grid`, `technical`, `driver`, `team`, `weather`, `calendar`, `regulation`,
+`other`. It is what the news API serves as `topic` and filters on
+(`docs/news-api.md`); no page of ours shows it yet. Both publish mutations
+take it, a correction that leaves it out keeps the one the story has, and a
+value off the list is refused (`raceNews:publish` throws, `globalNews:publish`
+reports `valid: false`). `news publish` checks it before calling Convex and
+prints `NO TOPIC` when a story would be left without one. Stories published
+before the field existed are given one with `newsApi:backfillTopics`.
+
 `key` is the load-bearing field. Agents retry, and the same weekend gets
 prompted about more than once, so publishing is an upsert rather than an insert.
 Without it, three runs put three Antonelli items in the feed.
 
 Race-independent stories published through `globalNews:publish` can set an
-optional `team` to colour their feed card when no driver belongs to the story.
+optional `team` to colour their feed card when no driver belongs to the story,
+and take `topic` the same way race stories do.
 Use the canonical team name from `packages/shared/src/tokens.ts`; leave it
 unset for stories about the calendar or Formula 1 as a whole. Corrections keep
 the existing team when `team` is omitted. Pass `"dryRun": true` to rehearse one: the
@@ -121,6 +135,7 @@ scripts/gpp.mjs news publish item.json --prod
   "headline": "Antonelli takes a grid penalty at Monza",
   "body": "Mercedes has confirmed a full power unit change after the Barcelona and Silverstone failures. Ten places minimum, reported as a back-of-grid start.",
   "affectsSessions": ["race"],
+  "topic": "penalty",
   "sourceName": "Formula 1",
   "sourceUrl": "https://www.formula1.com/en/latest/article/...",
   "sourcePublishedAt": "2026-09-03T09:00:00Z",
@@ -330,11 +345,10 @@ created — not on a correction — `discord.postNews` fires from a scheduled
 action, gated on `DISCORD_NEWS_WEBHOOK_URL` (unset in dev). See
 `docs/discord-server-setup.md`.
 
-**A feed card also reaches r/GPPicks, within ten minutes.** The `gpp-news`
-Devvit app polls `/api/news/recent` and posts each card as a link to its
-source, with the summary as a pinned comment. Unlike Discord it follows
-corrections: a new summary edits the comment, a new headline or link reposts,
-and a retraction deletes the post. See `docs/reddit-news-app.md`.
+**A published story is in the news API at once.** `GET /api/v1/news` reads
+`raceNews` and `globalNews` directly, so there is nothing extra to publish. A
+correction updates the same id and a retraction shows in its change feed. It
+ignores `feedVisibleAt`, as the write-up does. See `docs/news-api.md`.
 
 **A later round's news can wait its turn.** `feedVisibleAt` (ms epoch) holds the
 feed card until a moment you choose, while the write-up page shows the item the

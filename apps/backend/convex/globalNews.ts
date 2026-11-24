@@ -1,8 +1,15 @@
 import { v } from 'convex/values';
+import { isNewsTopic } from '@grandprixpicks/shared/newsTopics';
 import { teams } from '@grandprixpicks/shared/tokens';
+import { newsTopicValidator } from './lib/newsApiValidators';
 import { internal } from './_generated/api';
+import type { Doc } from './_generated/dataModel';
 import { internalMutation, internalQuery, query } from './_generated/server';
 import { insertFeedEvent } from './lib/feedSort';
+import {
+  scheduleTranslation,
+  scheduleWebhookDrain,
+} from './lib/newsApiChanges';
 import { safeHttpUrl } from './lib/newsRss';
 
 /**
@@ -19,6 +26,7 @@ const globalNewsListResultValidator = v.object({
       headline: v.string(),
       body: v.string(),
       team: v.optional(v.string()),
+      topic: v.optional(newsTopicValidator),
       sourceName: v.string(),
       sourceUrl: v.string(),
       active: v.boolean(),
@@ -51,6 +59,7 @@ export const listForOperators = internalQuery({
         headline: row.headline,
         body: row.body,
         team: row.team,
+        topic: row.topic,
         sourceName: row.sourceName,
         sourceUrl: row.sourceUrl,
         active: row.active,
@@ -85,6 +94,12 @@ export const publish = internalMutation({
     headline: v.string(),
     body: v.string(),
     team: v.optional(v.string()),
+    /**
+     * One of `NEWS_TOPICS` (`packages/shared/src/newsTopics.ts`). A string to
+     * the validator so a bad one fails `valid` instead of reaching Sentry.
+     * Kept on a republish that omits it.
+     */
+    topic: v.optional(v.string()),
     sourceName: v.string(),
     sourceUrl: v.string(),
     sourcePublishedAt: v.optional(v.number()),
@@ -102,6 +117,7 @@ export const publish = internalMutation({
       ),
       key: v.string(),
       team: v.optional(v.string()),
+      topic: v.optional(v.string()),
     }),
   ),
   handler: async (ctx, { dryRun, ...args }) => {
@@ -113,7 +129,8 @@ export const publish = internalMutation({
       args.body.length >= 10 &&
       args.body.length <= 1000 &&
       !/<[^>]*>|&lt;|&#\d+;/i.test(`${args.headline} ${args.body}`) &&
-      (args.team === undefined || Object.hasOwn(teams, args.team));
+      (args.team === undefined || Object.hasOwn(teams, args.team)) &&
+      (args.topic === undefined || isNewsTopic(args.topic));
     if (!valid && !dryRun) {
       throw new Error('Invalid news.');
     }
@@ -123,6 +140,8 @@ export const publish = internalMutation({
       .withIndex('by_key', (q) => q.eq('key', args.key))
       .unique();
     const team = args.team ?? existing?.team;
+    const topicArg = args.topic;
+    const topic = isNewsTopic(topicArg) ? topicArg : existing?.topic;
     if (dryRun) {
       return {
         dryRun: true as const,
@@ -134,6 +153,7 @@ export const publish = internalMutation({
           : ('created' as const),
         key: args.key,
         team,
+        topic: topicArg ?? topic,
       };
     }
     const card = {
@@ -166,25 +186,73 @@ export const publish = internalMutation({
       throw new Error('Feed event missing.');
     }
     if (existing) {
+      const next = { ...existing, ...args, team, topic, active: true };
+      // A republish that changes nothing the news API serves keeps its
+      // `updatedAt`, so the change feed and webhooks report nothing.
+      const servedChanged =
+        servedFingerprint(existing) !== servedFingerprint(next);
       await ctx.db.patch(existing._id, {
         ...args,
         team,
+        topic,
         feedEventId,
         active: true,
-        updatedAt: now,
+        updatedAt: servedChanged ? now : existing.updatedAt,
       });
+      if (servedChanged) {
+        await scheduleWebhookDrain(ctx);
+      }
+      // Translated when the English changed or the story is live again: the
+      // run skips languages already translated from this exact text.
+      if (
+        !existing.active ||
+        existing.headline !== args.headline ||
+        existing.body !== args.body
+      ) {
+        await scheduleTranslation(ctx, existing._id);
+      }
       return existing._id;
     }
-    return await ctx.db.insert('globalNews', {
+    const id = await ctx.db.insert('globalNews', {
       ...args,
       team,
+      topic,
       feedEventId,
       active: true,
       publishedAt: now,
       updatedAt: now,
     });
+    await scheduleWebhookDrain(ctx);
+    await scheduleTranslation(ctx, id);
+    return id;
   },
 });
+
+/** The fields the news API serves, as one string. See `raceNews.ts`. */
+function servedFingerprint(
+  row: Pick<
+    Doc<'globalNews'>,
+    | 'active'
+    | 'headline'
+    | 'body'
+    | 'team'
+    | 'topic'
+    | 'sourceName'
+    | 'sourceUrl'
+    | 'sourcePublishedAt'
+  >,
+): string {
+  return JSON.stringify([
+    row.active,
+    row.headline,
+    row.body,
+    row.team ?? null,
+    row.topic ?? null,
+    row.sourceName,
+    row.sourceUrl,
+    row.sourcePublishedAt ?? null,
+  ]);
+}
 
 export const retract = internalMutation({
   args: { key: v.string() },
@@ -202,6 +270,7 @@ export const retract = internalMutation({
       await ctx.db.delete(feed._id);
     }
     await ctx.db.patch(row._id, { active: false, updatedAt: Date.now() });
+    await scheduleWebhookDrain(ctx);
     return null;
   },
 });

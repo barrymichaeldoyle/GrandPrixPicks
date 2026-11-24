@@ -53,6 +53,7 @@ export const footerF1Links: SiteNavLink[] = [
   { to: '/f1-2027-driver-line-up', label: '2027 driver line-up' },
   { to: '/f1-2027-calendar', label: '2027 calendar' },
   { to: '/trmnl', label: 'F1 on TRMNL' },
+  { to: '/f1-news-api', label: 'F1 news API' },
 ];
 
 export const footerSupportLinks: SiteNavLink[] = [

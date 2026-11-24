@@ -36,6 +36,7 @@
     "./practice": "./src/practice.ts",
     "./raceCountries": "./src/raceCountries.ts",
     "./raceRecap": "./src/raceRecap.ts",
+    "./raceWriteupPhase": "./src/raceWriteupPhase.ts",
     "./raceWriteups": "./src/raceWriteups.ts",
     "./raceTimezones": "./src/raceTimezones.ts",
     "./scoring": "./src/scoring.ts",
@@ -47,6 +48,8 @@
     "./teamCode": "./src/teamCode.ts",
     "./teams": "./src/teams.ts",
     "./newsTeam": "./src/newsTeam.ts",
+    "./newsLanguages": "./src/newsLanguages.ts",
+    "./newsTopics": "./src/newsTopics.ts",
     "./tokens": "./src/tokens.ts",
     "./userFacingError": "./src/userFacingError.ts"
   }

@@ -131,4 +131,18 @@ describe('SignInPrompt', () => {
     render(prompt).querySelector('button')?.click();
     expect(requestSignIn).toHaveBeenCalledTimes(1);
   });
+
+  it('offers the page a caller names in place of a pick', () => {
+    const html = renderToStaticMarkup(
+      <SignInPrompt
+        eyebrow="F1 news API"
+        title="News API keys"
+        description="Create a key."
+        behind={['Revoke a key']}
+        alternative={{ to: '/f1-news-api', label: 'About the F1 news API' }}
+      />,
+    );
+    expect(html).toContain('About the F1 news API');
+    expect(html).not.toContain('Try a pick without an account');
+  });
 });

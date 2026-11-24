@@ -27,8 +27,6 @@ apps/
   backend/    # Convex backend (schema, queries/mutations, scoring, emails)
   trmnl/      # TRMNL e-ink plugin: Liquid layouts + settings (no package.json;
               # polls apps/web /api/trmnl/weekend; docs/trmnl-plugin-specification.md)
-  reddit-news/ # Devvit app: mirrors news cards into r/GPPicks
-              # (polls apps/web /api/news/recent; docs/reddit-news-app.md)
 packages/
   shared/     # Code shared between web + mobile (e.g. session types, scoring constants)
 convex/       # Root-level _generated only — actual Convex code lives in apps/backend/convex
@@ -176,6 +174,8 @@ routes/                # TanStack Router file-based routes
   pricing.tsx, pay.tsx, refund-policy.tsx  # Season pass / Paddle checkout
   support.tsx          # Support request form
   trmnl.tsx            # TRMNL plugin page: photo, setup, every moment x size (indexed)
+  f1-news-api.tsx      # News API landing page: uses, an example, the waiting list (indexed)
+  f1-news-api_.keys.tsx  # /f1-news-api/keys: create + revoke your own free API keys (noindex)
   admin/               # Admin routes (race management, result publishing)
   terms.tsx, privacy.tsx
 components/            # Shared React components (app-wide)
@@ -204,6 +204,7 @@ server/                # Nitro server routes & helpers (outside src/)
   routes/x.get.ts                 # X share-intent redirect
   routes/sitemap.xml.ts
   routes/api/paddle/*             # Paddle checkout + webhook
+  routes/api/v1/news/*            # Keyed news API (docs/news-api.md)
   routes/api/clerk/webhook.post.ts
   lib/                            # paddle, clerk, sentry, auth helpers
 ```
@@ -251,6 +252,11 @@ push.ts, pushNotifications.ts  # Expo + web push delivery / tokens
 inAppNotifications.ts  # In-app notification bell feed
 billing.ts             # Season pass entitlement (Paddle)
 announcements.ts       # Site-wide admin announcement banner
+newsApi.ts             # Keyed news API: read model over raceNews + globalNews, keys, waiting list
+newsApiServe.ts        # News API's only public entry: one metered action per endpoint
+newsApiAccount.ts      # Self-serve free news API keys: myKeys, createMyKey, revokeMyKey
+newsApiTranslations.ts # News API translations: Claude-translated headline + body per language
+newsApiWebhooks.ts     # News API webhooks: signed change-feed delivery per endpoint
 support.ts             # Support request intake
 users.ts               # User profile management + deletion
 seed.ts                # 2026 season seeding + test data generators
@@ -332,6 +338,8 @@ schema <table>` (one table's fields) instead of reading `schema.ts`.
 - **Billing / ops**: `userSeasonPasses`, `processedPaddleWebhookEvents`,
   `announcements`, `supportRequests`
 - **News**: `raceNews`, `globalNews`, plus the `news*` research pipeline
+- **News API**: `newsApiKeys`, `newsApiUsage`, `newsApiWebhooks`,
+  `newsApiTranslations`, `newsApiWaitlist` (`docs/news-api.md`)
 - **Live and practice results**: `liveClassifications`, `liveSnapshots`,
   `practiceResults`, `openF1ResultPolls`, `practiceResultPolls`
 

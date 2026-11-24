@@ -20,6 +20,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
+import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button/Button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageLoader } from '@/components/PageLoader';
@@ -177,6 +178,7 @@ function LeagueSettingsContent({
 
         <div className="space-y-4">
           {isAdmin && <AdminGeneralSettings league={league} />}
+          {isAdmin && <MemberManagement league={league} />}
           <DangerZone leagueId={league._id} league={league} isAdmin={isAdmin} />
         </div>
       </div>
@@ -317,6 +319,170 @@ function AdminGeneralSettings({ league }: { league: League }) {
   );
 }
 
+type MemberAction = 'promote' | 'demote' | 'remove';
+
+/**
+ * Admins promote, demote and remove members here. This went missing when the
+ * league page was rebuilt in March 2026, which left a league's only admin with
+ * no way to hand over before leaving: the warning below pointed at a members
+ * section that no longer existed.
+ *
+ * The creator's row has no actions for anyone else while they are an admin;
+ * `leagues.requireNotCreator` refuses them on the server either way.
+ */
+function MemberManagement({ league }: { league: League }) {
+  const me = useQuery(api.users.me, {});
+  const members = useQuery(api.leagues.getLeagueMembers, {
+    leagueId: league._id,
+  });
+  const promoteMember = useMutation(api.leagues.promoteMember);
+  const demoteMember = useMutation(api.leagues.demoteMember);
+  const removeMember = useMutation(api.leagues.removeMember);
+  const [pending, setPending] = useState<string | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState<Id<'users'> | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function run(action: MemberAction, userId: Id<'users'>) {
+    setPending(`${action}:${userId}`);
+    setError(null);
+    try {
+      const args = { leagueId: league._id, userId };
+      if (action === 'promote') {
+        await promoteMember(args);
+      } else if (action === 'demote') {
+        await demoteMember(args);
+      } else {
+        await removeMember(args);
+      }
+      setConfirmRemove(null);
+    } catch (err) {
+      setError(
+        toUserFacingMessage(err, 'That change wasn’t saved. Try again.'),
+      );
+    } finally {
+      setPending(null);
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-surface p-4">
+      <h3 className="mb-3 text-sm font-semibold text-text-muted">
+        Members{members ? ` (${members.length})` : ''}
+      </h3>
+      {members === undefined || me === undefined ? (
+        <Loader2
+          className="h-4 w-4 animate-spin text-text-muted"
+          aria-label="Loading members"
+        />
+      ) : (
+        <ul className="divide-y divide-border">
+          {[...members]
+            .sort((a, b) =>
+              a.role === b.role
+                ? a.username.localeCompare(b.username)
+                : a.role === 'admin'
+                  ? -1
+                  : 1,
+            )
+            .map((member) => {
+              const isCreator = member.userId === league.createdBy;
+              const isViewer = member.userId === me?._id;
+              const protectedCreator =
+                isCreator && member.role === 'admin' && !isViewer;
+              const busy = pending?.endsWith(`:${member.userId}`) ?? false;
+              return (
+                <li
+                  key={member._id}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2"
+                >
+                  <Avatar
+                    avatarUrl={member.avatarUrl}
+                    username={member.username}
+                    size="xs"
+                  />
+                  <Link
+                    to="/p/$username"
+                    params={{ username: member.username }}
+                    search={{ from: undefined, fromLabel: undefined }}
+                    className="min-w-0 flex-1 truncate text-sm font-medium text-text hover:underline"
+                  >
+                    {member.username}
+                    {isViewer ? ' (you)' : ''}
+                  </Link>
+                  {member.role === 'admin' ? (
+                    <span className="text-xs text-text-muted">
+                      {isCreator ? 'Creator' : 'Admin'}
+                    </span>
+                  ) : null}
+                  {isViewer || protectedCreator ? null : confirmRemove ===
+                    member.userId ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-text">
+                        Remove {member.username}?
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        loading={pending === `remove:${member.userId}`}
+                        onClick={() => void run('remove', member.userId)}
+                      >
+                        Remove
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => setConfirmRemove(null)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        loading={
+                          pending === `promote:${member.userId}` ||
+                          pending === `demote:${member.userId}`
+                        }
+                        disabled={pending !== null && !busy}
+                        onClick={() =>
+                          void run(
+                            member.role === 'admin' ? 'demote' : 'promote',
+                            member.userId,
+                          )
+                        }
+                      >
+                        {member.role === 'admin' ? 'Make member' : 'Make admin'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="text"
+                        disabled={pending !== null}
+                        onClick={() => {
+                          setError(null);
+                          setConfirmRemove(member.userId);
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+        </ul>
+      )}
+      {error ? (
+        <p className="mt-2 text-sm text-error" aria-live="assertive">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function DangerZone({
   leagueId,
   league,
@@ -368,16 +534,15 @@ function DangerZone({
               You&apos;re the only admin
             </p>
             <p className="mt-1 text-xs text-text-muted">
-              Add at least one other admin (promote a member in the Members
-              section) if you want to leave the league without deleting it.
-              Until then, you can only delete the league.
+              To leave without deleting the league, make another member an admin
+              in Members above.
             </p>
           </div>
         ) : (
           <LeaveButton leagueId={leagueId} />
         )}
 
-        {isAdmin && (
+        {isAdmin && league.viewerCanDelete && (
           <div className="border-t border-border pt-4">
             <p className="mb-2 text-sm font-medium text-text">
               Delete this league

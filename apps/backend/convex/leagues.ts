@@ -81,9 +81,62 @@ async function requireLeagueAdmin(
     )
     .unique();
   if (!membership || membership.role !== 'admin') {
-    throw new Error('Not a league admin');
+    throw new ConvexError('Only league admins can do that.');
   }
   return membership;
+}
+
+/**
+ * Whether the league's creator is still in it as an admin.
+ *
+ * The creator holds the two powers no other admin has: deleting the league,
+ * and not being removable or demotable by anyone else. A creator who has left
+ * or stepped down hands both to the admins who remain, or a league whose
+ * creator walked away could never be deleted.
+ */
+async function creatorIsActiveAdmin(
+  ctx: QueryCtx | MutationCtx,
+  league: Doc<'leagues'>,
+): Promise<boolean> {
+  const membership = await ctx.db
+    .query('leagueMembers')
+    .withIndex('by_league_user', (q) =>
+      q.eq('leagueId', league._id).eq('userId', league.createdBy),
+    )
+    .unique();
+  return membership?.role === 'admin';
+}
+
+async function canDeleteLeague(
+  ctx: QueryCtx | MutationCtx,
+  league: Doc<'leagues'>,
+  viewerId: Id<'users'>,
+): Promise<boolean> {
+  return (
+    league.createdBy === viewerId || !(await creatorIsActiveAdmin(ctx, league))
+  );
+}
+
+/** Another admin may not demote or remove the creator while they lead it. */
+async function requireNotCreator(
+  ctx: MutationCtx,
+  leagueId: Id<'leagues'>,
+  targetUserId: Id<'users'>,
+  viewerId: Id<'users'>,
+) {
+  if (targetUserId === viewerId) {
+    return;
+  }
+  const league = await ctx.db.get(leagueId);
+  if (
+    league &&
+    league.createdBy === targetUserId &&
+    (await creatorIsActiveAdmin(ctx, league))
+  ) {
+    throw new ConvexError(
+      'The league creator can’t be removed or made a member.',
+    );
+  }
 }
 
 /**
@@ -263,6 +316,10 @@ export const getLeagueBySlug = query({
       memberCount: counts.memberCount,
       adminCount: counts.adminCount,
       viewerRole: viewerMembership?.role ?? null,
+      viewerCanDelete:
+        viewer != null &&
+        viewerMembership?.role === 'admin' &&
+        (await canDeleteLeague(ctx, league, viewer._id)),
       hasPassword: !!league.password,
       createdBy: league.createdBy,
       visibility: league.visibility,
@@ -750,8 +807,8 @@ export const leaveLeague = mutation({
       const memberCount = admins.length;
 
       if (adminCount === 1 && memberCount > 1) {
-        throw new Error(
-          'You are the last admin. Promote another member before leaving.',
+        throw new ConvexError(
+          'You are the last admin. Make another member an admin before leaving.',
         );
       }
     }
@@ -884,10 +941,10 @@ export const promoteMember = mutation({
       )
       .unique();
     if (!membership) {
-      throw new Error('User is not a member');
+      throw new ConvexError('That player is no longer in this league.');
     }
     if (membership.role === 'admin') {
-      throw new Error('User is already an admin');
+      throw new ConvexError('That player is already an admin.');
     }
 
     await ctx.db.patch(membership._id, { role: 'admin' });
@@ -907,6 +964,7 @@ export const demoteMember = mutation({
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
     await requireLeagueAdmin(ctx, args.leagueId, viewer._id);
+    await requireNotCreator(ctx, args.leagueId, args.userId, viewer._id);
 
     if (args.userId === viewer._id) {
       const admins = await ctx.db
@@ -915,8 +973,8 @@ export const demoteMember = mutation({
         .take(MAX_LEAGUE_MEMBERS);
       const adminCount = countAdmins(admins);
       if (adminCount === 1) {
-        throw new Error(
-          'You are the last admin. Promote another member first.',
+        throw new ConvexError(
+          'You are the last admin. Make another member an admin first.',
         );
       }
     }
@@ -928,10 +986,10 @@ export const demoteMember = mutation({
       )
       .unique();
     if (!membership) {
-      throw new Error('User is not a member');
+      throw new ConvexError('That player is no longer in this league.');
     }
     if (membership.role === 'member') {
-      throw new Error('User is already a member');
+      throw new ConvexError('That player is already a member.');
     }
 
     await ctx.db.patch(membership._id, { role: 'member' });
@@ -953,8 +1011,9 @@ export const removeMember = mutation({
     await requireLeagueAdmin(ctx, args.leagueId, viewer._id);
 
     if (args.userId === viewer._id) {
-      throw new Error('Cannot remove yourself. Use leave instead.');
+      throw new ConvexError('Cannot remove yourself. Use leave instead.');
     }
+    await requireNotCreator(ctx, args.leagueId, args.userId, viewer._id);
 
     const membership = await ctx.db
       .query('leagueMembers')
@@ -963,7 +1022,7 @@ export const removeMember = mutation({
       )
       .unique();
     if (!membership) {
-      throw new Error('User is not a member');
+      throw new ConvexError('That player is no longer in this league.');
     }
 
     await ctx.db.delete(membership._id);
@@ -987,6 +1046,13 @@ export const deleteLeague = mutation({
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
     await requireLeagueAdmin(ctx, args.leagueId, viewer._id);
+    const league = await ctx.db.get(args.leagueId);
+    if (!league) {
+      throw new ConvexError('League not found');
+    }
+    if (!(await canDeleteLeague(ctx, league, viewer._id))) {
+      throw new ConvexError('Only the league creator can delete it.');
+    }
 
     // Delete all members
     const members = await ctx.db

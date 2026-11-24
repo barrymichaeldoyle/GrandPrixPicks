@@ -1,0 +1,35 @@
+[
+  {
+    "global": true,
+    "key": "engine-makers-two-team-supply-cap-2030",
+    "headline": "F1 engine makers reportedly agree to supply two teams each from 2030",
+    "body": "The six power unit manufacturers have reportedly agreed to a cap of two teams each, works team included, as part of the V8 regulations. Mercedes supplies McLaren, Williams and Alpine today. The FIA World Motor Sport Council is expected to consider the framework next month, and an obligation-to-supply rule could still require a third customer.",
+    "topic": "regulation",
+    "sourceName": "Crash",
+    "sourceUrl": "https://www.crash.net/f1/news/1110840/1/mercedes-faces-major-f1-customer-engine-shake-under-proposed-2030-regulations",
+    "sourcePublishedAt": "2026-11-23T12:35:00+00:00"
+  },
+  {
+    "global": true,
+    "key": "verstappen-daytona-24-2027",
+    "headline": "Verstappen is looking at the 2027 Daytona 24 Hours",
+    "body": "Verstappen says he is looking into whether he can race the Daytona 24 Hours in January, in a GT3 car. He has ruled out Le Mans next year, where he would only race a hypercar.",
+    "topic": "driver",
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/max-verstappen-reveals-he-is-considering-2027-daytona-24-hours-entry/10877155/",
+    "sourcePublishedAt": "2026-11-23T17:42:25Z"
+  },
+  {
+    "raceSlug": "las-vegas-2026",
+    "key": "gasly-las-vegas-cooling-podium",
+    "headline": "Gasly says an overheating Alpine cost him a podium in Las Vegas",
+    "body": "Gasly ran third after 31 laps, then lost five places in four as Alpine told him to turn the power down to cool the car. He finished fifth and says he was losing more than a second a lap in the most extreme mode, with full power only allowed for the last two laps.",
+    "category": "general",
+    "affectsSessions": [],
+    "topic": "technical",
+    "driverCodes": ["GAS"],
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/the-issue-that-cost-pierre-gasly-a-potential-podium-at-f1s-las-vegas-gp/10877501/",
+    "sourcePublishedAt": "2026-11-24T15:38:33Z"
+  }
+]

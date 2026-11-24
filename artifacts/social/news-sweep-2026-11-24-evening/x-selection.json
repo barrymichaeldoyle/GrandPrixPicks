@@ -1,0 +1,17 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/news-2026-11-24-evening.json",
+  "startAt": "2026-11-24T16:30:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": [
+        "gasly-las-vegas-cooling-podium"
+      ],
+      "text": "Gasly says Alpine had the pace to challenge for the win in Las Vegas until the car overheated. He was third after 31 laps, fifth at the flag, and ran the power down for most of the race.",
+      "link": "https://grandprixpicks.com/f1-2026-las-vegas-grand-prix-predictions?story=gasly-las-vegas-cooling-podium",
+      "expiresAt": "2026-11-26T12:00:00Z"
+    }
+  ]
+}

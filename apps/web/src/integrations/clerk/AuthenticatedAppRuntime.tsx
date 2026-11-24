@@ -2,7 +2,6 @@ import { PushRegistrationSync } from '@/components/PushRegistrationSync';
 import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { useMutation } from 'convex/react';
-import { useNavigate } from '@tanstack/react-router';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useRef } from 'react';
 
@@ -24,7 +23,6 @@ export function AuthenticatedAppRuntime({
         <ObservabilityUserSync />
         <ProfileSync />
         <PushRegistrationSync />
-        <AfterSignInIntentNavigator />
         <SignOutReporter />
         {children}
       </AppConvexProvider>
@@ -55,27 +53,6 @@ function SignOutReporter() {
       signedOut();
     }
   }, [isLoaded, isSignedIn, signedOut]);
-
-  return null;
-}
-
-function AfterSignInIntentNavigator() {
-  const { isSignedIn } = useAuth();
-  const runtime = useClerkRuntimeControl();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!isSignedIn || runtime.afterSignInPath === null) {
-      return;
-    }
-    const destination = runtime.afterSignInPath;
-    runtime.clearAfterSignInPath();
-    captureAnalyticsEvent('landing_auth_completed', {
-      source: 'landing',
-      intent: 'create_league',
-    });
-    void navigate({ to: destination });
-  }, [isSignedIn, navigate, runtime]);
 
   return null;
 }

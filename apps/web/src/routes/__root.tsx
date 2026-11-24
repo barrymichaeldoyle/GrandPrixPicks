@@ -551,9 +551,6 @@ function AppRuntimeBoundary({
   const [emailSaveOpen, setEmailSaveOpen] = useState(false);
   /** Clicked, modal not on screen yet. Drives the button's own pending state. */
   const [signInPending, setSignInPending] = useState(false);
-  const [afterSignInPath, setAfterSignInPath] = useState<
-    '/leagues/create' | null
-  >(null);
 
   // Signed-out visitors to public content render without Clerk on the page at
   // all; everyone else renders inside it from the first paint, exactly as
@@ -688,10 +685,9 @@ function AppRuntimeBoundary({
     setRuntimeWarm(true);
   }
 
-  function requestSignIn(nextPath?: '/leagues/create') {
+  function requestSignIn() {
     markSignInRequested();
     void preloadClerkRuntime();
-    setAfterSignInPath(nextPath ?? null);
     setRuntimeWarm(true);
     setSignInPending(true);
     // Opening is a background handoff, not a navigation. A transition keeps the
@@ -766,7 +762,6 @@ function AppRuntimeBoundary({
     active: clerkRequired,
     openSignInOnMount: signInOpen,
     signInPending,
-    afterSignInPath,
     requestSignIn,
     requestPickSaveSignIn,
     warmSignIn,
@@ -777,7 +772,6 @@ function AppRuntimeBoundary({
         resetAfterSignOut();
       }
     },
-    clearAfterSignInPath: () => setAfterSignInPath(null),
   };
 
   if (!clerkRequired) {

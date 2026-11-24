@@ -7,8 +7,7 @@ type ClerkRuntimeControl = {
   openSignInOnMount: boolean;
   /** A sign-in click is in flight and the modal is not on screen yet. */
   signInPending: boolean;
-  afterSignInPath: '/leagues/create' | null;
-  requestSignIn: (afterSignInPath?: '/leagues/create') => void;
+  requestSignIn: () => void;
   /**
    * Sign-in to save picks a signed-out visitor just made. On the Clerk-free
    * routes this opens the email-and-code dialog (`EmailSaveDialog`); anywhere
@@ -20,20 +19,17 @@ type ClerkRuntimeControl = {
   signInOpened: () => void;
   /** Clerk confirmed a signed-in session has ended. */
   signedOut: () => void;
-  clearAfterSignInPath: () => void;
 };
 
 const ClerkRuntimeControlContext = createContext<ClerkRuntimeControl>({
   active: true,
   openSignInOnMount: false,
   signInPending: false,
-  afterSignInPath: null,
   requestSignIn: () => undefined,
   requestPickSaveSignIn: () => undefined,
   warmSignIn: () => undefined,
   signInOpened: () => undefined,
   signedOut: () => undefined,
-  clearAfterSignInPath: () => undefined,
 });
 
 export const ClerkRuntimeControlProvider = ClerkRuntimeControlContext.Provider;

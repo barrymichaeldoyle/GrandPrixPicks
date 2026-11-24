@@ -374,8 +374,7 @@ function DuelDriverButton({
         number={driver.number}
         nationality={driver.nationality}
         size={isLarge ? 'lg' : 'md'}
-        prerenderTooltip={false}
-        tooltipFocusable={false}
+        tooltip={false}
       />
       <span className="min-w-0">
         <span

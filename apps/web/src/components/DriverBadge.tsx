@@ -50,6 +50,13 @@ interface DriverBadgeProps {
    * note on Tooltip's own `focusable`.
    */
   tooltipFocusable?: boolean;
+  /**
+   * Off where the badge sits inside a control that already shows everything
+   * the tooltip would. A duel card is the case: it prints the name, flag and
+   * number, and a tap on the card opened the tooltip on touch, which then
+   * outlived the pick because only a tap elsewhere closes a touch tooltip.
+   */
+  tooltip?: boolean;
 }
 
 /**
@@ -68,9 +75,11 @@ export function DriverBadge({
   fill = 'elevated',
   prerenderTooltip,
   tooltipFocusable,
+  tooltip = true,
 }: DriverBadgeProps) {
   const color = (team && TEAM_COLORS[team]) || FALLBACK_TEAM_COLOR;
-  const hasTooltip = displayName || number != null || team || nationality;
+  const hasTooltip =
+    tooltip && (displayName || number != null || team || nationality);
 
   const tooltipContent = hasTooltip ? (
     <div

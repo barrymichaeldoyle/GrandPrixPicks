@@ -1899,7 +1899,8 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=las-vegas-2026&story=gasly-las-vegas-cooling-podium&v=a40583c9e5e9",
       "dueAt": "2026-11-24T16:30:00.000Z",
       "expiresAt": "2026-11-26T12:00:00.000Z",
-      "status": "creating"
+      "status": "creating",
+      "bufferPostId": "6b05b69384a6c936472a8be9"
     }
   ]
 }

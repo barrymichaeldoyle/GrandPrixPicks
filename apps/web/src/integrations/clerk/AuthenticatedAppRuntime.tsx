@@ -25,10 +25,38 @@ export function AuthenticatedAppRuntime({
         <ProfileSync />
         <PushRegistrationSync />
         <AfterSignInIntentNavigator />
+        <SignOutReporter />
         {children}
       </AppConvexProvider>
     </AppClerkProvider>
   );
+}
+
+/**
+ * Tells the root a session that was live has ended, so it can return a
+ * Clerk-free route to its anonymous tree. Only a signed-in to signed-out
+ * change counts: Clerk reporting signed out while it boots is not a sign-out.
+ */
+function SignOutReporter() {
+  const { isLoaded, isSignedIn } = useAuth();
+  const { signedOut } = useClerkRuntimeControl();
+  const wasSignedInRef = useRef(false);
+
+  useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+    if (isSignedIn) {
+      wasSignedInRef.current = true;
+      return;
+    }
+    if (wasSignedInRef.current) {
+      wasSignedInRef.current = false;
+      signedOut();
+    }
+  }, [isLoaded, isSignedIn, signedOut]);
+
+  return null;
 }
 
 function AfterSignInIntentNavigator() {

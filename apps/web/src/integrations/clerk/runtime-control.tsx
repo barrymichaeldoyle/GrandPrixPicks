@@ -18,6 +18,8 @@ type ClerkRuntimeControl = {
   /** Boot Clerk without opening anything, on an intent signal before the click. */
   warmSignIn: () => void;
   signInOpened: () => void;
+  /** Clerk confirmed a signed-in session has ended. */
+  signedOut: () => void;
   clearAfterSignInPath: () => void;
 };
 
@@ -30,6 +32,7 @@ const ClerkRuntimeControlContext = createContext<ClerkRuntimeControl>({
   requestPickSaveSignIn: () => undefined,
   warmSignIn: () => undefined,
   signInOpened: () => undefined,
+  signedOut: () => undefined,
   clearAfterSignInPath: () => undefined,
 });
 

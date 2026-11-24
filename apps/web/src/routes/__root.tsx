@@ -7,6 +7,7 @@ import {
   HeadContent,
   Scripts,
   useLocation,
+  useRouter,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { ConvexProviderWithAuth } from 'convex/react';
@@ -724,6 +725,40 @@ function AppRuntimeBoundary({
     setSignInPending(false);
   }
 
+  /**
+   * The flags above only ever go up. After a modal sign-in followed by a
+   * sign-out they kept `clerkRequired` true, so the landing page kept Clerk
+   * mounted and the next "Save picks" opened Clerk's modal instead of the
+   * email-and-code dialog. `signInOpen` stayed true as well, so Clerk's
+   * sign-in modal reopened over the page the visitor had just signed out on.
+   *
+   * Clerk runs its `afterSignOutUrl` navigation before it reports the
+   * signed-out state, so by the time `signedOut` arrives that navigation has
+   * usually resolved and the reset runs at once. If a navigation is still
+   * loading, it waits for it: dropping the Clerk tree mid-navigation would
+   * unmount the page being navigated to.
+   */
+  const signedOutRef = useRef(false);
+  const router = useRouter();
+  function resetAfterSignOut() {
+    if (!signedOutRef.current || hasClerkSessionCookie()) {
+      return;
+    }
+    signedOutRef.current = false;
+    setSignedInViaModal(false);
+    setReturningFromClerk(false);
+    setSessionMissedByServer(false);
+    setSignInOpen(false);
+    setSignInPending(false);
+    setRuntimeWarm(false);
+  }
+  useEffect(
+    () => router.subscribe('onResolved', () => resetAfterSignOut()),
+    // `resetAfterSignOut` only touches a ref and state setters, all stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [router],
+  );
+
   // Above the `!clerkRequired` return below, so the hook runs on every path.
   const loadingPhrase = useLoadingPhrase();
 
@@ -736,6 +771,12 @@ function AppRuntimeBoundary({
     requestPickSaveSignIn,
     warmSignIn,
     signInOpened,
+    signedOut: () => {
+      signedOutRef.current = true;
+      if (router.state.status === 'idle') {
+        resetAfterSignOut();
+      }
+    },
     clearAfterSignInPath: () => setAfterSignInPath(null),
   };
 

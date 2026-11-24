@@ -1,0 +1,32 @@
+[
+  {
+    "raceSlug": "las-vegas-2026",
+    "key": "hadjar-las-vegas-safety-car-penalty",
+    "headline": "Hadjar gets a 10-second penalty for slowing under the Safety Car",
+    "body": "The stewards ruled that Hadjar deliberately drove up to 100 km/h slower than Verstappen under the Safety Car to open a gap for a double-stack stop. The penalty drops him from 14th to 15th, behind Lawson.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["HAD"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/11/22/hadjar-given-10-second-penalty-for-holding-up-safety-car-queue-behind-verstappen/",
+    "sourcePublishedAt": "2026-11-22T08:17:49Z"
+  },
+  {
+    "global": true,
+    "key": "f1-2030-two-team-engine-supply-limit",
+    "headline": "F1 plans a two-team limit for each engine manufacturer from 2030",
+    "body": "Each manufacturer would supply no more than two teams, its own included, under the framework behind the 2030 V8 rules. Mercedes currently supplies McLaren, Williams and Alpine, so two of them would need a new supplier if the World Motor Sport Council approves it in Shanghai next month.",
+    "sourceName": "Autosport",
+    "sourceUrl": "https://www.autosport.com/f1/news/f1-set-to-reduce-customer-teams-as-key-2030-details-emerge/10877058/",
+    "sourcePublishedAt": "2026-11-22T20:32:03Z"
+  },
+  {
+    "global": true,
+    "key": "verstappen-daytona-24-2027-considering",
+    "headline": "Verstappen is looking into the 2027 Daytona 24 Hours",
+    "body": "Verstappen says he is exploring whether he can race at Daytona in January, in a GT3 car. The 65th edition runs 28 to 31 January 2027, during the F1 winter break.",
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/max-verstappen-reveals-he-is-considering-2027-daytona-24-hours-entry/10877155/",
+    "sourcePublishedAt": "2026-11-23T17:42:25Z"
+  }
+]

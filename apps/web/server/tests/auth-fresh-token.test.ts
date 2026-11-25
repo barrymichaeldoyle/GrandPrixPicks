@@ -48,6 +48,21 @@ describe('getFreshClerkSessionToken', () => {
     expect(clerk.getToken).not.toHaveBeenCalled();
   });
 
+  it('says when it mints, and only then', async () => {
+    const { getFreshClerkSessionToken } = await import('../lib/auth');
+    const live = jwtWith({ sid: 'sess_1', exp: Date.now() / 1000 + 50 });
+    const expired = jwtWith({ sid: 'sess_1', exp: Date.now() / 1000 - 3600 });
+    clerk.verifyToken.mockResolvedValue({ sid: 'sess_1' });
+    clerk.getToken.mockResolvedValue({ jwt: 'fresh.jwt.value' });
+    const onMint = vi.fn();
+
+    await getFreshClerkSessionToken(requestWith(live), undefined, onMint);
+    expect(onMint).not.toHaveBeenCalled();
+
+    await getFreshClerkSessionToken(requestWith(expired), undefined, onMint);
+    expect(onMint).toHaveBeenCalledTimes(1);
+  });
+
   it('mints a new token for the session an expired cookie belonged to', async () => {
     const { getFreshClerkSessionToken } = await import('../lib/auth');
     const expired = jwtWith({ sid: 'sess_1', exp: Date.now() / 1000 - 3600 });

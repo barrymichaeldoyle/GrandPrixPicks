@@ -52,7 +52,39 @@ export type DashboardSsrData = FunctionReturnType<
 export type DashboardSsrResult = {
   data: DashboardSsrData | null;
   miss: string | null;
+  /** Null for a signed-out request, which never reaches the slow stages. */
+  timings: DashboardSsrTimings | null;
 };
+
+/**
+ * Milliseconds per stage of a signed-in read, so a slow dashboard can be
+ * pinned on Clerk or on Convex. Signed-in HTML cannot come from the edge
+ * cache, and on 2026-11-24 the origin took 0.5-2.1 s to answer it against
+ * ~0.13 s for the cached signed-out page. A stage that never ran is null.
+ *
+ * On Workers the clock only moves across I/O, which is what these measure.
+ */
+export type DashboardSsrTimings = {
+  sessionMs: number;
+  tokenMs: number | null;
+  /** The cookie's token was stale, so `tokenMs` includes a mint at Clerk. */
+  minted: boolean;
+  dashboardMs: number | null;
+  weatherMs: number | null;
+  totalMs: number;
+};
+
+async function timed<T>(
+  work: Promise<T>,
+  record: (ms: number) => void,
+): Promise<T> {
+  const start = Date.now();
+  try {
+    return await work;
+  } finally {
+    record(Date.now() - start);
+  }
+}
 
 export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
   async (): Promise<DashboardSsrResult> => {
@@ -61,36 +93,70 @@ export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
       console.warn('[dashboard-ssr] no viewer data', reason);
       miss = reason;
     }
+    const startedAt = Date.now();
+    const timings: DashboardSsrTimings = {
+      sessionMs: 0,
+      tokenMs: null,
+      minted: false,
+      dashboardMs: null,
+      weatherMs: null,
+      totalMs: 0,
+    };
+    function finish(data: DashboardSsrData | null): DashboardSsrResult {
+      timings.totalMs = Date.now() - startedAt;
+      return { data, miss, timings };
+    }
     try {
       const request = getRequest();
       // The same test the cache headers use. A request that `__client_uat`
       // calls signed out is given public, edge-cached HTML, so reading the
       // viewer's dashboard off a lingering `__session` here would put one
       // player's picks and leagues in the page every visitor is then served.
-      if (!(await isClerkSessionPresent(request))) {
-        return { data: null, miss: 'signed_out' };
+      // No timings either: that HTML is shared, and they would be noise in it.
+      const signedIn = await timed(isClerkSessionPresent(request), (ms) => {
+        timings.sessionMs = ms;
+      });
+      if (!signedIn) {
+        return { data: null, miss: 'signed_out', timings: null };
       }
-      const token = await getFreshClerkSessionToken(request, reportSsrMiss);
+      const token = await timed(
+        getFreshClerkSessionToken(request, reportSsrMiss, () => {
+          timings.minted = true;
+        }),
+        (ms) => {
+          timings.tokenMs = ms;
+        },
+      );
       if (!token) {
-        return { data: null, miss: miss ?? 'no_token' };
+        miss ??= 'no_token';
+        return finish(null);
       }
 
       const convexUrl = import.meta.env.VITE_CONVEX_URL;
       if (!convexUrl) {
-        return { data: null, miss: 'no_convex_url' };
+        miss = 'no_convex_url';
+        return finish(null);
       }
 
       const client = new ConvexHttpClient(convexUrl);
       client.setAuth(token);
       const weatherNow = bucketWeatherNow(Date.now());
       const [dashboard, weather] = await Promise.all([
-        client.query(api.home.getDashboardPageData, {}),
-        client.query(api.weather.getUpcoming, { now: weatherNow }),
+        timed(client.query(api.home.getDashboardPageData, {}), (ms) => {
+          timings.dashboardMs = ms;
+        }),
+        timed(
+          client.query(api.weather.getUpcoming, { now: weatherNow }),
+          (ms) => {
+            timings.weatherMs = ms;
+          },
+        ),
       ]);
       if (!dashboard) {
-        return { data: null, miss: 'no_dashboard' };
+        miss = 'no_dashboard';
+        return finish(null);
       }
-      return { data: { ...dashboard, weather, weatherNow }, miss: null };
+      return finish({ ...dashboard, weather, weatherNow });
     } catch (error) {
       // A Convex error, or a session that ended between the mint and the read.
       // The page still works, from the client.
@@ -99,7 +165,7 @@ export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
           error instanceof Error ? `${error.name}: ${error.message}` : 'unknown'
         }`.slice(0, 200),
       );
-      return { data: null, miss };
+      return finish(null);
     }
   },
 );

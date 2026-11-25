@@ -291,6 +291,8 @@ export async function getFreshClerkSessionToken(
   request: Request,
   /** Told why no token came back, as `stage` or `stage: error message`. */
   onFailure?: (reason: string) => void,
+  /** Told when the cookie's token was stale and a new one is being minted. */
+  onMint?: () => void,
 ): Promise<string | null> {
   const token = await getClerkSessionToken(request);
   if (!token) {
@@ -305,6 +307,7 @@ export async function getFreshClerkSessionToken(
   if (expiresAt - Date.now() > EXPIRY_MARGIN_MS) {
     return token;
   }
+  onMint?.();
   return mintSessionToken(token, onFailure);
 }
 

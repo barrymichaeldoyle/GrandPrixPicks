@@ -22,6 +22,7 @@ import {
   preloadDashboardForReturningViewer,
   preloadDashboardPage,
 } from './-dashboard/preload';
+import { useReportSsrTimings } from './-dashboard/reportSsrTimings';
 import { fetchDashboardSsrData } from './-dashboard/ssr';
 import {
   BrowseRacesCta,
@@ -138,18 +139,24 @@ export const Route = createFileRoute('/')({
     // would add an HTTP round trip to re-fetch what the socket has. `document`
     // is the check rather than `import.meta.env.SSR` because this file is also
     // rendered by the test environment.
+    const homeQueryStartedAt = Date.now();
+    const homeQuery: { ms: number | null } = { ms: null };
     const [data, dashboardSsr] = await Promise.all([
-      context.queryClient.ensureQueryData({
-        ...routeQuery(api.home.getHomePageData, { now }),
-        // One extra attempt for a server-side failure, on top of the usual
-        // network retries. This query is the whole landing page, an uncaught
-        // failure here is an error page, and the one seen in production was
-        // Convex's system timeout: a slow moment, not a bug that repeats.
-        retry: (failureCount: number, error: Error) =>
-          isTransientNetworkError(error)
-            ? failureCount < 2
-            : failureCount < 1 && isConvexServerError(error),
-      }),
+      context.queryClient
+        .ensureQueryData({
+          ...routeQuery(api.home.getHomePageData, { now }),
+          // One extra attempt for a server-side failure, on top of the usual
+          // network retries. This query is the whole landing page, an uncaught
+          // failure here is an error page, and the one seen in production was
+          // Convex's system timeout: a slow moment, not a bug that repeats.
+          retry: (failureCount: number, error: Error) =>
+            isTransientNetworkError(error)
+              ? failureCount < 2
+              : failureCount < 1 && isConvexServerError(error),
+        })
+        .finally(() => {
+          homeQuery.ms = Date.now() - homeQueryStartedAt;
+        }),
       typeof document === 'undefined'
         ? fetchDashboardSsrData()
         : Promise.resolve(null),
@@ -188,6 +195,13 @@ export const Route = createFileRoute('/')({
       // Why, for a signed-in render: read from the page source when the
       // dashboard keeps arriving as a skeleton. Null on client navigations.
       ssrMissReason: dashboardSsr?.miss ?? null,
+      // Where a signed-in render spent its time, reported once from the
+      // client as `dashboard_ssr_timed`. The page waits on the slower of the
+      // public home query and the viewer's read, so both are here. Null when
+      // signed out (that HTML is shared) and on client navigations.
+      ssrTimings: dashboardSsr?.timings
+        ? { ...dashboardSsr.timings, homeQueryMs: homeQuery.ms }
+        : null,
       now,
     };
   },
@@ -217,7 +231,9 @@ export const Route = createFileRoute('/')({
 
 function HomePage() {
   const { isSignedIn } = useViewerSession();
-  const { dashboard, drivers, h2hMatchups } = Route.useLoaderData();
+  const { dashboard, drivers, h2hMatchups, ssrTimings, ssrMissReason } =
+    Route.useLoaderData();
+  useReportSsrTimings(ssrTimings, ssrMissReason);
   /*
    * The seed belongs to whoever was signed in when the loader ran. A session
    * that ends with no navigation (signed out in another tab) leaves it in the

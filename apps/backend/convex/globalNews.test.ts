@@ -283,3 +283,34 @@ describe('race-independent news', () => {
     });
   });
 });
+
+describe('the operator listing', () => {
+  it('returns the newest stories once the table passes the read bound', async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async (ctx) => {
+      const feedEventId = await ctx.db.insert('feedEvents', {
+        type: 'race_news',
+        createdAt: 0,
+      });
+      // Oldest first, as the routine writes them. The listing used to take
+      // the first fifty in that order and drop every newer story.
+      for (let i = 0; i < 210; i++) {
+        await ctx.db.insert('globalNews', {
+          key: `story-${i}`,
+          headline: `Story ${i}`,
+          body: 'Body',
+          sourceName: 'Source',
+          sourceUrl: `https://example.com/${i}`,
+          feedEventId,
+          active: true,
+          publishedAt: i,
+          updatedAt: i,
+        });
+      }
+    });
+    const { items } = await t.query(internal.globalNews.listForOperators, {});
+    expect(items).toHaveLength(200);
+    expect(items[0].key).toBe('story-209');
+    expect(items.at(-1)?.key).toBe('story-10');
+  });
+});

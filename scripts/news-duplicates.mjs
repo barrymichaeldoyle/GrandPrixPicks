@@ -15,7 +15,9 @@
  *   enough: a stewards' document or a grid page backs several distinct
  *   stories in a weekend, so the two must also name the same people or teams
  *   ("Lawson starts from the pit lane" and "Alonso starts from the pit lane"
- *   share a stewards' document and are two stories).
+ *   share a stewards' document and are two stories). Two headlines that
+ *   name no one ("F1 plans a two-team limit ...") are judged on their words
+ *   alone: one Autosport article went out twice like that on 23 Nov 2026.
  * - **Warned:** a different source, but a headline that overlaps heavily with
  *   a live story from the last week about the same people or teams (Bottas
  *   staying at Cadillac, reported by RaceFans then Motorsport.com). Follow-ups
@@ -49,11 +51,19 @@ function words(text) {
     .filter(Boolean);
 }
 
+/** `teams` -> `team`, so a plural reworded as a singular still matches. */
+function singular(word) {
+  return word.length > 3 && word.endsWith('s') && !word.endsWith('ss')
+    ? word.slice(0, -1)
+    : word;
+}
+
 function headlineTokens(headline) {
   return new Set(
     words(headline)
       .map((word) => word.toLowerCase())
-      .filter((word) => word.length > 2 && !STOPWORDS.has(word)),
+      .filter((word) => word.length > 2 && !STOPWORDS.has(word))
+      .map(singular),
   );
 }
 
@@ -91,8 +101,16 @@ function subjectsIn(headline, scope) {
   return names;
 }
 
+/**
+ * Two headlines that name no one ("F1 plans a two-team limit ...") are not
+ * told apart by names, so only the words decide; one that names someone and
+ * one that does not are different stories.
+ */
 function sameSubject(a, b) {
-  return a.size > 0 && b.size > 0 && (isSubset(a, b) || isSubset(b, a));
+  if (a.size === 0 || b.size === 0) {
+    return a.size === b.size;
+  }
+  return isSubset(a, b) || isSubset(b, a);
 }
 
 function isSubset(a, b) {

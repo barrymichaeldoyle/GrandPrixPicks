@@ -13,11 +13,13 @@ import {
 import { safeHttpUrl } from './lib/newsRss';
 
 /**
- * A read bound rather than an editorial one. Race-independent stories are rare,
- * but a read still has to be bounded, and fifty is far above any run of them the
- * site has ever carried.
+ * A read bound rather than an editorial one: the newest this many stories.
+ * It was fifty, oldest first, and the table passed sixty in November 2026, so
+ * every story after 20 Nov was missing from the listing. The duplicate check
+ * in `gpp news publish` reads it, and the same stories went out again under
+ * new keys.
  */
-const MAX_GLOBAL_NEWS = 50;
+const MAX_GLOBAL_NEWS = 200;
 
 const globalNewsListResultValidator = v.object({
   items: v.array(
@@ -51,22 +53,24 @@ export const listForOperators = internalQuery({
   args: {},
   returns: globalNewsListResultValidator,
   handler: async (ctx) => {
-    const rows = await ctx.db.query('globalNews').take(MAX_GLOBAL_NEWS);
-    const items = rows
-      .sort((a, b) => b.publishedAt - a.publishedAt)
-      .map((row) => ({
-        key: row.key,
-        headline: row.headline,
-        body: row.body,
-        team: row.team,
-        topic: row.topic,
-        sourceName: row.sourceName,
-        sourceUrl: row.sourceUrl,
-        active: row.active,
-        publishedAt: row.publishedAt,
-        updatedAt: row.updatedAt,
-        sourcePublishedAt: row.sourcePublishedAt,
-      }));
+    const rows = await ctx.db
+      .query('globalNews')
+      .withIndex('by_published')
+      .order('desc')
+      .take(MAX_GLOBAL_NEWS);
+    const items = rows.map((row) => ({
+      key: row.key,
+      headline: row.headline,
+      body: row.body,
+      team: row.team,
+      topic: row.topic,
+      sourceName: row.sourceName,
+      sourceUrl: row.sourceUrl,
+      active: row.active,
+      publishedAt: row.publishedAt,
+      updatedAt: row.updatedAt,
+      sourcePublishedAt: row.sourcePublishedAt,
+    }));
     return { items };
   },
 });

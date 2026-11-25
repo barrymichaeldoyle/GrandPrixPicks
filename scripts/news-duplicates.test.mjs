@@ -213,3 +213,53 @@ test('two items in one batch are checked against each other', () => {
   assert.equal(refusals.length, 1);
   assert.match(refusals[0], /global\/red-bull-mekies-2031/);
 });
+
+// 23 Nov 2026: the same Autosport article went out twice under new keys,
+// and a Crash report of the same news followed the next day.
+const ENGINE_SUPPLY =
+  'https://www.autosport.com/f1/news/f1-set-to-reduce-customer-teams-as-key-2030-details-emerge/10877055/';
+const engineSupply = {
+  scope: 'global',
+  key: 'f1-2030-two-team-engine-supply-limit',
+  headline: 'F1 plans a two-team limit for each engine manufacturer from 2030',
+  sourceUrl: ENGINE_SUPPLY,
+  publishedAt: NOW - 10 * HOUR,
+};
+
+test('headlines that name no one are matched on their words', () => {
+  const { refusals } = findDuplicates(
+    [
+      {
+        scope: 'global',
+        key: '2030-engine-two-team-supply-limit',
+        headline: 'F1 plans a two-team supply limit per engine maker from 2030',
+        sourceUrl: ENGINE_SUPPLY,
+      },
+    ],
+    [engineSupply],
+    NOW,
+  );
+  assert.equal(refusals.length, 1);
+});
+
+test('a plural reworded as a singular still counts as the same word', () => {
+  const { warnings } = findDuplicates(
+    [
+      {
+        scope: 'global',
+        key: 'engine-makers-two-team-supply-cap-2030',
+        headline:
+          'F1 engine makers reportedly agree to supply two teams each from 2030',
+        sourceUrl: 'https://www.crash.net/f1/news/1110840/1/engine-shake-up',
+      },
+    ],
+    [
+      {
+        ...engineSupply,
+        headline: 'F1 plans a two-team supply limit per engine maker from 2030',
+      },
+    ],
+    NOW,
+  );
+  assert.equal(warnings.length, 1);
+});

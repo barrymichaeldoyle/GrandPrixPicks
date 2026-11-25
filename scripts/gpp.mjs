@@ -23,6 +23,27 @@ import { findDuplicates } from './news-duplicates.mjs';
 const repoRoot = path.resolve(import.meta.dirname, '..');
 const backendDir = path.join(repoRoot, 'apps/backend');
 
+// In a cloud routine, prod Convex is reached through the network-secret
+// proxy named by HTTPS_PROXY. Node's own fetch ignores that variable unless
+// NODE_USE_ENV_PROXY is set at startup, and a fetch that goes round the
+// proxy reaches Convex with the placeholder key: HTTP 401 (the 25 Nov 2026
+// morning sweep could not read the function spec). Restart once with it set.
+if (
+  process.env.GPP_CONVEX_PROXY_URL &&
+  !process.env.NODE_USE_ENV_PROXY &&
+  (process.env.HTTPS_PROXY || process.env.https_proxy)
+) {
+  const child = spawnSync(
+    process.execPath,
+    ['--disable-warning=UNDICI-EHPA', ...process.argv.slice(1)],
+    {
+      stdio: 'inherit',
+      env: { ...process.env, NODE_USE_ENV_PROXY: '1' },
+    },
+  );
+  process.exit(child.status ?? 1);
+}
+
 const HELP = `gpp <command> [args] [--prod] [--json]
 
   race [slug]                     weekend at a glance (default: current weekend)

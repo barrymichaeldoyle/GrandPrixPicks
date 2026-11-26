@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../news/qatar-2026-2026-11-26-evening.json",
+  "startAt": "2026-11-26T16:40:00Z",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["bearman-haas-2027-confirmed"],
+      "text": "Bearman stays at Haas for 2027 on a one-year extension, after months of talks. With Camara in the other car, that completes next year's 22-driver grid.",
+      "quote": "https://x.com/HaasF1Team/status/2125877211328610701",
+      "expiresAt": "2026-11-27T16:00:00Z"
+    }
+  ]
+}

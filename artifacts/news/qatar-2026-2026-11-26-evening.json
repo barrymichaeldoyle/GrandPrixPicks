@@ -1,0 +1,41 @@
+[
+  {
+    "raceSlug": "qatar-2026",
+    "key": "bearman-haas-2027-confirmed",
+    "headline": "Haas confirms Bearman for 2027",
+    "body": "Oliver Bearman has signed a one-year extension with Haas, ending months of talks. He joins Rafael Camara, confirmed for the second seat last month, which completes the 2027 grid.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["BEA"],
+    "topic": "driver",
+    "sourceName": "Sky Sports",
+    "sourceUrl": "https://www.skysports.com/f1/news/13610208/oliver-bearman-to-remain-with-haas-for-2027-f1-season-after-new-contract-finally-agreed-ahead-of-qatar-gp",
+    "sourcePublishedAt": "2026-11-26T09:00:00Z",
+    "notDuplicateOf": ["bearman-haas-2027-unconfirmed"]
+  },
+  {
+    "raceSlug": "qatar-2026",
+    "key": "alonso-qatar-media-day-illness",
+    "headline": "Alonso misses Qatar media day with a viral infection",
+    "body": "Aston Martin says Fernando Alonso caught the infection towards the end of the Las Vegas weekend and is recovering well. He is planned to return to the paddock on Friday.",
+    "category": "general",
+    "affectsSessions": [],
+    "driverCodes": ["ALO"],
+    "topic": "driver",
+    "sourceName": "Motorsport.com",
+    "sourceUrl": "https://www.motorsport.com/f1/news/fernando-alonso-to-miss-qatar-f1-media-day-with-viral-illness/10877849/",
+    "sourcePublishedAt": "2026-11-26T10:57:58Z"
+  },
+  {
+    "raceSlug": "qatar-2026",
+    "key": "qatar-highest-front-tyre-pressure-2026",
+    "headline": "Qatar sets the highest front tyre pressure minimum of 2026",
+    "body": "The FIA notes put the minimum at 29 psi at the front and 27.5 psi at the rear, the highest front figure of the year and the highest ever set at the start of a race weekend. Pirelli raised last year's 28 psi to 29 psi after Friday running, and a similar change this weekend is possible.",
+    "category": "general",
+    "affectsSessions": [],
+    "topic": "technical",
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/f1-drivers-face-highest-tyre-pressure-orders-yet-in-qatar/",
+    "sourcePublishedAt": "2026-11-26T07:17:49Z"
+  }
+]

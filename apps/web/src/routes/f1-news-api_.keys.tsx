@@ -145,7 +145,16 @@ function NewsApiKeysContent() {
             ))}
           </ul>
           <p className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-            <a href={OPENAPI_PATH} className={quietLinkClass}>
+            <a
+              href={OPENAPI_PATH}
+              className={quietLinkClass}
+              onClick={() =>
+                captureAnalyticsEvent('news_api_link_clicked', {
+                  target: 'openapi',
+                  placement: 'keys_page',
+                })
+              }
+            >
               OpenAPI document
             </a>
             <Link to="/f1-news-api" className={quietLinkClass}>
@@ -319,6 +328,9 @@ function KeyRow({ apiKey }: { apiKey: KeyRowData }) {
     setIsRevoking(true);
     try {
       await revokeMyKey({ id: apiKey.id });
+      captureAnalyticsEvent('news_api_key_revoked', {
+        requests_today: requestsToday,
+      });
       setConfirming(false);
     } catch (err) {
       setError(toUserFacingMessage(err, REVOKE_FAILED));

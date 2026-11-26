@@ -82,6 +82,8 @@ export const analyticsEventNames = [
   'league_joined',
   'leagues_web_handoff_opened',
   'news_api_key_created',
+  'news_api_key_revoked',
+  'news_api_link_clicked',
   'news_api_waitlist_joined',
   'next_race_cta_clicked',
   'notification_marked_read',

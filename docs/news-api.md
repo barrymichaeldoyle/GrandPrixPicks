@@ -580,7 +580,15 @@ A self-serve key is an ordinary row: metering, `setKeyPlan` and `revokeKey`
 treat it like any other. Moving one to a paid plan with `setKeyPlan` is how a
 paid key is issued to an account for now, and `myKeys` then shows that plan.
 Creating a key fires the `news_api_key_created` analytics event, with the plan
-and nothing else.
+and nothing else. Revoking one fires `news_api_key_revoked`, with that key's
+requests today.
+
+The landing page's hero links fire `news_api_link_clicked` with a `target`
+(`keys`, `waiting_list`, `sample`, `openapi`) and `placement: 'hero'`; the keys
+page's OpenAPI link sends `placement: 'keys_page'`. The sample and the OpenAPI
+document are raw JSON and fire no pageview, so this is the only record of
+anyone opening them. Joining the waiting list fires `news_api_waitlist_joined`
+(`NewsApiWaitlist`).
 
 ## Metering
 

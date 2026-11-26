@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import type { CSSProperties } from 'react';
 
 import { Button } from '@/components/Button/Button';
+import { captureAnalyticsEvent } from '@/lib/analytics';
 import { pageMeta } from '@/lib/site';
 import { teamFillStyle } from '@/lib/teamColors';
 
@@ -46,6 +47,15 @@ export const Route = createFileRoute('/f1-news-api')({
 const OPENAPI_PATH = '/api/v1/openapi.json';
 const SAMPLE_PATH = '/api/v1/news/sample';
 const KEYS_PATH = '/f1-news-api/keys';
+
+/**
+ * The hero's links. The sample and the OpenAPI document are raw JSON, so they
+ * never fire a pageview: this event is the only record of a developer opening
+ * them.
+ */
+function trackLink(target: 'keys' | 'waiting_list' | 'sample' | 'openapi') {
+  captureAnalyticsEvent('news_api_link_clicked', { target, placement: 'hero' });
+}
 
 const STORIES = [
   {
@@ -255,17 +265,33 @@ function NewsApiPage() {
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
               <Button asChild>
-                <Link to={KEYS_PATH} data-page-cta>
+                <Link
+                  to={KEYS_PATH}
+                  data-page-cta
+                  onClick={() => trackLink('keys')}
+                >
                   Get a free key
                 </Link>
               </Button>
-              <a href="#waiting-list" className={`text-sm ${quietLinkClass}`}>
+              <a
+                href="#waiting-list"
+                className={`text-sm ${quietLinkClass}`}
+                onClick={() => trackLink('waiting_list')}
+              >
                 Join the waiting list
               </a>
-              <a href={SAMPLE_PATH} className={`text-sm ${quietLinkClass}`}>
+              <a
+                href={SAMPLE_PATH}
+                className={`text-sm ${quietLinkClass}`}
+                onClick={() => trackLink('sample')}
+              >
                 Sample response
               </a>
-              <a href={OPENAPI_PATH} className={`text-sm ${quietLinkClass}`}>
+              <a
+                href={OPENAPI_PATH}
+                className={`text-sm ${quietLinkClass}`}
+                onClick={() => trackLink('openapi')}
+              >
                 OpenAPI document
               </a>
             </div>

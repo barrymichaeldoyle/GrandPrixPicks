@@ -1938,7 +1938,8 @@
       "imageUrl": "https://grandprixpicks.com/og/news?race=qatar-2026&story=qatar-pirelli-tyre-wear-friday&v=25e54b078a01",
       "dueAt": "2026-11-28T18:00:00.000Z",
       "expiresAt": "2026-11-29T14:00:00.000Z",
-      "status": "creating"
+      "status": "creating",
+      "bufferPostId": "6b0afc64c2294c5dfcdba6db"
     }
   ]
 }

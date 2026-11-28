@@ -639,10 +639,22 @@ export const recordPracticePollAttempt = internalMutation({
 });
 
 async function populateDuePractice(ctx: ActionCtx, includeHistorical = false) {
-  const tasks: PracticeTask[] = await ctx.runQuery(
-    internal.practiceResults.getDuePracticeSessions,
-    { now: Date.now(), includeHistorical },
-  );
+  function loadDue(): Promise<PracticeTask[]> {
+    return ctx.runQuery(internal.practiceResults.getDuePracticeSessions, {
+      now: Date.now(),
+      includeHistorical,
+    });
+  }
+  // The read is cheap and has no side effects, and Convex occasionally times
+  // one out on its own side ("too many system operations"). One retry absorbs
+  // that; a second failure is a real fault and still throws.
+  const tasks = await loadDue().catch((error: unknown) => {
+    console.warn(
+      'Due practice sessions read failed, retrying once:',
+      error instanceof Error ? error.message : String(error),
+    );
+    return loadDue();
+  });
   if (tasks.length === 0) {
     return { processed: 0, published: 0, failed: 0 };
   }

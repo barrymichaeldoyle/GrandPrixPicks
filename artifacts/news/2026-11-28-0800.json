@@ -1,0 +1,39 @@
+[
+  {
+    "raceSlug": "qatar-2026",
+    "key": "qatar-pirelli-tyre-wear-friday",
+    "headline": "Pirelli sees wear indicators hit 100% after 15 laps in Qatar",
+    "body": "Front-left tyres reached 100% wear in places after 15 laps of high-fuel running on Friday, with graining on all three compounds and degradation of up to 0.2 seconds a lap. Pirelli is reviewing the 27-lap stint cap and the 29psi front pressure after the gravel cuts it found in returned tyres.",
+    "category": "general",
+    "affectsSessions": [],
+    "topic": "technical",
+    "sourceName": "The Race",
+    "sourceUrl": "https://www.the-race.com/formula-1/100-wear-in-15-laps-qatar-tyre-issue-has-got-even-worse/",
+    "sourcePublishedAt": "2026-11-27T22:01:09Z",
+    "notDuplicateOf": ["qatar-pirelli-27-lap-stint-limit", "qatar-highest-front-tyre-pressure-2026"]
+  },
+  {
+    "raceSlug": "italy-2026",
+    "key": "ica-rejects-audi-tsunoda-appeal",
+    "headline": "Court of Appeal rejects Audi's Tsunoda appeal",
+    "body": "The International Court of Appeal upheld the stewards' decision not to penalise Yuki Tsunoda for his grid position before the extra formation lap at Monza. Gabriel Bortoleto finished 11th, one place behind Tsunoda, and the Italian Grand Prix result stands.",
+    "category": "general",
+    "affectsSessions": [],
+    "topic": "penalty",
+    "driverCodes": ["BOR"],
+    "sourceName": "RaceFans",
+    "sourceUrl": "https://www.racefans.net/2026/11/27/court-of-appeal-rejects-audis-call-for-tsunoda-penalty-in-italian-grand-prix/",
+    "sourcePublishedAt": "2026-11-27T17:09:21Z",
+    "notDuplicateOf": ["audi-tsunoda-appeal-hearing-date"]
+  },
+  {
+    "global": true,
+    "key": "fia-engine-freeze-2028-v8-dyno-limits",
+    "headline": "FIA freezes current power units from mid-2028",
+    "body": "Performance development of the hybrid V6 power units stops from the 13th race of 2028, with only reliability updates allowed after that. Until then manufacturers cannot run single-cylinder dyno work on the 2030 V8 before 1 October 2027, or full-engine dyno work before 1 July 2028. Newcomers are exempt.",
+    "topic": "regulation",
+    "sourceName": "Autosport",
+    "sourceUrl": "https://www.autosport.com/f1/news/fia-details-f1-engine-freeze-and-imposes-testing-restrictions-ahead-of-v8-return/10878336/",
+    "sourcePublishedAt": "2026-11-27T17:14:37Z"
+  }
+]

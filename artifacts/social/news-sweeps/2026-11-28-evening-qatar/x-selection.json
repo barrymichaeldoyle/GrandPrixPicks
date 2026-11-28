@@ -1,0 +1,15 @@
+{
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "channelId": "6a6f4b8a99afb44349e9c0f4",
+  "newsFile": "../../../news/2026-11-28-evening-qatar-snapshot.json",
+  "startAt": "2026-11-28T20:00:00+02:00",
+  "intervalMinutes": 25,
+  "posts": [
+    {
+      "keys": ["qatar-pirelli-tyre-wear-friday"],
+      "text": "Qatar's front-left tyres hit 100% wear after 15 laps on Friday, with graining on all three compounds. Pirelli is reviewing the 27-lap stint cap before Sunday's race.",
+      "link": "https://grandprixpicks.com/f1-2026-qatar-grand-prix-predictions?story=qatar-pirelli-tyre-wear-friday",
+      "expiresAt": "2026-11-29T14:00:00Z"
+    }
+  ]
+}
